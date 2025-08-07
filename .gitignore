@@ -1,0 +1,19 @@
+# Node files
+**/node_modules/
+
+# Environment files
+**/.env*
+!**/.env.example
+**/.ghtoken
+config.yml
+
+# Data files
+**/data/
+
+# Editor files
+.vscode/
+.idea/
+SCRATCHPAD.md
+
+# Other files
+**/.DS_Store

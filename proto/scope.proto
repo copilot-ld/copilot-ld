@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package scope;
+
+service Scope {
+  rpc ResolveScope(ResolveScopeRequest) returns (ResolveScopeResponse);
+}
+
+message ResolveScopeRequest {
+  repeated double vector = 1;
+}
+
+message ResolveScopeResponse {
+  repeated string indices = 1;
+}

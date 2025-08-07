@@ -1,0 +1,33 @@
+{
+  "name": "@copilot-ld/scope",
+  "version": "0.1.3",
+  "description": "Scope resolution service using vector similarity for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libconfig": "^0.1.1",
+    "@copilot-ld/libscope": "^0.1.1",
+    "@copilot-ld/libservice": "^0.1.3",
+    "@copilot-ld/libstorage": "^0.1.1",
+    "@copilot-ld/libvector": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "services/scope"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  }
+}

@@ -1,0 +1,21 @@
+tool:
+  download:
+    owner: "some-github-owner"
+    repo: "some-github-repo"
+
+service:
+  agent:
+    threshold: 0.3
+    limit: 50
+    temperature: 0.2
+    prompts:
+      - "You help with software development practices."
+      - "Keep your introduction brief and focused on the task."
+      - "Format your responses in Markdown, using code blocks when relevant."
+
+  history:
+    ttl: 3600
+    checkperiod: 600
+
+  llm:
+    model: "claude-3.5-sonnet"

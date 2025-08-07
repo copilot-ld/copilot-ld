@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package history;
+
+service History {
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse);
+  rpc UpdateHistory(UpdateHistoryRequest) returns (UpdateHistoryResponse);
+}
+
+message GetHistoryRequest {
+  string session_id = 1;
+}
+
+message GetHistoryResponse {
+  repeated common.Message messages = 1;
+}
+
+message UpdateHistoryRequest {
+  string session_id = 1;
+  repeated common.Message messages = 2;
+}
+
+message UpdateHistoryResponse {
+  bool success = 1;
+}

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package common;
+
+message Message {
+  string role = 1;
+  string content = 2;
+}
+
+message Usage {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+}
+
+message Choice {
+  int32 index = 1;
+  Message message = 2;
+  optional string finish_reason = 3;
+}
+
+message Embedding {
+  int32 index = 1;
+  repeated float embedding = 2;
+}
+
+message Chunk {
+  string id = 1;
+  string text = 2;
+  int32 tokens = 3;
+}
+
+message Similarity {
+  string id = 1;
+  double score = 2;
+  int32 tokens = 3;
+  string scope = 4;
+}

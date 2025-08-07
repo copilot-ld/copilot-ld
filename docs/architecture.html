@@ -1,0 +1,728 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot-LD – Architecture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <hgroup>
+        <h1>🤖 Copilot-LD</h1>
+        <p>
+          An intelligent chat agent leveraging GitHub Copilot and Linked Data
+        </p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>Architecture Overview</h2>
+
+      <p>
+        Copilot-LD is an intelligent chat agent leveraging GitHub Copilot and
+        Linked Data, built with Node.js, gRPC microservices and
+        retrieval-augmented generation (RAG) techniques.
+      </p>
+
+      <h3>System Design</h3>
+
+      <ul>
+        <li>
+          <strong>gRPC Microservices</strong>: Single-responsibility services
+          with gRPC communication
+        </li>
+        <li>
+          <strong>Extensions</strong>: Plugin-based adapters for different
+          applications
+        </li>
+        <li>
+          <strong>Modularity</strong>: Framework-agnostic packages for maximum
+          reusability
+        </li>
+        <li>
+          <strong>Performance</strong>: Parallel processing and optimized vector
+          operations
+        </li>
+      </ul>
+
+      <h4>Communication Layer</h4>
+
+      <ul>
+        <li>
+          <strong>gRPC Protocol</strong>: All inter-service communication uses
+          gRPC with Protocol Buffers
+        </li>
+        <li>
+          <strong>REST APIs</strong>: Extensions expose REST endpoints for
+          external client integration
+        </li>
+        <li>
+          <strong>Schema Definition</strong>: Protobuf schemas in
+          <code>/proto</code> ensure type safety
+        </li>
+      </ul>
+
+      <h4>Service Architecture</h4>
+
+      <ul>
+        <li>
+          <strong>Agent Service</strong>: Central orchestrator managing request
+          flow
+        </li>
+        <li>
+          <strong>Specialized Services</strong>: Domain-specific services
+          (history, LLM, vector, scope, text)
+        </li>
+        <li>
+          <strong>Parallel Processing</strong>: Services execute operations
+          concurrently
+        </li>
+        <li>
+          <strong>Stateless Design</strong>: Services maintain no persistent
+          state
+        </li>
+      </ul>
+
+      <h3>Directory Structure</h3>
+
+      <pre>
+./services/         # gRPC services
+./extensions/       # Extensions that adapt core system to applications
+./packages/         # Reusable, domain-focused logic
+./tools/            # Utility scripts for dev and test
+./data/             # Definitions, vectors, and scope data
+      </pre>
+
+      <h3>High-Level Architecture</h3>
+
+      <pre class="mermaid">
+flowchart TD
+    A[Clients]
+    B[Extensions]
+    C[Agent service]
+    D[History service]
+    E[LLM service]
+    F[Scope service]
+    G[Vector service]
+    H[Text service]
+    I[LLM backend]
+    J[History cache]
+    K[Scope index]
+    L[Vector index]
+    M[Chunk index]
+
+    %% Clients communicate with Extensions over REST
+    A -- REST --> B
+
+    %% Extensions interact with the Agent via gRPC
+    B -- gRPC --> C
+
+    %% Agent service interact with backend services
+    C -- gRPC --> D
+    C -- gRPC --> E
+    C -- gRPC --> F
+    C -- gRPC --> G
+    C -- gRPC --> H
+
+    %% Interaction with the foundation model
+    E -- REST --> I
+
+	%% Services that interact with storage
+	D -- Local I/O --> J
+    F -- Local I/O --> K
+    G -- Local I/O --> L
+    H -- Local I/O --> M
+      </pre>
+
+      <h3>Online Sequence Diagram</h3>
+
+      <p>
+        The online sequence diagram illustrates the real-time request processing
+        flow when the platform services are actively running. This shows how a
+        client request flows through the REST extensions, gets orchestrated by
+        the Agent service, and triggers parallel operations across specialized
+        backend services to retrieve relevant information through vector
+        similarity search and scope resolution.
+      </p>
+
+      <pre class="mermaid">
+sequenceDiagram
+    participant Client
+    participant Extension as Extensions
+    participant Agent as Agent service
+    participant History as History service
+    participant LLM as LLM service
+    participant Scope as Scope service
+    participant Vector as Vector service
+    participant Text as Text service
+    participant IndexN0 as Vector index N
+    participant IndexN1 as Vector index N+1
+
+    Client->>Extension: REST request
+    Extension->>Client: REST response
+
+    Extension->>Agent: RPC request (ProcessRequest)
+    Agent->>Extension: RPC response
+
+    par Parallel
+        Agent->>History: RPC request (GetHistory)
+        History-->>Agent: RPC response
+    and
+        Agent->>LLM: RPC request (CreateEmbeddings)
+        LLM-->>Agent: RPC response
+    end
+
+    Agent->>Scope: RPC request (ResolveScope)
+    Scope-->>Agent: RPC response
+
+    Agent->>Vector: RPC request (QueryItems)
+    par Parallel
+        Vector->>IndexN0: I/O request (QueryIndex)
+        IndexN0-->>Vector: I/O response
+    and
+        Vector->>IndexN1: I/O request (QueryIndex)
+        IndexN1-->>Vector: I/O response
+    end
+    Vector-->>Agent: RPC response
+    Note left of Vector: Aggregates, orders<br/>and reduces results
+
+    Agent->>Text: RPC request (GetChunks)
+    Text-->>Agent: RPC response
+
+    Agent--)History: RPC request (UpdateHistory)
+    Note right of Agent: Fire-and-forget,<br/>no response awaited
+
+    Agent->>Extension: RPC response
+    Extension->>Client: REST response
+      </pre>
+
+      <h4>Service Responsibilities</h4>
+
+      <h5>Agent Service</h5>
+
+      <p>
+        Central orchestrator that coordinates all other services. Processes
+        requests by executing operations in parallel for optimal performance and
+        manages the complete business logic flow.
+      </p>
+
+      <h5>History Service</h5>
+
+      <p>
+        Maintains conversation history and context. Provides historical data for
+        request processing and stores interaction records for continuity.
+      </p>
+
+      <h5>LLM Service</h5>
+
+      <p>
+        Interfaces with language models for embedding generation and text
+        completion. Handles communication with external AI services.
+      </p>
+
+      <h5>Scope Service</h5>
+
+      <p>
+        Resolves query scope and determines relevant data sources. Defines which
+        contexts and indices should be used for each request.
+      </p>
+
+      <h5>Vector Service</h5>
+
+      <p>
+        Performs similarity search operations across multiple vector indices.
+        Returns chunk IDs and similarity scores, handling parallel execution and
+        result aggregation.
+      </p>
+
+      <h5>Text Service</h5>
+
+      <p>
+        Retrieves text content for chunks by their IDs. Provides the actual
+        content corresponding to vector search results.
+      </p>
+
+      <h3>Offline Sequence Diagram</h3>
+
+      <p>
+        The platform includes offline tools for knowledge base preparation and
+        vector index creation. These tools process external knowledge sources
+        into searchable vector indices before the services are deployed.
+      </p>
+
+      <pre class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant Download as tools/download.js
+    participant GitHub as GitHub API
+    participant Chunk as tools/chunk.js
+    participant Index as tools/index.js
+    participant LLM as LLM API
+    participant Storage as Local Storage
+
+    Dev->>Download: npm run download
+    Download->>GitHub: Fetch latest release artifacts
+    GitHub-->>Download: Release assets (.tar.gz)
+    Download->>Storage: Extract to data/knowledge/
+    Note right of Download: HTML files with microdata
+
+    Dev->>Chunk: npm run chunk
+    Chunk->>Storage: Read HTML files from data/knowledge/
+    Storage-->>Chunk: HTML content with microdata
+    loop For each HTML file
+        Chunk->>Chunk: Extract microdata items
+        Chunk->>Chunk: Generate chunk ID (SHA-256)
+        Chunk->>Chunk: Format as JSON, count tokens
+        Chunk->>Storage: Store chunk.json in data/chunks/{id}/
+    end
+    Chunk->>Storage: Persist chunk index
+
+    Dev->>Index: npm run index
+    Index->>Storage: Load chunk index
+    Storage-->>Index: All chunk metadata
+
+    par Scope Training
+        Index->>LLM: Create embeddings for training data
+        LLM-->>Index: Training embeddings
+        Index->>Storage: Build scope classification index
+    and Vector Index Creation
+        loop Process chunks in batches
+            Index->>Storage: Load chunk text content
+            Storage-->>Index: Chunk text
+            Index->>LLM: Create embeddings for chunk batch
+            LLM-->>Index: Chunk embeddings
+            Index->>Index: Classify chunks by scope
+            Index->>Storage: Add to scope-specific vector indices
+        end
+    end
+
+    Index->>Storage: Persist all vector indices
+    Note right of Storage: Ready for runtime vector searchxw
+      </pre>
+
+      <h4>Offline Processing Workflow</h4>
+
+      <h5>1. Knowledge Download (tools/download.js)</h5>
+
+      <ul>
+        <li>Downloads latest release artifacts from GitHub repository</li>
+        <li>
+          Extracts compressed archives to <code>data/knowledge/</code> directory
+        </li>
+        <li>Provides HTML files with structured microdata for processing</li>
+      </ul>
+
+      <h5>2. Chunk Processing (tools/chunk.js)</h5>
+
+      <ul>
+        <li>
+          Scans HTML files for microdata items with configurable selectors
+        </li>
+        <li>
+          Extracts structured content and generates unique chunk IDs using
+          SHA-256
+        </li>
+        <li>Formats content as JSON and calculates token counts</li>
+        <li>
+          Stores individual chunks in <code>data/chunks/{id}/chunk.json</code>
+        </li>
+        <li>Creates searchable chunk index for efficient retrieval</li>
+      </ul>
+
+      <h5>3. Vector Indexing (tools/index.js)</h5>
+
+      <ul>
+        <li>
+          <strong>Scope Training</strong>: Creates scope classification index
+          using predefined training data
+        </li>
+        <li>
+          <strong>Batch Processing</strong>: Processes chunks in token-optimized
+          batches to minimize API calls
+        </li>
+        <li>
+          <strong>Embedding Generation</strong>: Creates vector embeddings for
+          all chunks via LLM API
+        </li>
+        <li>
+          <strong>Scope Classification</strong>: Classifies each chunk into
+          predefined scopes (capability, policy, service, process)
+        </li>
+        <li>
+          <strong>Index Creation</strong>: Builds separate vector indices for
+          each scope category
+        </li>
+        <li>
+          <strong>Persistence</strong>: Stores all indices to disk for runtime
+          access
+        </li>
+      </ul>
+
+      <h5>Key Characteristics</h5>
+
+      <ul>
+        <li>
+          <strong>Offline Execution</strong>: All processing occurs before
+          service deployment
+        </li>
+        <li>
+          <strong>API Optimization</strong>: Batched requests minimize LLM API
+          calls and costs
+        </li>
+        <li>
+          <strong>Scope-based Organization</strong>: Separate indices per scope
+          enable targeted search
+        </li>
+        <li>
+          <strong>Incremental Processing</strong>: Skips existing chunks to
+          support iterative updates
+        </li>
+        <li>
+          <strong>Token Management</strong>: Respects API token limits while
+          maximizing batch efficiency
+        </li>
+      </ul>
+
+      <h5>Data Flow</h5>
+
+      <ol>
+        <li><strong>Raw Knowledge</strong> → HTML files with microdata</li>
+        <li>
+          <strong>Structured Chunks</strong> → Individual JSON files with
+          metadata
+        </li>
+        <li>
+          <strong>Vector Embeddings</strong> → Numerical representations for
+          similarity search
+        </li>
+        <li>
+          <strong>Classified Indices</strong> → Scope-specific vector databases
+          ready for runtime queries
+        </li>
+      </ol>
+
+      <p>
+        This offline pipeline ensures that runtime services can perform fast
+        vector similarity searches without depending on external APIs or
+        requiring real-time embedding generation.
+      </p>
+
+      <h3>Security Architecture</h3>
+
+      <p>
+        The security design focuses on network isolation, service
+        authentication, and secure communication channels.
+      </p>
+
+      <h4>Network Topology</h4>
+
+      <p>
+        The system implements a defense-in-depth approach with network isolation
+        between external-facing extensions and internal backend services.
+      </p>
+
+      <h5>Network Architecture</h5>
+
+      <pre class="mermaid">
+graph TB
+    subgraph "Host Network"
+        Client[External Clients]
+    end
+
+    subgraph "External Network (copilot-ld.external)"
+        Web[Web Extension<br/>:3000]
+        Copilot[Copilot Extension<br/>:3001]
+    end
+
+    subgraph "Internal Network (copilot-ld.internal)"
+        Agent[Agent Service<br/>:3000]
+        History[History Service<br/>:3000]
+        LLM[LLM Service<br/>:3000]
+        Scope[Scope Service<br/>:3000]
+        Vector[Vector Service<br/>:3000]
+        Text[Text Service<br/>:3000]
+    end
+
+    subgraph "External Services"
+        LLMAPI[LLM API<br/>OpenAI/etc]
+    end
+
+    %% External connections
+    Client -.->|REST/HTTP| Web
+    Client -.->|REST/HTTP| Copilot
+
+    %% Extension to Agent connections (via network bridge)
+    Web -->|gRPC| Agent
+    Copilot -->|gRPC| Agent
+
+    %% Internal service mesh (isolated network)
+    Agent -->|gRPC| History
+    Agent -->|gRPC| LLM
+    Agent -->|gRPC| Scope
+    Agent -->|gRPC| Vector
+    Agent -->|gRPC| Text
+
+    %% External API calls
+    LLM -.->|HTTPS| LLMAPI
+
+    style Web fill:#e1f5fe
+    style Copilot fill:#e1f5fe
+    style Agent fill:#f3e5f5
+    style History fill:#fff3e0
+    style LLM fill:#fff3e0
+    style Scope fill:#fff3e0
+    style Vector fill:#fff3e0
+    style Text fill:#fff3e0
+      </pre>
+
+      <h5>Port Exposure Strategy</h5>
+
+      <ul>
+        <li>
+          <strong>Web Extension</strong> (<code>copilot-ld.web</code>): Exposes
+          port 3000 to host, bridges external and internal networks
+        </li>
+        <li>
+          <strong>Copilot Extension</strong> (<code>copilot-ld.copilot</code>):
+          Exposes port 3001 to host, bridges external and internal networks
+        </li>
+        <li>
+          <strong>Backend Services</strong>: No host port exposure - isolated on
+          internal network only
+        </li>
+      </ul>
+
+      <h5>Network Isolation Benefits</h5>
+
+      <ol>
+        <li>
+          <strong>Enhanced Attack Surface Reduction</strong>: Backend services
+          are completely isolated on internal network
+        </li>
+        <li>
+          <strong>Network Segmentation</strong>: Extensions on external network
+          bridge to internal network for controlled access
+        </li>
+        <li>
+          <strong>Service Mesh Isolation</strong>: Internal gRPC communication
+          is fully segmented from external traffic
+        </li>
+        <li>
+          <strong>Defense in Depth</strong>: Dual network topology provides
+          additional security boundaries
+        </li>
+      </ol>
+
+      <h4>Authentication Mechanisms</h4>
+
+      <h5>Authentication Flow</h5>
+
+      <p>
+        The platform implements HMAC-SHA256 authentication for
+        service-to-service communication using the
+        <code>HmacAuth</code> class.
+      </p>
+
+      <pre class="mermaid">
+sequenceDiagram
+    participant Service A
+    participant Service B
+    participant Authenticator
+
+    Service A->>Authenticator: generateToken(serviceId)
+    Authenticator->>Authenticator: Create payload: serviceId:timestamp
+    Authenticator->>Authenticator: Sign with HMAC-SHA256
+    Authenticator-->>Service A: Base64 encoded token
+
+    Service A->>Service B: gRPC request + token
+    Service B->>Authenticator: verifyToken(token)
+    Authenticator->>Authenticator: Decode and validate signature
+    Authenticator->>Authenticator: Check token expiration
+    Authenticator-->>Service B: {isValid, serviceId, error}
+
+    alt Token Valid
+        Service B-->>Service A: Process request
+    else Token Invalid
+        Service B-->>Service A: Authentication error
+    end
+      </pre>
+
+      <h5>HMAC Implementation Details</h5>
+
+      <ul>
+        <li><strong>Algorithm</strong>: HMAC-SHA256</li>
+        <li>
+          <strong>Secret</strong>: Shared via
+          <code>SERVICE_AUTH_SECRET</code> environment variable (minimum 32
+          characters)
+        </li>
+        <li>
+          <strong>Token Format</strong>:
+          <code>Base64(serviceId:timestamp:signature)</code>
+        </li>
+        <li><strong>Token Lifetime</strong>: 60 seconds (configurable)</li>
+        <li>
+          <strong>Payload Structure</strong>: <code>serviceId:timestamp</code>
+        </li>
+      </ul>
+
+      <h5>Token Generation Process</h5>
+
+      <ol>
+        <li>Create payload combining service ID and current timestamp</li>
+        <li>Generate HMAC-SHA256 signature using shared secret</li>
+        <li>
+          Encode as Base64: <code>Base64(serviceId:timestamp:signature)</code>
+        </li>
+      </ol>
+
+      <h5>Token Verification Process</h5>
+
+      <ol>
+        <li>Decode Base64 token</li>
+        <li>Extract service ID, timestamp, and signature</li>
+        <li>Verify timestamp is within token lifetime</li>
+        <li>Recreate expected signature using shared secret</li>
+        <li>Compare signatures using constant-time comparison</li>
+      </ol>
+
+      <h4>Communication Security</h4>
+
+      <h5>gRPC Internal Communication</h5>
+
+      <ul>
+        <li><strong>Protocol</strong>: gRPC over HTTP/2</li>
+        <li><strong>Network</strong>: Isolated Docker bridge network</li>
+        <li><strong>Authentication</strong>: HMAC tokens</li>
+        <li>
+          <strong>Schema Validation</strong>: Protocol Buffer message validation
+        </li>
+      </ul>
+
+      <h5>External API Communication</h5>
+
+      <ul>
+        <li>
+          <strong>Extensions to Clients</strong>: REST over HTTP (can be
+          upgraded to HTTPS)
+        </li>
+        <li>
+          <strong>LLM Service to External APIs</strong>: HTTPS with API key
+          authentication
+        </li>
+      </ul>
+
+      <h4>Security Limitations</h4>
+
+      <h5>mTLS Not Implemented</h5>
+
+      <p>
+        Mutual TLS (mTLS) is not currently implemented between services. Future
+        security enhancements should include:
+      </p>
+
+      <ul>
+        <li>Certificate-based service authentication</li>
+        <li>Encrypted gRPC communication channels</li>
+        <li>Service identity verification via X.509 certificates</li>
+      </ul>
+
+      <h5>Rate-Limiting Not Implemented</h5>
+
+      <p>
+        Rate-limiting is not currently implemented for externally facing
+        services. Future enhancements should include:
+      </p>
+
+      <ul>
+        <li>Request throttling per client IP address to prevent abuse</li>
+        <li>Adaptive rate limiting based on service resource utilization</li>
+        <li>
+          Token bucket or sliding window algorithms for burst traffic handling
+        </li>
+        <li>
+          Configurable rate limits per extension type (web vs API clients)
+        </li>
+      </ul>
+
+      <h4>Threat Model</h4>
+
+      <h5>Protected Against</h5>
+
+      <ol>
+        <li>
+          <strong>External Service Access</strong>: Backend services cannot be
+          directly accessed from outside the Docker network
+        </li>
+        <li>
+          <strong>Service Impersonation</strong>: HMAC authentication prevents
+          unauthorized service access (when enabled)
+        </li>
+        <li>
+          <strong>Token Replay</strong>: Time-limited tokens reduce replay
+          attack windows
+        </li>
+      </ol>
+
+      <h5>Current Vulnerabilities</h5>
+
+      <ol>
+        <li>
+          <strong>Network Sniffing</strong>: Internal gRPC traffic is
+          unencrypted
+        </li>
+        <li>
+          <strong>Container Compromise</strong>: If one container is
+          compromised, it can access other services on the same network
+        </li>
+        <li>
+          <strong>Extension Security</strong>: Extensions are the primary attack
+          surface and must implement their own input validation
+        </li>
+      </ol>
+
+      <h4>Service Security Responsibilities</h4>
+
+      <h5>Extensions (Web, Copilot)</h5>
+
+      <ul>
+        <li>Input validation and sanitization</li>
+        <li>Rate limiting and DDoS protection</li>
+        <li>Session management</li>
+        <li>CORS policy enforcement</li>
+      </ul>
+
+      <h5>Agent Service</h5>
+
+      <ul>
+        <li>Request orchestration security</li>
+        <li>Service-to-service authentication enforcement</li>
+        <li>Business logic security validation</li>
+      </ul>
+
+      <h5>Backend Services (History, LLM, Scope, Vector, Text)</h5>
+
+      <ul>
+        <li>gRPC message validation</li>
+        <li>Resource usage limiting</li>
+        <li>Data access controls</li>
+        <li>Error handling without information disclosure</li>
+      </ul>
+    </main>
+    <footer>
+      <p>© D. Olsson</p>
+    </footer>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    </script>
+  </body>
+</html>

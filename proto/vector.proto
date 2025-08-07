@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package vector;
+
+service Vector {
+  rpc QueryItems(QueryItemsRequest) returns (QueryItemsResponse);
+}
+
+message QueryItemsRequest {
+  repeated string indices = 1;
+  repeated double vector = 2;
+  optional double threshold = 3;
+  optional int32 limit = 4;
+}
+
+message QueryItemsResponse {
+  repeated common.Similarity results = 1;
+}

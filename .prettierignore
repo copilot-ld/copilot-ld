@@ -1,0 +1,19 @@
+# Node files
+**/node_modules/
+**/package-lock.json
+
+# Environment files
+**/*.env*
+**/.ghtoken
+
+# Data files
+**/data/
+
+# Editor files
+SCRATCHPAD.md
+.vscode/
+.idea/
+
+# Other files
+**/.DS_Store
+**/.git

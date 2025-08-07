@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package text;
+
+service Text {
+  rpc GetChunks(GetChunksRequest) returns (GetChunksResponse);
+}
+
+message GetChunksRequest {
+  repeated string ids = 1;
+}
+
+message GetChunksResponse {
+  map<string, common.Chunk> chunks = 1;
+}

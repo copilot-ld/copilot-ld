@@ -1,0 +1,27 @@
+{
+  "name": "@copilot-ld/libcopilot",
+  "version": "0.1.8",
+  "description": "GitHub Copilot API client and integration utilities for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "js-tiktoken": "^1.0.20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/libcopilot"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  }
+}

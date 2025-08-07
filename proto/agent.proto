@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package agent;
+
+service Agent {
+  rpc ProcessRequest(AgentRequest) returns (AgentResponse);
+}
+
+message AgentRequest {
+  repeated common.Message messages = 1;
+  optional string session_id = 2;
+  optional string github_token = 8;
+}
+
+message AgentResponse {
+  string id = 1;
+  string object = 2;
+  int64 created = 3;
+  string model = 4;
+  repeated common.Choice choices = 5;
+  common.Usage usage = 6;
+  string session_id = 7;
+}

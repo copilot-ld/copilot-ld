@@ -1,0 +1,39 @@
+{
+  "name": "@copilot-ld/tools",
+  "version": "0.1.0",
+  "description": "Development and operational tools for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "chat": "node chat.js",
+    "chunk": "node chunk.js",
+    "download": "node download.js",
+    "embed": "node embed.js",
+    "search": "node search.js",
+    "token": "node token.js",
+    "index": "node index.js",
+    "test": "echo 'No tests specified for tools'"
+  },
+  "dependencies": {
+    "@copilot-ld/libchunk": "^0.1.0",
+    "@copilot-ld/libconfig": "^0.1.0",
+    "@copilot-ld/libcopilot": "^0.1.0",
+    "@copilot-ld/librepl": "^0.1.0",
+    "@copilot-ld/libscope": "^0.1.0",
+    "@copilot-ld/libservice": "^0.1.2",
+    "@copilot-ld/libstorage": "^0.1.0",
+    "@copilot-ld/libvector": "^0.1.0",
+    "@octokit/auth-oauth-device": "^8.0.1",
+    "@octokit/core": "^7.0.3"
+  },
+  "repository": {
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

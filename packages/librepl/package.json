@@ -1,0 +1,29 @@
+{
+  "name": "@copilot-ld/librepl",
+  "version": "0.1.1",
+  "description": "Interactive REPL utilities and command-line interfaces for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libformat": "^0.1.1",
+    "marked": "^16.1.2",
+    "marked-terminal": "^7.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/librepl"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  }
+}

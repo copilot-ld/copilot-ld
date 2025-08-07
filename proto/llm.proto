@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package llm;
+
+service Llm {
+  rpc CreateEmbeddings(EmbeddingRequest) returns (EmbeddingResponse);
+  rpc CreateCompletions(CompletionRequest) returns (CompletionResponse);
+}
+
+message EmbeddingRequest {
+  repeated string chunks = 1;
+  optional string github_token = 2;
+}
+
+message EmbeddingResponse {
+  repeated common.Embedding data = 1;
+}
+
+message CompletionRequest {
+  repeated common.Message messages = 1;
+  optional int32 max_tokens = 2;
+  optional float temperature = 3;
+  optional float top_p = 4;
+  optional string github_token = 8;
+}
+
+message CompletionResponse {
+  string id = 1;
+  string object = 2;
+  int64 created = 3;
+  string model = 4;
+  repeated common.Choice choices = 5;
+  common.Usage usage = 6;
+}

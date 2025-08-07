@@ -1,0 +1,121 @@
+services:
+  # Extensions
+  web:
+    build:
+      context: .
+      dockerfile: ./extensions/web/Dockerfile
+    image: copilot-ld/web:latest
+    container_name: copilot-ld.web
+    environment:
+      - SERVICE_AGENT_HOST=agent
+      - SERVICE_AGENT_PORT=3000
+    ports:
+      - "3000:3000"
+    networks:
+      - external
+      - internal
+    depends_on:
+      - agent
+
+  copilot:
+    build:
+      context: .
+      dockerfile: ./extensions/copilot/Dockerfile
+    image: copilot-ld/copilot:latest
+    container_name: copilot-ld.copilot
+    environment:
+      - SERVICE_AGENT_HOST=agent
+      - SERVICE_AGENT_PORT=3000
+    ports:
+      - "3001:3000"
+    networks:
+      - external
+      - internal
+    depends_on:
+      - agent
+
+  # Services
+  agent:
+    build:
+      context: .
+      dockerfile: ./services/agent/Dockerfile
+    image: copilot-ld/agent:latest
+    container_name: copilot-ld.agent
+    environment:
+      - SERVICE_HISTORY_HOST=history
+      - SERVICE_HISTORY_PORT=3000
+      - SERVICE_LLM_HOST=llm
+      - SERVICE_LLM_PORT=3000
+      - SERVICE_SCOPE_HOST=scope
+      - SERVICE_SCOPE_PORT=3000
+      - SERVICE_VECTOR_HOST=vector
+      - SERVICE_VECTOR_PORT=3000
+      - SERVICE_TEXT_HOST=text
+      - SERVICE_TEXT_PORT=3000
+    networks:
+      - internal
+    depends_on:
+      - history
+      - llm
+      - scope
+      - vector
+      - text
+
+  history:
+    build:
+      context: .
+      dockerfile: ./services/history/Dockerfile
+    image: copilot-ld/history:latest
+    container_name: copilot-ld.history
+    networks:
+      - internal
+
+  llm:
+    build:
+      context: .
+      dockerfile: ./services/llm/Dockerfile
+    image: copilot-ld/llm:latest
+    container_name: copilot-ld.llm
+    networks:
+      - internal
+
+  scope:
+    build:
+      context: .
+      dockerfile: ./services/scope/Dockerfile
+    image: copilot-ld/scope:latest
+    container_name: copilot-ld.scope
+    networks:
+      - internal
+    volumes:
+      - ./data/scope:/app/data/scope
+
+  vector:
+    build:
+      context: .
+      dockerfile: ./services/vector/Dockerfile
+    image: copilot-ld/vector:latest
+    container_name: copilot-ld.vector
+    networks:
+      - internal
+    volumes:
+      - ./data/vectors:/app/data/vectors
+
+  text:
+    build:
+      context: .
+      dockerfile: ./services/text/Dockerfile
+    image: copilot-ld/text:latest
+    container_name: copilot-ld.text
+    networks:
+      - internal
+    volumes:
+      - ./data/chunks:/app/data/chunks
+
+networks:
+  external:
+    driver: bridge
+    name: copilot-ld.external
+  internal:
+    driver: bridge
+    name: copilot-ld.internal

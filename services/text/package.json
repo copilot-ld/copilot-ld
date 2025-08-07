@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/text",
-  "version": "0.1.8",
+  "version": "0.1.0",
   "description": "Text chunk retrieval service for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -15,10 +15,10 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libchunk": "^0.1.7",
-    "@copilot-ld/libconfig": "^0.1.1",
-    "@copilot-ld/libservice": "^0.1.3",
-    "@copilot-ld/libstorage": "^0.1.1"
+    "@copilot-ld/libchunk": "^0.1.0",
+    "@copilot-ld/libconfig": "^0.1.0",
+    "@copilot-ld/libservice": "^0.1.0",
+    "@copilot-ld/libstorage": "^0.1.0"
   },
   "repository": {
     "type": "git",

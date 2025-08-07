@@ -24,7 +24,7 @@
     "@copilot-ld/libcopilot": "^0.1.0",
     "@copilot-ld/librepl": "^0.1.0",
     "@copilot-ld/libscope": "^0.1.0",
-    "@copilot-ld/libservice": "^0.1.2",
+    "@copilot-ld/libservice": "^0.1.0",
     "@copilot-ld/libstorage": "^0.1.0",
     "@copilot-ld/libvector": "^0.1.0",
     "@octokit/auth-oauth-device": "^8.0.1",

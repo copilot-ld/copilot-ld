@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libchunk",
-  "version": "0.1.7",
+  "version": "0.1.0",
   "description": "HTML chunk extraction and document processing for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libcopilot": "^0.1.8",
+    "@copilot-ld/libcopilot": "^0.1.0",
     "microdata-minimal": "git+https://github.com/jamesaduncan/schema-elements-minimal.git#main",
     "prettier": "^3.6.2"
   },

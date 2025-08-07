@@ -200,9 +200,8 @@ jobs:
           VERSION="${{ matrix.item.version }}"
 
           if [[ -f "$TYPE/$NAME/Dockerfile" ]]; then
-            cd "$TYPE/$NAME"
             IMAGE="ghcr.io/${{ github.repository }}/$NAME"
-            docker build -t $IMAGE:$VERSION -t $IMAGE:latest .
+            docker build -f "$TYPE/$NAME/Dockerfile" -t $IMAGE:$VERSION -t $IMAGE:latest .
             docker push $IMAGE:$VERSION
             docker push $IMAGE:latest
             echo "Published container $IMAGE:$VERSION"

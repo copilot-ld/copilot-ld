@@ -207,7 +207,9 @@ jobs:
 
   create-releases:
     needs: [bump, publish-packages, publish-containers]
-    if: always() && needs.bump.result == 'success'
+    if:
+      needs.bump.result == 'success' && needs.publish-packages.result ==
+      'success' && needs.publish-containers.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write

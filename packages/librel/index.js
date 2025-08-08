@@ -1,7 +1,11 @@
 /* eslint-env node */
 import { join } from "path";
 
-import { ReleaseBumperInterface, ReleaseChangesInterface } from "./types.js";
+import {
+  ReleaseBumperInterface,
+  ReleaseChangesInterface,
+  ReleaseLogInterface,
+} from "./types.js";
 
 /**
  * Release bumper implementation with dependency injection
@@ -222,4 +226,187 @@ export class ReleaseChanges extends ReleaseChangesInterface {
   }
 }
 
-export { ReleaseBumperInterface, ReleaseChangesInterface };
+/**
+ * Release log management implementation with dependency injection
+ * @implements {ReleaseLogInterface}
+ */
+export class ReleaseLog extends ReleaseLogInterface {
+  #globSync;
+  #readFileSync;
+  #writeFileSync;
+  #existsSync;
+
+  constructor(globSyncFn, readFileSyncFn, writeFileSyncFn, existsSyncFn) {
+    super();
+    if (!globSyncFn) throw new Error("globSyncFn is required");
+    if (!readFileSyncFn) throw new Error("readFileSyncFn is required");
+    if (!writeFileSyncFn) throw new Error("writeFileSyncFn is required");
+    if (!existsSyncFn) throw new Error("existsSyncFn is required");
+    this.#globSync = globSyncFn;
+    this.#readFileSync = readFileSyncFn;
+    this.#writeFileSync = writeFileSyncFn;
+    this.#existsSync = existsSyncFn;
+  }
+
+  /** @inheritdoc */
+  async addNote(path, note, date) {
+    if (!path) throw new Error("path is required");
+    if (!note) throw new Error("note is required");
+
+    // Use today's date if not provided
+    const targetDate = date || new Date().toISOString().split("T")[0];
+
+    // Find all CHANGELOG.md files under the path
+    const changelogFiles = this.#findChangelogFiles(path);
+
+    const updatedFiles = [];
+    for (const filePath of changelogFiles) {
+      try {
+        this.#updateChangelog(filePath, note, targetDate);
+        updatedFiles.push(filePath);
+      } catch (error) {
+        // Log error but continue processing other files
+        console.error(`Failed to update ${filePath}: ${error.message}`);
+      }
+    }
+
+    return updatedFiles;
+  }
+
+  #findChangelogFiles(path) {
+    const patterns = [];
+
+    // If path ends with CHANGELOG.md, use it directly
+    if (path.endsWith("CHANGELOG.md")) {
+      patterns.push(path);
+    } else {
+      // Otherwise, search recursively for CHANGELOG.md files
+      const searchPath = path.endsWith("/") ? path : `${path}/`;
+      patterns.push(`${searchPath}**/CHANGELOG.md`);
+    }
+
+    const files = [];
+    for (const pattern of patterns) {
+      try {
+        const matches = this.#globSync(pattern);
+        files.push(...matches);
+      } catch (error) {
+        // If glob fails, try direct file check
+        console.error(`Glob pattern failed for ${pattern}: ${error.message}`);
+        if (this.#existsSync(pattern)) {
+          files.push(pattern);
+        }
+      }
+    }
+
+    return [...new Set(files)]; // Remove duplicates
+  }
+
+  #updateChangelog(filePath, note, targetDate) {
+    let content = "";
+
+    // Read existing content or create new file
+    if (this.#existsSync(filePath)) {
+      content = this.#readFileSync(filePath, "utf8");
+    } else {
+      content = "# Changelog\n\n";
+    }
+
+    // Ensure file starts with proper header
+    if (!content.includes("# Changelog")) {
+      content = "# Changelog\n\n" + content;
+    }
+
+    const lines = content.split("\n");
+    const dateHeading = `## ${targetDate}`;
+    const noteBullet = `- ${note}`;
+
+    // Find if date heading already exists
+    const dateHeadingIndex = lines.findIndex(
+      (line) => line.trim() === dateHeading,
+    );
+
+    if (dateHeadingIndex !== -1) {
+      // Date heading exists, add note after it
+      // Find the next line that's not empty after the heading
+      let insertIndex = dateHeadingIndex + 1;
+
+      // Skip any empty lines immediately after the heading
+      while (insertIndex < lines.length && lines[insertIndex].trim() === "") {
+        insertIndex++;
+      }
+
+      // Find the position after existing bullets for this date
+      while (
+        insertIndex < lines.length &&
+        lines[insertIndex].startsWith("- ")
+      ) {
+        insertIndex++;
+      }
+
+      lines.splice(insertIndex, 0, noteBullet);
+    } else {
+      // Date heading doesn't exist, need to add it
+      // Find where to insert based on chronological order (ascending)
+      let insertIndex = -1;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith("## ")) {
+          const existingDate = line.substring(3).trim();
+          if (targetDate < existingDate) {
+            insertIndex = i;
+            break;
+          }
+        }
+      }
+
+      if (insertIndex === -1) {
+        // Add at the end
+        // Find the last content line to append after
+        let lastContentIndex = lines.length - 1;
+        while (lastContentIndex >= 0 && lines[lastContentIndex].trim() === "") {
+          lastContentIndex--;
+        }
+        insertIndex = lastContentIndex + 1;
+
+        // For new files, ensure proper spacing after the header
+        if (insertIndex <= 2) {
+          // Right after "# Changelog" and empty line
+          insertIndex = 2;
+        }
+      }
+
+      // Ensure proper spacing before new section
+      if (
+        insertIndex > 0 &&
+        lines[insertIndex - 1].trim() !== "" &&
+        !lines[insertIndex - 1].startsWith("# ")
+      ) {
+        lines.splice(insertIndex, 0, "");
+        insertIndex++;
+      }
+
+      // Insert date heading, empty line, and note
+      lines.splice(insertIndex, 0, dateHeading, "", noteBullet);
+
+      // Ensure spacing after new section if there's content following
+      if (
+        insertIndex + 3 < lines.length &&
+        lines[insertIndex + 3].trim() !== ""
+      ) {
+        lines.splice(insertIndex + 3, 0, "");
+      }
+    }
+
+    // Clean up content and ensure exactly one trailing newline
+    let updatedContent = lines.join("\n");
+
+    // Remove multiple trailing newlines and add exactly one
+    updatedContent = updatedContent.replace(/\n+$/, "") + "\n";
+
+    this.#writeFileSync(filePath, updatedContent);
+  }
+}
+
+export { ReleaseBumperInterface, ReleaseChangesInterface, ReleaseLogInterface };

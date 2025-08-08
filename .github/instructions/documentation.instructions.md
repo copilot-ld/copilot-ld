@@ -14,18 +14,22 @@ all code changes across the platform.
 
 1. **Two-File Documentation**: This project maintains only `README.md` and
    `docs/architecture.html` as official documentation
-2. **Synchronous Updates**: Documentation updates must accompany code changes in
+2. **Component Changelogs**: Each component in `extensions/`, `packages/`, and
+   `services/` must maintain a simple `CHANGELOG.md` in ascending chronological
+   order
+3. **Synchronous Updates**: Documentation updates must accompany code changes in
    the same commit or pull request
-3. **Simple Maintenance**: Keep documentation updates straightforward and
+4. **Simple Maintenance**: Keep documentation updates straightforward and
    focused on essential information
-4. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
+5. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
    be complete, valid, and pass ES linting with strict configuration
 
 ## Implementation Requirements
 
 ### Documentation Files
 
-This project maintains exactly two documentation files:
+This project maintains exactly two main documentation files plus component
+changelogs:
 
 #### README.md Requirements
 
@@ -42,6 +46,33 @@ This project maintains exactly two documentation files:
 - **Communication Patterns**: How components interact with each other
 - **Data Flow**: How information flows through the system
 
+#### Component CHANGELOG.md Requirements
+
+Each component in `extensions/`, `packages/`, and `services/` must maintain a
+`CHANGELOG.md` file with this exact format:
+
+```markdown
+# Changelog
+
+## 2025-01-01
+
+- Some addition to the API
+- Version bump
+
+## 2025-01-02
+
+- Another addition to the API
+- Another version bump
+```
+
+**Format Rules**:
+
+- Single top-level `# Changelog` heading
+- Date headings in `YYYY-MM-DD` format using `## `
+- Simple bullet points for each change
+- Ascending chronological order (oldest first)
+- Updates must be added when component code changes
+
 ### Update Requirements
 
 When making code changes, update documentation in the same commit:
@@ -50,17 +81,20 @@ When making code changes, update documentation in the same commit:
 
 When adding services, packages, extensions, or tools:
 
-1. Update `docs/architecture.html` to include the new component
-2. Update `README.md` if the change affects setup or usage
-3. Ensure component descriptions are clear and accurate
+1. Create a `CHANGELOG.md` file in the component directory using the required
+   format
+2. Update `docs/architecture.html` to include the new component
+3. Update `README.md` if the change affects setup or usage
+4. Ensure component descriptions are clear and accurate
 
 #### Modifying Existing Components
 
 When changing existing functionality:
 
-1. Update `docs/architecture.html` if the change affects system design
-2. Update `README.md` if the change affects user interaction
-3. Verify all references remain accurate
+1. Add entry to component's `CHANGELOG.md` with current date
+2. Update `docs/architecture.html` if the change affects system design
+3. Update `README.md` if the change affects user interaction
+4. Verify all references remain accurate
 
 ### JavaScript Code Block Standards
 
@@ -308,8 +342,8 @@ When modifying the vector service to add new functionality:
 ### Vector Service
 
 **Purpose**: Manages document embeddings and vector similarity searches
-**Protocol**: gRPC using vector.proto definitions **Dependencies**: None
-**State**: Stateless with persistent vector storage
+**Protocol**: gRPC using vector.proto definitions **State**: Stateless with
+persistent vector storage
 
 **Key Operations**:
 
@@ -318,87 +352,13 @@ When modifying the vector service to add new functionality:
 - `UpdateIndex`: Refreshes the vector search index (NEW)
 ```
 
-**README.md update (if affects setup):**
+**services/vector/CHANGELOG.md update:**
 
 ```markdown
-## Configuration
+## 2025-08-08
 
-Update `config.yml` with: vector: indexRefreshInterval: 3600 # New configuration
-option
-```
-
-### Extension Integration Example
-
-When adding a new extension that affects user interaction:
-
-**README.md update:**
-
-````markdown
-## API Endpoints
-
-### Teams Extension
-
-- `POST /api/teams/query` - Process natural language queries
-- `GET /api/teams/health` - Check service health
-- `POST /api/teams/feedback` - Submit user feedback
-
-### Configuration
-
-```yaml
-extensions:
-  teams:
-    enabled: true
-    port: 3001
-    webhookUrl: "https://teams.microsoft.com/webhook/..."
-```
-````
-
-**docs/architecture.html update:**
-
-```markdown
-### Teams Extension
-
-**Purpose**: Microsoft Teams integration for conversational AI interface
-**Type**: REST API extension **Dependencies**: Agent Service, Web Extension base
-**Network**: External bridge (host:3001 → agent:3000)
-
-**Key Features**:
-
-- Teams bot integration with webhook support
-- Natural language query processing
-- Real-time response delivery
-- User session management
-```
-
-### Package Documentation Example
-
-When creating a new package that affects development:
-
-**README.md update:**
-
-```markdown
-## Development Packages
-
-- `@copilot-ld/libconfig` - Configuration management
-- `@copilot-ld/libservice` - gRPC service framework
-- `@copilot-ld/libvector` - Vector operations and similarity
-- `@copilot-ld/libanalysis` - Text analysis utilities (NEW)
-```
-
-**docs/architecture.html update:**
-
-```markdown
-### Analysis Package (`@copilot-ld/libanalysis`)
-
-**Purpose**: Framework-agnostic text analysis and processing utilities
-**Dependencies**: None (pure JavaScript) **Exports**: `TextAnalyzer`,
-`SentimentAnalyzer`, `LanguageDetector`
-
-**Key Interfaces**:
-
-- `AnalysisInterface` - Base analysis contract
-- `ResultFormatter` - Standardized result formatting
-- `MetricsCollector` - Performance and accuracy metrics
+- Added new `UpdateIndex` operation to the Vector Service
+- Increased default `indexRefreshInterval` to 3600 seconds
 ```
 
 ### Documentation Synchronization Workflow
@@ -411,14 +371,15 @@ When creating a new package that affects development:
    git checkout -b feature/sentiment-analysis
    # Draft documentation changes first
    vim docs/architecture.html  # Add new component
-   vim README.md       # Update usage examples
+   vim services/example/CHANGELOG.md # Update changelog
+   vim README.md # Update usage examples
    ```
 
 2. **Implementation with Documentation**:
 
    ```bash
    # Implement feature
-   npm run develop
+   npm run dev
    # Update documentation as code evolves
    git add . && git commit -m "feat: sentiment analysis with docs"
    ```
@@ -426,10 +387,8 @@ When creating a new package that affects development:
 3. **Pre-commit Validation**:
 
    ```bash
-   # Verify documentation accuracy
-   npm run test:docs
-   # Check that examples work
-   npm run validate:examples
+   # Check documentation linting, formatting and spelling
+   npm run check
    ```
 
 4. **Pull Request Process**:
@@ -441,9 +400,10 @@ When creating a new package that affects development:
 
 1. Make code changes to add/modify functionality
 2. Update `docs/architecture.html` if system design changes
-3. Update `README.md` if user interaction changes
-4. Commit code and documentation together
-5. Verify documentation accuracy in pull request
+3. Update the component's `CHANGELOG.md` to describe changes
+4. Update `README.md` if the project setup is impacted
+5. Commit code and documentation together
+6. Verify documentation accuracy in pull request
 
 This approach keeps documentation simple, current, and focused on the two
 essential files that users and developers need to understand and work with the

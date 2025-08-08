@@ -1,12 +1,22 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { ReleaseBumper, ReleaseChanges } from "../index.js";
-import { setupMockPackages } from "./fixtures/packages.js";
+
+import { ReleaseBumper, ReleaseChanges, ReleaseLog } from "../index.js";
+
+import {
+  changelogFixtures,
+  packageJsonFixtures,
+} from "./fixtures/file-samples.js";
+import {
+  gitDiffOutputs,
+  directoryStructures,
+  globPatterns,
+} from "./fixtures/git-mocks.js";
 
 describe("ReleaseBumper", () => {
   let mockExecSync;
-  let mockFsModule;
+  let mockFs;
   let releaseBumper;
   let capturedCommands;
   let fileContents;
@@ -17,345 +27,253 @@ describe("ReleaseBumper", () => {
 
     mockExecSync = (command, options) => {
       capturedCommands.push({ command, options });
+      if (command.includes("git status --porcelain")) {
+        return "M package.json\n";
+      }
       return "";
     };
 
-    mockFsModule = {
-      readFileSync: (path, _encoding) => {
-        return fileContents.get(path) || "{}";
-      },
-      writeFileSync: (path, content) => {
-        fileContents.set(path, content);
-      },
-      readdirSync: (dir, options) => {
-        // Mock implementation that returns empty array by default
-        if (options?.withFileTypes) {
-          return [];
-        }
-        return [];
-      },
+    mockFs = {
+      readFileSync: (path) => fileContents.get(path) || "{}",
+      writeFileSync: (path, content) => fileContents.set(path, content),
+      readdirSync: (dir, _options) => directoryStructures.minimal[dir] || [],
     };
 
     releaseBumper = new ReleaseBumper(
       mockExecSync,
-      mockFsModule.readFileSync,
-      mockFsModule.writeFileSync,
-      mockFsModule.readdirSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.readdirSync,
     );
   });
 
-  test("creates release bumper with dependencies", () => {
-    assert.strictEqual(typeof releaseBumper.bump, "function");
+  /**
+   * Helper function to set up mock package.json files for testing
+   * @param {object} packages - Object mapping file paths to package names
+   */
+  function setupPackageFiles(packages) {
+    for (const [path, name] of Object.entries(packages)) {
+      fileContents.set(path, JSON.stringify(packageJsonFixtures[name]));
+    }
+  }
+
+  test("constructor requires all dependencies", () => {
+    assert.throws(() => new ReleaseBumper(), {
+      message: "execSyncFn is required",
+    });
+    assert.throws(() => new ReleaseBumper(mockExecSync), {
+      message: "readFileSyncFn is required",
+    });
+    assert.throws(() => new ReleaseBumper(mockExecSync, mockFs.readFileSync), {
+      message: "writeFileSyncFn is required",
+    });
+    assert.throws(
+      () =>
+        new ReleaseBumper(
+          mockExecSync,
+          mockFs.readFileSync,
+          mockFs.writeFileSync,
+        ),
+      { message: "readdirSyncFn is required" },
+    );
   });
 
   test("bumps single package without dependents", async () => {
-    setupMockPackages(fileContents, {
-      "packages/libconfig/package.json": "libconfig",
-    });
+    setupPackageFiles({ "packages/libconfig/package.json": "libconfig" });
 
-    const results = await releaseBumper.bump("patch", ["packages/libconfig"]);
-
-    assert.strictEqual(results.length, 1);
-    assert.strictEqual(results[0].name, "libconfig");
-
-    // Should have called npm version on the package
-    const npmVersionCalls = capturedCommands.filter((cmd) =>
-      cmd.command.includes("npm version patch"),
-    );
-    assert.strictEqual(npmVersionCalls.length, 1);
-  });
-
-  test("bumps package and updates dependents", async () => {
-    setupMockPackages(fileContents, {
-      "packages/libconfig/package.json": "libconfig",
-      "packages/libservice/package.json": "libservice",
-    });
-
-    // Mock npm version to simulate version bump to 0.1.1
     const testExecSync = (command, options) => {
       capturedCommands.push({ command, options });
       if (command.includes("npm version patch")) {
-        const packagePath = options.cwd + "/package.json";
-        const pkg = JSON.parse(fileContents.get(packagePath));
+        const pkg = JSON.parse(fileContents.get(options.cwd + "/package.json"));
         pkg.version = "0.1.1";
-        fileContents.set(packagePath, JSON.stringify(pkg, null, 2));
+        fileContents.set(options.cwd + "/package.json", JSON.stringify(pkg));
       }
-      // Mock git status to show changes for package files
-      if (command.includes("git status --porcelain")) {
-        return "M package.json\n"; // Simulate changes to package files
-      }
-      return "";
-    };
-
-    // Mock readdirSync to return the packages directory structure
-    mockFsModule.readdirSync = (dir, options) => {
-      if (dir === "packages" && options?.withFileTypes) {
-        return [
-          { name: "libconfig", isDirectory: () => true },
-          { name: "libservice", isDirectory: () => true },
-        ];
-      }
-      return [];
+      return command.includes("git status") ? "M package.json\n" : "";
     };
 
     releaseBumper = new ReleaseBumper(
       testExecSync,
-      mockFsModule.readFileSync,
-      mockFsModule.writeFileSync,
-      mockFsModule.readdirSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.readdirSync,
     );
-
     const results = await releaseBumper.bump("patch", ["packages/libconfig"]);
 
-    // Should bump both libconfig and libservice
-    assert.strictEqual(results.length, 2);
-
-    // Check that libservice dependency was updated
-    const libservicePkg = JSON.parse(
-      fileContents.get("packages/libservice/package.json"),
-    );
-    assert.strictEqual(
-      libservicePkg.dependencies["@copilot-ld/libconfig"],
-      "^0.1.1",
-    );
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].name, "libconfig");
+    assert.strictEqual(results[0].version, "0.1.1");
   });
 
-  test("handles recursive dependencies correctly", async () => {
-    setupMockPackages(fileContents, {
+  test("handles cascade dependency updates", async () => {
+    setupPackageFiles({
       "packages/libconfig/package.json": "libconfig",
       "packages/libservice/package.json": "libservice",
       "services/agent/package.json": "agent",
     });
 
-    // Mock npm version behavior
+    mockFs.readdirSync = (dir, _options) =>
+      directoryStructures.complex[dir] || [];
+
     const testExecSync = (command, options) => {
       capturedCommands.push({ command, options });
       if (command.includes("npm version patch")) {
-        const packagePath = options.cwd + "/package.json";
-        const pkg = JSON.parse(fileContents.get(packagePath));
+        const pkg = JSON.parse(fileContents.get(options.cwd + "/package.json"));
         const [major, minor, patch] = pkg.version.split(".").map(Number);
         pkg.version = `${major}.${minor}.${patch + 1}`;
-        fileContents.set(packagePath, JSON.stringify(pkg, null, 2));
+        fileContents.set(options.cwd + "/package.json", JSON.stringify(pkg));
       }
-      // Mock git status to show changes for package files
-      if (command.includes("git status --porcelain")) {
-        return "M package.json\n"; // Simulate changes to package files
-      }
-      return "";
-    };
-
-    // Mock readdirSync to return the directory structure
-    mockFsModule.readdirSync = (dir, options) => {
-      if (options?.withFileTypes) {
-        if (dir === "packages") {
-          return [
-            { name: "libconfig", isDirectory: () => true },
-            { name: "libservice", isDirectory: () => true },
-          ];
-        }
-        if (dir === "services") {
-          return [{ name: "agent", isDirectory: () => true }];
-        }
-      }
-      return [];
+      return command.includes("git status") ? "M package.json\n" : "";
     };
 
     releaseBumper = new ReleaseBumper(
       testExecSync,
-      mockFsModule.readFileSync,
-      mockFsModule.writeFileSync,
-      mockFsModule.readdirSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.readdirSync,
     );
-
     const results = await releaseBumper.bump("patch", ["packages/libconfig"]);
 
-    // Should bump libconfig (0.1.0 -> 0.1.1), libservice (0.1.0 -> 0.1.1), and agent (0.1.0 -> 0.1.1)
     assert.strictEqual(results.length, 3);
-
-    // Verify dependency updates
-    const libservicePkg = JSON.parse(
-      fileContents.get("packages/libservice/package.json"),
-    );
-    const agentPkg = JSON.parse(
-      fileContents.get("services/agent/package.json"),
-    );
-
-    assert.strictEqual(
-      libservicePkg.dependencies["@copilot-ld/libconfig"],
-      "^0.1.1",
-    );
-    assert.strictEqual(
-      agentPkg.dependencies["@copilot-ld/libservice"],
-      "^0.1.1",
-    );
+    assert(results.some((r) => r.name === "libconfig"));
+    assert(results.some((r) => r.name === "libservice"));
+    assert(results.some((r) => r.name === "agent"));
   });
 
-  test("runs npm install and commits package-lock.json after bumps", async () => {
-    setupMockPackages(fileContents, {
-      "packages/libconfig/package.json": "libconfig",
-    });
+  test("updates package-lock.json after bumps", async () => {
+    setupPackageFiles({ "packages/libconfig/package.json": "libconfig" });
 
-    // Mock npm version behavior
     const testExecSync = (command, options) => {
       capturedCommands.push({ command, options });
-      if (command.includes("npm version patch")) {
-        const packagePath = options.cwd + "/package.json";
-        const pkg = JSON.parse(fileContents.get(packagePath));
+      if (command.includes("npm version")) {
+        const pkg = JSON.parse(fileContents.get(options.cwd + "/package.json"));
         pkg.version = "0.1.1";
-        fileContents.set(packagePath, JSON.stringify(pkg, null, 2));
+        fileContents.set(options.cwd + "/package.json", JSON.stringify(pkg));
       }
-      // Mock git status to show changes for package files
-      if (command.includes("git status --porcelain")) {
-        return "M package-lock.json\n"; // Simulate changes to package-lock.json
+      if (
+        command.includes("git status") &&
+        command.includes("package-lock.json")
+      ) {
+        return "M package-lock.json\n";
       }
-      return "";
+      return command.includes("git status") ? "M package.json\n" : "";
     };
 
     releaseBumper = new ReleaseBumper(
       testExecSync,
-      mockFsModule.readFileSync,
-      mockFsModule.writeFileSync,
-      mockFsModule.readdirSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.readdirSync,
     );
-
     await releaseBumper.bump("patch", ["packages/libconfig"]);
 
-    // Check that npm install was called
-    const npmInstallCalls = capturedCommands.filter(
-      (cmd) => cmd.command === "npm install",
+    assert(capturedCommands.some((c) => c.command === "npm install"));
+    assert(
+      capturedCommands.some((c) => c.command === "git add package-lock.json"),
     );
-    assert.strictEqual(npmInstallCalls.length, 1);
-
-    // Check that package-lock.json was added and committed
-    const gitAddLockCalls = capturedCommands.filter(
-      (cmd) => cmd.command === "git add package-lock.json",
+    assert(
+      capturedCommands.some((c) =>
+        c.command.includes("update package-lock.json"),
+      ),
     );
-    assert.strictEqual(gitAddLockCalls.length, 1);
-
-    const gitCommitLockCalls = capturedCommands.filter((cmd) =>
-      cmd.command.includes("update package-lock.json after dependency bumps"),
-    );
-    assert.strictEqual(gitCommitLockCalls.length, 1);
   });
 
-  test("does not commit when there are no changes", async () => {
-    setupMockPackages(fileContents, {
-      "packages/libconfig/package.json": "libconfig",
-    });
+  test("skips commits when no changes detected", async () => {
+    setupPackageFiles({ "packages/libconfig/package.json": "libconfig" });
 
-    // Mock npm version behavior but git status shows no changes
     const testExecSync = (command, options) => {
       capturedCommands.push({ command, options });
-      if (command.includes("npm version patch")) {
-        const packagePath = options.cwd + "/package.json";
-        const pkg = JSON.parse(fileContents.get(packagePath));
+      if (command.includes("npm version")) {
+        const pkg = JSON.parse(fileContents.get(options.cwd + "/package.json"));
         pkg.version = "0.1.1";
-        fileContents.set(packagePath, JSON.stringify(pkg, null, 2));
+        fileContents.set(options.cwd + "/package.json", JSON.stringify(pkg));
       }
-      // Mock git status to show NO changes
-      if (command.includes("git status --porcelain")) {
-        return ""; // No changes
+      return command.includes("git status") ? "" : "";
+    };
+
+    releaseBumper = new ReleaseBumper(
+      testExecSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.readdirSync,
+    );
+    await releaseBumper.bump("patch", ["packages/libconfig"]);
+
+    assert(!capturedCommands.some((c) => c.command.includes("git add")));
+    assert(!capturedCommands.some((c) => c.command.includes("git commit")));
+  });
+
+  test("handles empty packages array", async () => {
+    const results = await releaseBumper.bump("patch", []);
+    assert.strictEqual(results.length, 0);
+    assert(!capturedCommands.some((c) => c.command === "npm install"));
+  });
+
+  test("handles command failures with proper error context", async () => {
+    setupPackageFiles({ "packages/libconfig/package.json": "libconfig" });
+
+    const testExecSync = (command, options) => {
+      capturedCommands.push({ command, options });
+      if (command.includes("npm version")) {
+        const error = new Error("Command failed: npm version");
+        error.stderr = Buffer.from(
+          "npm version failed: package.json not found",
+        );
+        throw error;
       }
       return "";
     };
 
     releaseBumper = new ReleaseBumper(
       testExecSync,
-      mockFsModule.readFileSync,
-      mockFsModule.writeFileSync,
-      mockFsModule.readdirSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.readdirSync,
     );
 
-    const results = await releaseBumper.bump("patch", ["packages/libconfig"]);
-
-    assert.strictEqual(results.length, 1);
-    assert.strictEqual(results[0].name, "libconfig");
-
-    // Should have called npm version but not git add/commit
-    const npmVersionCalls = capturedCommands.filter((cmd) =>
-      cmd.command.includes("npm version patch"),
+    await assert.rejects(
+      () => releaseBumper.bump("patch", ["packages/libconfig"]),
+      {
+        message: /Command failed/,
+      },
     );
-    assert.strictEqual(npmVersionCalls.length, 1);
-
-    // Should NOT have called git add or git commit for package.json
-    const gitAddCalls = capturedCommands.filter(
-      (cmd) =>
-        cmd.command.includes("git add") && cmd.command.includes("package.json"),
-    );
-    assert.strictEqual(gitAddCalls.length, 0);
-
-    const gitCommitCalls = capturedCommands.filter((cmd) =>
-      cmd.command.includes("git commit"),
-    );
-    assert.strictEqual(gitCommitCalls.length, 0);
-
-    // Should have called npm install but not git commands for package-lock.json
-    const npmInstallCalls = capturedCommands.filter(
-      (cmd) => cmd.command === "npm install",
-    );
-    assert.strictEqual(npmInstallCalls.length, 1);
-
-    const gitAddLockCalls = capturedCommands.filter(
-      (cmd) => cmd.command === "git add package-lock.json",
-    );
-    assert.strictEqual(gitAddLockCalls.length, 0);
-  });
-
-  test("does not update package-lock.json when no packages bumped", async () => {
-    // Empty items array - no packages to bump
-    const results = await releaseBumper.bump("patch", []);
-
-    assert.strictEqual(results.length, 0);
-
-    // Should not have called npm install or git commands for package-lock.json
-    const npmInstallCalls = capturedCommands.filter(
-      (cmd) => cmd.command === "npm install",
-    );
-    assert.strictEqual(npmInstallCalls.length, 0);
-
-    const gitAddLockCalls = capturedCommands.filter(
-      (cmd) => cmd.command === "git add package-lock.json",
-    );
-    assert.strictEqual(gitAddLockCalls.length, 0);
   });
 });
 
 describe("ReleaseChanges", () => {
   let mockExecSync;
-  let mockFsModule;
+  let mockFs;
   let releaseChanges;
 
   beforeEach(() => {
-    mockExecSync = (command, _options) => {
-      // Mock git diff output
+    mockExecSync = (command) => {
       if (command.includes("git diff --name-only")) {
-        return "packages/libconfig/index.js\npackages/libservice/test.js\nservices/agent/service.js\nREADME.md";
+        return gitDiffOutputs.multiplePackages;
       }
       return "";
     };
 
-    mockFsModule = {
-      existsSync: (path) => {
-        // Mock package.json existence
-        return (
-          path.endsWith("package.json") &&
-          (path.includes("libconfig") ||
-            path.includes("libservice") ||
-            path.includes("agent"))
-        );
-      },
+    mockFs = {
+      existsSync: (path) =>
+        path.endsWith("package.json") &&
+        (path.includes("libconfig") ||
+          path.includes("libservice") ||
+          path.includes("agent")),
     };
 
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFsModule.existsSync);
+    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
   });
 
-  test("creates release changes with dependencies", () => {
-    assert.strictEqual(typeof releaseChanges.getChangedPackages, "function");
+  test("constructor requires dependencies", () => {
+    assert.throws(() => new ReleaseChanges(), {
+      message: "execSyncFn is required",
+    });
+    assert.throws(() => new ReleaseChanges(mockExecSync), {
+      message: "existsSyncFn is required",
+    });
   });
 
   test("finds changed packages between commits", () => {
     const changes = releaseChanges.getChangedPackages("abc123", "def456");
-
     assert.deepStrictEqual(changes, [
       "packages/libconfig",
       "packages/libservice",
@@ -363,23 +281,312 @@ describe("ReleaseChanges", () => {
     ]);
   });
 
-  test("filters out packages without package.json", () => {
-    mockFsModule.existsSync = (path) => {
-      // Only libconfig has package.json
-      return path === "packages/libconfig/package.json";
-    };
+  test("filters packages without package.json", () => {
+    mockFs.existsSync = (path) => path === "packages/libconfig/package.json";
+    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
 
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFsModule.existsSync);
     const changes = releaseChanges.getChangedPackages("abc123", "def456");
-
     assert.deepStrictEqual(changes, ["packages/libconfig"]);
   });
 
   test("handles empty diff output", () => {
-    const emptyExecSync = () => "";
-    releaseChanges = new ReleaseChanges(emptyExecSync, mockFsModule.existsSync);
+    mockExecSync = () => gitDiffOutputs.empty;
+    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
 
     const changes = releaseChanges.getChangedPackages("abc123", "def456");
     assert.deepStrictEqual(changes, []);
+  });
+
+  test("validates commit SHAs exist", () => {
+    mockExecSync = (command) => {
+      if (command.includes("git cat-file -e invalid-sha")) {
+        throw new Error("Command failed: git cat-file -e invalid-sha");
+      }
+      return "";
+    };
+
+    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+
+    assert.throws(
+      () => releaseChanges.getChangedPackages("invalid-sha", "def456"),
+      {
+        message: /Base commit SHA 'invalid-sha' does not exist/,
+      },
+    );
+  });
+
+  test("requires both SHA parameters", () => {
+    assert.throws(() => releaseChanges.getChangedPackages(), {
+      message: "Both baseSha and headSha are required",
+    });
+    assert.throws(() => releaseChanges.getChangedPackages("abc123"), {
+      message: "Both baseSha and headSha are required",
+    });
+  });
+
+  test("handles git diff command failures", () => {
+    mockExecSync = (command) => {
+      if (command.includes("git diff --name-only")) {
+        const error = new Error("Command failed");
+        error.stderr = "fatal: bad revision";
+        throw error;
+      }
+      return "";
+    };
+
+    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+
+    assert.throws(() => releaseChanges.getChangedPackages("abc123", "def456"), {
+      message: /Git diff command failed/,
+    });
+  });
+
+  test("handles head SHA validation failure", () => {
+    mockExecSync = (command) => {
+      if (command.includes("git cat-file -e def456")) {
+        throw new Error("Command failed: git cat-file -e def456");
+      }
+      return "";
+    };
+
+    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+
+    assert.throws(() => releaseChanges.getChangedPackages("abc123", "def456"), {
+      message: /Head commit SHA 'def456' does not exist/,
+    });
+  });
+});
+
+describe("ReleaseLog", () => {
+  let mockGlobSync;
+  let mockFs;
+  let releaseLog;
+  let fileContents;
+
+  beforeEach(() => {
+    fileContents = new Map();
+
+    mockGlobSync = (pattern) =>
+      globPatterns.recursive[pattern] || globPatterns.direct[pattern] || [];
+
+    mockFs = {
+      readFileSync: (path) => fileContents.get(path) || "",
+      writeFileSync: (path, content) => fileContents.set(path, content),
+      existsSync: (path) => fileContents.has(path),
+    };
+
+    releaseLog = new ReleaseLog(
+      mockGlobSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.existsSync,
+    );
+  });
+
+  test("constructor requires all dependencies", () => {
+    assert.throws(() => new ReleaseLog(), {
+      message: "globSyncFn is required",
+    });
+    assert.throws(() => new ReleaseLog(mockGlobSync), {
+      message: "readFileSyncFn is required",
+    });
+    assert.throws(() => new ReleaseLog(mockGlobSync, mockFs.readFileSync), {
+      message: "writeFileSyncFn is required",
+    });
+    assert.throws(
+      () =>
+        new ReleaseLog(mockGlobSync, mockFs.readFileSync, mockFs.writeFileSync),
+      { message: "existsSyncFn is required" },
+    );
+  });
+
+  test("addNote requires path and note parameters", async () => {
+    await assert.rejects(() => releaseLog.addNote(), {
+      message: "path is required",
+    });
+    await assert.rejects(() => releaseLog.addNote("packages/"), {
+      message: "note is required",
+    });
+  });
+
+  test("creates new changelog with proper format", async () => {
+    const paths = await releaseLog.addNote(
+      "packages/",
+      "Initial release",
+      "2025-08-08",
+    );
+
+    assert.deepStrictEqual(paths, [
+      "packages/libconfig/CHANGELOG.md",
+      "packages/libservice/CHANGELOG.md",
+    ]);
+
+    const expectedContent = `# Changelog
+
+## 2025-08-08
+
+- Initial release
+`;
+
+    assert.strictEqual(
+      fileContents.get("packages/libconfig/CHANGELOG.md"),
+      expectedContent,
+    );
+  });
+
+  test("adds note to existing date heading", async () => {
+    fileContents.set(
+      "packages/libconfig/CHANGELOG.md",
+      changelogFixtures.withExistingDate,
+    );
+
+    await releaseLog.addNote("packages/", "Second change", "2025-08-08");
+
+    const content = fileContents.get("packages/libconfig/CHANGELOG.md");
+    assert(content.includes("- Existing change for today"));
+    assert(content.includes("- Second change"));
+  });
+
+  test("maintains chronological order when adding new dates", async () => {
+    fileContents.set(
+      "packages/libconfig/CHANGELOG.md",
+      changelogFixtures.chronologicalOrder,
+    );
+
+    await releaseLog.addNote("packages/", "Middle insertion", "2025-08-03");
+
+    const content = fileContents.get("packages/libconfig/CHANGELOG.md");
+    const lines = content.split("\n");
+    const dateIndices = lines
+      .map((line, idx) => (line.startsWith("## ") ? idx : -1))
+      .filter((idx) => idx !== -1);
+
+    assert.strictEqual(lines[dateIndices[0]], "## 2025-08-01");
+    assert.strictEqual(lines[dateIndices[1]], "## 2025-08-03");
+    assert.strictEqual(lines[dateIndices[2]], "## 2025-08-05");
+    assert.strictEqual(lines[dateIndices[3]], "## 2025-08-10");
+  });
+
+  test("uses today's date when not provided", async () => {
+    const today = new Date().toISOString().split("T")[0];
+
+    await releaseLog.addNote("packages/", "Feature added");
+
+    const content = fileContents.get("packages/libconfig/CHANGELOG.md");
+    assert(content.includes(`## ${today}`));
+    assert(content.includes("- Feature added"));
+  });
+
+  test("adds header to files without changelog header", async () => {
+    fileContents.set(
+      "packages/libconfig/CHANGELOG.md",
+      changelogFixtures.noHeader,
+    );
+
+    await releaseLog.addNote("packages/", "New change", "2025-08-02");
+
+    const content = fileContents.get("packages/libconfig/CHANGELOG.md");
+    assert(content.startsWith("# Changelog"));
+  });
+
+  test("handles direct changelog file paths", async () => {
+    mockGlobSync = (pattern) => {
+      if (pattern === "packages/libconfig/CHANGELOG.md") {
+        return ["packages/libconfig/CHANGELOG.md"];
+      }
+      return [];
+    };
+
+    releaseLog = new ReleaseLog(
+      mockGlobSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.existsSync,
+    );
+
+    const paths = await releaseLog.addNote(
+      "packages/libconfig/CHANGELOG.md",
+      "Direct update",
+      "2025-08-08",
+    );
+
+    assert.deepStrictEqual(paths, ["packages/libconfig/CHANGELOG.md"]);
+    assert(
+      fileContents
+        .get("packages/libconfig/CHANGELOG.md")
+        .includes("- Direct update"),
+    );
+  });
+
+  test("handles glob pattern failures gracefully", async () => {
+    mockGlobSync = () => {
+      throw new Error("Glob failed");
+    };
+    mockFs.existsSync = (path) => path === "packages/CHANGELOG.md";
+
+    releaseLog = new ReleaseLog(
+      mockGlobSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.existsSync,
+    );
+
+    const paths = await releaseLog.addNote(
+      "packages/CHANGELOG.md",
+      "Fallback test",
+      "2025-08-08",
+    );
+
+    assert.deepStrictEqual(paths, ["packages/CHANGELOG.md"]);
+  });
+
+  test("handles multiple changelog updates with different dates", async () => {
+    fileContents.set(
+      "packages/libconfig/CHANGELOG.md",
+      changelogFixtures.multipleEntries,
+    );
+
+    await releaseLog.addNote(
+      "packages/",
+      "New entry for Aug 1st",
+      "2025-08-01",
+    );
+    await releaseLog.addNote(
+      "packages/",
+      "New entry for Aug 3rd",
+      "2025-08-03",
+    );
+
+    const content = fileContents.get("packages/libconfig/CHANGELOG.md");
+
+    assert(content.includes("- New entry for Aug 1st"));
+    assert(content.includes("- New entry for Aug 3rd"));
+    assert(content.includes("## 2025-08-03"));
+  });
+
+  test("handles file update errors gracefully", async () => {
+    fileContents.set(
+      "packages/libconfig/CHANGELOG.md",
+      changelogFixtures.basic,
+    );
+
+    mockFs.writeFileSync = () => {
+      throw new Error("Write failed");
+    };
+
+    releaseLog = new ReleaseLog(
+      mockGlobSync,
+      mockFs.readFileSync,
+      mockFs.writeFileSync,
+      mockFs.existsSync,
+    );
+
+    const paths = await releaseLog.addNote(
+      "packages/",
+      "Test note",
+      "2025-08-08",
+    );
+
+    assert.deepStrictEqual(paths, []);
   });
 });

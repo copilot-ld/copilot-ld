@@ -53,3 +53,31 @@ export class ReleaseChangesInterface {
     );
   }
 }
+
+/**
+ * Base interface for release log operations
+ */
+export class ReleaseLogInterface {
+  /**
+   * Creates a new ReleaseLog instance
+   * @param {Function} globSyncDep - globSync dependency for path matching
+   * @param {Function} readFileSyncDep - readFileSync dependency for file reading
+   * @param {Function} writeFileSyncDep - writeFileSync dependency for file writing
+   * @param {Function} existsSyncDep - existsSync dependency for file existence checks
+   */
+  constructor(globSyncDep, readFileSyncDep, writeFileSyncDep, existsSyncDep) {
+    // Interface base implementation - do nothing
+  }
+
+  /**
+   * Adds a note to CHANGELOG.md files under the specified path
+   * @param {string} path - Path or glob pattern to search for CHANGELOG.md files
+   * @param {string} note - Note to add as a bullet point
+   * @param {string} [date] - Date to use for the heading (defaults to today)
+   * @returns {Promise<string[]>} Array of updated changelog file paths
+   * @throws {Error} Not implemented
+   */
+  async addNote(path, note, date) {
+    throw new Error("ReleaseLogInterface.addNote() not implemented");
+  }
+}

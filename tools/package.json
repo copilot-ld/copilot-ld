@@ -16,6 +16,7 @@
     "search": "node search.js",
     "token": "node token.js",
     "index": "node index.js",
+    "release-log": "node release-log.js",
     "test": "echo 'No tests specified for tools'"
   },
   "dependencies": {
@@ -29,7 +30,8 @@
     "@copilot-ld/libstorage": "^0.1.0",
     "@copilot-ld/libvector": "^0.1.0",
     "@octokit/auth-oauth-device": "^8.0.1",
-    "@octokit/core": "^7.0.3"
+    "@octokit/core": "^7.0.3",
+    "glob": "^11.0.3"
   },
   "repository": {
     "url": "git+https://github.com/copilot-ld/copilot-ld.git"

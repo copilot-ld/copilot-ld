@@ -7,8 +7,6 @@ runs:
       with:
         node-version: "22"
         cache: "npm"
-        registry-url: "https://npm.pkg.github.com"
-        scope: "@copilot-ld"
 
     - name: Install dependencies
       shell: bash

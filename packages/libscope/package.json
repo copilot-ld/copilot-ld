@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libscope",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scope resolution and context management for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libvector": "^0.1.0"
+    "@copilot-ld/libvector": "^0.1.1"
   },
   "repository": {
     "type": "git",

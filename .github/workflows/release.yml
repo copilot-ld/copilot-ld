@@ -24,8 +24,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js and dependencies
-        uses: ./.github/actions/setup-node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@copilot-ld"
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
 
       - name: Get bump type from labels
         id: get-bump-type
@@ -71,8 +79,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Setup Node.js and dependencies
-        uses: ./.github/actions/setup-node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@copilot-ld"
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
 
       - name: Bump versions and tag
         id: bump
@@ -101,8 +117,16 @@ jobs:
         with:
           ref: ${{ needs.bump.outputs.ref }}
 
-      - name: Setup Node.js and dependencies
-        uses: ./.github/actions/setup-node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@copilot-ld"
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
 
       - name: Validate package
         run: |
@@ -134,8 +158,16 @@ jobs:
         with:
           ref: ${{ needs.bump.outputs.ref }}
 
-      - name: Setup Node.js and dependencies
-        uses: ./.github/actions/setup-node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@copilot-ld"
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
 
       - name: Publish package
         env:

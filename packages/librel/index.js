@@ -172,6 +172,27 @@ export class ReleaseChanges extends ReleaseChangesInterface {
    * @returns {string[]} Array of changed package paths
    */
   getChangedPackages(baseSha, headSha) {
+    if (!baseSha || !headSha) {
+      throw new Error("Both baseSha and headSha are required");
+    }
+
+    // Validate that both SHAs exist in the repository
+    try {
+      this.#execSync(`git cat-file -e ${baseSha}`, { encoding: "utf8" });
+    } catch {
+      throw new Error(
+        `Base commit SHA '${baseSha}' does not exist in repository`,
+      );
+    }
+
+    try {
+      this.#execSync(`git cat-file -e ${headSha}`, { encoding: "utf8" });
+    } catch {
+      throw new Error(
+        `Head commit SHA '${headSha}' does not exist in repository`,
+      );
+    }
+
     // Get changed files between commits
     let diff;
     try {
@@ -179,11 +200,14 @@ export class ReleaseChanges extends ReleaseChangesInterface {
         encoding: "utf8",
       });
     } catch (error) {
-      // Print the stderr output for debugging CI failures
-      if (error.stderr) {
-        console.error("Git diff command failed:", error.stderr.toString());
-      }
-      throw error;
+      // Provide better error context including the actual command that failed
+      const command = `git diff --name-only ${baseSha}...${headSha}`;
+      const errorMessage = error.stderr
+        ? error.stderr.toString()
+        : error.message;
+      throw new Error(
+        `Git diff command failed: ${command}\nError: ${errorMessage}`,
+      );
     }
 
     // Filter for packages, services, extensions with package.json

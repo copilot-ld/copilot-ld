@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.1",
-    "@copilot-ld/libscope": "^0.1.0",
+    "@copilot-ld/libscope": "^0.1.1",
     "@copilot-ld/libservice": "^0.1.1",
     "@copilot-ld/libstorage": "^0.1.0",
-    "@copilot-ld/libvector": "^0.1.0"
+    "@copilot-ld/libvector": "^0.1.1"
   },
   "repository": {
     "type": "git",

@@ -16,9 +16,5 @@
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
     "directory": "packages/libvector"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
   }
 }

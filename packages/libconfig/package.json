@@ -20,9 +20,5 @@
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
     "directory": "packages/libconfig"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
   }
 }

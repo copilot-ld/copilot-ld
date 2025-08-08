@@ -22,7 +22,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
           fetch-depth: 0
 
       - name: Setup Node.js and dependencies
@@ -54,10 +53,18 @@ jobs:
       ref: ${{ steps.bump.outputs.ref }}
 
     steps:
+      - name: Generate release token
+        id: release-manager
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ steps.release-manager.outputs.token }}
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -92,9 +99,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
           ref: ${{ needs.bump.outputs.ref }}
-          fetch-depth: 0
 
       - name: Setup Node.js and dependencies
         uses: ./.github/actions/setup-node
@@ -116,6 +121,7 @@ jobs:
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       packages: write
     strategy:
       matrix:
@@ -123,19 +129,25 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: Generate release token
+        id: release-manager
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ steps.release-manager.outputs.token }}
           ref: ${{ needs.bump.outputs.ref }}
-          fetch-depth: 0
 
       - name: Setup Node.js and dependencies
         uses: ./.github/actions/setup-node
 
       - name: Publish package
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ steps.release-manager.outputs.token }}
         run: |
           set -e
           TYPE="${{ matrix.item.type }}"
@@ -150,6 +162,7 @@ jobs:
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       packages: write
     strategy:
       matrix:
@@ -157,12 +170,18 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: Generate release token
+        id: release-manager
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ steps.release-manager.outputs.token }}
           ref: ${{ needs.bump.outputs.ref }}
-          fetch-depth: 0
 
       - name: Login to GitHub Container Registry
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
@@ -170,7 +189,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.RELEASE_TOKEN }}
+          password: ${{ steps.release-manager.outputs.token }}
 
       - name: Build and push container
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
@@ -194,14 +213,22 @@ jobs:
       contents: write
 
     steps:
+      - name: Generate release token
+        id: release-manager
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          token: ${{ steps.release-manager.outputs.token }}
           ref: ${{ needs.bump.outputs.ref }}
 
       - name: Create GitHub releases
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.release-manager.outputs.token }}
         run: |
           echo '${{ needs.bump.outputs.versions }}' | jq -r '.[] | "\(.type) \(.name) \(.version)"' | while read TYPE NAME VERSION; do
             gh release create "$NAME@v$VERSION" \

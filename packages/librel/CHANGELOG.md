@@ -4,3 +4,4 @@
 
 - Fix Node.js setup for release workflow
 - Version reset
+- Version bump

@@ -129,17 +129,9 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Generate release token
-        id: release-manager
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
-          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ steps.release-manager.outputs.token }}
           ref: ${{ needs.bump.outputs.ref }}
 
       - name: Setup Node.js and dependencies
@@ -147,7 +139,7 @@ jobs:
 
       - name: Publish package
         env:
-          NODE_AUTH_TOKEN: ${{ steps.release-manager.outputs.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           TYPE="${{ matrix.item.type }}"
@@ -170,17 +162,9 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Generate release token
-        id: release-manager
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
-          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ steps.release-manager.outputs.token }}
           ref: ${{ needs.bump.outputs.ref }}
 
       - name: Login to GitHub Container Registry
@@ -189,7 +173,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ steps.release-manager.outputs.token }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push container
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
@@ -208,29 +192,22 @@ jobs:
   create-releases:
     needs: [bump, publish-packages, publish-containers]
     if:
-      needs.bump.result == 'success' && needs.publish-packages.result ==
-      'success' && needs.publish-containers.result == 'success'
+      always() && needs.bump.result == 'success' &&
+      needs.publish-packages.result == 'success' &&
+      needs.publish-containers.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Generate release token
-        id: release-manager
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
-          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ steps.release-manager.outputs.token }}
           ref: ${{ needs.bump.outputs.ref }}
 
       - name: Create GitHub releases
         env:
-          GH_TOKEN: ${{ steps.release-manager.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo '${{ needs.bump.outputs.versions }}' | jq -r '.[] | "\(.type) \(.name) \(.version)"' | while read TYPE NAME VERSION; do
             gh release create "$NAME@v$VERSION" \

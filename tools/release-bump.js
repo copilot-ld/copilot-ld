@@ -1,7 +1,8 @@
 /* eslint-env node */
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync, readdirSync } from "fs";
-import { ReleaseBumper } from "../packages/librel/index.js";
+
+import { ReleaseBumper } from "@copilot-ld/librel";
 
 /**
  * Main function to handle CLI arguments and execute release bump

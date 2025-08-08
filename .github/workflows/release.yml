@@ -25,18 +25,15 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup-node
+
       - name: Get bump type from labels
         id: get-bump-type
         run: |
           LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-
-          if [[ "$LABELS" == *"major"* ]]; then
-            echo "type=major" >> $GITHUB_OUTPUT
-          elif [[ "$LABELS" == *"minor"* ]]; then
-            echo "type=minor" >> $GITHUB_OUTPUT
-          else
-            echo "type=patch" >> $GITHUB_OUTPUT
-          fi
+          TYPE=$(echo "$LABELS" | grep -o -E "(major|minor)" | head -1)
+          echo "type=${TYPE:-patch}" >> $GITHUB_OUTPUT
 
       - name: Detect changes
         id: detect-changes
@@ -67,29 +64,20 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install dependencies
-        run: |
-          npm ci
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup-node
 
       - name: Bump versions and tag
         id: bump
         run: |
           # Pull latest changes to avoid conflicts
           git pull --rebase origin main
-
           VERSIONS=$(node tools/release-bump.js \
             ${{ needs.prepare.outputs.bump-type }} \
             ${{ join(fromJson(needs.prepare.outputs.changed-items), ' ') }})
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
-
-          # Push changes and tags
-          git push origin main --tags
           echo "ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          git push origin main --tags
 
   validate-packages:
     needs: bump
@@ -108,20 +96,17 @@ jobs:
           ref: ${{ needs.bump.outputs.ref }}
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup-node
 
       - name: Validate package
         run: |
           set -e
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
-
           if [[ -f "$TYPE/$NAME/package.json" ]]; then
-            npm ci
-            cd "$TYPE/$NAME"; npm test
+            cd "$TYPE/$NAME"
+            npm test
           else
             exit 1
           fi
@@ -145,11 +130,8 @@ jobs:
           ref: ${{ needs.bump.outputs.ref }}
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://npm.pkg.github.com"
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup-node
 
       - name: Publish package
         env:
@@ -158,7 +140,6 @@ jobs:
           set -e
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
-
           if [[ -f "$TYPE/$NAME/package.json" ]]; then
             cd "$TYPE/$NAME"
             npm publish --verbose
@@ -198,13 +179,11 @@ jobs:
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
           VERSION="${{ matrix.item.version }}"
-
           if [[ -f "$TYPE/$NAME/Dockerfile" ]]; then
             IMAGE="ghcr.io/${{ github.repository }}/$NAME"
             docker build -f "$TYPE/$NAME/Dockerfile" -t $IMAGE:$VERSION -t $IMAGE:latest .
             docker push $IMAGE:$VERSION
             docker push $IMAGE:latest
-            echo "Published container $IMAGE:$VERSION"
           fi
 
   create-releases:

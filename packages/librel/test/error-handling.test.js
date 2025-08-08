@@ -87,6 +87,98 @@ describe("Error handling", () => {
     }
   });
 
+  test("ReleaseChanges validates SHAs exist before git diff", async () => {
+    const mockExecSync = (command, _options) => {
+      if (command.includes("git cat-file -e")) {
+        // Simulate SHA validation failure
+        throw new Error("Command failed: git cat-file -e invalid-sha");
+      }
+      return "";
+    };
+
+    const mockFsModule = {
+      existsSync: () => true,
+    };
+
+    const releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFsModule.existsSync,
+    );
+
+    try {
+      releaseChanges.getChangedPackages("invalid-sha", "valid-sha");
+      assert.fail("Expected error was not thrown");
+    } catch (error) {
+      assert(
+        error.message.includes(
+          "Base commit SHA 'invalid-sha' does not exist in repository",
+        ),
+      );
+    }
+
+    // Test when the second SHA check fails
+    const mockExecSync2 = (command, _options) => {
+      if (command.includes("git cat-file -e valid-sha")) {
+        // First SHA exists
+        return "";
+      }
+      if (command.includes("git cat-file -e invalid-sha")) {
+        // Second SHA doesn't exist
+        throw new Error("Command failed: git cat-file -e invalid-sha");
+      }
+      return "";
+    };
+
+    const releaseChanges2 = new ReleaseChanges(
+      mockExecSync2,
+      mockFsModule.existsSync,
+    );
+
+    try {
+      releaseChanges2.getChangedPackages("valid-sha", "invalid-sha");
+      assert.fail("Expected error was not thrown");
+    } catch (error) {
+      assert(
+        error.message.includes(
+          "Head commit SHA 'invalid-sha' does not exist in repository",
+        ),
+      );
+    }
+  });
+
+  test("ReleaseChanges validates required parameters", async () => {
+    const mockExecSync = () => "";
+    const mockFsModule = {
+      existsSync: () => true,
+    };
+
+    const releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFsModule.existsSync,
+    );
+
+    try {
+      releaseChanges.getChangedPackages("", "valid-sha");
+      assert.fail("Expected error was not thrown");
+    } catch (error) {
+      assert(error.message.includes("Both baseSha and headSha are required"));
+    }
+
+    try {
+      releaseChanges.getChangedPackages("valid-sha", "");
+      assert.fail("Expected error was not thrown");
+    } catch (error) {
+      assert(error.message.includes("Both baseSha and headSha are required"));
+    }
+
+    try {
+      releaseChanges.getChangedPackages(null, "valid-sha");
+      assert.fail("Expected error was not thrown");
+    } catch (error) {
+      assert(error.message.includes("Both baseSha and headSha are required"));
+    }
+  });
+
   test("ReleaseChanges displays stderr when git diff fails", async () => {
     let _stderrDisplayed = false;
     const originalConsoleError = console.error;
@@ -100,10 +192,16 @@ describe("Error handling", () => {
 
     try {
       const mockExecSync = (command, _options) => {
+        if (command.includes("git cat-file -e")) {
+          // SHAs exist
+          return "";
+        }
         if (command.includes("git diff")) {
           // Simulate a failing git diff command with stderr
           const error = new Error("Command failed");
-          error.stderr = Buffer.from("fatal: bad revision 'invalid-sha'");
+          error.stderr = Buffer.from(
+            "fatal: Invalid symmetric difference expression",
+          );
           throw error;
         }
         return "";
@@ -118,16 +216,22 @@ describe("Error handling", () => {
         mockFsModule.existsSync,
       );
 
-      releaseChanges.getChangedPackages("invalid-sha", "another-invalid-sha");
+      releaseChanges.getChangedPackages("valid-sha", "another-valid-sha");
 
       // Should not reach here due to error
       assert.fail("Expected error was not thrown");
     } catch (error) {
-      // Error should be thrown, and stderr should be displayed
-      assert(error.message.includes("Command failed"));
+      // Error should be thrown with better context
+      assert(error.message.includes("Git diff command failed"));
       assert(
-        _stderrDisplayed,
-        "Expected stderr to be displayed via console.error",
+        error.message.includes(
+          "git diff --name-only valid-sha...another-valid-sha",
+        ),
+      );
+      assert(
+        error.message.includes(
+          "fatal: Invalid symmetric difference expression",
+        ),
       );
     } finally {
       console.error = originalConsoleError;

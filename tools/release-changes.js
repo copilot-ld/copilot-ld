@@ -1,7 +1,8 @@
 /* eslint-env node */
 import { execSync } from "child_process";
 import { existsSync } from "fs";
-import { ReleaseChanges } from "../packages/librel/index.js";
+
+import { ReleaseChanges } from "@copilot-ld/librel";
 
 /**
  * Main function to handle CLI arguments and execute release changes detection

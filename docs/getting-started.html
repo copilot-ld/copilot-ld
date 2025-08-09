@@ -1,0 +1,285 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot-LD – Getting Started</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <hgroup>
+        <h1>🤖 Copilot-LD</h1>
+        <p>
+          An intelligent chat agent leveraging GitHub Copilot and Linked Data
+        </p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="getting-started.html">Getting Started</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>Getting Started</h2>
+
+      <p>
+        This guide helps you quickly set up and run Copilot-LD for the first
+        time. Follow these steps to configure GitHub integration, prepare your
+        knowledge base, and start interacting with the system.
+      </p>
+
+      <h3>Prerequisites</h3>
+
+      <ul>
+        <li>Node.js 22+ installed</li>
+        <li>GitHub account with access to GitHub Copilot</li>
+        <li>Basic familiarity with command line tools</li>
+      </ul>
+
+      <h3>1. Initial Setup</h3>
+
+      <p>Clone the repository and install dependencies:</p>
+
+      <pre><code>git clone https://github.com/copilot-ld/copilot-ld.git
+cd copilot-ld
+npm install</code></pre>
+
+      <p>Copy configuration templates:</p>
+
+      <pre><code>cp .env.example .env
+cp config.example.yml config.yml</code></pre>
+
+      <h3>2. GitHub App Configuration</h3>
+
+      <p>
+        To use the Copilot Extension, you need to configure GitHub App
+        integration:
+      </p>
+
+      <h4>Create GitHub App</h4>
+
+      <ol>
+        <li>
+          Go to GitHub Settings > Developer settings > GitHub Apps > New GitHub
+          App
+        </li>
+        <li>
+          Fill in required fields:
+          <ul>
+            <li><strong>GitHub App name</strong>: Your app name</li>
+            <li><strong>Homepage URL</strong>: http://localhost:3001</li>
+            <li>
+              <strong>Callback URL</strong>: http://localhost:3001/auth/callback
+            </li>
+          </ul>
+        </li>
+        <li>
+          Under Permissions, grant:
+          <ul>
+            <li><strong>Repository permissions</strong>: Contents (Read)</li>
+            <li><strong>Account permissions</strong>: Copilot Chat (Write)</li>
+          </ul>
+        </li>
+        <li>Save the app and note the <strong>Client ID</strong></li>
+      </ol>
+
+      <h4>Configure Client ID</h4>
+
+      <p>Add your GitHub App Client ID to the environment file:</p>
+
+      <pre><code># Edit .env file
+GITHUB_CLIENT_ID=your_20_character_client_id_here</code></pre>
+
+      <h3>3. Token Setup</h3>
+
+      <p>Generate a GitHub token for API access:</p>
+
+      <pre><code>node tools/token.js</code></pre>
+
+      <p>
+        This creates a token with appropriate permissions. Store the token
+        securely and add it to your environment configuration.
+      </p>
+
+      <h4>Service Authentication</h4>
+
+      <p>Generate a shared secret for service-to-service authentication:</p>
+
+      <pre><code>node tools/secret.js</code></pre>
+
+      <p>Add the generated secret to your <code>.env</code> file:</p>
+
+      <pre><code>SERVICE_AUTH_SECRET=your_32_character_secret_here</code></pre>
+
+      <h3>4. Offline Knowledge Processing</h3>
+
+      <p>
+        Prepare your knowledge base through the offline processing pipeline:
+      </p>
+
+      <h4>Download Knowledge Data</h4>
+
+      <p>
+        Configure the download source in <code>config.yml</code> and download
+        knowledge assets:
+      </p>
+
+      <pre><code># Edit config.yml to set your source repository
+tool:
+  download:
+    owner: "your-github-owner"
+    repo: "your-knowledge-repo"
+
+# Download the data
+node tools/download.js</code></pre>
+
+      <h4>Process Content into Chunks</h4>
+
+      <p>Extract and process content from HTML files:</p>
+
+      <pre><code>node tools/chunk.js</code></pre>
+
+      <p>
+        This scans HTML files for microdata items, extracts content, and creates
+        searchable chunks stored in <code>data/chunks/</code>.
+      </p>
+
+      <h4>Build Vector Indices</h4>
+
+      <p>Create vector embeddings and search indices:</p>
+
+      <pre><code>node tools/index.js</code></pre>
+
+      <p>
+        This generates embeddings for all chunks and builds scope-specific
+        vector indices for efficient similarity search.
+      </p>
+
+      <h3>5. Example HTML Content</h3>
+
+      <p>
+        If you don't have existing knowledge assets, create an example HTML file
+        with microdata:
+      </p>
+
+      <pre><code>&lt;!-- Save as data/knowledge/example.html --&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Example Knowledge&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;article id="docker-security"&gt;
+        &lt;h1&gt;Docker Security Best Practices&lt;/h1&gt;
+        &lt;p&gt;Always use specific image tags instead of 'latest' to ensure reproducible builds and security.&lt;/p&gt;
+        &lt;p&gt;Implement multi-stage builds to reduce attack surface and image size.&lt;/p&gt;
+    &lt;/article&gt;
+    
+    &lt;article id="kubernetes-deployment"&gt;
+        &lt;h1&gt;Kubernetes Deployment Strategies&lt;/h1&gt;
+        &lt;p&gt;Rolling updates provide zero-downtime deployments by gradually replacing instances.&lt;/p&gt;
+        &lt;p&gt;Use readiness and liveness probes to ensure application health during deployments.&lt;/p&gt;
+    &lt;/article&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+      <p>
+        The chunking process looks for elements with <code>id</code> attributes
+        and extracts them as individual knowledge items.
+      </p>
+
+      <h3>6. Start the System</h3>
+
+      <p>Launch all services in development mode:</p>
+
+      <pre><code>npm run dev</code></pre>
+
+      <p>
+        This starts all microservices (agent, vector, scope, llm, history, text)
+        and extensions (web, copilot) concurrently.
+      </p>
+
+      <h3>7. Interactive Chat</h3>
+
+      <p>Use the chat tool to interact with your configured knowledge base:</p>
+
+      <h4>Interactive Mode</h4>
+
+      <pre><code>node tools/chat.js
+&gt; What are Docker security best practices?
+&gt; How do I implement rolling updates in Kubernetes?</code></pre>
+
+      <h4>Scripted Testing</h4>
+
+      <pre><code>echo "Tell me about container security" | node tools/chat.js</code></pre>
+
+      <h4>Web Interface</h4>
+
+      <p>Access the web interface at:</p>
+
+      <ul>
+        <li><strong>Web Extension</strong>: http://localhost:3000</li>
+        <li><strong>Copilot Extension</strong>: http://localhost:3001</li>
+      </ul>
+
+      <h3>Troubleshooting</h3>
+
+      <h4>Common Issues</h4>
+
+      <ul>
+        <li>
+          <strong>Token permissions</strong>: Ensure your GitHub token has
+          Copilot access and appropriate repository permissions
+        </li>
+        <li>
+          <strong>Empty responses</strong>: Verify that vector indices were
+          created successfully in <code>data/vectors/</code>
+        </li>
+        <li>
+          <strong>Service startup errors</strong>: Check that all environment
+          variables are configured in <code>.env</code>
+        </li>
+        <li>
+          <strong>Network issues</strong>: Ensure ports 3000-3007 are available
+          for service communication
+        </li>
+      </ul>
+
+      <h4>Validation</h4>
+
+      <p>Verify your setup by running:</p>
+
+      <pre><code># Check code quality
+npm run check
+
+# Test basic functionality
+echo "hello" | node tools/chat.js</code></pre>
+
+      <h3>Next Steps</h3>
+
+      <ul>
+        <li>
+          Customize system prompts in <code>config.yml</code> for your domain
+        </li>
+        <li>
+          Add more knowledge sources by updating the download configuration
+        </li>
+        <li>
+          Explore the <a href="architecture.html">system architecture</a> to
+          understand component interactions
+        </li>
+        <li>
+          Review development guidelines in the main
+          <code>README.md</code> for contributing
+        </li>
+      </ul>
+    </main>
+    <footer>
+      <p>© D. Olsson</p>
+    </footer>
+  </body>
+</html>

@@ -19,11 +19,11 @@ const service = new AgentService(
     ],
   }),
   {
-    history: new Client("history"),
-    llm: new Client("llm"),
-    scope: new Client("scope"),
-    vector: new Client("vector"),
-    text: new Client("text"),
+    history: new Client(new ServiceConfig("history")),
+    llm: new Client(new ServiceConfig("llm")),
+    scope: new Client(new ServiceConfig("scope")),
+    vector: new Client(new ServiceConfig("vector")),
+    text: new Client(new ServiceConfig("text")),
   },
   (auth) => new Octokit({ auth }),
 );

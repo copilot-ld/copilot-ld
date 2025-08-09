@@ -116,7 +116,7 @@ try {
     console.error("Please set SERVICE_AUTH_SECRET in your .env file.");
   }
 
-  const grpcClient = new Client("agent");
+  const grpcClient = new Client(new ExtensionConfig("agent"));
   agentClient = new AgentClient(grpcClient);
 } catch (error) {
   console.error("Failed to initialize agent client:", error.message);

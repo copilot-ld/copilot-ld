@@ -112,9 +112,10 @@ GITHUB_CLIENT_ID=your_20_character_client_id_here</code></pre>
 
       <pre><code>node tools/secret.js</code></pre>
 
-      <p>Add the generated secret to your <code>.env</code> file:</p>
-
-      <pre><code>SERVICE_AUTH_SECRET=your_32_character_secret_here</code></pre>
+      <p>
+        This command automatically updates your <code>.env</code> file with the
+        generated secret.
+      </p>
 
       <h3>4. Offline Knowledge Processing</h3>
 
@@ -173,23 +174,27 @@ node tools/download.js</code></pre>
     &lt;title&gt;Example Knowledge&lt;/title&gt;
 &lt;/head&gt;
 &lt;body&gt;
-    &lt;article id="docker-security"&gt;
-        &lt;h1&gt;Docker Security Best Practices&lt;/h1&gt;
-        &lt;p&gt;Always use specific image tags instead of 'latest' to ensure reproducible builds and security.&lt;/p&gt;
-        &lt;p&gt;Implement multi-stage builds to reduce attack surface and image size.&lt;/p&gt;
+    &lt;article itemscope itemtype="http://schema.org/Article"&gt;
+        &lt;h1 itemprop="headline"&gt;Docker Security Best Practices&lt;/h1&gt;
+        &lt;div itemprop="articleBody"&gt;
+            &lt;p&gt;Always use specific image tags instead of 'latest' to ensure reproducible builds and security.&lt;/p&gt;
+            &lt;p&gt;Implement multi-stage builds to reduce attack surface and image size.&lt;/p&gt;
+        &lt;/div&gt;
     &lt;/article&gt;
     
-    &lt;article id="kubernetes-deployment"&gt;
-        &lt;h1&gt;Kubernetes Deployment Strategies&lt;/h1&gt;
-        &lt;p&gt;Rolling updates provide zero-downtime deployments by gradually replacing instances.&lt;/p&gt;
-        &lt;p&gt;Use readiness and liveness probes to ensure application health during deployments.&lt;/p&gt;
+    &lt;article itemscope itemtype="http://schema.org/Article"&gt;
+        &lt;h1 itemprop="headline"&gt;Kubernetes Deployment Strategies&lt;/h1&gt;
+        &lt;div itemprop="articleBody"&gt;
+            &lt;p&gt;Rolling updates provide zero-downtime deployments by gradually replacing instances.&lt;/p&gt;
+            &lt;p&gt;Use readiness and liveness probes to ensure application health during deployments.&lt;/p&gt;
+        &lt;/div&gt;
     &lt;/article&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
       <p>
-        The chunking process looks for elements with <code>id</code> attributes
-        and extracts them as individual knowledge items.
+        The chunking process looks for elements with microdata attributes and
+        extracts them as individual knowledge items using structured data.
       </p>
 
       <h3>6. Start the System</h3>

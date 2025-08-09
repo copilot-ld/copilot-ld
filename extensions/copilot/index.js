@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { verifyAndParseRequest } from "@copilot-extensions/preview-sdk";
 
-import { ExtensionConfig } from "@copilot-ld/libconfig";
+import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware, AgentClient } from "@copilot-ld/libweb";
 
@@ -116,7 +116,7 @@ try {
     console.error("Please set SERVICE_AUTH_SECRET in your .env file.");
   }
 
-  const grpcClient = new Client("agent");
+  const grpcClient = new Client(new ServiceConfig("agent"));
   agentClient = new AgentClient(grpcClient);
 } catch (error) {
   console.error("Failed to initialize agent client:", error.message);

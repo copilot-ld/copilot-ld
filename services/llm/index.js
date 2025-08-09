@@ -17,7 +17,7 @@ class LlmService extends Service {
    * @param {Function} llmFactory - Factory function to create LLM instances
    */
   constructor(config, llmFactory) {
-    super(config, llmFactory);
+    super(config);
     this.#llmFactory = llmFactory;
   }
 

@@ -17,7 +17,7 @@ class VectorService extends Service {
    * @param {Map<string, object>} vectorIndices - Pre-initialized vector indices
    */
   constructor(config, vectorIndices) {
-    super(config, vectorIndices);
+    super(config);
     this.#vectorIndices = vectorIndices;
   }
 

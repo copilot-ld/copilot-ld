@@ -16,7 +16,7 @@ class TextService extends Service {
    * @param {object} chunkIndex - ChunkIndex instance for data access
    */
   constructor(config, chunkIndex) {
-    super(config, chunkIndex);
+    super(config);
     this.#chunkIndex = chunkIndex;
   }
 

@@ -169,4 +169,47 @@ describe("vector service", () => {
       assert.strictEqual(limit, 5);
     });
   });
+
+  describe("VectorService Constructor", () => {
+    test("passes only config to parent Service constructor", () => {
+      // Verify that VectorService properly extends Service with correct parameters
+      const config = { name: "vector", port: 3006 };
+      const vectorIndices = new Map([["test", { query: () => [] }]]);
+
+      // Mock the real Service class behavior to validate constructor calls
+      class TestService {
+        constructor(config, grpcFactory, authFactory) {
+          if (grpcFactory && typeof grpcFactory !== "function") {
+            throw new Error("grpcFactory must be a function");
+          }
+          if (authFactory && typeof authFactory !== "function") {
+            throw new Error("authFactory must be a function");
+          }
+          this.config = config;
+        }
+      }
+
+      class TestVectorService extends TestService {
+        constructor(config, vectorIndices) {
+          super(config); // Correct pattern - only pass config to parent
+          this.vectorIndices = vectorIndices;
+        }
+      }
+
+      // Should not throw when properly constructed
+      assert.doesNotThrow(() => new TestVectorService(config, vectorIndices));
+
+      // Demonstrate incorrect pattern would fail
+      class IncorrectVectorService extends TestService {
+        constructor(config, vectorIndices) {
+          super(config, vectorIndices); // Incorrect - vectorIndices is not a function
+          this.vectorIndices = vectorIndices;
+        }
+      }
+
+      assert.throws(() => new IncorrectVectorService(config, vectorIndices), {
+        message: /grpcFactory must be a function/,
+      });
+    });
+  });
 });

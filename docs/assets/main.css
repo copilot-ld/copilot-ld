@@ -1,0 +1,16 @@
+:root {
+  --gradient: linear-gradient(
+    to right,
+    rgb(184, 90, 160),
+    rgb(141, 107, 184),
+    rgb(107, 125, 214),
+    rgb(74, 143, 231),
+    rgb(1, 114, 173)
+  );
+}
+
+mark {
+  background: var(--gradient);
+  background-clip: text;
+  color: transparent;
+}

@@ -4,7 +4,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
-import { ExtensionConfig } from "@copilot-ld/libconfig";
+import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware, AgentClient } from "@copilot-ld/libweb";
 

@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { verifyAndParseRequest } from "@copilot-extensions/preview-sdk";
 
-import { ExtensionConfig } from "@copilot-ld/libconfig";
+import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware, AgentClient } from "@copilot-ld/libweb";
 

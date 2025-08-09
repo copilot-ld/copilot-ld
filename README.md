@@ -1,4 +1,4 @@
-# 🤖 Copilot-LD
+# 🧬 Copilot-LD
 
 An intelligent chat agent leveraging GitHub Copilot and Linked Data, built with
 Node.js, gRPC microservices and retrieval-augmented generation (RAG) techniques.

@@ -1,7 +1,12 @@
 # 🧬 Copilot-LD
 
-An intelligent chat agent leveraging GitHub Copilot and Linked Data, built with
-Node.js, gRPC microservices and retrieval-augmented generation (RAG) techniques.
+Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked data and
+retrieval-augmented generation.
+
+- 🎯 **Amazingly Accurate**: Chunking and similarity searches with linked data
+- ⚡️ **Incredibly Fast**: Parallel vector retrieval using in-memory indices
+- 🛡️ **Robustly Secure**: Network isolation, gRPC, HMAC auth, <10 MB containers
+- ✨ **Elegantly Simple**: Plain JavaScript with no external dependencies
 
 ## 🏗️ Repository Structure
 

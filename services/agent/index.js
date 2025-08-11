@@ -35,6 +35,15 @@ class AgentService extends Service {
    * @returns {Promise<object>} Completion response with session ID
    */
   async ProcessRequest({ messages: clientMessages, session_id, github_token }) {
+    // Ensure all clients are ready before processing
+    await Promise.all([
+      this.#clients.history.ensureReady(),
+      this.#clients.llm.ensureReady(),
+      this.#clients.scope.ensureReady(),
+      this.#clients.vector.ensureReady(),
+      this.#clients.text.ensureReady(),
+    ]);
+
     const octokit = this.#octokitFactory(github_token);
     await octokit.request("GET /user");
 
@@ -54,7 +63,8 @@ class AgentService extends Service {
         }),
       ]);
 
-      messages = [...historyMessages.messages, latestUserMessage];
+      const previousMessages = historyMessages?.messages || [];
+      messages = [...previousMessages, latestUserMessage];
       const vector = embeddings.data[0].embedding;
 
       const { indices } = await this.#clients.scope.ResolveScope({ vector });

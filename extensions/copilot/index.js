@@ -5,14 +5,14 @@ import { verifyAndParseRequest } from "@copilot-extensions/preview-sdk";
 
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
-import { createSecurityMiddleware, AgentClient } from "@copilot-ld/libweb";
+import { createSecurityMiddleware } from "@copilot-ld/libweb";
 
 // Configuration and initialization
 const config = new ExtensionConfig("copilot");
 
 /**
- * Creates a copilot extension with configurable dependencies
- * @param {AgentClient} agentClient - Agent service client wrapper
+ * Creates a GitHub Copilot compatible extension
+ * @param {Client} agentClient - Agent service gRPC client
  * @returns {Hono} Configured Hono application
  */
 function createCopilotExtension(agentClient) {
@@ -66,7 +66,10 @@ function createCopilotExtension(agentClient) {
       const { messages, user } = copilotRequest;
 
       // Process request through agent service
-      const response = await agentClient.processRequest({
+      // Ensure client is ready before making requests
+      await agentClient.ensureReady();
+
+      const response = await agentClient.ProcessRequest({
         messages: messages || [],
         github_token: copilotRequest.token || config.githubToken(),
         session_id: user?.login || undefined,
@@ -117,7 +120,7 @@ try {
   }
 
   const grpcClient = new Client(new ServiceConfig("agent"));
-  agentClient = new AgentClient(grpcClient);
+  agentClient = grpcClient;
 } catch (error) {
   console.error("Failed to initialize agent client:", error.message);
   process.exit(1);

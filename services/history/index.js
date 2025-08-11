@@ -29,7 +29,7 @@ class HistoryService extends Service {
    * @returns {Promise<object>} Response containing session messages
    */
   async GetHistory({ session_id }) {
-    const messages = this.#cache.get(session_id);
+    const messages = this.#cache.get(session_id) || [];
     return { messages };
   }
 

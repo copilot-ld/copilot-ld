@@ -82,17 +82,3 @@ export class SecurityMiddlewareInterface {
     throw new Error("Not implemented");
   }
 }
-
-/**
- * Interface for agent client implementations
- */
-export class AgentClientInterface {
-  /**
-   * Processes request via agent service
-   * @param {object} params - Request parameters
-   * @throws {Error} When interface method is not implemented
-   */
-  async processRequest(params) {
-    throw new Error("Not implemented");
-  }
-}

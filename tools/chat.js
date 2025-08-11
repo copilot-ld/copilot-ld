@@ -4,12 +4,12 @@ import readline from "readline";
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { AgentClient } from "@copilot-ld/libweb";
+import { Client } from "@copilot-ld/libservice";
 
 /** @typedef {import("@copilot-ld/libtype").Message} Message */
 
 const config = new ServiceConfig("agent");
-const agentClient = new AgentClient(config);
+const agentClient = new Client(config);
 
 // Global state
 /** @type {string|null} */
@@ -27,6 +27,9 @@ async function handlePrompt(prompt) {
   messages.push({ role: "user", content: prompt });
 
   try {
+    // Ensure client is ready before making requests
+    await agentClient.ensureReady();
+
     const requestParams = {
       messages: messages,
       github_token: config.githubToken(),
@@ -36,7 +39,7 @@ async function handlePrompt(prompt) {
       requestParams.session_id = sessionId;
     }
 
-    const result = await agentClient.processRequest(requestParams);
+    const result = await agentClient.ProcessRequest(requestParams);
 
     if (!result || !result.choices || result.choices.length === 0) {
       throw new Error("No response from agent service");

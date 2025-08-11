@@ -36,6 +36,15 @@ export class ConfigInterface {
   }
 
   /**
+   * Gets path within the storage directory, creating if missing
+   * @param {string} path - Relative path within storage directory
+   * @throws {Error} Not implemented
+   */
+  storagePath(path = "") {
+    throw new Error("ConfigInterface.storagePath() not implemented");
+  }
+
+  /**
    * Gets the GitHub client ID from environment variable
    * @throws {Error} Not implemented
    */

@@ -1,5 +1,4 @@
 /* eslint-env node */
-import path from "path";
 import readline from "readline";
 
 import { ChunkIndex } from "@copilot-ld/libchunk";
@@ -17,10 +16,9 @@ import {
 
 // Configuration
 const config = new ToolConfig("search");
-const DATA_DIR = path.join(process.cwd(), "data");
-const VECTORS_DIR = path.join(DATA_DIR, "vectors");
-const SCOPE_DIR = path.join(DATA_DIR, "scope");
-const CHUNKS_DIR = path.join(DATA_DIR, "chunks");
+const VECTORS_DIR = config.storagePath("vectors");
+const SCOPE_DIR = config.storagePath("scope");
+const CHUNKS_DIR = config.storagePath("chunks");
 
 // Global state
 /** @type {Map<string, VectorIndex>} */

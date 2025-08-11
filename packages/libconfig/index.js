@@ -85,6 +85,11 @@ export class Config extends ConfigInterface {
   }
 
   /** @inheritdoc */
+  storagePath(path = "") {
+    return this.#findPath(`data/storage/${path}`, true);
+  }
+
+  /** @inheritdoc */
   githubClientId() {
     this.#loadEnv();
     return this.#process.env.GITHUB_CLIENT_ID;

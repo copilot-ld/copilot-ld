@@ -137,3 +137,12 @@ webpack
 workspaces
 XML
 YAML
+balancer
+Balancer
+s3-compatible
+S3-compatible
+ssl
+SSL
+minio
+MinIO
+minioadmin

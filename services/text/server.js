@@ -7,6 +7,6 @@ import { TextService } from "./index.js";
 
 // Start the service
 const config = new ServiceConfig("text");
-const storage = storageFactory(config.dataPath("chunks"), config);
+const storage = storageFactory(config.storagePath("chunks"), config);
 const service = new TextService(config, new ChunkIndex(storage));
 await service.start();

@@ -6,7 +6,7 @@ import { storageFactory } from "@copilot-ld/libstorage";
 
 const config = new ToolConfig("chunk");
 const KNOWLEDGE_DIR = config.dataPath("knowledge");
-const CHUNKS_DIR = config.dataPath("chunks");
+const CHUNKS_DIR = config.storagePath("chunks");
 
 /**
  * Main function to process all HTML files in the knowledge base directory

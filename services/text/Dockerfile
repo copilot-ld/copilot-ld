@@ -2,14 +2,16 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Copy package.json and workspace structure
 COPY package.json package-lock.json ./
 COPY packages/ ./packages/
+COPY services/ ./services/
+COPY extensions/ ./extensions/
+COPY tools/ ./tools/
 COPY proto/ ./proto/
 
-COPY services/text/package.json ./services/text/
-COPY services/text/ ./services/text/
-
-RUN npm ci --workspace=@copilot-ld/text --include-workspace-root
+# Install all dependencies for the entire workspace
+RUN npm ci
 
 WORKDIR /app/services/text
 

@@ -61,9 +61,45 @@ node tools/index.js
 
 ### 7. Start services
 
+#### Option A: Local Development Environment
+
 ```sh
 npm run dev
 ```
+
+Access the services:
+
+- **Web Extension**: `http://localhost:3000`
+- **Copilot Extension**: `http://localhost:3001`
+
+#### Option B: Production-Like Environment
+
+For a production-like environment with an Application Load Balancer (ALB) and
+S3-compatible storage:
+
+```sh
+# Generate SSL certificates for localhost
+node tools/cert.js
+
+# Uncomment all host and port variables in .env
+sed -i '' -E '/(HOST|PORT)=/s/^/# /' .env
+
+# Start all services including ALB and MinIO
+docker compose up
+```
+
+This provides:
+
+- **Application Load Balancer**: SSL termination and path-based routing through
+  nginx
+- **S3-compatible storage**: MinIO for scope, vectors, and chunks data
+- **SSL encryption**: Self-signed certificates for localhost development
+
+Access the services:
+
+- **Web Extension**: `https://localhost/web`
+- **Copilot Extension**: `https://localhost/copilot`
+- **MinIO Console**: `http://localhost:9001`
 
 ## ⚡ Usage
 
@@ -91,19 +127,14 @@ Interactive mode:
 
 ```sh
 node tools/search.js
-> security vulnerabilities
+> What is Kanban?
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "docker security" | node tools/search.js
+echo "What is Kanban?" | node tools/search.js
 ```
-
-### Extension Endpoints
-
-- **Web Extension**: `http://localhost:3000`
-- **Copilot Extension**: `http://localhost:3001`
 
 ## 👨‍💻 Development
 

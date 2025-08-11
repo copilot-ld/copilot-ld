@@ -13,6 +13,9 @@ class AgentChat extends HTMLElement {
   }
 
   connectedCallback() {
+    // Get API URL from data attribute, default to current origin + /web/api
+    this.apiUrl =
+      this.getAttribute("data-api") || `${window.location.origin}/web/api`;
     this.update();
     setTimeout(() => this.scrollToBottom(), 0);
   }
@@ -78,7 +81,7 @@ class AgentChat extends HTMLElement {
     this.setLoading(true);
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${this.apiUrl}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, session_id: this.session_id }),

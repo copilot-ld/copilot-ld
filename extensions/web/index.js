@@ -51,6 +51,7 @@ function createWebExtension(agentClient) {
       types: {
         message: "string",
         session_id: "string",
+        microdata_context: "array",
       },
       maxLengths: {
         message: 5000,
@@ -60,7 +61,7 @@ function createWebExtension(agentClient) {
     async (c) => {
       try {
         const data = c.get("validatedData");
-        const { message, session_id } = data;
+        const { message, session_id, microdata_context } = data;
 
         const requestParams = {
           messages: [{ role: "user", content: message }],
@@ -69,6 +70,19 @@ function createWebExtension(agentClient) {
 
         if (session_id) {
           requestParams.session_id = session_id;
+        }
+
+        // Add microdata context as system message if available
+        if (
+          microdata_context &&
+          Array.isArray(microdata_context) &&
+          microdata_context.length > 0
+        ) {
+          const contextMessage = {
+            role: "system",
+            content: `The user is currently looking at the following: ${JSON.stringify(microdata_context)}`,
+          };
+          requestParams.messages.unshift(contextMessage);
         }
 
         const response = await agentClient.processRequest(requestParams);

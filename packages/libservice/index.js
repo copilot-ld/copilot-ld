@@ -137,9 +137,22 @@ export class Client extends Actor {
    */
   #setupMethods() {
     this.fireAndForget = {};
-    const methodNames = Object.keys(this.#client).filter(
+
+    // Get methods from both prototype and instance
+    const prototypeMethodNames = Object.getOwnPropertyNames(
+      Object.getPrototypeOf(this.#client),
+    ).filter(
+      (key) => key !== "constructor" && typeof this.#client[key] === "function",
+    );
+
+    const instanceMethodNames = Object.getOwnPropertyNames(this.#client).filter(
       (key) => typeof this.#client[key] === "function",
     );
+
+    const methodNames = [
+      ...new Set([...prototypeMethodNames, ...instanceMethodNames]),
+    ];
+
     for (const method of methodNames) {
       this[method] = this.#createPromisifiedMethod(method);
       this.fireAndForget[method] = this.#createFireAndForgetMethod(method);

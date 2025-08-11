@@ -6,7 +6,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
-import { createSecurityMiddleware, AgentClient } from "@copilot-ld/libweb";
+import { createSecurityMiddleware } from "@copilot-ld/libweb";
 
 // Configuration and initialization
 const config = new ExtensionConfig("web");
@@ -16,7 +16,7 @@ const htmlFormatter = createHtmlFormatter();
 
 /**
  * Creates a web extension with configurable dependencies
- * @param {AgentClient} agentClient - Agent service client wrapper
+ * @param {Client} agentClient - Agent service gRPC client
  * @returns {Hono} Configured Hono application
  */
 function createWebExtension(agentClient) {
@@ -71,7 +71,10 @@ function createWebExtension(agentClient) {
           requestParams.session_id = session_id;
         }
 
-        const response = await agentClient.processRequest(requestParams);
+        // Ensure client is ready before making requests
+        await agentClient.ensureReady();
+
+        const response = await agentClient.ProcessRequest(requestParams);
 
         // Format HTML content if present
         if (
@@ -120,8 +123,7 @@ try {
     console.error("Please set SERVICE_AUTH_SECRET in your .env file.");
   }
 
-  const grpcClient = new Client(new ServiceConfig("agent"));
-  agentClient = new AgentClient(grpcClient);
+  agentClient = new Client(new ServiceConfig("agent"));
 } catch (error) {
   console.error("Failed to initialize agent client:", error.message);
   process.exit(1);

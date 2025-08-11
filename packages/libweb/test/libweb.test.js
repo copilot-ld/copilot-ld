@@ -6,7 +6,6 @@ import {
   RequestValidator,
   MemoryRateLimiter,
   SecurityMiddleware,
-  AgentClient,
   createRateLimiter,
   createSecurityMiddleware,
 } from "../index.js";
@@ -109,40 +108,6 @@ describe("SecurityMiddleware", () => {
   test("creates error middleware", () => {
     const middleware = securityMiddleware.createErrorMiddleware();
     assert.strictEqual(typeof middleware, "function");
-  });
-});
-
-describe("AgentClient", () => {
-  test("creates agent client wrapper", () => {
-    const mockClient = {
-      ProcessRequest: (params, callback) => callback(null, { success: true }),
-    };
-
-    const agentClient = new AgentClient(mockClient);
-    assert(agentClient instanceof AgentClient);
-  });
-
-  test("processes request successfully", async () => {
-    const mockClient = {
-      ProcessRequest: (params, callback) => callback(null, { success: true }),
-    };
-
-    const agentClient = new AgentClient(mockClient);
-    const result = await agentClient.processRequest({ test: true });
-
-    assert.strictEqual(result.success, true);
-  });
-
-  test("handles request errors", async () => {
-    const mockClient = {
-      ProcessRequest: (params, callback) => callback(new Error("Test error")),
-    };
-
-    const agentClient = new AgentClient(mockClient);
-
-    await assert.rejects(() => agentClient.processRequest({ test: true }), {
-      message: "Test error",
-    });
   });
 });
 

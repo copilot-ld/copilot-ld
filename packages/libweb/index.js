@@ -7,7 +7,6 @@ import {
   ValidationInterface,
   RateLimiterInterface,
   SecurityMiddlewareInterface,
-  AgentClientInterface,
 } from "./types.js";
 
 /**
@@ -158,7 +157,7 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
 
           // Type validation
           const expectedType = schema.types?.[field];
-          if (expectedType && value !== undefined) {
+          if (expectedType && value !== undefined && value !== null) {
             const typeChecks = {
               string: typeof value === "string",
               number: typeof value === "number",
@@ -303,36 +302,6 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
 }
 
 /**
- * Agent client wrapper for shared request processing
- * @implements {AgentClientInterface}
- */
-export class AgentClient extends AgentClientInterface {
-  #client;
-
-  /**
-   * Creates agent client wrapper
-   * @param {object} client - gRPC client instance
-   */
-  constructor(client) {
-    super();
-    this.#client = client;
-  }
-
-  /** @inheritdoc */
-  async processRequest(params) {
-    return new Promise((resolve, reject) => {
-      this.#client.ProcessRequest(params, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response);
-        }
-      });
-    });
-  }
-}
-
-/**
  * Factory function to create rate limiter with default settings
  * @param {object} options - Rate limiter options
  * @returns {MemoryRateLimiter} Configured rate limiter
@@ -366,5 +335,4 @@ export {
   ValidationInterface,
   RateLimiterInterface,
   SecurityMiddlewareInterface,
-  AgentClientInterface,
 };

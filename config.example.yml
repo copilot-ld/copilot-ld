@@ -3,6 +3,15 @@ tool:
     owner: "some-github-owner"
     repo: "some-github-repo"
 
+# Storage configuration (optional - defaults to local filesystem)
+# Uncomment and configure for S3-compatible storage (e.g., MinIO)
+#storage: s3
+#s3_endpoint: http://localhost:9000
+#s3_region: us-east-1
+#s3_bucket: copilot-ld
+#s3_access_key_id: minioadmin
+#s3_secret_access_key: minioadmin
+
 service:
   agent:
     threshold: 0.3

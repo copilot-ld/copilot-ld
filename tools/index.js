@@ -10,9 +10,9 @@ import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
 
 // Cofnfiguration
 const config = new ToolConfig("index");
-const CHUNKS_DIR = config.dataPath("chunks");
-const SCOPE_DIR = config.dataPath("scope");
-const VECTORS_DIR = config.dataPath("vectors");
+const CHUNKS_DIR = config.storagePath("chunks");
+const SCOPE_DIR = config.storagePath("scope");
+const VECTORS_DIR = config.storagePath("vectors");
 
 const SCOPES = ["capability", "policy", "service", "process"];
 

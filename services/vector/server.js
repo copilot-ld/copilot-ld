@@ -10,7 +10,7 @@ const config = new ServiceConfig("vector", {
   limit: 0,
 });
 const vectorIndices = await initializeVectorIndices(
-  config.dataPath("vectors"),
+  config.storagePath("vectors"),
   config,
 );
 const service = new VectorService(config, vectorIndices);

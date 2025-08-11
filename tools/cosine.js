@@ -4,7 +4,7 @@ import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
 
 const config = new ToolConfig("cosine");
-const VECTOR_DIR = config.dataPath("vectors/policy");
+const VECTOR_DIR = config.storagePath("vectors/policy");
 
 /**
  * Main function to query vector index with cosine similarity

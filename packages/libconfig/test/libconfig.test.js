@@ -161,6 +161,22 @@ describe("libconfig", () => {
       assert(path.includes("data/subdir"));
     });
 
+    test("storagePath creates directory if missing", () => {
+      mockFs.existsSync = mock.fn(() => false);
+
+      const path = config.storagePath("subdir");
+
+      assert.strictEqual(mockFs.mkdirSync.mock.callCount(), 1);
+      assert(path.includes("data/storage/subdir"));
+    });
+
+    test("storagePath returns existing path", () => {
+      const path = config.storagePath("subdir");
+
+      assert.strictEqual(mockFs.mkdirSync.mock.callCount(), 0);
+      assert(path.includes("data/storage/subdir"));
+    });
+
     test("githubToken returns from environment", () => {
       const token = config.githubToken();
 

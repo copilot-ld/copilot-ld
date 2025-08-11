@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/llm",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Language model service providing embeddings and completions for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libcopilot": "^0.1.0",
-    "@copilot-ld/libservice": "^0.1.2"
+    "@copilot-ld/libservice": "^0.1.3"
   },
   "repository": {
     "type": "git",

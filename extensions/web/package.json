@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.1",
     "@copilot-ld/libformat": "^0.1.0",
-    "@copilot-ld/libservice": "^0.1.1",
+    "@copilot-ld/libservice": "^0.1.2",
     "@copilot-ld/libweb": "^0.1.0",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"

@@ -10,11 +10,117 @@ class AgentChat extends HTMLElement {
     this.session_id = localStorage.getItem("agent_session_id");
     const msg = localStorage.getItem("agent_messages");
     if (this.session_id && msg) this.messages = JSON.parse(msg);
+
+    // Microdata functionality
+    this.microdataItems = [];
+    this.excludedMicrodataIds = new Set();
   }
 
   connectedCallback() {
+    this.extractMicrodata();
     this.update();
     setTimeout(() => this.scrollToBottom(), 0);
+  }
+
+  /**
+   * Extract microdata from the current page
+   */
+  extractMicrodata() {
+    this.microdataItems = [];
+
+    // Find all elements with itemscope attribute
+    const itemscopeElements = document.querySelectorAll("[itemscope]");
+
+    itemscopeElements.forEach((element) => {
+      const item = this.extractMicrodataItem(element);
+      if (item && item["@id"]) {
+        this.microdataItems.push(item);
+      }
+    });
+  }
+
+  /**
+   * Extract microdata from a single element
+   * @param {Element} element - The element with itemscope
+   * @returns {Object} The extracted microdata object
+   */
+  extractMicrodataItem(element) {
+    const item = {};
+
+    // Extract @type from itemtype attribute
+    const itemtype = element.getAttribute("itemtype");
+    if (itemtype) {
+      const match = itemtype.match(/^(.+\/)([^/]+)$/);
+      if (match) {
+        item["@type"] = match[2];
+        item["@context"] = match[1];
+      }
+    }
+
+    // Extract @id from itemid attribute
+    const itemid = element.getAttribute("itemid");
+    if (itemid) {
+      item["@id"] = itemid.trim();
+    }
+
+    // Extract properties from itemprop elements within this scope
+    const props = element.querySelectorAll(
+      "[itemprop]:not([itemscope] [itemprop])",
+    );
+    props.forEach((prop) => {
+      const propName = prop.getAttribute("itemprop");
+      const propValue = this.extractPropertyValue(prop);
+
+      if (item[propName]) {
+        // Convert to array if multiple values
+        if (Array.isArray(item[propName])) {
+          item[propName].push(propValue);
+        } else {
+          item[propName] = [item[propName], propValue];
+        }
+      } else {
+        item[propName] = propValue;
+      }
+    });
+
+    return item;
+  }
+
+  /**
+   * Extract the value from an itemprop element
+   * @param {Element} element - The element with itemprop
+   * @returns {string|Object} The extracted value
+   */
+  extractPropertyValue(element) {
+    // If element has itemtype, it's a nested object
+    if (element.hasAttribute("itemtype")) {
+      return this.extractMicrodataItem(element);
+    }
+
+    // Extract value based on element type
+    const tagName = element.tagName.toLowerCase();
+    switch (tagName) {
+      case "meta": {
+        return element.getAttribute("content") || "";
+      }
+      case "link":
+      case "a": {
+        return element.getAttribute("href") || "";
+      }
+      case "img": {
+        return element.getAttribute("src") || "";
+      }
+      case "input": {
+        return element.getAttribute("value") || element.value || "";
+      }
+      case "select": {
+        const selected = element.querySelector("[selected]");
+        return selected ? selected.textContent.trim() : "";
+      }
+      default: {
+        return element.textContent.trim();
+      }
+    }
   }
 
   update() {
@@ -58,6 +164,45 @@ class AgentChat extends HTMLElement {
           id === "#new" ? this.newSession() : this.toggle(id.slice(1)),
         );
     });
+
+    // Add event listeners for microdata exclusion buttons
+    this.shadowRoot.addEventListener("click", (e) => {
+      if (e.target.classList.contains("exclude-microdata")) {
+        const itemId = e.target.dataset.itemId;
+        this.excludeMicrodataItem(itemId);
+      } else if (e.target.classList.contains("include-microdata")) {
+        const itemId = e.target.dataset.itemId;
+        this.includeMicrodataItem(itemId);
+      }
+    });
+  }
+
+  /**
+   * Exclude a microdata item from being sent to the agent
+   * @param {string} itemId - The @id of the microdata item to exclude
+   */
+  excludeMicrodataItem(itemId) {
+    this.excludedMicrodataIds.add(itemId);
+    this.update();
+  }
+
+  /**
+   * Include a previously excluded microdata item
+   * @param {string} itemId - The @id of the microdata item to include
+   */
+  includeMicrodataItem(itemId) {
+    this.excludedMicrodataIds.delete(itemId);
+    this.update();
+  }
+
+  /**
+   * Get the active microdata items (not excluded)
+   * @returns {Array} Array of active microdata items
+   */
+  getActiveMicrodataItems() {
+    return this.microdataItems.filter(
+      (item) => !this.excludedMicrodataIds.has(item["@id"]),
+    );
   }
 
   toggle(prop) {
@@ -78,10 +223,22 @@ class AgentChat extends HTMLElement {
     this.setLoading(true);
 
     try {
+      // Prepare request body with microdata context
+      const requestBody = {
+        message,
+        session_id: this.session_id,
+      };
+
+      // Add microdata context if available
+      const activeMicrodata = this.getActiveMicrodataItems();
+      if (activeMicrodata.length > 0) {
+        requestBody.microdata_context = activeMicrodata;
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, session_id: this.session_id }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
@@ -132,6 +289,61 @@ class AgentChat extends HTMLElement {
       .join("");
   }
 
+  renderMicrodataItems() {
+    if (this.microdataItems.length === 0) {
+      return "";
+    }
+
+    const activeItems = this.getActiveMicrodataItems();
+    const excludedItems = this.microdataItems.filter((item) =>
+      this.excludedMicrodataIds.has(item["@id"]),
+    );
+
+    return `
+      <section class="microdata-section">
+        <h4>Page Context</h4>
+        ${
+          activeItems.length > 0
+            ? `
+          <div class="microdata-items active">
+            <h5>Included:</h5>
+            ${activeItems
+              .map(
+                (item) => `
+              <div class="microdata-item">
+                <span class="microdata-id">${item["@id"]}</span>
+                <button class="exclude-microdata" data-item-id="${item["@id"]}" title="Exclude from context">×</button>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        `
+            : ""
+        }
+        ${
+          excludedItems.length > 0
+            ? `
+          <div class="microdata-items excluded">
+            <h5>Excluded:</h5>
+            ${excludedItems
+              .map(
+                (item) => `
+              <div class="microdata-item excluded">
+                <span class="microdata-id">${item["@id"]}</span>
+                <button class="include-microdata" data-item-id="${item["@id"]}" title="Include in context">+</button>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        `
+            : ""
+        }
+      </section>
+    `;
+  }
+
   render() {
     this.shadowRoot.innerHTML = `${this.getHtml()}\n<style>${this.getCss()}</style>`;
   }
@@ -163,6 +375,7 @@ class AgentChat extends HTMLElement {
         this.collapsed
           ? ""
           : `
+      ${this.renderMicrodataItems()}
       <main>
         ${this.renderMessages()}
       </main>
@@ -335,6 +548,84 @@ class AgentChat extends HTMLElement {
         color: var(--accent);
         font: 12px ui-monospace, monospace;
         overflow: auto;
+      }
+      
+      .microdata-section {
+        padding: 12px 16px 0;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-secondary);
+      }
+      
+      .microdata-section h4 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      
+      .microdata-section h5 {
+        margin: 8px 0 4px 0;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+        opacity: 0.8;
+      }
+      
+      .microdata-items {
+        margin-bottom: 8px;
+      }
+      
+      .microdata-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 8px;
+        margin: 2px 0;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      
+      .microdata-item.excluded {
+        opacity: 0.6;
+        background: var(--bg-secondary);
+      }
+      
+      .microdata-id {
+        flex: 1;
+        color: var(--accent);
+        font-family: ui-monospace, monospace;
+        word-break: break-all;
+      }
+      
+      .exclude-microdata,
+      .include-microdata {
+        width: 20px;
+        height: 20px;
+        margin-left: 8px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .exclude-microdata:hover {
+        background: var(--error);
+        color: white;
+        border-color: var(--error);
+      }
+      
+      .include-microdata:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
       }
     `;
   }

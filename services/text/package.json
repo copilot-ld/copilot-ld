@@ -18,7 +18,7 @@
     "@copilot-ld/libchunk": "^0.1.2",
     "@copilot-ld/libconfig": "^0.1.2",
     "@copilot-ld/libservice": "^0.1.4",
-    "@copilot-ld/libstorage": "^0.1.0"
+    "@copilot-ld/libstorage": "^0.1.1"
   },
   "repository": {
     "type": "git",

@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libcopilot": "^0.1.1",
+    "@copilot-ld/libcopilot": "^0.1.2",
     "microdata-minimal": "git+https://github.com/jamesaduncan/schema-elements-minimal.git#main",
     "prettier": "^3.6.2"
   },

@@ -1,15 +1,24 @@
 /* eslint-env node */
-import { test, describe } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { ServiceConfig, ExtensionConfig } from "@copilot-ld/libconfig";
 import { Client, Service } from "@copilot-ld/libservice";
 
 describe("Service Integration", () => {
+  let mockAuthFactory;
+
+  beforeEach(() => {
+    // Mock auth factory to avoid requiring environment variables
+    mockAuthFactory = () => ({
+      createClientInterceptor: () => () => {},
+      validateCall: () => ({ isValid: true, serviceId: "test" }),
+    });
+  });
   test("ServiceConfig integrates with Client", () => {
     // Integration test: ServiceConfig objects work end-to-end with Client
     const config = new ServiceConfig("test-service");
-    const client = new Client(config);
+    const client = new Client(config, undefined, mockAuthFactory);
 
     assert.ok(client);
     assert.strictEqual(config.name, "test-service");
@@ -18,7 +27,7 @@ describe("Service Integration", () => {
   test("ExtensionConfig integrates with Client", () => {
     // Integration test: ExtensionConfig objects work end-to-end with Client
     const config = new ExtensionConfig("test-extension");
-    const client = new Client(config);
+    const client = new Client(config, undefined, mockAuthFactory);
 
     assert.ok(client);
     assert.strictEqual(config.name, "test-extension");
@@ -27,7 +36,7 @@ describe("Service Integration", () => {
   test("ServiceConfig integrates with Service", () => {
     // Integration test: ServiceConfig objects work end-to-end with Service
     const config = new ServiceConfig("test-service");
-    const service = new Service(config);
+    const service = new Service(config, undefined, mockAuthFactory);
 
     assert.ok(service);
     assert.strictEqual(config.name, "test-service");
@@ -38,8 +47,8 @@ describe("Service Integration", () => {
     const agentConfig = new ServiceConfig("agent");
     const vectorConfig = new ServiceConfig("vector");
 
-    const agentClient = new Client(agentConfig);
-    const vectorClient = new Client(vectorConfig);
+    const agentClient = new Client(agentConfig, undefined, mockAuthFactory);
+    const vectorClient = new Client(vectorConfig, undefined, mockAuthFactory);
 
     assert.ok(agentClient);
     assert.ok(vectorClient);
@@ -51,8 +60,12 @@ describe("Service Integration", () => {
     const extensionConfig = new ExtensionConfig("web");
     const serviceConfig = new ServiceConfig("agent");
 
-    const extensionClient = new Client(extensionConfig);
-    const serviceClient = new Client(serviceConfig);
+    const extensionClient = new Client(
+      extensionConfig,
+      undefined,
+      mockAuthFactory,
+    );
+    const serviceClient = new Client(serviceConfig, undefined, mockAuthFactory);
 
     assert.ok(extensionClient);
     assert.ok(serviceClient);

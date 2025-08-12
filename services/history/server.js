@@ -1,24 +1,21 @@
 /* eslint-env node */
-import NodeCache from "node-cache";
-
 import { llmFactory } from "@copilot-ld/libcopilot";
+import { PromptOptimizer, PromptStorage } from "@copilot-ld/libprompt";
 import { ServiceConfig } from "@copilot-ld/libconfig";
+import { storageFactory } from "@copilot-ld/libstorage";
 
 import { HistoryService } from "./index.js";
 
 // Start the service
 const config = new ServiceConfig("history", {
-  ttl: 3600,
-  checkperiod: 600,
   historyTokens: 4000,
 });
-const service = new HistoryService(
-  config,
-  new NodeCache({
-    stdTTL: config.ttl,
-    checkperiod: config.checkperiod,
-    useClones: false,
-  }),
-  llmFactory,
-);
+
+const storage = storageFactory(config.storagePath("history"), config);
+const promptStorage = new PromptStorage(storage);
+const promptOptimizer = new PromptOptimizer(llmFactory, {
+  totalTokenLimit: config.historyTokens || 100000,
+});
+
+const service = new HistoryService(config, promptStorage, promptOptimizer);
 await service.start();

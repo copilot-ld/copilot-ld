@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { Similarity } from "@copilot-ld/libtype";
-import { PromptBuilder } from "@copilot-ld/libprompt";
+import { PromptBuilder, PromptAssembler } from "@copilot-ld/libprompt";
 import { Service } from "@copilot-ld/libservice";
 
 import { AgentServiceInterface } from "./types.js";
@@ -28,8 +28,7 @@ class AgentService extends Service {
   }
 
   /**
-   * Processes an agent request by coordinating multiple services to generate
-   * context-aware responses using RAG (Retrieval Augmented Generation)
+   * Processes an agent request using simplified prompt management
    * @param {object} params - Request parameters
    * @param {Array} params.messages - Array of conversation messages
    * @param {string} params.session_id - Optional session ID for conversation continuity
@@ -53,25 +52,22 @@ class AgentService extends Service {
     const latestUserMessage =
       PromptBuilder.getLatestUserMessage(clientMessages);
 
-    let context = [];
-    let messages;
+    // 1. Get existing prompt from history service
+    const { prompt: existingPrompt } = await this.#clients.history.GetHistory({
+      session_id: sessionId,
+    });
+
+    let requestPrompt;
+    let currentSimilarities = [];
 
     if (latestUserMessage?.content) {
-      const [historyMessages, embeddings] = await Promise.all([
-        this.#clients.history.GetHistory({
-          session_id: sessionId,
-          max_tokens: this.config.historyTokens,
-        }),
-        this.#clients.llm.CreateEmbeddings({
-          chunks: [latestUserMessage.content],
-          github_token,
-        }),
-      ]);
+      // Get embeddings and search for similar content
+      const embeddings = await this.#clients.llm.CreateEmbeddings({
+        chunks: [latestUserMessage.content],
+        github_token,
+      });
 
-      const previousMessages = historyMessages?.messages || [];
-      messages = [...previousMessages, latestUserMessage];
       const vector = embeddings.data[0].embedding;
-
       const { indices } = await this.#clients.scope.ResolveScope({ vector });
 
       if (indices.length > 0) {
@@ -88,7 +84,7 @@ class AgentService extends Service {
             ids: results.map((r) => r.id),
           });
 
-          context = results.map((r) => {
+          currentSimilarities = results.map((r) => {
             const chunk = chunks[r.id];
             const similarity = new Similarity(r);
             similarity.text = chunk?.text;
@@ -96,31 +92,38 @@ class AgentService extends Service {
           });
         }
       }
+
+      // 2. Build request prompt using PromptAssembler (fast, no optimization)
+      requestPrompt = PromptAssembler.buildRequest(
+        existingPrompt,
+        latestUserMessage,
+        currentSimilarities,
+        this.config.prompts,
+      );
     } else {
-      const { messages: history } = await this.#clients.history.GetHistory({
-        session_id: sessionId,
-        max_tokens: this.config.historyTokens,
-      });
-      messages = history;
+      console.log("NO NEW MESSAGE");
+      // No new user message, use existing prompt
+      requestPrompt = existingPrompt;
     }
 
-    const enhancedMessages = new PromptBuilder()
-      .messages(messages)
-      .context(context)
-      .system(...this.config.prompts)
-      .build();
-
+    // 3. Get LLM completion
     const completions = await this.#clients.llm.CreateCompletions({
-      messages: enhancedMessages,
+      prompt: requestPrompt,
       temperature: this.config.temperature,
       github_token,
     });
 
+    // 4. Fire-and-forget history update (optimization happens internally)
     if (completions.choices?.length > 0) {
-      const updatedMessages = [...messages, completions.choices[0].message];
+      const updatedPrompt = PromptAssembler.updateWithResponse(
+        requestPrompt,
+        completions.choices[0].message,
+      );
+
+      // Use fire-and-forget pattern for async history update
       this.#clients.history.fireAndForget.UpdateHistory({
         session_id: sessionId,
-        messages: updatedMessages,
+        prompt: updatedPrompt,
         github_token,
       });
     }

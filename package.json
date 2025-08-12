@@ -16,8 +16,8 @@
   ],
   "scripts": {
     "dev": "concurrently 'npm run dev -w @copilot-ld/web' 'npm run dev -w @copilot-ld/copilot' 'npm run dev -w @copilot-ld/agent' 'npm run dev -w @copilot-ld/scope' 'npm run dev -w @copilot-ld/llm' 'npm run dev -w @copilot-ld/vector' 'npm run dev -w @copilot-ld/text' 'npm run dev -w @copilot-ld/history'",
-    "test": "find packages services -name '*.test.js' | xargs node --test",
-    "test:watch": "find packages services -name '*.test.js' | xargs node --test --watch",
+    "test": "find packages services test -name '*.test.js' | xargs node --test",
+    "test:watch": "find packages services test -name '*.test.js' | xargs node --test --watch",
     "perf": "find packages services -name '*.perf.js' | xargs node --expose-gc --test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -19,11 +19,9 @@ message EmbeddingResponse {
 }
 
 message CompletionRequest {
-  repeated common.Message messages = 1;
-  optional int32 max_tokens = 2;
-  optional float temperature = 3;
-  optional float top_p = 4;
-  optional string github_token = 8;
+  common.Prompt prompt = 1;
+  optional float temperature = 2;
+  optional string github_token = 3;
 }
 
 message CompletionResponse {

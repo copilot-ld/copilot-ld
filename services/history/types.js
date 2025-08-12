@@ -1,8 +1,7 @@
 /* eslint-env node */
-import NodeCache from "node-cache";
-
 import * as libconfig from "@copilot-ld/libconfig";
 import * as libservice from "@copilot-ld/libservice";
+import * as libstorage from "@copilot-ld/libstorage";
 
 /**
  * Base interface for History service
@@ -12,34 +11,33 @@ export class HistoryServiceInterface {
   /**
    * Creates a new History service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
-   * @param {NodeCache} cache - Cache instance for storing messages
+   * @param {libstorage.StorageInterface} storage - Storage backend for prompts
    * @param {Function} llmFactory - Factory function to create LLM instances
    * @throws {Error} Not implemented
    */
-  constructor(config, cache, llmFactory) {}
+  constructor(config, storage, llmFactory) {}
 
   /**
-   * Retrieves chat history for a session
+   * Retrieves chat history as a prompt for a session
    * @param {object} request - Request object containing session ID
    * @param {string} request.session_id - ID of the session to retrieve history for
-   * @param {number} [request.max_tokens] - Maximum tokens to return in history
-   * @returns {Promise<object>} Response containing session messages
+   * @returns {Promise<object>} Response containing prompt object
    * @throws {Error} Not implemented
    */
-  async GetHistory({ session_id, max_tokens }) {
+  async GetHistory({ session_id }) {
     throw new Error("Not implemented");
   }
 
   /**
-   * Updates chat history for a session
+   * Updates chat history with a new prompt
    * @param {object} request - Request object containing session data
    * @param {string} request.session_id - ID of the session to update
-   * @param {object[]} request.messages - Array of messages to store
-   * @param {string} [request.github_token] - GitHub token for LLM summarization
-   * @returns {Promise<object>} Response indicating success status
+   * @param {import("@copilot-ld/libprompt").Prompt} request.prompt - Prompt object to store
+   * @param {string} request.github_token - GitHub token for LLM optimization
+   * @returns {Promise<object>} Response indicating success status and optimization
    * @throws {Error} Not implemented
    */
-  async UpdateHistory({ session_id, messages, github_token }) {
+  async UpdateHistory({ session_id, prompt, github_token }) {
     throw new Error("Not implemented");
   }
 }

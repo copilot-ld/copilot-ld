@@ -79,12 +79,14 @@ export class Similarity {
    * @param {number} params.score - Similarity score (0-1)
    * @param {number} params.tokens - Number of tokens in the item (default: 0)
    * @param {string} params.scope - Scope classification of the item (default: null)
+   * @param {string} params.text - Text content of the related chunk (default: null)
    */
-  constructor({ id, score, tokens = 0, scope = null }) {
+  constructor({ id, score, tokens = 0, scope = null, text = null }) {
     this.id = id;
     this.score = score;
     this.tokens = tokens;
     this.scope = scope;
+    this.text = text;
   }
 }
 

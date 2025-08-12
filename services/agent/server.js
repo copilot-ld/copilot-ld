@@ -12,9 +12,9 @@ const service = new AgentService(
     threshold: 0.3,
     limit: 200,
     temperature: 0.2,
-    systemInstructionsTokens: 1000,
-    historyTokens: 2000,
-    similaritySearchTokens: 3000,
+    systemInstructionsTokens: 2000,
+    historyTokens: 10000,
+    similaritySearchTokens: 75000,
     prompts: [
       "You help with software development practices.",
       "Keep your introduction brief and focused on the task.",

@@ -14,9 +14,11 @@ class TextService extends Service {
    * Creates a new Text service instance
    * @param {object} config - Service configuration object
    * @param {object} chunkIndex - ChunkIndex instance for data access
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
    */
-  constructor(config, chunkIndex) {
-    super(config);
+  constructor(config, chunkIndex, grpcFn, authFn) {
+    super(config, grpcFn, authFn);
     this.#chunkIndex = chunkIndex;
   }
 

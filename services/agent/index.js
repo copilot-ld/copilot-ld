@@ -18,9 +18,11 @@ class AgentService extends Service {
    * @param {object} config - Service configuration object
    * @param {object} clients - Service clients object
    * @param {Function} octokitFactory - Factory function to create Octokit instances
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
    */
-  constructor(config, clients, octokitFactory) {
-    super(config);
+  constructor(config, clients, octokitFactory, grpcFn, authFn) {
+    super(config, grpcFn, authFn);
     this.#clients = clients;
     this.#octokitFactory = octokitFactory;
   }
@@ -56,7 +58,10 @@ class AgentService extends Service {
 
     if (latestUserMessage?.content) {
       const [historyMessages, embeddings] = await Promise.all([
-        this.#clients.history.GetHistory({ session_id: sessionId }),
+        this.#clients.history.GetHistory({
+          session_id: sessionId,
+          max_tokens: this.config.historyTokens,
+        }),
         this.#clients.llm.CreateEmbeddings({
           chunks: [latestUserMessage.content],
           github_token,
@@ -75,6 +80,7 @@ class AgentService extends Service {
           vector,
           threshold: this.config.threshold,
           limit: this.config.limit,
+          max_tokens: this.config.similaritySearchTokens,
         });
 
         if (results.length > 0) {
@@ -93,6 +99,7 @@ class AgentService extends Service {
     } else {
       const { messages: history } = await this.#clients.history.GetHistory({
         session_id: sessionId,
+        max_tokens: this.config.historyTokens,
       });
       messages = history;
     }
@@ -114,6 +121,7 @@ class AgentService extends Service {
       this.#clients.history.fireAndForget.UpdateHistory({
         session_id: sessionId,
         messages: updatedMessages,
+        github_token,
       });
     }
 

@@ -10,16 +10,17 @@ export class LlmInterface {
    * @param {string} token - LLM token
    * @param {string} model - Default model to use for completions
    * @param {Function} fetchFn - HTTP client function (defaults to fetch if not provided)
+   * @param {object} tokenizer - Tokenizer instance for counting tokens
    * @throws {Error} Not implemented
    */
-  constructor(token, model, fetchFn = null) {}
+  constructor(token, model, fetchFn = null, tokenizer = null) {}
 
   /**
-   * Static method to count tokens without requiring a Copilot instance
+   * Counts tokens in the given text using the tokenizer
    * @param {string} text - The text to count tokens for
    * @throws {Error} Not implemented
    */
-  static countTokens(text) {
+  countTokens(text) {
     throw new Error("Not implemented");
   }
 

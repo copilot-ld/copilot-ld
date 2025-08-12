@@ -17,6 +17,9 @@ service:
     threshold: 0.3
     limit: 50
     temperature: 0.2
+    systemInstructionsTokens: 1000
+    historyTokens: 2000
+    similaritySearchTokens: 3000
     prompts:
       - "You help with software development practices."
       - "Keep your introduction brief and focused on the task."
@@ -25,6 +28,7 @@ service:
   history:
     ttl: 3600
     checkperiod: 600
+    historyTokens: 4000
 
   llm:
     model: "claude-3.5-sonnet"

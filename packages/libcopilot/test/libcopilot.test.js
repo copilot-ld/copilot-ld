@@ -84,6 +84,7 @@ describe("libcopilot", () => {
         ok: false,
         status: 404,
         statusText: "Not Found",
+        text: mock.fn(() => Promise.resolve("Error details")),
       };
       mockFetch.mock.mockImplementationOnce(() =>
         Promise.resolve(mockResponse),
@@ -171,6 +172,7 @@ describe("libcopilot", () => {
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
+        text: mock.fn(() => Promise.resolve("Server error details")),
       };
 
       // Mock all attempts to fail with non-429 error (no retries)
@@ -220,6 +222,7 @@ describe("libcopilot", () => {
         ok: false,
         status: 401,
         statusText: "Unauthorized",
+        text: mock.fn(() => Promise.resolve("Auth error details")),
       };
       mockFetch.mock.mockImplementationOnce(() =>
         Promise.resolve(mockResponse),
@@ -231,17 +234,24 @@ describe("libcopilot", () => {
     });
   });
 
-  describe("Copilot static methods", () => {
+  describe("Copilot instance methods", () => {
+    let copilot;
+
+    beforeEach(() => {
+      const mockFetch = mock.fn();
+      copilot = new Copilot("test-token", "gpt-4", mockFetch);
+    });
+
     test("countTokens returns token count for text", () => {
       const text = "Hello, world!";
-      const count = Copilot.countTokens(text);
+      const count = copilot.countTokens(text);
 
       assert.strictEqual(typeof count, "number");
       assert(count > 0);
     });
 
     test("countTokens handles empty text", () => {
-      const count = Copilot.countTokens("");
+      const count = copilot.countTokens("");
       assert.strictEqual(count, 0);
     });
 
@@ -250,8 +260,8 @@ describe("libcopilot", () => {
       const longText =
         "Hello, this is a much longer text that should have more tokens";
 
-      const shortCount = Copilot.countTokens(shortText);
-      const longCount = Copilot.countTokens(longText);
+      const shortCount = copilot.countTokens(shortText);
+      const longCount = copilot.countTokens(longText);
 
       assert(longCount > shortCount);
     });

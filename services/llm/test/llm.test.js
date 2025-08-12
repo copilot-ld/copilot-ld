@@ -33,7 +33,7 @@ describe("llm service", () => {
 
     test("LlmService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(LlmService.length, 2); // config, llmFactory
+      assert.strictEqual(LlmService.length, 4); // config, llmFactory, grpcFn, authFn
     });
 
     test("LlmServiceInterface defines the service contract", () => {

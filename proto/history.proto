@@ -11,6 +11,7 @@ service History {
 
 message GetHistoryRequest {
   string session_id = 1;
+  optional int32 max_tokens = 2;
 }
 
 message GetHistoryResponse {
@@ -20,6 +21,7 @@ message GetHistoryResponse {
 message UpdateHistoryRequest {
   string session_id = 1;
   repeated common.Message messages = 2;
+  optional string github_token = 3;
 }
 
 message UpdateHistoryResponse {

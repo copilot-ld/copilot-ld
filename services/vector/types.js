@@ -22,10 +22,11 @@ export class VectorServiceInterface {
    * @param {number[]} params.vector - The query vector
    * @param {number} params.threshold - Minimum similarity threshold
    * @param {number} params.limit - Maximum number of results
+   * @param {number} [params.max_tokens] - Maximum tokens to return in results
    * @returns {Promise<object>} Object containing results array
    * @throws {Error} Not implemented
    */
-  async QueryItems({ indices, vector, threshold, limit }) {
+  async QueryItems({ indices, vector, threshold, limit, max_tokens }) {
     throw new Error("Not implemented");
   }
 }

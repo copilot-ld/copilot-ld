@@ -31,10 +31,11 @@ export class Copilot extends LlmInterface {
   #retries;
   #delay;
   #fetch;
+  #tokenizer;
 
   /** @inheritdoc */
-  constructor(token, model, fetchFn = fetch) {
-    super(token, model, fetchFn);
+  constructor(token, model, fetchFn = fetch, tokenizer = null) {
+    super(token, model, fetchFn, tokenizer);
     this.#model = model;
     this.#baseURL = "https://api.githubcopilot.com";
     this.#headers = {
@@ -45,6 +46,22 @@ export class Copilot extends LlmInterface {
     this.#retries = 3;
     this.#delay = 1000;
     this.#fetch = fetchFn;
+    this.#tokenizer = tokenizer || new Tiktoken(o200k_base);
+  }
+
+  /**
+   * Throws an Error with HTTP status and a snippet of the response body when response is not OK
+   * @param {Response} response - Fetch API response
+   * @returns {Promise<void>}
+   * @throws {Error} With enriched message including body snippet
+   */
+  async #throwIfNotOk(response) {
+    if (response.ok) return;
+    const body = await response.text().catch(() => "");
+    const snippet = body ? ` - ${body.slice(0, 2000)}` : "";
+    throw new Error(
+      `HTTP ${response.status}: ${response.statusText}${snippet}`,
+    );
   }
 
   /** @inheritdoc */
@@ -60,9 +77,7 @@ export class Copilot extends LlmInterface {
       body: JSON.stringify(requestParams),
     });
 
-    if (!response.ok)
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+    await this.#throwIfNotOk(response);
     return await response.json();
   }
 
@@ -86,9 +101,7 @@ export class Copilot extends LlmInterface {
         continue;
       }
 
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+      await this.#throwIfNotOk(response);
       const data = await response.json();
       return data.data.map((item) => new libtype.Embedding(item));
     }
@@ -101,19 +114,34 @@ export class Copilot extends LlmInterface {
       headers: this.#headers,
     });
 
-    if (!response.ok)
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+    await this.#throwIfNotOk(response);
     const responseData = await response.json();
     return responseData.data;
   }
 
   /** @inheritdoc */
-  static countTokens(text) {
-    const encoder = new Tiktoken(o200k_base);
-    const tokens = encoder.encode(text);
+  countTokens(text) {
+    const tokens = this.#tokenizer.encode(text);
     return tokens.length;
   }
+}
+
+/**
+ * Factory function to create a Copilot instance with default dependencies
+ * @param {string} token - GitHub Copilot token
+ * @param {string} [model] - Default model to use
+ * @param {Function} [fetchFn] - HTTP client function
+ * @param {object} [tokenizer] - Tokenizer instance
+ * @returns {Copilot} Configured Copilot instance
+ */
+export function llmFactory(
+  token,
+  model = "gpt-4o",
+  fetchFn = fetch,
+  tokenizer = null,
+) {
+  const defaultTokenizer = tokenizer || new Tiktoken(o200k_base);
+  return new Copilot(token, model, fetchFn, defaultTokenizer);
 }
 
 export { LlmInterface };

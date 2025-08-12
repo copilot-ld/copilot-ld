@@ -10,15 +10,26 @@ import { VectorServiceInterface } from "./types.js";
  */
 class VectorService extends Service {
   #vectorIndices;
+  #queryIndicesFn;
 
   /**
    * Creates a new Vector service instance
    * @param {object} config - Service configuration object
    * @param {Map<string, object>} vectorIndices - Pre-initialized vector indices
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [queryIndicesFn] - Optional queryIndices function
    */
-  constructor(config, vectorIndices) {
-    super(config);
+  constructor(
+    config,
+    vectorIndices,
+    grpcFn,
+    authFn,
+    queryIndicesFn = queryIndices,
+  ) {
+    super(config, grpcFn, authFn);
     this.#vectorIndices = vectorIndices;
+    this.#queryIndicesFn = queryIndicesFn;
   }
 
   /**
@@ -28,21 +39,48 @@ class VectorService extends Service {
    * @param {number[]} params.vector - The query vector
    * @param {number} params.threshold - Minimum similarity threshold
    * @param {number} params.limit - Maximum number of results
+   * @param {number} [params.max_tokens] - Maximum tokens to return in results
    * @returns {Promise<object>} Object containing results array
    */
-  async QueryItems({ indices, vector, threshold, limit }) {
+  async QueryItems({ indices, vector, threshold, limit, max_tokens }) {
     const requestedIndices = indices
       .map((name) => this.#vectorIndices.get(name))
       .filter((index) => index);
 
-    const results = await queryIndices(
+    const results = await this.#queryIndicesFn(
       requestedIndices,
       vector,
       threshold,
       limit,
     );
 
-    return { results };
+    // If no token limit specified, return all results
+    if (max_tokens === undefined || max_tokens === null) {
+      console.log(
+        `[vector] Returning ${results.length} results (no token limit)`,
+      );
+      return { results };
+    }
+
+    // Filter results by token count, keeping highest scored items
+    // Results from queryIndices are already sorted by score (highest first)
+    const filteredResults = [];
+    let totalTokens = 0;
+
+    for (const result of results) {
+      const resultTokens = result.tokens || 0;
+      if (totalTokens + resultTokens <= max_tokens) {
+        filteredResults.push(result);
+        totalTokens += resultTokens;
+      } else {
+        break; // Stop when we would exceed token limit
+      }
+    }
+
+    console.log(
+      `[vector] Filtered to ${filteredResults.length}/${results.length} results within ${totalTokens}/${max_tokens} tokens`,
+    );
+    return { results: filteredResults };
   }
 }
 

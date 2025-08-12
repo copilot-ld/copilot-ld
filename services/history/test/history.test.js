@@ -33,7 +33,7 @@ describe("history service", () => {
 
     test("HistoryService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(HistoryService.length, 2); // config, cache
+      assert.strictEqual(HistoryService.length, 5); // config, cache, llmFactory, grpcFn, authFn
     });
 
     test("HistoryServiceInterface defines the service contract", () => {

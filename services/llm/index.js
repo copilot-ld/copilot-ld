@@ -15,9 +15,11 @@ class LlmService extends Service {
    * Creates a new LLM service instance
    * @param {object} config - Service configuration object
    * @param {Function} llmFactory - Factory function to create LLM instances
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
    */
-  constructor(config, llmFactory) {
-    super(config);
+  constructor(config, llmFactory, grpcFn, authFn) {
+    super(config, grpcFn, authFn);
     this.#llmFactory = llmFactory;
   }
 

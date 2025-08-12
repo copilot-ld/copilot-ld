@@ -15,9 +15,11 @@ class ScopeService extends Service {
    * Creates a new Scope service instance
    * @param {object} config - Service configuration object
    * @param {object} index - Vector index for scope resolution
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
    */
-  constructor(config, index) {
-    super(config);
+  constructor(config, index, grpcFn, authFn) {
+    super(config, grpcFn, authFn);
     this.#index = index;
   }
 

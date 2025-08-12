@@ -13,6 +13,7 @@ message QueryItemsRequest {
   repeated double vector = 2;
   optional double threshold = 3;
   optional int32 limit = 4;
+  optional int32 max_tokens = 5;
 }
 
 message QueryItemsResponse {

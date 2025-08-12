@@ -24,25 +24,34 @@ class LlmService extends Service {
   }
 
   /**
-   * Creates completions using the LLM
-   * @param {object} request - Request object containing completion parameters
-   * @param {object[]} request.messages - Array of chat messages
-   * @param {number} request.max_tokens - Maximum tokens to generate
+   * Creates LLM completions using a prompt
+   * @param {object} request - Request containing prompt and parameters
+   * @param {object} request.prompt - Prompt object with conversation and context
    * @param {number} request.temperature - Sampling temperature
-   * @param {number} request.top_p - Nucleus sampling parameter
    * @param {string} request.github_token - GitHub token for authentication
    * @returns {Promise<object>} Response containing completion data
    */
   async CreateCompletions(request) {
-    const { messages, max_tokens, temperature, top_p, github_token } = request;
+    const { prompt, temperature, github_token } = request;
 
     const llm = this.#llmFactory(github_token, this.config.model);
 
+    console.log(JSON.stringify(request));
+    // Ensure prompt is a proper Prompt instance (reconstruct if needed due to gRPC serialization)
+    let promptInstance;
+    if (typeof prompt.toMessages === "function") {
+      promptInstance = prompt;
+    } else {
+      // Reconstruct Prompt instance from plain object (gRPC deserialization)
+      const { Prompt } = await import("@copilot-ld/libprompt");
+      promptInstance = new Prompt(prompt);
+    }
+
+    // Convert prompt to messages using the built-in method
+    const messages = promptInstance.toMessages();
     const params = {
       messages: messages.map((msg) => new Message(msg)),
-      max_tokens,
       temperature,
-      top_p,
     };
 
     const data = await llm.createCompletions(params);

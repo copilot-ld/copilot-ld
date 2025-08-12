@@ -35,4 +35,12 @@ message Similarity {
   double score = 2;
   int32 tokens = 3;
   string scope = 4;
+  string text = 5;
+}
+
+message Prompt {
+  repeated string system_instructions = 1;
+  repeated Similarity previous_similarities = 2;
+  repeated Similarity current_similarities = 3;
+  repeated Message messages = 4;
 }

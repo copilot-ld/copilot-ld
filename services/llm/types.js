@@ -16,12 +16,10 @@ export class LlmServiceInterface {
   constructor(config, llmFactory) {}
 
   /**
-   * Creates completions using the LLM
+   * Creates completions using the LLM with Prompt objects
    * @param {object} request - Request object containing completion parameters
-   * @param {object[]} request.messages - Array of chat messages
-   * @param {number} request.max_tokens - Maximum tokens to generate
+   * @param {import("@copilot-ld/libprompt").Prompt} request.prompt - Prompt object containing all prompt data
    * @param {number} request.temperature - Sampling temperature
-   * @param {number} request.top_p - Nucleus sampling parameter
    * @param {string} request.github_token - GitHub token for authentication
    * @returns {Promise<object>} Response containing completion data
    * @throws {Error} Not implemented

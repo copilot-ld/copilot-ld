@@ -12,6 +12,9 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
+  "dependencies": {
+    "@copilot-ld/libstorage": "^0.1.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",

@@ -23,7 +23,7 @@ describe("text service", () => {
 
     test("TextService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(TextService.length, 2); // config, chunkIndex
+      assert.strictEqual(TextService.length, 4); // config, chunkIndex, grpcFn, authFn
     });
 
     test("TextServiceInterface defines the service contract", () => {

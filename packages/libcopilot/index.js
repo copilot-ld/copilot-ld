@@ -49,6 +49,21 @@ export class Copilot extends LlmInterface {
     this.#tokenizer = tokenizer || new Tiktoken(o200k_base);
   }
 
+  /**
+   * Throws an Error with HTTP status and a snippet of the response body when response is not OK
+   * @param {Response} response - Fetch API response
+   * @returns {Promise<void>}
+   * @throws {Error} With enriched message including body snippet
+   */
+  async #throwIfNotOk(response) {
+    if (response.ok) return;
+    const body = await response.text().catch(() => "");
+    const snippet = body ? ` - ${body.slice(0, 2000)}` : "";
+    throw new Error(
+      `HTTP ${response.status}: ${response.statusText}${snippet}`,
+    );
+  }
+
   /** @inheritdoc */
   async createCompletions(params) {
     const requestParams = {
@@ -62,9 +77,7 @@ export class Copilot extends LlmInterface {
       body: JSON.stringify(requestParams),
     });
 
-    if (!response.ok)
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+    await this.#throwIfNotOk(response);
     return await response.json();
   }
 
@@ -88,9 +101,7 @@ export class Copilot extends LlmInterface {
         continue;
       }
 
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+      await this.#throwIfNotOk(response);
       const data = await response.json();
       return data.data.map((item) => new libtype.Embedding(item));
     }
@@ -103,9 +114,7 @@ export class Copilot extends LlmInterface {
       headers: this.#headers,
     });
 
-    if (!response.ok)
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+    await this.#throwIfNotOk(response);
     const responseData = await response.json();
     return responseData.data;
   }

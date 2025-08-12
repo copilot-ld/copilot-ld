@@ -83,7 +83,7 @@ class AgentService extends Service {
           max_tokens: this.config.similaritySearchTokens,
         });
 
-        if (results.length > 0) {
+        if (results?.length > 0) {
           const { chunks } = await this.#clients.text.GetChunks({
             ids: results.map((r) => r.id),
           });

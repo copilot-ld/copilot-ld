@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libprompt": "^0.1.1",
     "@copilot-ld/libservice": "^0.1.4",
-    "@copilot-ld/libtype": "^0.1.1",
+    "@copilot-ld/libtype": "^0.1.2",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

@@ -23,6 +23,10 @@ all code changes across the platform.
    focused on essential information
 5. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
    be complete, valid, and pass ES linting with strict configuration
+6. **Inline Markdown Formatting**: All symbols (variable names, class names,
+   method names, property names), file names, directory names, service names,
+   and technical terms must be formatted with inline markdown code blocks using
+   backticks (`` `symbol` ``)
 
 ## Implementation Requirements
 
@@ -56,13 +60,15 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 
 ## 2025-01-01
 
-- Some addition to the API
-- Version bump
+- Added new `processData()` method to `DataProcessor` class
+- Updated `config.yml` with new `timeout` setting
+- Version bump to `v1.2.0`
 
 ## 2025-01-02
 
-- Another addition to the API
-- Another version bump
+- Fixed issue in `validateInput()` where `null` values caused errors
+- Enhanced `APIClient` to support new `retryOptions` parameter
+- Updated `README.md` with installation instructions
 ```
 
 **Format Rules**:
@@ -72,6 +78,10 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 - Simple bullet points for each change
 - Ascending chronological order (oldest first)
 - Updates must be added when component code changes
+- All symbols (classes, methods, variables, properties), file names, service
+  names, and technical terms must be formatted with backticks:
+  `` `ClassName` ``, `` `methodName()` ``, `` `fileName.js` ``,
+  `` `ServiceName` ``
 
 ### Update Requirements
 

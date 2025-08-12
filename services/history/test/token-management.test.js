@@ -105,7 +105,7 @@ describe("History Service Token Management", () => {
 
     mockCache.set("session1", {
       messages,
-      tokenCounts: [11, 16], // "user: Hello" = 11, "assistant: Hi there!" = 16
+      tokens: [11, 16], // "user: Hello" = 11, "assistant: Hi there!" = 16
       totalTokens: 27,
     });
 
@@ -124,7 +124,7 @@ describe("History Service Token Management", () => {
 
     mockCache.set("session1", {
       messages,
-      tokenCounts: [11, 16, 18],
+      tokens: [11, 16, 18],
       totalTokens: 45,
     });
 
@@ -147,7 +147,7 @@ describe("History Service Token Management", () => {
 
     mockCache.set("session1", {
       messages,
-      tokenCounts: [7, 13, 7],
+      tokens: [7, 13, 7],
       totalTokens: 27,
     });
 
@@ -178,9 +178,9 @@ describe("History Service Token Management", () => {
 
     const stored = mockCache.get("session1");
     assert.strictEqual(stored.messages.length, 2);
-    assert.strictEqual(stored.tokenCounts.length, 2);
-    assert.strictEqual(stored.tokenCounts[0], 11); // "user: Hello"
-    assert.strictEqual(stored.tokenCounts[1], 14); // "assistant: Hi!"
+    assert.strictEqual(stored.tokens.length, 2);
+    assert.strictEqual(stored.tokens[0], 11); // "user: Hello"
+    assert.strictEqual(stored.tokens[1], 14); // "assistant: Hi!"
     assert.strictEqual(stored.totalTokens, 25);
   });
 
@@ -239,7 +239,7 @@ describe("History Service Token Management", () => {
 
     const stored = mockCache.get("session1");
     assert.strictEqual(stored.messages.length, 0);
-    assert.strictEqual(stored.tokenCounts.length, 0);
+    assert.strictEqual(stored.tokens.length, 0);
     assert.strictEqual(stored.totalTokens, 0);
   });
 

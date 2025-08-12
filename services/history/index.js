@@ -49,7 +49,7 @@ class HistoryService extends Service {
 
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i];
-      const messageTokens = historyData?.tokenCounts?.[i];
+      const messageTokens = historyData?.tokens?.[i];
 
       if (messageTokens === undefined || messageTokens === null) {
         throw new Error(`Token count missing for message at index ${i}.`);
@@ -82,17 +82,17 @@ class HistoryService extends Service {
     const llm = this.#llmFactory(github_token, this.config.model || "gpt-4o");
 
     // Count tokens for all messages
-    const tokenCounts = messages.map((message) =>
+    const tokens = messages.map((message) =>
       this.#countMessageTokens(message, llm),
     );
-    const totalTokens = tokenCounts.reduce((sum, count) => sum + count, 0);
+    const totalTokens = tokens.reduce((sum, count) => sum + count, 0);
 
     // Check if we need to summarize based on history token limit
     // Use a reasonable default if not configured
     const historyTokenLimit = this.config.historyTokens || 4000;
 
     let finalMessages = messages;
-    let finalTokenCounts = tokenCounts;
+    let finalTokens = tokens;
 
     if (totalTokens > historyTokenLimit) {
       console.log(
@@ -100,23 +100,23 @@ class HistoryService extends Service {
       );
       const result = await this.#summarizeHistory(
         messages,
-        tokenCounts,
+        tokens,
         historyTokenLimit,
         llm,
       );
       finalMessages = result.messages;
-      finalTokenCounts = result.tokenCounts;
+      finalTokens = result.tokens;
     }
 
     const success = this.#cache.set(session_id, {
       messages: finalMessages,
-      tokenCounts: finalTokenCounts,
-      totalTokens: finalTokenCounts.reduce((sum, count) => sum + count, 0),
+      tokens: finalTokens,
+      totalTokens: finalTokens.reduce((sum, count) => sum + count, 0),
       lastUpdated: Date.now(),
     });
 
     console.log(
-      `[history] Updated session ${session_id} with ${finalMessages.length} messages (${finalTokenCounts.reduce((sum, count) => sum + count, 0)} tokens)`,
+      `[history] Updated session ${session_id} with ${finalMessages.length} messages (${finalTokens.reduce((sum, count) => sum + count, 0)} tokens)`,
     );
     return { success };
   }
@@ -139,27 +139,27 @@ class HistoryService extends Service {
   /**
    * Summarizes old history entries when approaching token limits
    * @param {object[]} messages - Array of messages
-   * @param {number[]} tokenCounts - Array of token counts for each message
+   * @param {number[]} tokens - Array of token counts for each message
    * @param {number} maxTokens - Maximum tokens allowed
    * @param {object} llm - LLM instance for token counting and summarization
    * @returns {Promise<object>} Object with summarized messages and token counts
    * @private
    */
-  async #summarizeHistory(messages, tokenCounts, maxTokens, llm) {
+  async #summarizeHistory(messages, tokens, maxTokens, llm) {
     // Keep the most recent messages that fit within 60% of the limit
     const targetTokens = Math.floor(maxTokens * 0.6);
     const summaryTokenBudget = Math.floor(maxTokens * 0.3); // 30% for summary
 
     let keptMessages = [];
-    let keptTokenCounts = [];
-    let keptTokens = 0;
+    let keptTokens = [];
+    let keptTokenTotal = 0;
 
     // Start from the end (most recent) and work backwards
     for (let i = messages.length - 1; i >= 0; i--) {
-      if (keptTokens + tokenCounts[i] <= targetTokens) {
+      if (keptTokenTotal + tokens[i] <= targetTokens) {
         keptMessages.unshift(messages[i]);
-        keptTokenCounts.unshift(tokenCounts[i]);
-        keptTokens += tokenCounts[i];
+        keptTokens.unshift(tokens[i]);
+        keptTokenTotal += tokens[i];
       } else {
         break;
       }
@@ -187,13 +187,13 @@ class HistoryService extends Service {
         const summaryTokens = this.#countMessageTokens(summaryMessage, llm);
 
         keptMessages.unshift(summaryMessage);
-        keptTokenCounts.unshift(summaryTokens);
+        keptTokens.unshift(summaryTokens);
       }
     }
 
     return {
       messages: keptMessages,
-      tokenCounts: keptTokenCounts,
+      tokens: keptTokens,
     };
   }
 

@@ -46,28 +46,39 @@ const mockLibservice = {
   },
 };
 
-// Mock PromptBuilder
-const mockPromptBuilder = {
-  PromptBuilder: class MockPromptBuilder {
-    static generateSessionId() {
-      return "mock-session-id";
+// Mock utility functions
+const mockGenerateSessionId = () => "mock-session-id";
+const mockGetLatestUserMessage = (messages) =>
+  messages?.find((m) => m.role === "user") || null;
+
+// Mock PromptAssembler
+const mockPromptAssembler = {
+  PromptAssembler: class MockPromptAssembler {
+    constructor(config) {
+      this.config = config;
     }
 
-    static getLatestUserMessage(messages) {
-      return messages?.find((m) => m.role === "user") || null;
-    }
-
-    messages(_msgs) {
-      return this;
-    }
-    context(_ctx) {
-      return this;
-    }
-    system(..._prompts) {
-      return this;
-    }
-    build() {
-      return [];
+    assemble(params) {
+      // Simple mock that returns the messages as-is with system prompts
+      const {
+        messages = [],
+        similarities = [],
+        systemInstructions = [],
+      } = params;
+      const systemMessages = systemInstructions.map((content) => ({
+        role: "system",
+        content,
+      }));
+      const contextMessages =
+        similarities.length > 0
+          ? [
+              {
+                role: "system",
+                content: similarities.map((s) => s.text).join("\n"),
+              },
+            ]
+          : [];
+      return [...systemMessages, ...contextMessages, ...messages];
     }
   },
 };
@@ -87,10 +98,8 @@ class AgentService extends mockLibservice.Service {
     const octokit = this.#octokitFactory(github_token);
     await octokit.request("GET /user");
 
-    const sessionId =
-      session_id || mockPromptBuilder.PromptBuilder.generateSessionId();
-    const latestUserMessage =
-      mockPromptBuilder.PromptBuilder.getLatestUserMessage(clientMessages);
+    const sessionId = session_id || mockGenerateSessionId();
+    const latestUserMessage = mockGetLatestUserMessage(clientMessages);
 
     let context = [];
     let messages;
@@ -141,11 +150,12 @@ class AgentService extends mockLibservice.Service {
       messages = history;
     }
 
-    const enhancedMessages = new mockPromptBuilder.PromptBuilder()
-      .messages(messages)
-      .context(context)
-      .system(...this.config.prompts)
-      .build();
+    const assembler = new mockPromptAssembler.PromptAssembler(this.config);
+    const enhancedMessages = assembler.assemble({
+      messages,
+      similarities: context,
+      systemInstructions: this.config.prompts,
+    });
 
     const completions = await this.#clients.llm.CreateCompletions({
       messages: enhancedMessages,

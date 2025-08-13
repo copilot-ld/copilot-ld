@@ -228,25 +228,16 @@ import { DatabaseInterface } from "./interfaces/database.js";
 Use method chaining for builder patterns with clear return types:
 
 ```javascript
-class Message {
-  constructor({ role, content }) {
-    this.role = role;
-    this.content = content;
-  }
-}
+class QueryBuilder {
+  #conditions = [];
 
-export class PromptBuilder {
-  #systemPrompts = [];
-
-  system(...prompts) {
-    this.#systemPrompts.push(
-      ...prompts.map((p) => new Message({ role: "system", content: p })),
-    );
+  where(field, value) {
+    this.#conditions.push({ field, value });
     return this;
   }
 
   build() {
-    return this.#systemPrompts.filter(Boolean);
+    return this.#conditions.filter(Boolean);
   }
 }
 ```

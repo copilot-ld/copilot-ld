@@ -6,11 +6,6 @@ import * as libtype from "@copilot-ld/libtype";
 
 import { LlmInterface } from "./types.js";
 
-/** TODO 0 */
-/** TODO 1 */
-/** TODO 2 */
-/** TODO 3 */
-
 /**
  * @typedef {object} CompletionParams
  * @property {string} [model] - Model to use for completion (overrides default)

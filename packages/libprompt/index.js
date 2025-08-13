@@ -99,26 +99,11 @@ export class PromptAssembler {
     current_similarities,
     system_instructions,
   ) {
-    // Ensure existingPrompt has valid array properties
-    const existingMessages = Array.isArray(existingPrompt?.messages)
-      ? existingPrompt.messages
-      : [];
-    const existingPreviousSimilarities = Array.isArray(
-      existingPrompt?.previous_similarities,
-    )
-      ? existingPrompt.previous_similarities
-      : [];
-
-    // Ensure system_instructions is a valid array
-    const validSystemInstructions = Array.isArray(system_instructions)
-      ? system_instructions
-      : [];
-
     return new Prompt({
-      system_instructions: validSystemInstructions,
-      previous_similarities: existingPreviousSimilarities,
+      system_instructions: system_instructions || [],
+      previous_similarities: existingPrompt?.previous_similarities || [],
       current_similarities: current_similarities,
-      messages: [...existingMessages, newUserMessage],
+      messages: [...(existingPrompt?.messages || []), newUserMessage],
     });
   }
 
@@ -129,23 +114,14 @@ export class PromptAssembler {
    * @returns {Prompt} Updated prompt with response and moved similarities
    */
   static updateWithResponse(prompt, assistantMessage) {
-    // Ensure prompt has valid array properties
-    const messages = Array.isArray(prompt?.messages) ? prompt.messages : [];
-    const previousSimilarities = Array.isArray(prompt?.previous_similarities)
-      ? prompt.previous_similarities
-      : [];
-    const currentSimilarities = Array.isArray(prompt?.current_similarities)
-      ? prompt.current_similarities
-      : [];
-    const systemInstructions = Array.isArray(prompt?.system_instructions)
-      ? prompt.system_instructions
-      : [];
-
     return new Prompt({
-      system_instructions: systemInstructions,
-      previous_similarities: [...previousSimilarities, ...currentSimilarities],
+      system_instructions: prompt.system_instructions,
+      previous_similarities: [
+        ...prompt.previous_similarities,
+        ...prompt.current_similarities,
+      ],
       current_similarities: [], // Clear current, move to previous
-      messages: [...messages, assistantMessage],
+      messages: [...prompt.messages, assistantMessage],
     });
   }
 }
@@ -261,105 +237,6 @@ export class PromptOptimizer {
 }
 
 /**
- * Object-oriented prompt builder for AI agents with proper prompt ordering
- * @deprecated Use Prompt and PromptAssembler for new implementations
- */
-export class PromptBuilder {
-  /**
-   * Creates a new PromptBuilder instance
-   */
-  constructor() {
-    this.systemPrompts = [];
-    this.contextPrompt = null;
-    this.userMessages = [];
-  }
-
-  /**
-   * Adds one or more system prompts
-   * @param {...string} prompts - System prompt content strings
-   * @returns {PromptBuilder} This instance for method chaining
-   */
-  system(...prompts) {
-    prompts.forEach((prompt) => {
-      this.systemPrompts.push(
-        new libtype.Message({ role: "system", content: prompt }),
-      );
-    });
-    return this;
-  }
-
-  /**
-   * Adds context from similarity search results
-   * @param {libtype.Similarity[]} similarities - Array of similarity search results with text property
-   * @returns {PromptBuilder} This instance for method chaining
-   */
-  context(similarities) {
-    if (similarities.length === 0) {
-      return this;
-    }
-
-    const contextContent = `Here related context that might help answer the user's question:
-${similarities.map((result) => result.text.trim()).join("\n\n")}`;
-
-    this.contextPrompt = new libtype.Message({
-      role: "system",
-      content: contextContent,
-    });
-    return this;
-  }
-
-  /**
-   * Sets the user/conversation messages
-   * @param {object[]} messages - Array of conversation message objects
-   * @returns {PromptBuilder} This instance for method chaining
-   */
-  messages(messages) {
-    this.userMessages = messages.map((msg) => new libtype.Message(msg));
-    return this;
-  }
-
-  /**
-   * Builds and returns properly ordered messages for AI agents
-   * Order: system prompts → context prompt → user/conversation messages
-   * @returns {libtype.Message[]} Array of properly ordered Message objects
-   */
-  build() {
-    const orderedMessages = [];
-
-    // 1. System prompts first
-    orderedMessages.push(...this.systemPrompts);
-
-    // 2. Context prompt second
-    if (this.contextPrompt) {
-      orderedMessages.push(this.contextPrompt);
-    }
-
-    // 3. User/conversation messages last
-    orderedMessages.push(...this.userMessages);
-
-    return orderedMessages;
-  }
-
-  /**
-   * Generates a unique session ID using crypto.randomUUID
-   * @returns {string} Unique session identifier
-   */
-  static generateSessionId() {
-    return crypto.randomUUID();
-  }
-
-  /**
-   * Extracts the latest user message from a messages array
-   * @param {object[]} messages - Array of message objects with role property
-   * @returns {object|null} Latest user message or null if none found
-   */
-  static getLatestUserMessage(messages) {
-    const userMessages = messages.filter((msg) => msg.role === "user");
-    return userMessages[userMessages.length - 1] || null;
-  }
-}
-
-/**
  * Storage implementation for Prompt objects
  */
 export class PromptStorage {
@@ -370,9 +247,7 @@ export class PromptStorage {
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend implementation
    */
   constructor(storage) {
-    if (!storage) {
-      throw new Error("storage is required");
-    }
+    if (!storage) throw new Error("storage is required");
     this.#storage = storage;
   }
 
@@ -385,30 +260,8 @@ export class PromptStorage {
     try {
       const data = await this.#storage.get(`${sessionId}.json`);
       const parsed = JSON.parse(data.toString());
-
-      // Ensure parsed data has valid array properties to prevent iteration errors
-      const promptData = {
-        system_instructions: Array.isArray(parsed.system_instructions)
-          ? parsed.system_instructions
-          : Array.isArray(parsed.systemInstructions)
-            ? parsed.systemInstructions
-            : [],
-        previous_similarities: Array.isArray(parsed.previous_similarities)
-          ? parsed.previous_similarities
-          : Array.isArray(parsed.previousSimilarities)
-            ? parsed.previousSimilarities
-            : [],
-        current_similarities: Array.isArray(parsed.current_similarities)
-          ? parsed.current_similarities
-          : Array.isArray(parsed.currentSimilarities)
-            ? parsed.currentSimilarities
-            : [],
-        messages: Array.isArray(parsed.messages) ? parsed.messages : [],
-      };
-
-      return new Prompt(promptData);
+      return new Prompt(parsed);
     } catch {
-      // Return empty prompt for new sessions or when file doesn't exist
       return new Prompt({});
     }
   }
@@ -423,4 +276,32 @@ export class PromptStorage {
     const data = JSON.stringify(prompt, null, 2);
     await this.#storage.put(`${sessionId}.json`, data);
   }
+}
+
+/**
+ * Generates a unique session ID for conversation tracking
+ * @returns {string} Unique session identifier
+ */
+export function generateSessionId() {
+  return crypto.randomUUID();
+}
+
+/**
+ * Finds the most recent user message in a conversation
+ * @param {libtype.Message[]} messages - Array of conversation messages
+ * @returns {libtype.Message|null} Latest user message or null if none found
+ */
+export function getLatestUserMessage(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return null;
+  }
+
+  // Find the last message with role "user"
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user") {
+      return messages[i];
+    }
+  }
+
+  return null;
 }

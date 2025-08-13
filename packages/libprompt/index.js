@@ -99,26 +99,11 @@ export class PromptAssembler {
     current_similarities,
     system_instructions,
   ) {
-    // Ensure existingPrompt has valid array properties
-    const existingMessages = Array.isArray(existingPrompt?.messages)
-      ? existingPrompt.messages
-      : [];
-    const existingPreviousSimilarities = Array.isArray(
-      existingPrompt?.previous_similarities,
-    )
-      ? existingPrompt.previous_similarities
-      : [];
-
-    // Ensure system_instructions is a valid array
-    const validSystemInstructions = Array.isArray(system_instructions)
-      ? system_instructions
-      : [];
-
     return new Prompt({
-      system_instructions: validSystemInstructions,
-      previous_similarities: existingPreviousSimilarities,
+      system_instructions: system_instructions || [],
+      previous_similarities: existingPrompt?.previous_similarities || [],
       current_similarities: current_similarities,
-      messages: [...existingMessages, newUserMessage],
+      messages: [...(existingPrompt?.messages || []), newUserMessage],
     });
   }
 
@@ -129,23 +114,14 @@ export class PromptAssembler {
    * @returns {Prompt} Updated prompt with response and moved similarities
    */
   static updateWithResponse(prompt, assistantMessage) {
-    // Ensure prompt has valid array properties
-    const messages = Array.isArray(prompt?.messages) ? prompt.messages : [];
-    const previousSimilarities = Array.isArray(prompt?.previous_similarities)
-      ? prompt.previous_similarities
-      : [];
-    const currentSimilarities = Array.isArray(prompt?.current_similarities)
-      ? prompt.current_similarities
-      : [];
-    const systemInstructions = Array.isArray(prompt?.system_instructions)
-      ? prompt.system_instructions
-      : [];
-
     return new Prompt({
-      system_instructions: systemInstructions,
-      previous_similarities: [...previousSimilarities, ...currentSimilarities],
+      system_instructions: prompt.system_instructions,
+      previous_similarities: [
+        ...prompt.previous_similarities,
+        ...prompt.current_similarities,
+      ],
       current_similarities: [], // Clear current, move to previous
-      messages: [...messages, assistantMessage],
+      messages: [...prompt.messages, assistantMessage],
     });
   }
 }
@@ -370,9 +346,7 @@ export class PromptStorage {
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend implementation
    */
   constructor(storage) {
-    if (!storage) {
-      throw new Error("storage is required");
-    }
+    if (!storage) throw new Error("storage is required");
     this.#storage = storage;
   }
 
@@ -385,30 +359,8 @@ export class PromptStorage {
     try {
       const data = await this.#storage.get(`${sessionId}.json`);
       const parsed = JSON.parse(data.toString());
-
-      // Ensure parsed data has valid array properties to prevent iteration errors
-      const promptData = {
-        system_instructions: Array.isArray(parsed.system_instructions)
-          ? parsed.system_instructions
-          : Array.isArray(parsed.systemInstructions)
-            ? parsed.systemInstructions
-            : [],
-        previous_similarities: Array.isArray(parsed.previous_similarities)
-          ? parsed.previous_similarities
-          : Array.isArray(parsed.previousSimilarities)
-            ? parsed.previousSimilarities
-            : [],
-        current_similarities: Array.isArray(parsed.current_similarities)
-          ? parsed.current_similarities
-          : Array.isArray(parsed.currentSimilarities)
-            ? parsed.currentSimilarities
-            : [],
-        messages: Array.isArray(parsed.messages) ? parsed.messages : [],
-      };
-
-      return new Prompt(promptData);
+      return new Prompt(parsed);
     } catch {
-      // Return empty prompt for new sessions or when file doesn't exist
       return new Prompt({});
     }
   }

@@ -7,15 +7,20 @@ import * as libstorage from "@copilot-ld/libstorage";
  * Base interface for History service
  * @implements {libservice.ServiceInterface}
  */
-export class HistoryServiceInterface {
+export class HistoryServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new History service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
    * @param {libstorage.StorageInterface} storage - Storage backend for prompts
    * @param {Function} llmFactory - Factory function to create LLM instances
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, storage, llmFactory) {}
+  constructor(config, storage, llmFactory, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
+  }
 
   /**
    * Retrieves chat history as a prompt for a session

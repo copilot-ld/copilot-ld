@@ -1,6 +1,5 @@
 /* eslint-env node */
 import { Message, Choice, Usage } from "@copilot-ld/libtype";
-import { Prompt } from "@copilot-ld/libprompt";
 import { Service } from "@copilot-ld/libservice";
 
 import { LlmServiceInterface } from "./types.js";
@@ -18,9 +17,10 @@ class LlmService extends Service {
    * @param {Function} llmFactory - Factory function to create LLM instances
    * @param {Function} [grpcFn] - Optional gRPC factory function
    * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    */
-  constructor(config, llmFactory, grpcFn, authFn) {
-    super(config, grpcFn, authFn);
+  constructor(config, llmFactory, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
     this.#llmFactory = llmFactory;
   }
 
@@ -37,14 +37,25 @@ class LlmService extends Service {
 
     const llm = this.#llmFactory(github_token, this.config.model);
 
-    console.log(JSON.stringify(request));
-
-    // Reconstruct Prompt instance from gRPC deserialized plain object
-    // TODO: Implement a gRPC middleware which does automatic deserialization
-    const promptInstance = new Prompt(prompt);
+    // Ensure prompt is a proper Prompt instance (reconstruct if needed due to gRPC serialization)
+    let promptInstance;
+    if (typeof prompt.toMessages === "function") {
+      promptInstance = prompt;
+    } else {
+      // Reconstruct Prompt instance from plain object (gRPC deserialization)
+      const { Prompt } = await import("@copilot-ld/libprompt");
+      promptInstance = new Prompt(prompt);
+    }
 
     // Convert prompt to messages using the built-in method
     const messages = promptInstance.toMessages();
+
+    // Log prompt details
+    this.debug("Creating completion for prompt", {
+      messages: messages.length,
+      temperature,
+      model: this.config.model,
+    });
     const params = {
       messages: messages.map((msg) => new Message(msg)),
       temperature,

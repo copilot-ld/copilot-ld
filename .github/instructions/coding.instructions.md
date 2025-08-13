@@ -170,6 +170,39 @@ class LlmService extends ServiceInterface {
 }
 ```
 
+### Logging Requirements
+
+Services must use the injected debug method for all logging following these
+requirements:
+
+```javascript
+import { Service } from "@copilot-ld/libservice";
+
+class ServiceImplementation extends Service {
+  async processRequest(request) {
+    // Log at service boundaries with context
+    this.debug("Processing request", { session: request.sessionId });
+
+    // Log before external calls
+    this.debug("Querying vector index", { threshold: 0.3, limit: 10 });
+    const results = await this.vectorClient.QueryItems(request);
+
+    // Log state changes with metrics
+    this.debug("Filtered results", { matched: "20/30", tokens: "200/300" });
+
+    return results;
+  }
+}
+```
+
+**Logging Guidelines:**
+
+- **Service boundaries**: Log incoming requests and outgoing responses
+- **External calls**: Log before database, API, or file I/O operations
+- **State changes**: Log before/after data transformations with metrics
+- **Message format**: Start with action verb, include key/value context
+- **Prohibited**: No sensitive data, no tight loops, no vague messages
+
 ## Best Practices
 
 ### Import Order Requirements
@@ -368,8 +401,8 @@ import { Service } from "@copilot-ld/libservice";
 class VectorService extends Service {
   #vectorIndices;
 
-  constructor(config, vectorIndices) {
-    super(config);
+  constructor(config, vectorIndices, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
     if (!vectorIndices || !(vectorIndices instanceof Map)) {
       throw new Error("vectorIndices must be a Map instance");
     }
@@ -377,6 +410,12 @@ class VectorService extends Service {
   }
 
   async QueryItems({ indices, vector, threshold, limit }) {
+    this.debug("Querying vector indices", {
+      indices: indices.join(","),
+      threshold,
+      limit,
+    });
+
     if (!vector || !Array.isArray(vector)) {
       throw new Error("vector must be a non-empty array");
     }
@@ -392,6 +431,11 @@ class VectorService extends Service {
       threshold,
       limit,
     );
+
+    this.debug("Query complete", {
+      results: `${results.items.length}/${results.total}`,
+    });
+
     return { results: results.items, total: results.total };
   }
 

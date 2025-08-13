@@ -20,9 +20,10 @@ class AgentService extends Service {
    * @param {Function} octokitFactory - Factory function to create Octokit instances
    * @param {Function} [grpcFn] - Optional gRPC factory function
    * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    */
-  constructor(config, clients, octokitFactory, grpcFn, authFn) {
-    super(config, grpcFn, authFn);
+  constructor(config, clients, octokitFactory, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
     this.#clients = clients;
     this.#octokitFactory = octokitFactory;
   }
@@ -36,6 +37,11 @@ class AgentService extends Service {
    * @returns {Promise<object>} Completion response with session ID
    */
   async ProcessRequest({ messages: clientMessages, session_id, github_token }) {
+    this.debug("Processing request", {
+      session: session_id,
+      messages: clientMessages.length,
+    });
+
     // Ensure all clients are ready before processing
     await Promise.all([
       this.#clients.history.ensureReady(),
@@ -101,7 +107,7 @@ class AgentService extends Service {
         this.config.prompts,
       );
     } else {
-      console.log("NO NEW MESSAGE");
+      this.debug("Processing without new message", { session: sessionId });
       // No new user message, use existing prompt
       requestPrompt = existingPrompt;
     }
@@ -127,6 +133,14 @@ class AgentService extends Service {
         github_token,
       });
     }
+
+    this.debug("Request complete", {
+      session: sessionId,
+      choices: completions.choices?.length || 0,
+      usage: completions.usage
+        ? `${completions.usage.total_tokens} tokens`
+        : "unknown",
+    });
 
     return { ...completions, session_id: sessionId };
   }

@@ -14,6 +14,7 @@ export class VectorProcessor {
   #vectorIndices;
   #chunkIndex;
   #client;
+  #logger;
 
   /**
    * Creates a new VectorProcessor instance
@@ -21,12 +22,15 @@ export class VectorProcessor {
    * @param {{[key: string]: VectorIndexInterface}} vectorIndices - Object containing vector indices for each scope
    * @param {ChunkIndexInterface} chunkIndex - ChunkIndex instance to process chunks from
    * @param {LlmInterface} client - LLM client instance for embedding generation
+   * @param {object} logger - Logger instance for debug output
    */
-  constructor(scopeIndex, vectorIndices, chunkIndex, client) {
+  constructor(scopeIndex, vectorIndices, chunkIndex, client, logger) {
+    if (!logger) throw new Error("logger is required");
     this.#scopeIndex = scopeIndex;
     this.#vectorIndices = vectorIndices;
     this.#chunkIndex = chunkIndex;
     this.#client = client;
+    this.#logger = logger;
   }
 
   /**
@@ -43,7 +47,7 @@ export class VectorProcessor {
     }
 
     for (const [scope, trainingTexts] of Object.entries(trainingData)) {
-      console.log(`  Adding training data for scope: ${scope}`);
+      this.#logger.debug("Adding training data", { scope });
 
       const embeddings = await this.#client.createEmbeddings(trainingTexts);
 
@@ -65,7 +69,7 @@ export class VectorProcessor {
   async persist() {
     for (const [scope, vectorIndex] of Object.entries(this.#vectorIndices)) {
       await vectorIndex.persist();
-      console.log(`Saved vectors to ${scope} index`);
+      this.#logger.debug("Saved vectors", { scope });
     }
   }
 
@@ -79,9 +83,9 @@ export class VectorProcessor {
     const chunksObject = await this.#chunkIndex.getAllChunks();
     const chunkIds = Object.keys(chunksObject);
 
-    console.log(
-      `Processing ${chunkIds.length} chunks for embedding and indexing...`,
-    );
+    this.#logger.debug("Starting to process chunks", {
+      total: chunkIds.length,
+    });
 
     // Pre-filter chunks that already exist in any vector index
     const existingChunks = new Set();
@@ -113,13 +117,13 @@ export class VectorProcessor {
       const chunkText = chunkData?.text;
 
       if (!chunkText) {
-        console.log(`  Skipping chunk ${chunkId} - no text found`);
+        this.#logger.debug("Skipping, no text found", { chunkId });
         continue;
       }
 
       // Skip if already exists (now O(1) lookup)
       if (existingChunks.has(chunkId)) {
-        console.log(`  Already exists in index, skipping chunk ${chunkId}`);
+        this.#logger.debug("Skipping, already exists", { chunkId });
         continue;
       }
 
@@ -154,20 +158,21 @@ export class VectorProcessor {
   /**
    * Processes a batch of chunks by generating embeddings and classifying their scope
    * @param {Array<{id: string, text: string, data: object}>} batch - Array of chunk objects to process
-   * @param {number} processedCount - Number of chunks already processed
-   * @param {number} totalCount - Total number of chunks to process
+   * @param {number} processed - Number of chunks already processed
+   * @param {number} total - Total number of chunks to process
    * @returns {Promise<void>}
    */
-  async #processBatch(batch, processedCount, totalCount) {
+  async #processBatch(batch, processed, total) {
     const batchSize = batch.length;
-    const totalTokens = batch.reduce(
-      (sum, chunk) => sum + chunk.data.tokens,
-      0,
-    );
+    const tokens = batch.reduce((sum, chunk) => sum + chunk.data.tokens, 0);
 
-    console.log(
-      `Processing batch ${processedCount + 1}-${processedCount + batchSize}/${totalCount} (~${totalTokens} tokens)`,
-    );
+    this.#logger.debug("Processing", {
+      chunk:
+        batchSize > 1
+          ? `${processed + 1}-${processed + batchSize}/${total}`
+          : `${processed + 1}/${total}`,
+      tokens,
+    });
 
     // Generate embeddings for all chunks in the batch
     const chunkTexts = batch.map((chunk) => chunk.text);

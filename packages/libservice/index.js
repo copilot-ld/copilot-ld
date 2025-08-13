@@ -3,6 +3,7 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 
 import { ServiceConfig } from "@copilot-ld/libconfig";
+import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { ClientInterface, ServiceInterface, ActorInterface } from "./types.js";
@@ -38,16 +39,24 @@ export class Actor extends ActorInterface {
   #grpc;
   #protoLoader;
   #auth;
+  #logger;
 
   /** @inheritdoc */
-  constructor(config, grpcFn = grpcFactory, authFn = authFactory) {
-    super(config, grpcFn, authFn);
+  constructor(
+    config,
+    grpcFn = grpcFactory,
+    authFn = authFactory,
+    logFn = logFactory,
+  ) {
+    super(config, grpcFn, authFn, logFn);
 
     if (!config) throw new Error("config is required");
     if (grpcFn && typeof grpcFn !== "function")
       throw new Error("grpcFactory must be a function");
     if (authFn && typeof authFn !== "function")
       throw new Error("authFactory must be a function");
+    if (logFn && typeof logFn !== "function")
+      throw new Error("logFactory must be a function");
 
     this.config = config;
 
@@ -58,6 +67,9 @@ export class Actor extends ActorInterface {
 
     // Setup authentication
     this.#auth = authFn(this.config.name);
+
+    // Setup logging
+    this.#logger = logFn(this.config.name);
   }
 
   /** @inheritdoc */
@@ -68,6 +80,9 @@ export class Actor extends ActorInterface {
 
   /** @inheritdoc */
   auth = () => this.#auth;
+
+  /** @inheritdoc */
+  debug = (message, context) => this.#logger.debug(message, context);
 
   /** @inheritdoc */
   async loadProto(serviceName) {
@@ -94,8 +109,13 @@ export class Client extends Actor {
   #setupPromise;
 
   /** @inheritdoc */
-  constructor(config, grpcFn = grpcFactory, authFn = authFactory) {
-    super(config, grpcFn, authFn);
+  constructor(
+    config,
+    grpcFn = grpcFactory,
+    authFn = authFactory,
+    logFn = logFactory,
+  ) {
+    super(config, grpcFn, authFn, logFn);
   }
 
   /** @inheritdoc */
@@ -198,8 +218,13 @@ export class Service extends Actor {
   #started = false;
 
   /** @inheritdoc */
-  constructor(config, grpcFn = grpcFactory, authFn = authFactory) {
-    super(config, grpcFn, authFn);
+  constructor(
+    config,
+    grpcFn = grpcFactory,
+    authFn = authFactory,
+    logFn = logFactory,
+  ) {
+    super(config, grpcFn, authFn, logFn);
   }
 
   /** @inheritdoc */
@@ -326,18 +351,20 @@ function capitalizeFirstLetter(string) {
  * Creates a client with proper configuration
  * @param {string} serviceName - Name of the service to connect to
  * @param {object} defaults - Optional configuration overrides
- * @param {Function} grpcFactoryFn - Optional gRPC factory function
- * @param {Function} authFactoryFn - Optional auth factory function
+ * @param {Function} grpcFn - Optional gRPC factory function
+ * @param {Function} authFn - Optional auth factory function
+ * @param {Function} logFn - Optional log factory function
  * @returns {Client} Configured client instance
  */
 export function createClient(
   serviceName,
   defaults = {},
-  grpcFactoryFn,
-  authFactoryFn,
+  grpcFn,
+  authFn,
+  logFn,
 ) {
   const config = new ServiceConfig(serviceName, defaults);
-  return new Client(config, grpcFactoryFn, authFactoryFn);
+  return new Client(config, grpcFn, authFn, logFn);
 }
 
 export {

@@ -74,7 +74,8 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 **Format Rules**:
 
 - Single top-level `# Changelog` heading
-- Date headings in `YYYY-MM-DD` format using `## `
+- Date headings in `YYYY-MM-DD` format using `## ` - **MUST use today's date
+  when adding new entries**
 - Simple bullet points for each change
 - Ascending chronological order (oldest first)
 - Updates must be added when component code changes

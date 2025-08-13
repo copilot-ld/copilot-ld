@@ -17,7 +17,11 @@ import {
 import { HmacAuth, Interceptor } from "../auth.js";
 
 describe("libservice", () => {
-  let mockConfig, mockGrpcFactory, mockAuthFactory, mockServiceGrpcFactory;
+  let mockConfig,
+    mockGrpcFactory,
+    mockAuthFactory,
+    mockServiceGrpcFactory,
+    mockLogFactory;
 
   beforeEach(() => {
     process.env.SERVICE_AUTH_SECRET = "a".repeat(32);
@@ -85,17 +89,27 @@ describe("libservice", () => {
       createClientInterceptor: () => () => {},
       validateCall: () => ({ isValid: true, serviceId: "test" }),
     });
+
+    mockLogFactory = () => ({
+      debug: () => {},
+    });
   });
 
   describe("Actor", () => {
     test("creates Actor and validates dependencies", () => {
-      const actor = new Actor(mockConfig, mockGrpcFactory, mockAuthFactory);
+      const actor = new Actor(
+        mockConfig,
+        mockGrpcFactory,
+        mockAuthFactory,
+        mockLogFactory,
+      );
 
       assert.ok(actor instanceof Actor);
       assert.strictEqual(actor.config, mockConfig);
       assert.ok(typeof actor.grpc().Server === "function");
       assert.ok(typeof actor.protoLoader().loadSync === "function");
       assert.ok(typeof actor.auth().createClientInterceptor === "function");
+      assert.ok(typeof actor.debug === "function");
     });
 
     test("validates constructor parameters", () => {
@@ -106,6 +120,13 @@ describe("libservice", () => {
       assert.throws(() => new Actor(mockConfig, mockGrpcFactory, "invalid"), {
         message: /authFactory must be a function/,
       });
+      assert.throws(
+        () =>
+          new Actor(mockConfig, mockGrpcFactory, mockAuthFactory, "invalid"),
+        {
+          message: /logFactory must be a function/,
+        },
+      );
     });
 
     test("loads proto definition", async () => {
@@ -113,6 +134,7 @@ describe("libservice", () => {
         mockConfig,
         mockServiceGrpcFactory,
         mockAuthFactory,
+        mockLogFactory,
       );
       const proto = await actor.loadProto("test");
 
@@ -123,7 +145,12 @@ describe("libservice", () => {
 
   describe("Client", () => {
     test("creates Client and validates auth requirement", () => {
-      const client = new Client(mockConfig, mockGrpcFactory, mockAuthFactory);
+      const client = new Client(
+        mockConfig,
+        mockGrpcFactory,
+        mockAuthFactory,
+        mockLogFactory,
+      );
 
       assert.ok(client instanceof Client);
       assert.ok(client instanceof Actor);
@@ -136,7 +163,12 @@ describe("libservice", () => {
     });
 
     test("initializes and creates client methods", async () => {
-      const client = new Client(mockConfig, mockGrpcFactory, mockAuthFactory);
+      const client = new Client(
+        mockConfig,
+        mockGrpcFactory,
+        mockAuthFactory,
+        mockLogFactory,
+      );
       await client.ensureReady();
 
       assert.ok(typeof client.TestMethod === "function");
@@ -160,7 +192,12 @@ describe("libservice", () => {
         },
       });
 
-      const client = new Client(mockConfig, errorFactory, mockAuthFactory);
+      const client = new Client(
+        mockConfig,
+        errorFactory,
+        mockAuthFactory,
+        mockLogFactory,
+      );
       await assert.rejects(() => client.ensureReady(), { message: /ENOENT/ });
     });
   });
@@ -171,6 +208,7 @@ describe("libservice", () => {
         mockConfig,
         mockServiceGrpcFactory,
         mockAuthFactory,
+        mockLogFactory,
       );
 
       assert.ok(service instanceof Service);
@@ -194,6 +232,7 @@ describe("libservice", () => {
         mockConfig,
         mockServiceGrpcFactory,
         mockAuthFactory,
+        mockLogFactory,
       );
       const port = await service.start();
 
@@ -209,6 +248,7 @@ describe("libservice", () => {
         mockConfig,
         mockServiceGrpcFactory,
         mockAuthFactory,
+        mockLogFactory,
       );
 
       await assert.rejects(() => service.start(), {
@@ -224,6 +264,7 @@ describe("libservice", () => {
         { port: 4000 },
         mockGrpcFactory,
         mockAuthFactory,
+        mockLogFactory,
       );
       assert.ok(client instanceof Client);
       assert.strictEqual(client.config.name, "test");
@@ -246,7 +287,13 @@ describe("libservice", () => {
     test("handles invalid factory return values", () => {
       const invalidGrpcFactory = () => null;
       assert.throws(
-        () => new Actor(mockConfig, invalidGrpcFactory, mockAuthFactory),
+        () =>
+          new Actor(
+            mockConfig,
+            invalidGrpcFactory,
+            mockAuthFactory,
+            mockLogFactory,
+          ),
         {
           message: /Cannot destructure property/,
         },
@@ -272,10 +319,16 @@ describe("libservice", () => {
         mockConfig,
         errorGrpcFactory,
         mockAuthFactory,
+        mockLogFactory,
       );
       await assert.rejects(() => service.start(), { message: /ENOENT/ });
 
-      const client = new Client(mockConfig, errorGrpcFactory, mockAuthFactory);
+      const client = new Client(
+        mockConfig,
+        errorGrpcFactory,
+        mockAuthFactory,
+        mockLogFactory,
+      );
       await assert.rejects(() => client.ensureReady(), { message: /ENOENT/ });
     });
   });

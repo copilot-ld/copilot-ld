@@ -55,6 +55,8 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
+      undefined, // logFn not needed for tests
       _mockQueryIndices, // Inject the mock queryIndices function
     );
   });
@@ -75,6 +77,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -107,6 +110,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -141,6 +145,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -174,6 +179,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -207,6 +213,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -240,6 +247,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -273,6 +281,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 
@@ -298,6 +307,7 @@ describe("Vector Service Token Management", () => {
       mockVectorIndices,
       mockGrpcFactory,
       mockAuthFactory,
+      undefined, // logFn
       testMockQueryIndices,
     );
 

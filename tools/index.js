@@ -5,6 +5,7 @@ import { ChunkIndex } from "@copilot-ld/libchunk";
 import { ToolConfig } from "@copilot-ld/libconfig";
 import { Copilot } from "@copilot-ld/libcopilot";
 import { storageFactory } from "@copilot-ld/libstorage";
+import { logFactory } from "@copilot-ld/libutil";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
 
@@ -109,12 +110,14 @@ async function main() {
 
   const chunkIndex = new ChunkIndex(chunksStorage);
   const client = new Copilot(config.githubToken());
+  const logger = logFactory("index-tool");
 
   const processor = new VectorProcessor(
     scopeIndex,
     vectorIndices,
     chunkIndex,
     client,
+    logger,
   );
 
   await processor.train(SCOPE_TRAINING_DATA);

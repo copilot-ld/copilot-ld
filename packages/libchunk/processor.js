@@ -5,10 +5,12 @@ import { format } from "prettier";
 import { microdata } from "microdata-minimal";
 
 import { Chunk } from "@copilot-ld/libtype";
-import { Copilot } from "@copilot-ld/libcopilot";
 
 /** @typedef {import("@copilot-ld/libtype").ChunkIndexInterface} ChunkIndexInterface */
+/** @typedef {import("@copilot-ld/libutil").LoggerInterface} LoggerInterface */
 /** @typedef {import("@copilot-ld/libtype").StorageInterface} StorageInterface */
+
+/** @typedef {import("js-tiktoken/lite").Tiktoken} Tiktoken */
 
 /**
  * ChunkProcessor class for batch processing HTML files into chunks
@@ -16,15 +18,22 @@ import { Copilot } from "@copilot-ld/libcopilot";
 export class ChunkProcessor {
   #chunkIndex;
   #knowledgeStorage;
+  #logger;
+  #tokenizer;
 
   /**
    * Creates a new ChunkProcessor instance
    * @param {ChunkIndexInterface} chunkIndex - ChunkIndex instance to add chunks to
    * @param {StorageInterface} knowledgeStorage - Storage interface for knowledge base operations
+   * @param {Tiktoken} tokenizer - Tokenizer instance for text splitting and token counting
+   * @param {LoggerInterface} logger - Logger instance for debug output
    */
-  constructor(chunkIndex, knowledgeStorage) {
+  constructor(chunkIndex, knowledgeStorage, tokenizer, logger) {
+    if (!logger) throw new Error("logger is required");
     this.#chunkIndex = chunkIndex;
     this.#knowledgeStorage = knowledgeStorage;
+    this.#tokenizer = tokenizer;
+    this.#logger = logger;
   }
 
   /**
@@ -46,13 +55,14 @@ export class ChunkProcessor {
     const keys = await this.#knowledgeStorage.find(extension);
 
     for (const key of keys) {
-      console.log(`Processing: ${key}`);
-
       const html = await this.#knowledgeStorage.get(key);
       const items = await this.#parseHTML(html, selectors);
 
       for (let i = 0; i < items.length; i++) {
-        console.log(`  Processing ${i + 1}/${items.length}`);
+        this.#logger.debug("Processing", {
+          item: `${i + 1}/${items.length}`,
+          key,
+        });
 
         const chunk = await this.#createChunk(items[i]);
 
@@ -96,7 +106,7 @@ export class ChunkProcessor {
     const text = formatted.toString();
 
     const id = this.#createId(text);
-    const tokens = Copilot.countTokens(text);
+    const tokens = this.#tokenizer.encode(text).length;
 
     // Store the chunk data using storage interface
     const chunkKey = `${id}/chunk.json`;

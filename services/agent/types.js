@@ -7,15 +7,20 @@ import * as libservice from "@copilot-ld/libservice";
  * Base interface for Agent service
  * @implements {libservice.ServiceInterface}
  */
-export class AgentServiceInterface {
+export class AgentServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new Agent service instance
    * @param {ServiceConfigInterface} config - Service configuration object
    * @param {object} clients - Service clients object
    * @param {Function} octokitFactory - Factory function to create Octokit instances
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, clients, octokitFactory) {}
+  constructor(config, clients, octokitFactory, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
+  }
 
   /**
    * Processes an agent request by coordinating multiple services to generate

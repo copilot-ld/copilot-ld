@@ -34,8 +34,13 @@ export class Copilot extends LlmInterface {
   #tokenizer;
 
   /** @inheritdoc */
-  constructor(token, model, fetchFn = fetch, tokenizer = null) {
-    super(token, model, fetchFn, tokenizer);
+  constructor(token, model, fetchFn = fetch, tokenizerFn = tokenizerFactory) {
+    super(token, model, fetchFn, tokenizerFn);
+    if (typeof fetchFn !== "function")
+      throw new Error("Invalid fetch function");
+    if (typeof tokenizerFn !== "function")
+      throw new Error("Invalid tokenizer function");
+
     this.#model = model;
     this.#baseURL = "https://api.githubcopilot.com";
     this.#headers = {
@@ -46,7 +51,7 @@ export class Copilot extends LlmInterface {
     this.#retries = 3;
     this.#delay = 1000;
     this.#fetch = fetchFn;
-    this.#tokenizer = tokenizer || new Tiktoken(o200k_base);
+    this.#tokenizer = tokenizerFn();
   }
 
   /**
@@ -131,17 +136,24 @@ export class Copilot extends LlmInterface {
  * @param {string} token - GitHub Copilot token
  * @param {string} [model] - Default model to use
  * @param {Function} [fetchFn] - HTTP client function
- * @param {object} [tokenizer] - Tokenizer instance
+ * @param {Function} [tokenizerFn] - Tokenizer factory function
  * @returns {Copilot} Configured Copilot instance
  */
 export function llmFactory(
   token,
   model = "gpt-4o",
   fetchFn = fetch,
-  tokenizer = null,
+  tokenizerFn = null,
 ) {
-  const defaultTokenizer = tokenizer || new Tiktoken(o200k_base);
-  return new Copilot(token, model, fetchFn, defaultTokenizer);
+  return new Copilot(token, model, fetchFn, tokenizerFn);
+}
+
+/**
+ * Creates a new tokenizer instance
+ * @returns {Tiktoken} New tokenizer instance
+ */
+export function tokenizerFactory() {
+  return new Tiktoken(o200k_base);
 }
 
 export { LlmInterface };

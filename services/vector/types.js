@@ -6,14 +6,19 @@ import * as libservice from "@copilot-ld/libservice";
  * Base interface for Vector service
  * @implements {libservice.ServiceInterface}
  */
-export class VectorServiceInterface {
+export class VectorServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new Vector service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
    * @param {Map} vectorIndices - Pre-initialized vector indices
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, vectorIndices) {}
+  constructor(config, vectorIndices, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
+  }
 
   /**
    * Queries multiple vector indices and returns consolidated results

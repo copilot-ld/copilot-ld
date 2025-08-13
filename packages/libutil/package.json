@@ -1,7 +1,7 @@
 {
-  "name": "@copilot-ld/libprompt",
-  "version": "0.1.1",
-  "description": "Prompt engineering and template management for Copilot-LD",
+  "name": "@copilot-ld/libutil",
+  "version": "0.1.0",
+  "description": "Utility functions and utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
@@ -12,13 +12,10 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
-  "dependencies": {
-    "@copilot-ld/libstorage": "^0.1.1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "packages/libprompt"
+    "directory": "packages/libutil"
   },
   "publishConfig": {
     "access": "public",

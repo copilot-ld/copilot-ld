@@ -26,7 +26,7 @@ describe("agent service", () => {
 
     test("AgentService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(AgentService.length, 5); // config, clients, octokitFactory, grpcFn, authFn
+      assert.strictEqual(AgentService.length, 6); // config, clients, octokitFactory, grpcFn, authFn, logFn
     });
 
     test("AgentServiceInterface defines the service contract", () => {

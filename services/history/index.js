@@ -19,9 +19,10 @@ class HistoryService extends Service {
    * @param {import("@copilot-ld/libprompt").PromptOptimizer} promptOptimizer - Prompt optimizer instance
    * @param {Function} [grpcFn] - Optional gRPC factory function
    * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    */
-  constructor(config, promptStorage, promptOptimizer, grpcFn, authFn) {
-    super(config, grpcFn, authFn);
+  constructor(config, promptStorage, promptOptimizer, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
     this.#promptStorage = promptStorage;
     this.#promptOptimizer = promptOptimizer;
   }
@@ -54,9 +55,7 @@ class HistoryService extends Service {
       );
       await this.#promptStorage.store(session_id, optimizedPrompt);
 
-      console.log(
-        `[history] Updated session ${session_id} with optimized prompt`,
-      );
+      this.debug("Updated session", { session: session_id, optimized: true });
       return { success: true, optimized: true };
     } catch (error) {
       console.error(
@@ -66,9 +65,7 @@ class HistoryService extends Service {
       // Store unoptimized as fallback
       await this.#promptStorage.store(session_id, prompt);
 
-      console.log(
-        `[history] Updated session ${session_id} with unoptimized prompt`,
-      );
+      this.debug("Updated session", { session: session_id, optimized: false });
       return { success: true, optimized: false };
     }
   }

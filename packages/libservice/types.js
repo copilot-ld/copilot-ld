@@ -16,8 +16,9 @@ export class ActorInterface {
    * @param {ServiceConfigInterface} config - Service configuration object
    * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
    * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
-  constructor(config, grpcFn, authFn) {
+  constructor(config, grpcFn, authFn, logFn) {
     // Interface constructor - empty implementation
   }
 
@@ -43,6 +44,15 @@ export class ActorInterface {
   }
 
   /**
+   * Logs debug messages with namespace support
+   * @param {string} message - Debug message
+   * @param {object} [context] - Optional context object with key/value pairs
+   */
+  debug(message, context) {
+    throw new Error("Not implemented");
+  }
+
+  /**
    * Loads proto definition with standard options using a config object
    * @param {string} serviceName - Name of the service to load proto for
    * @returns {Promise<object>} Loaded proto package definition
@@ -61,9 +71,10 @@ export class ClientInterface extends ActorInterface {
    * @param {ServiceConfigInterface} config - Service configuration object
    * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
    * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
-  constructor(config, grpcFn, authFn) {
-    super(config, grpcFn, authFn);
+  constructor(config, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
   }
 
   /**
@@ -84,9 +95,10 @@ export class ServiceInterface extends ActorInterface {
    * @param {ServiceConfigInterface} config - Service configuration object
    * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
    * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
-  constructor(config, grpcFn, authFn) {
-    super(config, grpcFn, authFn);
+  constructor(config, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
   }
 
   /**

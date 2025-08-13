@@ -7,14 +7,19 @@ import * as libservice from "@copilot-ld/libservice";
  * Base interface for Text service
  * @implements {libservice.ServiceInterface}
  */
-export class TextServiceInterface {
+export class TextServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new Text service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
    * @param {libchunk.ChunkIndexInterface} chunkIndex - Pre-initialized chunk index
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, chunkIndex) {}
+  constructor(config, chunkIndex, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
+  }
 
   /**
    * Retrieves text chunks by their IDs

@@ -6,14 +6,19 @@ import * as libservice from "@copilot-ld/libservice";
  * Base interface for LLM service
  * @implements {libservice.ServiceInterface}
  */
-export class LlmServiceInterface {
+export class LlmServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new LLM service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
    * @param {Function} llmFactory - Factory function to create LLM instances
+   * @param {Function} [grpcFn] - Optional gRPC factory function
+   * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, llmFactory) {}
+  constructor(config, llmFactory, grpcFn, authFn, logFn) {
+    super(config, grpcFn, authFn, logFn);
+  }
 
   /**
    * Creates completions using the LLM with Prompt objects

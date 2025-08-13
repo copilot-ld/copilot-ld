@@ -10,10 +10,10 @@ export class LlmInterface {
    * @param {string} token - LLM token
    * @param {string} model - Default model to use for completions
    * @param {Function} fetchFn - HTTP client function (defaults to fetch if not provided)
-   * @param {object} tokenizer - Tokenizer instance for counting tokens
+   * @param {Function} tokenizerFn - Tokenizer instance for counting tokens
    * @throws {Error} Not implemented
    */
-  constructor(token, model, fetchFn = null, tokenizer = null) {}
+  constructor(token, model, fetchFn = null, tokenizerFn = null) {}
 
   /**
    * Counts tokens in the given text using the tokenizer

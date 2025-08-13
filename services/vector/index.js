@@ -18,6 +18,7 @@ class VectorService extends Service {
    * @param {Map<string, object>} vectorIndices - Pre-initialized vector indices
    * @param {Function} [grpcFn] - Optional gRPC factory function
    * @param {Function} [authFn] - Optional auth factory function
+   * @param {Function} [logFn] - Optional log factory function
    * @param {Function} [queryIndicesFn] - Optional queryIndices function
    */
   constructor(
@@ -25,9 +26,10 @@ class VectorService extends Service {
     vectorIndices,
     grpcFn,
     authFn,
+    logFn,
     queryIndicesFn = queryIndices,
   ) {
-    super(config, grpcFn, authFn);
+    super(config, grpcFn, authFn, logFn);
     this.#vectorIndices = vectorIndices;
     this.#queryIndicesFn = queryIndicesFn;
   }
@@ -43,6 +45,13 @@ class VectorService extends Service {
    * @returns {Promise<object>} Object containing results array
    */
   async QueryItems({ indices, vector, threshold, limit, max_tokens }) {
+    this.debug("Querying vector indices", {
+      indices: indices.join(","),
+      threshold,
+      limit,
+      max_tokens: max_tokens || "unlimited",
+    });
+
     const requestedIndices = indices
       .map((name) => this.#vectorIndices.get(name))
       .filter((index) => index);
@@ -56,9 +65,10 @@ class VectorService extends Service {
 
     // If no token limit specified, return all results
     if (max_tokens === undefined || max_tokens === null) {
-      console.log(
-        `[vector] Returning ${results.length} results (no token limit)`,
-      );
+      this.debug("Returning results", {
+        count: results.length,
+        tokens: "unlimited",
+      });
       return { results };
     }
 
@@ -77,9 +87,10 @@ class VectorService extends Service {
       }
     }
 
-    console.log(
-      `[vector] Filtered to ${filteredResults.length}/${results.length} results within ${totalTokens}/${max_tokens} tokens`,
-    );
+    this.debug("Filtered results", {
+      filtered: `${filteredResults.length}/${results.length}`,
+      tokens: `${totalTokens}/${max_tokens}`,
+    });
     return { results: filteredResults };
   }
 }

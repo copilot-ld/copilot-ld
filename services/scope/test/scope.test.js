@@ -26,7 +26,7 @@ describe("scope service", () => {
 
     test("ScopeService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(ScopeService.length, 4); // config, index, grpcFn, authFn
+      assert.strictEqual(ScopeService.length, 5); // config, index, grpcFn, authFn, logFn
     });
 
     test("ScopeServiceInterface defines the service contract", () => {

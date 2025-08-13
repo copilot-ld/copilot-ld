@@ -1,6 +1,10 @@
 /* eslint-env node */
 import { Similarity } from "@copilot-ld/libtype";
-import { PromptBuilder, PromptAssembler } from "@copilot-ld/libprompt";
+import {
+  PromptAssembler,
+  generateSessionId,
+  getLatestUserMessage,
+} from "@copilot-ld/libprompt";
 import { Service } from "@copilot-ld/libservice";
 
 import { AgentServiceInterface } from "./types.js";
@@ -54,9 +58,8 @@ class AgentService extends Service {
     const octokit = this.#octokitFactory(github_token);
     await octokit.request("GET /user");
 
-    const sessionId = session_id || PromptBuilder.generateSessionId();
-    const latestUserMessage =
-      PromptBuilder.getLatestUserMessage(clientMessages);
+    const sessionId = session_id || generateSessionId();
+    const latestUserMessage = getLatestUserMessage(clientMessages);
 
     // 1. Get existing prompt from history service
     const { prompt: existingPrompt } = await this.#clients.history.GetHistory({

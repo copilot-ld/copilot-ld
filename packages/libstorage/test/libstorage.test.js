@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { test, describe, beforeEach, mock } from "node:test";
+import { test, describe, beforeEach, afterEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
@@ -209,39 +209,47 @@ describe("libstorage", () => {
   });
 
   describe("storageFactory", () => {
+    let originalEnv;
+
+    beforeEach(() => {
+      originalEnv = { ...process.env };
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
     test("creates LocalStorage for local type", () => {
-      const config = { storage: "local" };
-      const storage = storageFactory("/test/path", config);
+      process.env.STORAGE_TYPE = "local";
+      const storage = storageFactory("/test/path");
 
       assert(storage instanceof LocalStorage);
     });
 
     test("creates S3Storage for s3 type", () => {
-      const config = {
-        storage: "s3",
-        s3_region: "us-east-1",
-        s3_endpoint: "https://s3.amazonaws.com",
-        s3_access_key_id: "access-key",
-        s3_secret_access_key: "secret-key",
-        s3_bucket: "test-bucket",
-      };
+      process.env.STORAGE_TYPE = "s3";
+      process.env.S3_REGION = "us-east-1";
+      process.env.S3_ENDPOINT = "https://s3.amazonaws.com";
+      process.env.S3_ACCESS_KEY_ID = "access-key";
+      process.env.S3_SECRET_ACCESS_KEY = "secret-key";
+      process.env.S3_BUCKET = "test-bucket";
 
-      const storage = storageFactory("/test/path", config);
+      const storage = storageFactory("/test/path");
 
       assert(storage instanceof S3Storage);
     });
 
-    test("defaults to LocalStorage", () => {
-      const config = {};
-      const storage = storageFactory("/test/path", config);
+    test("defaults to LocalStorage when no environment variable set", () => {
+      delete process.env.STORAGE_TYPE;
+      const storage = storageFactory("/test/path");
 
       assert(storage instanceof LocalStorage);
     });
 
     test("throws error for unsupported storage type", () => {
-      const config = { storage: "unsupported" };
+      process.env.STORAGE_TYPE = "unsupported";
 
-      assert.throws(() => storageFactory("/test/path", config), {
+      assert.throws(() => storageFactory("/test/path"), {
         message: /Unsupported storage type: unsupported/,
       });
     });

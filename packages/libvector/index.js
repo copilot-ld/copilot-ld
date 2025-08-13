@@ -7,8 +7,6 @@ import { storageFactory } from "@copilot-ld/libstorage";
 
 import { VectorIndexInterface } from "./types.js";
 
-/** @typedef {import("@copilot-ld/libconfig").ConfigInterface} ConfigInterface */
-
 /**
  * VectorIndex class for managing vector data with lazy loading
  * @implements {VectorIndexInterface}
@@ -194,10 +192,9 @@ function calculateDotProduct(a, b, length) {
 /**
  * Dynamically discovers and initializes vector indices from vector directories
  * @param {string} vectorsDir - Directory containing vector subdirectories
- * @param {ConfigInterface} config - Configuration interface for creating storage
  * @returns {Promise<Map<string, VectorIndex>>} Map of scope names to VectorIndex instances
  */
-export async function initializeVectorIndices(vectorsDir, config) {
+export async function initializeVectorIndices(vectorsDir) {
   try {
     const availableScopes = readdirSync(vectorsDir, { withFileTypes: true })
       .filter((dirent) => dirent.isDirectory())
@@ -205,10 +202,7 @@ export async function initializeVectorIndices(vectorsDir, config) {
 
     return new Map(
       availableScopes.map((scopeName) => {
-        const scopeStorage = storageFactory(
-          join(vectorsDir, scopeName),
-          config,
-        );
+        const scopeStorage = storageFactory(join(vectorsDir, scopeName));
         return [scopeName, new VectorIndex(scopeStorage)];
       }),
     );

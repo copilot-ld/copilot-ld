@@ -11,7 +11,6 @@ const config = new ServiceConfig("vector", {
 });
 const vectorIndices = await initializeVectorIndices(
   config.storagePath("vectors"),
-  config,
 );
 const service = new VectorService(config, vectorIndices);
 await service.start();

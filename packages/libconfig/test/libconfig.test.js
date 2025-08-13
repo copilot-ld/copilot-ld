@@ -223,6 +223,49 @@ describe("libconfig", () => {
 
       assert.strictEqual(token, "new-token");
     });
+
+    test("storage returns storage instance using storageFn", () => {
+      const mockStorage = { get: mock.fn(), put: mock.fn() };
+      const mockStorageFn = mock.fn(() => mockStorage);
+
+      const config = new Config(
+        "test",
+        "myservice",
+        {},
+        mockFs,
+        mockProcess,
+        undefined,
+        mockStorageFn,
+      );
+
+      const storage = config.storage("/test/path");
+
+      assert.strictEqual(storage, mockStorage);
+      assert.strictEqual(mockStorageFn.mock.callCount(), 1);
+      assert.strictEqual(
+        mockStorageFn.mock.calls[0].arguments[0],
+        "/test/path",
+      );
+    });
+
+    test("storage uses default basePath", () => {
+      const mockStorage = { get: mock.fn(), put: mock.fn() };
+      const mockStorageFn = mock.fn(() => mockStorage);
+
+      const config = new Config(
+        "test",
+        "myservice",
+        {},
+        mockFs,
+        mockProcess,
+        undefined,
+        mockStorageFn,
+      );
+
+      config.storage();
+
+      assert.strictEqual(mockStorageFn.mock.calls[0].arguments[0], "./");
+    });
   });
 
   describe("ServiceConfig", () => {

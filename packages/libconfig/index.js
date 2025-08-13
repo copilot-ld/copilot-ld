@@ -5,12 +5,16 @@ import { join } from "path";
 import { config } from "dotenv";
 import yaml from "js-yaml";
 
+import { storageFactory } from "@copilot-ld/libstorage";
+
 import {
   ConfigInterface,
   ExtensionConfigInterface,
   ServiceConfigInterface,
   ToolConfigInterface,
 } from "./types.js";
+
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /**
  * Centralized configuration management class
@@ -24,6 +28,7 @@ export class Config extends ConfigInterface {
   #fs;
   #process;
   #dotenv;
+  #storageFn;
 
   /**
    * Creates a new Config instance that spreads config parameters into the instance
@@ -33,6 +38,7 @@ export class Config extends ConfigInterface {
    * @param {object} fs - File system operations
    * @param {object} process - Process environment access
    * @param {Function} dotenv - Dotenv config function
+   * @param {Function} storageFn - Storage factory function
    */
   constructor(
     namespace,
@@ -41,11 +47,13 @@ export class Config extends ConfigInterface {
     fs = { existsSync, mkdirSync, readFileSync },
     process = global.process,
     dotenv = config,
+    storageFn = storageFactory,
   ) {
-    super(namespace, name, defaults);
+    super(namespace, name, defaults, fs, process, dotenv, storageFn);
     this.#fs = fs;
     this.#process = process;
     this.#dotenv = dotenv;
+    this.#storageFn = storageFn;
 
     this.name = name;
     this.namespace = namespace;
@@ -128,6 +136,15 @@ export class Config extends ConfigInterface {
     this.#githubToken = null;
     this.#paths.clear();
     this.#configData = null;
+  }
+
+  /**
+   * Creates a storage instance using the configured storage factory
+   * @param {string} basePath - Base path for storage operations
+   * @returns {StorageInterface} Storage instance
+   */
+  storage(basePath = "./") {
+    return this.#storageFn(basePath);
   }
 
   /**
@@ -216,8 +233,16 @@ export class Config extends ConfigInterface {
  */
 export class ServiceConfig extends Config {
   /** @inheritdoc */
-  constructor(name, defaults = {}) {
-    super("service", name, defaults);
+  constructor(name, defaults = {}, storageFn = storageFactory) {
+    super(
+      "service",
+      name,
+      defaults,
+      undefined,
+      undefined,
+      undefined,
+      storageFn,
+    );
   }
 }
 
@@ -227,8 +252,16 @@ export class ServiceConfig extends Config {
  */
 export class ExtensionConfig extends Config {
   /** @inheritdoc */
-  constructor(name, defaults = {}) {
-    super("extension", name, defaults);
+  constructor(name, defaults = {}, storageFn = storageFactory) {
+    super(
+      "extension",
+      name,
+      defaults,
+      undefined,
+      undefined,
+      undefined,
+      storageFn,
+    );
   }
 }
 
@@ -238,8 +271,8 @@ export class ExtensionConfig extends Config {
  */
 export class ToolConfig extends Config {
   /** @inheritdoc */
-  constructor(name, defaults = {}) {
-    super("tool", name, defaults);
+  constructor(name, defaults = {}, storageFn = storageFactory) {
+    super("tool", name, defaults, undefined, undefined, undefined, storageFn);
   }
 }
 

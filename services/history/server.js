@@ -2,7 +2,6 @@
 import { llmFactory } from "@copilot-ld/libcopilot";
 import { PromptOptimizer, PromptStorage } from "@copilot-ld/libprompt";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { storageFactory } from "@copilot-ld/libstorage";
 
 import { HistoryService } from "./index.js";
 
@@ -11,7 +10,7 @@ const config = new ServiceConfig("history", {
   historyTokens: 4000,
 });
 
-const storage = storageFactory(config.storagePath("history"), config);
+const storage = config.storage(config.storagePath("history"));
 const promptStorage = new PromptStorage(storage);
 const promptOptimizer = new PromptOptimizer(llmFactory, {
   totalTokenLimit: config.historyTokens || 100000,

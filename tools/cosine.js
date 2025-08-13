@@ -1,6 +1,5 @@
 /* eslint-env node */
 import { ToolConfig } from "@copilot-ld/libconfig";
-import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
 
 const config = new ToolConfig("cosine");
@@ -14,7 +13,7 @@ const VECTOR_DIR = config.storagePath("vectors/policy");
 async function main() {
   const input = (await process.stdin.toArray()).join("").trim();
 
-  const storage = storageFactory(VECTOR_DIR, config);
+  const storage = config.storage(VECTOR_DIR);
   const index = new VectorIndex(storage);
   const vector = JSON.parse(input);
   const results = await index.queryItems(vector);

@@ -7,7 +7,6 @@ import { ToolConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { resolveScope } from "@copilot-ld/libscope";
-import { storageFactory } from "@copilot-ld/libstorage";
 import {
   VectorIndex,
   initializeVectorIndices,
@@ -74,10 +73,10 @@ async function performSearch(prompt, state) {
 // Create REPL with dependency injection
 const repl = new Repl(readline, process, createTerminalFormatter(), {
   setup: async () => {
-    vectorIndices = await initializeVectorIndices(VECTORS_DIR, config);
-    const scopeStorage = storageFactory(SCOPE_DIR, config);
+    vectorIndices = await initializeVectorIndices(VECTORS_DIR);
+    const scopeStorage = config.storage(SCOPE_DIR);
     scopeIndex = new VectorIndex(scopeStorage);
-    const chunksStorage = storageFactory(CHUNKS_DIR, config);
+    const chunksStorage = config.storage(CHUNKS_DIR);
     chunkIndex = new ChunkIndex(chunksStorage);
   },
   state: {

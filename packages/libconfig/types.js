@@ -15,6 +15,7 @@ export class ConfigInterface {
    * @param {object} _fs - File system operations
    * @param {object} _process - Process environment access
    * @param {Function} _dotenv - Dotenv config function
+   * @param {Function} _storageFn - Storage factory function
    * @throws {Error} Not implemented
    */
   constructor(
@@ -24,6 +25,7 @@ export class ConfigInterface {
     _fs = null,
     _process = null,
     _dotenv = null,
+    _storageFn = null,
   ) {}
 
   /**
@@ -85,6 +87,15 @@ export class ConfigInterface {
   reset() {
     throw new Error("ConfigInterface.reset() not implemented");
   }
+
+  /**
+   * Creates a storage instance using the configured storage factory
+   * @param {string} basePath - Base path for storage operations
+   * @throws {Error} Not implemented
+   */
+  storage(basePath = "./") {
+    throw new Error("ConfigInterface.storage() not implemented");
+  }
 }
 
 /**
@@ -95,10 +106,11 @@ export class ExtensionConfigInterface extends ConfigInterface {
    * Creates an extension configuration instance
    * @param {string} name - Extension name for environment variable prefix
    * @param {object} defaults - Default configuration values
+   * @param {Function} storageFn - Storage factory function
    * @throws {Error} Not implemented
    */
-  constructor(name, defaults = {}) {
-    super("extension", name, defaults);
+  constructor(name, defaults = {}, storageFn = null) {
+    super("extension", name, defaults, null, null, null, storageFn);
   }
 }
 
@@ -110,10 +122,11 @@ export class ServiceConfigInterface extends ConfigInterface {
    * Creates a service configuration instance
    * @param {string} name - Service name for environment variable prefix
    * @param {object} defaults - Default configuration values
+   * @param {Function} storageFn - Storage factory function
    * @throws {Error} Not implemented
    */
-  constructor(name, defaults = {}) {
-    super("service", name, defaults);
+  constructor(name, defaults = {}, storageFn = null) {
+    super("service", name, defaults, null, null, null, storageFn);
   }
 }
 
@@ -125,9 +138,10 @@ export class ToolConfigInterface extends ConfigInterface {
    * Creates a tool configuration instance
    * @param {string} name - Tool name for environment variable prefix
    * @param {object} defaults - Default configuration values
+   * @param {Function} storageFn - Storage factory function
    * @throws {Error} Not implemented
    */
-  constructor(name, defaults = {}) {
-    super("tool", name, defaults);
+  constructor(name, defaults = {}, storageFn = null) {
+    super("tool", name, defaults, null, null, null, storageFn);
   }
 }

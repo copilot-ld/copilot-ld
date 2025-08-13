@@ -162,7 +162,7 @@ describe("libvector", () => {
 
   describe("initializeVectorIndices", () => {
     test("returns empty map when directory doesn't exist", async () => {
-      const indices = await initializeVectorIndices("/non-existent", {});
+      const indices = await initializeVectorIndices("/non-existent");
 
       assert(indices instanceof Map);
       assert.strictEqual(indices.size, 0);

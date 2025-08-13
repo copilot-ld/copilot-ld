@@ -4,7 +4,6 @@ import path from "path";
 import { ChunkIndex } from "@copilot-ld/libchunk";
 import { ToolConfig } from "@copilot-ld/libconfig";
 import { Copilot } from "@copilot-ld/libcopilot";
-import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
 
@@ -93,17 +92,14 @@ const SCOPE_TRAINING_DATA = {
  * @returns {Promise<void>}
  */
 async function main() {
-  const chunksStorage = storageFactory(CHUNKS_DIR, config);
-  const scopeStorage = storageFactory(SCOPE_DIR, config);
+  const chunksStorage = config.storage(CHUNKS_DIR);
+  const scopeStorage = config.storage(SCOPE_DIR);
 
   const scopeIndex = new VectorIndex(scopeStorage);
 
   const vectorIndices = {};
   for (const scope of SCOPES) {
-    const scopeVectorStorage = storageFactory(
-      path.join(VECTORS_DIR, scope),
-      config,
-    );
+    const scopeVectorStorage = config.storage(path.join(VECTORS_DIR, scope));
     vectorIndices[scope] = new VectorIndex(scopeVectorStorage);
   }
 

@@ -13,8 +13,6 @@ import {
 
 import { StorageInterface } from "./types.js";
 
-/** @typedef {import("@copilot-ld/libconfig").ConfigInterface} ConfigInterface */
-
 /**
  * Local filesystem storage implementation
  * @implements {StorageInterface}
@@ -244,14 +242,13 @@ export class S3Storage extends StorageInterface {
 }
 
 /**
- * Creates a storage instance based on configuration
+ * Creates a storage instance based on environment variables
  * @param {string} basePath - Base path for all storage operations
- * @param {ConfigInterface} config - Configuration object
  * @returns {StorageInterface} Storage instance
  * @throws {Error} When unsupported storage type is provided
  */
-export function storageFactory(basePath, config) {
-  const type = config.storage;
+export function storageFactory(basePath) {
+  const type = process.env.STORAGE_TYPE;
 
   switch (type) {
     case "local":
@@ -261,15 +258,15 @@ export function storageFactory(basePath, config) {
     case "s3": {
       const client = new S3Client({
         forcePathStyle: true,
-        region: config.s3_region,
-        endpoint: config.s3_endpoint,
+        region: process.env.S3_REGION,
+        endpoint: process.env.S3_ENDPOINT,
         credentials: {
-          accessKeyId: config.s3_access_key_id,
-          secretAccessKey: config.s3_secret_access_key,
+          accessKeyId: process.env.S3_ACCESS_KEY_ID,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
         },
       });
 
-      return new S3Storage(basePath, config.s3_bucket, client, {
+      return new S3Storage(basePath, process.env.S3_BUCKET, client, {
         DeleteObjectCommand,
         GetObjectCommand,
         HeadObjectCommand,

@@ -1,9 +1,11 @@
 /* eslint-env node */
+// External libraries (alphabetical)
+import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";
-import DOMPurify from "dompurify";
 
+// Local imports
 import { FormatterInterface } from "./types.js";
 
 /**
@@ -126,7 +128,7 @@ export class TerminalFormatter extends FormatterInterface {
  * @returns {HtmlFormatter} Configured HTML formatter instance
  */
 export function createHtmlFormatter() {
-  return new HtmlFormatter({ JSDOM }, DOMPurify, { Marked });
+  return new HtmlFormatter({ JSDOM: JSDOM }, DOMPurify, { Marked: Marked });
 }
 
 /**
@@ -134,7 +136,7 @@ export function createHtmlFormatter() {
  * @returns {TerminalFormatter} Configured terminal formatter instance
  */
 export function createTerminalFormatter() {
-  return new TerminalFormatter({ Marked }, markedTerminal);
+  return new TerminalFormatter({ Marked: Marked }, markedTerminal);
 }
 
 export { FormatterInterface };

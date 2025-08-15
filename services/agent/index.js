@@ -21,10 +21,10 @@ class AgentService extends Service {
    * Creates a new Agent service instance
    * @param {object} config - Service configuration object
    * @param {object} clients - Service clients object
-   * @param {Function} octokitFactory - Factory function to create Octokit instances
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {(token: string) => object} octokitFactory - Factory function to create Octokit instances
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    */
   constructor(config, clients, octokitFactory, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);

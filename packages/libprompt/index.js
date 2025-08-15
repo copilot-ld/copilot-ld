@@ -135,7 +135,7 @@ export class PromptOptimizer {
 
   /**
    * Creates a new PromptOptimizer instance
-   * @param {Function} llmFactory - Factory function to create LLM instances
+   * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFactory - Factory function to create LLM instances
    * @param {object} config - Configuration object
    * @param {number} config.totalTokenLimit - Total token limit
    * @param {number} config.systemInstructionsPercent - Percentage for system instructions

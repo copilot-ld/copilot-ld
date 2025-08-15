@@ -14,9 +14,9 @@ class TextService extends Service {
    * Creates a new Text service instance
    * @param {object} config - Service configuration object
    * @param {object} chunkIndex - ChunkIndex instance for data access
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    */
   constructor(config, chunkIndex, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);

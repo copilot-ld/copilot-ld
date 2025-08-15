@@ -9,8 +9,8 @@ export class LlmInterface {
    * Creates a new LLM instance
    * @param {string} token - LLM token
    * @param {string} model - Default model to use for completions
-   * @param {Function} fetchFn - HTTP client function (defaults to fetch if not provided)
-   * @param {Function} tokenizerFn - Tokenizer instance for counting tokens
+   * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
+   * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
    * @throws {Error} Not implemented
    */
   constructor(token, model, fetchFn = null, tokenizerFn = null) {}

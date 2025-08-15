@@ -130,8 +130,8 @@ export class Copilot extends LlmInterface {
  * Factory function to create a Copilot instance with default dependencies
  * @param {string} token - GitHub Copilot token
  * @param {string} [model] - Default model to use
- * @param {Function} [fetchFn] - HTTP client function
- * @param {Function} [tokenizerFn] - Tokenizer factory function
+ * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
+ * @param {() => object} [tokenizerFn] - Tokenizer factory function
  * @returns {Copilot} Configured Copilot instance
  */
 export function llmFactory(

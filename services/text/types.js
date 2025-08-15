@@ -12,9 +12,9 @@ export class TextServiceInterface extends libservice.ServiceInterface {
    * Creates a new Text service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
    * @param {libchunk.ChunkIndexInterface} chunkIndex - Pre-initialized chunk index
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
   constructor(config, chunkIndex, grpcFn, authFn, logFn) {

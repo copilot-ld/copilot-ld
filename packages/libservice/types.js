@@ -14,10 +14,10 @@ export class ActorInterface {
   /**
    * Creates a new base service instance
    * @param {ServiceConfigInterface} config - Service configuration object
-   * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
-   * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
-   * @param {Function} storageFn - Function that returns storage instance (optional, defaults to storageFactory)
-   * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
+   * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
+   * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {(bucket: string, type?: string, process?: object) => object} storageFn - Function that returns storage instance (optional, defaults to storageFactory)
+   * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
   constructor(config, grpcFn, authFn, storageFn, logFn) {
     // Interface constructor - empty implementation
@@ -70,9 +70,9 @@ export class ClientInterface extends ActorInterface {
   /**
    * Creates a new gRPC client instance with automatic method wrapping
    * @param {ServiceConfigInterface} config - Service configuration object
-   * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
-   * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
-   * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
+   * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
+   * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
   constructor(config, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);
@@ -94,9 +94,9 @@ export class ServiceInterface extends ActorInterface {
   /**
    * Creates a new gRPC service instance
    * @param {ServiceConfigInterface} config - Service configuration object
-   * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
-   * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
-   * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
+   * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
+   * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
   constructor(config, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);

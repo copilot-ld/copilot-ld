@@ -32,8 +32,8 @@ export class Config extends ConfigInterface {
    * @param {string} name - Name of the configuration (used for environment variable prefix)
    * @param {object} defaults - Default configuration values
    * @param {object} process - Process environment access
-   * @param {Function} dotenv - Dotenv config function
-   * @param {Function} storageFn - Optional storage factory function that takes basePath and returns storage instance
+   * @param {(options?: object) => object} dotenv - Dotenv config function
+   * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Optional storage factory function that takes basePath and returns storage instance
    * @private
    */
   constructor(
@@ -59,8 +59,8 @@ export class Config extends ConfigInterface {
    * @param {string} name - Name of the configuration (used for environment variable prefix)
    * @param {object} defaults - Default configuration values
    * @param {object} process - Process environment access
-   * @param {Function} dotenv - Dotenv config function
-   * @param {Function} storageFn - Optional storage factory function that takes basePath and returns storage instance
+   * @param {(options?: object) => object} dotenv - Dotenv config function
+   * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Optional storage factory function that takes basePath and returns storage instance
    * @returns {Promise<Config>} Initialized Config instance
    */
   static async create(

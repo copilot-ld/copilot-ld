@@ -13,9 +13,9 @@ import { ClientInterface, ServiceInterface, ActorInterface } from "./types.js";
  * Creates a client with a service configuration
  * @param {string} serviceName - Name of the service
  * @param {object} defaults - Default configuration values
- * @param {Function} grpcFn - Grpc factory function
- * @param {Function} authFn - Optional auth factory function
- * @param {Function} logFn - Optional log factory function
+ * @param {() => {grpc: object, protoLoader: object}} grpcFn - Grpc factory function
+ * @param {(serviceName: string) => object} authFn - Optional auth factory function
+ * @param {(namespace: string) => object} logFn - Optional log factory function
  * @returns {Promise<Client>} Configured client instance
  */
 export async function createClient(

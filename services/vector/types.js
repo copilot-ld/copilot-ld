@@ -11,9 +11,9 @@ export class VectorServiceInterface extends libservice.ServiceInterface {
    * Creates a new Vector service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
    * @param {object} vectorIndex - Pre-initialized vector index
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
   constructor(config, vectorIndex, grpcFn, authFn, logFn) {

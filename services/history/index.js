@@ -17,9 +17,9 @@ class HistoryService extends Service {
    * @param {object} config - Service configuration object
    * @param {import("@copilot-ld/libprompt").PromptStorage} promptStorage - Prompt storage instance
    * @param {import("@copilot-ld/libprompt").PromptOptimizer} promptOptimizer - Prompt optimizer instance
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    */
   constructor(config, promptStorage, promptOptimizer, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);

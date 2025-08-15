@@ -14,8 +14,8 @@ export class ConfigInterface {
    * @param {object} _defaults - Default configuration values
    * @param {object} _fs - File system operations
    * @param {object} _process - Process environment access
-   * @param {Function} _dotenv - Dotenv config function
-   * @param {Function} _storageFn - Optional storage factory function
+   * @param {(options?: object) => object} _dotenv - Dotenv config function
+   * @param {(bucket: string, type?: string, process?: object) => object} _storageFn - Optional storage factory function
    * @throws {Error} Not implemented
    */
   constructor(

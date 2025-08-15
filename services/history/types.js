@@ -11,14 +11,14 @@ export class HistoryServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new History service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
-   * @param {libstorage.StorageInterface} storage - Storage backend for prompts
-   * @param {Function} llmFactory - Factory function to create LLM instances
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {import("@copilot-ld/libprompt").PromptStorage} promptStorage - Prompt storage instance
+   * @param {import("@copilot-ld/libprompt").PromptOptimizer} promptOptimizer - Prompt optimizer instance
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, storage, llmFactory, grpcFn, authFn, logFn) {
+  constructor(config, promptStorage, promptOptimizer, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);
   }
 

@@ -230,8 +230,8 @@ export function assertScaling(scalingMetrics, constraints = {}) {
  * Creates performance tests for methods or functions
  * @param {object} config - Test configuration
  * @param {number|number[]} config.count - Count(s) to test
- * @param {Function} config.setupFn - Function that takes count and returns dependencies
- * @param {Function} config.testFn - Function to test (receives setupFn result)
+ * @param {(count: number) => any} config.setupFn - Function that takes count and returns dependencies
+ * @param {(dependencies: any) => any} config.testFn - Function to test (receives setupFn result)
  * @param {Constraints} [config.constraints] - Performance constraints
  * @returns {Function} Test function for node:test
  */

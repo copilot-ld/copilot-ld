@@ -10,10 +10,10 @@ export class LlmServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new LLM service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
-   * @param {Function} llmFactory - Factory function to create LLM instances
-   * @param {Function} [grpcFn] - Optional gRPC factory function
-   * @param {Function} [authFn] - Optional auth factory function
-   * @param {Function} [logFn] - Optional log factory function
+   * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFactory - Factory function to create LLM instances
+   * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
+   * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
+   * @param {(namespace: string) => object} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
   constructor(config, llmFactory, grpcFn, authFn, logFn) {

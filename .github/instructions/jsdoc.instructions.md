@@ -91,6 +91,10 @@ All functions must include these elements in exact order:
 3. **@returns annotations** - With types for return values
 4. **@throws annotations** - For error conditions where applicable
 
+**Function Parameter Signatures**: All function parameters must include detailed
+signatures showing input parameters, return types, and optional parameters using
+TypeScript-style syntax.
+
 ```javascript
 /**
  * Retrieves chunks by their IDs
@@ -160,6 +164,9 @@ function createService(options) {
 - Include property descriptions for complex object types
 - Specify array element types: `string[]` not `Array`
 - Use union types when appropriate: `string|number`
+- **Function Parameter Signatures**: Always declare complete function signatures
+  for function parameters including input parameters, return types, and optional
+  parameters using TypeScript-style syntax
 
 ## Explicit Prohibitions
 
@@ -171,8 +178,9 @@ function createService(options) {
 3. **DO NOT** omit @param annotations for any parameter
 4. **DO NOT** omit @returns annotations for non-void functions
 5. **DO NOT** use vague descriptions like "does something" or "handles stuff"
-6. **DO NOT** place @typedef at function level if used in multiple places
-7. **DO NOT** commit code with ESLint JSDoc warnings
+6. **DO NOT** use generic Function types without detailed signatures
+7. **DO NOT** place @typedef at function level if used in multiple places
+8. **DO NOT** commit code with ESLint JSDoc warnings
 
 ### Alternative Approaches
 
@@ -181,6 +189,8 @@ function createService(options) {
   `*Interface` classes
 - Instead of missing annotations → Complete all required JSDoc elements
 - Instead of vague descriptions → Write clear, specific behavior descriptions
+- Instead of generic Function types → Use detailed function signatures with
+  TypeScript-style syntax
 
 ## Comprehensive Examples
 
@@ -306,6 +316,39 @@ export class VectorIndex extends VectorInterface {
  * @throws {Error} When service communication fails
  */
 async function processRequest(request) {
+  // Implementation...
+}
+```
+
+### Function Parameter Signature Documentation
+
+All function parameters must include detailed signatures with TypeScript-style
+syntax:
+
+```javascript
+/**
+ * Creates a service instance with dependency injection
+ * @param {string} name - Service name identifier
+ * @param {object} config - Configuration object
+ * @param {(options?: object) => object} dotenv - Dotenv configuration function
+ * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Storage factory function
+ * @param {() => {grpc: object, protoLoader: object}} grpcFn - gRPC libraries factory function
+ * @param {(serviceName: string) => object} authFn - Authentication factory function
+ * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFactory - LLM client factory
+ * @param {(token: string) => object} octokitFactory - Octokit client factory function
+ * @returns {Promise<ServiceInterface>} Configured service instance
+ * @throws {Error} When configuration is invalid
+ */
+async function createService(
+  name,
+  config,
+  dotenv,
+  storageFn,
+  grpcFn,
+  authFn,
+  llmFactory,
+  octokitFactory,
+) {
   // Implementation...
 }
 ```

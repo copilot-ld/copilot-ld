@@ -24,10 +24,6 @@ describe("libchunk", () => {
       assert.strictEqual(chunkIndex.storage(), mockStorage);
     });
 
-    test("getIndexPath returns default path", () => {
-      assert.strictEqual(chunkIndex.getIndexPath(), "index.json");
-    });
-
     test("addChunk adds chunk to index", () => {
       const chunkData = {
         id: "test-chunk",
@@ -91,7 +87,7 @@ describe("libchunk", () => {
         async () => {
           await chunkIndex.loadData();
         },
-        { message: /Chunk index not found: index.json/ },
+        { message: /Chunk index not found/ },
       );
     });
 

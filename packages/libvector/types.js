@@ -38,14 +38,6 @@ export class VectorIndexInterface {
   }
 
   /**
-   * Gets the index file path
-   * @throws {Error} Not implemented
-   */
-  getIndexPath() {
-    throw new Error("Not implemented");
-  }
-
-  /**
    * Loads vector data from disk
    * @returns {Promise<void>}
    * @throws {Error} Not implemented

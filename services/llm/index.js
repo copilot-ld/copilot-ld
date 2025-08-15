@@ -38,8 +38,6 @@ class LlmService extends Service {
 
     const llm = this.#llmFactory(github_token, this.config.model);
 
-    console.log(JSON.stringify(request));
-
     // Reconstruct Prompt instance from gRPC deserialized plain object
     // TODO: Implement a gRPC middleware which does automatic deserialization
     const promptInstance = new Prompt(prompt);

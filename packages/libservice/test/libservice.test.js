@@ -29,7 +29,6 @@ describe("libservice", () => {
       name: "test",
       host: "localhost",
       port: 3000,
-      protoFile: () => "/path/to/proto/test.proto",
     };
 
     const mockServiceClass = function (_uri, _credentials, _options) {
@@ -258,8 +257,8 @@ describe("libservice", () => {
   });
 
   describe("createClient and Interface exports", () => {
-    test("creates client with configuration", () => {
-      const client = createClient(
+    test("creates client with configuration", async () => {
+      const client = await createClient(
         "test",
         { port: 4000 },
         mockGrpcFactory,

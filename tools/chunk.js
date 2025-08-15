@@ -6,9 +6,7 @@ import { tokenizerFactory } from "@copilot-ld/libcopilot";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
-const config = new ToolConfig("chunk");
-const KNOWLEDGE_DIR = config.dataPath("knowledge");
-const CHUNKS_DIR = config.storagePath("chunks");
+const _config = await ToolConfig.create("chunk");
 
 /**
  * Main function to process all HTML files in the knowledge base directory
@@ -16,8 +14,8 @@ const CHUNKS_DIR = config.storagePath("chunks");
  * @returns {Promise<void>}
  */
 async function main() {
-  const knowledgeStorage = storageFactory(KNOWLEDGE_DIR, config);
-  const chunksStorage = storageFactory(CHUNKS_DIR, config);
+  const knowledgeStorage = storageFactory("knowledge");
+  const chunksStorage = storageFactory("chunks");
   const chunkIndex = new ChunkIndex(chunksStorage);
   const logger = logFactory("chunk-tool");
   const tokenizer = tokenizerFactory();

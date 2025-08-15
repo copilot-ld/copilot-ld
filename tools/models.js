@@ -2,7 +2,7 @@
 import { Copilot } from "@copilot-ld/libcopilot";
 import { ToolConfig } from "@copilot-ld/libconfig";
 
-const config = new ToolConfig("models");
+const config = await ToolConfig.create("models");
 
 /**
  * Main function to list available models from the copilot service

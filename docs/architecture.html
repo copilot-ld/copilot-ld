@@ -79,7 +79,7 @@
         </li>
         <li>
           <strong>Specialized Services</strong>: Domain-specific services
-          (history, LLM, vector, scope, text)
+          (history, LLM, vector, text)
         </li>
         <li>
           <strong>Parallel Processing</strong>: Services execute operations
@@ -98,7 +98,7 @@
 ./extensions/       # Extensions that adapt core system to applications
 ./packages/         # Reusable, domain-focused logic
 ./tools/            # Utility scripts for dev and test
-./data/             # Definitions, vectors, and scope data
+./data/             # Definitions, vectors, and chunk data
       </pre>
 
       <h3>High-Level Architecture</h3>
@@ -110,12 +110,10 @@ flowchart TD
     C[Agent service]
     D[History service]
     E[LLM service]
-    F[Scope service]
     G[Vector service]
     H[Text service]
     I[LLM backend]
     J[History cache]
-    K[Scope index]
     L[Vector index]
     M[Chunk index]
 
@@ -128,7 +126,6 @@ flowchart TD
     %% Agent service interact with backend services
     C -- gRPC --> D
     C -- gRPC --> E
-    C -- gRPC --> F
     C -- gRPC --> G
     C -- gRPC --> H
 
@@ -137,7 +134,6 @@ flowchart TD
 
 	%% Services that interact with storage
 	D -- Local I/O --> J
-    F -- Local I/O --> K
     G -- Local I/O --> L
     H -- Local I/O --> M
       </pre>
@@ -150,7 +146,7 @@ flowchart TD
         client request flows through the REST extensions, gets orchestrated by
         the Agent service, and triggers parallel operations across specialized
         backend services to retrieve relevant information through vector
-        similarity search and scope resolution.
+        similarity search.
       </p>
 
       <pre class="mermaid">
@@ -160,11 +156,9 @@ sequenceDiagram
     participant Agent as Agent service
     participant History as History service
     participant LLM as LLM service
-    participant Scope as Scope service
     participant Vector as Vector service
     participant Text as Text service
-    participant IndexN0 as Vector index N
-    participant IndexN1 as Vector index N+1
+    participant Index as Vector index
 
     Client->>Extension: REST request
     Extension->>Client: REST response
@@ -180,19 +174,11 @@ sequenceDiagram
         LLM-->>Agent: RPC response
     end
 
-    Agent->>Scope: RPC request (ResolveScope)
-    Scope-->>Agent: RPC response
-
     Agent->>Vector: RPC request (QueryItems)
-    par Parallel
-        Vector->>IndexN0: I/O request (QueryIndex)
-        IndexN0-->>Vector: I/O response
-    and
-        Vector->>IndexN1: I/O request (QueryIndex)
-        IndexN1-->>Vector: I/O response
-    end
+    Vector->>Index: I/O request (QueryIndex)
+    Index-->>Vector: I/O response
     Vector-->>Agent: RPC response
-    Note left of Vector: Aggregates, orders<br/>and reduces results
+    Note left of Vector: Orders and reduces<br/>results by similarity
 
     Agent->>Text: RPC request (GetChunks)
     Text-->>Agent: RPC response
@@ -228,19 +214,11 @@ sequenceDiagram
         completion. Handles communication with external AI services.
       </p>
 
-      <h5>Scope Service</h5>
-
-      <p>
-        Resolves query scope and determines relevant data sources. Defines which
-        contexts and indices should be used for each request.
-      </p>
-
       <h5>Vector Service</h5>
 
       <p>
-        Performs similarity search operations across multiple vector indices.
-        Returns chunk IDs and similarity scores, handling parallel execution and
-        result aggregation.
+        Performs similarity search operations against a vector index. Returns
+        chunk IDs and similarity scores ordered by relevance.
       </p>
 
       <h5>Text Service</h5>
@@ -289,23 +267,16 @@ sequenceDiagram
     Index->>Storage: Load chunk index
     Storage-->>Index: All chunk metadata
 
-    par Scope Training
-        Index->>LLM: Create embeddings for training data
-        LLM-->>Index: Training embeddings
-        Index->>Storage: Build scope classification index
-    and Vector Index Creation
-        loop Process chunks in batches
-            Index->>Storage: Load chunk text content
-            Storage-->>Index: Chunk text
-            Index->>LLM: Create embeddings for chunk batch
-            LLM-->>Index: Chunk embeddings
-            Index->>Index: Classify chunks by scope
-            Index->>Storage: Add to scope-specific vector indices
-        end
+    loop Process chunks in batches
+        Index->>Storage: Load chunk text content
+        Storage-->>Index: Chunk text
+        Index->>LLM: Create embeddings for chunk batch
+        LLM-->>Index: Chunk embeddings
+        Index->>Storage: Add to vector index
     end
 
-    Index->>Storage: Persist all vector indices
-    Note right of Storage: Ready for runtime vector searchxw
+    Index->>Storage: Persist vector index
+    Note right of Storage: Ready for runtime vector search
       </pre>
 
       <h4>Offline Processing Workflow</h4>
@@ -341,10 +312,6 @@ sequenceDiagram
 
       <ul>
         <li>
-          <strong>Scope Training</strong>: Creates scope classification index
-          using predefined training data
-        </li>
-        <li>
           <strong>Batch Processing</strong>: Processes chunks in token-optimized
           batches to minimize API calls
         </li>
@@ -353,15 +320,11 @@ sequenceDiagram
           all chunks via LLM API
         </li>
         <li>
-          <strong>Scope Classification</strong>: Classifies each chunk into
-          predefined scopes (capability, policy, service, process)
+          <strong>Index Creation</strong>: Builds a vector index containing all
+          chunks
         </li>
         <li>
-          <strong>Index Creation</strong>: Builds separate vector indices for
-          each scope category
-        </li>
-        <li>
-          <strong>Persistence</strong>: Stores all indices to disk for runtime
+          <strong>Persistence</strong>: Stores the index to disk for runtime
           access
         </li>
       </ul>
@@ -378,8 +341,8 @@ sequenceDiagram
           calls and costs
         </li>
         <li>
-          <strong>Scope-based Organization</strong>: Separate indices per scope
-          enable targeted search
+          <strong>Comprehensive Organization</strong>: Single index enables
+          comprehensive search across all content
         </li>
         <li>
           <strong>Incremental Processing</strong>: Skips existing chunks to
@@ -404,8 +367,8 @@ sequenceDiagram
           similarity search
         </li>
         <li>
-          <strong>Classified Indices</strong> → Scope-specific vector databases
-          ready for runtime queries
+          <strong>Vector Index</strong> → Single vector database containing all
+          content ready for runtime queries
         </li>
       </ol>
 
@@ -446,7 +409,6 @@ graph TB
         Agent[Agent Service<br/>:3000]
         History[History Service<br/>:3000]
         LLM[LLM Service<br/>:3000]
-        Scope[Scope Service<br/>:3000]
         Vector[Vector Service<br/>:3000]
         Text[Text Service<br/>:3000]
     end
@@ -466,7 +428,6 @@ graph TB
     %% Internal service mesh (isolated network)
     Agent -->|gRPC| History
     Agent -->|gRPC| LLM
-    Agent -->|gRPC| Scope
     Agent -->|gRPC| Vector
     Agent -->|gRPC| Text
 
@@ -478,7 +439,6 @@ graph TB
     style Agent fill:#f3e5f5
     style History fill:#fff3e0
     style LLM fill:#fff3e0
-    style Scope fill:#fff3e0
     style Vector fill:#fff3e0
     style Text fill:#fff3e0
       </pre>
@@ -708,7 +668,7 @@ sequenceDiagram
         <li>Business logic security validation</li>
       </ul>
 
-      <h5>Backend Services (History, LLM, Scope, Vector, Text)</h5>
+      <h5>Backend Services (History, LLM, Vector, Text)</h5>
 
       <ul>
         <li>gRPC message validation</li>

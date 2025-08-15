@@ -23,10 +23,12 @@ all code changes across the platform.
    focused on essential information
 5. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
    be complete, valid, and pass ES linting with strict configuration
-6. **Inline Markdown Formatting**: All symbols (variable names, class names,
-   method names, property names), file names, directory names, service names,
-   and technical terms must be formatted with inline markdown code blocks using
-   backticks (`` `symbol` ``)
+6. **🚨 CRITICAL: Inline Markdown Formatting 🚨**: All symbols (variable names,
+   class names, method names, property names), file names, directory names,
+   service names, and technical terms must be formatted with inline markdown
+   code blocks using backticks (`` `symbol` ``). This is MANDATORY and prevents
+   spellcheck issues. NEVER add technical terms to `.spellcheck-dict.txt` - use
+   backticks instead.
 
 ## Implementation Requirements
 
@@ -79,10 +81,11 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 - Simple bullet points for each change
 - Ascending chronological order (oldest first)
 - Updates must be added when component code changes
-- All symbols (classes, methods, variables, properties), file names, service
-  names, and technical terms must be formatted with backticks:
-  `` `ClassName` ``, `` `methodName()` ``, `` `fileName.js` ``,
-  `` `ServiceName` ``
+- **🚨 CRITICAL: Inline Markdown Formatting 🚨**: All symbols (classes, methods,
+  variables, properties), file names, service names, and technical terms must be
+  formatted with backticks: `` `ClassName` ``, `` `methodName()` ``,
+  `` `fileName.js` ``, `` `ServiceName` `` - **NEVER add technical terms to
+  `.spellcheck-dict.txt`**
 
 ### Update Requirements
 

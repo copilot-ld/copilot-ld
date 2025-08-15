@@ -6,7 +6,7 @@ import { storageFactory } from "@copilot-ld/libstorage";
 import { TextService } from "./index.js";
 
 // Start the service
-const config = new ServiceConfig("text");
-const storage = storageFactory(config.storagePath("chunks"), config);
+const config = await ServiceConfig.create("text");
+const storage = storageFactory("chunks");
 const service = new TextService(config, new ChunkIndex(storage));
 await service.start();

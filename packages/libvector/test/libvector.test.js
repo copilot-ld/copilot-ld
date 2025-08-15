@@ -3,11 +3,7 @@ import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import {
-  VectorIndex,
-  initializeVectorIndices,
-  queryIndices,
-} from "../index.js";
+import { VectorIndex } from "../index.js";
 
 describe("libvector", () => {
   describe("VectorIndex", () => {
@@ -26,10 +22,6 @@ describe("libvector", () => {
 
     test("storage returns storage instance", () => {
       assert.strictEqual(vectorIndex.storage(), mockStorage);
-    });
-
-    test("getIndexPath returns default path", () => {
-      assert.strictEqual(vectorIndex.getIndexPath(), "index.json");
     });
 
     test("addItem adds new vector", async () => {
@@ -90,7 +82,7 @@ describe("libvector", () => {
         async () => {
           await vectorIndex.loadData();
         },
-        { message: /Vector index not found: index.json/ },
+        { message: /Vector index not found/ },
       );
     });
 
@@ -157,75 +149,6 @@ describe("libvector", () => {
       assert.strictEqual(results[0].tokens, 42);
       assert.strictEqual(results[0].scope, "test-scope");
       assert(results[0].score > 0.9);
-    });
-  });
-
-  describe("initializeVectorIndices", () => {
-    test("returns empty map when directory doesn't exist", async () => {
-      const indices = await initializeVectorIndices("/non-existent", {});
-
-      assert(indices instanceof Map);
-      assert.strictEqual(indices.size, 0);
-    });
-  });
-
-  describe("queryIndices", () => {
-    test("queries multiple indices and consolidates results", async () => {
-      const mockIndex1 = {
-        queryItems: mock.fn(() =>
-          Promise.resolve([
-            { id: "item1", score: 0.9 },
-            { id: "item2", score: 0.7 },
-          ]),
-        ),
-      };
-
-      const mockIndex2 = {
-        queryItems: mock.fn(() =>
-          Promise.resolve([{ id: "item3", score: 0.8 }]),
-        ),
-      };
-
-      const results = await queryIndices(
-        [mockIndex1, mockIndex2],
-        [0.1, 0.2, 0.3],
-        0.5,
-        0,
-      );
-
-      assert.strictEqual(results.length, 3);
-      // Should be sorted by score descending
-      assert.strictEqual(results[0].id, "item1");
-      assert.strictEqual(results[1].id, "item3");
-      assert.strictEqual(results[2].id, "item2");
-    });
-
-    test("respects limit parameter", async () => {
-      const mockIndex = {
-        queryItems: mock.fn(() =>
-          Promise.resolve([
-            { id: "item1", score: 0.9 },
-            { id: "item2", score: 0.8 },
-            { id: "item3", score: 0.7 },
-          ]),
-        ),
-      };
-
-      const results = await queryIndices([mockIndex], [0.1, 0.2, 0.3], 0, 2);
-
-      assert.strictEqual(results.length, 2);
-      assert.strictEqual(results[0].id, "item1");
-      assert.strictEqual(results[1].id, "item2");
-    });
-
-    test("handles empty results", async () => {
-      const mockIndex = {
-        queryItems: mock.fn(() => Promise.resolve([])),
-      };
-
-      const results = await queryIndices([mockIndex], [0.1, 0.2, 0.3], 0.5, 0);
-
-      assert.strictEqual(results.length, 0);
     });
   });
 });

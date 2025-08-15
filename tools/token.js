@@ -6,7 +6,7 @@ import { Octokit } from "@octokit/core";
 
 import { ToolConfig } from "@copilot-ld/libconfig";
 
-const config = new ToolConfig("token");
+const config = await ToolConfig.create("token");
 
 /**
  * Main function to authenticate with GitHub using OAuth device flow

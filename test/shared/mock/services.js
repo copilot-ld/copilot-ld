@@ -79,18 +79,3 @@ export function mockTextService(overrides = {}) {
     ...overrides,
   };
 }
-
-/**
- * Creates a mock scope service
- * @param {object} overrides - Properties to override in the mock
- * @returns {object} Mock scope service
- */
-export function mockScopeService(overrides = {}) {
-  return {
-    ResolveScope: async (request, callback) => {
-      callback(null, { indices: [] });
-    },
-    close: () => {},
-    ...overrides,
-  };
-}

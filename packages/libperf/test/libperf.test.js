@@ -25,15 +25,16 @@ describe("libperf", () => {
 
   describe("PerformanceMetric", () => {
     test("creates metric with count, duration, and memory", () => {
-      const metric = new PerformanceMetric(100, 50.5, 1024);
+      const metric = new PerformanceMetric(100, "items", 50.5, 1024);
 
       assert.strictEqual(metric.count, 100);
+      assert.strictEqual(metric.unit, "items");
       assert.strictEqual(metric.duration, 50.5);
       assert.strictEqual(metric.memory, 1024);
     });
 
     test("getViolations returns empty array when no constraints violated", () => {
-      const metric = new PerformanceMetric(100, 50, 1000);
+      const metric = new PerformanceMetric(100, "items", 50, 1000);
       const constraints = { maxDuration: 100, maxMemory: 2000 };
 
       const violations = metric.getViolations(constraints);
@@ -41,7 +42,7 @@ describe("libperf", () => {
     });
 
     test("getViolations returns duration violation", () => {
-      const metric = new PerformanceMetric(100, 150, 1000);
+      const metric = new PerformanceMetric(100, "items", 150, 1000);
       const constraints = { maxDuration: 100 };
 
       const violations = metric.getViolations(constraints);
@@ -52,7 +53,7 @@ describe("libperf", () => {
     });
 
     test("getViolations returns memory violation", () => {
-      const metric = new PerformanceMetric(100, 50, 3000);
+      const metric = new PerformanceMetric(100, "items", 50, 3000);
       const constraints = { maxMemory: 2000 };
 
       const violations = metric.getViolations(constraints);
@@ -63,14 +64,14 @@ describe("libperf", () => {
     });
 
     test("getDiagnostics returns formatted string without constraints", () => {
-      const metric = new PerformanceMetric(100, 50.123, 1024.567);
+      const metric = new PerformanceMetric(100, "items", 50.123, 1024.567);
 
       const diagnostics = metric.getDiagnostics();
-      assert.strictEqual(diagnostics, "100 | 50ms | 1025KB");
+      assert.strictEqual(diagnostics, "100 items | 50ms | 1025KB");
     });
 
     test("getDiagnostics includes percentages with constraints", () => {
-      const metric = new PerformanceMetric(100, 50, 1000);
+      const metric = new PerformanceMetric(100, "items", 50, 1000);
       const constraints = { maxDuration: 100, maxMemory: 2000 };
 
       const diagnostics = metric.getDiagnostics(constraints);
@@ -92,7 +93,7 @@ describe("libperf", () => {
     });
 
     test("start and stop tracking performance", async () => {
-      monitor.start(100);
+      monitor.start(100, "items");
 
       // Simulate some work
       await new Promise((resolve) => setTimeout(resolve, 1));
@@ -101,6 +102,7 @@ describe("libperf", () => {
 
       assert.ok(metric instanceof PerformanceMetric);
       assert.strictEqual(metric.count, 100);
+      assert.strictEqual(metric.unit, "items");
       assert(metric.duration >= 0); // Allow 0 for very fast operations
       assert.strictEqual(typeof metric.memory, "number");
     });
@@ -110,7 +112,7 @@ describe("libperf", () => {
     });
 
     test("reset clears monitor state", () => {
-      monitor.start(100);
+      monitor.start(100, "items");
       monitor.reset();
 
       assert.throws(() => monitor.stop(), { message: /Monitor not started/ });
@@ -158,7 +160,7 @@ describe("libperf", () => {
 
   describe("assertPerformance", () => {
     test("passes for metric within constraints", () => {
-      const metric = new PerformanceMetric(100, 50, 1000);
+      const metric = new PerformanceMetric(100, "items", 50, 1000);
       const constraints = { maxDuration: 100, maxMemory: 2000 };
 
       // Should not throw
@@ -166,7 +168,7 @@ describe("libperf", () => {
     });
 
     test("throws for metric exceeding constraints", () => {
-      const metric = new PerformanceMetric(100, 150, 1000);
+      const metric = new PerformanceMetric(100, "items", 150, 1000);
       const constraints = { maxDuration: 100 };
 
       assert.throws(() => assertPerformance(metric, constraints), {
@@ -175,7 +177,7 @@ describe("libperf", () => {
     });
 
     test("throws when no constraints provided", () => {
-      const metric = new PerformanceMetric(100, 50, 1000);
+      const metric = new PerformanceMetric(100, "items", 50, 1000);
 
       assert.throws(() => assertPerformance(metric, {}), {
         message: /Either maxDuration or maxMemory constraints are required/,
@@ -213,9 +215,9 @@ describe("libperf", () => {
   describe("createScalingMetrics", () => {
     test("creates scaling metrics from performance metrics", () => {
       const performanceMetrics = [
-        new PerformanceMetric(100, 50, 1000),
-        new PerformanceMetric(200, 90, 1800),
-        new PerformanceMetric(400, 180, 3600),
+        new PerformanceMetric(100, "items", 50, 1000),
+        new PerformanceMetric(200, "items", 90, 1800),
+        new PerformanceMetric(400, "items", 180, 3600),
       ];
 
       const scalingMetrics = createScalingMetrics(performanceMetrics);
@@ -235,8 +237,8 @@ describe("libperf", () => {
 
     test("filters out metrics without count", () => {
       const performanceMetrics = [
-        new PerformanceMetric(0, 50, 1000), // count is 0
-        new PerformanceMetric(100, 90, 1800),
+        new PerformanceMetric(0, "items", 50, 1000), // count is 0
+        new PerformanceMetric(100, "items", 90, 1800),
       ];
 
       const scalingMetrics = createScalingMetrics(performanceMetrics);

@@ -7,15 +7,12 @@ import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 
-// Configuration and initialization
-const config = new ExtensionConfig("copilot");
-
 /**
  * Creates a GitHub Copilot compatible extension
- * @param {Client} agentClient - Agent service gRPC client
+ * @param {Client} client - Agent service gRPC client
  * @returns {Hono} Configured Hono application
  */
-function createCopilotExtension(agentClient) {
+function createCopilotExtension(client) {
   const app = new Hono();
 
   // Create security middleware with config
@@ -59,7 +56,7 @@ function createCopilotExtension(agentClient) {
       // Verify and parse the Copilot request using the SDK
       const copilotRequest = await verifyAndParseRequest(
         c.req.raw,
-        config.githubToken(),
+        await config.githubToken(),
       );
 
       // Extract messages and other parameters
@@ -67,11 +64,11 @@ function createCopilotExtension(agentClient) {
 
       // Process request through agent service
       // Ensure client is ready before making requests
-      await agentClient.ensureReady();
+      await client.ensureReady();
 
-      const response = await agentClient.ProcessRequest({
+      const response = await client.ProcessRequest({
         messages: messages || [],
-        github_token: copilotRequest.token || config.githubToken(),
+        github_token: copilotRequest.token || (await config.githubToken()),
         session_id: user?.login || undefined,
       });
 
@@ -109,24 +106,9 @@ function createCopilotExtension(agentClient) {
   return app;
 }
 
-// Create and start the application
-let agentClient;
-try {
-  if (!process.env.SERVICE_AUTH_SECRET) {
-    console.error(
-      "Warning: SERVICE_AUTH_SECRET is not set. Extension will not work without authentication.",
-    );
-    console.error("Please set SERVICE_AUTH_SECRET in your .env file.");
-  }
-
-  const grpcClient = new Client(new ServiceConfig("agent"));
-  agentClient = grpcClient;
-} catch (error) {
-  console.error("Failed to initialize agent client:", error.message);
-  process.exit(1);
-}
-
-const app = createCopilotExtension(agentClient);
+const config = await ExtensionConfig.create("copilot");
+const client = new Client(await ServiceConfig.create("agent"));
+const app = createCopilotExtension(client);
 
 // Start server
 serve(
@@ -136,8 +118,6 @@ serve(
     hostname: config.host,
   },
   () => {
-    console.log(
-      `Copilot extension listening on: ${config.host}:${config.port}`,
-    );
+    console.log(`Listening on: ${config.host}:${config.port}`);
   },
 );

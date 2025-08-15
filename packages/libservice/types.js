@@ -16,9 +16,10 @@ export class ActorInterface {
    * @param {ServiceConfigInterface} config - Service configuration object
    * @param {Function} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
    * @param {Function} authFn - Function that returns auth instance (optional, defaults to authFactory)
+   * @param {Function} storageFn - Function that returns storage instance (optional, defaults to storageFactory)
    * @param {Function} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
-  constructor(config, grpcFn, authFn, logFn) {
+  constructor(config, grpcFn, authFn, storageFn, logFn) {
     // Interface constructor - empty implementation
   }
 

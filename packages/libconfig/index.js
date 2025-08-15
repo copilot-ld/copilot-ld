@@ -1,9 +1,8 @@
 /* eslint-env node */
-import { existsSync, mkdirSync, readFileSync } from "fs";
-import { join } from "path";
-
 import { config } from "dotenv";
 import yaml from "js-yaml";
+
+import { storageFactory } from "@copilot-ld/libstorage";
 
 import {
   ConfigInterface,
@@ -12,6 +11,8 @@ import {
   ToolConfigInterface,
 } from "./types.js";
 
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+
 /**
  * Centralized configuration management class
  * @implements {ConfigInterface}
@@ -19,74 +20,103 @@ import {
 export class Config extends ConfigInterface {
   #envLoaded = false;
   #githubToken = null;
-  #paths = new Map();
-  #configData = null;
-  #fs;
+  #fileData = null;
+  #storage = null;
   #process;
   #dotenv;
+  #storageFn;
 
   /**
-   * Creates a new Config instance that spreads config parameters into the instance
+   * Creates a new Config instance (use Config.create() for async initialization)
    * @param {string} namespace - Namespace for the configuration (e.g., "server", "extension")
    * @param {string} name - Name of the configuration (used for environment variable prefix)
    * @param {object} defaults - Default configuration values
-   * @param {object} fs - File system operations
    * @param {object} process - Process environment access
    * @param {Function} dotenv - Dotenv config function
+   * @param {Function} storageFn - Optional storage factory function that takes basePath and returns storage instance
+   * @private
    */
   constructor(
     namespace,
     name,
     defaults = {},
-    fs = { existsSync, mkdirSync, readFileSync },
     process = global.process,
     dotenv = config,
+    storageFn = storageFactory,
   ) {
     super(namespace, name, defaults);
-    this.#fs = fs;
     this.#process = process;
     this.#dotenv = dotenv;
+    this.#storageFn = storageFn;
 
     this.name = name;
     this.namespace = namespace;
+  }
+
+  /**
+   * Creates and initializes a new Config instance asynchronously
+   * @param {string} namespace - Namespace for the configuration (e.g., "server", "extension")
+   * @param {string} name - Name of the configuration (used for environment variable prefix)
+   * @param {object} defaults - Default configuration values
+   * @param {object} process - Process environment access
+   * @param {Function} dotenv - Dotenv config function
+   * @param {Function} storageFn - Optional storage factory function that takes basePath and returns storage instance
+   * @returns {Promise<Config>} Initialized Config instance
+   */
+  static async create(
+    namespace,
+    name,
+    defaults = {},
+    process = global.process,
+    dotenv = config,
+    storageFn = storageFactory,
+  ) {
+    const instance = new Config(
+      namespace,
+      name,
+      defaults,
+      process,
+      dotenv,
+      storageFn,
+    );
+    await instance.load();
+    return instance;
+  }
+
+  /**
+   * Loads the configuration by loading environment and config file
+   * @returns {Promise<void>}
+   */
+  async load() {
+    this.#storage = this.#storageFn("config");
 
     this.#loadEnv();
-    this.#loadConfigFile();
+    await this.#loadFileData();
 
-    const namespaceUpper = namespace.toUpperCase();
-    const nameUpper = name.toUpperCase();
-    const fileConfig = this.#getConfigFromFile(namespace, name);
+    const namespaceUpper = this.namespace.toUpperCase();
+    const nameUpper = this.name.toUpperCase();
+    const fileData = this.#getFileData(this.namespace, this.name);
 
     // Start with defaults and file config
-    const configData = { ...defaults, ...fileConfig };
+    const data = { ...this.defaults, ...fileData };
 
     // Add standard service defaults
-    if (configData.host === undefined) configData.host = "0.0.0.0";
-    if (configData.port === undefined) configData.port = 3000;
+    if (data.host === undefined) data.host = "0.0.0.0";
+    if (data.port === undefined) data.port = 3000;
 
     // Apply environment variable overrides (now includes host/port)
-    for (const param of Object.keys(configData)) {
-      const envVar = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
-      if (this.#process.env[envVar] !== undefined) {
+    for (const param of Object.keys(data)) {
+      const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
+      if (this.#process.env[varName] !== undefined) {
         try {
-          configData[param] = yaml.load(this.#process.env[envVar]);
+          data[param] = yaml.load(this.#process.env[varName]);
         } catch {
-          configData[param] = this.#process.env[envVar];
+          data[param] = this.#process.env[varName];
         }
       }
     }
 
-    Object.assign(this, configData);
-  }
-
-  /** @inheritdoc */
-  dataPath(path = "") {
-    return this.#findPath(`data/${path}`, true);
-  }
-
-  /** @inheritdoc */
-  storagePath(path = "") {
-    return this.#findPath(`data/storage/${path}`, true);
+    Object.assign(this, data);
   }
 
   /** @inheritdoc */
@@ -96,7 +126,7 @@ export class Config extends ConfigInterface {
   }
 
   /** @inheritdoc */
-  githubToken() {
+  async githubToken() {
     if (this.#githubToken) return this.#githubToken;
 
     this.#loadEnv();
@@ -107,89 +137,25 @@ export class Config extends ConfigInterface {
       return this.#githubToken;
     }
 
-    const tokenPath = this.#findPath(".ghtoken");
-    this.#githubToken = this.#fs.readFileSync(tokenPath, "utf8").trim();
-    return this.#githubToken;
-  }
+    try {
+      if (await this.#storage.exists(".ghtoken")) {
+        const tokenContent = await this.#storage.get(".ghtoken");
+        this.#githubToken = tokenContent.toString().trim();
+        return this.#githubToken;
+      }
+    } catch {
+      // Continue to error
+    }
 
-  /** @inheritdoc */
-  publicPath(path = "") {
-    return this.#findPath(`public/${path}`);
-  }
-
-  /** @inheritdoc */
-  protoFile(name) {
-    return this.#findPath(`proto/${name}.proto`);
+    throw new Error("GitHub token not found in environment or .ghtoken file");
   }
 
   /** @inheritdoc */
   reset() {
     this.#envLoaded = false;
     this.#githubToken = null;
-    this.#paths.clear();
-    this.#configData = null;
-  }
-
-  /**
-   * Loads configuration from config.yml file
-   * @returns {void}
-   * @private
-   */
-  #loadConfigFile() {
-    if (this.#configData !== null) return;
-
-    try {
-      const configPath = this.#findPath("config.yml");
-      const configContent = this.#fs.readFileSync(configPath, "utf8");
-      this.#configData = yaml.load(configContent) || {};
-    } catch {
-      // config.yml is optional, so we just use an empty object if not found
-      this.#configData = {};
-    }
-  }
-
-  /**
-   * Gets configuration values from the loaded config file
-   * @param {string} namespace - Configuration namespace
-   * @param {string} name - Configuration name
-   * @returns {object} Configuration object from file or empty object
-   * @private
-   */
-  #getConfigFromFile(namespace, name) {
-    if (!this.#configData?.[namespace]?.[name]) {
-      return {};
-    }
-    return this.#configData[namespace][name];
-  }
-
-  /**
-   * Finds a directory by searching current dir and up to 2 levels up
-   * @param {string} path - Path to search for
-   * @param {boolean} createIfMissing - Whether to create path if not found
-   * @returns {string} Absolute path to found or created directory
-   * @throws {Error} When path is not found and createIfMissing is false
-   * @private
-   */
-  #findPath(path, createIfMissing = false) {
-    if (this.#paths.has(path)) return this.#paths.get(path);
-
-    const cwd = this.#process.cwd();
-    const searchPaths = [".", "..", "../.."].map((dir) => join(cwd, dir, path));
-
-    for (const searchPath of searchPaths) {
-      if (this.#fs.existsSync(searchPath)) {
-        this.#paths.set(path, searchPath);
-        return searchPath;
-      }
-    }
-
-    if (createIfMissing) {
-      this.#fs.mkdirSync(searchPaths[0], { recursive: true });
-      this.#paths.set(path, searchPaths[0]);
-      return searchPaths[0];
-    }
-
-    throw new Error(`${path} not found`);
+    this.#fileData = null;
+    this.#storage = null;
   }
 
   /**
@@ -200,13 +166,48 @@ export class Config extends ConfigInterface {
   #loadEnv() {
     if (this.#envLoaded) return;
 
-    try {
-      const path = this.#findPath(".env");
-      this.#dotenv({ path, quiet: true });
-    } catch (error) {
-      console.warn("Warning:", error.message);
+    // Only try to load .env file if storage is available
+    if (this.#storage && this.#storage.path) {
+      try {
+        this.#dotenv({ path: this.#storage.path(".env"), quiet: true });
+      } catch {
+        // Ignore errors when loading .env file (e.g., file not found)
+      }
     }
+
     this.#envLoaded = true;
+    return;
+  }
+
+  /**
+   * Loads configuration data from config.yml file using storage abstraction
+   * @returns {Promise<void>}
+   * @private
+   */
+  async #loadFileData() {
+    if (this.#fileData !== null) return;
+
+    try {
+      const configContent = await this.#storage.get("config.yml");
+      this.#fileData = yaml.load(configContent.toString()) || {};
+    } catch {
+      // config.yml is optional, so we just use an empty object if not found
+      this.#fileData = {};
+    }
+  }
+
+  /**
+   * Gets configuration values from the loaded config file
+   * @param {string} namespace - Configuration namespace
+   * @param {string} name - Configuration name
+   * @returns {object} Configuration object from file or empty object
+   * @private
+   */
+  #getFileData(namespace, name) {
+    if (!this.#fileData?.[namespace]?.[name]) {
+      return {};
+    }
+    return this.#fileData[namespace][name];
   }
 }
 
@@ -219,6 +220,18 @@ export class ServiceConfig extends Config {
   constructor(name, defaults = {}) {
     super("service", name, defaults);
   }
+
+  /**
+   * Creates and initializes a new ServiceConfig instance asynchronously
+   * @param {string} name - Name of the service configuration
+   * @param {object} defaults - Default configuration values
+   * @returns {Promise<ServiceConfig>} Initialized ServiceConfig instance
+   */
+  static async create(name, defaults = {}) {
+    const instance = new ServiceConfig(name, defaults);
+    await instance.load();
+    return instance;
+  }
 }
 
 /**
@@ -230,6 +243,18 @@ export class ExtensionConfig extends Config {
   constructor(name, defaults = {}) {
     super("extension", name, defaults);
   }
+
+  /**
+   * Creates and initializes a new ExtensionConfig instance asynchronously
+   * @param {string} name - Name of the extension configuration
+   * @param {object} defaults - Default configuration values
+   * @returns {Promise<ExtensionConfig>} Initialized ExtensionConfig instance
+   */
+  static async create(name, defaults = {}) {
+    const instance = new ExtensionConfig(name, defaults);
+    await instance.load();
+    return instance;
+  }
 }
 
 /**
@@ -240,6 +265,18 @@ export class ToolConfig extends Config {
   /** @inheritdoc */
   constructor(name, defaults = {}) {
     super("tool", name, defaults);
+  }
+
+  /**
+   * Creates and initializes a new ToolConfig instance asynchronously
+   * @param {string} name - Name of the tool configuration
+   * @param {object} defaults - Default configuration values
+   * @returns {Promise<ToolConfig>} Initialized ToolConfig instance
+   */
+  static async create(name, defaults = {}) {
+    const instance = new ToolConfig(name, defaults);
+    await instance.load();
+    return instance;
   }
 }
 

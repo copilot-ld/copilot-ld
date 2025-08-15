@@ -1,9 +1,6 @@
 /* eslint-env node */
-import { readdirSync } from "fs";
-import { join } from "path";
 
 import * as libtype from "@copilot-ld/libtype";
-import { storageFactory } from "@copilot-ld/libstorage";
 
 import { VectorIndexInterface } from "./types.js";
 
@@ -15,8 +12,8 @@ import { VectorIndexInterface } from "./types.js";
  */
 export class VectorIndex extends VectorIndexInterface {
   #storage;
-  #indexPath = "index.json";
-  #vectors = [];
+  #indexKey = "index.json";
+  #index = [];
   #loaded = false;
 
   /** @inheritdoc */
@@ -42,39 +39,34 @@ export class VectorIndex extends VectorIndexInterface {
       scope,
     };
 
-    const i = this.#vectors.findIndex((item) => item.id === id);
+    const i = this.#index.findIndex((item) => item.id === id);
     if (i !== -1) {
-      this.#vectors[i] = item;
+      this.#index[i] = item;
     } else {
-      this.#vectors.push(item);
+      this.#index.push(item);
     }
   }
 
   /** @inheritdoc */
   async hasItem(id) {
     if (!this.#loaded) await this.loadData();
-    return this.#vectors.some((item) => item.id === id);
-  }
-
-  /** @inheritdoc */
-  getIndexPath() {
-    return this.#indexPath;
+    return this.#index.some((item) => item.id === id);
   }
 
   /** @inheritdoc */
   async loadData() {
-    if (!(await this.#storage.exists(this.#indexPath))) {
-      throw new Error(`Vector index not found: ${this.#indexPath}`);
+    if (!(await this.#storage.exists(this.#indexKey))) {
+      throw new Error(`Vector index not found`);
     }
 
-    const content = await this.#storage.get(this.#indexPath);
-    this.#vectors = JSON.parse(content.toString());
+    const content = await this.#storage.get(this.#indexKey);
+    this.#index = JSON.parse(content.toString());
     this.#loaded = true;
   }
 
   /** @inheritdoc */
   async persist() {
-    await this.#storage.put(this.#indexPath, JSON.stringify(this.#vectors));
+    await this.#storage.put(this.#indexKey, JSON.stringify(this.#index));
   }
 
   /** @inheritdoc */
@@ -86,7 +78,7 @@ export class VectorIndex extends VectorIndexInterface {
     let resultCount = 0;
     let minScore = threshold;
 
-    for (const vectorItem of this.#vectors) {
+    for (const vectorItem of this.#index) {
       const dotProduct = calculateDotProduct(
         query,
         vectorItem.vector,
@@ -189,49 +181,6 @@ function calculateDotProduct(a, b, length) {
   }
 
   return dotProduct;
-}
-
-/**
- * Dynamically discovers and initializes vector indices from vector directories
- * @param {string} vectorsDir - Directory containing vector subdirectories
- * @param {ConfigInterface} config - Configuration interface for creating storage
- * @returns {Promise<Map<string, VectorIndex>>} Map of scope names to VectorIndex instances
- */
-export async function initializeVectorIndices(vectorsDir, config) {
-  try {
-    const availableScopes = readdirSync(vectorsDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
-
-    return new Map(
-      availableScopes.map((scopeName) => {
-        const scopeStorage = storageFactory(
-          join(vectorsDir, scopeName),
-          config,
-        );
-        return [scopeName, new VectorIndex(scopeStorage)];
-      }),
-    );
-  } catch (error) {
-    console.error("Error initializing vector indices:", error);
-    return new Map();
-  }
-}
-
-/**
- * Queries multiple vector indices in parallel and consolidates results
- * @param {VectorIndex[]} indices - Array of VectorIndex instances
- * @param {number[]} vector - The query vector
- * @param {number} threshold - Minimum score threshold
- * @param {number} limit - Maximum number of results to return (0 = all results)
- * @returns {Promise<libtype.Similarity[]>} Consolidated results sorted by score descending
- */
-export async function queryIndices(indices, vector, threshold = 0, limit = 0) {
-  const allResults = await Promise.all(
-    indices.map((index) => index.queryItems(vector, threshold, limit)),
-  );
-  const results = allResults.flat().sort((a, b) => b.score - a.score);
-  return limit > 0 ? results.slice(0, limit) : results;
 }
 
 export { VectorIndexInterface };

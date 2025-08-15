@@ -8,9 +8,6 @@ const createMockIndex = (name) => ({
   queryItems: mock.fn((_vector, _threshold, _limit) => Promise.resolve([])),
 });
 
-// Mock queryIndices function
-let _mockQueryIndices;
-
 // Mock gRPC factory to avoid grpc dependencies in tests
 const mockGrpcFactory = () => ({
   grpc: {},
@@ -29,7 +26,7 @@ import { VectorService } from "../index.js";
 
 describe("Vector Service Token Management", () => {
   let _vectorService;
-  let mockVectorIndices;
+  let mockVectorIndex;
   let mockConfig;
 
   beforeEach(() => {
@@ -39,25 +36,14 @@ describe("Vector Service Token Management", () => {
       name: "vector", // Required by Service class
     };
 
-    const mockIndex1 = createMockIndex("index1");
-    const mockIndex2 = createMockIndex("index2");
-
-    mockVectorIndices = new Map([
-      ["index1", mockIndex1],
-      ["index2", mockIndex2],
-    ]);
-
-    // Create a fresh mock for each test
-    _mockQueryIndices = mock.fn(() => Promise.resolve([]));
+    mockVectorIndex = createMockIndex("mainIndex");
 
     _vectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      mockVectorIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      undefined, // logFn not needed for tests
-      _mockQueryIndices, // Inject the mock queryIndices function
     );
   });
 
@@ -68,21 +54,20 @@ describe("Vector Service Token Management", () => {
       { id: "item3", score: 0.7, tokens: 20 },
     ];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -101,21 +86,20 @@ describe("Vector Service Token Management", () => {
       { id: "item3", score: 0.7, tokens: 40 },
     ];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -136,21 +120,20 @@ describe("Vector Service Token Management", () => {
       { id: "item3", score: 0.7, tokens: 1 }, // This would exceed limit
     ];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -170,21 +153,20 @@ describe("Vector Service Token Management", () => {
       { id: "item2", score: 0.8, tokens: 30 },
     ];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -204,21 +186,21 @@ describe("Vector Service Token Management", () => {
       { id: "item1", score: 0.9, tokens: 150 }, // Exceeds limit
     ];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
+      undefined, // logFn
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -230,29 +212,28 @@ describe("Vector Service Token Management", () => {
     assert.strictEqual(response.results.length, 0);
   });
 
-  test("QueryItems preserves score-based ordering from queryIndices", async () => {
-    // queryIndices should return results sorted by score (highest first)
+  test("QueryItems preserves score-based ordering from vector index", async () => {
+    // Vector index should return results sorted by score (highest first)
     const expectedResults = [
       { id: "item1", score: 0.9, tokens: 10 },
       { id: "item2", score: 0.8, tokens: 10 },
       { id: "item3", score: 0.7, tokens: 10 },
     ];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -272,21 +253,20 @@ describe("Vector Service Token Management", () => {
   test("QueryItems handles zero max_tokens", async () => {
     const expectedResults = [{ id: "item1", score: 0.9, tokens: 50 }];
 
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() =>
-      Promise.resolve(expectedResults),
-    );
+    // Create a mock index that returns our test data
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve(expectedResults)),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.1, 0.2, 0.3],
       threshold: 0.5,
       limit: 10,
@@ -299,20 +279,21 @@ describe("Vector Service Token Management", () => {
     assert.strictEqual(response.results.length, 0);
   });
 
-  test("QueryItems passes all parameters to queryIndices correctly", async () => {
-    // Create a new service with a specific mock for this test
-    const testMockQueryIndices = mock.fn(() => Promise.resolve([]));
+  test("QueryItems passes all parameters to vector index correctly", async () => {
+    // Create a mock index to verify parameter passing
+    const testMockIndex = {
+      queryItems: mock.fn(() => Promise.resolve([])),
+    };
+
     const testVectorService = new VectorService(
       mockConfig,
-      mockVectorIndices,
+      testMockIndex,
       mockGrpcFactory,
       mockAuthFactory,
       undefined, // logFn
-      testMockQueryIndices,
     );
 
     const request = {
-      indices: ["index1"],
       vector: [0.4, 0.5, 0.6],
       threshold: 0.8,
       limit: 5,
@@ -321,11 +302,10 @@ describe("Vector Service Token Management", () => {
 
     await testVectorService.QueryItems(request);
 
-    assert.strictEqual(testMockQueryIndices.mock.callCount(), 1);
-    const [requestedIndices, vector, threshold, limit] =
-      testMockQueryIndices.mock.calls[0].arguments;
+    assert.strictEqual(testMockIndex.queryItems.mock.callCount(), 1);
+    const [vector, threshold, limit] =
+      testMockIndex.queryItems.mock.calls[0].arguments;
 
-    assert.strictEqual(requestedIndices.length, 1);
     assert.deepStrictEqual(vector, [0.4, 0.5, 0.6]);
     assert.strictEqual(threshold, 0.8);
     assert.strictEqual(limit, 5);

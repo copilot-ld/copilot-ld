@@ -1,6 +1,7 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { create } from "@bufbuild/protobuf";
 
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
@@ -8,6 +9,41 @@ import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { ClientInterface, ServiceInterface, ActorInterface } from "./types.js";
+
+// Import generated proto schemas for message types
+import * as commonSchemas from "../../generated/common_pb.js";
+import * as agentSchemas from "../../generated/agent_pb.js";
+import * as vectorSchemas from "../../generated/vector_pb.js";
+import * as historySchemas from "../../generated/history_pb.js";
+import * as textSchemas from "../../generated/text_pb.js";
+import * as llmSchemas from "../../generated/llm_pb.js";
+
+/**
+ * Schema registry mapping type names to their bufbuild schemas
+ */
+const SCHEMA_REGISTRY = {
+  "common.Message": commonSchemas.MessageSchema,
+  "common.Usage": commonSchemas.UsageSchema,
+  "common.Choice": commonSchemas.ChoiceSchema,
+  "common.Embedding": commonSchemas.EmbeddingSchema,
+  "common.Chunk": commonSchemas.ChunkSchema,
+  "common.Similarity": commonSchemas.SimilaritySchema,
+  "common.Prompt": commonSchemas.PromptSchema,
+  "agent.AgentRequest": agentSchemas.AgentRequestSchema,
+  "agent.AgentResponse": agentSchemas.AgentResponseSchema,
+  "vector.QueryItemsRequest": vectorSchemas.QueryItemsRequestSchema,
+  "vector.QueryItemsResponse": vectorSchemas.QueryItemsResponseSchema,
+  "history.GetHistoryRequest": historySchemas.GetHistoryRequestSchema,
+  "history.GetHistoryResponse": historySchemas.GetHistoryResponseSchema,
+  "history.UpdateHistoryRequest": historySchemas.UpdateHistoryRequestSchema,
+  "history.UpdateHistoryResponse": historySchemas.UpdateHistoryResponseSchema,
+  "text.GetChunksRequest": textSchemas.GetChunksRequestSchema,
+  "text.GetChunksResponse": textSchemas.GetChunksResponseSchema,
+  "llm.CreateCompletionsRequest": llmSchemas.CreateCompletionsRequestSchema,
+  "llm.CreateCompletionsResponse": llmSchemas.CreateCompletionsResponseSchema,
+  "llm.CreateEmbeddingsRequest": llmSchemas.CreateEmbeddingsRequestSchema,
+  "llm.CreateEmbeddingsResponse": llmSchemas.CreateEmbeddingsResponseSchema,
+};
 
 /**
  * Creates a client with a service configuration
@@ -35,6 +71,80 @@ export async function createClient(
  */
 function grpcFactory() {
   return { grpc, protoLoader };
+}
+
+/**
+ * Converts a POJO message to a typed message object using bufbuild schemas
+ * @param {object} pojo - Plain old JavaScript object from grpc
+ * @param {string} typeName - The proto type name (e.g., "common.Message")
+ * @returns {object} Typed message object with $typeName property
+ */
+export function createTypedMessage(pojo, typeName) {
+  const schema = SCHEMA_REGISTRY[typeName];
+  if (!schema) {
+    // Return original object with $typeName if schema not found
+    return { ...pojo, $typeName: typeName };
+  }
+
+  return create(schema, pojo);
+}
+
+/**
+ * Recursively converts POJOs to typed messages in a response object
+ * @param {object} response - gRPC response object
+ * @param {string} rootTypeName - The root message type name
+ * @returns {object} Response with typed message objects
+ */
+export function convertResponseToTyped(response, rootTypeName) {
+  if (!response || typeof response !== "object") {
+    return response;
+  }
+
+  // Convert arrays
+  if (Array.isArray(response)) {
+    return response.map((item) => convertResponseToTyped(item, rootTypeName));
+  }
+
+  // Create typed version of the response
+  const typedResponse = createTypedMessage(response, rootTypeName);
+
+  // Recursively convert nested objects
+  for (const [key, value] of Object.entries(typedResponse)) {
+    if (value && typeof value === "object") {
+      // Try to infer type name for nested objects
+      const nestedTypeName = inferNestedTypeName(key, rootTypeName);
+      if (nestedTypeName) {
+        typedResponse[key] = convertResponseToTyped(value, nestedTypeName);
+      }
+    }
+  }
+
+  return typedResponse;
+}
+
+/**
+ * Infer nested type name based on field name and parent type
+ * @param {string} fieldName - The field name
+ * @param {string} _parentType - The parent message type (unused)
+ * @returns {string|null} Inferred type name or null
+ */
+function inferNestedTypeName(fieldName, _parentType) {
+  // Common patterns for nested types
+  const typeMap = {
+    message: "common.Message",
+    messages: "common.Message",
+    usage: "common.Usage",
+    choices: "common.Choice",
+    choice: "common.Choice",
+    chunks: "common.Chunk",
+    chunk: "common.Chunk",
+    similarities: "common.Similarity",
+    results: "common.Similarity",
+    embeddings: "common.Embedding",
+    embedding: "common.Embedding",
+  };
+
+  return typeMap[fieldName] || null;
 }
 
 /**
@@ -211,11 +321,44 @@ export class Client extends Actor {
       await this.ensureReady();
       return new Promise((resolve, reject) => {
         this.#client[method](...args, (error, response) => {
-          if (error) reject(error);
-          else resolve(response);
+          if (error) {
+            reject(error);
+          } else {
+            // Convert POJO response to typed message object
+            const responseTypeName = this.#getResponseTypeName(method);
+            const typedResponse = responseTypeName
+              ? convertResponseToTyped(response, responseTypeName)
+              : response;
+            resolve(typedResponse);
+          }
         });
       });
     };
+  }
+
+  /**
+   * Gets the response type name for a given method
+   * @param {string} method - Method name
+   * @returns {string|null} Response type name
+   * @private
+   */
+  #getResponseTypeName(method) {
+    const serviceMethod = method.toLowerCase();
+    const serviceName = this.config.name.toLowerCase();
+
+    // Map service methods to their response types
+    const responseTypeMap = {
+      "agent.processrequest": "agent.AgentResponse",
+      "vector.queryitems": "vector.QueryItemsResponse",
+      "history.gethistory": "history.GetHistoryResponse",
+      "history.updatehistory": "history.UpdateHistoryResponse",
+      "text.getchunks": "text.GetChunksResponse",
+      "llm.createcompletions": "llm.CreateCompletionsResponse",
+      "llm.createembeddings": "llm.CreateEmbeddingsResponse",
+    };
+
+    const key = `${serviceName}.${serviceMethod}`;
+    return responseTypeMap[key] || null;
   }
 
   /**

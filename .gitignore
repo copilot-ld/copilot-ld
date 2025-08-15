@@ -1,6 +1,9 @@
 # Node files
 **/node_modules/
 
+# Generated files
+generated/
+
 # Config files
 **/.env*
 !**/.env.example

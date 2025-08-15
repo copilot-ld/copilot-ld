@@ -1,17 +1,18 @@
 /* eslint-env node */
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { initializeVectorIndices } from "@copilot-ld/libvector";
+import { VectorIndex } from "@copilot-ld/libvector";
+import { storageFactory } from "@copilot-ld/libstorage";
 
 import { VectorService } from "./index.js";
 
 // Start the service
-const config = new ServiceConfig("vector", {
+const config = await ServiceConfig.create("vector", {
   threshold: 0.3,
   limit: 0,
 });
-const vectorIndices = await initializeVectorIndices(
-  config.storagePath("vectors"),
-  config,
-);
-const service = new VectorService(config, vectorIndices);
+
+const vectorStorage = storageFactory("vectors");
+const vectorIndex = new VectorIndex(vectorStorage);
+
+const service = new VectorService(config, vectorIndex);
 await service.start();

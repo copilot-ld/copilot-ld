@@ -9,6 +9,7 @@ import { ChunkIndexInterface } from "./types.js";
  */
 export class ChunkIndex extends ChunkIndexInterface {
   #storage;
+  #indexKey = "index.json";
   #index = {};
   #chunks = {};
   #loaded = false;
@@ -55,23 +56,17 @@ export class ChunkIndex extends ChunkIndexInterface {
     return result;
   }
 
-  /** @inheritdoc */
-  getIndexPath() {
-    return "index.json";
-  }
-
   /**
    * Loads chunk data from disk
    * @returns {Promise<void>}
    * @throws {Error} When chunks directory or index file is not found
    */
   async loadData() {
-    const indexKey = "index.json";
-    if (!(await this.#storage.exists(indexKey))) {
-      throw new Error(`Chunk index not found: ${indexKey}`);
+    if (!(await this.#storage.exists(this.#indexKey))) {
+      throw new Error(`Chunk index not found`);
     }
 
-    const indexData = await this.#storage.get(indexKey);
+    const indexData = await this.#storage.get(this.#indexKey);
     this.#index = JSON.parse(indexData.toString());
 
     this.#chunks = {};
@@ -93,7 +88,10 @@ export class ChunkIndex extends ChunkIndexInterface {
 
   /** @inheritdoc */
   async persist() {
-    await this.#storage.put("index.json", JSON.stringify(this.#index, null, 2));
+    await this.#storage.put(
+      this.#indexKey,
+      JSON.stringify(this.#index, null, 2),
+    );
   }
 }
 

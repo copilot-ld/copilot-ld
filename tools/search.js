@@ -6,30 +6,20 @@ import { Copilot } from "@copilot-ld/libcopilot";
 import { ToolConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
-import { resolveScope } from "@copilot-ld/libscope";
 import { storageFactory } from "@copilot-ld/libstorage";
-import {
-  VectorIndex,
-  initializeVectorIndices,
-  queryIndices,
-} from "@copilot-ld/libvector";
+import { VectorIndex } from "@copilot-ld/libvector";
 
 // Configuration
-const config = new ToolConfig("search");
-const VECTORS_DIR = config.storagePath("vectors");
-const SCOPE_DIR = config.storagePath("scope");
-const CHUNKS_DIR = config.storagePath("chunks");
+const config = await ToolConfig.create("search");
 
 // Global state
-/** @type {Map<string, VectorIndex>} */
-let vectorIndices;
 /** @type {VectorIndex} */
-let scopeIndex;
+let vectorIndex;
 /** @type {ChunkIndex} */
 let chunkIndex;
 
 /**
- * Performs a semantic search using embeddings and scope resolution
+ * Performs a semantic search using embeddings
  * @param {string} prompt - The search query text
  * @param {object} state - REPL state containing limit and threshold settings
  * @returns {Promise<string>} Formatted search results as markdown
@@ -37,19 +27,10 @@ let chunkIndex;
 async function performSearch(prompt, state) {
   const { limit, threshold } = state;
 
-  const client = new Copilot(config.githubToken());
+  const client = new Copilot(await config.githubToken());
   const embeddings = await client.createEmbeddings([prompt]);
-  const resolvedScopes = await resolveScope(
-    embeddings[0].embedding,
-    scopeIndex,
-  );
 
-  const scopedIndices = resolvedScopes
-    .map((scope) => vectorIndices.get(scope))
-    .filter((index) => index);
-
-  const results = await queryIndices(
-    scopedIndices,
+  const results = await vectorIndex.queryItems(
     embeddings[0].embedding,
     threshold(),
     limit() > 0 ? limit() : 0,
@@ -63,7 +44,6 @@ async function performSearch(prompt, state) {
     const chunkData = chunkObjects[result.id];
     const text = chunkData.text;
     content += `# ${i + 1} Score: ${result.score.toFixed(4)}\n\n`;
-    content += `- Scope: ${result.scope}\n`;
     content += `- ID: ${result.id}\n`;
     content += `\n\n\`\`\`json\n${text.substring(0, 200)}\n\`\`\`\n\n`;
   });
@@ -74,10 +54,9 @@ async function performSearch(prompt, state) {
 // Create REPL with dependency injection
 const repl = new Repl(readline, process, createTerminalFormatter(), {
   setup: async () => {
-    vectorIndices = await initializeVectorIndices(VECTORS_DIR, config);
-    const scopeStorage = storageFactory(SCOPE_DIR, config);
-    scopeIndex = new VectorIndex(scopeStorage);
-    const chunksStorage = storageFactory(CHUNKS_DIR, config);
+    const vectorStorage = storageFactory("vectors");
+    vectorIndex = new VectorIndex(vectorStorage);
+    const chunksStorage = storageFactory("chunks");
     chunkIndex = new ChunkIndex(chunksStorage);
   },
   state: {

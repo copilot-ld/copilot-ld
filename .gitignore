@@ -1,11 +1,11 @@
 # Node files
 **/node_modules/
 
-# Environment files
+# Config files
 **/.env*
 !**/.env.example
 **/.ghtoken
-config.yml
+**/config.yml
 
 # Data files
 **/data/

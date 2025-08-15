@@ -50,7 +50,6 @@ class AgentService extends Service {
     await Promise.all([
       this.#clients.history.ensureReady(),
       this.#clients.llm.ensureReady(),
-      this.#clients.scope.ensureReady(),
       this.#clients.vector.ensureReady(),
       this.#clients.text.ensureReady(),
     ]);
@@ -70,36 +69,32 @@ class AgentService extends Service {
     let currentSimilarities = [];
 
     if (latestUserMessage?.content) {
-      // Get embeddings and search for similar content
+      // Get embeddings and search for similar content directly
       const embeddings = await this.#clients.llm.CreateEmbeddings({
         chunks: [latestUserMessage.content],
         github_token,
       });
 
       const vector = embeddings.data[0].embedding;
-      const { indices } = await this.#clients.scope.ResolveScope({ vector });
 
-      if (indices.length > 0) {
-        const { results } = await this.#clients.vector.QueryItems({
-          indices: indices,
-          vector,
-          threshold: this.config.threshold,
-          limit: this.config.limit,
-          max_tokens: this.config.similaritySearchTokens,
+      const { results } = await this.#clients.vector.QueryItems({
+        vector,
+        threshold: this.config.threshold,
+        limit: this.config.limit,
+        max_tokens: this.config.similaritySearchTokens,
+      });
+
+      if (results?.length > 0) {
+        const { chunks } = await this.#clients.text.GetChunks({
+          ids: results.map((r) => r.id),
         });
 
-        if (results?.length > 0) {
-          const { chunks } = await this.#clients.text.GetChunks({
-            ids: results.map((r) => r.id),
-          });
-
-          currentSimilarities = results.map((r) => {
-            const chunk = chunks[r.id];
-            const similarity = new Similarity(r);
-            similarity.text = chunk?.text;
-            return similarity;
-          });
-        }
+        currentSimilarities = results.map((r) => {
+          const chunk = chunks[r.id];
+          const similarity = new Similarity(r);
+          similarity.text = chunk?.text;
+          return similarity;
+        });
       }
 
       // 2. Build request prompt using PromptAssembler (fast, no optimization)

@@ -10,20 +10,19 @@ export class VectorServiceInterface extends libservice.ServiceInterface {
   /**
    * Creates a new Vector service instance
    * @param {libconfig.ServiceConfigInterface} config - Service configuration object
-   * @param {Map} vectorIndices - Pre-initialized vector indices
+   * @param {object} vectorIndex - Pre-initialized vector index
    * @param {Function} [grpcFn] - Optional gRPC factory function
    * @param {Function} [authFn] - Optional auth factory function
    * @param {Function} [logFn] - Optional log factory function
    * @throws {Error} Not implemented
    */
-  constructor(config, vectorIndices, grpcFn, authFn, logFn) {
+  constructor(config, vectorIndex, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);
   }
 
   /**
-   * Queries multiple vector indices and returns consolidated results
+   * Queries the vector index and returns results
    * @param {object} params - Request parameters
-   * @param {string[]} params.indices - Array of index names to query
    * @param {number[]} params.vector - The query vector
    * @param {number} params.threshold - Minimum similarity threshold
    * @param {number} params.limit - Maximum number of results
@@ -31,7 +30,7 @@ export class VectorServiceInterface extends libservice.ServiceInterface {
    * @returns {Promise<object>} Object containing results array
    * @throws {Error} Not implemented
    */
-  async QueryItems({ indices, vector, threshold, limit, max_tokens }) {
+  async QueryItems({ vector, threshold, limit, max_tokens }) {
     throw new Error("Not implemented");
   }
 }

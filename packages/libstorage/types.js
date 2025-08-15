@@ -54,4 +54,40 @@ export class StorageInterface {
   async find(extension) {
     throw new Error("Not implemented");
   }
+
+  /**
+   * List all keys in the storage
+   * @returns {Promise<string[]>} Array of all storage keys
+   * @throws {Error} Not implemented
+   */
+  async list() {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Get full path by combining base path and relative key
+   * @param {string} key - Relative key identifier
+   * @throws {Error} Not implemented
+   */
+  path(key) {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Ensure the storage bucket exists
+   * @returns {Promise<boolean>} True if bucket was created, false if already existed
+   * @throws {Error} Not implemented
+   */
+  async ensureBucket() {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Check if the storage bucket exists
+   * @returns {Promise<boolean>} True if bucket exists, false otherwise
+   * @throws {Error} Not implemented
+   */
+  async bucketExists() {
+    throw new Error("Not implemented");
+  }
 }

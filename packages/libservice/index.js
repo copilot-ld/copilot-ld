@@ -3,13 +3,34 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 
 import { ServiceConfig } from "@copilot-ld/libconfig";
+import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { ClientInterface, ServiceInterface, ActorInterface } from "./types.js";
 
 /**
- * Default gRPC factory that creates gRPC dependencies
+ * Creates a client with a service configuration
+ * @param {string} serviceName - Name of the service
+ * @param {object} defaults - Default configuration values
+ * @param {Function} grpcFn - Grpc factory function
+ * @param {Function} authFn - Optional auth factory function
+ * @param {Function} logFn - Optional log factory function
+ * @returns {Promise<Client>} Configured client instance
+ */
+export async function createClient(
+  serviceName,
+  defaults = {},
+  grpcFn,
+  authFn,
+  logFn,
+) {
+  const config = await ServiceConfig.create(serviceName, defaults);
+  return new Client(config, grpcFn, authFn, logFn);
+}
+
+/**
+ * Default grpc factory that creates gRPC dependencies
  * @returns {object} Object containing grpc and protoLoader
  */
 function grpcFactory() {
@@ -86,7 +107,8 @@ export class Actor extends ActorInterface {
 
   /** @inheritdoc */
   async loadProto(serviceName) {
-    const filename = this.config.protoFile(serviceName);
+    const storage = storageFactory("proto", "local");
+    const filename = await storage.path(`${serviceName}.proto`);
 
     const packageDefinition = this.grpc().loadPackageDefinition(
       this.protoLoader().loadSync(filename, {
@@ -345,26 +367,6 @@ export class Service extends Actor {
  */
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-/**
- * Creates a client with proper configuration
- * @param {string} serviceName - Name of the service to connect to
- * @param {object} defaults - Optional configuration overrides
- * @param {Function} grpcFn - Optional gRPC factory function
- * @param {Function} authFn - Optional auth factory function
- * @param {Function} logFn - Optional log factory function
- * @returns {Client} Configured client instance
- */
-export function createClient(
-  serviceName,
-  defaults = {},
-  grpcFn,
-  authFn,
-  logFn,
-) {
-  const config = new ServiceConfig(serviceName, defaults);
-  return new Client(config, grpcFn, authFn, logFn);
 }
 
 export {

@@ -2,7 +2,7 @@
 import { Copilot } from "@copilot-ld/libcopilot";
 import { ToolConfig } from "@copilot-ld/libconfig";
 
-const config = new ToolConfig("embed");
+const config = await ToolConfig.create("embed");
 
 /**
  * Main function to create embeddings from stdin input
@@ -12,7 +12,7 @@ const config = new ToolConfig("embed");
 async function main() {
   const input = (await process.stdin.toArray()).join("").trim();
 
-  const client = new Copilot(config.githubToken());
+  const client = new Copilot(await config.githubToken());
   const embeddings = await client.createEmbeddings([input]);
 
   console.log(JSON.stringify(embeddings[0].embedding));

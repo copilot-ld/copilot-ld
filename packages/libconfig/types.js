@@ -15,6 +15,7 @@ export class ConfigInterface {
    * @param {object} _fs - File system operations
    * @param {object} _process - Process environment access
    * @param {Function} _dotenv - Dotenv config function
+   * @param {Function} _storageFn - Optional storage factory function
    * @throws {Error} Not implemented
    */
   constructor(
@@ -24,24 +25,11 @@ export class ConfigInterface {
     _fs = null,
     _process = null,
     _dotenv = null,
-  ) {}
-
-  /**
-   * Gets path within the data directory, creating if missing
-   * @param {string} path - Relative path within data directory
-   * @throws {Error} Not implemented
-   */
-  dataPath(path = "") {
-    throw new Error("ConfigInterface.dataPath() not implemented");
-  }
-
-  /**
-   * Gets path within the storage directory, creating if missing
-   * @param {string} path - Relative path within storage directory
-   * @throws {Error} Not implemented
-   */
-  storagePath(path = "") {
-    throw new Error("ConfigInterface.storagePath() not implemented");
+    _storageFn = null,
+  ) {
+    this.namespace = namespace;
+    this.name = name;
+    this.defaults = _defaults;
   }
 
   /**
@@ -54,28 +42,11 @@ export class ConfigInterface {
 
   /**
    * Gets the GitHub token from environment variable or .ghtoken file
+   * @returns {Promise<string>} GitHub token
    * @throws {Error} Not implemented
    */
-  githubToken() {
+  async githubToken() {
     throw new Error("ConfigInterface.githubToken() not implemented");
-  }
-
-  /**
-   * Gets path within the public directory
-   * @param {string} path - Relative path within public directory
-   * @throws {Error} Not implemented
-   */
-  publicPath(path = "") {
-    throw new Error("ConfigInterface.publicPath() not implemented");
-  }
-
-  /**
-   * Gets path to a specific proto file
-   * @param {string} name - Proto file name without extension
-   * @throws {Error} Not implemented
-   */
-  protoFile(name) {
-    throw new Error("ConfigInterface.protoFile() not implemented");
   }
 
   /**

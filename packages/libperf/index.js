@@ -17,11 +17,13 @@ export class PerformanceMetric {
   /**
    * Create performance metrics
    * @param {number} count - Count parameter for scaling tests
+   * @param {string} unit - Unit of measurement (e.g., "items", "queries")
    * @param {number} duration - Execution time in milliseconds
    * @param {number} memory - Memory usage change in KB
    */
-  constructor(count, duration, memory) {
+  constructor(count, unit, duration, memory) {
     this.count = count;
+    this.unit = unit;
     this.duration = duration;
     this.memory = memory;
   }
@@ -55,7 +57,7 @@ export class PerformanceMetric {
    * @returns {string} Formatted string with constraint analysis
    */
   getDiagnostics({ maxDuration, maxMemory } = {}) {
-    let result = `${this.count}`;
+    let result = this.unit ? `${this.count} ${this.unit}` : `${this.count}`;
 
     // Duration with percentage if constraint provided
     const durationPct = maxDuration
@@ -80,6 +82,7 @@ export class PerformanceMonitor {
   #initialMemory = null;
   #startTime = null;
   #count = null;
+  #unit = null;
 
   /**
    * Reset the monitor for reuse
@@ -88,14 +91,17 @@ export class PerformanceMonitor {
     this.#initialMemory = null;
     this.#startTime = null;
     this.#count = null;
+    this.#unit = null;
   }
 
   /**
    * Start monitoring performance
    * @param {number} count - Count for scaling tests
+   * @param {string} unit - Unit of measurement (e.g., "items", "queries")
    */
-  start(count) {
+  start(count, unit) {
     this.#count = count;
+    this.#unit = unit;
     isolatePerformanceTest();
     this.#initialMemory = memoryUsage().heapUsed;
     this.#startTime = performance.now();
@@ -109,7 +115,7 @@ export class PerformanceMonitor {
     if (!this.#startTime) throw new Error("Monitor not started.");
     const duration = performance.now() - this.#startTime;
     const memory = (memoryUsage().heapUsed - this.#initialMemory) / 1024;
-    return new PerformanceMetric(this.#count, duration, memory);
+    return new PerformanceMetric(this.#count, this.#unit, duration, memory);
   }
 }
 

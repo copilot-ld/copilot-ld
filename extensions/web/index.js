@@ -8,22 +8,17 @@ import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 
-// Configuration and initialization
-const config = new ExtensionConfig("web");
-
 // Create HTML formatter with factory function
 const htmlFormatter = createHtmlFormatter();
 
 /**
  * Creates a web extension with configurable dependencies
- * @param {Client} agentClient - Agent service gRPC client
- * @returns {Hono} Configured Hono application
+ * @param {Client} client - Agent service gRPC client
+ * @param {ExtensionConfig} config - Extension configuration
+ * @returns {Promise<Hono>} Configured Hono application
  */
-function createWebExtension(agentClient) {
+async function createWebExtension(client, config) {
   const app = new Hono();
-
-  // Create a Config instance for accessing paths
-  const config = new ExtensionConfig("web");
 
   // Create security middleware with config
   const security = createSecurityMiddleware(config);
@@ -41,7 +36,8 @@ function createWebExtension(agentClient) {
   );
 
   // Serve static files
-  app.use("/*", serveStatic({ root: config.publicPath() }));
+  // TODO: Decouple the web extension from the example at extensions/web/public
+  app.use("/*", serveStatic({ root: "public" }));
 
   // Route handlers with input validation
   app.post(
@@ -64,7 +60,7 @@ function createWebExtension(agentClient) {
 
         const requestParams = {
           messages: [{ role: "user", content: message }],
-          github_token: config.githubToken(),
+          github_token: await config.githubToken(),
         };
 
         if (session_id) {
@@ -72,9 +68,9 @@ function createWebExtension(agentClient) {
         }
 
         // Ensure client is ready before making requests
-        await agentClient.ensureReady();
+        await client.ensureReady();
 
-        const response = await agentClient.ProcessRequest(requestParams);
+        const response = await client.ProcessRequest(requestParams);
 
         // Format HTML content if present
         if (
@@ -114,22 +110,9 @@ function createWebExtension(agentClient) {
 }
 
 // Create and start the application
-let agentClient;
-try {
-  if (!process.env.SERVICE_AUTH_SECRET) {
-    console.error(
-      "Warning: SERVICE_AUTH_SECRET is not set. Extension will not work without authentication.",
-    );
-    console.error("Please set SERVICE_AUTH_SECRET in your .env file.");
-  }
-
-  agentClient = new Client(new ServiceConfig("agent"));
-} catch (error) {
-  console.error("Failed to initialize agent client:", error.message);
-  process.exit(1);
-}
-
-const app = createWebExtension(agentClient);
+const config = await ExtensionConfig.create("web");
+const client = new Client(await ServiceConfig.create("agent"));
+const app = await createWebExtension(client, config);
 
 // Start server
 serve(
@@ -139,6 +122,6 @@ serve(
     hostname: config.host,
   },
   () => {
-    console.log(`Web extension listening on: ${config.host}:${config.port}`);
+    console.log(`Listening on: ${config.host}:${config.port}`);
   },
 );

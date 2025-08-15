@@ -7,7 +7,7 @@ import { Octokit } from "@octokit/core";
 
 import { ToolConfig } from "@copilot-ld/libconfig";
 
-const config = new ToolConfig("download");
+const config = await ToolConfig.create("download");
 
 /**
  * Downloads a file from a GitHub API URL using authentication
@@ -86,4 +86,4 @@ async function extractAndCleanup(filePath, outputDir) {
   }
 }
 
-downloadLatestArtifact(config.owner, config.repo, config.githubToken());
+downloadLatestArtifact(config.owner, config.repo, await config.githubToken());

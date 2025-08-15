@@ -8,7 +8,7 @@ import { Client } from "@copilot-ld/libservice";
 
 /** @typedef {import("@copilot-ld/libtype").Message} Message */
 
-const config = new ServiceConfig("agent");
+const config = await ServiceConfig.create("agent");
 const agentClient = new Client(config);
 
 // Global state
@@ -32,7 +32,7 @@ async function handlePrompt(prompt) {
 
     const requestParams = {
       messages: messages,
-      github_token: config.githubToken(),
+      github_token: await config.githubToken(),
     };
 
     if (sessionId) {

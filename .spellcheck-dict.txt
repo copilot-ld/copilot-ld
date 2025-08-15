@@ -13,6 +13,7 @@ charset
 chunk.js
 chunking
 CI
+Config
 config
 configs
 Copilot-LD
@@ -65,7 +66,6 @@ libhistory
 libllm
 libperf
 librepl
-libscope
 libservice
 libstorage
 libtext
@@ -113,6 +113,8 @@ repl
 repo
 repos
 reusability
+s3
+S3
 sanitization
 schemas
 SHA-256

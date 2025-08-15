@@ -1,10 +1,12 @@
 /* eslint-env node */
-import { promises as fs } from "fs";
+import { promises as fs, accessSync } from "fs";
 import { dirname, join } from "path";
 
 import {
+  CreateBucketCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadBucketCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -12,8 +14,6 @@ import {
 } from "@aws-sdk/client-s3";
 
 import { StorageInterface } from "./types.js";
-
-/** @typedef {import("@copilot-ld/libconfig").ConfigInterface} ConfigInterface */
 
 /**
  * Local filesystem storage implementation
@@ -36,7 +36,7 @@ export class LocalStorage extends StorageInterface {
 
   /** @inheritdoc */
   async put(key, data) {
-    const fullPath = this.#getKey(key);
+    const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
 
     await this.#fs.mkdir(dirToCreate, { recursive: true });
@@ -45,30 +45,35 @@ export class LocalStorage extends StorageInterface {
 
   /** @inheritdoc */
   async get(key) {
-    return await this.#fs.readFile(this.#getKey(key));
+    return await this.#fs.readFile(this.path(key));
   }
 
   /** @inheritdoc */
   async delete(key) {
-    await this.#fs.unlink(this.#getKey(key));
+    await this.#fs.unlink(this.path(key));
   }
 
   /** @inheritdoc */
   async exists(key) {
     try {
-      await this.#fs.access(this.#getKey(key));
+      await this.#fs.access(this.path(key));
       return true;
     } catch {
       return false;
     }
   }
 
-  /** @inheritdoc */
-  async find(extension) {
+  /**
+   * Recursively traverse directories to find files matching a filter
+   * @private
+   * @param {Function|null} fileFilter - Optional filter function for files
+   * @returns {Promise<string[]>} Array of relative file paths
+   */
+  async #traverse(fileFilter = null) {
     const keys = [];
 
     /**
-     * Recursively traverse directories to find files with the specified extension
+     * Recursively traverse directories
      * @param {string} currentDir - Current directory being traversed
      * @param {string} relativePath - Relative path from base path
      */
@@ -84,8 +89,10 @@ export class LocalStorage extends StorageInterface {
 
           if (entry.isDirectory()) {
             await traverse(fullPath, relativeKey);
-          } else if (entry.isFile() && entry.name.endsWith(extension)) {
-            keys.push(relativeKey);
+          } else if (entry.isFile()) {
+            if (!fileFilter || fileFilter(entry.name)) {
+              keys.push(relativeKey);
+            }
           }
         }
       } catch (error) {
@@ -100,17 +107,43 @@ export class LocalStorage extends StorageInterface {
     return keys;
   }
 
-  /**
-   * Get full file path by combining base path and relative key
-   * @param {string} key - Relative key identifier
-   * @returns {string} Full file path
-   * @private
-   */
-  #getKey(key) {
+  /** @inheritdoc */
+  async find(extension) {
+    return await this.#traverse((filename) => filename.endsWith(extension));
+  }
+
+  /** @inheritdoc */
+  async list() {
+    return await this.#traverse();
+  }
+
+  /** @inheritdoc */
+  path(key) {
     if (key.startsWith("/")) {
       return key; // Use absolute path directly for local filesystem
     }
     return join(this.#basePath, key);
+  }
+
+  /** @inheritdoc */
+  async ensureBucket() {
+    try {
+      await this.#fs.access(this.#basePath);
+      return false; // Directory already exists
+    } catch {
+      await this.#fs.mkdir(this.#basePath, { recursive: true });
+      return true; // Directory was created
+    }
+  }
+
+  /** @inheritdoc */
+  async bucketExists() {
+    try {
+      await this.#fs.access(this.#basePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -119,21 +152,18 @@ export class LocalStorage extends StorageInterface {
  * @implements {StorageInterface}
  */
 export class S3Storage extends StorageInterface {
-  #basePath;
   #bucket;
   #client;
   #commands;
 
   /**
    * Creates a new S3Storage instance
-   * @param {string} basePath - Base path for all storage operations
    * @param {string} bucket - S3 bucket name
    * @param {object} client - S3 client instance
    * @param {object} commands - S3 command classes
    */
-  constructor(basePath, bucket, client, commands) {
+  constructor(bucket, client, commands) {
     super();
-    this.#basePath = basePath;
     this.#bucket = bucket;
     this.#client = client;
     this.#commands = commands;
@@ -144,7 +174,7 @@ export class S3Storage extends StorageInterface {
     await this.#client.send(
       new this.#commands.PutObjectCommand({
         Bucket: this.#bucket,
-        Key: this.#getKey(key),
+        Key: this.path(key),
         Body: data,
       }),
     );
@@ -154,7 +184,7 @@ export class S3Storage extends StorageInterface {
   async get(key) {
     const command = new this.#commands.GetObjectCommand({
       Bucket: this.#bucket,
-      Key: this.#getKey(key),
+      Key: this.path(key),
     });
 
     const response = await this.#client.send(command);
@@ -172,7 +202,7 @@ export class S3Storage extends StorageInterface {
     await this.#client.send(
       new this.#commands.DeleteObjectCommand({
         Bucket: this.#bucket,
-        Key: this.#getKey(key),
+        Key: this.path(key),
       }),
     );
   }
@@ -183,7 +213,7 @@ export class S3Storage extends StorageInterface {
       await this.#client.send(
         new this.#commands.HeadObjectCommand({
           Bucket: this.#bucket,
-          Key: this.#getKey(key),
+          Key: this.path(key),
         }),
       );
       return true;
@@ -206,7 +236,6 @@ export class S3Storage extends StorageInterface {
     do {
       const command = new this.#commands.ListObjectsV2Command({
         Bucket: this.#bucket,
-        Prefix: this.#basePath,
         ContinuationToken: continuationToken,
       });
 
@@ -215,10 +244,7 @@ export class S3Storage extends StorageInterface {
       if (response.Contents) {
         for (const object of response.Contents) {
           if (object.Key && object.Key.endsWith(extension)) {
-            const relativeKey = object.Key.startsWith(this.#basePath)
-              ? object.Key.substring(this.#basePath.length).replace(/^\//, "")
-              : object.Key;
-            keys.push(relativeKey);
+            keys.push(object.Key);
           }
         }
       }
@@ -229,49 +255,159 @@ export class S3Storage extends StorageInterface {
     return keys;
   }
 
-  /**
-   * Get full S3 key by combining base path and relative key
-   * @param {string} key - Relative key identifier
-   * @returns {string} Full S3 key
-   * @private
-   */
-  #getKey(key) {
+  /** @inheritdoc */
+  async list() {
+    const keys = [];
+    let continuationToken;
+
+    do {
+      const command = new this.#commands.ListObjectsV2Command({
+        Bucket: this.#bucket,
+        ContinuationToken: continuationToken,
+      });
+
+      const response = await this.#client.send(command);
+
+      if (response.Contents) {
+        for (const object of response.Contents) {
+          if (object.Key) {
+            keys.push(object.Key);
+          }
+        }
+      }
+
+      continuationToken = response.NextContinuationToken;
+    } while (continuationToken);
+
+    return keys;
+  }
+
+  /** @inheritdoc */
+  path(key) {
     if (key.startsWith("/")) {
-      return key.substring(1); // Remove leading slash for S3
+      // For absolute paths, remove leading slash
+      return key.substring(1);
     }
-    return `${this.#basePath}/${key}`;
+    // For relative paths, use key as-is
+    return key;
+  }
+
+  /** @inheritdoc */
+  async ensureBucket() {
+    try {
+      await this.#client.send(
+        new this.#commands.HeadBucketCommand({
+          Bucket: this.#bucket,
+        }),
+      );
+      return false; // Bucket already exists
+    } catch (error) {
+      if (
+        error.name === "NotFound" ||
+        error.$metadata?.httpStatusCode === 404 ||
+        error.Code === "NoSuchBucket"
+      ) {
+        await this.#client.send(
+          new this.#commands.CreateBucketCommand({
+            Bucket: this.#bucket,
+          }),
+        );
+        return true; // Bucket was created
+      }
+      throw error;
+    }
+  }
+
+  /** @inheritdoc */
+  async bucketExists() {
+    try {
+      await this.#client.send(
+        new this.#commands.HeadBucketCommand({
+          Bucket: this.#bucket,
+        }),
+      );
+      return true;
+    } catch (error) {
+      if (
+        error.name === "NotFound" ||
+        error.$metadata?.httpStatusCode === 404 ||
+        error.Code === "NoSuchBucket"
+      ) {
+        return false;
+      }
+      throw error;
+    }
   }
 }
 
 /**
- * Creates a storage instance based on configuration
- * @param {string} basePath - Base path for all storage operations
- * @param {ConfigInterface} config - Configuration object
+ * Creates a storage instance based on environment variables
+ * @param {string} bucket - Bucket for the storage operations
+ * @param {string} type - Storage type ("local" or "s3")
+ * @param {object} process - Process environment access (for testing)
  * @returns {StorageInterface} Storage instance
  * @throws {Error} When unsupported storage type is provided
+ * @todo Clean this up with dedicated factories for each bucket type.
  */
-export function storageFactory(basePath, config) {
-  const type = config.storage;
+export function storageFactory(bucket, type, process = global.process) {
+  const finalType = type || process.env.STORAGE_TYPE || "local";
 
-  switch (type) {
+  switch (finalType) {
     case "local":
     case undefined: {
+      let searchItem;
+      let basePath;
+
+      switch (bucket) {
+        case "config":
+        case "proto":
+          searchItem = bucket;
+          break;
+
+        case "knowledge":
+          searchItem = `data/${bucket}`;
+          break;
+
+        default:
+          searchItem = `data/storage/${bucket}`;
+      }
+
+      const searchPaths = ["./", "../", "../../"];
+
+      for (const searchPath of searchPaths) {
+        try {
+          const fullPath = join(searchPath, searchItem);
+          accessSync(fullPath);
+          basePath = fullPath;
+          break; // Exit immediately when valid path is found
+        } catch {
+          // Continue to next path
+        }
+      }
+
+      if (!basePath) {
+        throw new Error(`Could not find bucket: ${bucket}`);
+      }
+
       return new LocalStorage(basePath, fs);
     }
+
     case "s3": {
       const client = new S3Client({
         forcePathStyle: true,
-        region: config.s3_region,
-        endpoint: config.s3_endpoint,
+        region: process.env.S3_REGION,
+        endpoint: process.env.S3_ENDPOINT,
         credentials: {
-          accessKeyId: config.s3_access_key_id,
-          secretAccessKey: config.s3_secret_access_key,
+          accessKeyId: process.env.S3_ACCESS_KEY_ID,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
         },
       });
 
-      return new S3Storage(basePath, config.s3_bucket, client, {
+      return new S3Storage(bucket, client, {
+        CreateBucketCommand,
         DeleteObjectCommand,
         GetObjectCommand,
+        HeadBucketCommand,
         HeadObjectCommand,
         ListObjectsV2Command,
         PutObjectCommand,

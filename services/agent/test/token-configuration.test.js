@@ -22,9 +22,6 @@ const mockClients = {
       }),
     ),
   },
-  scope: {
-    ResolveScope: mock.fn(() => Promise.resolve({ indices: [] })),
-  },
   vector: {
     QueryItems: mock.fn(() => Promise.resolve({ results: [] })),
   },
@@ -119,28 +116,23 @@ class AgentService extends mockLibservice.Service {
       messages = [...historyMessages.messages, latestUserMessage];
       const vector = embeddings.data[0].embedding;
 
-      const { indices } = await this.#clients.scope.ResolveScope({ vector });
+      const { results } = await this.#clients.vector.QueryItems({
+        vector,
+        threshold: this.config.threshold,
+        limit: this.config.limit,
+        max_tokens: this.config.similaritySearchTokens,
+      });
 
-      if (indices.length > 0) {
-        const { results } = await this.#clients.vector.QueryItems({
-          indices: indices,
-          vector,
-          threshold: this.config.threshold,
-          limit: this.config.limit,
-          max_tokens: this.config.similaritySearchTokens,
+      if (results.length > 0) {
+        const { chunks } = await this.#clients.text.GetChunks({
+          ids: results.map((r) => r.id),
         });
-
-        if (results.length > 0) {
-          const { chunks } = await this.#clients.text.GetChunks({
-            ids: results.map((r) => r.id),
-          });
-          // Build context from results and chunks
-          context = results.map((r) => ({
-            id: r.id,
-            score: r.score,
-            text: chunks[r.id]?.text,
-          }));
-        }
+        // Build context from results and chunks
+        context = results.map((r) => ({
+          id: r.id,
+          score: r.score,
+          text: chunks[r.id]?.text,
+        }));
       }
     } else {
       const { messages: history } = await this.#clients.history.GetHistory({
@@ -230,11 +222,6 @@ describe("Agent Service Token Configuration", () => {
   });
 
   test("ProcessRequest passes similaritySearchTokens to vector service", async () => {
-    // Mock scope to return indices so vector service gets called
-    mockClients.scope.ResolveScope = mock.fn(() =>
-      Promise.resolve({ indices: ["index1"] }),
-    );
-
     const request = {
       messages: [{ role: "user", content: "Hello" }],
       session_id: "test-session",
@@ -284,11 +271,6 @@ describe("Agent Service Token Configuration", () => {
       mockOctokitFactory,
     );
 
-    // Mock scope to return indices
-    mockClients.scope.ResolveScope = mock.fn(() =>
-      Promise.resolve({ indices: ["index1"] }),
-    );
-
     const request = {
       messages: [{ role: "user", content: "Test message" }],
       session_id: "test-session",
@@ -335,11 +317,6 @@ describe("Agent Service Token Configuration", () => {
   });
 
   test("ProcessRequest includes all required parameters in vector call", async () => {
-    // Mock scope to return indices
-    mockClients.scope.ResolveScope = mock.fn(() =>
-      Promise.resolve({ indices: ["index1", "index2"] }),
-    );
-
     const request = {
       messages: [{ role: "user", content: "Complex query" }],
       session_id: "test-session",
@@ -350,7 +327,6 @@ describe("Agent Service Token Configuration", () => {
 
     const vectorCall = mockClients.vector.QueryItems.mock.calls[0].arguments[0];
 
-    assert.deepStrictEqual(vectorCall.indices, ["index1", "index2"]);
     assert.deepStrictEqual(vectorCall.vector, [0.1, 0.2, 0.3]);
     assert.strictEqual(vectorCall.threshold, 0.3);
     assert.strictEqual(vectorCall.limit, 200);

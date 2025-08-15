@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-08-15
+
+- Removed `protoFile` property from mock config object in tests following
+  deletion of `protoFile()` method from `Config` class
+
 ## 2025-08-13
 
 - Added `logFn` parameter to `ActorInterface`, `ClientInterface`, and

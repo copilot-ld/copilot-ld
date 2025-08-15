@@ -22,8 +22,8 @@ retrieval-augmented generation.
 ### 1. Environment configuration
 
 ```sh
-cp .env.example .env
-cp config.example.yml config.yml
+cp config/.env{.example,}
+cp config/config{.example,}.yml
 ```
 
 ### 2. Install dependencies
@@ -46,20 +46,29 @@ Generate a shared secret for HMAC authentication between services:
 node tools/secret.js
 ```
 
-### 5. Download knowledge data
+### 5. Prepare data directory
+
+Create the necessary data directories with empty indices:
+
+```sh
+mkdir -p data/storage/{chunks,vectors,history}
+echo "[]" > data/storage/{chunks,vectors,history}/index.json
+```
+
+### 6. Download knowledge data
 
 ```sh
 node tools/download.js
 ```
 
-### 6. Extract chunks and build vector indices
+### 7. Extract chunks and build vector indices
 
 ```sh
 node tools/chunk.js
 node tools/index.js
 ```
 
-### 7. Start services
+### 8. Start services
 
 #### Option A: Local Development Environment
 

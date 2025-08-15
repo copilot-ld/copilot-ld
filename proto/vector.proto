@@ -9,11 +9,10 @@ service Vector {
 }
 
 message QueryItemsRequest {
-  repeated string indices = 1;
-  repeated double vector = 2;
-  optional double threshold = 3;
-  optional int32 limit = 4;
-  optional int32 max_tokens = 5;
+  repeated double vector = 1;
+  optional double threshold = 2;
+  optional int32 limit = 3;
+  optional int32 max_tokens = 4;
 }
 
 message QueryItemsResponse {

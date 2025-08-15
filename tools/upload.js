@@ -1,226 +1,112 @@
 /* eslint-env node */
-import {
-  S3Client,
-  CreateBucketCommand,
-  PutObjectCommand,
-  ListObjectsV2Command,
-} from "@aws-sdk/client-s3";
-import { readFile, readdir, stat } from "fs/promises";
-import { join } from "path";
-import { config } from "dotenv";
+import { ToolConfig } from "@copilot-ld/libconfig";
+import { storageFactory } from "@copilot-ld/libstorage";
+import { Logger } from "@copilot-ld/libutil";
 
-// Load environment variables
-config();
+const logger = new Logger("upload-tool");
 
 /**
- * MinIO initialization script to create buckets and upload existing storage files
+ * Upload tool for synchronizing local storage to S3
  */
-class MinIOInitializer {
-  #client;
-  #basePath;
+class UploadTool {
+  #local;
+  #remote;
 
-  constructor(endpoint, accessKey, secretKey, basePath) {
-    this.#client = new S3Client({
-      endpoint,
-      region: "us-east-1",
-      credentials: {
-        accessKeyId: accessKey,
-        secretAccessKey: secretKey,
-      },
-      forcePathStyle: true,
-    });
-    this.#basePath = basePath;
+  constructor() {
+    this.#local = {};
+    this.#remote = {};
   }
 
   /**
-   * Initialize MinIO with buckets and existing files
+   * Initialize storage instances for all buckets
    * @returns {Promise<void>}
    */
   async initialize() {
-    const buckets = ["scope", "vectors", "chunks"];
+    const buckets = ["config", "chunks", "vectors", "history"];
 
     for (const bucket of buckets) {
-      await this.#createBucket(bucket);
-      await this.#uploadDirectoryFiles(bucket);
-    }
-  }
+      this.#local[bucket] = storageFactory(bucket, "local");
+      this.#remote[bucket] = storageFactory(bucket, "s3");
 
-  /**
-   * Create a bucket if it doesn't exist
-   * @param {string} bucketName - Name of the bucket to create
-   * @returns {Promise<void>}
-   * @private
-   */
-  async #createBucket(bucketName) {
-    try {
-      await this.#client.send(new CreateBucketCommand({ Bucket: bucketName }));
-      console.log(`Created bucket: ${bucketName}`);
-    } catch (error) {
-      if (error.name === "BucketAlreadyOwnedByYou") {
-        console.log(`Bucket already exists: ${bucketName}`);
+      // Ensure S3 bucket exists using the new bucket management method
+      logger.debug("Ensuring bucket exists", { bucket });
+      const created = await this.#remote[bucket].ensureBucket();
+      if (created) {
+        logger.debug("Bucket created", { bucket });
       } else {
-        console.error(`Error creating bucket ${bucketName}:`, error.message);
-        throw error;
+        logger.debug("Bucket already exists", { bucket });
       }
     }
   }
 
   /**
-   * Upload all files from a directory to the corresponding bucket
-   * @param {string} bucketName - Name of the bucket
+   * Upload all items from local storage to S3
+   * @returns {Promise<void>}
+   */
+  async upload() {
+    const buckets = ["config", "chunks", "vectors", "history"];
+
+    for (const bucket of buckets) {
+      logger.debug("Processing bucket", { bucket });
+      await this.#uploadBucket(bucket);
+    }
+  }
+
+  /**
+   * Upload all items from a bucket, skipping hidden files
+   * @param {string} bucket - Bucket name
    * @returns {Promise<void>}
    * @private
    */
-  async #uploadDirectoryFiles(bucketName) {
-    const directoryPath = join(this.#basePath, bucketName);
+  async #uploadBucket(bucket) {
+    const local = this.#local[bucket];
+    const remote = this.#remote[bucket];
 
     try {
-      await this.#uploadDirectory(bucketName, directoryPath, "");
-    } catch (error) {
-      if (error.code === "ENOENT") {
-        console.log(
-          `Directory ${directoryPath} does not exist, skipping upload`,
-        );
-      } else {
-        throw error;
-      }
-    }
-  }
+      const keys = await local.list();
 
-  /**
-   * Recursively upload directory contents
-   * @param {string} bucketName - Name of the bucket
-   * @param {string} dirPath - Path to directory
-   * @param {string} prefix - S3 key prefix
-   * @returns {Promise<void>}
-   * @private
-   */
-  async #uploadDirectory(bucketName, dirPath, prefix) {
-    const entries = await readdir(dirPath);
+      // Filter out hidden files (starting with ".")
+      const filteredKeys = keys.filter((key) => !key.startsWith("."));
 
-    for (const entry of entries) {
-      const fullPath = join(dirPath, entry);
-      const key = prefix ? `${prefix}/${entry}` : entry;
-      const stats = await stat(fullPath);
+      logger.debug("Items found for upload", {
+        bucket,
+        total: keys.length,
+        uploaded: filteredKeys.length,
+        filtered: keys.length - filteredKeys.length,
+      });
 
-      if (stats.isDirectory()) {
-        await this.#uploadDirectory(bucketName, fullPath, key);
-      } else if (stats.isFile()) {
-        await this.#uploadFile(bucketName, fullPath, key);
-      }
-    }
-  }
-
-  /**
-   * Upload a single file to MinIO
-   * @param {string} bucketName - Name of the bucket
-   * @param {string} filePath - Path to the file
-   * @param {string} key - S3 object key
-   * @returns {Promise<void>}
-   * @private
-   */
-  async #uploadFile(bucketName, filePath, key) {
-    try {
-      const fileContent = await readFile(filePath);
-
-      await this.#client.send(
-        new PutObjectCommand({
-          Bucket: bucketName,
-          Key: key,
-          Body: fileContent,
-          ContentType: this.#getContentType(filePath),
-        }),
-      );
-
-      console.log(`Uploaded: ${bucketName}/${key}`);
-    } catch (error) {
-      console.error(
-        `Error uploading ${filePath} to ${bucketName}/${key}:`,
-        error.message,
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Get content type based on file extension
-   * @param {string} filePath - File path
-   * @returns {string} Content type
-   * @private
-   */
-  #getContentType(filePath) {
-    if (filePath.endsWith(".json")) {
-      return "application/json";
-    }
-    return "application/octet-stream";
-  }
-
-  /**
-   * List objects in a bucket for verification
-   * @param {string} bucketName - Name of the bucket
-   * @returns {Promise<void>}
-   */
-  async listObjects(bucketName) {
-    try {
-      const response = await this.#client.send(
-        new ListObjectsV2Command({
-          Bucket: bucketName,
-        }),
-      );
-
-      console.log(`Objects in ${bucketName}:`);
-      if (response.Contents) {
-        for (const object of response.Contents) {
-          console.log(`  - ${object.Key} (${object.Size} bytes)`);
+      for (const key of filteredKeys) {
+        try {
+          const data = await local.get(key);
+          await remote.put(key, data);
+          logger.debug("Item uploaded", { bucket, key });
+        } catch (error) {
+          logger.debug("Item error", { bucket, key, error: error.message });
+          throw error;
         }
-      } else {
-        console.log("  (empty)");
       }
     } catch (error) {
-      console.error(`Error listing objects in ${bucketName}:`, error.message);
+      logger.debug("Processing error", { bucket, error: error.message });
+      throw error;
     }
   }
 }
 
 /**
- * Main execution function for MinIO initialization
- * Initializes MinIO server with existing storage files and verifies the setup
+ * Main execution function
  * @returns {Promise<void>}
  */
 async function main() {
-  const endpoint = process.env.MINIO_ENDPOINT || "http://localhost:9000";
-  const accessKey = process.env.MINIO_ROOT_USER || "minioadmin";
-  const secretKey = process.env.MINIO_ROOT_PASSWORD || "minioadmin";
-  const basePath = process.env.MINIO_INIT_DATA_PATH || "data/storage";
-
-  console.log(`Connecting to MinIO at ${endpoint} with user: ${accessKey}`);
-
-  const initializer = new MinIOInitializer(
-    endpoint,
-    accessKey,
-    secretKey,
-    basePath,
-  );
+  await ToolConfig.create("upload-tool");
+  const uploader = new UploadTool();
 
   try {
-    console.log("Initializing MinIO with existing storage files...");
-    await initializer.initialize();
-
-    console.log("\nVerification - listing objects:");
-    await initializer.listObjects("scope");
-    await initializer.listObjects("vectors");
-    await initializer.listObjects("chunks");
-
-    console.log("\nMinIO initialization completed successfully!");
+    await uploader.initialize();
+    await uploader.upload();
   } catch (error) {
-    console.error("MinIO initialization failed:", error);
+    logger.debug("Upload failed", { error: error.message });
     process.exit(1);
   }
 }
 
-// Run if this script is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
-}
-
-export { MinIOInitializer };
+main();

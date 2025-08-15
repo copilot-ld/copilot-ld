@@ -124,10 +124,9 @@ Agent service must coordinate all operations through parallel execution:
 
 ```javascript
 class AgentService {
-  constructor(historyService, llmService, scopeService, vectorService) {
+  constructor(historyService, llmService, vectorService) {
     this.historyService = historyService;
     this.llmService = llmService;
-    this.scopeService = scopeService;
     this.vectorService = vectorService;
   }
 
@@ -138,12 +137,8 @@ class AgentService {
       this.llmService.createEmbeddings(request.query),
     ]);
 
-    // Sequential dependent operations
-    const scope = await this.scopeService.resolveScope(request, historyData);
-    const vectorResults = await this.vectorService.queryItems(
-      embeddings,
-      scope,
-    );
+    // Direct vector query (no scope resolution needed)
+    const vectorResults = await this.vectorService.queryItems(embeddings);
 
     return { chunks: vectorResults.chunks, usage: vectorResults.usage };
   }

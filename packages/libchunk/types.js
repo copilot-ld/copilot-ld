@@ -44,14 +44,6 @@ export class ChunkIndexInterface {
   }
 
   /**
-   * Gets the index file path
-   * @throws {Error} Not implemented
-   */
-  getIndexPath() {
-    throw new Error("Not implemented");
-  }
-
-  /**
    * Loads chunk data from disk
    * @returns {Promise<void>}
    * @throws {Error} Not implemented

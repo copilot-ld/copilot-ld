@@ -10,6 +10,13 @@ import { FormatterInterface } from "./types.js";
  * Formats markdown content to sanitized HTML
  */
 export class HtmlFormatter extends FormatterInterface {
+  #jsdom;
+  #domPurify;
+  #marked;
+  #htmlMarked;
+  #window;
+  #purify;
+
   /**
    * Creates an HTML formatter with required dependencies
    * @param {object} jsdom - JSDOM constructor for creating DOM window
@@ -22,19 +29,19 @@ export class HtmlFormatter extends FormatterInterface {
     if (!domPurify) throw new Error("domPurify dependency is required");
     if (!marked) throw new Error("marked dependency is required");
 
-    this.jsdom = jsdom;
-    this.domPurify = domPurify;
-    this.marked = marked;
+    this.#jsdom = jsdom;
+    this.#domPurify = domPurify;
+    this.#marked = marked;
 
     // Initialize the HTML marked instance with configuration
-    this.htmlMarked = new this.marked.Marked().setOptions({
+    this.#htmlMarked = new this.#marked.Marked().setOptions({
       breaks: true,
       gfm: true,
     });
 
     // Set up DOM window and purify
-    this.window = new this.jsdom.JSDOM("").window;
-    this.purify = this.domPurify(this.window);
+    this.#window = new this.#jsdom.JSDOM("").window;
+    this.#purify = this.#domPurify(this.#window);
   }
 
   /**
@@ -42,8 +49,8 @@ export class HtmlFormatter extends FormatterInterface {
    * @returns {string} Sanitized HTML with allowed tags and attributes
    */
   format(markdown) {
-    const rawHtml = this.htmlMarked.parse(markdown);
-    return this.purify.sanitize(rawHtml, {
+    const rawHtml = this.#htmlMarked.parse(markdown);
+    return this.#purify.sanitize(rawHtml, {
       ALLOWED_TAGS: [
         "p",
         "br",
@@ -81,6 +88,10 @@ export class HtmlFormatter extends FormatterInterface {
  * Formats markdown content to terminal output with ANSI escape codes
  */
 export class TerminalFormatter extends FormatterInterface {
+  #marked;
+  #markedTerminal;
+  #terminalMarked;
+
   /**
    * Creates a terminal formatter with required dependencies
    * @param {object} marked - Marked markdown parser
@@ -92,11 +103,13 @@ export class TerminalFormatter extends FormatterInterface {
     if (!markedTerminal)
       throw new Error("markedTerminal dependency is required");
 
-    this.marked = marked;
-    this.markedTerminal = markedTerminal;
+    this.#marked = marked;
+    this.#markedTerminal = markedTerminal;
 
     // Initialize the terminal marked instance with plugin
-    this.terminalMarked = new this.marked.Marked().use(this.markedTerminal());
+    this.#terminalMarked = new this.#marked.Marked().use(
+      this.#markedTerminal(),
+    );
   }
 
   /**
@@ -104,7 +117,7 @@ export class TerminalFormatter extends FormatterInterface {
    * @returns {string} Terminal-formatted text with ANSI escape codes
    */
   format(markdown) {
-    return this.terminalMarked.parse(markdown);
+    return this.#terminalMarked.parse(markdown);
   }
 }
 

@@ -1,11 +1,15 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { create } from "@bufbuild/protobuf";
 
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "@copilot-ld/libservice";
+
+// Import generated protobuf types
+import { QueryItemsRequestSchema } from "../../generated/vector_pb.js";
 
 /**
  * Base class for Vector service with proto-specific method stubs
@@ -121,7 +125,10 @@ export class VectorBase {
 
     // Create handlers for all RPC methods
     const handlers = {};
-    handlers.QueryItems = this.#createHandler("QueryItems");
+    handlers.QueryItems = this.#createHandler(
+      "QueryItems",
+      QueryItemsRequestSchema,
+    );
 
     this.#server.addService(serviceDefinition, handlers);
 
@@ -156,12 +163,13 @@ export class VectorBase {
   }
 
   /**
-   * Creates a single handler with authentication
+   * Creates a single handler with authentication and type deserialization
    * @param {string} methodName - Method name
+   * @param {object} requestSchema - Request message schema for type deserialization
    * @returns {Function} Handler function
    * @private
    */
-  #createHandler(methodName) {
+  #createHandler(methodName, requestSchema) {
     return async (call, callback) => {
       const validation = this.#auth.validateCall(call);
       if (!validation.isValid) {
@@ -177,7 +185,11 @@ export class VectorBase {
         if (typeof this[methodName] !== "function") {
           throw new Error(`Missing RPC method implementation: ${methodName}`);
         }
-        const resp = await this[methodName](call.request, call.metadata, call);
+
+        // Deserialize the request using @bufbuild/protobuf
+        const typedRequest = create(requestSchema, call.request);
+
+        const resp = await this[methodName](typedRequest, call.metadata, call);
         callback(null, resp);
       } catch (error) {
         console.error("Error:", error);
@@ -202,7 +214,7 @@ export class VectorBase {
   // Proto-specific method stubs - implement these in your service class
   /**
    * QueryItems RPC method
-   * @param {object} _request - QueryItemsRequest message
+   * @param {object} _request - QueryItemsRequest message (typed using @bufbuild/protobuf)
    * @param {object} _metadata - gRPC metadata
    * @param {object} _call - gRPC call object
    * @returns {Promise<object>} QueryItemsResponse response

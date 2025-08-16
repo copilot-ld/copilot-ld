@@ -9,11 +9,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Parses a proto file to extract service and message definitions
+ * Parses a proto file using @grpc/proto-loader to extract service and message definitions
  * @param {string} protoPath - Path to the proto file
  * @returns {object} Service definition with methods and messages
  */
 function parseProtoFile(protoPath) {
+  // First, parse the file content to extract method definitions using regex
+  // as proto-loader doesn't give us the request/response type names directly
   const content = fs.readFileSync(protoPath, "utf8");
 
   // Extract package name
@@ -43,25 +45,10 @@ function parseProtoFile(protoPath) {
     });
   }
 
-  // Extract message types
-  const messageRegex = /message\s+(\w+)\s*\{[^}]*\}/g;
-  const messages = [];
-  let messageMatch;
-
-  while ((messageMatch = messageRegex.exec(content)) !== null) {
-    messages.push({
-      name: messageMatch[1],
-      fullName: packageName
-        ? `${packageName}.${messageMatch[1]}`
-        : messageMatch[1],
-    });
-  }
-
   return {
     packageName,
     serviceName,
     methods,
-    messages,
     className: `${serviceName}Base`,
   };
 }
@@ -72,11 +59,17 @@ function parseProtoFile(protoPath) {
 const serviceTemplate = `/* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { create } from "@bufbuild/protobuf";
 
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "@copilot-ld/libservice";
+
+// Import generated protobuf types
+{{#methods}}
+import { {{requestType}}Schema } from "../../generated/{{packageName}}_pb.js";
+{{/methods}}
 
 /**
  * Base class for {{serviceName}} service with proto-specific method stubs
@@ -187,7 +180,7 @@ export class {{className}} {
     // Create handlers for all RPC methods
     const handlers = {};
 {{#methods}}
-    handlers.{{name}} = this.#createHandler("{{name}}");
+    handlers.{{name}} = this.#createHandler("{{name}}", {{requestType}}Schema);
 {{/methods}}
 
     this.#server.addService(serviceDefinition, handlers);
@@ -223,12 +216,13 @@ export class {{className}} {
   }
 
   /**
-   * Creates a single handler with authentication
+   * Creates a single handler with authentication and type deserialization
    * @param {string} methodName - Method name
+   * @param {object} requestSchema - Request message schema for type deserialization
    * @returns {Function} Handler function
    * @private
    */
-  #createHandler(methodName) {
+  #createHandler(methodName, requestSchema) {
     return async (call, callback) => {
       const validation = this.#auth.validateCall(call);
       if (!validation.isValid) {
@@ -244,7 +238,11 @@ export class {{className}} {
         if (typeof this[methodName] !== "function") {
           throw new Error(\`Missing RPC method implementation: \${methodName}\`);
         }
-        const resp = await this[methodName](call.request, call.metadata, call);
+        
+        // Deserialize the request using @bufbuild/protobuf
+        const typedRequest = create(requestSchema, call.request);
+        
+        const resp = await this[methodName](typedRequest, call.metadata, call);
         callback(null, resp);
       } catch (error) {
         console.error("Error:", error);
@@ -270,7 +268,7 @@ export class {{className}} {
 {{#methods}}
   /**
    * {{name}} RPC method
-   * @param {object} _request - {{requestType}} message
+   * @param {object} _request - {{requestType}} message (typed using @bufbuild/protobuf)
    * @param {object} _metadata - gRPC metadata
    * @param {object} _call - gRPC call object
    * @returns {Promise<object>} {{responseType}} response

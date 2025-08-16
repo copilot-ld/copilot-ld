@@ -1,11 +1,16 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { create } from "@bufbuild/protobuf";
 
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "@copilot-ld/libservice";
+
+// Import generated protobuf types
+import { GetHistoryRequestSchema } from "../../generated/history_pb.js";
+import { UpdateHistoryRequestSchema } from "../../generated/history_pb.js";
 
 /**
  * Base class for History service with proto-specific method stubs
@@ -121,8 +126,14 @@ export class HistoryBase {
 
     // Create handlers for all RPC methods
     const handlers = {};
-    handlers.GetHistory = this.#createHandler("GetHistory");
-    handlers.UpdateHistory = this.#createHandler("UpdateHistory");
+    handlers.GetHistory = this.#createHandler(
+      "GetHistory",
+      GetHistoryRequestSchema,
+    );
+    handlers.UpdateHistory = this.#createHandler(
+      "UpdateHistory",
+      UpdateHistoryRequestSchema,
+    );
 
     this.#server.addService(serviceDefinition, handlers);
 
@@ -157,12 +168,13 @@ export class HistoryBase {
   }
 
   /**
-   * Creates a single handler with authentication
+   * Creates a single handler with authentication and type deserialization
    * @param {string} methodName - Method name
+   * @param {object} requestSchema - Request message schema for type deserialization
    * @returns {Function} Handler function
    * @private
    */
-  #createHandler(methodName) {
+  #createHandler(methodName, requestSchema) {
     return async (call, callback) => {
       const validation = this.#auth.validateCall(call);
       if (!validation.isValid) {
@@ -178,7 +190,11 @@ export class HistoryBase {
         if (typeof this[methodName] !== "function") {
           throw new Error(`Missing RPC method implementation: ${methodName}`);
         }
-        const resp = await this[methodName](call.request, call.metadata, call);
+
+        // Deserialize the request using @bufbuild/protobuf
+        const typedRequest = create(requestSchema, call.request);
+
+        const resp = await this[methodName](typedRequest, call.metadata, call);
         callback(null, resp);
       } catch (error) {
         console.error("Error:", error);
@@ -203,7 +219,7 @@ export class HistoryBase {
   // Proto-specific method stubs - implement these in your service class
   /**
    * GetHistory RPC method
-   * @param {object} _request - GetHistoryRequest message
+   * @param {object} _request - GetHistoryRequest message (typed using @bufbuild/protobuf)
    * @param {object} _metadata - gRPC metadata
    * @param {object} _call - gRPC call object
    * @returns {Promise<object>} GetHistoryResponse response
@@ -214,7 +230,7 @@ export class HistoryBase {
 
   /**
    * UpdateHistory RPC method
-   * @param {object} _request - UpdateHistoryRequest message
+   * @param {object} _request - UpdateHistoryRequest message (typed using @bufbuild/protobuf)
    * @param {object} _metadata - gRPC metadata
    * @param {object} _call - gRPC call object
    * @returns {Promise<object>} UpdateHistoryResponse response

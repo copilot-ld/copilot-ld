@@ -1,7 +1,6 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-import { create } from "@bufbuild/protobuf";
 
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
@@ -9,147 +8,6 @@ import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { ClientInterface, ServiceInterface, ActorInterface } from "./types.js";
-
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-/**
- * Dynamically imports all generated proto schema modules
- * @returns {Promise<object>} Schema registry mapping type names to schemas
- */
-async function createDynamicSchemaRegistry() {
-  const generatedDir = path.resolve(__dirname, "../../generated");
-
-  // Check if generated directory exists
-  if (!fs.existsSync(generatedDir)) {
-    console.warn(
-      "Generated proto directory not found. Schema registry will be empty.",
-    );
-    return {};
-  }
-
-  const registry = {};
-  const files = fs
-    .readdirSync(generatedDir)
-    .filter((file) => file.endsWith("_pb.js"));
-
-  for (const file of files) {
-    try {
-      const modulePath = path.join(generatedDir, file);
-      const module = await import(modulePath);
-
-      // Extract schemas from the module using the same pattern as manual approach
-      for (const [exportName, schema] of Object.entries(module)) {
-        if (exportName.endsWith("Schema") && schema?.typeName) {
-          registry[schema.typeName] = schema;
-        }
-      }
-    } catch (error) {
-      console.warn(`Failed to import schema module ${file}:`, error.message);
-    }
-  }
-
-  return registry;
-}
-
-/**
- * Alternative approach: Parse proto files directly to extract type information
- * This completely eliminates dependency on generated files for the registry
- * @returns {Promise<object>} Schema registry built from proto file analysis
- */
-async function createProtoBasedSchemaRegistry() {
-  const protoDir = path.resolve(__dirname, "../../proto");
-
-  if (!fs.existsSync(protoDir)) {
-    console.warn("Proto directory not found.");
-    return {};
-  }
-
-  const registry = {};
-  const protoFiles = fs
-    .readdirSync(protoDir)
-    .filter((file) => file.endsWith(".proto"));
-
-  for (const file of protoFiles) {
-    try {
-      const protoPath = path.join(protoDir, file);
-      const content = fs.readFileSync(protoPath, "utf8");
-
-      // Extract package name
-      const packageMatch = content.match(/^\s*package\s+([a-zA-Z0-9_.]+)\s*;/m);
-      const packageName = packageMatch ? packageMatch[1] : "";
-
-      // Extract message definitions
-      const messageRegex = /^\s*message\s+([a-zA-Z0-9_]+)\s*\{/gm;
-      let match;
-
-      while ((match = messageRegex.exec(content)) !== null) {
-        const messageName = match[1];
-        const fullTypeName = packageName
-          ? `${packageName}.${messageName}`
-          : messageName;
-
-        // Store type information - in a real implementation, this would
-        // need to dynamically import or reference the actual schema
-        registry[fullTypeName] = {
-          typeName: fullTypeName,
-          packageName,
-          messageName,
-          protoFile: file,
-        };
-      }
-    } catch (error) {
-      console.warn(`Failed to parse proto file ${file}:`, error.message);
-    }
-  }
-
-  return registry;
-}
-/**
- * Schema registry - will be populated dynamically at runtime
- * This approach eliminates the need for manual maintenance
- */
-let SCHEMA_REGISTRY = {};
-
-/**
- * Initializes the schema registry using multiple dynamic strategies
- * @returns {Promise<void>}
- */
-async function initializeSchemaRegistry() {
-  try {
-    // Strategy 1: Load from generated files (preferred)
-    SCHEMA_REGISTRY = await createDynamicSchemaRegistry();
-
-    if (Object.keys(SCHEMA_REGISTRY).length > 0) {
-      console.log(
-        `Loaded ${Object.keys(SCHEMA_REGISTRY).length} proto schemas from generated files`,
-      );
-      return;
-    }
-
-    // Strategy 2: Parse proto files directly (fallback)
-    console.log(
-      "Generated files not available, parsing proto files directly...",
-    );
-    const protoBasedRegistry = await createProtoBasedSchemaRegistry();
-    console.log(
-      `Discovered ${Object.keys(protoBasedRegistry).length} proto types from source files`,
-    );
-
-    // Note: In a complete implementation, you would need to resolve the
-    // actual schema objects for the proto-based approach
-  } catch (error) {
-    console.warn("Failed to initialize schema registry:", error.message);
-    console.warn("Proto typing features will be unavailable.");
-  }
-}
-
-// Initialize the registry
-await initializeSchemaRegistry();
 
 /**
  * Creates a client with a service configuration
@@ -177,80 +35,6 @@ export async function createClient(
  */
 function grpcFactory() {
   return { grpc, protoLoader };
-}
-
-/**
- * Converts a POJO message to a typed message object using bufbuild schemas
- * @param {object} pojo - Plain old JavaScript object from grpc
- * @param {string} typeName - The proto type name (e.g., "common.Message")
- * @returns {object} Typed message object with $typeName property
- */
-export function createTypedMessage(pojo, typeName) {
-  const schema = SCHEMA_REGISTRY[typeName];
-  if (!schema) {
-    // Return original object with $typeName if schema not found
-    return { ...pojo, $typeName: typeName };
-  }
-
-  return create(schema, pojo);
-}
-
-/**
- * Recursively converts POJOs to typed messages in a response object
- * @param {object} response - gRPC response object
- * @param {string} rootTypeName - The root message type name
- * @returns {object} Response with typed message objects
- */
-export function convertResponseToTyped(response, rootTypeName) {
-  if (!response || typeof response !== "object") {
-    return response;
-  }
-
-  // Convert arrays
-  if (Array.isArray(response)) {
-    return response.map((item) => convertResponseToTyped(item, rootTypeName));
-  }
-
-  // Create typed version of the response
-  const typedResponse = createTypedMessage(response, rootTypeName);
-
-  // Recursively convert nested objects
-  for (const [key, value] of Object.entries(typedResponse)) {
-    if (value && typeof value === "object") {
-      // Try to infer type name for nested objects
-      const nestedTypeName = inferNestedTypeName(key, rootTypeName);
-      if (nestedTypeName) {
-        typedResponse[key] = convertResponseToTyped(value, nestedTypeName);
-      }
-    }
-  }
-
-  return typedResponse;
-}
-
-/**
- * Infer nested type name based on field name and parent type
- * @param {string} fieldName - The field name
- * @param {string} _parentType - The parent message type (unused)
- * @returns {string|null} Inferred type name or null
- */
-function inferNestedTypeName(fieldName, _parentType) {
-  // Common patterns for nested types
-  const typeMap = {
-    message: "common.Message",
-    messages: "common.Message",
-    usage: "common.Usage",
-    choices: "common.Choice",
-    choice: "common.Choice",
-    chunks: "common.Chunk",
-    chunk: "common.Chunk",
-    similarities: "common.Similarity",
-    results: "common.Similarity",
-    embeddings: "common.Embedding",
-    embedding: "common.Embedding",
-  };
-
-  return typeMap[fieldName] || null;
 }
 
 /**
@@ -430,41 +214,11 @@ export class Client extends Actor {
           if (error) {
             reject(error);
           } else {
-            // Convert POJO response to typed message object
-            const responseTypeName = this.#getResponseTypeName(method);
-            const typedResponse = responseTypeName
-              ? convertResponseToTyped(response, responseTypeName)
-              : response;
-            resolve(typedResponse);
+            resolve(response);
           }
         });
       });
     };
-  }
-
-  /**
-   * Gets the response type name for a given method
-   * @param {string} method - Method name
-   * @returns {string|null} Response type name
-   * @private
-   */
-  #getResponseTypeName(method) {
-    const serviceMethod = method.toLowerCase();
-    const serviceName = this.config.name.toLowerCase();
-
-    // Map service methods to their response types
-    const responseTypeMap = {
-      "agent.processrequest": "agent.AgentResponse",
-      "vector.queryitems": "vector.QueryItemsResponse",
-      "history.gethistory": "history.GetHistoryResponse",
-      "history.updatehistory": "history.UpdateHistoryResponse",
-      "text.getchunks": "text.GetChunksResponse",
-      "llm.createcompletions": "llm.CreateCompletionsResponse",
-      "llm.createembeddings": "llm.CreateEmbeddingsResponse",
-    };
-
-    const key = `${serviceName}.${serviceMethod}`;
-    return responseTypeMap[key] || null;
   }
 
   /**
@@ -481,14 +235,83 @@ export class Client extends Actor {
 }
 
 /**
- * Creates a standardized gRPC service with minimal boilerplate
- * @implements {ServiceInterface}
+ * Converts a POJO message to a typed message object using bufbuild schemas
+ * @param {object} pojo - Plain old JavaScript object from grpc
+ * @param {string} typeName - The proto type name (e.g., "common.Message")
+ * @returns {object} Typed message object with $typeName property
+ */
+export function createTypedMessage(pojo, typeName) {
+  // Simple implementation that just adds the typeName property
+  return { ...pojo, $typeName: typeName };
+}
+
+/**
+ * Recursively converts POJOs to typed messages in a response object
+ * @param {object} response - gRPC response object
+ * @param {string} rootTypeName - The root message type name
+ * @returns {object} Response with typed message objects
+ */
+export function convertResponseToTyped(response, rootTypeName) {
+  if (!response || typeof response !== "object") {
+    return response;
+  }
+
+  // Convert arrays
+  if (Array.isArray(response)) {
+    return response.map((item) => convertResponseToTyped(item, rootTypeName));
+  }
+
+  // Create typed version of the response
+  const typedResponse = createTypedMessage(response, rootTypeName);
+
+  // Recursively convert nested objects
+  for (const [key, value] of Object.entries(typedResponse)) {
+    if (value && typeof value === "object") {
+      // Try to infer type name for nested objects
+      const nestedTypeName = inferNestedTypeName(key, rootTypeName);
+      if (nestedTypeName) {
+        typedResponse[key] = convertResponseToTyped(value, nestedTypeName);
+      }
+    }
+  }
+
+  return typedResponse;
+}
+
+/**
+ * Infer nested type name based on field name and parent type
+ * @param {string} fieldName - The field name
+ * @param {string} _parentType - The parent message type (unused)
+ * @returns {string|null} Inferred type name or null
+ */
+function inferNestedTypeName(fieldName, _parentType) {
+  // Common patterns for nested types
+  const typeMap = {
+    message: "common.Message",
+    messages: "common.Message",
+    usage: "common.Usage",
+    choices: "common.Choice",
+    choice: "common.Choice",
+    chunks: "common.Chunk",
+    chunk: "common.Chunk",
+    similarities: "common.Similarity",
+    results: "common.Similarity",
+    embeddings: "common.Embedding",
+    embedding: "common.Embedding",
+  };
+
+  return typeMap[fieldName] || null;
+}
+
+/**
+ * Legacy Service class for backwards compatibility
+ * Services should now extend generated base classes instead
+ * @deprecated Use generated service base classes instead
  */
 export class Service extends Actor {
   #server;
   #started = false;
 
-  /** @inheritdoc */
   constructor(
     config,
     grpcFn = grpcFactory,
@@ -496,9 +319,11 @@ export class Service extends Actor {
     logFn = logFactory,
   ) {
     super(config, grpcFn, authFn, logFn);
+    console.warn(
+      "Service class is deprecated. Use generated service base classes instead.",
+    );
   }
 
-  /** @inheritdoc */
   async start() {
     if (this.#started) throw new Error("Server is already started");
 

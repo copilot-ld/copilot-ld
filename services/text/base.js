@@ -1,11 +1,15 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { create } from "@bufbuild/protobuf";
 
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "@copilot-ld/libservice";
+
+// Import generated protobuf types
+import { GetChunksRequestSchema } from "../../generated/text_pb.js";
 
 /**
  * Base class for Text service with proto-specific method stubs
@@ -121,7 +125,10 @@ export class TextBase {
 
     // Create handlers for all RPC methods
     const handlers = {};
-    handlers.GetChunks = this.#createHandler("GetChunks");
+    handlers.GetChunks = this.#createHandler(
+      "GetChunks",
+      GetChunksRequestSchema,
+    );
 
     this.#server.addService(serviceDefinition, handlers);
 
@@ -156,12 +163,13 @@ export class TextBase {
   }
 
   /**
-   * Creates a single handler with authentication
+   * Creates a single handler with authentication and type deserialization
    * @param {string} methodName - Method name
+   * @param {object} requestSchema - Request message schema for type deserialization
    * @returns {Function} Handler function
    * @private
    */
-  #createHandler(methodName) {
+  #createHandler(methodName, requestSchema) {
     return async (call, callback) => {
       const validation = this.#auth.validateCall(call);
       if (!validation.isValid) {
@@ -177,7 +185,11 @@ export class TextBase {
         if (typeof this[methodName] !== "function") {
           throw new Error(`Missing RPC method implementation: ${methodName}`);
         }
-        const resp = await this[methodName](call.request, call.metadata, call);
+
+        // Deserialize the request using @bufbuild/protobuf
+        const typedRequest = create(requestSchema, call.request);
+
+        const resp = await this[methodName](typedRequest, call.metadata, call);
         callback(null, resp);
       } catch (error) {
         console.error("Error:", error);
@@ -202,7 +214,7 @@ export class TextBase {
   // Proto-specific method stubs - implement these in your service class
   /**
    * GetChunks RPC method
-   * @param {object} _request - GetChunksRequest message
+   * @param {object} _request - GetChunksRequest message (typed using @bufbuild/protobuf)
    * @param {object} _metadata - gRPC metadata
    * @param {object} _call - gRPC call object
    * @returns {Promise<object>} GetChunksResponse response

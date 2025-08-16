@@ -5,15 +5,15 @@ import {
   generateSessionId,
   getLatestUserMessage,
 } from "@copilot-ld/libprompt";
-import { Service } from "@copilot-ld/libservice";
 
+import { AgentBase } from "./base.js";
 import { AgentServiceInterface } from "./types.js";
 
 /**
  * Main orchestration service for agent requests
  * @implements {AgentServiceInterface}
  */
-class AgentService extends Service {
+class AgentService extends AgentBase {
   #clients;
   #octokitFactory;
 

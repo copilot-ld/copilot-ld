@@ -1,13 +1,12 @@
 /* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-
+import { VectorBase } from "./base.js";
 import { VectorServiceInterface } from "./types.js";
 
 /**
  * Vector search service for querying a single vector index
  * @implements {VectorServiceInterface}
  */
-class VectorService extends Service {
+class VectorService extends VectorBase {
   #vectorIndex;
 
   /**

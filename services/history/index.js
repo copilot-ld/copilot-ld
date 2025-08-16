@@ -1,14 +1,14 @@
 /* eslint-env node */
 import { Prompt } from "@copilot-ld/libprompt";
-import { Service } from "@copilot-ld/libservice";
 
+import { HistoryBase } from "./base.js";
 import { HistoryServiceInterface } from "./types.js";
 
 /**
  * Chat history management service with prompt storage and optimization
  * @implements {HistoryServiceInterface}
  */
-class HistoryService extends Service {
+class HistoryService extends HistoryBase {
   #promptStorage;
   #promptOptimizer;
 

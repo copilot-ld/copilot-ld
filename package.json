@@ -17,6 +17,7 @@
   "scripts": {
     "dev": "concurrently 'npm run dev -w @copilot-ld/web' 'npm run dev -w @copilot-ld/copilot' 'npm run dev -w @copilot-ld/agent' 'npm run dev -w @copilot-ld/llm' 'npm run dev -w @copilot-ld/vector' 'npm run dev -w @copilot-ld/text' 'npm run dev -w @copilot-ld/history'",
     "generate:proto": "rm -rf generated && mkdir -p generated && protoc --plugin=./node_modules/.bin/protoc-gen-es --es_out=generated --es_opt=target=js,import_extension=.js --proto_path=proto proto/*.proto",
+    "codegen:services": "node tools/codegen-services.js",
     "test": "find packages services test -name '*.test.js' | xargs node --test",
     "test:watch": "find packages services test -name '*.test.js' | xargs node --test --watch",
     "perf": "find packages services -name '*.perf.js' | xargs node --expose-gc --test",
@@ -54,5 +55,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "mustache": "^4.2.0"
   }
 }

@@ -1,15 +1,15 @@
 /* eslint-env node */
 import { Message, Choice, Usage } from "@copilot-ld/libtype";
 import { Prompt } from "@copilot-ld/libprompt";
-import { Service } from "@copilot-ld/libservice";
 
+import { LlmBase } from "./base.js";
 import { LlmServiceInterface } from "./types.js";
 
 /**
  * LLM service for completions and embeddings
  * @implements {LlmServiceInterface}
  */
-class LlmService extends Service {
+class LlmService extends LlmBase {
   #llmFactory;
 
   /**

@@ -211,8 +211,11 @@ export class Client extends Actor {
       await this.ensureReady();
       return new Promise((resolve, reject) => {
         this.#client[method](...args, (error, response) => {
-          if (error) reject(error);
-          else resolve(response);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(response);
+          }
         });
       });
     };
@@ -232,14 +235,83 @@ export class Client extends Actor {
 }
 
 /**
- * Creates a standardized gRPC service with minimal boilerplate
- * @implements {ServiceInterface}
+ * Converts a POJO message to a typed message object using bufbuild schemas
+ * @param {object} pojo - Plain old JavaScript object from grpc
+ * @param {string} typeName - The proto type name (e.g., "common.Message")
+ * @returns {object} Typed message object with $typeName property
+ */
+export function createTypedMessage(pojo, typeName) {
+  // Simple implementation that just adds the typeName property
+  return { ...pojo, $typeName: typeName };
+}
+
+/**
+ * Recursively converts POJOs to typed messages in a response object
+ * @param {object} response - gRPC response object
+ * @param {string} rootTypeName - The root message type name
+ * @returns {object} Response with typed message objects
+ */
+export function convertResponseToTyped(response, rootTypeName) {
+  if (!response || typeof response !== "object") {
+    return response;
+  }
+
+  // Convert arrays
+  if (Array.isArray(response)) {
+    return response.map((item) => convertResponseToTyped(item, rootTypeName));
+  }
+
+  // Create typed version of the response
+  const typedResponse = createTypedMessage(response, rootTypeName);
+
+  // Recursively convert nested objects
+  for (const [key, value] of Object.entries(typedResponse)) {
+    if (value && typeof value === "object") {
+      // Try to infer type name for nested objects
+      const nestedTypeName = inferNestedTypeName(key, rootTypeName);
+      if (nestedTypeName) {
+        typedResponse[key] = convertResponseToTyped(value, nestedTypeName);
+      }
+    }
+  }
+
+  return typedResponse;
+}
+
+/**
+ * Infer nested type name based on field name and parent type
+ * @param {string} fieldName - The field name
+ * @param {string} _parentType - The parent message type (unused)
+ * @returns {string|null} Inferred type name or null
+ */
+function inferNestedTypeName(fieldName, _parentType) {
+  // Common patterns for nested types
+  const typeMap = {
+    message: "common.Message",
+    messages: "common.Message",
+    usage: "common.Usage",
+    choices: "common.Choice",
+    choice: "common.Choice",
+    chunks: "common.Chunk",
+    chunk: "common.Chunk",
+    similarities: "common.Similarity",
+    results: "common.Similarity",
+    embeddings: "common.Embedding",
+    embedding: "common.Embedding",
+  };
+
+  return typeMap[fieldName] || null;
+}
+
+/**
+ * Legacy Service class for backwards compatibility
+ * Services should now extend generated base classes instead
+ * @deprecated Use generated service base classes instead
  */
 export class Service extends Actor {
   #server;
   #started = false;
 
-  /** @inheritdoc */
   constructor(
     config,
     grpcFn = grpcFactory,
@@ -247,9 +319,11 @@ export class Service extends Actor {
     logFn = logFactory,
   ) {
     super(config, grpcFn, authFn, logFn);
+    console.warn(
+      "Service class is deprecated. Use generated service base classes instead.",
+    );
   }
 
-  /** @inheritdoc */
   async start() {
     if (this.#started) throw new Error("Server is already started");
 

@@ -1,13 +1,12 @@
 /* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-
+import { TextBase } from "./base.js";
 import { TextServiceInterface } from "./types.js";
 
 /**
  * Text chunk retrieval service
  * @implements {TextServiceInterface}
  */
-class TextService extends Service {
+class TextService extends TextBase {
   #chunkIndex;
 
   /**

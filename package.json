@@ -16,6 +16,8 @@
   ],
   "scripts": {
     "dev": "concurrently 'npm run dev -w @copilot-ld/web' 'npm run dev -w @copilot-ld/copilot' 'npm run dev -w @copilot-ld/agent' 'npm run dev -w @copilot-ld/llm' 'npm run dev -w @copilot-ld/vector' 'npm run dev -w @copilot-ld/text' 'npm run dev -w @copilot-ld/history'",
+    "codegen:types": "node tools/codegen-types.js",
+    "codegen:services": "node tools/codegen-services.js",
     "test": "find packages services test -name '*.test.js' | xargs node --test",
     "test:watch": "find packages services test -name '*.test.js' | xargs node --test --watch",
     "perf": "find packages services -name '*.perf.js' | xargs node --expose-gc --test",
@@ -32,6 +34,8 @@
     "@eslint/js": "^9.15.0",
     "@eslint/json": "^0.13.1",
     "@eslint/markdown": "^7.1.0",
+    "protobufjs": "^7.4.0",
+    "protobufjs-cli": "^1.1.1",
     "concurrently": "^9.1.0",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^10.1.5",
@@ -51,5 +55,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "mustache": "^4.2.0"
   }
 }

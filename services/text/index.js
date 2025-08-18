@@ -1,19 +1,16 @@
 /* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-
-import { TextServiceInterface } from "./types.js";
+import { TextBase } from "./types.js";
 
 /**
  * Text chunk retrieval service
- * @implements {TextServiceInterface}
  */
-class TextService extends Service {
+class TextService extends TextBase {
   #chunkIndex;
 
   /**
    * Creates a new Text service instance
-   * @param {object} config - Service configuration object
-   * @param {object} chunkIndex - ChunkIndex instance for data access
+   * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
+   * @param {import("@copilot-ld/libchunk").ChunkIndexInterface} chunkIndex - ChunkIndex instance for data access
    * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
    * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
    * @param {(namespace: string) => object} [logFn] - Optional log factory function
@@ -24,15 +21,14 @@ class TextService extends Service {
   }
 
   /**
-   * Retrieves chunks by their IDs
-   * @param {object} request - Request object containing chunk IDs
-   * @param {string[]} request.ids - Array of chunk IDs to retrieve
-   * @returns {Promise<object>} Response containing the requested chunks
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").text.GetChunksRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").text.GetChunksResponse>} Response message
    */
-  async GetChunks({ ids }) {
-    const chunks = await this.#chunkIndex.getChunks(ids);
+  async GetChunks(req) {
+    const chunks = await this.#chunkIndex.getChunks(req.ids);
     return { chunks };
   }
 }
 
-export { TextService, TextServiceInterface };
+export { TextService };

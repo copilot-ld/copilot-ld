@@ -5,7 +5,7 @@ import assert from "node:assert";
 // Test the integrated prompt management flow
 import { PromptAssembler, PromptStorage } from "@copilot-ld/libprompt";
 import { LocalStorage } from "@copilot-ld/libstorage";
-import { Message, Similarity } from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 describe("Prompt Management Integration", () => {
   test("demonstrates complete prompt flow", async () => {
@@ -26,21 +26,21 @@ describe("Prompt Management Integration", () => {
     assert(existingPrompt.isEmpty(), "New session should have empty prompt");
 
     // 2. Create a new user message
-    const newUserMessage = new Message({
+    const newUserMessage = common.Message.fromObject({
       role: "user",
       content: "How do I deploy with Docker?",
     });
 
     // 3. Simulate similarity search results
     const currentSimilarities = [
-      new Similarity({
+      common.Similarity.fromObject({
         id: "chunk-1",
         score: 0.95,
         tokens: 150,
         scope: "docker",
         text: "Docker containers provide isolated environments for applications...",
       }),
-      new Similarity({
+      common.Similarity.fromObject({
         id: "chunk-2",
         score: 0.87,
         tokens: 120,
@@ -93,7 +93,7 @@ describe("Prompt Management Integration", () => {
     assert.strictEqual(llmMessages[3].content, "How do I deploy with Docker?");
 
     // 7. Simulate LLM response and update prompt
-    const assistantMessage = new Message({
+    const assistantMessage = new common.Message({
       role: "assistant",
       content:
         "To deploy with Docker, follow these steps: 1. Create a Dockerfile...",
@@ -115,12 +115,12 @@ describe("Prompt Management Integration", () => {
     assert.strictEqual(updatedPrompt.previous_similarities[1].id, "chunk-2");
 
     // 9. Test second turn of conversation
-    const secondUserMessage = new Message({
+    const secondUserMessage = new common.Message({
       role: "user",
       content: "What about security considerations?",
     });
     const newCurrentSimilarities = [
-      new Similarity({
+      new common.Similarity({
         id: "chunk-3",
         score: 0.92,
         tokens: 180,

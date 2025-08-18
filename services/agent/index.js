@@ -1,19 +1,17 @@
 /* eslint-env node */
-import { Similarity } from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 import {
   PromptAssembler,
   generateSessionId,
   getLatestUserMessage,
 } from "@copilot-ld/libprompt";
-import { Service } from "@copilot-ld/libservice";
 
-import { AgentServiceInterface } from "./types.js";
+import { AgentBase } from "./types.js";
 
 /**
  * Main orchestration service for agent requests
- * @implements {AgentServiceInterface}
  */
-class AgentService extends Service {
+class AgentService extends AgentBase {
   #clients;
   #octokitFactory;
 
@@ -33,17 +31,14 @@ class AgentService extends Service {
   }
 
   /**
-   * Processes an agent request using simplified prompt management
-   * @param {object} params - Request parameters
-   * @param {Array} params.messages - Array of conversation messages
-   * @param {string} params.session_id - Optional session ID for conversation continuity
-   * @param {string} params.github_token - GitHub authentication token
-   * @returns {Promise<object>} Completion response with session ID
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").agent.ProcessRequestRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").agent.ProcessRequestResponse>} Response message
    */
-  async ProcessRequest({ messages: clientMessages, session_id, github_token }) {
+  async ProcessRequest(req) {
     this.debug("Processing request", {
-      session: session_id,
-      messages: clientMessages.length,
+      session: req.session_id,
+      messages: req.messages?.length || 0,
     });
 
     // Ensure all clients are ready before processing
@@ -54,15 +49,17 @@ class AgentService extends Service {
       this.#clients.text.ensureReady(),
     ]);
 
-    const octokit = this.#octokitFactory(github_token);
+    const octokit = this.#octokitFactory(req.github_token);
     await octokit.request("GET /user");
 
-    const sessionId = session_id || generateSessionId();
-    const latestUserMessage = getLatestUserMessage(clientMessages);
+    const finalSessionId = req.session_id || generateSessionId();
+
+    // Use typed Message objects from the request - they're already properly typed
+    const latestUserMessage = getLatestUserMessage(req.messages);
 
     // 1. Get existing prompt from history service
     const { prompt: existingPrompt } = await this.#clients.history.GetHistory({
-      session_id: sessionId,
+      session_id: finalSessionId,
     });
 
     let requestPrompt;
@@ -72,7 +69,7 @@ class AgentService extends Service {
       // Get embeddings and search for similar content directly
       const embeddings = await this.#clients.llm.CreateEmbeddings({
         chunks: [latestUserMessage.content],
-        github_token,
+        github_token: req.github_token,
       });
 
       const vector = embeddings.data[0].embedding;
@@ -91,9 +88,13 @@ class AgentService extends Service {
 
         currentSimilarities = results.map((r) => {
           const chunk = chunks[r.id];
-          const similarity = new Similarity(r);
-          similarity.text = chunk?.text;
-          return similarity;
+          // Create properly typed Similarity objects using the constructor
+          return new common.Similarity({
+            id: r.id,
+            score: r.score,
+            tokens: r.tokens,
+            text: chunk?.text || "",
+          });
         });
       }
 
@@ -105,7 +106,7 @@ class AgentService extends Service {
         this.config.prompts,
       );
     } else {
-      this.debug("Processing without new message", { session: sessionId });
+      this.debug("Processing without new message", { session: finalSessionId });
       // No new user message, use existing prompt
       requestPrompt = existingPrompt;
     }
@@ -114,34 +115,44 @@ class AgentService extends Service {
     const completions = await this.#clients.llm.CreateCompletions({
       prompt: requestPrompt,
       temperature: this.config.temperature,
-      github_token,
+      github_token: req.github_token,
     });
 
     // 4. Fire-and-forget history update (optimization happens internally)
     if (completions.choices?.length > 0) {
+      // Ensure we work with properly typed Choice and Message objects
+      const responseMessage =
+        completions.choices[0].message instanceof common.Message
+          ? completions.choices[0].message
+          : common.Message.fromObject(completions.choices[0].message);
+
       const updatedPrompt = PromptAssembler.updateWithResponse(
         requestPrompt,
-        completions.choices[0].message,
+        responseMessage,
       );
 
       // Use fire-and-forget pattern for async history update
       this.#clients.history.fireAndForget.UpdateHistory({
-        session_id: sessionId,
+        session_id: finalSessionId,
         prompt: updatedPrompt,
-        github_token,
+        github_token: req.github_token,
       });
     }
 
     this.debug("Request complete", {
-      session: sessionId,
+      session: finalSessionId,
       choices: completions.choices?.length || 0,
       usage: completions.usage
         ? `${completions.usage.total_tokens} tokens`
         : "unknown",
     });
 
-    return { ...completions, session_id: sessionId };
+    // Return properly constructed AgentResponse with typed objects
+    return {
+      ...completions,
+      session_id: finalSessionId,
+    };
   }
 }
 
-export { AgentService, AgentServiceInterface };
+export { AgentService };

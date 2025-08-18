@@ -1,7 +1,3 @@
-/* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-import { agent } from "@copilot-ld/libtype";
-
 /**
  * Base class for Agent service with proto-specific method stubs
  * Extends the Service class for common gRPC functionality
@@ -11,32 +7,19 @@ export class AgentBase extends Service {
    * Start the gRPC server with service-specific handlers
    * @returns {Promise<number>} Port number the server is listening on
    */
-  async start() {
-    const proto = await this.loadProto("agent.proto");
-    const serviceDefinition = proto.Agent.service;
-
-    const handlers = {};
-    handlers.ProcessRequest = this.handleProcessRequest;
-
-    return super.start(serviceDefinition, handlers);
-  }
-
+  start(): Promise<number>;
   /**
    * Handler for ProcessRequest that creates typed data and calls the implementation
    * @param {object} call - gRPC call object
    * @returns {Promise<agent.AgentResponse>} AgentResponse
    */
-  async handleProcessRequest(call) {
-    const req = agent.AgentRequest.fromObject(call.request);
-    return this.ProcessRequest(req);
-  }
-
+  handleProcessRequest(call: object): Promise<agent.AgentResponse>;
   /**
    * ProcessRequest RPC method
    * @param { agent.AgentRequest } req - Request message
    * @returns {Promise<agent.AgentResponse>} Response message
    */
-  async ProcessRequest(req) {
-    throw new Error("Not implemented");
-  }
+  ProcessRequest(req: agent.AgentRequest): Promise<agent.AgentResponse>;
 }
+import { Service } from "@copilot-ld/libservice";
+import { agent } from "@copilot-ld/libtype";

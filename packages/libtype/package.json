@@ -6,6 +6,7 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "types": "types.d.ts",
   "engines": {
     "node": ">=22.0.0"
   },

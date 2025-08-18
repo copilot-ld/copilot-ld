@@ -2,126 +2,222 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-// Module under test
-import {
-  Chunk,
-  Choice,
-  Embedding,
-  Message,
-  Similarity,
-  Usage,
-} from "../index.js";
+import { common, history } from "../index.js";
 
 describe("libtype", () => {
-  describe("Chunk", () => {
-    test("creates chunk with required properties", () => {
-      const chunk = new Chunk({
-        id: "test-chunk",
-        text: "Test content",
+  describe("Simple type", () => {
+    test("creates type with required properties", () => {
+      const similarity = common.Similarity.fromObject({
+        id: "test-similarity",
+        score: 0.9,
         tokens: 10,
+        text: "Test content",
       });
 
-      assert.strictEqual(chunk.id, "test-chunk");
-      assert.strictEqual(chunk.text, "Test content");
-      assert.strictEqual(chunk.tokens, 10);
+      assert.strictEqual(similarity.id, "test-similarity");
+      assert.strictEqual(similarity.score, 0.9);
+      assert.strictEqual(similarity.tokens, 10);
+      assert.strictEqual(similarity.text, "Test content");
     });
 
-    test("creates chunk with defaults", () => {
-      const chunk = new Chunk({ id: "test-chunk" });
+    test("type is of the correct instance", () => {
+      const similarity = common.Similarity.fromObject({
+        id: "instance-similarity",
+        score: 0.9,
+        tokens: 1,
+        text: "Instance check",
+      });
 
-      assert.strictEqual(chunk.id, "test-chunk");
-      assert.strictEqual(chunk.tokens, 0);
-      assert.strictEqual(chunk.text, undefined);
-    });
-
-    test("creates chunk without text", () => {
-      const chunk = new Chunk({ id: "test-chunk", tokens: 5 });
-
-      assert.strictEqual(chunk.id, "test-chunk");
-      assert.strictEqual(chunk.tokens, 5);
-      assert.strictEqual(chunk.text, undefined);
+      assert.ok(similarity instanceof common.Similarity);
     });
   });
 
-  describe("Choice", () => {
-    test("creates choice with message object", () => {
-      const choice = new Choice({
-        index: 0,
-        message: { role: "assistant", content: "Hello" },
-        finish_reason: "stop",
+  describe("Complex type", () => {
+    test("creates type with deep properties", () => {
+      const request = history.UpdateHistoryRequest.fromObject({
+        session_id: "session-1",
+        prompt: {
+          system_instructions: ["You are an agent"],
+          current_similarities: [
+            {
+              id: "similarity-2",
+              score: 0.9,
+              tokens: 10,
+              text: "Current similarity 2",
+            },
+          ],
+          previous_similarities: [
+            {
+              id: "similarity-1",
+              score: 0.8,
+              tokens: 5,
+              text: "Previous similarity 1",
+            },
+          ],
+          messages: [
+            {
+              role: "user",
+              content: "What is the capital of France?",
+            },
+          ],
+        },
+        github_token: "example-token",
       });
 
-      assert.strictEqual(choice.index, 0);
-      assert.strictEqual(choice.finish_reason, "stop");
-      assert(choice.message instanceof Message);
-      assert.strictEqual(choice.message.role, "assistant");
-      assert.strictEqual(choice.message.content, "Hello");
+      assert.strictEqual(request.session_id, "session-1");
+      assert.strictEqual(request.prompt.system_instructions.length, 1);
+      assert.strictEqual(
+        request.prompt.system_instructions[0],
+        "You are an agent",
+      );
+      assert.strictEqual(request.prompt.current_similarities.length, 1);
+      assert.strictEqual(
+        request.prompt.current_similarities[0].id,
+        "similarity-2",
+      );
+      assert.strictEqual(request.prompt.current_similarities[0].score, 0.9);
+      assert.strictEqual(request.prompt.current_similarities[0].tokens, 10);
+      assert.strictEqual(
+        request.prompt.current_similarities[0].text,
+        "Current similarity 2",
+      );
+      assert.strictEqual(request.prompt.previous_similarities.length, 1);
+      assert.strictEqual(
+        request.prompt.previous_similarities[0].id,
+        "similarity-1",
+      );
+      assert.strictEqual(request.prompt.previous_similarities[0].score, 0.8);
+      assert.strictEqual(request.prompt.previous_similarities[0].tokens, 5);
+      assert.strictEqual(
+        request.prompt.previous_similarities[0].text,
+        "Previous similarity 1",
+      );
+      assert.strictEqual(request.prompt.messages.length, 1);
+      assert.strictEqual(request.prompt.messages[0].role, "user");
+      assert.strictEqual(
+        request.prompt.messages[0].content,
+        "What is the capital of France?",
+      );
+      assert.strictEqual(request.github_token, "example-token");
+    });
+
+    test("type is of the correct instance", () => {
+      const request = history.UpdateHistoryRequest.fromObject({
+        session_id: "session-1",
+        prompt: {
+          system_instructions: ["You are an agent"],
+          current_similarities: [
+            {
+              id: "similarity-2",
+              score: 0.9,
+              tokens: 10,
+              text: "Current similarity 2",
+            },
+          ],
+          previous_similarities: [
+            {
+              id: "similarity-1",
+              score: 0.8,
+              tokens: 5,
+              text: "Previous similarity 1",
+            },
+          ],
+          messages: [
+            {
+              role: "user",
+              content: "What is the capital of France?",
+            },
+          ],
+        },
+        github_token: "example-token",
+      });
+
+      assert.ok(request instanceof history.UpdateHistoryRequest);
+      assert.ok(request.prompt instanceof common.Prompt);
+      assert.ok(
+        request.prompt.current_similarities[0] instanceof common.Similarity,
+      );
+      assert.ok(
+        request.prompt.previous_similarities[0] instanceof common.Similarity,
+      );
+      assert.ok(request.prompt.messages[0] instanceof common.Message);
     });
   });
 
-  describe("Embedding", () => {
-    test("creates embedding with vector", () => {
-      const embedding = new Embedding({
-        index: 0,
-        embedding: [0.1, 0.2, 0.3],
+  describe("Prompt methods", () => {
+    test("toMessages converts prompt to ordered messages array", () => {
+      const prompt = new common.Prompt({
+        system_instructions: ["You are a helpful assistant", "Be concise"],
+        current_similarities: [
+          new common.Similarity({ text: "Current context item 1" }),
+          new common.Similarity({ text: "Current context item 2" }),
+        ],
+        previous_similarities: [
+          new common.Similarity({ text: "Previous context item 1" }),
+        ],
+        messages: [
+          new common.Message({ role: "user", content: "Hello" }),
+          new common.Message({ role: "assistant", content: "Hi there!" }),
+        ],
       });
 
-      assert.strictEqual(embedding.index, 0);
-      assert.deepStrictEqual(embedding.embedding, [0.1, 0.2, 0.3]);
+      const messages = prompt.toMessages();
+
+      assert.strictEqual(messages.length, 6);
+      assert.strictEqual(messages[0].role, "system");
+      assert.strictEqual(messages[0].content, "You are a helpful assistant");
+      assert.strictEqual(messages[1].role, "system");
+      assert.strictEqual(messages[1].content, "Be concise");
+      assert.strictEqual(messages[2].role, "system");
+      assert.strictEqual(
+        messages[2].content,
+        "Current context:\nCurrent context item 1\n\nCurrent context item 2",
+      );
+      assert.strictEqual(messages[3].role, "system");
+      assert.strictEqual(
+        messages[3].content,
+        "Previous context:\nPrevious context item 1",
+      );
+      assert.strictEqual(messages[4].role, "user");
+      assert.strictEqual(messages[4].content, "Hello");
+      assert.strictEqual(messages[5].role, "assistant");
+      assert.strictEqual(messages[5].content, "Hi there!");
     });
-  });
 
-  describe("Message", () => {
-    test("creates message with role and content", () => {
-      const message = new Message({
-        role: "user",
-        content: "Hello, world!",
-      });
+    test("fromMessages reconstructs prompt from messages array", () => {
+      const messages = [
+        new common.Message({ role: "system", content: "You are helpful" }),
+        new common.Message({ role: "system", content: "Be brief" }),
+        new common.Message({
+          role: "system",
+          content: "Current context:\nContext item 1\n\nContext item 2",
+        }),
+        new common.Message({
+          role: "system",
+          content: "Previous context:\nPrevious item 1",
+        }),
+        new common.Message({ role: "user", content: "Test question" }),
+        new common.Message({ role: "assistant", content: "Test response" }),
+      ];
 
-      assert.strictEqual(message.role, "user");
-      assert.strictEqual(message.content, "Hello, world!");
-    });
-  });
+      const prompt = new common.Prompt().fromMessages(messages);
 
-  describe("Similarity", () => {
-    test("creates similarity with required properties", () => {
-      const similarity = new Similarity({
-        id: "test-item",
-        score: 0.95,
-        tokens: 50,
-        scope: "test-scope",
-      });
-
-      assert.strictEqual(similarity.id, "test-item");
-      assert.strictEqual(similarity.score, 0.95);
-      assert.strictEqual(similarity.tokens, 50);
-      assert.strictEqual(similarity.scope, "test-scope");
-    });
-
-    test("creates similarity with defaults", () => {
-      const similarity = new Similarity({
-        id: "test-item",
-        score: 0.95,
-      });
-
-      assert.strictEqual(similarity.id, "test-item");
-      assert.strictEqual(similarity.score, 0.95);
-      assert.strictEqual(similarity.tokens, 0);
-      assert.strictEqual(similarity.scope, null);
-    });
-  });
-
-  describe("Usage", () => {
-    test("creates usage with token counts", () => {
-      const usage = new Usage({
-        prompt_tokens: 10,
-        completion_tokens: 20,
-        total_tokens: 30,
-      });
-
-      assert.strictEqual(usage.prompt_tokens, 10);
-      assert.strictEqual(usage.completion_tokens, 20);
-      assert.strictEqual(usage.total_tokens, 30);
+      assert.strictEqual(prompt.system_instructions.length, 2);
+      assert.strictEqual(prompt.system_instructions[0], "You are helpful");
+      assert.strictEqual(prompt.system_instructions[1], "Be brief");
+      assert.strictEqual(prompt.current_similarities.length, 2);
+      assert.strictEqual(prompt.current_similarities[0].text, "Context item 1");
+      assert.strictEqual(prompt.current_similarities[1].text, "Context item 2");
+      assert.strictEqual(prompt.previous_similarities.length, 1);
+      assert.strictEqual(
+        prompt.previous_similarities[0].text,
+        "Previous item 1",
+      );
+      assert.strictEqual(prompt.messages.length, 2);
+      assert.strictEqual(prompt.messages[0].role, "user");
+      assert.strictEqual(prompt.messages[0].content, "Test question");
+      assert.strictEqual(prompt.messages[1].role, "assistant");
+      assert.strictEqual(prompt.messages[1].content, "Test response");
     });
   });
 });

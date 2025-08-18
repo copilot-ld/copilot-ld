@@ -106,10 +106,11 @@ export class Actor extends ActorInterface {
   debug = (message, context) => this.#logger.debug(message, context);
 
   /** @inheritdoc */
-  async loadProto(serviceName) {
+  async loadProto(key) {
     const storage = storageFactory("proto", "local");
-    const filename = await storage.path(`${serviceName}.proto`);
+    const filename = await storage.path(key);
 
+    const serviceName = key.replace(".proto", "");
     const packageDefinition = this.grpc().loadPackageDefinition(
       this.protoLoader().loadSync(filename, {
         keepCase: true,
@@ -211,8 +212,11 @@ export class Client extends Actor {
       await this.ensureReady();
       return new Promise((resolve, reject) => {
         this.#client[method](...args, (error, response) => {
-          if (error) reject(error);
-          else resolve(response);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(response);
+          }
         });
       });
     };
@@ -232,14 +236,25 @@ export class Client extends Actor {
 }
 
 /**
- * Creates a standardized gRPC service with minimal boilerplate
+ * Converts a POJO message to a typed message object using bufbuild schemas
+ * @param {object} pojo - Plain old JavaScript object from grpc
+ * @param {string} typeName - The proto type name (e.g., "common.Message")
+ * @returns {object} Typed message object with $typeName property
+ */
+export function createTypedMessage(pojo, typeName) {
+  // Simple implementation that just adds the typeName property
+  return { ...pojo, $typeName: typeName };
+}
+
+/**
+ * Base Service class for all gRPC services
+ * Generated service base classes extend this class
  * @implements {ServiceInterface}
  */
 export class Service extends Actor {
   #server;
   #started = false;
 
-  /** @inheritdoc */
   constructor(
     config,
     grpcFn = grpcFactory,
@@ -249,14 +264,21 @@ export class Service extends Actor {
     super(config, grpcFn, authFn, logFn);
   }
 
-  /** @inheritdoc */
-  async start() {
+  async start(serviceDefinition, handlers) {
     if (this.#started) throw new Error("Server is already started");
 
     this.#server = new (this.grpc().Server)();
-    const proto = await this.loadProto(this.config.name);
-    const serviceDefinition = this.#getServiceDefinition(proto);
-    const handlers = this.#createHandlers(serviceDefinition);
+
+    // If no parameters provided, use legacy behavior for backward compatibility
+    if (!serviceDefinition || !handlers) {
+      const proto = await this.loadProto(this.config.name);
+      serviceDefinition = this.#getServiceDefinition(proto);
+      handlers = this.#createHandlers(serviceDefinition);
+    } else {
+      // Wrap provided handlers with centralized auth/error handling when needed
+      handlers = this.#wrapProvidedHandlers(serviceDefinition, handlers);
+    }
+
     this.#server.addService(serviceDefinition, handlers);
 
     const uri = `${this.config.host}:${this.config.port}`;
@@ -321,12 +343,53 @@ export class Service extends Actor {
   }
 
   /**
-   * Creates a single handler with authentication
+   * Creates a single handler that delegates to the implementation after centralized auth/error handling
    * @param {string} methodName - Method name
    * @returns {Function} Handler function
    */
   #createHandler(methodName) {
+    // Inner handler receives the gRPC call and returns a response (or throws)
+    const inner = async (call) =>
+      await this[methodName](call.request, call.metadata, call);
+    return this.#wrapUnary(inner);
+  }
+
+  /**
+   * Wraps provided handlers with centralized auth/error handling.
+   * If a provided handler already follows gRPC signature (call, callback), it is used as-is.
+   * If it is a simplified handler (call) => Promise<Response>, it will be wrapped.
+   * @param {object} serviceDefinition - Service definition object from generated proto (ServiceClass.service)
+   * @param {object} providedHandlers - Map of rpcName => handler function provided by caller
+   * @returns {object} Wrapped handlers ready for addService
+   */
+  #wrapProvidedHandlers(serviceDefinition, providedHandlers) {
+    const rpcMethods = Object.keys(serviceDefinition);
+    const handlers = {};
+    for (const methodName of rpcMethods) {
+      const handler = providedHandlers[methodName];
+      if (!handler) {
+        throw new Error(`Missing RPC handler implementation: ${methodName}`);
+      }
+
+      // Heuristic: if function expects >=2 args, assume (call, callback) gRPC-style and use directly
+      if (typeof handler === "function" && handler.length >= 2) {
+        handlers[methodName] = handler;
+      } else {
+        // Otherwise treat as simplified (call) => resp and wrap
+        handlers[methodName] = this.#wrapUnary(handler.bind(this));
+      }
+    }
+    return handlers;
+  }
+
+  /**
+   * Central wrapper for unary RPC handlers adding auth validation and error handling.
+   * @param {(call: object) => Promise<object>} innerHandler - Simplified handler that returns a response
+   * @returns {(call: object, callback: Function) => Promise<void>} gRPC-compatible handler
+   */
+  #wrapUnary(innerHandler) {
     return async (call, callback) => {
+      // Authenticate once for all handlers
       const validation = this.auth().validateCall(call);
       if (!validation.isValid) {
         return callback({
@@ -338,11 +401,14 @@ export class Service extends Actor {
       call.authenticatedServiceId = validation.serviceId;
 
       try {
-        const resp = await this[methodName](call.request, call.metadata, call);
-        callback(null, resp);
+        const response = await innerHandler(call);
+        callback(null, response);
       } catch (error) {
-        console.error("Error:", error);
-        callback({ code: this.grpc().status.INTERNAL, message: error.message });
+        console.error("RPC handler error:", error);
+        callback({
+          code: this.grpc().status.INTERNAL,
+          message: error?.message || String(error),
+        });
       }
     };
   }

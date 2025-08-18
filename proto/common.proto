@@ -34,8 +34,7 @@ message Similarity {
   string id = 1;
   double score = 2;
   int32 tokens = 3;
-  string scope = 4;
-  string text = 5;
+  string text = 4;
 }
 
 message Prompt {

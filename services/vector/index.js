@@ -1,19 +1,16 @@
 /* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-
-import { VectorServiceInterface } from "./types.js";
+import { VectorBase } from "./types.js";
 
 /**
  * Vector search service for querying a single vector index
- * @implements {VectorServiceInterface}
  */
-class VectorService extends Service {
+class VectorService extends VectorBase {
   #vectorIndex;
 
   /**
    * Creates a new Vector service instance
-   * @param {object} config - Service configuration object
-   * @param {object} vectorIndex - Pre-initialized vector index
+   * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
+   * @param {import("@copilot-ld/libvector").VectorIndexInterface} vectorIndex - Pre-initialized vector index
    * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
    * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
    * @param {(namespace: string) => object} [logFn] - Optional log factory function
@@ -24,29 +21,25 @@ class VectorService extends Service {
   }
 
   /**
-   * Queries the vector index and returns results
-   * @param {object} params - Request parameters
-   * @param {number[]} params.vector - The query vector
-   * @param {number} params.threshold - Minimum similarity threshold
-   * @param {number} params.limit - Maximum number of results
-   * @param {number} [params.max_tokens] - Maximum tokens to return in results
-   * @returns {Promise<object>} Object containing results array
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").vector.QueryItemsRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").vector.QueryItemsResponse>} Response message
    */
-  async QueryItems({ vector, threshold, limit, max_tokens }) {
+  async QueryItems(req) {
     this.debug("Querying vector index", {
-      threshold,
-      limit,
-      max_tokens: max_tokens || "unlimited",
+      threshold: req.threshold,
+      limit: req.limit,
+      max_tokens: req.max_tokens || "unlimited",
     });
 
     const results = await this.#vectorIndex.queryItems(
-      vector,
-      threshold,
-      limit,
+      req.vector,
+      req.threshold,
+      req.limit,
     );
 
     // If no token limit specified, return all results
-    if (max_tokens === undefined || max_tokens === null) {
+    if (req.max_tokens === undefined || req.max_tokens === null) {
       this.debug("Returning results", {
         count: results.length,
         tokens: "unlimited",
@@ -61,7 +54,7 @@ class VectorService extends Service {
 
     for (const result of results) {
       const resultTokens = result.tokens || 0;
-      if (totalTokens + resultTokens <= max_tokens) {
+      if (totalTokens + resultTokens <= req.max_tokens) {
         filteredResults.push(result);
         totalTokens += resultTokens;
       } else {
@@ -71,10 +64,10 @@ class VectorService extends Service {
 
     this.debug("Filtered results", {
       filtered: `${filteredResults.length}/${results.length}`,
-      tokens: `${totalTokens}/${max_tokens}`,
+      tokens: `${totalTokens}/${req.max_tokens}`,
     });
     return { results: filteredResults };
   }
 }
 
-export { VectorService, VectorServiceInterface };
+export { VectorService };

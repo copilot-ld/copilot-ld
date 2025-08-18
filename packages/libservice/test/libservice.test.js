@@ -3,15 +3,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import {
-  Actor,
-  Client,
-  Service,
-  createClient,
-  ActorInterface,
-  ClientInterface,
-  ServiceInterface,
-} from "../index.js";
+import { Actor, Client, Service, createClient } from "../index.js";
 
 // Internal classes for testing
 import { HmacAuth, Interceptor } from "../auth.js";
@@ -256,7 +248,7 @@ describe("libservice", () => {
     });
   });
 
-  describe("createClient and Interface exports", () => {
+  describe("createClient", () => {
     test("creates client with configuration", async () => {
       const client = await createClient(
         "test",
@@ -270,16 +262,7 @@ describe("libservice", () => {
       assert.strictEqual(client.config.port, 4000);
     });
 
-    test("exports interface classes", () => {
-      assert.strictEqual(typeof ActorInterface, "function");
-      assert.ok(new ActorInterface() instanceof ActorInterface);
-
-      assert.strictEqual(typeof ClientInterface, "function");
-      assert.ok(new ClientInterface() instanceof ClientInterface);
-
-      assert.strictEqual(typeof ServiceInterface, "function");
-      assert.ok(new ServiceInterface() instanceof ServiceInterface);
-    });
+    // Interface exports removed
   });
 
   describe("Error handling", () => {

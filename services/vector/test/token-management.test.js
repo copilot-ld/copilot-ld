@@ -1,6 +1,7 @@
 /* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
+import { common } from "@copilot-ld/libtype";
 
 // Mock vector index with queryItems method
 const createMockIndex = (name) => ({
@@ -49,12 +50,12 @@ describe("Vector Service Token Management", () => {
 
   test("QueryItems returns all results when no max_tokens specified", async () => {
     const expectedResults = [
-      { id: "item1", score: 0.9, tokens: 50 },
-      { id: "item2", score: 0.8, tokens: 30 },
-      { id: "item3", score: 0.7, tokens: 20 },
+      new common.Similarity({ id: "item1", score: 0.9, tokens: 50 }),
+      new common.Similarity({ id: "item2", score: 0.8, tokens: 30 }),
+      new common.Similarity({ id: "item3", score: 0.7, tokens: 20 }),
     ];
 
-    // Create a mock index that returns our test data
+    // Create a mock index that returns properly typed Similarity objects like the real VectorIndex
     const testMockIndex = {
       queryItems: mock.fn(() => Promise.resolve(expectedResults)),
     };
@@ -67,16 +68,30 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = undefined;
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     assert.strictEqual(response.results.length, 3);
-    assert.deepStrictEqual(response.results, expectedResults);
+
+    // Check that all results are properly typed Similarity objects (they should be from the VectorIndex)
+    response.results.forEach((result, index) => {
+      assert.ok(
+        result instanceof common.Similarity,
+        `Result ${index} should be a Similarity instance`,
+      );
+      assert.strictEqual(result.id, expectedResults[index].id);
+      assert.strictEqual(result.score, expectedResults[index].score);
+      assert.strictEqual(result.tokens, expectedResults[index].tokens);
+    });
   });
 
   test("QueryItems respects max_tokens limit", async () => {
@@ -99,14 +114,17 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-      max_tokens: 85, // Should fit items 1 and 2 (50 + 30 = 80) but not item 3
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = 85; // Should fit items 1 and 2 (50 + 30 = 80) but not item 3
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     assert.strictEqual(response.results.length, 2);
     assert.strictEqual(response.results[0].id, "item1");
@@ -133,14 +151,17 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-      max_tokens: 100, // Exactly fits items 1 and 2 (50 + 50 = 100)
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = 100; // Exactly fits items 1 and 2 (50 + 50 = 100)
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     assert.strictEqual(response.results.length, 2);
     assert.strictEqual(response.results[0].id, "item1");
@@ -166,14 +187,17 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-      max_tokens: 50,
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = 50;
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     // Should include both items (item1 counted as 0 tokens)
     assert.strictEqual(response.results.length, 2);
@@ -200,14 +224,17 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-      max_tokens: 100,
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = 100;
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     assert.strictEqual(response.results.length, 0);
   });
@@ -233,14 +260,17 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-      max_tokens: 25, // Should fit 2 items
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = 25; // Should fit 2 items
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     assert.strictEqual(response.results.length, 2);
     // Should get the highest scored items that fit within token limit
@@ -266,14 +296,17 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.1, 0.2, 0.3],
-      threshold: 0.5,
-      limit: 10,
-      max_tokens: 0,
-    };
+    const vector = [0.1, 0.2, 0.3];
+    const threshold = 0.5;
+    const limit = 10;
+    const maxTokens = 0;
 
-    const response = await testVectorService.QueryItems(request);
+    const response = await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     // With 0 max_tokens, no results should be returned since any result with tokens > 0 would exceed the limit
     assert.strictEqual(response.results.length, 0);
@@ -293,21 +326,24 @@ describe("Vector Service Token Management", () => {
       undefined, // logFn
     );
 
-    const request = {
-      vector: [0.4, 0.5, 0.6],
-      threshold: 0.8,
-      limit: 5,
-      max_tokens: 100,
-    };
+    const vector = [0.4, 0.5, 0.6];
+    const threshold = 0.8;
+    const limit = 5;
+    const maxTokens = 100;
 
-    await testVectorService.QueryItems(request);
+    await testVectorService.QueryItems({
+      vector,
+      threshold,
+      limit,
+      max_tokens: maxTokens,
+    });
 
     assert.strictEqual(testMockIndex.queryItems.mock.callCount(), 1);
-    const [vector, threshold, limit] =
+    const [actualVector, actualThreshold, actualLimit] =
       testMockIndex.queryItems.mock.calls[0].arguments;
 
-    assert.deepStrictEqual(vector, [0.4, 0.5, 0.6]);
-    assert.strictEqual(threshold, 0.8);
-    assert.strictEqual(limit, 5);
+    assert.deepStrictEqual(actualVector, [0.4, 0.5, 0.6]);
+    assert.strictEqual(actualThreshold, 0.8);
+    assert.strictEqual(actualLimit, 5);
   });
 });

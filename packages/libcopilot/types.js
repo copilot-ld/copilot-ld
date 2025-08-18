@@ -1,5 +1,5 @@
 /* eslint-env node */
-import * as libtype from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 /**
  * Base interface for LLMs
@@ -42,7 +42,7 @@ export class LlmInterface {
   /**
    * Creates embeddings using the LLM API
    * @param {string[]} texts - Array of text strings to embed
-   * @returns {Promise<libtype.Embedding[]>} Array of Embedding instances
+   * @returns {Promise<common.Embedding[]>} Array of Embedding instances
    * @throws {Error} Not implemented
    */
   async createEmbeddings(texts) {

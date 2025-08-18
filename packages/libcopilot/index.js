@@ -2,14 +2,14 @@
 import { Tiktoken } from "js-tiktoken/lite";
 import o200k_base from "js-tiktoken/ranks/o200k_base";
 
-import * as libtype from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 import { LlmInterface } from "./types.js";
 
 /**
  * @typedef {object} CompletionParams
  * @property {string} [model] - Model to use for completion (overrides default)
- * @property {libtype.Message[]} messages - Array of chat messages
+ * @property {common.Message[]} messages - Array of chat messages
  * @property {number} [max_tokens] - Maximum tokens to generate
  * @property {number} [temperature] - Sampling temperature
  * @property {number} [top_p] - Nucleus sampling parameter
@@ -103,7 +103,7 @@ export class Copilot extends LlmInterface {
 
       await this.#throwIfNotOk(response);
       const data = await response.json();
-      return data.data.map((item) => new libtype.Embedding(item));
+      return data.data.map((item) => new common.Embedding(item));
     }
   }
 

@@ -1,15 +1,12 @@
 /* eslint-env node */
-import { Message, Choice, Usage } from "@copilot-ld/libtype";
-import { Prompt } from "@copilot-ld/libprompt";
-import { Service } from "@copilot-ld/libservice";
+import { common } from "@copilot-ld/libtype";
 
-import { LlmServiceInterface } from "./types.js";
+import { LlmBase } from "./types.js";
 
 /**
  * LLM service for completions and embeddings
- * @implements {LlmServiceInterface}
  */
-class LlmService extends Service {
+class LlmService extends LlmBase {
   #llmFactory;
 
   /**
@@ -26,62 +23,70 @@ class LlmService extends Service {
   }
 
   /**
-   * Creates LLM completions using a prompt
-   * @param {object} request - Request containing prompt and parameters
-   * @param {object} request.prompt - Prompt object with conversation and context
-   * @param {number} request.temperature - Sampling temperature
-   * @param {string} request.github_token - GitHub token for authentication
-   * @returns {Promise<object>} Response containing completion data
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").llm.CompletionsRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").llm.CompletionsResponse>} Response message
    */
-  async CreateCompletions(request) {
-    const { prompt, temperature, github_token } = request;
+  async CreateCompletions(req) {
+    const llm = this.#llmFactory(req.github_token, this.config.model);
 
-    const llm = this.#llmFactory(github_token, this.config.model);
-
-    // Reconstruct Prompt instance from gRPC deserialized plain object
-    // TODO: Implement a gRPC middleware which does automatic deserialization
-    const promptInstance = new Prompt(prompt);
-
-    // Convert prompt to messages using the built-in method
-    const messages = promptInstance.toMessages();
+    // Use the properly typed prompt and its messages directly
+    const messages =
+      req.prompt instanceof common.Prompt
+        ? req.prompt.messages
+        : req.prompt.messages;
 
     // Log prompt details
     this.debug("Creating completion for prompt", {
       messages: messages.length,
-      temperature,
+      temperature: req.temperature,
       model: this.config.model,
     });
+
     const params = {
-      messages: messages.map((msg) => new Message(msg)),
-      temperature,
+      messages: messages,
+      temperature: req.temperature,
     };
 
     const data = await llm.createCompletions(params);
 
+    // Ensure all response data uses proper typed constructors
     return {
       id: data.id,
       object: data.object,
       created: data.created,
       model: data.model,
-      choices: data.choices.map((choice) => new Choice(choice)),
-      usage: data.usage ? new Usage(data.usage) : undefined,
+      choices: data.choices.map((choice) =>
+        choice instanceof common.Choice
+          ? choice
+          : common.Choice.fromObject(choice),
+      ),
+      usage: data.usage
+        ? data.usage instanceof common.Usage
+          ? data.usage
+          : common.Usage.fromObject(data.usage)
+        : undefined,
     };
   }
 
   /**
-   * Creates embeddings for text chunks
-   * @param {object} request - Request object containing embedding parameters
-   * @param {string[]} request.chunks - Array of text chunks to embed
-   * @param {string} request.github_token - GitHub token for authentication
-   * @returns {Promise<object>} Response containing embedding data
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").llm.EmbeddingsRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").llm.EmbeddingsResponse>} Response message
    */
-  async CreateEmbeddings({ chunks, github_token }) {
-    const llm = this.#llmFactory(github_token, this.config.model);
-    const data = await llm.createEmbeddings(chunks);
+  async CreateEmbeddings(req) {
+    const llm = this.#llmFactory(req.github_token, this.config.model);
+    const data = await llm.createEmbeddings(req.chunks);
+
+    // Ensure embedding data uses proper typed constructors
     return {
-      data: data,
+      data: data.map((embedding) =>
+        embedding instanceof common.Embedding
+          ? embedding
+          : common.Embedding.fromObject(embedding),
+      ),
     };
   }
 }
 
-export { LlmService, LlmServiceInterface };
+export { LlmService };

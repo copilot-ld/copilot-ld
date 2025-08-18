@@ -3,7 +3,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { AgentService, AgentServiceInterface } from "../index.js";
+import { AgentService } from "../index.js";
 
 describe("agent service", () => {
   describe("AgentService", () => {
@@ -12,10 +12,7 @@ describe("agent service", () => {
       assert.ok(AgentService.prototype);
     });
 
-    test("exports AgentServiceInterface", () => {
-      assert.strictEqual(typeof AgentServiceInterface, "function");
-      assert.ok(AgentServiceInterface.prototype);
-    });
+    // Interface export tests removed
 
     test("AgentService has ProcessRequest method", () => {
       assert.strictEqual(
@@ -29,17 +26,7 @@ describe("agent service", () => {
       assert.strictEqual(AgentService.length, 6); // config, clients, octokitFactory, grpcFn, authFn, logFn
     });
 
-    test("AgentServiceInterface defines the service contract", () => {
-      // Verify the interface exists and can be instantiated
-      const interfaceInstance = new AgentServiceInterface();
-      assert.ok(interfaceInstance instanceof AgentServiceInterface);
-    });
-
-    test("module exports are properly structured", () => {
-      assert.ok(AgentService);
-      assert.ok(AgentServiceInterface);
-      assert.notStrictEqual(AgentService, AgentServiceInterface);
-    });
+    // Interface tests removed due to interface deprecation
 
     test("AgentService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(AgentService.prototype);

@@ -4,11 +4,11 @@ import crypto from "crypto";
 import { format } from "prettier";
 import { microdata } from "microdata-minimal";
 
-import { Chunk } from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
-/** @typedef {import("@copilot-ld/libtype").ChunkIndexInterface} ChunkIndexInterface */
+/** @typedef {import("@copilot-ld/libchunk").ChunkIndexInterface} ChunkIndexInterface */
 /** @typedef {import("@copilot-ld/libutil").LoggerInterface} LoggerInterface */
-/** @typedef {import("@copilot-ld/libtype").StorageInterface} StorageInterface */
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /** @typedef {import("js-tiktoken/lite").Tiktoken} Tiktoken */
 
@@ -97,7 +97,7 @@ export class ChunkProcessor {
   /**
    * Creates a chunk object from a microdata item
    * @param {object} item - The microdata item to create a chunk for
-   * @returns {Promise<Chunk>} The created Chunk instance
+   * @returns {Promise<common.Chunk>} The created Chunk instance
    */
   async #createChunk(item) {
     const _tempId = item["@id"];
@@ -116,6 +116,6 @@ export class ChunkProcessor {
     //const htmlKey = `${id}/chunk.html`;
     //await this.#chunkIndex.storage().put(htmlKey, item.toHTML());
 
-    return new Chunk({ id, tokens });
+    return common.Chunk.fromObject({ id, tokens });
   }
 }

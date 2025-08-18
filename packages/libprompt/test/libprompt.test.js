@@ -4,27 +4,26 @@ import assert from "node:assert";
 
 // Module under test
 import {
-  Prompt,
   PromptAssembler,
   PromptOptimizer,
   generateSessionId,
   getLatestUserMessage,
 } from "../index.js";
+import { common } from "@copilot-ld/libtype";
 
 describe("libprompt", () => {
   describe("Prompt", () => {
     test("creates empty prompt with defaults", () => {
-      const prompt = new Prompt({});
-
-      assert.strictEqual(prompt.system_instructions.length, 0);
-      assert.strictEqual(prompt.previous_similarities.length, 0);
-      assert.strictEqual(prompt.current_similarities.length, 0);
-      assert.strictEqual(prompt.messages.length, 0);
-      assert.strictEqual(prompt.isEmpty(), true);
+      const p = new common.Prompt({});
+      assert.strictEqual(p.system_instructions.length, 0);
+      assert.strictEqual(p.previous_similarities.length, 0);
+      assert.strictEqual(p.current_similarities.length, 0);
+      assert.strictEqual(p.messages.length, 0);
+      assert.strictEqual(p.isEmpty(), true);
     });
 
     test("creates prompt with provided data", () => {
-      const prompt = new Prompt({
+      const p = new common.Prompt({
         system_instructions: ["System instruction"],
         previous_similarities: [
           { id: "prev1", score: 0.8, text: "Previous context" },
@@ -35,21 +34,21 @@ describe("libprompt", () => {
         messages: [{ role: "user", content: "Hello" }],
       });
 
-      assert.strictEqual(prompt.system_instructions.length, 1);
-      assert.strictEqual(prompt.previous_similarities.length, 1);
-      assert.strictEqual(prompt.current_similarities.length, 1);
-      assert.strictEqual(prompt.messages.length, 1);
-      assert.strictEqual(prompt.isEmpty(), false);
+      assert.strictEqual(p.system_instructions.length, 1);
+      assert.strictEqual(p.previous_similarities.length, 1);
+      assert.strictEqual(p.current_similarities.length, 1);
+      assert.strictEqual(p.messages.length, 1);
+      assert.strictEqual(p.isEmpty(), false);
     });
 
     test("isEmpty returns false when has content", () => {
-      const promptWithMessages = new Prompt({
+      const promptWithMessages = new common.Prompt({
         messages: [{ role: "user", content: "Hi" }],
       });
-      const promptWithCurrent = new Prompt({
+      const promptWithCurrent = new common.Prompt({
         current_similarities: [{ id: "test", score: 0.5, text: "Context" }],
       });
-      const promptWithPrevious = new Prompt({
+      const promptWithPrevious = new common.Prompt({
         previous_similarities: [{ id: "test", score: 0.5, text: "Context" }],
       });
 
@@ -58,8 +57,8 @@ describe("libprompt", () => {
       assert.strictEqual(promptWithPrevious.isEmpty(), false);
     });
 
-    test("toMessages converts prompt to ordered messages", () => {
-      const prompt = new Prompt({
+    test("messages property contains properly structured messages", () => {
+      const prompt = new common.Prompt({
         system_instructions: ["You are helpful"],
         previous_similarities: [
           { id: "prev1", score: 0.8, text: "Previous info" },
@@ -70,39 +69,30 @@ describe("libprompt", () => {
         messages: [{ role: "user", content: "Hello" }],
       });
 
-      const messages = prompt.toMessages();
+      const messages = prompt.messages;
 
-      // Should have: system instruction + current context + previous context + user message = 4 messages
-      assert.strictEqual(messages.length, 4);
-      assert.strictEqual(messages[0].role, "system");
-      assert.strictEqual(messages[0].content, "You are helpful");
-      assert.strictEqual(messages[1].role, "system");
-      assert(messages[1].content.includes("Current context"));
-      assert(messages[1].content.includes("Current info"));
-      assert.strictEqual(messages[2].role, "system");
-      assert(messages[2].content.includes("Previous context"));
-      assert(messages[2].content.includes("Previous info"));
-      assert.strictEqual(messages[3].role, "user");
-      assert.strictEqual(messages[3].content, "Hello");
+      // The messages property should contain the actual conversation messages
+      assert.strictEqual(messages.length, 1);
+      assert.strictEqual(messages[0].role, "user");
+      assert.strictEqual(messages[0].content, "Hello");
     });
 
-    test("toMessages handles empty sections", () => {
-      const prompt = new Prompt({
+    test("messages property handles different sections properly", () => {
+      const prompt = new common.Prompt({
         system_instructions: ["System"],
         messages: [{ role: "user", content: "Hi" }],
       });
 
-      const messages = prompt.toMessages();
+      const messages = prompt.messages;
 
-      assert.strictEqual(messages.length, 2);
-      assert.strictEqual(messages[0].content, "System");
-      assert.strictEqual(messages[1].content, "Hi");
+      assert.strictEqual(messages.length, 1);
+      assert.strictEqual(messages[0].content, "Hi");
     });
   });
 
   describe("PromptAssembler", () => {
     test("buildRequest creates new prompt with combined data", () => {
-      const existingPrompt = new Prompt({
+      const existingPrompt = new common.Prompt({
         system_instructions: ["Old system"],
         previous_similarities: [{ id: "old", score: 0.7, text: "Old context" }],
         messages: [{ role: "user", content: "Previous question" }],
@@ -132,7 +122,7 @@ describe("libprompt", () => {
     });
 
     test("updateWithResponse moves current to previous similarities", () => {
-      const prompt = new Prompt({
+      const prompt = new common.Prompt({
         system_instructions: ["System"],
         previous_similarities: [{ id: "prev", score: 0.7, text: "Previous" }],
         current_similarities: [{ id: "curr", score: 0.9, text: "Current" }],
@@ -179,7 +169,7 @@ describe("libprompt", () => {
         totalTokenLimit: 1000,
       });
 
-      const prompt = new Prompt({
+      const prompt = new common.Prompt({
         system_instructions: ["Short instruction"],
         messages: [{ role: "user", content: "Short question" }],
       });

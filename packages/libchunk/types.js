@@ -1,7 +1,8 @@
 /* eslint-env node */
-import * as libtype from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+/** @typedef {import("@copilot-ld/libtype").common.Chunk} common.Chunk */
 
 /**
  * Base interface for chunk index management
@@ -16,7 +17,7 @@ export class ChunkIndexInterface {
 
   /**
    * Adds a chunk to the in-memory index
-   * @param {libtype.Chunk | object} data - Data with id, tokens
+   * @param {common.Chunk} data - Data with id, tokens
    * @returns {void}
    * @throws {Error} Not implemented
    */
@@ -36,7 +37,7 @@ export class ChunkIndexInterface {
   /**
    * Gets chunk content by ids, auto-loading data if needed
    * @param {string[]} ids - Array of chunk ids to retrieve
-   * @returns {Promise<object>} Object with chunk ids as keys and Chunk instances as values
+   * @returns {Promise<common.Chunk[]>} Array of Chunk instances
    * @throws {Error} Not implemented
    */
   async getChunks(ids) {

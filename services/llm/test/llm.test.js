@@ -3,7 +3,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { LlmService, LlmServiceInterface } from "../index.js";
+import { LlmService } from "../index.js";
 
 describe("llm service", () => {
   describe("LlmService", () => {
@@ -12,10 +12,7 @@ describe("llm service", () => {
       assert.ok(LlmService.prototype);
     });
 
-    test("exports LlmServiceInterface", () => {
-      assert.strictEqual(typeof LlmServiceInterface, "function");
-      assert.ok(LlmServiceInterface.prototype);
-    });
+    // Interface export tests removed
 
     test("LlmService has CreateCompletions method", () => {
       assert.strictEqual(
@@ -36,17 +33,7 @@ describe("llm service", () => {
       assert.strictEqual(LlmService.length, 5); // config, llmFactory, grpcFn, authFn, logFn
     });
 
-    test("LlmServiceInterface defines the service contract", () => {
-      // Verify the interface exists and can be instantiated
-      const interfaceInstance = new LlmServiceInterface();
-      assert.ok(interfaceInstance instanceof LlmServiceInterface);
-    });
-
-    test("module exports are properly structured", () => {
-      assert.ok(LlmService);
-      assert.ok(LlmServiceInterface);
-      assert.notStrictEqual(LlmService, LlmServiceInterface);
-    });
+    // Interface tests removed due to interface deprecation
 
     test("LlmService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(LlmService.prototype);

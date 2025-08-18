@@ -13,6 +13,8 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.6.3",
+    "@bufbuild/protoc-gen-es": "^2.6.3",
     "@copilot-ld/libconfig": "^0.1.2",
     "@copilot-ld/libutil": "^0.1.0",
     "@grpc/grpc-js": "^1.12.2",

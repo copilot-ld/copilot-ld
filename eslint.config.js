@@ -17,7 +17,8 @@ const strictJSDocRules = () => ({
   "jsdoc/check-indentation": "error",
   "jsdoc/check-line-alignment": "error",
   "jsdoc/require-description": "error",
-  "jsdoc/require-returns": ["error", { exemptedBy: ["throws"] }],
+  // Allow implementations using `@inheritdoc` to omit explicit @returns
+  "jsdoc/require-returns": ["error", { exemptedBy: ["throws", "inheritdoc"] }],
 });
 
 export default [
@@ -43,6 +44,8 @@ export default [
       "**/data/**",
       "**/package-lock.json",
       "SCRATCHPAD.md",
+      // Ignore generated types file globally
+      "packages/libtype/types.js",
     ],
   },
 

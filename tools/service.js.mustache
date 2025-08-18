@@ -1,0 +1,49 @@
+/* eslint-env node */
+import { Service } from "@copilot-ld/libservice";
+import { {{namespaceName}} } from "@copilot-ld/libtype";
+
+/**
+ * Base class for {{serviceName}} service with proto-specific method stubs
+ * Extends the Service class for common gRPC functionality
+ */
+export class {{className}} extends Service {
+  /**
+   * Start the gRPC server with service-specific handlers
+   * @returns {Promise<number>} Port number the server is listening on
+   */
+  async start() {
+    const proto = await this.loadProto("{{packageName}}.proto");
+    const serviceDefinition = proto.{{serviceName}}.service;
+
+    const handlers = {};
+{{#methods}}
+  handlers.{{name}} = this.handle{{name}};
+{{/methods}}
+
+    return super.start(serviceDefinition, handlers);
+  }
+
+{{#methods}}
+  /**
+   * Handler for {{name}} that creates typed data and calls the implementation
+   * @param {object} call - gRPC call object
+   * @returns {Promise<{{namespaceName}}.{{responseType}}>} {{responseType}}
+   */
+  async handle{{name}}(call) {
+    const {{paramName}} = {{requestTypeExpr}}.fromObject(call.request);
+    return this.{{name}}({{paramName}});
+  }
+
+{{/methods}}
+{{#methods}}
+  /**
+   * {{name}} RPC method
+   * @param { {{namespaceName}}.{{requestType}} } {{paramName}} - Request message
+   * @returns {Promise<{{namespaceName}}.{{responseType}}>} Response message
+   */
+  async {{name}}({{paramName}}) {
+    throw new Error("Not implemented");
+  }
+
+{{/methods}}
+}

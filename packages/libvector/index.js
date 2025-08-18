@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-import * as libtype from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 import { VectorIndexInterface } from "./types.js";
 
@@ -88,7 +88,7 @@ export class VectorIndex extends VectorIndexInterface {
 
       // Efficiently maintain top K results without full sort per item
       if (score >= minScore) {
-        const similarity = new libtype.Similarity({
+        const similarity = new common.Similarity({
           id: vectorItem.id,
           score,
           tokens: vectorItem.tokens,

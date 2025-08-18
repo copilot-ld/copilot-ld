@@ -1,5 +1,5 @@
 /* eslint-env node */
-import * as libtype from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 import { ChunkIndexInterface } from "./types.js";
 
@@ -33,7 +33,7 @@ export class ChunkIndex extends ChunkIndexInterface {
 
     const result = {};
     for (const [id, data] of Object.entries(this.#chunks)) {
-      result[id] = new libtype.Chunk(data);
+      result[id] = new common.Chunk(data);
     }
     return result;
   }
@@ -49,7 +49,7 @@ export class ChunkIndex extends ChunkIndexInterface {
     for (const id of ids) {
       if (this.#chunks[id]) {
         const data = this.#chunks[id];
-        result[id] = new libtype.Chunk(data);
+        result[id] = new common.Chunk(data);
       }
     }
 

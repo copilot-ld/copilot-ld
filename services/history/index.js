@@ -1,14 +1,12 @@
 /* eslint-env node */
-import { Prompt } from "@copilot-ld/libprompt";
-import { Service } from "@copilot-ld/libservice";
+import { common } from "@copilot-ld/libtype";
 
-import { HistoryServiceInterface } from "./types.js";
+import { HistoryBase } from "./types.js";
 
 /**
  * Chat history management service with prompt storage and optimization
- * @implements {HistoryServiceInterface}
  */
-class HistoryService extends Service {
+class HistoryService extends HistoryBase {
   #promptStorage;
   #promptOptimizer;
 
@@ -28,47 +26,69 @@ class HistoryService extends Service {
   }
 
   /**
-   * Retrieves chat history as a prompt for a session
-   * @param {object} request - Request object containing session ID
-   * @param {string} request.session_id - ID of the session to retrieve history for
-   * @returns {Promise<object>} Response containing prompt object
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").history.GetHistoryRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").history.GetHistoryResponse>} Response message
    */
-  async GetHistory({ session_id }) {
-    const prompt = await this.#promptStorage.get(session_id);
-    return { prompt };
+  async GetHistory(req) {
+    const prompt = await this.#promptStorage.get(req.session_id);
+
+    // Ensure the prompt is properly typed
+    const typedPrompt =
+      prompt instanceof common.Prompt
+        ? prompt
+        : common.Prompt.fromObject(prompt || {});
+
+    return { prompt: typedPrompt };
   }
 
   /**
-   * Updates chat history with a new prompt, applying async optimization
-   * @param {object} request - Request object containing session data
-   * @param {string} request.session_id - ID of the session to update
-   * @param {Prompt} request.prompt - Prompt object to store
-   * @param {string} request.github_token - GitHub token for LLM optimization
-   * @returns {Promise<object>} Response indicating success status and optimization
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").history.UpdateHistoryRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").history.UpdateHistoryResponse>} Response message
    */
-  async UpdateHistory({ session_id, prompt, github_token }) {
+  async UpdateHistory(req) {
     try {
+      // Ensure the request prompt is properly typed before optimization
+      const typedPrompt =
+        req.prompt instanceof common.Prompt
+          ? req.prompt
+          : common.Prompt.fromObject(req.prompt);
+
       // Optimize the prompt before storing (async processing)
       const optimizedPrompt = await this.#promptOptimizer.optimize(
-        prompt,
-        github_token,
+        typedPrompt,
+        req.github_token,
       );
-      await this.#promptStorage.store(session_id, optimizedPrompt);
+      await this.#promptStorage.store(req.session_id, optimizedPrompt);
 
-      this.debug("Updated session", { session: session_id, optimized: true });
+      this.debug("Updated session", {
+        session: req.session_id,
+        optimized: true,
+      });
       return { success: true, optimized: true };
     } catch (error) {
       console.error(
         "[history] Optimization failed, storing unoptimized:",
         error.message,
       );
-      // Store unoptimized as fallback
-      await this.#promptStorage.store(session_id, prompt);
 
-      this.debug("Updated session", { session: session_id, optimized: false });
+      // Ensure fallback prompt is also properly typed before storing
+      const typedPrompt =
+        req.prompt instanceof common.Prompt
+          ? req.prompt
+          : common.Prompt.fromObject(req.prompt);
+
+      // Store unoptimized as fallback
+      await this.#promptStorage.store(req.session_id, typedPrompt);
+
+      this.debug("Updated session", {
+        session: req.session_id,
+        optimized: false,
+      });
       return { success: true, optimized: false };
     }
   }
 }
 
-export { HistoryService, HistoryServiceInterface };
+export { HistoryService };

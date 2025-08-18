@@ -1,5 +1,15 @@
 # Changelog
 
+## 2025-01-24
+
+- Refactored to re-export all classes and functions from `@copilot-ld/libtype`
+  for backward compatibility
+- Moved `Prompt`, `PromptAssembler`, `PromptOptimizer`, `PromptStorage` classes
+  to `libtype` package
+- Moved utility functions `generateSessionId()` and `getLatestUserMessage()` to
+  `libtype` package
+- Package now serves as a compatibility layer for existing imports
+
 ## 2025-08-12
 
 - Removed `basePath` handling from `PromptStorage` constructor and methods

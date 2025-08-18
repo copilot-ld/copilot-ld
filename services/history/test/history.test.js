@@ -3,7 +3,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { HistoryService, HistoryServiceInterface } from "../index.js";
+import { HistoryService } from "../index.js";
 
 describe("history service", () => {
   describe("HistoryService", () => {
@@ -12,10 +12,7 @@ describe("history service", () => {
       assert.ok(HistoryService.prototype);
     });
 
-    test("exports HistoryServiceInterface", () => {
-      assert.strictEqual(typeof HistoryServiceInterface, "function");
-      assert.ok(HistoryServiceInterface.prototype);
-    });
+    // Interface export tests removed
 
     test("HistoryService has GetHistory method", () => {
       assert.strictEqual(
@@ -36,17 +33,7 @@ describe("history service", () => {
       assert.strictEqual(HistoryService.length, 6); // config, promptStorage, promptOptimizer, grpcFn, authFn, logFn
     });
 
-    test("HistoryServiceInterface defines the service contract", () => {
-      // Verify the interface exists and can be instantiated
-      const interfaceInstance = new HistoryServiceInterface();
-      assert.ok(interfaceInstance instanceof HistoryServiceInterface);
-    });
-
-    test("module exports are properly structured", () => {
-      assert.ok(HistoryService);
-      assert.ok(HistoryServiceInterface);
-      assert.notStrictEqual(HistoryService, HistoryServiceInterface);
-    });
+    // Interface tests removed due to interface deprecation
 
     test("HistoryService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(HistoryService.prototype);

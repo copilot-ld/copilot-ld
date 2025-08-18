@@ -5,26 +5,26 @@ import "common.proto";
 package llm;
 
 service Llm {
-  rpc CreateEmbeddings(EmbeddingRequest) returns (EmbeddingResponse);
-  rpc CreateCompletions(CompletionRequest) returns (CompletionResponse);
+  rpc CreateEmbeddings(EmbeddingsRequest) returns (EmbeddingsResponse);
+  rpc CreateCompletions(CompletionsRequest) returns (CompletionsResponse);
 }
 
-message EmbeddingRequest {
+message EmbeddingsRequest {
   repeated string chunks = 1;
-  optional string github_token = 2;
+  string github_token = 2;
 }
 
-message EmbeddingResponse {
+message EmbeddingsResponse {
   repeated common.Embedding data = 1;
 }
 
-message CompletionRequest {
+message CompletionsRequest {
   common.Prompt prompt = 1;
+  string github_token = 3;
   optional float temperature = 2;
-  optional string github_token = 3;
 }
 
-message CompletionResponse {
+message CompletionsResponse {
   string id = 1;
   string object = 2;
   int64 created = 3;

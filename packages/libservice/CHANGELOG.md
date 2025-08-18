@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-08-17
+
+- Centralized auth and error handling in `Service`; handlers are auto-wrapped
+  via `#wrapUnary()`.
+- Simplified generated service bases so method stubs can remain minimal.
+
 ## 2025-08-15
 
 - Removed `protoFile` property from mock config object in tests following

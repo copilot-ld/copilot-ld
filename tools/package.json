@@ -28,6 +28,7 @@
     "@copilot-ld/libservice": "^0.1.0",
     "@copilot-ld/libstorage": "^0.1.0",
     "@copilot-ld/libvector": "^0.1.0",
+    "@grpc/proto-loader": "^0.7.13",
     "@octokit/auth-oauth-device": "^8.0.1",
     "@octokit/core": "^7.0.3",
     "glob": "^11.0.3"

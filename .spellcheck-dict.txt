@@ -22,6 +22,8 @@ CORS
 CSS
 css
 DDoS
+destructure
+destructured
 dev
 DevOps
 DI

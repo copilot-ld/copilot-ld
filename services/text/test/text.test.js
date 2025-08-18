@@ -3,18 +3,13 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { TextService, TextServiceInterface } from "../index.js";
+import { TextService } from "../index.js";
 
 describe("text service", () => {
   describe("TextService", () => {
     test("exports TextService class", () => {
       assert.strictEqual(typeof TextService, "function");
       assert.ok(TextService.prototype);
-    });
-
-    test("exports TextServiceInterface", () => {
-      assert.strictEqual(typeof TextServiceInterface, "function");
-      assert.ok(TextServiceInterface.prototype);
     });
 
     test("TextService has GetChunks method", () => {
@@ -26,17 +21,7 @@ describe("text service", () => {
       assert.strictEqual(TextService.length, 5); // config, chunkIndex, grpcFn, authFn, logFn
     });
 
-    test("TextServiceInterface defines the service contract", () => {
-      // Verify the interface exists and can be instantiated
-      const interfaceInstance = new TextServiceInterface();
-      assert.ok(interfaceInstance instanceof TextServiceInterface);
-    });
-
-    test("module exports are properly structured", () => {
-      assert.ok(TextService);
-      assert.ok(TextServiceInterface);
-      assert.notStrictEqual(TextService, TextServiceInterface);
-    });
+    // Interface tests removed due to interface deprecation
 
     test("TextService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(TextService.prototype);

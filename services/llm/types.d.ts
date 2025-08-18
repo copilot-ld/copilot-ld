@@ -1,7 +1,3 @@
-/* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-import { llm } from "@copilot-ld/libtype";
-
 /**
  * Base class for Llm service with proto-specific method stubs
  * Extends the Service class for common gRPC functionality
@@ -11,52 +7,33 @@ export class LlmBase extends Service {
    * Start the gRPC server with service-specific handlers
    * @returns {Promise<number>} Port number the server is listening on
    */
-  async start() {
-    const proto = await this.loadProto("llm.proto");
-    const serviceDefinition = proto.Llm.service;
-
-    const handlers = {};
-    handlers.CreateEmbeddings = this.handleCreateEmbeddings;
-    handlers.CreateCompletions = this.handleCreateCompletions;
-
-    return super.start(serviceDefinition, handlers);
-  }
-
+  start(): Promise<number>;
   /**
    * Handler for CreateEmbeddings that creates typed data and calls the implementation
    * @param {object} call - gRPC call object
    * @returns {Promise<llm.EmbeddingsResponse>} EmbeddingsResponse
    */
-  async handleCreateEmbeddings(call) {
-    const req = llm.EmbeddingsRequest.fromObject(call.request);
-    return this.CreateEmbeddings(req);
-  }
-
+  handleCreateEmbeddings(call: object): Promise<llm.EmbeddingsResponse>;
   /**
    * Handler for CreateCompletions that creates typed data and calls the implementation
    * @param {object} call - gRPC call object
    * @returns {Promise<llm.CompletionsResponse>} CompletionsResponse
    */
-  async handleCreateCompletions(call) {
-    const req = llm.CompletionsRequest.fromObject(call.request);
-    return this.CreateCompletions(req);
-  }
-
+  handleCreateCompletions(call: object): Promise<llm.CompletionsResponse>;
   /**
    * CreateEmbeddings RPC method
    * @param { llm.EmbeddingsRequest } req - Request message
    * @returns {Promise<llm.EmbeddingsResponse>} Response message
    */
-  async CreateEmbeddings(req) {
-    throw new Error("Not implemented");
-  }
-
+  CreateEmbeddings(req: llm.EmbeddingsRequest): Promise<llm.EmbeddingsResponse>;
   /**
    * CreateCompletions RPC method
    * @param { llm.CompletionsRequest } req - Request message
    * @returns {Promise<llm.CompletionsResponse>} Response message
    */
-  async CreateCompletions(req) {
-    throw new Error("Not implemented");
-  }
+  CreateCompletions(
+    req: llm.CompletionsRequest,
+  ): Promise<llm.CompletionsResponse>;
 }
+import { Service } from "@copilot-ld/libservice";
+import { llm } from "@copilot-ld/libtype";

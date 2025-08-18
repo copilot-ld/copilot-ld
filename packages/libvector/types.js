@@ -1,7 +1,8 @@
 /* eslint-env node */
-import * as libtype from "@copilot-ld/libtype";
+import { common } from "@copilot-ld/libtype";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+/** @typedef {import("@copilot-ld/libtype").common.Similarity} common.Similarity */
 
 /**
  * Base interface for vector index management
@@ -60,7 +61,7 @@ export class VectorIndexInterface {
    * @param {number[]} query - Query vector
    * @param {number} threshold - Minimum score threshold (default: 0)
    * @param {number} limit - Maximum number of results to return (default: 0 = all results)
-   * @returns {Promise<libtype.Similarity[]>} Array of Similarity instances sorted by score
+   * @returns {Promise<common.Similarity[]>} Array of Similarity instances sorted by score
    * @throws {Error} Not implemented
    */
   async queryItems(query, threshold = 0, limit = 0) {

@@ -30,11 +30,7 @@ class LlmService extends LlmBase {
   async CreateCompletions(req) {
     const llm = this.#llmFactory(req.github_token, this.config.model);
 
-    // Use the properly typed prompt and its messages directly
-    const messages =
-      req.prompt instanceof common.Prompt
-        ? req.prompt.messages
-        : req.prompt.messages;
+    const messages = req.prompt.toMessages();
 
     // Log prompt details
     this.debug("Creating completion for prompt", {

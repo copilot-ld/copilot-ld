@@ -153,7 +153,7 @@ export class Client extends Actor {
    */
   async #setupClient() {
     try {
-      const proto = await this.loadProto(this.config.name);
+      const proto = await this.loadProto(`${this.config.name}.proto`);
       const ServiceClass = proto[capitalizeFirstLetter(this.config.name)];
 
       if (!ServiceClass) {

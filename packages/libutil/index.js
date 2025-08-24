@@ -1,4 +1,19 @@
 /* eslint-env node */
+import crypto from "crypto";
+
+/**
+ * Generates a deterministic hash from multiple input values
+ * @param {...string} values - Values to hash together
+ * @returns {string} The first 16 characters of SHA256 hash
+ */
+export function generateHash(...values) {
+  const input = values.filter(Boolean).join(".");
+  return crypto
+    .createHash("sha256")
+    .update(input)
+    .digest("hex")
+    .substring(0, 8);
+}
 
 /**
  * Logger class for centralized logging with namespace support

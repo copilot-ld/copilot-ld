@@ -31,7 +31,6 @@ export class Policy extends PolicyInterface {
     // TODO: Future implementation will load policies from storage
     // Check if storage is available for future policy loading
     await this.#storage.bucketExists();
-    console.log("Policy engine initialized (static allow mode)");
   }
 
   /** @inheritdoc */
@@ -48,7 +47,6 @@ export class Policy extends PolicyInterface {
 
     // Static allow for initial implementation
     // TODO: Future implementation will use @openpolicyagent/opa-wasm
-    console.log(`Policy evaluation for actor: ${input.actor}`);
     return true;
   }
 }

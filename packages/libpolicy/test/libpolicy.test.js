@@ -75,20 +75,11 @@ describe("libpolicy", () => {
       });
     });
 
-    test("load method logs initialization message", async () => {
-      const originalConsoleLog = console.log;
-      let logMessage;
-      console.log = (message) => {
-        logMessage = message;
-      };
-
+    test("load method completes successfully", async () => {
       await policy.load();
 
-      console.log = originalConsoleLog;
-      assert.strictEqual(
-        logMessage,
-        "Policy engine initialized (static allow mode)",
-      );
+      // Verify that bucketExists was called
+      assert.strictEqual(mockStorage.bucketExists.mock.callCount(), 1);
     });
 
     test("evaluate returns true for valid input", async () => {
@@ -104,13 +95,7 @@ describe("libpolicy", () => {
       assert.strictEqual(result, true);
     });
 
-    test("evaluate logs actor information", async () => {
-      const originalConsoleLog = console.log;
-      let logMessage;
-      console.log = (message) => {
-        logMessage = message;
-      };
-
+    test("evaluate processes actor information correctly", async () => {
       const input = {
         actor: "cld:common.Assistant.hash0000",
         resources: [
@@ -118,13 +103,9 @@ describe("libpolicy", () => {
         ],
       };
 
-      await policy.evaluate(input);
+      const result = await policy.evaluate(input);
 
-      console.log = originalConsoleLog;
-      assert.strictEqual(
-        logMessage,
-        "Policy evaluation for actor: cld:common.Assistant.hash0000",
-      );
+      assert.strictEqual(result, true);
     });
 
     test("evaluate throws error when input is null", async () => {

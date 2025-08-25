@@ -6,6 +6,7 @@ import { ChunkIndexInterface } from "./types.js";
 /**
  * ChunkIndex class for managing chunk data with lazy loading
  * @implements {ChunkIndexInterface}
+ * @deprecated This class will be replaced by `libresource` and new abstract types in the resource-based architecture
  */
 export class ChunkIndex extends ChunkIndexInterface {
   #storage;
@@ -95,4 +96,7 @@ export class ChunkIndex extends ChunkIndexInterface {
   }
 }
 
+/**
+ * @deprecated This interface will be replaced by `libresource` and new abstract types in the resource-based architecture
+ */
 export { ChunkIndexInterface };

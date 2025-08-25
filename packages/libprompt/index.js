@@ -3,12 +3,16 @@ import crypto from "node:crypto";
 import { common } from "@copilot-ld/libtype";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
-/** @typedef {import("@copilot-ld/libtype").common.Message} common.Message */
+/**
+ * @deprecated The Message type will be replaced by MessageV2 in the new resource-based architecture
+ * @typedef {import("@copilot-ld/libtype").common.Message} common.Message
+ */
 /** @typedef {import("@copilot-ld/libtype").common.Prompt} common.Prompt */
 /** @typedef {import("@copilot-ld/libtype").common.Similarity} common.Similarity */
 
 /**
  * Stateless builder for creating and updating prompts
+ * @deprecated This class will be replaced by `libresource` and new abstract types in the resource-based architecture
  */
 export class PromptAssembler {
   /**
@@ -54,6 +58,7 @@ export class PromptAssembler {
 
 /**
  * Async prompt optimizer for token management and summarization
+ * @deprecated This class will be replaced by `libresource` and new abstract types in the resource-based architecture
  */
 export class PromptOptimizer {
   #llmFactory;
@@ -163,6 +168,7 @@ export class PromptOptimizer {
 
 /**
  * Storage implementation for Prompt objects
+ * @deprecated This class will be replaced by `libresource` and new abstract types in the resource-based architecture
  */
 export class PromptStorage {
   #storage;
@@ -206,6 +212,7 @@ export class PromptStorage {
 /**
  * Generates a unique session ID for conversation tracking
  * @returns {string} Unique session identifier
+ * @deprecated This function will be replaced by `libresource` and new abstract types in the resource-based architecture
  */
 export function generateSessionId() {
   return crypto.randomUUID();
@@ -215,6 +222,7 @@ export function generateSessionId() {
  * Finds the most recent user message in a conversation
  * @param {common.Message[]} messages - Array of conversation messages
  * @returns {common.Message|null} Latest user message or null if none found
+ * @deprecated This function will be replaced by `libresource` and new abstract types in the resource-based architecture
  */
 export function getLatestUserMessage(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {

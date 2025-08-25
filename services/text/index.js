@@ -3,6 +3,7 @@ import { TextBase } from "./types.js";
 
 /**
  * Text chunk retrieval service
+ * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
  */
 class TextService extends TextBase {
   #chunkIndex;
@@ -31,4 +32,7 @@ class TextService extends TextBase {
   }
 }
 
+/**
+ * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
+ */
 export { TextService };

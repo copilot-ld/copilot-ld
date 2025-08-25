@@ -5,6 +5,7 @@ import { HistoryBase } from "./types.js";
 
 /**
  * Chat history management service with prompt storage and optimization
+ * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
  */
 class HistoryService extends HistoryBase {
   #promptStorage;
@@ -91,4 +92,7 @@ class HistoryService extends HistoryBase {
   }
 }
 
+/**
+ * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
+ */
 export { HistoryService };

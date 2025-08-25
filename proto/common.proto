@@ -43,3 +43,51 @@ message Prompt {
   repeated Similarity current_similarities = 3;
   repeated Message messages = 4;
 }
+
+message Resource {
+  string id = 1; // Universal Resource Name (URN)
+  string name = 2;
+  string type = 3;
+
+  // .toDescription() compiles these to a single structured description string
+  string purpose = 4; // **What** the resource is meant to accomplish
+  string instructions = 5; // **How** to execute or work with the resource
+  string applicability = 6; // **When** or **when not** to use the resource
+  string evaluation = 7; // What successful execution looks like
+
+  optional int32 tokens = 8; // Tokens used by this resource
+  optional double score = 9; // Similarity search score
+}
+
+message ToolProp {
+  string type = 1;
+  string description = 2;
+}
+
+message ToolParam {
+  string type = 1; // @default "object"
+  map<string, ToolProp> properties = 2;
+  repeated string required = 3;
+}
+
+message ToolFunction {
+  Resource meta = 1;
+  oneof call {
+    ToolParam parameters = 2; // When declaring
+    string arguments = 3; // When calling
+  }
+}
+
+message Tool {
+  string type = 1; // @default "function"
+  ToolFunction function = 2;
+  optional string id = 3; // When calling
+}
+
+message MessageV2 {
+  Resource meta = 1;
+  string role = 2;
+  optional string content = 3;
+  repeated Tool tool_calls = 4; // If role=assistant, requesting calls
+  optional string tool_call_id = 5; // If role=tool, returning results
+}

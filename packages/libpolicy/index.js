@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { StorageInterface } from "@copilot-ld/libstorage";
+import { storageFactory, StorageInterface } from "@copilot-ld/libstorage";
 
 import { PolicyInterface } from "./types.js";
 
@@ -51,4 +51,13 @@ export class Policy extends PolicyInterface {
   }
 }
 
-export { PolicyInterface };
+/**
+ * Creates a new policy instance
+ * @returns {PolicyInterface} New Policy instance
+ */
+function policyFactory() {
+  const storage = storageFactory("policies");
+  return new Policy(storage);
+}
+
+export { PolicyInterface, policyFactory };

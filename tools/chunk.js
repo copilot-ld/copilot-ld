@@ -12,6 +12,7 @@ const _config = await ToolConfig.create("chunk");
  * Main function to process all HTML files in the knowledge base directory
  * and generate a combined chunk index
  * @returns {Promise<void>}
+ * @deprecated
  */
 async function main() {
   const knowledgeStorage = storageFactory("knowledge");

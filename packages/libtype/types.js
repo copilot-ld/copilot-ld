@@ -1185,6 +1185,1190 @@ export const common = ($root.common = (() => {
     return Prompt;
   })();
 
+  common.Resource = (function () {
+    /**
+     * Properties of a Resource.
+     * @memberof common
+     * @interface IResource
+     * @property {string|null} [id] Resource id
+     * @property {string|null} [name] Resource name
+     * @property {string|null} [type] Resource type
+     * @property {string|null} [purpose] Resource purpose
+     * @property {string|null} [instructions] Resource instructions
+     * @property {string|null} [applicability] Resource applicability
+     * @property {string|null} [evaluation] Resource evaluation
+     * @property {number|null} [tokens] Resource tokens
+     * @property {number|null} [score] Resource score
+     */
+
+    /**
+     * Constructs a new Resource.
+     * @memberof common
+     * @classdesc Represents a Resource.
+     * @implements IResource
+     * @constructor
+     * @param {common.IResource=} [properties] Properties to set
+     */
+    function Resource(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Resource id.
+     * @member {string} id
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.id = "";
+
+    /**
+     * Resource name.
+     * @member {string} name
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.name = "";
+
+    /**
+     * Resource type.
+     * @member {string} type
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.type = "";
+
+    /**
+     * Resource purpose.
+     * @member {string} purpose
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.purpose = "";
+
+    /**
+     * Resource instructions.
+     * @member {string} instructions
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.instructions = "";
+
+    /**
+     * Resource applicability.
+     * @member {string} applicability
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.applicability = "";
+
+    /**
+     * Resource evaluation.
+     * @member {string} evaluation
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.evaluation = "";
+
+    /**
+     * Resource tokens.
+     * @member {number|null|undefined} tokens
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.tokens = null;
+
+    /**
+     * Resource score.
+     * @member {number|null|undefined} score
+     * @memberof common.Resource
+     * @instance
+     */
+    Resource.prototype.score = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Resource _tokens.
+     * @member {"tokens"|undefined} _tokens
+     * @memberof common.Resource
+     * @instance
+     */
+    Object.defineProperty(Resource.prototype, "_tokens", {
+      get: $util.oneOfGetter(($oneOfFields = ["tokens"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Resource _score.
+     * @member {"score"|undefined} _score
+     * @memberof common.Resource
+     * @instance
+     */
+    Object.defineProperty(Resource.prototype, "_score", {
+      get: $util.oneOfGetter(($oneOfFields = ["score"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Verifies a Resource message.
+     * @function verify
+     * @memberof common.Resource
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Resource.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.id != null && message.hasOwnProperty("id"))
+        if (!$util.isString(message.id)) return "id: string expected";
+      if (message.name != null && message.hasOwnProperty("name"))
+        if (!$util.isString(message.name)) return "name: string expected";
+      if (message.type != null && message.hasOwnProperty("type"))
+        if (!$util.isString(message.type)) return "type: string expected";
+      if (message.purpose != null && message.hasOwnProperty("purpose"))
+        if (!$util.isString(message.purpose)) return "purpose: string expected";
+      if (
+        message.instructions != null &&
+        message.hasOwnProperty("instructions")
+      )
+        if (!$util.isString(message.instructions))
+          return "instructions: string expected";
+      if (
+        message.applicability != null &&
+        message.hasOwnProperty("applicability")
+      )
+        if (!$util.isString(message.applicability))
+          return "applicability: string expected";
+      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
+        if (!$util.isString(message.evaluation))
+          return "evaluation: string expected";
+      if (message.tokens != null && message.hasOwnProperty("tokens")) {
+        properties._tokens = 1;
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      }
+      if (message.score != null && message.hasOwnProperty("score")) {
+        properties._score = 1;
+        if (typeof message.score !== "number") return "score: number expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Resource message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.Resource
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.Resource} Resource
+     */
+    Resource.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.Resource) return object;
+      let message = new $root.common.Resource();
+      if (object.id != null) message.id = String(object.id);
+      if (object.name != null) message.name = String(object.name);
+      if (object.type != null) message.type = String(object.type);
+      if (object.purpose != null) message.purpose = String(object.purpose);
+      if (object.instructions != null)
+        message.instructions = String(object.instructions);
+      if (object.applicability != null)
+        message.applicability = String(object.applicability);
+      if (object.evaluation != null)
+        message.evaluation = String(object.evaluation);
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.score != null) message.score = Number(object.score);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Resource message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.Resource
+     * @static
+     * @param {common.Resource} message Resource
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Resource.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.id = "";
+        object.name = "";
+        object.type = "";
+        object.purpose = "";
+        object.instructions = "";
+        object.applicability = "";
+        object.evaluation = "";
+      }
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = message.id;
+      if (message.name != null && message.hasOwnProperty("name"))
+        object.name = message.name;
+      if (message.type != null && message.hasOwnProperty("type"))
+        object.type = message.type;
+      if (message.purpose != null && message.hasOwnProperty("purpose"))
+        object.purpose = message.purpose;
+      if (
+        message.instructions != null &&
+        message.hasOwnProperty("instructions")
+      )
+        object.instructions = message.instructions;
+      if (
+        message.applicability != null &&
+        message.hasOwnProperty("applicability")
+      )
+        object.applicability = message.applicability;
+      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
+        object.evaluation = message.evaluation;
+      if (message.tokens != null && message.hasOwnProperty("tokens")) {
+        object.tokens = message.tokens;
+        if (options.oneofs) object._tokens = "tokens";
+      }
+      if (message.score != null && message.hasOwnProperty("score")) {
+        object.score =
+          options.json && !isFinite(message.score)
+            ? String(message.score)
+            : message.score;
+        if (options.oneofs) object._score = "score";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Resource to JSON.
+     * @function toJSON
+     * @memberof common.Resource
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Resource.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Resource
+     * @function getTypeUrl
+     * @memberof common.Resource
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Resource.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.Resource";
+    };
+
+    return Resource;
+  })();
+
+  common.ToolProp = (function () {
+    /**
+     * Properties of a ToolProp.
+     * @memberof common
+     * @interface IToolProp
+     * @property {string|null} [type] ToolProp type
+     * @property {string|null} [description] ToolProp description
+     */
+
+    /**
+     * Constructs a new ToolProp.
+     * @memberof common
+     * @classdesc Represents a ToolProp.
+     * @implements IToolProp
+     * @constructor
+     * @param {common.IToolProp=} [properties] Properties to set
+     */
+    function ToolProp(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ToolProp type.
+     * @member {string} type
+     * @memberof common.ToolProp
+     * @instance
+     */
+    ToolProp.prototype.type = "";
+
+    /**
+     * ToolProp description.
+     * @member {string} description
+     * @memberof common.ToolProp
+     * @instance
+     */
+    ToolProp.prototype.description = "";
+
+    /**
+     * Verifies a ToolProp message.
+     * @function verify
+     * @memberof common.ToolProp
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ToolProp.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.type != null && message.hasOwnProperty("type"))
+        if (!$util.isString(message.type)) return "type: string expected";
+      if (message.description != null && message.hasOwnProperty("description"))
+        if (!$util.isString(message.description))
+          return "description: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a ToolProp message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.ToolProp
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.ToolProp} ToolProp
+     */
+    ToolProp.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.ToolProp) return object;
+      let message = new $root.common.ToolProp();
+      if (object.type != null) message.type = String(object.type);
+      if (object.description != null)
+        message.description = String(object.description);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ToolProp message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.ToolProp
+     * @static
+     * @param {common.ToolProp} message ToolProp
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ToolProp.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.type = "";
+        object.description = "";
+      }
+      if (message.type != null && message.hasOwnProperty("type"))
+        object.type = message.type;
+      if (message.description != null && message.hasOwnProperty("description"))
+        object.description = message.description;
+      return object;
+    };
+
+    /**
+     * Converts this ToolProp to JSON.
+     * @function toJSON
+     * @memberof common.ToolProp
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ToolProp.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ToolProp
+     * @function getTypeUrl
+     * @memberof common.ToolProp
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ToolProp.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.ToolProp";
+    };
+
+    return ToolProp;
+  })();
+
+  common.ToolParam = (function () {
+    /**
+     * Properties of a ToolParam.
+     * @memberof common
+     * @interface IToolParam
+     * @property {string|null} [type] ToolParam type
+     * @property {Object.<string,common.ToolProp>|null} [properties] ToolParam properties
+     * @property {Array.<string>|null} [required] ToolParam required
+     */
+
+    /**
+     * Constructs a new ToolParam.
+     * @memberof common
+     * @classdesc Represents a ToolParam.
+     * @implements IToolParam
+     * @constructor
+     * @param {common.IToolParam=} [properties] Properties to set
+     */
+    function ToolParam(properties) {
+      this.properties = {};
+      this.required = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ToolParam type.
+     * @member {string} type
+     * @memberof common.ToolParam
+     * @instance
+     */
+    ToolParam.prototype.type = "";
+
+    /**
+     * ToolParam properties.
+     * @member {Object.<string,common.ToolProp>} properties
+     * @memberof common.ToolParam
+     * @instance
+     */
+    ToolParam.prototype.properties = $util.emptyObject;
+
+    /**
+     * ToolParam required.
+     * @member {Array.<string>} required
+     * @memberof common.ToolParam
+     * @instance
+     */
+    ToolParam.prototype.required = $util.emptyArray;
+
+    /**
+     * Verifies a ToolParam message.
+     * @function verify
+     * @memberof common.ToolParam
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ToolParam.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.type != null && message.hasOwnProperty("type"))
+        if (!$util.isString(message.type)) return "type: string expected";
+      if (message.properties != null && message.hasOwnProperty("properties")) {
+        if (!$util.isObject(message.properties))
+          return "properties: object expected";
+        let key = Object.keys(message.properties);
+        for (let i = 0; i < key.length; ++i) {
+          let error = $root.common.ToolProp.verify(message.properties[key[i]]);
+          if (error) return "properties." + error;
+        }
+      }
+      if (message.required != null && message.hasOwnProperty("required")) {
+        if (!Array.isArray(message.required)) return "required: array expected";
+        for (let i = 0; i < message.required.length; ++i)
+          if (!$util.isString(message.required[i]))
+            return "required: string[] expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a ToolParam message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.ToolParam
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.ToolParam} ToolParam
+     */
+    ToolParam.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.ToolParam) return object;
+      let message = new $root.common.ToolParam();
+      if (object.type != null) message.type = String(object.type);
+      if (object.properties) {
+        if (typeof object.properties !== "object")
+          throw TypeError(".common.ToolParam.properties: object expected");
+        message.properties = {};
+        for (
+          let keys = Object.keys(object.properties), i = 0;
+          i < keys.length;
+          ++i
+        ) {
+          if (typeof object.properties[keys[i]] !== "object")
+            throw TypeError(".common.ToolParam.properties: object expected");
+          message.properties[keys[i]] = $root.common.ToolProp.fromObject(
+            object.properties[keys[i]],
+          );
+        }
+      }
+      if (object.required) {
+        if (!Array.isArray(object.required))
+          throw TypeError(".common.ToolParam.required: array expected");
+        message.required = [];
+        for (let i = 0; i < object.required.length; ++i)
+          message.required[i] = String(object.required[i]);
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ToolParam message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.ToolParam
+     * @static
+     * @param {common.ToolParam} message ToolParam
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ToolParam.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.required = [];
+      if (options.objects || options.defaults) object.properties = {};
+      if (options.defaults) object.type = "";
+      if (message.type != null && message.hasOwnProperty("type"))
+        object.type = message.type;
+      let keys2;
+      if (
+        message.properties &&
+        (keys2 = Object.keys(message.properties)).length
+      ) {
+        object.properties = {};
+        for (let j = 0; j < keys2.length; ++j)
+          object.properties[keys2[j]] = $root.common.ToolProp.toObject(
+            message.properties[keys2[j]],
+            options,
+          );
+      }
+      if (message.required && message.required.length) {
+        object.required = [];
+        for (let j = 0; j < message.required.length; ++j)
+          object.required[j] = message.required[j];
+      }
+      return object;
+    };
+
+    /**
+     * Converts this ToolParam to JSON.
+     * @function toJSON
+     * @memberof common.ToolParam
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ToolParam.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ToolParam
+     * @function getTypeUrl
+     * @memberof common.ToolParam
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ToolParam.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.ToolParam";
+    };
+
+    return ToolParam;
+  })();
+
+  common.ToolFunction = (function () {
+    /**
+     * Properties of a ToolFunction.
+     * @memberof common
+     * @interface IToolFunction
+     * @property {common.Resource|null} [meta] ToolFunction meta
+     * @property {common.ToolParam|null} [parameters] ToolFunction parameters
+     * @property {string|null} ["arguments"] ToolFunction arguments
+     */
+
+    /**
+     * Constructs a new ToolFunction.
+     * @memberof common
+     * @classdesc Represents a ToolFunction.
+     * @implements IToolFunction
+     * @constructor
+     * @param {common.IToolFunction=} [properties] Properties to set
+     */
+    function ToolFunction(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ToolFunction meta.
+     * @member {common.Resource|null|undefined} meta
+     * @memberof common.ToolFunction
+     * @instance
+     */
+    ToolFunction.prototype.meta = null;
+
+    /**
+     * ToolFunction parameters.
+     * @member {common.ToolParam|null|undefined} parameters
+     * @memberof common.ToolFunction
+     * @instance
+     */
+    ToolFunction.prototype.parameters = null;
+
+    /**
+     * ToolFunction arguments.
+     * @member {string|null|undefined} arguments
+     * @memberof common.ToolFunction
+     * @instance
+     */
+    ToolFunction.prototype["arguments"] = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * ToolFunction call.
+     * @member {"parameters"|"arguments"|undefined} call
+     * @memberof common.ToolFunction
+     * @instance
+     */
+    Object.defineProperty(ToolFunction.prototype, "call", {
+      get: $util.oneOfGetter(($oneOfFields = ["parameters", "arguments"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Verifies a ToolFunction message.
+     * @function verify
+     * @memberof common.ToolFunction
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ToolFunction.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.meta != null && message.hasOwnProperty("meta")) {
+        let error = $root.common.Resource.verify(message.meta);
+        if (error) return "meta." + error;
+      }
+      if (message.parameters != null && message.hasOwnProperty("parameters")) {
+        properties.call = 1;
+        {
+          let error = $root.common.ToolParam.verify(message.parameters);
+          if (error) return "parameters." + error;
+        }
+      }
+      if (message["arguments"] != null && message.hasOwnProperty("arguments")) {
+        if (properties.call === 1) return "call: multiple values";
+        properties.call = 1;
+        if (!$util.isString(message["arguments"]))
+          return "arguments: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a ToolFunction message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.ToolFunction
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.ToolFunction} ToolFunction
+     */
+    ToolFunction.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.ToolFunction) return object;
+      let message = new $root.common.ToolFunction();
+      if (object.meta != null) {
+        if (typeof object.meta !== "object")
+          throw TypeError(".common.ToolFunction.meta: object expected");
+        message.meta = $root.common.Resource.fromObject(object.meta);
+      }
+      if (object.parameters != null) {
+        if (typeof object.parameters !== "object")
+          throw TypeError(".common.ToolFunction.parameters: object expected");
+        message.parameters = $root.common.ToolParam.fromObject(
+          object.parameters,
+        );
+      }
+      if (object["arguments"] != null)
+        message["arguments"] = String(object["arguments"]);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ToolFunction message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.ToolFunction
+     * @static
+     * @param {common.ToolFunction} message ToolFunction
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ToolFunction.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) object.meta = null;
+      if (message.meta != null && message.hasOwnProperty("meta"))
+        object.meta = $root.common.Resource.toObject(message.meta, options);
+      if (message.parameters != null && message.hasOwnProperty("parameters")) {
+        object.parameters = $root.common.ToolParam.toObject(
+          message.parameters,
+          options,
+        );
+        if (options.oneofs) object.call = "parameters";
+      }
+      if (message["arguments"] != null && message.hasOwnProperty("arguments")) {
+        object["arguments"] = message["arguments"];
+        if (options.oneofs) object.call = "arguments";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this ToolFunction to JSON.
+     * @function toJSON
+     * @memberof common.ToolFunction
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ToolFunction.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ToolFunction
+     * @function getTypeUrl
+     * @memberof common.ToolFunction
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ToolFunction.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.ToolFunction";
+    };
+
+    return ToolFunction;
+  })();
+
+  common.Tool = (function () {
+    /**
+     * Properties of a Tool.
+     * @memberof common
+     * @interface ITool
+     * @property {string|null} [type] Tool type
+     * @property {common.ToolFunction|null} ["function"] Tool function
+     * @property {string|null} [id] Tool id
+     */
+
+    /**
+     * Constructs a new Tool.
+     * @memberof common
+     * @classdesc Represents a Tool.
+     * @implements ITool
+     * @constructor
+     * @param {common.ITool=} [properties] Properties to set
+     */
+    function Tool(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Tool type.
+     * @member {string} type
+     * @memberof common.Tool
+     * @instance
+     */
+    Tool.prototype.type = "";
+
+    /**
+     * Tool function.
+     * @member {common.ToolFunction|null|undefined} function
+     * @memberof common.Tool
+     * @instance
+     */
+    Tool.prototype["function"] = null;
+
+    /**
+     * Tool id.
+     * @member {string|null|undefined} id
+     * @memberof common.Tool
+     * @instance
+     */
+    Tool.prototype.id = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Tool _id.
+     * @member {"id"|undefined} _id
+     * @memberof common.Tool
+     * @instance
+     */
+    Object.defineProperty(Tool.prototype, "_id", {
+      get: $util.oneOfGetter(($oneOfFields = ["id"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Verifies a Tool message.
+     * @function verify
+     * @memberof common.Tool
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Tool.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.type != null && message.hasOwnProperty("type"))
+        if (!$util.isString(message.type)) return "type: string expected";
+      if (message["function"] != null && message.hasOwnProperty("function")) {
+        let error = $root.common.ToolFunction.verify(message["function"]);
+        if (error) return "function." + error;
+      }
+      if (message.id != null && message.hasOwnProperty("id")) {
+        properties._id = 1;
+        if (!$util.isString(message.id)) return "id: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Tool message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.Tool
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.Tool} Tool
+     */
+    Tool.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.Tool) return object;
+      let message = new $root.common.Tool();
+      if (object.type != null) message.type = String(object.type);
+      if (object["function"] != null) {
+        if (typeof object["function"] !== "object")
+          throw TypeError(".common.Tool.function: object expected");
+        message["function"] = $root.common.ToolFunction.fromObject(
+          object["function"],
+        );
+      }
+      if (object.id != null) message.id = String(object.id);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Tool message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.Tool
+     * @static
+     * @param {common.Tool} message Tool
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Tool.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.type = "";
+        object["function"] = null;
+      }
+      if (message.type != null && message.hasOwnProperty("type"))
+        object.type = message.type;
+      if (message["function"] != null && message.hasOwnProperty("function"))
+        object["function"] = $root.common.ToolFunction.toObject(
+          message["function"],
+          options,
+        );
+      if (message.id != null && message.hasOwnProperty("id")) {
+        object.id = message.id;
+        if (options.oneofs) object._id = "id";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Tool to JSON.
+     * @function toJSON
+     * @memberof common.Tool
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Tool.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Tool
+     * @function getTypeUrl
+     * @memberof common.Tool
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Tool.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.Tool";
+    };
+
+    return Tool;
+  })();
+
+  common.MessageV2 = (function () {
+    /**
+     * Properties of a MessageV2.
+     * @memberof common
+     * @interface IMessageV2
+     * @property {common.Resource|null} [meta] MessageV2 meta
+     * @property {string|null} [role] MessageV2 role
+     * @property {string|null} [content] MessageV2 content
+     * @property {Array.<common.Tool>|null} [tool_calls] MessageV2 tool_calls
+     * @property {string|null} [tool_call_id] MessageV2 tool_call_id
+     */
+
+    /**
+     * Constructs a new MessageV2.
+     * @memberof common
+     * @classdesc Represents a MessageV2.
+     * @implements IMessageV2
+     * @constructor
+     * @param {common.IMessageV2=} [properties] Properties to set
+     */
+    function MessageV2(properties) {
+      this.tool_calls = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * MessageV2 meta.
+     * @member {common.Resource|null|undefined} meta
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.meta = null;
+
+    /**
+     * MessageV2 role.
+     * @member {string} role
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.role = "";
+
+    /**
+     * MessageV2 content.
+     * @member {string|null|undefined} content
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.content = null;
+
+    /**
+     * MessageV2 tool_calls.
+     * @member {Array.<common.Tool>} tool_calls
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.tool_calls = $util.emptyArray;
+
+    /**
+     * MessageV2 tool_call_id.
+     * @member {string|null|undefined} tool_call_id
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.tool_call_id = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * MessageV2 _content.
+     * @member {"content"|undefined} _content
+     * @memberof common.MessageV2
+     * @instance
+     */
+    Object.defineProperty(MessageV2.prototype, "_content", {
+      get: $util.oneOfGetter(($oneOfFields = ["content"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * MessageV2 _tool_call_id.
+     * @member {"tool_call_id"|undefined} _tool_call_id
+     * @memberof common.MessageV2
+     * @instance
+     */
+    Object.defineProperty(MessageV2.prototype, "_tool_call_id", {
+      get: $util.oneOfGetter(($oneOfFields = ["tool_call_id"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Verifies a MessageV2 message.
+     * @function verify
+     * @memberof common.MessageV2
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    MessageV2.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.meta != null && message.hasOwnProperty("meta")) {
+        let error = $root.common.Resource.verify(message.meta);
+        if (error) return "meta." + error;
+      }
+      if (message.role != null && message.hasOwnProperty("role"))
+        if (!$util.isString(message.role)) return "role: string expected";
+      if (message.content != null && message.hasOwnProperty("content")) {
+        properties._content = 1;
+        if (!$util.isString(message.content)) return "content: string expected";
+      }
+      if (message.tool_calls != null && message.hasOwnProperty("tool_calls")) {
+        if (!Array.isArray(message.tool_calls))
+          return "tool_calls: array expected";
+        for (let i = 0; i < message.tool_calls.length; ++i) {
+          let error = $root.common.Tool.verify(message.tool_calls[i]);
+          if (error) return "tool_calls." + error;
+        }
+      }
+      if (
+        message.tool_call_id != null &&
+        message.hasOwnProperty("tool_call_id")
+      ) {
+        properties._tool_call_id = 1;
+        if (!$util.isString(message.tool_call_id))
+          return "tool_call_id: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a MessageV2 message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.MessageV2
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.MessageV2} MessageV2
+     */
+    MessageV2.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.MessageV2) return object;
+      let message = new $root.common.MessageV2();
+      if (object.meta != null) {
+        if (typeof object.meta !== "object")
+          throw TypeError(".common.MessageV2.meta: object expected");
+        message.meta = $root.common.Resource.fromObject(object.meta);
+      }
+      if (object.role != null) message.role = String(object.role);
+      if (object.content != null) message.content = String(object.content);
+      if (object.tool_calls) {
+        if (!Array.isArray(object.tool_calls))
+          throw TypeError(".common.MessageV2.tool_calls: array expected");
+        message.tool_calls = [];
+        for (let i = 0; i < object.tool_calls.length; ++i) {
+          if (typeof object.tool_calls[i] !== "object")
+            throw TypeError(".common.MessageV2.tool_calls: object expected");
+          message.tool_calls[i] = $root.common.Tool.fromObject(
+            object.tool_calls[i],
+          );
+        }
+      }
+      if (object.tool_call_id != null)
+        message.tool_call_id = String(object.tool_call_id);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a MessageV2 message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.MessageV2
+     * @static
+     * @param {common.MessageV2} message MessageV2
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    MessageV2.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.tool_calls = [];
+      if (options.defaults) {
+        object.meta = null;
+        object.role = "";
+      }
+      if (message.meta != null && message.hasOwnProperty("meta"))
+        object.meta = $root.common.Resource.toObject(message.meta, options);
+      if (message.role != null && message.hasOwnProperty("role"))
+        object.role = message.role;
+      if (message.content != null && message.hasOwnProperty("content")) {
+        object.content = message.content;
+        if (options.oneofs) object._content = "content";
+      }
+      if (message.tool_calls && message.tool_calls.length) {
+        object.tool_calls = [];
+        for (let j = 0; j < message.tool_calls.length; ++j)
+          object.tool_calls[j] = $root.common.Tool.toObject(
+            message.tool_calls[j],
+            options,
+          );
+      }
+      if (
+        message.tool_call_id != null &&
+        message.hasOwnProperty("tool_call_id")
+      ) {
+        object.tool_call_id = message.tool_call_id;
+        if (options.oneofs) object._tool_call_id = "tool_call_id";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this MessageV2 to JSON.
+     * @function toJSON
+     * @memberof common.MessageV2
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    MessageV2.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for MessageV2
+     * @function getTypeUrl
+     * @memberof common.MessageV2
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    MessageV2.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.MessageV2";
+    };
+
+    return MessageV2;
+  })();
+
   return common;
 })());
 

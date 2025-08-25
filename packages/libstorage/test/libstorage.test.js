@@ -119,6 +119,89 @@ describe("libstorage", () => {
       assert.strictEqual(exists, false);
       assert.strictEqual(mockFs.access.mock.callCount(), 1);
     });
+
+    test("getMany retrieves multiple items by keys", async () => {
+      mockFs.readFile = mock.fn((path) => {
+        if (path.includes("file1.txt")) return Promise.resolve("content1");
+        if (path.includes("file2.txt")) return Promise.resolve("content2");
+        return Promise.reject({ code: "ENOENT" });
+      });
+
+      const results = await localStorage.getMany([
+        "file1.txt",
+        "file2.txt",
+        "missing.txt",
+      ]);
+
+      assert.deepStrictEqual(results, {
+        "file1.txt": "content1",
+        "file2.txt": "content2",
+      });
+      assert.strictEqual(mockFs.readFile.mock.callCount(), 3);
+    });
+
+    test("getMany handles errors other than ENOENT", async () => {
+      mockFs.readFile = mock.fn(() =>
+        Promise.reject(new Error("Permission denied")),
+      );
+
+      await assert.rejects(() => localStorage.getMany(["file1.txt"]), {
+        message: "Permission denied",
+      });
+    });
+
+    test("findByPrefix finds keys with specified prefix", async () => {
+      mockFs.readdir = mock.fn((path) => {
+        if (path === "/test/base") {
+          return Promise.resolve([
+            {
+              name: "cld:common.File.hash001.txt",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+            {
+              name: "cld:common.File.hash002.txt",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+            {
+              name: "other:prefix.txt",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const keys = await localStorage.findByPrefix("cld:common.File");
+
+      assert.deepStrictEqual(keys, [
+        "cld:common.File.hash001.txt",
+        "cld:common.File.hash002.txt",
+      ]);
+    });
+
+    test("findByExtension renamed from find method", async () => {
+      mockFs.readdir = mock.fn((path) => {
+        if (path === "/test/base") {
+          return Promise.resolve([
+            { name: "file1.txt", isDirectory: () => false, isFile: () => true },
+            {
+              name: "file2.json",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+            { name: "file3.txt", isDirectory: () => false, isFile: () => true },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const keys = await localStorage.findByExtension(".txt");
+
+      assert.deepStrictEqual(keys, ["file1.txt", "file3.txt"]);
+    });
   });
 
   describe("S3Storage", () => {
@@ -250,7 +333,7 @@ describe("libstorage", () => {
         }),
       );
 
-      const keys = await s3Storage.find(".txt");
+      const keys = await s3Storage.findByExtension(".txt");
 
       assert.deepStrictEqual(keys, [
         "test/prefix/file1.txt",
@@ -360,6 +443,89 @@ describe("libstorage", () => {
       const exists = await s3Storage.bucketExists();
 
       assert.strictEqual(exists, false);
+    });
+
+    test("getMany retrieves multiple items by keys", async () => {
+      mockClient.send = mock.fn((command) => {
+        if (command.params && command.params.Key === "file1.txt") {
+          return Promise.resolve({ Body: [Buffer.from("content1")] });
+        }
+        if (command.params && command.params.Key === "file2.txt") {
+          return Promise.resolve({ Body: [Buffer.from("content2")] });
+        }
+        const error = new Error("Not found");
+        error.name = "NoSuchKey";
+        return Promise.reject(error);
+      });
+
+      const results = await s3Storage.getMany([
+        "file1.txt",
+        "file2.txt",
+        "missing.txt",
+      ]);
+
+      assert.deepStrictEqual(results, {
+        "file1.txt": Buffer.from("content1"),
+        "file2.txt": Buffer.from("content2"),
+      });
+      assert.strictEqual(mockClient.send.mock.callCount(), 3);
+    });
+
+    test("getMany handles errors other than NoSuchKey", async () => {
+      mockClient.send = mock.fn(() =>
+        Promise.reject(new Error("Permission denied")),
+      );
+
+      await assert.rejects(() => s3Storage.getMany(["file1.txt"]), {
+        message: "Permission denied",
+      });
+    });
+
+    test("findByPrefix finds keys with specified prefix", async () => {
+      mockClient.send = mock.fn(() =>
+        Promise.resolve({
+          Contents: [
+            { Key: "cld:common.File.hash001.txt" },
+            { Key: "cld:common.File.hash002.txt" },
+            { Key: "other:prefix.txt" },
+          ],
+        }),
+      );
+
+      const keys = await s3Storage.findByPrefix("cld:common.File");
+
+      assert.deepStrictEqual(keys, [
+        "cld:common.File.hash001.txt",
+        "cld:common.File.hash002.txt",
+        "other:prefix.txt",
+      ]);
+      assert.strictEqual(mockCommands.ListObjectsV2Command.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCommands.ListObjectsV2Command.mock.calls[0].arguments[0].Prefix,
+        "cld:common.File",
+      );
+    });
+
+    test("findByPrefix handles pagination", async () => {
+      let callCount = 0;
+      mockClient.send = mock.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            Contents: [{ Key: "prefix1.txt" }],
+            NextContinuationToken: "token123",
+          });
+        } else {
+          return Promise.resolve({
+            Contents: [{ Key: "prefix2.txt" }],
+          });
+        }
+      });
+
+      const keys = await s3Storage.findByPrefix("prefix");
+
+      assert.deepStrictEqual(keys, ["prefix1.txt", "prefix2.txt"]);
+      assert.strictEqual(mockClient.send.mock.callCount(), 2);
     });
   });
 

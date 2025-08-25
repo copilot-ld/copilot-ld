@@ -51,7 +51,27 @@ export class StorageInterface {
    * @returns {Promise<string[]>} Array of keys with the specified extension
    * @throws {Error} Not implemented
    */
-  async find(extension) {
+  async findByExtension(extension) {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Retrieve multiple items by their keys
+   * @param {string[]} keys - Array of storage key identifiers
+   * @returns {Promise<{[key: string]: string|Buffer}>} Object with key-value pairs where keys are storage keys and values are the retrieved data
+   * @throws {Error} Not implemented
+   */
+  async getMany(keys) {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Find keys with specified prefix for URN-based lookups
+   * @param {string} prefix - Key prefix to search for (e.g., "cld:common.Conversation.hash0001/common.MessageV2.hash0002")
+   * @returns {Promise<string[]>} Array of keys with the specified prefix
+   * @throws {Error} Not implemented
+   */
+  async findByPrefix(prefix) {
     throw new Error("Not implemented");
   }
 

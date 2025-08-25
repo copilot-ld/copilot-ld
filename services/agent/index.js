@@ -10,6 +10,7 @@ import { AgentBase } from "./types.js";
 
 /**
  * Main orchestration service for agent requests
+ * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
  */
 class AgentService extends AgentBase {
   #clients;
@@ -121,6 +122,7 @@ class AgentService extends AgentBase {
     // 4. Fire-and-forget history update (optimization happens internally)
     if (completions.choices?.length > 0) {
       // Ensure we work with properly typed Choice and Message objects
+      // TODO: @deprecated common.Message will be replaced by MessageV2 in the new resource-based architecture
       const responseMessage =
         completions.choices[0].message instanceof common.Message
           ? completions.choices[0].message
@@ -155,4 +157,7 @@ class AgentService extends AgentBase {
   }
 }
 
+/**
+ * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
+ */
 export { AgentService };

@@ -77,9 +77,11 @@ export class LocalStorage extends StorageInterface {
      * @param {string} currentDir - Current directory being traversed
      * @param {string} relativePath - Relative path from base path
      */
-    async function traverse(currentDir, relativePath = "") {
+    const traverse = async (currentDir, relativePath = "") => {
       try {
-        const entries = await fs.readdir(currentDir, { withFileTypes: true });
+        const entries = await this.#fs.readdir(currentDir, {
+          withFileTypes: true,
+        });
 
         for (const entry of entries) {
           const fullPath = join(currentDir, entry.name);
@@ -101,15 +103,39 @@ export class LocalStorage extends StorageInterface {
           throw error;
         }
       }
-    }
+    };
 
     await traverse(this.#basePath);
     return keys;
   }
 
   /** @inheritdoc */
-  async find(extension) {
+  async findByExtension(extension) {
     return await this.#traverse((filename) => filename.endsWith(extension));
+  }
+
+  /** @inheritdoc */
+  async getMany(keys) {
+    const results = {};
+    await Promise.all(
+      keys.map(async (key) => {
+        try {
+          const data = await this.get(key);
+          results[key] = data;
+        } catch (error) {
+          // If key doesn't exist, skip it (don't add to results)
+          if (error.code !== "ENOENT") {
+            throw error;
+          }
+        }
+      }),
+    );
+    return results;
+  }
+
+  /** @inheritdoc */
+  async findByPrefix(prefix) {
+    return await this.#traverse((filename) => filename.startsWith(prefix));
   }
 
   /** @inheritdoc */
@@ -229,7 +255,7 @@ export class S3Storage extends StorageInterface {
   }
 
   /** @inheritdoc */
-  async find(extension) {
+  async findByExtension(extension) {
     const keys = [];
     let continuationToken;
 
@@ -244,6 +270,56 @@ export class S3Storage extends StorageInterface {
       if (response.Contents) {
         for (const object of response.Contents) {
           if (object.Key && object.Key.endsWith(extension)) {
+            keys.push(object.Key);
+          }
+        }
+      }
+
+      continuationToken = response.NextContinuationToken;
+    } while (continuationToken);
+
+    return keys;
+  }
+
+  /** @inheritdoc */
+  async getMany(keys) {
+    const results = {};
+    await Promise.all(
+      keys.map(async (key) => {
+        try {
+          const data = await this.get(key);
+          results[key] = data;
+        } catch (error) {
+          // If key doesn't exist, skip it (don't add to results)
+          if (
+            error.name !== "NoSuchKey" &&
+            error.$metadata?.httpStatusCode !== 404
+          ) {
+            throw error;
+          }
+        }
+      }),
+    );
+    return results;
+  }
+
+  /** @inheritdoc */
+  async findByPrefix(prefix) {
+    const keys = [];
+    let continuationToken;
+
+    do {
+      const command = new this.#commands.ListObjectsV2Command({
+        Bucket: this.#bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      });
+
+      const response = await this.#client.send(command);
+
+      if (response.Contents) {
+        for (const object of response.Contents) {
+          if (object.Key) {
             keys.push(object.Key);
           }
         }

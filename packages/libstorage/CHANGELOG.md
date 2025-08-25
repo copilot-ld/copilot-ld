@@ -1,5 +1,19 @@
 # Changelog
 
+## 2025-01-02
+
+- **BREAKING**: Renamed `StorageInterface.find()` method to
+  `StorageInterface.findByExtension()` for better clarity
+- Added `StorageInterface.getMany()` method for bulk retrieval of multiple items
+  by keys
+- Added `StorageInterface.findByPrefix()` method for URN-based lookups with
+  native storage layer optimizations
+- Updated both `LocalStorage` and `S3Storage` implementations with new methods
+- Enhanced `S3Storage.findByPrefix()` to use native S3 `Prefix` parameter for
+  efficient filtering
+- Added comprehensive unit tests for all new storage methods
+- Updated test suite to use renamed `findByExtension()` method
+
 ## 2025-08-15
 
 - Refactored `LocalStorage` class to eliminate code duplication in directory

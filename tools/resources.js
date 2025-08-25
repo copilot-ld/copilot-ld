@@ -13,6 +13,7 @@ const _config = await ToolConfig.create("resources");
  * @returns {Promise<void>}
  */
 async function main() {
+  const configStorage = storageFactory("config");
   const knowledgeStorage = storageFactory("knowledge");
   const resourceStorage = storageFactory("resources");
   const logger = logFactory("resources-tool");
@@ -21,11 +22,12 @@ async function main() {
   const resourceIndex = new ResourceIndex(resourceStorage, policy);
   const processor = new ResourceProcessor(
     resourceIndex,
+    configStorage,
     knowledgeStorage,
     logger,
   );
-
-  await processor.process(".html", ["[id]"]);
+  await processor.processAssistants();
+  //await processor.processKnowledge(".html", ["[id]"]);
 }
 
 main();

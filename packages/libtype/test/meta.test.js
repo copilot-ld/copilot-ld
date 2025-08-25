@@ -118,28 +118,28 @@ describe("toDescription method", () => {
 
   test("toDescription formats resource description", () => {
     const resource = new common.Resource({
-      purpose: "Test purpose",
-      instructions: "Test instructions",
-      applicability: "Test applicability",
-      evaluation: "Test evaluation",
+      purpose: ["Test purpose"],
+      instructions: ["Test instructions"],
+      applicability: ["Test applicability"],
+      evaluation: ["Test evaluation"],
     });
 
     const description = resource.toDescription();
 
-    assert.ok(description.includes("**Purpose:** Test purpose"));
-    assert.ok(description.includes("**Instructions:** Test instructions"));
-    assert.ok(description.includes("**Applicability:** Test applicability"));
-    assert.ok(description.includes("**Evaluation:** Test evaluation"));
+    assert.ok(description.includes("## Purpose\n\nTest purpose"));
+    assert.ok(description.includes("## Instructions\n\nTest instructions"));
+    assert.ok(description.includes("## Applicability\n\nTest applicability"));
+    assert.ok(description.includes("## Evaluation\n\nTest evaluation"));
   });
 
   test("toDescription handles missing fields", () => {
     const resource = new common.Resource({
-      purpose: "Only purpose set",
+      purpose: ["Only purpose set"],
     });
 
     const description = resource.toDescription();
-
-    assert.strictEqual(description, "**Purpose:** Only purpose set");
+    console.log(description);
+    assert.strictEqual(description, "## Purpose\n\nOnly purpose set");
   });
 
   test("toDescription returns empty string for empty resource", () => {
@@ -147,5 +147,24 @@ describe("toDescription method", () => {
     const description = resource.toDescription();
 
     assert.strictEqual(description, "");
+  });
+});
+
+describe("withoutDescription method", () => {
+  test("withoutDescription removes description fields", () => {
+    const resource = new common.Resource({
+      purpose: ["Test purpose"],
+      instructions: ["Test instructions"],
+      applicability: ["Test applicability"],
+      evaluation: ["Test evaluation"],
+    });
+
+    const newResource = resource.withoutDescription();
+    const description = newResource.toDescription();
+
+    assert.ok(!description.includes("## Purpose"));
+    assert.ok(!description.includes("## Instructions"));
+    assert.ok(!description.includes("## Applicability"));
+    assert.ok(!description.includes("## Evaluation"));
   });
 });

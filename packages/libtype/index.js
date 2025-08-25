@@ -225,23 +225,45 @@ function withMeta(withParent) {
   this.meta.tokens = this.meta.tokens || countTokens(this);
 }
 
+common.Assistant.prototype.withMeta = withMeta;
 common.MessageV2.prototype.withMeta = withMeta;
 
 // Compiles a resource description
 common.Resource.prototype.toDescription = function () {
   const sections = [];
 
-  if (this.purpose) sections.push(`**Purpose:** ${this.purpose}`);
+  if (this.purpose?.length > 0)
+    sections.push(`## Purpose\n\n${this.purpose.join("\n\n")}`);
 
-  if (this.instructions)
-    sections.push(`**Instructions:** ${this.instructions}`);
+  if (this.instructions?.length > 0)
+    sections.push(`## Instructions\n\n${this.instructions.join("\n\n")}`);
 
-  if (this.applicability)
-    sections.push(`**Applicability:** ${this.applicability}`);
+  if (this.applicability?.length > 0)
+    sections.push(`## Applicability\n\n${this.applicability.join("\n\n")}`);
 
-  if (this.evaluation) sections.push(`**Evaluation:** ${this.evaluation}`);
+  if (this.evaluation?.length > 0)
+    sections.push(`## Evaluation\n\n${this.evaluation.join("\n\n")}`);
 
   return sections.join("\n\n");
+};
+
+common.Resource.prototype.withoutDescription = function () {
+  const { purpose, instructions, applicability, evaluation, ...rest } = this;
+  return new common.Resource({ ...rest });
+};
+
+common.MessageV2.prototype.toMessage = function () {
+  return new common.MessageV2.fromObject({
+    role: this.role,
+    content: this.content,
+  });
+};
+
+common.Assistant.prototype.toMessage = function () {
+  return new common.MessageV2.fromObject({
+    role: "system",
+    content: this.message.join("\n\n"),
+  });
 };
 
 export {

@@ -295,7 +295,7 @@ deprecated text processing.
 **📋 Tasks**:
 
 - Replace Text service functionality with `libresource`
-- Update `libvector` to index all resource types
+- Update `libvector` to index all resources
 - Extend Vector service with type and URN prefix filtering
 - Update Agent service to use `ResourceIndex`
 
@@ -306,7 +306,11 @@ With the Text service deprecated, `libresource` takes over.
 `libvector` needs to be updated to index all resources. Only the resource's
 metadata is kept in the index, e.g. `common.MessageV2.meta` or `plan.Task.meta`.
 
-When processing resources with `class VectorProcessor` the string returned by
+When processing resources with `class VectorProcessor` the following text is
+used when doing the vector embedding:
+
+- If `resource.meta.type == "common.MessageV2` then use `resource.content`
+- Otherwise, use the string returned by `resource.meta.toDescription()`
 `common.Resource.toDescription()` is used when creating the vector embedding.
 
 `libvector` and the Vector service is extended with the ability to filter by the
@@ -390,10 +394,6 @@ In `common.proto`, these definitions are added:
 // ... existing protobuf definitions, e.g. Choice, Usage
 
 message Conversation {
-  common.Resource meta = 1;
-}
-
-message Assistant {
   common.Resource meta = 1;
 }
 

@@ -1,5 +1,6 @@
 /* eslint-env node */
 
+import yaml from "js-yaml";
 import { microdata } from "microdata-minimal";
 import prettier from "prettier";
 
@@ -14,31 +15,39 @@ import { ResourceProcessorInterface, ResourceIndexInterface } from "./types.js";
  */
 export class ResourceProcessor extends ResourceProcessorInterface {
   #resourceIndex;
+  #configStorage;
   #knowledgeStorage;
   #logger;
 
   /**
    * Creates a new ResourceProcessor instance
-   * @param {ResourceIndexInterface} resourceIndex - ResourceIndex instance to add MessageV2 objects to
-   * @param {StorageInterface} knowledgeStorage - Storage interface for knowledge base operations
+   * @param {ResourceIndexInterface} resourceIndex - ResourceIndex instance
+   * @param {StorageInterface} configStorage - Storage for configuration files
+   * @param {StorageInterface} knowledgeStorage - Storage for knowledge base data
    * @param {object} logger - Logger instance for debug output
    */
-  constructor(resourceIndex, knowledgeStorage, logger) {
+  constructor(resourceIndex, configStorage, knowledgeStorage, logger) {
     super();
     if (!logger) throw new Error("logger is required");
     this.#resourceIndex = resourceIndex;
+    this.#configStorage = configStorage;
     this.#knowledgeStorage = knowledgeStorage;
     this.#logger = logger;
   }
 
-  /**
-   * Processes all HTML files in the specified directory
-   * @param {string} extension - File extension to search for (default: ".html")
-   * @param {string[]} selectors - Array of CSS selectors to filter microdata items (default: [])
-   * @returns {Promise<void>}
-   * @throws {Error} When file processing fails
-   */
-  async process(extension = ".html", selectors = []) {
+  async processAssistants() {
+    const data = await this.#configStorage.get("assistants.yml");
+    const objects = yaml.load(data);
+
+    for (const [name, object] of Object.entries(objects)) {
+      object.meta.name = name;
+      const assistant = new common.Assistant.fromObject(object);
+      this.#resourceIndex.put(assistant);
+    }
+  }
+
+  /** @inheritdoc */
+  async processKnowledge(extension = ".html", selectors = []) {
     const keys = await this.#knowledgeStorage.findByExtension(extension);
 
     for (const key of keys) {
@@ -89,9 +98,6 @@ export class ResourceProcessor extends ResourceProcessorInterface {
       role: "system",
       content,
     });
-
-    // Generate URN metadata - withMeta() will handle all metadata generation
-    message.withMeta();
 
     return message;
   }

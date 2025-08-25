@@ -28,18 +28,16 @@ export class VectorIndex extends VectorIndexInterface {
   }
 
   /** @inheritdoc */
-  async addItem(id, vector, tokens = 0, scope = null) {
+  async addItem(vector, meta) {
     if (!this.#loaded) await this.loadData();
 
+    meta.magnitude = calculateMagnitude(vector);
     const item = {
-      id,
       vector,
-      magnitude: calculateMagnitude(vector),
-      tokens,
-      scope,
+      meta
     };
 
-    const i = this.#index.findIndex((item) => item.id === id);
+    const i = this.#index.findIndex((item) => item.meta.id === meta.id);
     if (i !== -1) {
       this.#index[i] = item;
     } else {
@@ -50,7 +48,7 @@ export class VectorIndex extends VectorIndexInterface {
   /** @inheritdoc */
   async hasItem(id) {
     if (!this.#loaded) await this.loadData();
-    return this.#index.some((item) => item.id === id);
+    return this.#index.some((item) => item.meta.id === id);
   }
 
   /** @inheritdoc */
@@ -74,56 +72,52 @@ export class VectorIndex extends VectorIndexInterface {
     if (!this.#loaded) await this.loadData();
 
     const queryMagnitude = calculateMagnitude(query);
-    const results = limit > 0 ? new Array(limit) : [];
-    let resultCount = 0;
+    const resources = limit > 0 ? new Array(limit) : [];
+    let count = 0;
     let minScore = threshold;
 
-    for (const vectorItem of this.#index) {
+    for (const item of this.#index) {
       const dotProduct = calculateDotProduct(
         query,
-        vectorItem.vector,
+        item.vector,
         query.length,
       );
-      const score = dotProduct / (queryMagnitude * vectorItem.magnitude);
+      const score = dotProduct / (queryMagnitude * item.meta.magnitude);
 
       // Efficiently maintain top K results without full sort per item
       if (score >= minScore) {
-        const similarity = new common.Similarity({
-          id: vectorItem.id,
-          score,
-          tokens: vectorItem.tokens,
-          scope: vectorItem.scope,
-        });
+        item.meta.score = score;
+        const resource = new common.Resource(item.meta);
 
         if (limit > 0) {
-          if (resultCount < limit) {
-            results[resultCount++] = similarity;
+          if (count < limit) {
+            resources[count++] = resource;
             // Sort and set threshold once limit is reached
-            if (resultCount === limit) {
-              results.sort((a, b) => b.score - a.score);
-              minScore = results[limit - 1].score;
+            if (count === limit) {
+              resources.sort((a, b) => b.score - a.score);
+              minScore = resources[limit - 1].score;
             }
           } else if (score > minScore) {
             // Insert result in sorted position
             let insertIndex = limit - 1;
-            while (insertIndex > 0 && results[insertIndex - 1].score < score) {
-              results[insertIndex] = results[insertIndex - 1];
+            while (insertIndex > 0 && resources[insertIndex - 1].score < score) {
+              resources[insertIndex] = resources[insertIndex - 1];
               insertIndex--;
             }
-            results[insertIndex] = similarity;
+            resources[insertIndex] = resource;
             // Update threshold to maintain top-K constraint
-            minScore = results[limit - 1].score;
+            minScore = resources[limit - 1].score;
           }
         } else {
-          results.push(similarity);
+          resources.push(resource);
         }
       }
     }
 
     if (limit > 0) {
-      return results.slice(0, resultCount).sort((a, b) => b.score - a.score);
+      return resources.slice(0, count).sort((a, b) => b.score - a.score);
     }
-    return results.sort((a, b) => b.score - a.score);
+    return resources.sort((a, b) => b.score - a.score);
   }
 }
 
@@ -184,3 +178,4 @@ function calculateDotProduct(a, b, length) {
 }
 
 export { VectorIndexInterface };
+export { VectorProcessor } from "./processor.js";

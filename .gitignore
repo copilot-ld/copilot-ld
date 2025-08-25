@@ -8,6 +8,7 @@
 !**/.env.example
 **/.ghtoken
 **/config.yml
+**/assistants.yml
 
 # Data files
 **/data/

@@ -56,8 +56,25 @@ export class ResourceIndex extends ResourceIndexInterface {
     }
 
     const keys = ids.map((id) => `${id}.json`);
-    const data = await this.#storage.getMany(keys);
-    return data.map((d) => toType(JSON.parse(d.toString())));
+    const dataObject = await this.#storage.getMany(keys);
+    
+    // Convert object values to array and parse JSON
+    return Object.values(dataObject).map((d) => toType(JSON.parse(d.toString())));
+  }
+
+  /** @inheritdoc */
+  async getAll(actor) {
+    if (!actor) throw new Error("actor is required");
+
+    // Get all keys from storage
+    const keys = await this.#storage.list();
+    
+    // Filter for .json files and extract resource IDs (URNs)
+    const ids = keys
+      .filter((key) => key.endsWith(".json"))
+      .map((key) => key.slice(0, -5)); // Remove .json extension
+    
+    return await this.get(actor, ids);
   }
 }
 

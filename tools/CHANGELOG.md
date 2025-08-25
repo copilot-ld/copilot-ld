@@ -2,6 +2,9 @@
 
 ## 2025-08-25
 
+- Updated `search.js` tool to use `ResourceIndex` instead of deprecated `ChunkIndex`
+- Added `Policy` engine integration for access control in search operations
+- Enhanced search results to display resource type information
 - Deprecated the `chunk.js` tool
 - Introduced a new `resources.js` tool that replaces `chunk.js`
 

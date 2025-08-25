@@ -1,10 +1,11 @@
 /* eslint-env node */
 import readline from "readline";
 
-import { ChunkIndex } from "@copilot-ld/libchunk";
 import { Copilot } from "@copilot-ld/libcopilot";
 import { ToolConfig } from "@copilot-ld/libconfig";
+import { Policy } from "@copilot-ld/libpolicy";
 import { Repl } from "@copilot-ld/librepl";
+import { ResourceIndex } from "@copilot-ld/libresource";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
@@ -15,8 +16,8 @@ const config = await ToolConfig.create("search");
 // Global state
 /** @type {VectorIndex} */
 let vectorIndex;
-/** @type {ChunkIndex} */
-let chunkIndex;
+/** @type {ResourceIndex} */
+let resourceIndex;
 
 /**
  * Performs a semantic search using embeddings
@@ -30,25 +31,29 @@ async function performSearch(prompt, state) {
   const client = new Copilot(await config.githubToken());
   const embeddings = await client.createEmbeddings([prompt]);
 
-  const results = await vectorIndex.queryItems(
+  const resources = await vectorIndex.queryItems(
     embeddings[0].embedding,
     threshold(),
     limit() > 0 ? limit() : 0,
   );
 
-  const chunkIds = results.map((result) => result.id);
-  const chunkObjects = await chunkIndex.getChunks(chunkIds);
+  const ids = resources.map((resource) => resource.id);
+  const actor = "urn:copilot-ld:tool:search"; // Default actor for search tool
+  const instances = await resourceIndex.get(actor, ids);
 
-  let content = ``;
-  results.forEach((result, i) => {
-    const chunkData = chunkObjects[result.id];
-    const text = chunkData.text;
-    content += `# ${i + 1} Score: ${result.score.toFixed(4)}\n\n`;
-    content += `- ID: ${result.id}\n`;
-    content += `\n\n\`\`\`json\n${text.substring(0, 200)}\n\`\`\`\n\n`;
+  let output = ``;
+  resources.forEach((resource, i) => {
+    const instance = instances.find((i) => i.meta.id === resource.id);
+    if (!instance) return;
+
+    // TODO: .toMessage ?
+    const message = instance.toMessage();
+    output += `# ${i + 1} Score: ${resource.score.toFixed(4)}\n\n`;
+    output += `${resource.id}\n`;
+    output += `\n\n\`\`\`json\n${message.content.substring(0, 200)}\n\`\`\`\n\n`;
   });
 
-  return content;
+  return output;
 }
 
 // Create REPL with dependency injection
@@ -56,8 +61,11 @@ const repl = new Repl(readline, process, createTerminalFormatter(), {
   setup: async () => {
     const vectorStorage = storageFactory("vectors");
     vectorIndex = new VectorIndex(vectorStorage);
-    const chunksStorage = storageFactory("chunks");
-    chunkIndex = new ChunkIndex(chunksStorage);
+    
+    const resourceStorage = storageFactory("resources");
+    const policyStorage = storageFactory("policies");
+    const policy = new Policy(policyStorage);
+    resourceIndex = new ResourceIndex(resourceStorage, policy);
   },
   state: {
     limit: {

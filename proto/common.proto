@@ -50,13 +50,14 @@ message Resource {
   string type = 3;
 
   // .toDescription() compiles these to a single structured description string
-  string purpose = 4; // **What** the resource is meant to accomplish
-  string instructions = 5; // **How** to execute or work with the resource
-  string applicability = 6; // **When** or **when not** to use the resource
-  string evaluation = 7; // What successful execution looks like
+  repeated string purpose = 4; // **What** the resource is meant to accomplish
+  repeated string instructions = 5; // **How** to execute or work with the resource
+  repeated string applicability = 6; // **When** or **when not** to use the resource
+  repeated string evaluation = 7; // What successful execution looks like
 
   optional int32 tokens = 8; // Tokens used by this resource
-  optional double score = 9; // Similarity search score
+  optional int32 magnitude = 9;
+  optional double score = 10; // Similarity search score
 }
 
 message ToolProp {
@@ -65,7 +66,7 @@ message ToolProp {
 }
 
 message ToolParam {
-  string type = 1; // @default "object"
+  string type = 1;
   map<string, ToolProp> properties = 2;
   repeated string required = 3;
 }
@@ -90,4 +91,9 @@ message MessageV2 {
   optional string content = 3;
   repeated Tool tool_calls = 4; // If role=assistant, requesting calls
   optional string tool_call_id = 5; // If role=tool, returning results
+}
+
+message Assistant {
+  common.Resource meta = 1;
+  repeated string message = 2; // .toMessage() compiles this to a Message object
 }

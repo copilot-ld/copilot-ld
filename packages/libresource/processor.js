@@ -65,14 +65,7 @@ export class ResourceProcessor extends ResourceProcessorInterface {
    * @returns {object[]} Array of microdata items
    */
   async #parseHTML(htmlContent, selectors) {
-    try {
-      return microdata(htmlContent, selectors);
-    } catch (error) {
-      this.#logger.debug("Microdata parsing failed, returning empty array", {
-        error: error.message,
-      });
-      return [];
-    }
+    return microdata(htmlContent, selectors);
   }
 
   /**

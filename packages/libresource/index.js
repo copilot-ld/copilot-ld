@@ -79,7 +79,13 @@ function toType(object) {
     // Force meta.type with the derived type to ensure integrity
     object.meta.type = `${ns}.${type}`;
   } else if (object.meta?.type) {
-    [ns, type] = object.meta.type.split(".");
+    const typeParts = object.meta.type.split(".");
+    if (typeParts.length !== 2) {
+      throw new Error(
+        `Type must have exactly 2 parts (namespace.type): ${object.meta.type}`,
+      );
+    }
+    [ns, type] = typeParts;
   }
 
   if (!ns || !type) {

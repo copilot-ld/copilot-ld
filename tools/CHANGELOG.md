@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-08-25
+
+- Deprecated the `chunk.js` tool
+- Introduced a new `resources.js` tool that replaces `chunk.js`
+
 ## 2025-08-18
 
 - Updated `service.js.mustache` template to use inline import type syntax in

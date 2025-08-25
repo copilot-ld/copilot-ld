@@ -2,6 +2,7 @@
 
 // Re-export selected message constructors from the generated single-file types
 import * as types from "./types.js";
+import { generateHash } from "@copilot-ld/libutil";
 
 /** @typedef {import("./types.js").common.Message} common.Message */
 /** @typedef {import("./types.js").common.Prompt} common.Prompt */
@@ -146,6 +147,101 @@ common.Prompt.prototype.fromMessages = function (messages) {
     previous_similarities: previousSimilarities,
     messages: regularMessages,
   });
+};
+
+/**
+ * Simple token counting approximation (1 token ≈ 4 characters)
+ * This is a temporary implementation until we have access to proper tokenizer
+ * @param {object} obj - Object to count tokens for
+ * @returns {number} Approximate token count
+ */
+function countTokens(obj) {
+  const str = JSON.stringify(obj);
+  return Math.ceil(str.length / 4);
+}
+
+// URN namespace constant
+const URN_NAMESPACE = "cld";
+
+/**
+ * Assign metadata to objects that have a meta property.
+ * Call this before persisting the object.
+ * @param {string} [withParent] - Parent ID (URN)
+ */
+function withMeta(withParent) {
+  let path;
+  let tree = [];
+  let hash;
+
+  // Always extract namespace and type from the constructor
+  const type = this.constructor.getTypeUrl("copilot-ld.dev").split("/").pop();
+
+  // Extract metadata from existing URN
+  if (this.meta?.id) {
+    [, path] = this.meta.id.split(":");
+    tree = path.split("/");
+    [, , hash] = tree[tree.length - 1].split(".");
+
+    if (!hash) {
+      throw new Error("Invalid meta.id format, missing hash");
+    }
+  }
+
+  // Generate new metadata
+  if (!hash) {
+    switch (type) {
+      case "common.MessageV2":
+        hash = generateHash(type, this.content);
+        break;
+
+      default:
+        if (!this.meta?.name) {
+          throw new Error("Resource must have a name for metadata generation");
+        }
+        hash = generateHash(type, this.meta.name);
+        break;
+    }
+  }
+
+  // Extract metadata from provided parent URN
+  if (withParent) {
+    [, path] = withParent.split(":");
+    tree = path.split("/");
+    // Push this instance onto the tree
+    tree.push(`${type}.${hash}`);
+  }
+
+  // If no meta.id or parent was provided, create a new root tree
+  if (tree.length == 0) {
+    tree.push(`${type}.${hash}`);
+  }
+
+  if (!this.meta) {
+    this.meta = new common.Resource();
+  }
+
+  this.meta.id = `${URN_NAMESPACE}:${tree.join("/")}`;
+  this.meta.type = type;
+  this.meta.tokens = this.meta.tokens || countTokens(this);
+}
+
+common.MessageV2.prototype.withMeta = withMeta;
+
+// Compiles a resource description
+common.Resource.prototype.toDescription = function () {
+  const sections = [];
+
+  if (this.purpose) sections.push(`**Purpose:** ${this.purpose}`);
+
+  if (this.instructions)
+    sections.push(`**Instructions:** ${this.instructions}`);
+
+  if (this.applicability)
+    sections.push(`**Applicability:** ${this.applicability}`);
+
+  if (this.evaluation) sections.push(`**Evaluation:** ${this.evaluation}`);
+
+  return sections.join("\n\n");
 };
 
 export {

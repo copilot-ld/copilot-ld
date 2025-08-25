@@ -52,7 +52,7 @@ Create the necessary data directories with empty indices:
 
 ```sh
 mkdir -p data/storage/{chunks,vectors,history}
-echo "[]" > data/storage/{chunks,vectors,history}/index.json
+echo "[]" > data/storage/{policies,resources,vectors}/index.json
 ```
 
 ### 6. Download knowledge data

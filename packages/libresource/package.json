@@ -1,7 +1,7 @@
 {
-  "name": "@copilot-ld/libpolicy",
+  "name": "@copilot-ld/libresource",
   "version": "0.1.0",
-  "description": "Policy engine foundation for Copilot-LD",
+  "description": "Resource management for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
@@ -13,12 +13,14 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libstorage": "^0.1.1"
+    "@copilot-ld/libpolicy": "^0.1.0",
+    "@copilot-ld/libstorage": "^0.1.1",
+    "@copilot-ld/libtype": "^0.1.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "packages/libpolicy"
+    "directory": "packages/libresource"
   },
   "publishConfig": {
     "access": "public",

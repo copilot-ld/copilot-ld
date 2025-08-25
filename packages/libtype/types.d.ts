@@ -480,6 +480,474 @@ export namespace common {
      */
     public static getTypeUrl(typeUrlPrefix?: string): string;
   }
+
+  /** Properties of a Resource. */
+  interface IResource {
+    /** Resource id */
+    id?: string | null;
+
+    /** Resource name */
+    name?: string | null;
+
+    /** Resource type */
+    type?: string | null;
+
+    /** Resource purpose */
+    purpose?: string | null;
+
+    /** Resource instructions */
+    instructions?: string | null;
+
+    /** Resource applicability */
+    applicability?: string | null;
+
+    /** Resource evaluation */
+    evaluation?: string | null;
+
+    /** Resource tokens */
+    tokens?: number | null;
+
+    /** Resource score */
+    score?: number | null;
+  }
+
+  /** Represents a Resource. */
+  class Resource implements IResource {
+    /**
+     * Constructs a new Resource.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: common.IResource);
+
+    /** Resource id. */
+    public id: string;
+
+    /** Resource name. */
+    public name: string;
+
+    /** Resource type. */
+    public type: string;
+
+    /** Resource purpose. */
+    public purpose: string;
+
+    /** Resource instructions. */
+    public instructions: string;
+
+    /** Resource applicability. */
+    public applicability: string;
+
+    /** Resource evaluation. */
+    public evaluation: string;
+
+    /** Resource tokens. */
+    public tokens?: number | null;
+
+    /** Resource score. */
+    public score?: number | null;
+
+    /** Resource _tokens. */
+    public _tokens?: "tokens";
+
+    /** Resource _score. */
+    public _score?: "score";
+
+    /**
+     * Verifies a Resource message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a Resource message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Resource
+     */
+    public static fromObject(object: { [k: string]: any }): common.Resource;
+
+    /**
+     * Creates a plain object from a Resource message. Also converts values to other types if specified.
+     * @param message Resource
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: common.Resource,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this Resource to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for Resource
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a ToolProp. */
+  interface IToolProp {
+    /** ToolProp type */
+    type?: string | null;
+
+    /** ToolProp description */
+    description?: string | null;
+  }
+
+  /** Represents a ToolProp. */
+  class ToolProp implements IToolProp {
+    /**
+     * Constructs a new ToolProp.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: common.IToolProp);
+
+    /** ToolProp type. */
+    public type: string;
+
+    /** ToolProp description. */
+    public description: string;
+
+    /**
+     * Verifies a ToolProp message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a ToolProp message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns ToolProp
+     */
+    public static fromObject(object: { [k: string]: any }): common.ToolProp;
+
+    /**
+     * Creates a plain object from a ToolProp message. Also converts values to other types if specified.
+     * @param message ToolProp
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: common.ToolProp,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this ToolProp to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for ToolProp
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a ToolParam. */
+  interface IToolParam {
+    /** ToolParam type */
+    type?: string | null;
+
+    /** ToolParam properties */
+    properties?: { [k: string]: common.ToolProp } | null;
+
+    /** ToolParam required */
+    required?: string[] | null;
+  }
+
+  /** Represents a ToolParam. */
+  class ToolParam implements IToolParam {
+    /**
+     * Constructs a new ToolParam.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: common.IToolParam);
+
+    /** ToolParam type. */
+    public type: string;
+
+    /** ToolParam properties. */
+    public properties: { [k: string]: common.ToolProp };
+
+    /** ToolParam required. */
+    public required: string[];
+
+    /**
+     * Verifies a ToolParam message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a ToolParam message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns ToolParam
+     */
+    public static fromObject(object: { [k: string]: any }): common.ToolParam;
+
+    /**
+     * Creates a plain object from a ToolParam message. Also converts values to other types if specified.
+     * @param message ToolParam
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: common.ToolParam,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this ToolParam to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for ToolParam
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a ToolFunction. */
+  interface IToolFunction {
+    /** ToolFunction meta */
+    meta?: common.Resource | null;
+
+    /** ToolFunction parameters */
+    parameters?: common.ToolParam | null;
+
+    /** ToolFunction arguments */
+    arguments?: string | null;
+  }
+
+  /** Represents a ToolFunction. */
+  class ToolFunction implements IToolFunction {
+    /**
+     * Constructs a new ToolFunction.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: common.IToolFunction);
+
+    /** ToolFunction meta. */
+    public meta?: common.Resource | null;
+
+    /** ToolFunction parameters. */
+    public parameters?: common.ToolParam | null;
+
+    /** ToolFunction arguments. */
+    public arguments?: string | null;
+
+    /** ToolFunction call. */
+    public call?: "parameters" | "arguments";
+
+    /**
+     * Verifies a ToolFunction message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a ToolFunction message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns ToolFunction
+     */
+    public static fromObject(object: { [k: string]: any }): common.ToolFunction;
+
+    /**
+     * Creates a plain object from a ToolFunction message. Also converts values to other types if specified.
+     * @param message ToolFunction
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: common.ToolFunction,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this ToolFunction to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for ToolFunction
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a Tool. */
+  interface ITool {
+    /** Tool type */
+    type?: string | null;
+
+    /** Tool function */
+    function?: common.ToolFunction | null;
+
+    /** Tool id */
+    id?: string | null;
+  }
+
+  /** Represents a Tool. */
+  class Tool implements ITool {
+    /**
+     * Constructs a new Tool.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: common.ITool);
+
+    /** Tool type. */
+    public type: string;
+
+    /** Tool function. */
+    public function?: common.ToolFunction | null;
+
+    /** Tool id. */
+    public id?: string | null;
+
+    /** Tool _id. */
+    public _id?: "id";
+
+    /**
+     * Verifies a Tool message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a Tool message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Tool
+     */
+    public static fromObject(object: { [k: string]: any }): common.Tool;
+
+    /**
+     * Creates a plain object from a Tool message. Also converts values to other types if specified.
+     * @param message Tool
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: common.Tool,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this Tool to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for Tool
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a MessageV2. */
+  interface IMessageV2 {
+    /** MessageV2 meta */
+    meta?: common.Resource | null;
+
+    /** MessageV2 role */
+    role?: string | null;
+
+    /** MessageV2 content */
+    content?: string | null;
+
+    /** MessageV2 tool_calls */
+    tool_calls?: common.Tool[] | null;
+
+    /** MessageV2 tool_call_id */
+    tool_call_id?: string | null;
+  }
+
+  /** Represents a MessageV2. */
+  class MessageV2 implements IMessageV2 {
+    /**
+     * Constructs a new MessageV2.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: common.IMessageV2);
+
+    /** MessageV2 meta. */
+    public meta?: common.Resource | null;
+
+    /** MessageV2 role. */
+    public role: string;
+
+    /** MessageV2 content. */
+    public content?: string | null;
+
+    /** MessageV2 tool_calls. */
+    public tool_calls: common.Tool[];
+
+    /** MessageV2 tool_call_id. */
+    public tool_call_id?: string | null;
+
+    /** MessageV2 _content. */
+    public _content?: "content";
+
+    /** MessageV2 _tool_call_id. */
+    public _tool_call_id?: "tool_call_id";
+
+    /**
+     * Verifies a MessageV2 message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a MessageV2 message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns MessageV2
+     */
+    public static fromObject(object: { [k: string]: any }): common.MessageV2;
+
+    /**
+     * Creates a plain object from a MessageV2 message. Also converts values to other types if specified.
+     * @param message MessageV2
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: common.MessageV2,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this MessageV2 to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for MessageV2
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
 }
 
 /** Namespace agent. */

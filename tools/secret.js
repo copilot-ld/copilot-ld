@@ -58,11 +58,11 @@ function updateEnvFile(secret, envPath) {
  */
 function main() {
   const secret = generateSecret();
-  const envPath = path.join(process.cwd(), ".env");
+  const envPath = path.join(process.cwd(), "config/.env");
 
   try {
     updateEnvFile(secret, envPath);
-    console.log(".env file updated with new authentication secret");
+    console.log("config/.env file updated with new authentication secret");
   } catch (error) {
     console.error("Error:", error.message);
     process.exit(1);

@@ -14,20 +14,31 @@ import { AgentBase } from "./types.js";
  */
 class AgentService extends AgentBase {
   #clients;
+  #resourceIndex;
   #octokitFactory;
 
   /**
    * Creates a new Agent service instance
    * @param {object} config - Service configuration object
    * @param {object} clients - Service clients object
+   * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - ResourceIndex instance for data access
    * @param {(token: string) => object} octokitFactory - Factory function to create Octokit instances
    * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
    * @param {(serviceName: string) => object} [authFn] - Optional auth factory function
    * @param {(namespace: string) => object} [logFn] - Optional log factory function
    */
-  constructor(config, clients, octokitFactory, grpcFn, authFn, logFn) {
+  constructor(
+    config,
+    clients,
+    resourceIndex,
+    octokitFactory,
+    grpcFn,
+    authFn,
+    logFn,
+  ) {
     super(config, grpcFn, authFn, logFn);
     this.#clients = clients;
+    this.#resourceIndex = resourceIndex;
     this.#octokitFactory = octokitFactory;
   }
 
@@ -47,7 +58,6 @@ class AgentService extends AgentBase {
       this.#clients.history.ensureReady(),
       this.#clients.llm.ensureReady(),
       this.#clients.vector.ensureReady(),
-      this.#clients.text.ensureReady(),
     ]);
 
     const octokit = this.#octokitFactory(req.github_token);
@@ -75,28 +85,42 @@ class AgentService extends AgentBase {
 
       const vector = embeddings.data[0].embedding;
 
-      const { results } = await this.#clients.vector.QueryItems({
+      const { identifiers } = await this.#clients.vector.QueryItems({
+        index: "content",
         vector,
         threshold: this.config.threshold,
         limit: this.config.limit,
         max_tokens: this.config.similaritySearchTokens,
       });
 
-      if (results?.length > 0) {
-        const { chunks } = await this.#clients.text.GetChunks({
-          ids: results.map((r) => r.id),
-        });
+      if (identifiers?.length > 0) {
+        const systemActor = "cld:common.Assistant.root";
 
-        currentSimilarities = results.map((r) => {
-          const chunk = chunks[r.id];
-          // Create properly typed Similarity objects using the constructor
-          return new common.Similarity({
-            id: r.id,
-            score: r.score,
-            tokens: r.tokens,
-            text: chunk?.text || "",
-          });
+        this.debug("Retrieving resources", {
+          count: identifiers.length,
+          actor: systemActor,
         });
+        const ids = identifiers.map((i) => i.name);
+
+        console.log(ids);
+        const resources = await this.#resourceIndex.get(systemActor, ids);
+        console.log(resources);
+
+        currentSimilarities = identifiers
+          .map((identifier) => {
+            const resource = resources.find(
+              (r) => r.id.name === identifier.name,
+            );
+            if (!resource) return null;
+            // Create properly typed Similarity objects using the constructor
+            return new common.Similarity({
+              id: resource.id,
+              score: identifier.score,
+              tokens: identifier.tokens,
+              text: resource ? String(resource.content) : "",
+            });
+          })
+          .filter((similarity) => similarity !== null);
       }
 
       // 2. Build request prompt using PromptAssembler (fast, no optimization)

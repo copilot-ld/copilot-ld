@@ -1,156 +1,172 @@
 /* eslint-env node */
 
-/** @typedef {import("@copilot-ld/libtype").ChunkIndexInterface} ChunkIndexInterface */
-/** @typedef {import("@copilot-ld/libtype").LlmInterface} LlmInterface */
-/** @typedef {import("@copilot-ld/libtype").StorageInterface} StorageInterface */
-/** @typedef {import("@copilot-ld/libtype").VectorIndexInterface} VectorIndexInterface */
+/** @typedef {import("@copilot-ld/libresource").ResourceIndexInterface} ResourceIndexInterface */
+/** @typedef {import("@copilot-ld/libcopilot").LlmInterface} LlmInterface */
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+/** @typedef {import("@copilot-ld/libvector").VectorIndexInterface} VectorIndexInterface */
+/** @typedef {import("@copilot-ld/libtype").resource.Descriptor} resource.Descriptor */
 
 /**
- * VectorProcessor class for processing chunks into vector embeddings
+ * VectorProcessor class for processing resources into vector embeddings
  */
 export class VectorProcessor {
-  #vectorIndex;
-  #chunkIndex;
-  #client;
+  #contentIndex;
+  #descriptorIndex;
+  #resourceIndex;
+  #llm;
   #logger;
 
   /**
    * Creates a new VectorProcessor instance
-   * @param {VectorIndexInterface} vectorIndex - The vector index to store embeddings
-   * @param {ChunkIndexInterface} chunkIndex - ChunkIndex instance to process chunks from
-   * @param {LlmInterface} client - LLM client instance for embedding generation
+   * @param {VectorIndexInterface} contentIndex - The vector index to store content embeddings
+   * @param {VectorIndexInterface} descriptorIndex - The vector index to store descriptor embeddings
+   * @param {ResourceIndexInterface} resourceIndex - ResourceIndex instance to process resources from
+   * @param {LlmInterface} llm - LLM client instance for embedding generation
    * @param {object} logger - Logger instance for debug output
    */
-  constructor(vectorIndex, chunkIndex, client, logger) {
-    if (!vectorIndex) throw new Error("vectorIndex is required");
-    if (!chunkIndex) throw new Error("chunkIndex is required");
-    if (!client) throw new Error("client is required");
+  constructor(contentIndex, descriptorIndex, resourceIndex, llm, logger) {
+    if (!contentIndex) throw new Error("contentIndex is required");
+    if (!descriptorIndex) throw new Error("descriptorIndex is required");
+    if (!resourceIndex) throw new Error("resourceIndex is required");
+    if (!llm) throw new Error("llm is required");
     if (!logger) throw new Error("logger is required");
-    this.#vectorIndex = vectorIndex;
-    this.#chunkIndex = chunkIndex;
-    this.#client = client;
+    this.#contentIndex = contentIndex;
+    this.#descriptorIndex = descriptorIndex;
+    this.#resourceIndex = resourceIndex;
+    this.#llm = llm;
     this.#logger = logger;
   }
 
   /**
-   * Persists the vector index to disk
+   * Process resources from the resource index for vector embeddings
+   * @param {string} actor - Actor identifier for access control
+   * @param {string} representation - What representation of resources to process (descriptor or content)
    * @returns {Promise<void>}
    */
-  async persist() {
-    await this.#vectorIndex.persist();
-    this.#logger.debug("Saved vectors to index");
-  }
+  async process(actor, representation = "content") {
+    const resources = await this.#resourceIndex.getAll(actor);
 
-  /**
-   * Processes all chunks from all files by creating embeddings in batches
-   * and adding them to the vector index.
-   * Chunks are batched across multiple source files to optimize API calls.
-   * @returns {Promise<void>}
-   */
-  async process() {
-    const chunksObject = await this.#chunkIndex.getAllChunks();
-    const chunkIds = Object.keys(chunksObject);
+    // Select the appropriate vector index based on representation
+    const targetIndex =
+      representation === "descriptor"
+        ? this.#descriptorIndex
+        : this.#contentIndex;
 
-    this.#logger.debug("Starting to process chunks", {
-      total: chunkIds.length,
+    this.#logger.debug("Starting process", {
+      total: resources.length,
+      representation,
     });
 
-    // Pre-filter chunks that already exist in the vector index
-    const existingChunks = new Set();
+    // Pre-filter resource contents that already exist in the target vector index
+    const existing = new Set();
     const checks = await Promise.all(
-      chunkIds.map(async (id) => ({
-        id,
-        exists: await this.#vectorIndex.hasItem(id),
+      resources.map(async (resource) => ({
+        id: resource.id,
+        exists: await targetIndex.hasItem(resource.id),
       })),
     );
     checks
       .filter((check) => check.exists)
-      .forEach((check) => existingChunks.add(check.id));
+      .forEach((check) => existing.add(check.id));
 
-    // Process chunks in batches to optimize API calls
-    const batchTokenLimit = 4000;
+    // Process resource contents in batches
     let currentBatch = [];
-    let currentTokenCount = 0;
     let processedCount = 0;
 
-    for (let i = 0; i < chunkIds.length; i++) {
-      const chunkId = chunkIds[i];
-      const chunkData = chunksObject[chunkId];
-      const chunkText = chunkData?.text;
+    for (let i = 0; i < resources.length; i++) {
+      const resource = resources[i];
 
-      if (!chunkText) {
-        this.#logger.debug("Skipping, no text found", { chunkId });
+      // Determine content to embed based on resource content type
+      let text;
+      switch (representation) {
+        case "content":
+          text = String(resource.content);
+          break;
+
+        case "descriptor":
+          text = String(resource.descriptor);
+      }
+
+      if (text === null || text === "null") {
+        this.#logger.debug("Skipping, no text", {
+          id: resource.id,
+          representation,
+        });
         continue;
       }
 
       // Skip if already exists (now O(1) lookup)
-      if (existingChunks.has(chunkId)) {
-        this.#logger.debug("Skipping, already exists", { chunkId });
+      if (existing.has(resource.id)) {
+        this.#logger.debug("Skipping, already exists", {
+          id: resource.id,
+          representation,
+        });
         continue;
       }
 
-      const chunkTokens = chunkData.tokens;
+      // Add resource content to current batch
+      currentBatch.push({
+        text: text,
+        identifier: resource.id,
+      });
 
-      // If adding this chunk would exceed the batch limit and we have chunks in the batch, process the current batch
-      if (
-        currentTokenCount + chunkTokens > batchTokenLimit &&
-        currentBatch.length > 0
-      ) {
-        await this.#processBatch(currentBatch, processedCount, chunkIds.length);
+      // Process batch when it reaches a reasonable size
+      if (currentBatch.length >= 10) {
+        await this.#processBatch(
+          currentBatch,
+          processedCount,
+          resources.length,
+          targetIndex,
+          representation,
+        );
         processedCount += currentBatch.length;
         currentBatch = [];
-        currentTokenCount = 0;
       }
-
-      // Add chunk to current batch
-      currentBatch.push({
-        id: chunkId,
-        text: chunkText,
-        data: chunkData,
-      });
-      currentTokenCount += chunkTokens;
     }
 
-    // Process any remaining chunks in the final batch
+    // Process any remaining resource contents in the final batch
     if (currentBatch.length > 0) {
-      await this.#processBatch(currentBatch, processedCount, chunkIds.length);
+      await this.#processBatch(
+        currentBatch,
+        processedCount,
+        resources.length,
+        targetIndex,
+        representation,
+      );
     }
   }
 
   /**
-   * Processes a batch of chunks by generating embeddings and adding them to the vector index
-   * @param {Array<{id: string, text: string, data: object}>} batch - Array of chunk objects to process
-   * @param {number} processed - Number of chunks already processed
-   * @param {number} total - Total number of chunks to process
+   * Processes a batch of resource contents by generating embeddings and adding them to the vector index
+   * @param {Array<{text: string, identifier: object}>} batch - Array of resource content objects to process
+   * @param {number} processed - Number of resource contents already processed
+   * @param {number} total - Total number of resource contents to process
+   * @param {VectorIndexInterface} targetIndex - The vector index to add embeddings to (content or descriptor index)
+   * @param {string} representation - The representation being processed (content or descriptor)
    * @returns {Promise<void>}
    */
-  async #processBatch(batch, processed, total) {
+  async #processBatch(batch, processed, total, targetIndex, representation) {
     const batchSize = batch.length;
-    const tokens = batch.reduce((sum, chunk) => sum + chunk.data.tokens, 0);
 
     this.#logger.debug("Processing", {
-      chunk:
+      resource:
         batchSize > 1
           ? `${processed + 1}-${processed + batchSize}/${total}`
           : `${processed + 1}/${total}`,
-      tokens,
+      representation,
     });
 
-    // Generate embeddings for all chunks in the batch
-    const chunkTexts = batch.map((chunk) => chunk.text);
-    const embeddings = await this.#client.createEmbeddings(chunkTexts);
+    // Generate embeddings for all resource contents in the batch
+    const texts = batch.map((data) => data.text);
+    const embeddings = await this.#llm.createEmbeddings(texts);
 
-    // Add all chunks to the vector index in parallel
-    const addPromises = batch.map(async (chunk, i) => {
+    // Add all items to the target vector index in parallel
+    const promises = batch.map(async (data, i) => {
       const vector = embeddings[i].embedding;
-      await this.#vectorIndex.addItem(
-        chunk.id,
-        vector,
-        chunk.data.tokens,
-        null, // No scope classification needed
-      );
+      const identifier = data.identifier;
+      await targetIndex.addItem(vector, identifier);
     });
 
-    await Promise.all(addPromises);
+    await Promise.all(promises);
   }
 }

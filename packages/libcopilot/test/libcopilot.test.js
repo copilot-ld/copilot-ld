@@ -99,6 +99,30 @@ describe("libcopilot", () => {
       });
     });
 
+    test("createCompletions throws error immediately on non-429 HTTP error", async () => {
+      const errorResponse = {
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        text: mock.fn(() => Promise.resolve("Server error details")),
+      };
+
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(errorResponse),
+      );
+
+      const params = {
+        messages: [{ role: "user", content: "Hello" }],
+      };
+
+      await assert.rejects(() => copilot.createCompletions(params), {
+        message: /HTTP 500: Internal Server Error/,
+      });
+
+      // Should not retry for non-429 errors
+      assert.strictEqual(mockFetch.mock.callCount(), 1);
+    });
+
     test("createEmbeddings makes correct API call", async () => {
       const mockResponse = {
         ok: true,
@@ -167,8 +191,8 @@ describe("libcopilot", () => {
       assert.strictEqual(result.length, 1);
     });
 
-    test("createEmbeddings throws error after max retries", async () => {
-      const retryResponse = {
+    test("createEmbeddings throws error immediately on non-429 HTTP error", async () => {
+      const errorResponse = {
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
@@ -177,7 +201,7 @@ describe("libcopilot", () => {
 
       // Mock all attempts to fail with non-429 error (no retries)
       mockFetch.mock.mockImplementationOnce(() =>
-        Promise.resolve(retryResponse),
+        Promise.resolve(errorResponse),
       );
 
       const texts = ["Hello"];
@@ -231,6 +255,100 @@ describe("libcopilot", () => {
       await assert.rejects(() => copilot.listModels(), {
         message: /HTTP 401: Unauthorized/,
       });
+    });
+  });
+
+  describe("Retry behavior", () => {
+    let mockFetch;
+    let copilot;
+
+    beforeEach(() => {
+      mockFetch = mock.fn();
+      copilot = new Copilot("test-token", "gpt-4", mockFetch);
+      // Use very short delays for testing to speed up retry tests
+      copilot._setTestDelay(1);
+    });
+
+    test("retry mechanism works for both createCompletions and createEmbeddings", async () => {
+      const retryResponse = {
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        text: mock.fn(() => Promise.resolve("Rate limit exceeded")),
+      };
+
+      // Test both methods fail with max retries
+      mockFetch.mock.mockImplementation(() => Promise.resolve(retryResponse));
+
+      // Test createCompletions
+      await assert.rejects(() =>
+        copilot.createCompletions({
+          messages: [{ role: "user", content: "Hello" }],
+        }),
+      );
+      assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
+
+      // Reset mock for second test
+      mockFetch.mock.resetCalls();
+
+      // Test createEmbeddings
+      await assert.rejects(() => copilot.createEmbeddings(["test text"]));
+      assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
+    });
+
+    test("successful request after retries stops retry loop", async () => {
+      const retryResponse = {
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+      };
+      const successResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
+          }),
+        ),
+      };
+
+      // Fail twice, then succeed
+      let callCount = 0;
+      mockFetch.mock.mockImplementation(() => {
+        callCount++;
+        if (callCount <= 2) {
+          return Promise.resolve(retryResponse);
+        } else {
+          return Promise.resolve(successResponse);
+        }
+      });
+
+      const result = await copilot.createEmbeddings(["test text"]);
+
+      // Should have made exactly 3 calls (2 failures + 1 success)
+      assert.strictEqual(mockFetch.mock.callCount(), 3);
+      assert.strictEqual(result.length, 1);
+    });
+
+    test("non-429 errors do not trigger retries", async () => {
+      const errorResponse = {
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        text: mock.fn(() => Promise.resolve("Server error")),
+      };
+
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(errorResponse),
+      );
+
+      await assert.rejects(() =>
+        copilot.createCompletions({
+          messages: [{ role: "user", content: "Hello" }],
+        }),
+      );
+
+      // Should only make one call for non-429 errors
+      assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
   });
 

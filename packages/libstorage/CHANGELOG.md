@@ -1,27 +1,22 @@
 # Changelog
 
-## 2025-01-02
+## 2025-08-28
 
-- **BREAKING**: Renamed `StorageInterface.find()` method to
-  `StorageInterface.findByExtension()` for better clarity
-- Added `StorageInterface.getMany()` method for bulk retrieval of multiple items
-  by keys
-- Added `StorageInterface.findByPrefix()` method for URN-based lookups with
-  native storage layer optimizations
-- Updated both `LocalStorage` and `S3Storage` implementations with new methods
-- Enhanced `S3Storage.findByPrefix()` to use native S3 `Prefix` parameter for
-  efficient filtering
+- Added `append()` method to `StorageInterface` for `URI-based` data appending
+- Implemented efficient append operations in both `LocalStorage` (native file
+  append) and `S3Storage` (read-modify-write)
+- **BREAKING**: Renamed `StorageInterface.find()` to
+  `StorageInterface.findByExtension()` for improved clarity
+- Enhanced storage capabilities with `getMany()` method for bulk retrieval and
+  `findByPrefix()` for optimized URI lookups
 - Added comprehensive unit tests for all new storage methods
-- Updated test suite to use renamed `findByExtension()` method
 
 ## 2025-08-15
 
-- Refactored `LocalStorage` class to eliminate code duplication in directory
-  traversal
-- Added private `#traverse()` helper method to consolidate file traversal logic
-  used by `find()` and `list()` methods
-- Improved maintainability by reducing duplicate traversal code from 80+ lines
-  to single reusable method
+- Refactored `LocalStorage` class to eliminate code duplication with private
+  `#traverse()` helper method
+- Improved maintainability by consolidating file traversal logic for `find()`
+  and `list()` methods to single reusable method
 - Added `ensureBucket()` method to `StorageInterface` for ensuring storage
   buckets exist
 - Added `bucketExists()` method to `StorageInterface` for checking if storage

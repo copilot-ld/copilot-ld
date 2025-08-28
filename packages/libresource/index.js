@@ -32,14 +32,17 @@ export class ResourceIndex extends ResourceIndexInterface {
   async put(resource) {
     if (!resource) throw new Error("resource is required");
 
-    // Ensure metadata is generated before persisting
-    resource.withMeta();
+    // Ensure that the resource identifier is generated
+    resource.withIdentifier();
+
+    // Ensure that tokens are counted
+    resource.withTokens();
+
+    const id = resource.id;
     const object = resource.toJSON();
 
-    const id = object.meta.id;
-
     if (!id) {
-      throw new Error("ID missing from resource metadata");
+      throw new Error("Missing resource identifier");
     }
 
     await this.#storage.put(`${id}.json`, JSON.stringify(object));
@@ -57,34 +60,41 @@ export class ResourceIndex extends ResourceIndexInterface {
 
     const keys = ids.map((id) => `${id}.json`);
     const data = await this.#storage.getMany(keys);
-    return data.map((d) => toType(JSON.parse(d.toString())));
+
+    // Convert object values to array and parse JSON in parallel
+    const promises = Object.values(data).map((d) =>
+      Promise.resolve(toType(JSON.parse(d.toString()))),
+    );
+    return await Promise.all(promises);
+  }
+
+  /** @inheritdoc */
+  async getAll(actor) {
+    if (!actor) throw new Error("actor is required");
+
+    // Get all keys from storage
+    const keys = await this.#storage.list();
+
+    // Filter for .json files and extract resource IDs (URIs)
+    const ids = keys
+      .filter((key) => key.endsWith(".json"))
+      .map((key) => key.slice(0, -5)); // Remove .json extension
+
+    return await this.get(actor, ids);
   }
 }
 
 /**
- * Helper function creating object instances of the right type from resource metadata
+ * Helper function creating object instances of the right type from resource descriptor
  * @param {object} object - Plain object with type information
- * @returns {object} Typed object instance
+ * @returns {object} Typed object content
  */
 function toType(object) {
-  if (!object.meta?.id && !object.meta?.type) {
-    throw new Error("Object must have metadata");
+  if (!object?.id?.type) {
+    throw new Error("Object must have an identifier");
   }
 
-  let ns, type;
-
-  if (object.meta?.id) {
-    const [, path] = object.meta.id.split(":");
-    [ns, type] = path.split("/").pop().split(".");
-    // Force meta.type with the derived type to ensure integrity
-    object.meta.type = `${ns}.${type}`;
-  } else if (object.meta?.type) {
-    [ns, type] = object.meta.type.split(".");
-  }
-
-  if (!ns || !type) {
-    throw new Error(`Incorrectly formatted type: ${object.meta.type}`);
-  }
+  const [ns, type] = object.id.type.split(".");
 
   if (!types[ns] || !types[ns][type]) {
     throw new Error(`Unknown type: ${ns}.${type}`);

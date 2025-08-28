@@ -16,12 +16,22 @@ export class ResourceIndexInterface {
 
   /**
    * Retrieve resources by their IDs with access control
-   * @param {string} actor - Actor ID requesting access (URN format)
-   * @param {string[]} ids - Resource IDs to retrieve (URN format)
+   * @param {string} actor - Actor ID requesting access (URI format)
+   * @param {string[]} ids - Resource IDs to retrieve (URI format)
    * @returns {Promise<object[]>} Array of typed resource objects
    * @throws {Error} Not implemented
    */
   async get(actor, ids) {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Retrieve all resources with access control and policy filtering
+   * @param {string} actor - Actor ID requesting access (URI format)
+   * @returns {Promise<object[]>} Array of typed resource objects that pass policy evaluation
+   * @throws {Error} Not implemented
+   */
+  async getAll(actor) {
     throw new Error("Not implemented");
   }
 }
@@ -31,13 +41,13 @@ export class ResourceIndexInterface {
  */
 export class ResourceProcessorInterface {
   /**
-   * Processes all HTML files in the specified directory into MessageV2 objects
+   * Processes HTML files from a knowledge base
    * @param {string} extension - File extension to search for (default: ".html")
    * @param {string[]} selectors - Array of CSS selectors to filter microdata items (default: [])
    * @returns {Promise<void>}
    * @throws {Error} Not implemented
    */
-  async process(extension = ".html", selectors = []) {
+  async processKnowledge(extension = ".html", selectors = []) {
     throw new Error("Not implemented");
   }
 }

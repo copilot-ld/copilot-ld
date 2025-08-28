@@ -14,6 +14,7 @@ describe("libstorage", () => {
       mockFs = {
         mkdir: mock.fn(() => Promise.resolve()),
         writeFile: mock.fn(() => Promise.resolve()),
+        appendFile: mock.fn(() => Promise.resolve()),
         readFile: mock.fn(() => Promise.resolve(Buffer.from("test data"))),
         unlink: mock.fn(() => Promise.resolve()),
         access: mock.fn(() => Promise.resolve()),
@@ -47,6 +48,27 @@ describe("libstorage", () => {
         "/test/base/file.txt",
       ]);
       assert(Buffer.isBuffer(result));
+    });
+
+    test("append creates directory and appends to file", async () => {
+      await localStorage.append("subdir/file.txt", "new content");
+
+      assert.strictEqual(mockFs.mkdir.mock.callCount(), 1);
+      assert.strictEqual(mockFs.appendFile.mock.callCount(), 1);
+      assert.deepStrictEqual(mockFs.appendFile.mock.calls[0].arguments, [
+        "/test/base/subdir/file.txt",
+        "new content",
+      ]);
+    });
+
+    test("append does not add newline characters", async () => {
+      await localStorage.append("file.txt", "line without newline");
+
+      assert.strictEqual(mockFs.appendFile.mock.callCount(), 1);
+      assert.deepStrictEqual(mockFs.appendFile.mock.calls[0].arguments, [
+        "/test/base/file.txt",
+        "line without newline",
+      ]);
     });
 
     test("delete removes file", async () => {
@@ -279,6 +301,72 @@ describe("libstorage", () => {
       assert.strictEqual(mockCommands.GetObjectCommand.mock.callCount(), 1);
       assert(Buffer.isBuffer(result));
       assert.strictEqual(result.toString(), "chunk1chunk2");
+    });
+
+    test("append reads existing data and puts combined data", async () => {
+      // Mock first call to get existing data, second call for put
+      let callCount = 0;
+      mockClient.send = mock.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            Body: [Buffer.from("existing ")],
+          });
+        } else {
+          return Promise.resolve();
+        }
+      });
+
+      await s3Storage.append("file.txt", "new content");
+
+      assert.strictEqual(mockClient.send.mock.callCount(), 2);
+      assert.strictEqual(mockCommands.GetObjectCommand.mock.callCount(), 1);
+      assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
+    });
+
+    test("append handles non-existent file", async () => {
+      // Mock get to fail with 404, then succeed for put
+      let callCount = 0;
+      mockClient.send = mock.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          const error = new Error("Not found");
+          error.name = "NoSuchKey";
+          throw error;
+        } else {
+          return Promise.resolve();
+        }
+      });
+
+      await s3Storage.append("file.txt", "new content");
+
+      assert.strictEqual(mockClient.send.mock.callCount(), 2);
+      assert.strictEqual(mockCommands.GetObjectCommand.mock.callCount(), 1);
+      assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
+    });
+
+    test("append does not add newline characters", async () => {
+      // Mock get to return existing data, then put for append
+      let callCount = 0;
+      mockClient.send = mock.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            Body: [Buffer.from("existing data")],
+          });
+        } else {
+          return Promise.resolve();
+        }
+      });
+
+      await s3Storage.append("file.txt", "appended data");
+
+      // Verify the put command received exactly what we expect without newlines
+      assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
+      const putCall = mockCommands.PutObjectCommand.mock.calls[0].arguments[0];
+      assert.strictEqual(putCall.Key, "file.txt");
+      // The body should be the concatenation of existing + new data without added newlines
+      assert.strictEqual(putCall.Body.toString(), "existing dataappended data");
     });
 
     test("delete sends DeleteObjectCommand", async () => {

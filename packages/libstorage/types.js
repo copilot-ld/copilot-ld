@@ -16,6 +16,17 @@ export class StorageInterface {
   }
 
   /**
+   * Append data to an existing key
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer} data - Data to append
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async append(key, data) {
+    throw new Error("Not implemented");
+  }
+
+  /**
    * Retrieve data by key
    * @param {string} key - Storage key identifier
    * @returns {Promise<string|Buffer>} Retrieved data
@@ -66,7 +77,7 @@ export class StorageInterface {
   }
 
   /**
-   * Find keys with specified prefix for URN-based lookups
+   * Find keys with specified prefix for URI-based lookups
    * @param {string} prefix - Key prefix to search for (e.g., "cld:common.Conversation.hash0001/common.MessageV2.hash0002")
    * @returns {Promise<string[]>} Array of keys with the specified prefix
    * @throws {Error} Not implemented

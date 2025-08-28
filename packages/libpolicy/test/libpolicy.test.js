@@ -235,13 +235,13 @@ describe("libpolicy", () => {
       const assistant = {
         meta: {
           name: "data-expert",
-          urn: "cld:common.Assistant.hash0000",
+          uri: "cld:common.Assistant.hash0000",
         },
       };
 
       // Example evaluation
       const allowed = await policy.evaluate({
-        actor: assistant.meta.urn,
+        actor: assistant.meta.uri,
         resources: [
           "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
         ],

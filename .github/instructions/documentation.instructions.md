@@ -15,7 +15,7 @@ all code changes across the platform.
 1. **Two-File Documentation**: This project maintains only `README.md` and
    `docs/architecture.html` as official documentation
 2. **Component Changelogs**: Each component in `extensions/`, `packages/`, and
-   `services/` must maintain a simple `CHANGELOG.md` in ascending chronological
+   `services/` must maintain a simple `CHANGELOG.md` in descending chronological
    order
 3. **Synchronous Updates**: Documentation updates must accompany code changes in
    the same commit or pull request
@@ -60,17 +60,17 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 ```markdown
 # Changelog
 
-## 2025-01-01
-
-- Added new `processData()` method to `DataProcessor` class
-- Updated `config.yml` with new `timeout` setting
-- Version bump to `v1.2.0`
-
 ## 2025-01-02
 
 - Fixed issue in `validateInput()` where `null` values caused errors
 - Enhanced `APIClient` to support new `retryOptions` parameter
 - Updated `README.md` with installation instructions
+
+## 2025-01-01
+
+- Added new `processData()` method to `DataProcessor` class
+- Updated `config.yml` with new `timeout` setting
+- Version bump to `v1.2.0`
 ```
 
 **Format Rules**:
@@ -79,7 +79,7 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 - Date headings in `YYYY-MM-DD` format using `## ` - **MUST use today's date
   when adding new entries**
 - Simple bullet points for each change
-- Ascending chronological order (oldest first)
+- Descending chronological order (newest first)
 - Updates must be added when component code changes
 - **🚨 CRITICAL: Inline Markdown Formatting 🚨**: All symbols (classes, methods,
   variables, properties), file names, service names, and technical terms must be

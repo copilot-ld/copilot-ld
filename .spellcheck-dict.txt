@@ -1,7 +1,6 @@
 APIs
 async
 auth
-await
 backend
 Backend
 Base64
@@ -10,7 +9,6 @@ CD
 changelog
 Changelog
 charset
-chunk.js
 chunking
 CI
 codebase
@@ -32,7 +30,6 @@ Docker
 Dockerfile
 dockerfile
 Dockerized
-download.js
 Embeddings
 embeddings
 enum
@@ -53,8 +50,6 @@ HTML
 HTTP
 HTTPS
 http
-index.js
-instanceof
 JavaScript
 JSON
 JSDoc
@@ -78,9 +73,6 @@ lifecycle
 LLM
 llm
 localhost
-localhost:3000
-localhost:3001
-localhost:3007
 lookup
 lookups
 microdata

@@ -2,10 +2,907 @@
 import $protobuf from "protobufjs/minimal.js";
 
 // Common aliases
-const $util = $protobuf.util;
+const $Reader = $protobuf.Reader,
+  $Writer = $protobuf.Writer,
+  $util = $protobuf.util;
 
 // Exported root namespace
 const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+
+export const resource = ($root.resource = (() => {
+  /**
+   * Namespace resource.
+   * @exports resource
+   * @namespace
+   */
+  const resource = {};
+
+  resource.Identifier = (function () {
+    /**
+     * Properties of an Identifier.
+     * @memberof resource
+     * @interface IIdentifier
+     * @property {string|null} [type] Identifier type
+     * @property {string|null} [name] Identifier name
+     * @property {string|null} [parent] Identifier parent
+     * @property {number|null} [tokens] Identifier tokens
+     * @property {number|null} [magnitude] Identifier magnitude
+     * @property {number|null} [score] Identifier score
+     */
+
+    /**
+     * Constructs a new Identifier.
+     * @memberof resource
+     * @classdesc Represents an Identifier.
+     * @implements IIdentifier
+     * @constructor
+     * @param {resource.IIdentifier=} [properties] Properties to set
+     */
+    function Identifier(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Identifier type.
+     * @member {string} type
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.type = "";
+
+    /**
+     * Identifier name.
+     * @member {string} name
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.name = "";
+
+    /**
+     * Identifier parent.
+     * @member {string} parent
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.parent = "";
+
+    /**
+     * Identifier tokens.
+     * @member {number|null|undefined} tokens
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.tokens = null;
+
+    /**
+     * Identifier magnitude.
+     * @member {number|null|undefined} magnitude
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.magnitude = null;
+
+    /**
+     * Identifier score.
+     * @member {number|null|undefined} score
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.score = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Identifier _tokens.
+     * @member {"tokens"|undefined} _tokens
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Object.defineProperty(Identifier.prototype, "_tokens", {
+      get: $util.oneOfGetter(($oneOfFields = ["tokens"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Identifier _magnitude.
+     * @member {"magnitude"|undefined} _magnitude
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Object.defineProperty(Identifier.prototype, "_magnitude", {
+      get: $util.oneOfGetter(($oneOfFields = ["magnitude"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Identifier _score.
+     * @member {"score"|undefined} _score
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Object.defineProperty(Identifier.prototype, "_score", {
+      get: $util.oneOfGetter(($oneOfFields = ["score"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified Identifier message. Does not implicitly {@link resource.Identifier.verify|verify} messages.
+     * @function encode
+     * @memberof resource.Identifier
+     * @static
+     * @param {resource.Identifier} message Identifier message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Identifier.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type);
+      if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.name);
+      if (
+        message.parent != null &&
+        Object.hasOwnProperty.call(message, "parent")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.parent);
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 4, wireType 0 =*/ 32).int32(message.tokens);
+      if (
+        message.magnitude != null &&
+        Object.hasOwnProperty.call(message, "magnitude")
+      )
+        writer.uint32(/* id 5, wireType 1 =*/ 41).double(message.magnitude);
+      if (message.score != null && Object.hasOwnProperty.call(message, "score"))
+        writer.uint32(/* id 6, wireType 1 =*/ 49).double(message.score);
+      return writer;
+    };
+
+    /**
+     * Decodes an Identifier message from the specified reader or buffer.
+     * @function decode
+     * @memberof resource.Identifier
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {resource.Identifier} Identifier
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Identifier.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.resource.Identifier();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.type = reader.string();
+            break;
+          }
+          case 2: {
+            message.name = reader.string();
+            break;
+          }
+          case 3: {
+            message.parent = reader.string();
+            break;
+          }
+          case 4: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 5: {
+            message.magnitude = reader.double();
+            break;
+          }
+          case 6: {
+            message.score = reader.double();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies an Identifier message.
+     * @function verify
+     * @memberof resource.Identifier
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Identifier.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.type != null && message.hasOwnProperty("type"))
+        if (!$util.isString(message.type)) return "type: string expected";
+      if (message.name != null && message.hasOwnProperty("name"))
+        if (!$util.isString(message.name)) return "name: string expected";
+      if (message.parent != null && message.hasOwnProperty("parent"))
+        if (!$util.isString(message.parent)) return "parent: string expected";
+      if (message.tokens != null && message.hasOwnProperty("tokens")) {
+        properties._tokens = 1;
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      }
+      if (message.magnitude != null && message.hasOwnProperty("magnitude")) {
+        properties._magnitude = 1;
+        if (typeof message.magnitude !== "number")
+          return "magnitude: number expected";
+      }
+      if (message.score != null && message.hasOwnProperty("score")) {
+        properties._score = 1;
+        if (typeof message.score !== "number") return "score: number expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates an Identifier message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof resource.Identifier
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {resource.Identifier} Identifier
+     */
+    Identifier.fromObject = function fromObject(object) {
+      if (object instanceof $root.resource.Identifier) return object;
+      let message = new $root.resource.Identifier();
+      if (object.type != null) message.type = String(object.type);
+      if (object.name != null) message.name = String(object.name);
+      if (object.parent != null) message.parent = String(object.parent);
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.magnitude != null)
+        message.magnitude = Number(object.magnitude);
+      if (object.score != null) message.score = Number(object.score);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from an Identifier message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof resource.Identifier
+     * @static
+     * @param {resource.Identifier} message Identifier
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Identifier.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.type = "";
+        object.name = "";
+        object.parent = "";
+      }
+      if (message.type != null && message.hasOwnProperty("type"))
+        object.type = message.type;
+      if (message.name != null && message.hasOwnProperty("name"))
+        object.name = message.name;
+      if (message.parent != null && message.hasOwnProperty("parent"))
+        object.parent = message.parent;
+      if (message.tokens != null && message.hasOwnProperty("tokens")) {
+        object.tokens = message.tokens;
+        if (options.oneofs) object._tokens = "tokens";
+      }
+      if (message.magnitude != null && message.hasOwnProperty("magnitude")) {
+        object.magnitude =
+          options.json && !isFinite(message.magnitude)
+            ? String(message.magnitude)
+            : message.magnitude;
+        if (options.oneofs) object._magnitude = "magnitude";
+      }
+      if (message.score != null && message.hasOwnProperty("score")) {
+        object.score =
+          options.json && !isFinite(message.score)
+            ? String(message.score)
+            : message.score;
+        if (options.oneofs) object._score = "score";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Identifier to JSON.
+     * @function toJSON
+     * @memberof resource.Identifier
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Identifier.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Identifier
+     * @function getTypeUrl
+     * @memberof resource.Identifier
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Identifier.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/resource.Identifier";
+    };
+
+    return Identifier;
+  })();
+
+  resource.Descriptor = (function () {
+    /**
+     * Properties of a Descriptor.
+     * @memberof resource
+     * @interface IDescriptor
+     * @property {number|null} [tokens] Descriptor tokens
+     * @property {number|null} [magnitude] Descriptor magnitude
+     * @property {string|null} [purpose] Descriptor purpose
+     * @property {string|null} [instructions] Descriptor instructions
+     * @property {string|null} [applicability] Descriptor applicability
+     * @property {string|null} [evaluation] Descriptor evaluation
+     */
+
+    /**
+     * Constructs a new Descriptor.
+     * @memberof resource
+     * @classdesc Resource descriptor representation
+     * @implements IDescriptor
+     * @constructor
+     * @param {resource.IDescriptor=} [properties] Properties to set
+     */
+    function Descriptor(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Descriptor tokens.
+     * @member {number} tokens
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.tokens = 0;
+
+    /**
+     * Descriptor magnitude.
+     * @member {number} magnitude
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.magnitude = 0;
+
+    /**
+     * Descriptor purpose.
+     * @member {string} purpose
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.purpose = "";
+
+    /**
+     * Descriptor instructions.
+     * @member {string} instructions
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.instructions = "";
+
+    /**
+     * Descriptor applicability.
+     * @member {string} applicability
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.applicability = "";
+
+    /**
+     * Descriptor evaluation.
+     * @member {string} evaluation
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.evaluation = "";
+
+    /**
+     * Encodes the specified Descriptor message. Does not implicitly {@link resource.Descriptor.verify|verify} messages.
+     * @function encode
+     * @memberof resource.Descriptor
+     * @static
+     * @param {resource.Descriptor} message Descriptor message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Descriptor.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
+      if (
+        message.magnitude != null &&
+        Object.hasOwnProperty.call(message, "magnitude")
+      )
+        writer.uint32(/* id 2, wireType 1 =*/ 17).double(message.magnitude);
+      if (
+        message.purpose != null &&
+        Object.hasOwnProperty.call(message, "purpose")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.purpose);
+      if (
+        message.instructions != null &&
+        Object.hasOwnProperty.call(message, "instructions")
+      )
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.instructions);
+      if (
+        message.applicability != null &&
+        Object.hasOwnProperty.call(message, "applicability")
+      )
+        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.applicability);
+      if (
+        message.evaluation != null &&
+        Object.hasOwnProperty.call(message, "evaluation")
+      )
+        writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.evaluation);
+      return writer;
+    };
+
+    /**
+     * Decodes a Descriptor message from the specified reader or buffer.
+     * @function decode
+     * @memberof resource.Descriptor
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {resource.Descriptor} Descriptor
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Descriptor.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.resource.Descriptor();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 2: {
+            message.magnitude = reader.double();
+            break;
+          }
+          case 3: {
+            message.purpose = reader.string();
+            break;
+          }
+          case 4: {
+            message.instructions = reader.string();
+            break;
+          }
+          case 5: {
+            message.applicability = reader.string();
+            break;
+          }
+          case 6: {
+            message.evaluation = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Descriptor message.
+     * @function verify
+     * @memberof resource.Descriptor
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Descriptor.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
+        if (typeof message.magnitude !== "number")
+          return "magnitude: number expected";
+      if (message.purpose != null && message.hasOwnProperty("purpose"))
+        if (!$util.isString(message.purpose)) return "purpose: string expected";
+      if (
+        message.instructions != null &&
+        message.hasOwnProperty("instructions")
+      )
+        if (!$util.isString(message.instructions))
+          return "instructions: string expected";
+      if (
+        message.applicability != null &&
+        message.hasOwnProperty("applicability")
+      )
+        if (!$util.isString(message.applicability))
+          return "applicability: string expected";
+      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
+        if (!$util.isString(message.evaluation))
+          return "evaluation: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a Descriptor message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof resource.Descriptor
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {resource.Descriptor} Descriptor
+     */
+    Descriptor.fromObject = function fromObject(object) {
+      if (object instanceof $root.resource.Descriptor) return object;
+      let message = new $root.resource.Descriptor();
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.magnitude != null)
+        message.magnitude = Number(object.magnitude);
+      if (object.purpose != null) message.purpose = String(object.purpose);
+      if (object.instructions != null)
+        message.instructions = String(object.instructions);
+      if (object.applicability != null)
+        message.applicability = String(object.applicability);
+      if (object.evaluation != null)
+        message.evaluation = String(object.evaluation);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Descriptor message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof resource.Descriptor
+     * @static
+     * @param {resource.Descriptor} message Descriptor
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Descriptor.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.tokens = 0;
+        object.magnitude = 0;
+        object.purpose = "";
+        object.instructions = "";
+        object.applicability = "";
+        object.evaluation = "";
+      }
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        object.tokens = message.tokens;
+      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
+        object.magnitude =
+          options.json && !isFinite(message.magnitude)
+            ? String(message.magnitude)
+            : message.magnitude;
+      if (message.purpose != null && message.hasOwnProperty("purpose"))
+        object.purpose = message.purpose;
+      if (
+        message.instructions != null &&
+        message.hasOwnProperty("instructions")
+      )
+        object.instructions = message.instructions;
+      if (
+        message.applicability != null &&
+        message.hasOwnProperty("applicability")
+      )
+        object.applicability = message.applicability;
+      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
+        object.evaluation = message.evaluation;
+      return object;
+    };
+
+    /**
+     * Converts this Descriptor to JSON.
+     * @function toJSON
+     * @memberof resource.Descriptor
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Descriptor.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Descriptor
+     * @function getTypeUrl
+     * @memberof resource.Descriptor
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Descriptor.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/resource.Descriptor";
+    };
+
+    return Descriptor;
+  })();
+
+  resource.Content = (function () {
+    /**
+     * Properties of a Content.
+     * @memberof resource
+     * @interface IContent
+     * @property {number|null} [tokens] Content tokens
+     * @property {number|null} [magnitude] Content magnitude
+     * @property {string|null} [text] Content text
+     * @property {string|null} [jsonld] Content jsonld
+     */
+
+    /**
+     * Constructs a new Content.
+     * @memberof resource
+     * @classdesc Resource content representation
+     * @implements IContent
+     * @constructor
+     * @param {resource.IContent=} [properties] Properties to set
+     */
+    function Content(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Content tokens.
+     * @member {number} tokens
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.tokens = 0;
+
+    /**
+     * Content magnitude.
+     * @member {number} magnitude
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.magnitude = 0;
+
+    /**
+     * Content text.
+     * @member {string|null|undefined} text
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.text = null;
+
+    /**
+     * Content jsonld.
+     * @member {string|null|undefined} jsonld
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.jsonld = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Content type.
+     * @member {"text"|"jsonld"|undefined} type
+     * @memberof resource.Content
+     * @instance
+     */
+    Object.defineProperty(Content.prototype, "type", {
+      get: $util.oneOfGetter(($oneOfFields = ["text", "jsonld"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified Content message. Does not implicitly {@link resource.Content.verify|verify} messages.
+     * @function encode
+     * @memberof resource.Content
+     * @static
+     * @param {resource.Content} message Content message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Content.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
+      if (
+        message.magnitude != null &&
+        Object.hasOwnProperty.call(message, "magnitude")
+      )
+        writer.uint32(/* id 2, wireType 1 =*/ 17).double(message.magnitude);
+      if (message.text != null && Object.hasOwnProperty.call(message, "text"))
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.text);
+      if (
+        message.jsonld != null &&
+        Object.hasOwnProperty.call(message, "jsonld")
+      )
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.jsonld);
+      return writer;
+    };
+
+    /**
+     * Decodes a Content message from the specified reader or buffer.
+     * @function decode
+     * @memberof resource.Content
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {resource.Content} Content
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Content.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.resource.Content();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 2: {
+            message.magnitude = reader.double();
+            break;
+          }
+          case 3: {
+            message.text = reader.string();
+            break;
+          }
+          case 4: {
+            message.jsonld = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Content message.
+     * @function verify
+     * @memberof resource.Content
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Content.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
+        if (typeof message.magnitude !== "number")
+          return "magnitude: number expected";
+      if (message.text != null && message.hasOwnProperty("text")) {
+        properties.type = 1;
+        if (!$util.isString(message.text)) return "text: string expected";
+      }
+      if (message.jsonld != null && message.hasOwnProperty("jsonld")) {
+        if (properties.type === 1) return "type: multiple values";
+        properties.type = 1;
+        if (!$util.isString(message.jsonld)) return "jsonld: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Content message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof resource.Content
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {resource.Content} Content
+     */
+    Content.fromObject = function fromObject(object) {
+      if (object instanceof $root.resource.Content) return object;
+      let message = new $root.resource.Content();
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.magnitude != null)
+        message.magnitude = Number(object.magnitude);
+      if (object.text != null) message.text = String(object.text);
+      if (object.jsonld != null) message.jsonld = String(object.jsonld);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Content message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof resource.Content
+     * @static
+     * @param {resource.Content} message Content
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Content.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.tokens = 0;
+        object.magnitude = 0;
+      }
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        object.tokens = message.tokens;
+      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
+        object.magnitude =
+          options.json && !isFinite(message.magnitude)
+            ? String(message.magnitude)
+            : message.magnitude;
+      if (message.text != null && message.hasOwnProperty("text")) {
+        object.text = message.text;
+        if (options.oneofs) object.type = "text";
+      }
+      if (message.jsonld != null && message.hasOwnProperty("jsonld")) {
+        object.jsonld = message.jsonld;
+        if (options.oneofs) object.type = "jsonld";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Content to JSON.
+     * @function toJSON
+     * @memberof resource.Content
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Content.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Content
+     * @function getTypeUrl
+     * @memberof resource.Content
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Content.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/resource.Content";
+    };
+
+    return Content;
+  })();
+
+  return resource;
+})());
 
 export const common = ($root.common = (() => {
   /**
@@ -27,7 +924,7 @@ export const common = ($root.common = (() => {
     /**
      * Constructs a new Message.
      * @memberof common
-     * @classdesc Represents a Message.
+     * @classdesc @deprecated
      * @implements IMessage
      * @constructor
      * @param {common.IMessage=} [properties] Properties to set
@@ -53,6 +950,62 @@ export const common = ($root.common = (() => {
      * @instance
      */
     Message.prototype.content = "";
+
+    /**
+     * Encodes the specified Message message. Does not implicitly {@link common.Message.verify|verify} messages.
+     * @function encode
+     * @memberof common.Message
+     * @static
+     * @param {common.Message} message Message message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Message.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.role != null && Object.hasOwnProperty.call(message, "role"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.role);
+      if (
+        message.content != null &&
+        Object.hasOwnProperty.call(message, "content")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.content);
+      return writer;
+    };
+
+    /**
+     * Decodes a Message message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Message
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Message} Message
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Message.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Message();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.role = reader.string();
+            break;
+          }
+          case 2: {
+            message.content = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a Message message.
@@ -187,6 +1140,76 @@ export const common = ($root.common = (() => {
      * @instance
      */
     Usage.prototype.total_tokens = 0;
+
+    /**
+     * Encodes the specified Usage message. Does not implicitly {@link common.Usage.verify|verify} messages.
+     * @function encode
+     * @memberof common.Usage
+     * @static
+     * @param {common.Usage} message Usage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Usage.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.prompt_tokens != null &&
+        Object.hasOwnProperty.call(message, "prompt_tokens")
+      )
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.prompt_tokens);
+      if (
+        message.completion_tokens != null &&
+        Object.hasOwnProperty.call(message, "completion_tokens")
+      )
+        writer
+          .uint32(/* id 2, wireType 0 =*/ 16)
+          .int32(message.completion_tokens);
+      if (
+        message.total_tokens != null &&
+        Object.hasOwnProperty.call(message, "total_tokens")
+      )
+        writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.total_tokens);
+      return writer;
+    };
+
+    /**
+     * Decodes a Usage message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Usage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Usage} Usage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Usage.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Usage();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.prompt_tokens = reader.int32();
+            break;
+          }
+          case 2: {
+            message.completion_tokens = reader.int32();
+            break;
+          }
+          case 3: {
+            message.total_tokens = reader.int32();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a Usage message.
@@ -367,6 +1390,77 @@ export const common = ($root.common = (() => {
     });
 
     /**
+     * Encodes the specified Choice message. Does not implicitly {@link common.Choice.verify|verify} messages.
+     * @function encode
+     * @memberof common.Choice
+     * @static
+     * @param {common.Choice} message Choice message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Choice.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.index);
+      if (
+        message.message != null &&
+        Object.hasOwnProperty.call(message, "message")
+      )
+        $root.common.Message.encode(
+          message.message,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (
+        message.finish_reason != null &&
+        Object.hasOwnProperty.call(message, "finish_reason")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.finish_reason);
+      return writer;
+    };
+
+    /**
+     * Decodes a Choice message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Choice
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Choice} Choice
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Choice.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Choice();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.index = reader.int32();
+            break;
+          }
+          case 2: {
+            message.message = $root.common.Message.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message.finish_reason = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies a Choice message.
      * @function verify
      * @memberof common.Choice
@@ -520,6 +1614,68 @@ export const common = ($root.common = (() => {
     Embedding.prototype.embedding = $util.emptyArray;
 
     /**
+     * Encodes the specified Embedding message. Does not implicitly {@link common.Embedding.verify|verify} messages.
+     * @function encode
+     * @memberof common.Embedding
+     * @static
+     * @param {common.Embedding} message Embedding message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Embedding.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.index);
+      if (message.embedding != null && message.embedding.length) {
+        writer.uint32(/* id 2, wireType 2 =*/ 18).fork();
+        for (let i = 0; i < message.embedding.length; ++i)
+          writer.float(message.embedding[i]);
+        writer.ldelim();
+      }
+      return writer;
+    };
+
+    /**
+     * Decodes an Embedding message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Embedding
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Embedding} Embedding
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Embedding.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Embedding();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.index = reader.int32();
+            break;
+          }
+          case 2: {
+            if (!(message.embedding && message.embedding.length))
+              message.embedding = [];
+            if ((tag & 7) === 2) {
+              let end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) message.embedding.push(reader.float());
+            } else message.embedding.push(reader.float());
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies an Embedding message.
      * @function verify
      * @memberof common.Embedding
@@ -633,7 +1789,7 @@ export const common = ($root.common = (() => {
     /**
      * Constructs a new Chunk.
      * @memberof common
-     * @classdesc Represents a Chunk.
+     * @classdesc @deprecated
      * @implements IChunk
      * @constructor
      * @param {common.IChunk=} [properties] Properties to set
@@ -667,6 +1823,68 @@ export const common = ($root.common = (() => {
      * @instance
      */
     Chunk.prototype.tokens = 0;
+
+    /**
+     * Encodes the specified Chunk message. Does not implicitly {@link common.Chunk.verify|verify} messages.
+     * @function encode
+     * @memberof common.Chunk
+     * @static
+     * @param {common.Chunk} message Chunk message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Chunk.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.id);
+      if (message.text != null && Object.hasOwnProperty.call(message, "text"))
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.text);
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.tokens);
+      return writer;
+    };
+
+    /**
+     * Decodes a Chunk message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Chunk
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Chunk} Chunk
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Chunk.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Chunk();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = reader.string();
+            break;
+          }
+          case 2: {
+            message.text = reader.string();
+            break;
+          }
+          case 3: {
+            message.tokens = reader.int32();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a Chunk message.
@@ -774,7 +1992,7 @@ export const common = ($root.common = (() => {
     /**
      * Constructs a new Similarity.
      * @memberof common
-     * @classdesc Represents a Similarity.
+     * @classdesc @deprecated
      * @implements ISimilarity
      * @constructor
      * @param {common.ISimilarity=} [properties] Properties to set
@@ -816,6 +2034,74 @@ export const common = ($root.common = (() => {
      * @instance
      */
     Similarity.prototype.text = "";
+
+    /**
+     * Encodes the specified Similarity message. Does not implicitly {@link common.Similarity.verify|verify} messages.
+     * @function encode
+     * @memberof common.Similarity
+     * @static
+     * @param {common.Similarity} message Similarity message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Similarity.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.id);
+      if (message.score != null && Object.hasOwnProperty.call(message, "score"))
+        writer.uint32(/* id 2, wireType 1 =*/ 17).double(message.score);
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.tokens);
+      if (message.text != null && Object.hasOwnProperty.call(message, "text"))
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.text);
+      return writer;
+    };
+
+    /**
+     * Decodes a Similarity message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Similarity
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Similarity} Similarity
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Similarity.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Similarity();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = reader.string();
+            break;
+          }
+          case 2: {
+            message.score = reader.double();
+            break;
+          }
+          case 3: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 4: {
+            message.text = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a Similarity message.
@@ -932,7 +2218,7 @@ export const common = ($root.common = (() => {
     /**
      * Constructs a new Prompt.
      * @memberof common
-     * @classdesc Represents a Prompt.
+     * @classdesc @deprecated
      * @implements IPrompt
      * @constructor
      * @param {common.IPrompt=} [properties] Properties to set
@@ -978,6 +2264,124 @@ export const common = ($root.common = (() => {
      * @instance
      */
     Prompt.prototype.messages = $util.emptyArray;
+
+    /**
+     * Encodes the specified Prompt message. Does not implicitly {@link common.Prompt.verify|verify} messages.
+     * @function encode
+     * @memberof common.Prompt
+     * @static
+     * @param {common.Prompt} message Prompt message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Prompt.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.system_instructions != null &&
+        message.system_instructions.length
+      )
+        for (let i = 0; i < message.system_instructions.length; ++i)
+          writer
+            .uint32(/* id 1, wireType 2 =*/ 10)
+            .string(message.system_instructions[i]);
+      if (
+        message.previous_similarities != null &&
+        message.previous_similarities.length
+      )
+        for (let i = 0; i < message.previous_similarities.length; ++i)
+          $root.common.Similarity.encode(
+            message.previous_similarities[i],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
+      if (
+        message.current_similarities != null &&
+        message.current_similarities.length
+      )
+        for (let i = 0; i < message.current_similarities.length; ++i)
+          $root.common.Similarity.encode(
+            message.current_similarities[i],
+            writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+          ).ldelim();
+      if (message.messages != null && message.messages.length)
+        for (let i = 0; i < message.messages.length; ++i)
+          $root.common.Message.encode(
+            message.messages[i],
+            writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a Prompt message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Prompt
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Prompt} Prompt
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Prompt.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Prompt();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (
+              !(
+                message.system_instructions &&
+                message.system_instructions.length
+              )
+            )
+              message.system_instructions = [];
+            message.system_instructions.push(reader.string());
+            break;
+          }
+          case 2: {
+            if (
+              !(
+                message.previous_similarities &&
+                message.previous_similarities.length
+              )
+            )
+              message.previous_similarities = [];
+            message.previous_similarities.push(
+              $root.common.Similarity.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 3: {
+            if (
+              !(
+                message.current_similarities &&
+                message.current_similarities.length
+              )
+            )
+              message.current_similarities = [];
+            message.current_similarities.push(
+              $root.common.Similarity.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 4: {
+            if (!(message.messages && message.messages.length))
+              message.messages = [];
+            message.messages.push(
+              $root.common.Message.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a Prompt message.
@@ -1185,289 +2589,6 @@ export const common = ($root.common = (() => {
     return Prompt;
   })();
 
-  common.Resource = (function () {
-    /**
-     * Properties of a Resource.
-     * @memberof common
-     * @interface IResource
-     * @property {string|null} [id] Resource id
-     * @property {string|null} [name] Resource name
-     * @property {string|null} [type] Resource type
-     * @property {string|null} [purpose] Resource purpose
-     * @property {string|null} [instructions] Resource instructions
-     * @property {string|null} [applicability] Resource applicability
-     * @property {string|null} [evaluation] Resource evaluation
-     * @property {number|null} [tokens] Resource tokens
-     * @property {number|null} [score] Resource score
-     */
-
-    /**
-     * Constructs a new Resource.
-     * @memberof common
-     * @classdesc Represents a Resource.
-     * @implements IResource
-     * @constructor
-     * @param {common.IResource=} [properties] Properties to set
-     */
-    function Resource(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * Resource id.
-     * @member {string} id
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.id = "";
-
-    /**
-     * Resource name.
-     * @member {string} name
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.name = "";
-
-    /**
-     * Resource type.
-     * @member {string} type
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.type = "";
-
-    /**
-     * Resource purpose.
-     * @member {string} purpose
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.purpose = "";
-
-    /**
-     * Resource instructions.
-     * @member {string} instructions
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.instructions = "";
-
-    /**
-     * Resource applicability.
-     * @member {string} applicability
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.applicability = "";
-
-    /**
-     * Resource evaluation.
-     * @member {string} evaluation
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.evaluation = "";
-
-    /**
-     * Resource tokens.
-     * @member {number|null|undefined} tokens
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.tokens = null;
-
-    /**
-     * Resource score.
-     * @member {number|null|undefined} score
-     * @memberof common.Resource
-     * @instance
-     */
-    Resource.prototype.score = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * Resource _tokens.
-     * @member {"tokens"|undefined} _tokens
-     * @memberof common.Resource
-     * @instance
-     */
-    Object.defineProperty(Resource.prototype, "_tokens", {
-      get: $util.oneOfGetter(($oneOfFields = ["tokens"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Resource _score.
-     * @member {"score"|undefined} _score
-     * @memberof common.Resource
-     * @instance
-     */
-    Object.defineProperty(Resource.prototype, "_score", {
-      get: $util.oneOfGetter(($oneOfFields = ["score"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Verifies a Resource message.
-     * @function verify
-     * @memberof common.Resource
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    Resource.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      let properties = {};
-      if (message.id != null && message.hasOwnProperty("id"))
-        if (!$util.isString(message.id)) return "id: string expected";
-      if (message.name != null && message.hasOwnProperty("name"))
-        if (!$util.isString(message.name)) return "name: string expected";
-      if (message.type != null && message.hasOwnProperty("type"))
-        if (!$util.isString(message.type)) return "type: string expected";
-      if (message.purpose != null && message.hasOwnProperty("purpose"))
-        if (!$util.isString(message.purpose)) return "purpose: string expected";
-      if (
-        message.instructions != null &&
-        message.hasOwnProperty("instructions")
-      )
-        if (!$util.isString(message.instructions))
-          return "instructions: string expected";
-      if (
-        message.applicability != null &&
-        message.hasOwnProperty("applicability")
-      )
-        if (!$util.isString(message.applicability))
-          return "applicability: string expected";
-      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
-        if (!$util.isString(message.evaluation))
-          return "evaluation: string expected";
-      if (message.tokens != null && message.hasOwnProperty("tokens")) {
-        properties._tokens = 1;
-        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
-      }
-      if (message.score != null && message.hasOwnProperty("score")) {
-        properties._score = 1;
-        if (typeof message.score !== "number") return "score: number expected";
-      }
-      return null;
-    };
-
-    /**
-     * Creates a Resource message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof common.Resource
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {common.Resource} Resource
-     */
-    Resource.fromObject = function fromObject(object) {
-      if (object instanceof $root.common.Resource) return object;
-      let message = new $root.common.Resource();
-      if (object.id != null) message.id = String(object.id);
-      if (object.name != null) message.name = String(object.name);
-      if (object.type != null) message.type = String(object.type);
-      if (object.purpose != null) message.purpose = String(object.purpose);
-      if (object.instructions != null)
-        message.instructions = String(object.instructions);
-      if (object.applicability != null)
-        message.applicability = String(object.applicability);
-      if (object.evaluation != null)
-        message.evaluation = String(object.evaluation);
-      if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.score != null) message.score = Number(object.score);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a Resource message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof common.Resource
-     * @static
-     * @param {common.Resource} message Resource
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    Resource.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) {
-        object.id = "";
-        object.name = "";
-        object.type = "";
-        object.purpose = "";
-        object.instructions = "";
-        object.applicability = "";
-        object.evaluation = "";
-      }
-      if (message.id != null && message.hasOwnProperty("id"))
-        object.id = message.id;
-      if (message.name != null && message.hasOwnProperty("name"))
-        object.name = message.name;
-      if (message.type != null && message.hasOwnProperty("type"))
-        object.type = message.type;
-      if (message.purpose != null && message.hasOwnProperty("purpose"))
-        object.purpose = message.purpose;
-      if (
-        message.instructions != null &&
-        message.hasOwnProperty("instructions")
-      )
-        object.instructions = message.instructions;
-      if (
-        message.applicability != null &&
-        message.hasOwnProperty("applicability")
-      )
-        object.applicability = message.applicability;
-      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
-        object.evaluation = message.evaluation;
-      if (message.tokens != null && message.hasOwnProperty("tokens")) {
-        object.tokens = message.tokens;
-        if (options.oneofs) object._tokens = "tokens";
-      }
-      if (message.score != null && message.hasOwnProperty("score")) {
-        object.score =
-          options.json && !isFinite(message.score)
-            ? String(message.score)
-            : message.score;
-        if (options.oneofs) object._score = "score";
-      }
-      return object;
-    };
-
-    /**
-     * Converts this Resource to JSON.
-     * @function toJSON
-     * @memberof common.Resource
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    Resource.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for Resource
-     * @function getTypeUrl
-     * @memberof common.Resource
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    Resource.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/common.Resource";
-    };
-
-    return Resource;
-  })();
-
   common.ToolProp = (function () {
     /**
      * Properties of a ToolProp.
@@ -1506,6 +2627,62 @@ export const common = ($root.common = (() => {
      * @instance
      */
     ToolProp.prototype.description = "";
+
+    /**
+     * Encodes the specified ToolProp message. Does not implicitly {@link common.ToolProp.verify|verify} messages.
+     * @function encode
+     * @memberof common.ToolProp
+     * @static
+     * @param {common.ToolProp} message ToolProp message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ToolProp.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type);
+      if (
+        message.description != null &&
+        Object.hasOwnProperty.call(message, "description")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.description);
+      return writer;
+    };
+
+    /**
+     * Decodes a ToolProp message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.ToolProp
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.ToolProp} ToolProp
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ToolProp.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.ToolProp();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.type = reader.string();
+            break;
+          }
+          case 2: {
+            message.description = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a ToolProp message.
@@ -1644,6 +2821,108 @@ export const common = ($root.common = (() => {
      * @instance
      */
     ToolParam.prototype.required = $util.emptyArray;
+
+    /**
+     * Encodes the specified ToolParam message. Does not implicitly {@link common.ToolParam.verify|verify} messages.
+     * @function encode
+     * @memberof common.ToolParam
+     * @static
+     * @param {common.ToolParam} message ToolParam message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ToolParam.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type);
+      if (
+        message.properties != null &&
+        Object.hasOwnProperty.call(message, "properties")
+      )
+        for (
+          let keys = Object.keys(message.properties), i = 0;
+          i < keys.length;
+          ++i
+        ) {
+          writer
+            .uint32(/* id 2, wireType 2 =*/ 18)
+            .fork()
+            .uint32(/* id 1, wireType 2 =*/ 10)
+            .string(keys[i]);
+          $root.common.ToolProp.encode(
+            message.properties[keys[i]],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          )
+            .ldelim()
+            .ldelim();
+        }
+      if (message.required != null && message.required.length)
+        for (let i = 0; i < message.required.length; ++i)
+          writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.required[i]);
+      return writer;
+    };
+
+    /**
+     * Decodes a ToolParam message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.ToolParam
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.ToolParam} ToolParam
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ToolParam.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.ToolParam(),
+        key,
+        value;
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.type = reader.string();
+            break;
+          }
+          case 2: {
+            if (message.properties === $util.emptyObject)
+              message.properties = {};
+            let end2 = reader.uint32() + reader.pos;
+            key = "";
+            value = null;
+            while (reader.pos < end2) {
+              let tag2 = reader.uint32();
+              switch (tag2 >>> 3) {
+                case 1:
+                  key = reader.string();
+                  break;
+                case 2:
+                  value = $root.common.ToolProp.decode(reader, reader.uint32());
+                  break;
+                default:
+                  reader.skipType(tag2 & 7);
+                  break;
+              }
+            }
+            message.properties[key] = value;
+            break;
+          }
+          case 3: {
+            if (!(message.required && message.required.length))
+              message.required = [];
+            message.required.push(reader.string());
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a ToolParam message.
@@ -1785,7 +3064,7 @@ export const common = ($root.common = (() => {
      * Properties of a ToolFunction.
      * @memberof common
      * @interface IToolFunction
-     * @property {common.Resource|null} [meta] ToolFunction meta
+     * @property {resource.Descriptor|null} [descriptor] ToolFunction descriptor
      * @property {common.ToolParam|null} [parameters] ToolFunction parameters
      * @property {string|null} ["arguments"] ToolFunction arguments
      */
@@ -1805,12 +3084,12 @@ export const common = ($root.common = (() => {
     }
 
     /**
-     * ToolFunction meta.
-     * @member {common.Resource|null|undefined} meta
+     * ToolFunction descriptor.
+     * @member {resource.Descriptor|null|undefined} descriptor
      * @memberof common.ToolFunction
      * @instance
      */
-    ToolFunction.prototype.meta = null;
+    ToolFunction.prototype.descriptor = null;
 
     /**
      * ToolFunction parameters.
@@ -1843,6 +3122,86 @@ export const common = ($root.common = (() => {
     });
 
     /**
+     * Encodes the specified ToolFunction message. Does not implicitly {@link common.ToolFunction.verify|verify} messages.
+     * @function encode
+     * @memberof common.ToolFunction
+     * @static
+     * @param {common.ToolFunction} message ToolFunction message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ToolFunction.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.descriptor != null &&
+        Object.hasOwnProperty.call(message, "descriptor")
+      )
+        $root.resource.Descriptor.encode(
+          message.descriptor,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (
+        message.parameters != null &&
+        Object.hasOwnProperty.call(message, "parameters")
+      )
+        $root.common.ToolParam.encode(
+          message.parameters,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (
+        message["arguments"] != null &&
+        Object.hasOwnProperty.call(message, "arguments")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message["arguments"]);
+      return writer;
+    };
+
+    /**
+     * Decodes a ToolFunction message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.ToolFunction
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.ToolFunction} ToolFunction
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ToolFunction.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.ToolFunction();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.descriptor = $root.resource.Descriptor.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 2: {
+            message.parameters = $root.common.ToolParam.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message["arguments"] = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies a ToolFunction message.
      * @function verify
      * @memberof common.ToolFunction
@@ -1854,9 +3213,9 @@ export const common = ($root.common = (() => {
       if (typeof message !== "object" || message === null)
         return "object expected";
       let properties = {};
-      if (message.meta != null && message.hasOwnProperty("meta")) {
-        let error = $root.common.Resource.verify(message.meta);
-        if (error) return "meta." + error;
+      if (message.descriptor != null && message.hasOwnProperty("descriptor")) {
+        let error = $root.resource.Descriptor.verify(message.descriptor);
+        if (error) return "descriptor." + error;
       }
       if (message.parameters != null && message.hasOwnProperty("parameters")) {
         properties.call = 1;
@@ -1885,10 +3244,12 @@ export const common = ($root.common = (() => {
     ToolFunction.fromObject = function fromObject(object) {
       if (object instanceof $root.common.ToolFunction) return object;
       let message = new $root.common.ToolFunction();
-      if (object.meta != null) {
-        if (typeof object.meta !== "object")
-          throw TypeError(".common.ToolFunction.meta: object expected");
-        message.meta = $root.common.Resource.fromObject(object.meta);
+      if (object.descriptor != null) {
+        if (typeof object.descriptor !== "object")
+          throw TypeError(".common.ToolFunction.descriptor: object expected");
+        message.descriptor = $root.resource.Descriptor.fromObject(
+          object.descriptor,
+        );
       }
       if (object.parameters != null) {
         if (typeof object.parameters !== "object")
@@ -1914,9 +3275,12 @@ export const common = ($root.common = (() => {
     ToolFunction.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.defaults) object.meta = null;
-      if (message.meta != null && message.hasOwnProperty("meta"))
-        object.meta = $root.common.Resource.toObject(message.meta, options);
+      if (options.defaults) object.descriptor = null;
+      if (message.descriptor != null && message.hasOwnProperty("descriptor"))
+        object.descriptor = $root.resource.Descriptor.toObject(
+          message.descriptor,
+          options,
+        );
       if (message.parameters != null && message.hasOwnProperty("parameters")) {
         object.parameters = $root.common.ToolParam.toObject(
           message.parameters,
@@ -2021,6 +3385,74 @@ export const common = ($root.common = (() => {
       get: $util.oneOfGetter(($oneOfFields = ["id"])),
       set: $util.oneOfSetter($oneOfFields),
     });
+
+    /**
+     * Encodes the specified Tool message. Does not implicitly {@link common.Tool.verify|verify} messages.
+     * @function encode
+     * @memberof common.Tool
+     * @static
+     * @param {common.Tool} message Tool message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Tool.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type);
+      if (
+        message["function"] != null &&
+        Object.hasOwnProperty.call(message, "function")
+      )
+        $root.common.ToolFunction.encode(
+          message["function"],
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.id);
+      return writer;
+    };
+
+    /**
+     * Decodes a Tool message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Tool
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Tool} Tool
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Tool.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Tool();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.type = reader.string();
+            break;
+          }
+          case 2: {
+            message["function"] = $root.common.ToolFunction.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message.id = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a Tool message.
@@ -2129,16 +3561,438 @@ export const common = ($root.common = (() => {
     return Tool;
   })();
 
+  common.ToolCallRequest = (function () {
+    /**
+     * Properties of a ToolCallRequest.
+     * @memberof common
+     * @interface IToolCallRequest
+     * @property {string|null} [role] ToolCallRequest role
+     * @property {Array.<common.Tool>|null} [tool_calls] ToolCallRequest tool_calls
+     */
+
+    /**
+     * Constructs a new ToolCallRequest.
+     * @memberof common
+     * @classdesc Represents a ToolCallRequest.
+     * @implements IToolCallRequest
+     * @constructor
+     * @param {common.IToolCallRequest=} [properties] Properties to set
+     */
+    function ToolCallRequest(properties) {
+      this.tool_calls = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ToolCallRequest role.
+     * @member {string} role
+     * @memberof common.ToolCallRequest
+     * @instance
+     */
+    ToolCallRequest.prototype.role = "";
+
+    /**
+     * ToolCallRequest tool_calls.
+     * @member {Array.<common.Tool>} tool_calls
+     * @memberof common.ToolCallRequest
+     * @instance
+     */
+    ToolCallRequest.prototype.tool_calls = $util.emptyArray;
+
+    /**
+     * Encodes the specified ToolCallRequest message. Does not implicitly {@link common.ToolCallRequest.verify|verify} messages.
+     * @function encode
+     * @memberof common.ToolCallRequest
+     * @static
+     * @param {common.ToolCallRequest} message ToolCallRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ToolCallRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.role != null && Object.hasOwnProperty.call(message, "role"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.role);
+      if (message.tool_calls != null && message.tool_calls.length)
+        for (let i = 0; i < message.tool_calls.length; ++i)
+          $root.common.Tool.encode(
+            message.tool_calls[i],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a ToolCallRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.ToolCallRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.ToolCallRequest} ToolCallRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ToolCallRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.ToolCallRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.role = reader.string();
+            break;
+          }
+          case 2: {
+            if (!(message.tool_calls && message.tool_calls.length))
+              message.tool_calls = [];
+            message.tool_calls.push(
+              $root.common.Tool.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a ToolCallRequest message.
+     * @function verify
+     * @memberof common.ToolCallRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ToolCallRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.role != null && message.hasOwnProperty("role"))
+        if (!$util.isString(message.role)) return "role: string expected";
+      if (message.tool_calls != null && message.hasOwnProperty("tool_calls")) {
+        if (!Array.isArray(message.tool_calls))
+          return "tool_calls: array expected";
+        for (let i = 0; i < message.tool_calls.length; ++i) {
+          let error = $root.common.Tool.verify(message.tool_calls[i]);
+          if (error) return "tool_calls." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a ToolCallRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.ToolCallRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.ToolCallRequest} ToolCallRequest
+     */
+    ToolCallRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.ToolCallRequest) return object;
+      let message = new $root.common.ToolCallRequest();
+      if (object.role != null) message.role = String(object.role);
+      if (object.tool_calls) {
+        if (!Array.isArray(object.tool_calls))
+          throw TypeError(".common.ToolCallRequest.tool_calls: array expected");
+        message.tool_calls = [];
+        for (let i = 0; i < object.tool_calls.length; ++i) {
+          if (typeof object.tool_calls[i] !== "object")
+            throw TypeError(
+              ".common.ToolCallRequest.tool_calls: object expected",
+            );
+          message.tool_calls[i] = $root.common.Tool.fromObject(
+            object.tool_calls[i],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ToolCallRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.ToolCallRequest
+     * @static
+     * @param {common.ToolCallRequest} message ToolCallRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ToolCallRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.tool_calls = [];
+      if (options.defaults) object.role = "";
+      if (message.role != null && message.hasOwnProperty("role"))
+        object.role = message.role;
+      if (message.tool_calls && message.tool_calls.length) {
+        object.tool_calls = [];
+        for (let j = 0; j < message.tool_calls.length; ++j)
+          object.tool_calls[j] = $root.common.Tool.toObject(
+            message.tool_calls[j],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this ToolCallRequest to JSON.
+     * @function toJSON
+     * @memberof common.ToolCallRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ToolCallRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ToolCallRequest
+     * @function getTypeUrl
+     * @memberof common.ToolCallRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ToolCallRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.ToolCallRequest";
+    };
+
+    return ToolCallRequest;
+  })();
+
+  common.ToolCallResult = (function () {
+    /**
+     * Properties of a ToolCallResult.
+     * @memberof common
+     * @interface IToolCallResult
+     * @property {string|null} [role] ToolCallResult role
+     * @property {string|null} [tool_call_id] ToolCallResult tool_call_id
+     * @property {string|null} [content] ToolCallResult content
+     */
+
+    /**
+     * Constructs a new ToolCallResult.
+     * @memberof common
+     * @classdesc Represents a ToolCallResult.
+     * @implements IToolCallResult
+     * @constructor
+     * @param {common.IToolCallResult=} [properties] Properties to set
+     */
+    function ToolCallResult(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ToolCallResult role.
+     * @member {string} role
+     * @memberof common.ToolCallResult
+     * @instance
+     */
+    ToolCallResult.prototype.role = "";
+
+    /**
+     * ToolCallResult tool_call_id.
+     * @member {string} tool_call_id
+     * @memberof common.ToolCallResult
+     * @instance
+     */
+    ToolCallResult.prototype.tool_call_id = "";
+
+    /**
+     * ToolCallResult content.
+     * @member {string} content
+     * @memberof common.ToolCallResult
+     * @instance
+     */
+    ToolCallResult.prototype.content = "";
+
+    /**
+     * Encodes the specified ToolCallResult message. Does not implicitly {@link common.ToolCallResult.verify|verify} messages.
+     * @function encode
+     * @memberof common.ToolCallResult
+     * @static
+     * @param {common.ToolCallResult} message ToolCallResult message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ToolCallResult.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.role != null && Object.hasOwnProperty.call(message, "role"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.role);
+      if (
+        message.tool_call_id != null &&
+        Object.hasOwnProperty.call(message, "tool_call_id")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.tool_call_id);
+      if (
+        message.content != null &&
+        Object.hasOwnProperty.call(message, "content")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.content);
+      return writer;
+    };
+
+    /**
+     * Decodes a ToolCallResult message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.ToolCallResult
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.ToolCallResult} ToolCallResult
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ToolCallResult.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.ToolCallResult();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.role = reader.string();
+            break;
+          }
+          case 2: {
+            message.tool_call_id = reader.string();
+            break;
+          }
+          case 3: {
+            message.content = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a ToolCallResult message.
+     * @function verify
+     * @memberof common.ToolCallResult
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ToolCallResult.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.role != null && message.hasOwnProperty("role"))
+        if (!$util.isString(message.role)) return "role: string expected";
+      if (
+        message.tool_call_id != null &&
+        message.hasOwnProperty("tool_call_id")
+      )
+        if (!$util.isString(message.tool_call_id))
+          return "tool_call_id: string expected";
+      if (message.content != null && message.hasOwnProperty("content"))
+        if (!$util.isString(message.content)) return "content: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a ToolCallResult message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.ToolCallResult
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.ToolCallResult} ToolCallResult
+     */
+    ToolCallResult.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.ToolCallResult) return object;
+      let message = new $root.common.ToolCallResult();
+      if (object.role != null) message.role = String(object.role);
+      if (object.tool_call_id != null)
+        message.tool_call_id = String(object.tool_call_id);
+      if (object.content != null) message.content = String(object.content);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ToolCallResult message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.ToolCallResult
+     * @static
+     * @param {common.ToolCallResult} message ToolCallResult
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ToolCallResult.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.role = "";
+        object.tool_call_id = "";
+        object.content = "";
+      }
+      if (message.role != null && message.hasOwnProperty("role"))
+        object.role = message.role;
+      if (
+        message.tool_call_id != null &&
+        message.hasOwnProperty("tool_call_id")
+      )
+        object.tool_call_id = message.tool_call_id;
+      if (message.content != null && message.hasOwnProperty("content"))
+        object.content = message.content;
+      return object;
+    };
+
+    /**
+     * Converts this ToolCallResult to JSON.
+     * @function toJSON
+     * @memberof common.ToolCallResult
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ToolCallResult.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ToolCallResult
+     * @function getTypeUrl
+     * @memberof common.ToolCallResult
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ToolCallResult.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.ToolCallResult";
+    };
+
+    return ToolCallResult;
+  })();
+
   common.MessageV2 = (function () {
     /**
      * Properties of a MessageV2.
      * @memberof common
      * @interface IMessageV2
-     * @property {common.Resource|null} [meta] MessageV2 meta
+     * @property {resource.Identifier|null} [id] MessageV2 id
+     * @property {resource.Descriptor|null} [descriptor] MessageV2 descriptor
+     * @property {resource.Content|null} [content] MessageV2 content
      * @property {string|null} [role] MessageV2 role
-     * @property {string|null} [content] MessageV2 content
-     * @property {Array.<common.Tool>|null} [tool_calls] MessageV2 tool_calls
-     * @property {string|null} [tool_call_id] MessageV2 tool_call_id
      */
 
     /**
@@ -2150,19 +4004,34 @@ export const common = ($root.common = (() => {
      * @param {common.IMessageV2=} [properties] Properties to set
      */
     function MessageV2(properties) {
-      this.tool_calls = [];
       if (properties)
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
     }
 
     /**
-     * MessageV2 meta.
-     * @member {common.Resource|null|undefined} meta
+     * MessageV2 id.
+     * @member {resource.Identifier|null|undefined} id
      * @memberof common.MessageV2
      * @instance
      */
-    MessageV2.prototype.meta = null;
+    MessageV2.prototype.id = null;
+
+    /**
+     * MessageV2 descriptor.
+     * @member {resource.Descriptor|null|undefined} descriptor
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.descriptor = null;
+
+    /**
+     * MessageV2 content.
+     * @member {resource.Content|null|undefined} content
+     * @memberof common.MessageV2
+     * @instance
+     */
+    MessageV2.prototype.content = null;
 
     /**
      * MessageV2 role.
@@ -2173,53 +4042,93 @@ export const common = ($root.common = (() => {
     MessageV2.prototype.role = "";
 
     /**
-     * MessageV2 content.
-     * @member {string|null|undefined} content
+     * Encodes the specified MessageV2 message. Does not implicitly {@link common.MessageV2.verify|verify} messages.
+     * @function encode
      * @memberof common.MessageV2
-     * @instance
+     * @static
+     * @param {common.MessageV2} message MessageV2 message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
      */
-    MessageV2.prototype.content = null;
+    MessageV2.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        $root.resource.Identifier.encode(
+          message.id,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (
+        message.descriptor != null &&
+        Object.hasOwnProperty.call(message, "descriptor")
+      )
+        $root.resource.Descriptor.encode(
+          message.descriptor,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (
+        message.content != null &&
+        Object.hasOwnProperty.call(message, "content")
+      )
+        $root.resource.Content.encode(
+          message.content,
+          writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+        ).ldelim();
+      if (message.role != null && Object.hasOwnProperty.call(message, "role"))
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.role);
+      return writer;
+    };
 
     /**
-     * MessageV2 tool_calls.
-     * @member {Array.<common.Tool>} tool_calls
+     * Decodes a MessageV2 message from the specified reader or buffer.
+     * @function decode
      * @memberof common.MessageV2
-     * @instance
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.MessageV2} MessageV2
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    MessageV2.prototype.tool_calls = $util.emptyArray;
-
-    /**
-     * MessageV2 tool_call_id.
-     * @member {string|null|undefined} tool_call_id
-     * @memberof common.MessageV2
-     * @instance
-     */
-    MessageV2.prototype.tool_call_id = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * MessageV2 _content.
-     * @member {"content"|undefined} _content
-     * @memberof common.MessageV2
-     * @instance
-     */
-    Object.defineProperty(MessageV2.prototype, "_content", {
-      get: $util.oneOfGetter(($oneOfFields = ["content"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * MessageV2 _tool_call_id.
-     * @member {"tool_call_id"|undefined} _tool_call_id
-     * @memberof common.MessageV2
-     * @instance
-     */
-    Object.defineProperty(MessageV2.prototype, "_tool_call_id", {
-      get: $util.oneOfGetter(($oneOfFields = ["tool_call_id"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
+    MessageV2.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.MessageV2();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = $root.resource.Identifier.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 2: {
+            message.descriptor = $root.resource.Descriptor.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message.content = $root.resource.Content.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 4: {
+            message.role = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a MessageV2 message.
@@ -2232,33 +4141,20 @@ export const common = ($root.common = (() => {
     MessageV2.verify = function verify(message) {
       if (typeof message !== "object" || message === null)
         return "object expected";
-      let properties = {};
-      if (message.meta != null && message.hasOwnProperty("meta")) {
-        let error = $root.common.Resource.verify(message.meta);
-        if (error) return "meta." + error;
+      if (message.id != null && message.hasOwnProperty("id")) {
+        let error = $root.resource.Identifier.verify(message.id);
+        if (error) return "id." + error;
+      }
+      if (message.descriptor != null && message.hasOwnProperty("descriptor")) {
+        let error = $root.resource.Descriptor.verify(message.descriptor);
+        if (error) return "descriptor." + error;
+      }
+      if (message.content != null && message.hasOwnProperty("content")) {
+        let error = $root.resource.Content.verify(message.content);
+        if (error) return "content." + error;
       }
       if (message.role != null && message.hasOwnProperty("role"))
         if (!$util.isString(message.role)) return "role: string expected";
-      if (message.content != null && message.hasOwnProperty("content")) {
-        properties._content = 1;
-        if (!$util.isString(message.content)) return "content: string expected";
-      }
-      if (message.tool_calls != null && message.hasOwnProperty("tool_calls")) {
-        if (!Array.isArray(message.tool_calls))
-          return "tool_calls: array expected";
-        for (let i = 0; i < message.tool_calls.length; ++i) {
-          let error = $root.common.Tool.verify(message.tool_calls[i]);
-          if (error) return "tool_calls." + error;
-        }
-      }
-      if (
-        message.tool_call_id != null &&
-        message.hasOwnProperty("tool_call_id")
-      ) {
-        properties._tool_call_id = 1;
-        if (!$util.isString(message.tool_call_id))
-          return "tool_call_id: string expected";
-      }
       return null;
     };
 
@@ -2273,27 +4169,24 @@ export const common = ($root.common = (() => {
     MessageV2.fromObject = function fromObject(object) {
       if (object instanceof $root.common.MessageV2) return object;
       let message = new $root.common.MessageV2();
-      if (object.meta != null) {
-        if (typeof object.meta !== "object")
-          throw TypeError(".common.MessageV2.meta: object expected");
-        message.meta = $root.common.Resource.fromObject(object.meta);
+      if (object.id != null) {
+        if (typeof object.id !== "object")
+          throw TypeError(".common.MessageV2.id: object expected");
+        message.id = $root.resource.Identifier.fromObject(object.id);
+      }
+      if (object.descriptor != null) {
+        if (typeof object.descriptor !== "object")
+          throw TypeError(".common.MessageV2.descriptor: object expected");
+        message.descriptor = $root.resource.Descriptor.fromObject(
+          object.descriptor,
+        );
+      }
+      if (object.content != null) {
+        if (typeof object.content !== "object")
+          throw TypeError(".common.MessageV2.content: object expected");
+        message.content = $root.resource.Content.fromObject(object.content);
       }
       if (object.role != null) message.role = String(object.role);
-      if (object.content != null) message.content = String(object.content);
-      if (object.tool_calls) {
-        if (!Array.isArray(object.tool_calls))
-          throw TypeError(".common.MessageV2.tool_calls: array expected");
-        message.tool_calls = [];
-        for (let i = 0; i < object.tool_calls.length; ++i) {
-          if (typeof object.tool_calls[i] !== "object")
-            throw TypeError(".common.MessageV2.tool_calls: object expected");
-          message.tool_calls[i] = $root.common.Tool.fromObject(
-            object.tool_calls[i],
-          );
-        }
-      }
-      if (object.tool_call_id != null)
-        message.tool_call_id = String(object.tool_call_id);
       return message;
     };
 
@@ -2309,34 +4202,26 @@ export const common = ($root.common = (() => {
     MessageV2.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.arrays || options.defaults) object.tool_calls = [];
       if (options.defaults) {
-        object.meta = null;
+        object.id = null;
+        object.descriptor = null;
+        object.content = null;
         object.role = "";
       }
-      if (message.meta != null && message.hasOwnProperty("meta"))
-        object.meta = $root.common.Resource.toObject(message.meta, options);
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = $root.resource.Identifier.toObject(message.id, options);
+      if (message.descriptor != null && message.hasOwnProperty("descriptor"))
+        object.descriptor = $root.resource.Descriptor.toObject(
+          message.descriptor,
+          options,
+        );
+      if (message.content != null && message.hasOwnProperty("content"))
+        object.content = $root.resource.Content.toObject(
+          message.content,
+          options,
+        );
       if (message.role != null && message.hasOwnProperty("role"))
         object.role = message.role;
-      if (message.content != null && message.hasOwnProperty("content")) {
-        object.content = message.content;
-        if (options.oneofs) object._content = "content";
-      }
-      if (message.tool_calls && message.tool_calls.length) {
-        object.tool_calls = [];
-        for (let j = 0; j < message.tool_calls.length; ++j)
-          object.tool_calls[j] = $root.common.Tool.toObject(
-            message.tool_calls[j],
-            options,
-          );
-      }
-      if (
-        message.tool_call_id != null &&
-        message.hasOwnProperty("tool_call_id")
-      ) {
-        object.tool_call_id = message.tool_call_id;
-        if (options.oneofs) object._tool_call_id = "tool_call_id";
-      }
       return object;
     };
 
@@ -2367,6 +4252,255 @@ export const common = ($root.common = (() => {
     };
 
     return MessageV2;
+  })();
+
+  common.Assistant = (function () {
+    /**
+     * Properties of an Assistant.
+     * @memberof common
+     * @interface IAssistant
+     * @property {resource.Identifier|null} [id] Assistant id
+     * @property {resource.Descriptor|null} [descriptor] Assistant descriptor
+     * @property {resource.Content|null} [content] Assistant content
+     */
+
+    /**
+     * Constructs a new Assistant.
+     * @memberof common
+     * @classdesc Represents an Assistant.
+     * @implements IAssistant
+     * @constructor
+     * @param {common.IAssistant=} [properties] Properties to set
+     */
+    function Assistant(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Assistant id.
+     * @member {resource.Identifier|null|undefined} id
+     * @memberof common.Assistant
+     * @instance
+     */
+    Assistant.prototype.id = null;
+
+    /**
+     * Assistant descriptor.
+     * @member {resource.Descriptor|null|undefined} descriptor
+     * @memberof common.Assistant
+     * @instance
+     */
+    Assistant.prototype.descriptor = null;
+
+    /**
+     * Assistant content.
+     * @member {resource.Content|null|undefined} content
+     * @memberof common.Assistant
+     * @instance
+     */
+    Assistant.prototype.content = null;
+
+    /**
+     * Encodes the specified Assistant message. Does not implicitly {@link common.Assistant.verify|verify} messages.
+     * @function encode
+     * @memberof common.Assistant
+     * @static
+     * @param {common.Assistant} message Assistant message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Assistant.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        $root.resource.Identifier.encode(
+          message.id,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (
+        message.descriptor != null &&
+        Object.hasOwnProperty.call(message, "descriptor")
+      )
+        $root.resource.Descriptor.encode(
+          message.descriptor,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (
+        message.content != null &&
+        Object.hasOwnProperty.call(message, "content")
+      )
+        $root.resource.Content.encode(
+          message.content,
+          writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes an Assistant message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Assistant
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Assistant} Assistant
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Assistant.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Assistant();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = $root.resource.Identifier.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 2: {
+            message.descriptor = $root.resource.Descriptor.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message.content = $root.resource.Content.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies an Assistant message.
+     * @function verify
+     * @memberof common.Assistant
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Assistant.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.id != null && message.hasOwnProperty("id")) {
+        let error = $root.resource.Identifier.verify(message.id);
+        if (error) return "id." + error;
+      }
+      if (message.descriptor != null && message.hasOwnProperty("descriptor")) {
+        let error = $root.resource.Descriptor.verify(message.descriptor);
+        if (error) return "descriptor." + error;
+      }
+      if (message.content != null && message.hasOwnProperty("content")) {
+        let error = $root.resource.Content.verify(message.content);
+        if (error) return "content." + error;
+      }
+      return null;
+    };
+
+    /**
+     * Creates an Assistant message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.Assistant
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.Assistant} Assistant
+     */
+    Assistant.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.Assistant) return object;
+      let message = new $root.common.Assistant();
+      if (object.id != null) {
+        if (typeof object.id !== "object")
+          throw TypeError(".common.Assistant.id: object expected");
+        message.id = $root.resource.Identifier.fromObject(object.id);
+      }
+      if (object.descriptor != null) {
+        if (typeof object.descriptor !== "object")
+          throw TypeError(".common.Assistant.descriptor: object expected");
+        message.descriptor = $root.resource.Descriptor.fromObject(
+          object.descriptor,
+        );
+      }
+      if (object.content != null) {
+        if (typeof object.content !== "object")
+          throw TypeError(".common.Assistant.content: object expected");
+        message.content = $root.resource.Content.fromObject(object.content);
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from an Assistant message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.Assistant
+     * @static
+     * @param {common.Assistant} message Assistant
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Assistant.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.id = null;
+        object.descriptor = null;
+        object.content = null;
+      }
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = $root.resource.Identifier.toObject(message.id, options);
+      if (message.descriptor != null && message.hasOwnProperty("descriptor"))
+        object.descriptor = $root.resource.Descriptor.toObject(
+          message.descriptor,
+          options,
+        );
+      if (message.content != null && message.hasOwnProperty("content"))
+        object.content = $root.resource.Content.toObject(
+          message.content,
+          options,
+        );
+      return object;
+    };
+
+    /**
+     * Converts this Assistant to JSON.
+     * @function toJSON
+     * @memberof common.Assistant
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Assistant.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Assistant
+     * @function getTypeUrl
+     * @memberof common.Assistant
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Assistant.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.Assistant";
+    };
+
+    return Assistant;
   })();
 
   return common;
@@ -2453,6 +4587,79 @@ export const agent = ($root.agent = (() => {
       get: $util.oneOfGetter(($oneOfFields = ["github_token"])),
       set: $util.oneOfSetter($oneOfFields),
     });
+
+    /**
+     * Encodes the specified AgentRequest message. Does not implicitly {@link agent.AgentRequest.verify|verify} messages.
+     * @function encode
+     * @memberof agent.AgentRequest
+     * @static
+     * @param {agent.AgentRequest} message AgentRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    AgentRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.messages != null && message.messages.length)
+        for (let i = 0; i < message.messages.length; ++i)
+          $root.common.Message.encode(
+            message.messages[i],
+            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          ).ldelim();
+      if (
+        message.session_id != null &&
+        Object.hasOwnProperty.call(message, "session_id")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.session_id);
+      if (
+        message.github_token != null &&
+        Object.hasOwnProperty.call(message, "github_token")
+      )
+        writer.uint32(/* id 8, wireType 2 =*/ 66).string(message.github_token);
+      return writer;
+    };
+
+    /**
+     * Decodes an AgentRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof agent.AgentRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {agent.AgentRequest} AgentRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    AgentRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.agent.AgentRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.messages && message.messages.length))
+              message.messages = [];
+            message.messages.push(
+              $root.common.Message.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 2: {
+            message.session_id = reader.string();
+            break;
+          }
+          case 8: {
+            message.github_token = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies an AgentRequest message.
@@ -2669,6 +4876,109 @@ export const agent = ($root.agent = (() => {
      * @instance
      */
     AgentResponse.prototype.session_id = "";
+
+    /**
+     * Encodes the specified AgentResponse message. Does not implicitly {@link agent.AgentResponse.verify|verify} messages.
+     * @function encode
+     * @memberof agent.AgentResponse
+     * @static
+     * @param {agent.AgentResponse} message AgentResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    AgentResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.id);
+      if (
+        message.object != null &&
+        Object.hasOwnProperty.call(message, "object")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.object);
+      if (
+        message.created != null &&
+        Object.hasOwnProperty.call(message, "created")
+      )
+        writer.uint32(/* id 3, wireType 0 =*/ 24).int64(message.created);
+      if (message.model != null && Object.hasOwnProperty.call(message, "model"))
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.model);
+      if (message.choices != null && message.choices.length)
+        for (let i = 0; i < message.choices.length; ++i)
+          $root.common.Choice.encode(
+            message.choices[i],
+            writer.uint32(/* id 5, wireType 2 =*/ 42).fork(),
+          ).ldelim();
+      if (message.usage != null && Object.hasOwnProperty.call(message, "usage"))
+        $root.common.Usage.encode(
+          message.usage,
+          writer.uint32(/* id 6, wireType 2 =*/ 50).fork(),
+        ).ldelim();
+      if (
+        message.session_id != null &&
+        Object.hasOwnProperty.call(message, "session_id")
+      )
+        writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.session_id);
+      return writer;
+    };
+
+    /**
+     * Decodes an AgentResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof agent.AgentResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {agent.AgentResponse} AgentResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    AgentResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.agent.AgentResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = reader.string();
+            break;
+          }
+          case 2: {
+            message.object = reader.string();
+            break;
+          }
+          case 3: {
+            message.created = reader.int64();
+            break;
+          }
+          case 4: {
+            message.model = reader.string();
+            break;
+          }
+          case 5: {
+            if (!(message.choices && message.choices.length))
+              message.choices = [];
+            message.choices.push(
+              $root.common.Choice.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 6: {
+            message.usage = $root.common.Usage.decode(reader, reader.uint32());
+            break;
+          }
+          case 7: {
+            message.session_id = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies an AgentResponse message.
@@ -2900,6 +5210,56 @@ export const history = ($root.history = (() => {
     GetHistoryRequest.prototype.session_id = "";
 
     /**
+     * Encodes the specified GetHistoryRequest message. Does not implicitly {@link history.GetHistoryRequest.verify|verify} messages.
+     * @function encode
+     * @memberof history.GetHistoryRequest
+     * @static
+     * @param {history.GetHistoryRequest} message GetHistoryRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetHistoryRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.session_id != null &&
+        Object.hasOwnProperty.call(message, "session_id")
+      )
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.session_id);
+      return writer;
+    };
+
+    /**
+     * Decodes a GetHistoryRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof history.GetHistoryRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {history.GetHistoryRequest} GetHistoryRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetHistoryRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.history.GetHistoryRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.session_id = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies a GetHistoryRequest message.
      * @function verify
      * @memberof history.GetHistoryRequest
@@ -3008,6 +5368,62 @@ export const history = ($root.history = (() => {
      * @instance
      */
     GetHistoryResponse.prototype.prompt = null;
+
+    /**
+     * Encodes the specified GetHistoryResponse message. Does not implicitly {@link history.GetHistoryResponse.verify|verify} messages.
+     * @function encode
+     * @memberof history.GetHistoryResponse
+     * @static
+     * @param {history.GetHistoryResponse} message GetHistoryResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetHistoryResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.prompt != null &&
+        Object.hasOwnProperty.call(message, "prompt")
+      )
+        $root.common.Prompt.encode(
+          message.prompt,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a GetHistoryResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof history.GetHistoryResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {history.GetHistoryResponse} GetHistoryResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetHistoryResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.history.GetHistoryResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.prompt = $root.common.Prompt.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a GetHistoryResponse message.
@@ -3142,6 +5558,80 @@ export const history = ($root.history = (() => {
      * @instance
      */
     UpdateHistoryRequest.prototype.github_token = "";
+
+    /**
+     * Encodes the specified UpdateHistoryRequest message. Does not implicitly {@link history.UpdateHistoryRequest.verify|verify} messages.
+     * @function encode
+     * @memberof history.UpdateHistoryRequest
+     * @static
+     * @param {history.UpdateHistoryRequest} message UpdateHistoryRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UpdateHistoryRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.session_id != null &&
+        Object.hasOwnProperty.call(message, "session_id")
+      )
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.session_id);
+      if (
+        message.prompt != null &&
+        Object.hasOwnProperty.call(message, "prompt")
+      )
+        $root.common.Prompt.encode(
+          message.prompt,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (
+        message.github_token != null &&
+        Object.hasOwnProperty.call(message, "github_token")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.github_token);
+      return writer;
+    };
+
+    /**
+     * Decodes an UpdateHistoryRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof history.UpdateHistoryRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {history.UpdateHistoryRequest} UpdateHistoryRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UpdateHistoryRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.history.UpdateHistoryRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.session_id = reader.string();
+            break;
+          }
+          case 2: {
+            message.prompt = $root.common.Prompt.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message.github_token = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies an UpdateHistoryRequest message.
@@ -3293,6 +5783,65 @@ export const history = ($root.history = (() => {
     UpdateHistoryResponse.prototype.optimized = false;
 
     /**
+     * Encodes the specified UpdateHistoryResponse message. Does not implicitly {@link history.UpdateHistoryResponse.verify|verify} messages.
+     * @function encode
+     * @memberof history.UpdateHistoryResponse
+     * @static
+     * @param {history.UpdateHistoryResponse} message UpdateHistoryResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UpdateHistoryResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.success != null &&
+        Object.hasOwnProperty.call(message, "success")
+      )
+        writer.uint32(/* id 1, wireType 0 =*/ 8).bool(message.success);
+      if (
+        message.optimized != null &&
+        Object.hasOwnProperty.call(message, "optimized")
+      )
+        writer.uint32(/* id 2, wireType 0 =*/ 16).bool(message.optimized);
+      return writer;
+    };
+
+    /**
+     * Decodes an UpdateHistoryResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof history.UpdateHistoryResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {history.UpdateHistoryResponse} UpdateHistoryResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UpdateHistoryResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.history.UpdateHistoryResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.success = reader.bool();
+            break;
+          }
+          case 2: {
+            message.optimized = reader.bool();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies an UpdateHistoryResponse message.
      * @function verify
      * @memberof history.UpdateHistoryResponse
@@ -3433,6 +5982,64 @@ export const llm = ($root.llm = (() => {
     EmbeddingsRequest.prototype.github_token = "";
 
     /**
+     * Encodes the specified EmbeddingsRequest message. Does not implicitly {@link llm.EmbeddingsRequest.verify|verify} messages.
+     * @function encode
+     * @memberof llm.EmbeddingsRequest
+     * @static
+     * @param {llm.EmbeddingsRequest} message EmbeddingsRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    EmbeddingsRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.chunks != null && message.chunks.length)
+        for (let i = 0; i < message.chunks.length; ++i)
+          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.chunks[i]);
+      if (
+        message.github_token != null &&
+        Object.hasOwnProperty.call(message, "github_token")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.github_token);
+      return writer;
+    };
+
+    /**
+     * Decodes an EmbeddingsRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof llm.EmbeddingsRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {llm.EmbeddingsRequest} EmbeddingsRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    EmbeddingsRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.llm.EmbeddingsRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.chunks && message.chunks.length)) message.chunks = [];
+            message.chunks.push(reader.string());
+            break;
+          }
+          case 2: {
+            message.github_token = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies an EmbeddingsRequest message.
      * @function verify
      * @memberof llm.EmbeddingsRequest
@@ -3567,6 +6174,60 @@ export const llm = ($root.llm = (() => {
      * @instance
      */
     EmbeddingsResponse.prototype.data = $util.emptyArray;
+
+    /**
+     * Encodes the specified EmbeddingsResponse message. Does not implicitly {@link llm.EmbeddingsResponse.verify|verify} messages.
+     * @function encode
+     * @memberof llm.EmbeddingsResponse
+     * @static
+     * @param {llm.EmbeddingsResponse} message EmbeddingsResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    EmbeddingsResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.data != null && message.data.length)
+        for (let i = 0; i < message.data.length; ++i)
+          $root.common.Embedding.encode(
+            message.data[i],
+            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes an EmbeddingsResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof llm.EmbeddingsResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {llm.EmbeddingsResponse} EmbeddingsResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    EmbeddingsResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.llm.EmbeddingsResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.data && message.data.length)) message.data = [];
+            message.data.push(
+              $root.common.Embedding.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies an EmbeddingsResponse message.
@@ -3727,6 +6388,80 @@ export const llm = ($root.llm = (() => {
       get: $util.oneOfGetter(($oneOfFields = ["temperature"])),
       set: $util.oneOfSetter($oneOfFields),
     });
+
+    /**
+     * Encodes the specified CompletionsRequest message. Does not implicitly {@link llm.CompletionsRequest.verify|verify} messages.
+     * @function encode
+     * @memberof llm.CompletionsRequest
+     * @static
+     * @param {llm.CompletionsRequest} message CompletionsRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    CompletionsRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.prompt != null &&
+        Object.hasOwnProperty.call(message, "prompt")
+      )
+        $root.common.Prompt.encode(
+          message.prompt,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (
+        message.temperature != null &&
+        Object.hasOwnProperty.call(message, "temperature")
+      )
+        writer.uint32(/* id 2, wireType 5 =*/ 21).float(message.temperature);
+      if (
+        message.github_token != null &&
+        Object.hasOwnProperty.call(message, "github_token")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.github_token);
+      return writer;
+    };
+
+    /**
+     * Decodes a CompletionsRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof llm.CompletionsRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {llm.CompletionsRequest} CompletionsRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    CompletionsRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.llm.CompletionsRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.prompt = $root.common.Prompt.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 3: {
+            message.github_token = reader.string();
+            break;
+          }
+          case 2: {
+            message.temperature = reader.float();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a CompletionsRequest message.
@@ -3926,6 +6661,100 @@ export const llm = ($root.llm = (() => {
      * @instance
      */
     CompletionsResponse.prototype.usage = null;
+
+    /**
+     * Encodes the specified CompletionsResponse message. Does not implicitly {@link llm.CompletionsResponse.verify|verify} messages.
+     * @function encode
+     * @memberof llm.CompletionsResponse
+     * @static
+     * @param {llm.CompletionsResponse} message CompletionsResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    CompletionsResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.id);
+      if (
+        message.object != null &&
+        Object.hasOwnProperty.call(message, "object")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.object);
+      if (
+        message.created != null &&
+        Object.hasOwnProperty.call(message, "created")
+      )
+        writer.uint32(/* id 3, wireType 0 =*/ 24).int64(message.created);
+      if (message.model != null && Object.hasOwnProperty.call(message, "model"))
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.model);
+      if (message.choices != null && message.choices.length)
+        for (let i = 0; i < message.choices.length; ++i)
+          $root.common.Choice.encode(
+            message.choices[i],
+            writer.uint32(/* id 5, wireType 2 =*/ 42).fork(),
+          ).ldelim();
+      if (message.usage != null && Object.hasOwnProperty.call(message, "usage"))
+        $root.common.Usage.encode(
+          message.usage,
+          writer.uint32(/* id 6, wireType 2 =*/ 50).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a CompletionsResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof llm.CompletionsResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {llm.CompletionsResponse} CompletionsResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    CompletionsResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.llm.CompletionsResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = reader.string();
+            break;
+          }
+          case 2: {
+            message.object = reader.string();
+            break;
+          }
+          case 3: {
+            message.created = reader.int64();
+            break;
+          }
+          case 4: {
+            message.model = reader.string();
+            break;
+          }
+          case 5: {
+            if (!(message.choices && message.choices.length))
+              message.choices = [];
+            message.choices.push(
+              $root.common.Choice.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 6: {
+            message.usage = $root.common.Usage.decode(reader, reader.uint32());
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a CompletionsResponse message.
@@ -4152,6 +6981,55 @@ export const text = ($root.text = (() => {
     GetChunksRequest.prototype.ids = $util.emptyArray;
 
     /**
+     * Encodes the specified GetChunksRequest message. Does not implicitly {@link text.GetChunksRequest.verify|verify} messages.
+     * @function encode
+     * @memberof text.GetChunksRequest
+     * @static
+     * @param {text.GetChunksRequest} message GetChunksRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetChunksRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.ids != null && message.ids.length)
+        for (let i = 0; i < message.ids.length; ++i)
+          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.ids[i]);
+      return writer;
+    };
+
+    /**
+     * Decodes a GetChunksRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof text.GetChunksRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {text.GetChunksRequest} GetChunksRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetChunksRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.text.GetChunksRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.ids && message.ids.length)) message.ids = [];
+            message.ids.push(reader.string());
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies a GetChunksRequest message.
      * @function verify
      * @memberof text.GetChunksRequest
@@ -4273,6 +7151,92 @@ export const text = ($root.text = (() => {
     GetChunksResponse.prototype.chunks = $util.emptyObject;
 
     /**
+     * Encodes the specified GetChunksResponse message. Does not implicitly {@link text.GetChunksResponse.verify|verify} messages.
+     * @function encode
+     * @memberof text.GetChunksResponse
+     * @static
+     * @param {text.GetChunksResponse} message GetChunksResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetChunksResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.chunks != null &&
+        Object.hasOwnProperty.call(message, "chunks")
+      )
+        for (
+          let keys = Object.keys(message.chunks), i = 0;
+          i < keys.length;
+          ++i
+        ) {
+          writer
+            .uint32(/* id 1, wireType 2 =*/ 10)
+            .fork()
+            .uint32(/* id 1, wireType 2 =*/ 10)
+            .string(keys[i]);
+          $root.common.Chunk.encode(
+            message.chunks[keys[i]],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          )
+            .ldelim()
+            .ldelim();
+        }
+      return writer;
+    };
+
+    /**
+     * Decodes a GetChunksResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof text.GetChunksResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {text.GetChunksResponse} GetChunksResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetChunksResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.text.GetChunksResponse(),
+        key,
+        value;
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (message.chunks === $util.emptyObject) message.chunks = {};
+            let end2 = reader.uint32() + reader.pos;
+            key = "";
+            value = null;
+            while (reader.pos < end2) {
+              let tag2 = reader.uint32();
+              switch (tag2 >>> 3) {
+                case 1:
+                  key = reader.string();
+                  break;
+                case 2:
+                  value = $root.common.Chunk.decode(reader, reader.uint32());
+                  break;
+                default:
+                  reader.skipType(tag2 & 7);
+                  break;
+              }
+            }
+            message.chunks[key] = value;
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
      * Verifies a GetChunksResponse message.
      * @function verify
      * @memberof text.GetChunksResponse
@@ -4389,15 +7353,340 @@ export const vector = ($root.vector = (() => {
    */
   const vector = {};
 
+  vector.Filter = (function () {
+    /**
+     * Properties of a Filter.
+     * @memberof vector
+     * @interface IFilter
+     * @property {string|null} [limit] Filter limit
+     * @property {string|null} [threshold] Filter threshold
+     * @property {string|null} [max_tokens] Filter max_tokens
+     * @property {string|null} [prefix] Filter prefix
+     * @property {string|null} [type] Filter type
+     */
+
+    /**
+     * Constructs a new Filter.
+     * @memberof vector
+     * @classdesc Represents a Filter.
+     * @implements IFilter
+     * @constructor
+     * @param {vector.IFilter=} [properties] Properties to set
+     */
+    function Filter(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Filter limit.
+     * @member {string|null|undefined} limit
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.limit = null;
+
+    /**
+     * Filter threshold.
+     * @member {string|null|undefined} threshold
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.threshold = null;
+
+    /**
+     * Filter max_tokens.
+     * @member {string|null|undefined} max_tokens
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.max_tokens = null;
+
+    /**
+     * Filter prefix.
+     * @member {string|null|undefined} prefix
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.prefix = null;
+
+    /**
+     * Filter type.
+     * @member {string|null|undefined} type
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.type = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Filter _limit.
+     * @member {"limit"|undefined} _limit
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_limit", {
+      get: $util.oneOfGetter(($oneOfFields = ["limit"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _threshold.
+     * @member {"threshold"|undefined} _threshold
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_threshold", {
+      get: $util.oneOfGetter(($oneOfFields = ["threshold"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _max_tokens.
+     * @member {"max_tokens"|undefined} _max_tokens
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_max_tokens", {
+      get: $util.oneOfGetter(($oneOfFields = ["max_tokens"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _prefix.
+     * @member {"prefix"|undefined} _prefix
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_prefix", {
+      get: $util.oneOfGetter(($oneOfFields = ["prefix"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _type.
+     * @member {"type"|undefined} _type
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_type", {
+      get: $util.oneOfGetter(($oneOfFields = ["type"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified Filter message. Does not implicitly {@link vector.Filter.verify|verify} messages.
+     * @function encode
+     * @memberof vector.Filter
+     * @static
+     * @param {vector.Filter} message Filter message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Filter.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.limit != null && Object.hasOwnProperty.call(message, "limit"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.limit);
+      if (
+        message.threshold != null &&
+        Object.hasOwnProperty.call(message, "threshold")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.threshold);
+      if (
+        message.max_tokens != null &&
+        Object.hasOwnProperty.call(message, "max_tokens")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.max_tokens);
+      if (
+        message.prefix != null &&
+        Object.hasOwnProperty.call(message, "prefix")
+      )
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.prefix);
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.type);
+      return writer;
+    };
+
+    /**
+     * Decodes a Filter message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.Filter
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.Filter} Filter
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Filter.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.Filter();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.limit = reader.string();
+            break;
+          }
+          case 2: {
+            message.threshold = reader.string();
+            break;
+          }
+          case 3: {
+            message.max_tokens = reader.string();
+            break;
+          }
+          case 4: {
+            message.prefix = reader.string();
+            break;
+          }
+          case 5: {
+            message.type = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Filter message.
+     * @function verify
+     * @memberof vector.Filter
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Filter.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.limit != null && message.hasOwnProperty("limit")) {
+        properties._limit = 1;
+        if (!$util.isString(message.limit)) return "limit: string expected";
+      }
+      if (message.threshold != null && message.hasOwnProperty("threshold")) {
+        properties._threshold = 1;
+        if (!$util.isString(message.threshold))
+          return "threshold: string expected";
+      }
+      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
+        properties._max_tokens = 1;
+        if (!$util.isString(message.max_tokens))
+          return "max_tokens: string expected";
+      }
+      if (message.prefix != null && message.hasOwnProperty("prefix")) {
+        properties._prefix = 1;
+        if (!$util.isString(message.prefix)) return "prefix: string expected";
+      }
+      if (message.type != null && message.hasOwnProperty("type")) {
+        properties._type = 1;
+        if (!$util.isString(message.type)) return "type: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Filter message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.Filter
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.Filter} Filter
+     */
+    Filter.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.Filter) return object;
+      let message = new $root.vector.Filter();
+      if (object.limit != null) message.limit = String(object.limit);
+      if (object.threshold != null)
+        message.threshold = String(object.threshold);
+      if (object.max_tokens != null)
+        message.max_tokens = String(object.max_tokens);
+      if (object.prefix != null) message.prefix = String(object.prefix);
+      if (object.type != null) message.type = String(object.type);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Filter message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.Filter
+     * @static
+     * @param {vector.Filter} message Filter
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Filter.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (message.limit != null && message.hasOwnProperty("limit")) {
+        object.limit = message.limit;
+        if (options.oneofs) object._limit = "limit";
+      }
+      if (message.threshold != null && message.hasOwnProperty("threshold")) {
+        object.threshold = message.threshold;
+        if (options.oneofs) object._threshold = "threshold";
+      }
+      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
+        object.max_tokens = message.max_tokens;
+        if (options.oneofs) object._max_tokens = "max_tokens";
+      }
+      if (message.prefix != null && message.hasOwnProperty("prefix")) {
+        object.prefix = message.prefix;
+        if (options.oneofs) object._prefix = "prefix";
+      }
+      if (message.type != null && message.hasOwnProperty("type")) {
+        object.type = message.type;
+        if (options.oneofs) object._type = "type";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Filter to JSON.
+     * @function toJSON
+     * @memberof vector.Filter
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Filter.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Filter
+     * @function getTypeUrl
+     * @memberof vector.Filter
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Filter.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.Filter";
+    };
+
+    return Filter;
+  })();
+
   vector.QueryItemsRequest = (function () {
     /**
      * Properties of a QueryItemsRequest.
      * @memberof vector
      * @interface IQueryItemsRequest
+     * @property {string|null} [index] QueryItemsRequest index
      * @property {Array.<number>|null} [vector] QueryItemsRequest vector
-     * @property {number|null} [threshold] QueryItemsRequest threshold
-     * @property {number|null} [limit] QueryItemsRequest limit
-     * @property {number|null} [max_tokens] QueryItemsRequest max_tokens
+     * @property {vector.Filter|null} [filter] QueryItemsRequest filter
      */
 
     /**
@@ -4416,6 +7705,14 @@ export const vector = ($root.vector = (() => {
     }
 
     /**
+     * QueryItemsRequest index.
+     * @member {string} index
+     * @memberof vector.QueryItemsRequest
+     * @instance
+     */
+    QueryItemsRequest.prototype.index = "";
+
+    /**
      * QueryItemsRequest vector.
      * @member {Array.<number>} vector
      * @memberof vector.QueryItemsRequest
@@ -4424,64 +7721,102 @@ export const vector = ($root.vector = (() => {
     QueryItemsRequest.prototype.vector = $util.emptyArray;
 
     /**
-     * QueryItemsRequest threshold.
-     * @member {number|null|undefined} threshold
+     * QueryItemsRequest filter.
+     * @member {vector.Filter|null|undefined} filter
      * @memberof vector.QueryItemsRequest
      * @instance
      */
-    QueryItemsRequest.prototype.threshold = null;
-
-    /**
-     * QueryItemsRequest limit.
-     * @member {number|null|undefined} limit
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     */
-    QueryItemsRequest.prototype.limit = null;
-
-    /**
-     * QueryItemsRequest max_tokens.
-     * @member {number|null|undefined} max_tokens
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     */
-    QueryItemsRequest.prototype.max_tokens = null;
+    QueryItemsRequest.prototype.filter = null;
 
     // OneOf field names bound to virtual getters and setters
     let $oneOfFields;
 
     /**
-     * QueryItemsRequest _threshold.
-     * @member {"threshold"|undefined} _threshold
+     * QueryItemsRequest _filter.
+     * @member {"filter"|undefined} _filter
      * @memberof vector.QueryItemsRequest
      * @instance
      */
-    Object.defineProperty(QueryItemsRequest.prototype, "_threshold", {
-      get: $util.oneOfGetter(($oneOfFields = ["threshold"])),
+    Object.defineProperty(QueryItemsRequest.prototype, "_filter", {
+      get: $util.oneOfGetter(($oneOfFields = ["filter"])),
       set: $util.oneOfSetter($oneOfFields),
     });
 
     /**
-     * QueryItemsRequest _limit.
-     * @member {"limit"|undefined} _limit
+     * Encodes the specified QueryItemsRequest message. Does not implicitly {@link vector.QueryItemsRequest.verify|verify} messages.
+     * @function encode
      * @memberof vector.QueryItemsRequest
-     * @instance
+     * @static
+     * @param {vector.QueryItemsRequest} message QueryItemsRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
      */
-    Object.defineProperty(QueryItemsRequest.prototype, "_limit", {
-      get: $util.oneOfGetter(($oneOfFields = ["limit"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
+    QueryItemsRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.index);
+      if (message.vector != null && message.vector.length) {
+        writer.uint32(/* id 2, wireType 2 =*/ 18).fork();
+        for (let i = 0; i < message.vector.length; ++i)
+          writer.double(message.vector[i]);
+        writer.ldelim();
+      }
+      if (
+        message.filter != null &&
+        Object.hasOwnProperty.call(message, "filter")
+      )
+        $root.vector.Filter.encode(
+          message.filter,
+          writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+        ).ldelim();
+      return writer;
+    };
 
     /**
-     * QueryItemsRequest _max_tokens.
-     * @member {"max_tokens"|undefined} _max_tokens
+     * Decodes a QueryItemsRequest message from the specified reader or buffer.
+     * @function decode
      * @memberof vector.QueryItemsRequest
-     * @instance
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.QueryItemsRequest} QueryItemsRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    Object.defineProperty(QueryItemsRequest.prototype, "_max_tokens", {
-      get: $util.oneOfGetter(($oneOfFields = ["max_tokens"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
+    QueryItemsRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.QueryItemsRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.index = reader.string();
+            break;
+          }
+          case 2: {
+            if (!(message.vector && message.vector.length)) message.vector = [];
+            if ((tag & 7) === 2) {
+              let end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) message.vector.push(reader.double());
+            } else message.vector.push(reader.double());
+            break;
+          }
+          case 3: {
+            message.filter = $root.vector.Filter.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a QueryItemsRequest message.
@@ -4495,25 +7830,20 @@ export const vector = ($root.vector = (() => {
       if (typeof message !== "object" || message === null)
         return "object expected";
       let properties = {};
+      if (message.index != null && message.hasOwnProperty("index"))
+        if (!$util.isString(message.index)) return "index: string expected";
       if (message.vector != null && message.hasOwnProperty("vector")) {
         if (!Array.isArray(message.vector)) return "vector: array expected";
         for (let i = 0; i < message.vector.length; ++i)
           if (typeof message.vector[i] !== "number")
             return "vector: number[] expected";
       }
-      if (message.threshold != null && message.hasOwnProperty("threshold")) {
-        properties._threshold = 1;
-        if (typeof message.threshold !== "number")
-          return "threshold: number expected";
-      }
-      if (message.limit != null && message.hasOwnProperty("limit")) {
-        properties._limit = 1;
-        if (!$util.isInteger(message.limit)) return "limit: integer expected";
-      }
-      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
-        properties._max_tokens = 1;
-        if (!$util.isInteger(message.max_tokens))
-          return "max_tokens: integer expected";
+      if (message.filter != null && message.hasOwnProperty("filter")) {
+        properties._filter = 1;
+        {
+          let error = $root.vector.Filter.verify(message.filter);
+          if (error) return "filter." + error;
+        }
       }
       return null;
     };
@@ -4529,6 +7859,7 @@ export const vector = ($root.vector = (() => {
     QueryItemsRequest.fromObject = function fromObject(object) {
       if (object instanceof $root.vector.QueryItemsRequest) return object;
       let message = new $root.vector.QueryItemsRequest();
+      if (object.index != null) message.index = String(object.index);
       if (object.vector) {
         if (!Array.isArray(object.vector))
           throw TypeError(".vector.QueryItemsRequest.vector: array expected");
@@ -4536,10 +7867,11 @@ export const vector = ($root.vector = (() => {
         for (let i = 0; i < object.vector.length; ++i)
           message.vector[i] = Number(object.vector[i]);
       }
-      if (object.threshold != null)
-        message.threshold = Number(object.threshold);
-      if (object.limit != null) message.limit = object.limit | 0;
-      if (object.max_tokens != null) message.max_tokens = object.max_tokens | 0;
+      if (object.filter != null) {
+        if (typeof object.filter !== "object")
+          throw TypeError(".vector.QueryItemsRequest.filter: object expected");
+        message.filter = $root.vector.Filter.fromObject(object.filter);
+      }
       return message;
     };
 
@@ -4556,6 +7888,9 @@ export const vector = ($root.vector = (() => {
       if (!options) options = {};
       let object = {};
       if (options.arrays || options.defaults) object.vector = [];
+      if (options.defaults) object.index = "";
+      if (message.index != null && message.hasOwnProperty("index"))
+        object.index = message.index;
       if (message.vector && message.vector.length) {
         object.vector = [];
         for (let j = 0; j < message.vector.length; ++j)
@@ -4564,20 +7899,9 @@ export const vector = ($root.vector = (() => {
               ? String(message.vector[j])
               : message.vector[j];
       }
-      if (message.threshold != null && message.hasOwnProperty("threshold")) {
-        object.threshold =
-          options.json && !isFinite(message.threshold)
-            ? String(message.threshold)
-            : message.threshold;
-        if (options.oneofs) object._threshold = "threshold";
-      }
-      if (message.limit != null && message.hasOwnProperty("limit")) {
-        object.limit = message.limit;
-        if (options.oneofs) object._limit = "limit";
-      }
-      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
-        object.max_tokens = message.max_tokens;
-        if (options.oneofs) object._max_tokens = "max_tokens";
+      if (message.filter != null && message.hasOwnProperty("filter")) {
+        object.filter = $root.vector.Filter.toObject(message.filter, options);
+        if (options.oneofs) object._filter = "filter";
       }
       return object;
     };
@@ -4616,7 +7940,7 @@ export const vector = ($root.vector = (() => {
      * Properties of a QueryItemsResponse.
      * @memberof vector
      * @interface IQueryItemsResponse
-     * @property {Array.<common.Similarity>|null} [results] QueryItemsResponse results
+     * @property {Array.<resource.Identifier>|null} [identifiers] QueryItemsResponse identifiers
      */
 
     /**
@@ -4628,19 +7952,74 @@ export const vector = ($root.vector = (() => {
      * @param {vector.IQueryItemsResponse=} [properties] Properties to set
      */
     function QueryItemsResponse(properties) {
-      this.results = [];
+      this.identifiers = [];
       if (properties)
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
     }
 
     /**
-     * QueryItemsResponse results.
-     * @member {Array.<common.Similarity>} results
+     * QueryItemsResponse identifiers.
+     * @member {Array.<resource.Identifier>} identifiers
      * @memberof vector.QueryItemsResponse
      * @instance
      */
-    QueryItemsResponse.prototype.results = $util.emptyArray;
+    QueryItemsResponse.prototype.identifiers = $util.emptyArray;
+
+    /**
+     * Encodes the specified QueryItemsResponse message. Does not implicitly {@link vector.QueryItemsResponse.verify|verify} messages.
+     * @function encode
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {vector.QueryItemsResponse} message QueryItemsResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    QueryItemsResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.identifiers != null && message.identifiers.length)
+        for (let i = 0; i < message.identifiers.length; ++i)
+          $root.resource.Identifier.encode(
+            message.identifiers[i],
+            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a QueryItemsResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.QueryItemsResponse} QueryItemsResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    QueryItemsResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.QueryItemsResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.identifiers && message.identifiers.length))
+              message.identifiers = [];
+            message.identifiers.push(
+              $root.resource.Identifier.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
 
     /**
      * Verifies a QueryItemsResponse message.
@@ -4653,11 +8032,15 @@ export const vector = ($root.vector = (() => {
     QueryItemsResponse.verify = function verify(message) {
       if (typeof message !== "object" || message === null)
         return "object expected";
-      if (message.results != null && message.hasOwnProperty("results")) {
-        if (!Array.isArray(message.results)) return "results: array expected";
-        for (let i = 0; i < message.results.length; ++i) {
-          let error = $root.common.Similarity.verify(message.results[i]);
-          if (error) return "results." + error;
+      if (
+        message.identifiers != null &&
+        message.hasOwnProperty("identifiers")
+      ) {
+        if (!Array.isArray(message.identifiers))
+          return "identifiers: array expected";
+        for (let i = 0; i < message.identifiers.length; ++i) {
+          let error = $root.resource.Identifier.verify(message.identifiers[i]);
+          if (error) return "identifiers." + error;
         }
       }
       return null;
@@ -4674,17 +8057,19 @@ export const vector = ($root.vector = (() => {
     QueryItemsResponse.fromObject = function fromObject(object) {
       if (object instanceof $root.vector.QueryItemsResponse) return object;
       let message = new $root.vector.QueryItemsResponse();
-      if (object.results) {
-        if (!Array.isArray(object.results))
-          throw TypeError(".vector.QueryItemsResponse.results: array expected");
-        message.results = [];
-        for (let i = 0; i < object.results.length; ++i) {
-          if (typeof object.results[i] !== "object")
+      if (object.identifiers) {
+        if (!Array.isArray(object.identifiers))
+          throw TypeError(
+            ".vector.QueryItemsResponse.identifiers: array expected",
+          );
+        message.identifiers = [];
+        for (let i = 0; i < object.identifiers.length; ++i) {
+          if (typeof object.identifiers[i] !== "object")
             throw TypeError(
-              ".vector.QueryItemsResponse.results: object expected",
+              ".vector.QueryItemsResponse.identifiers: object expected",
             );
-          message.results[i] = $root.common.Similarity.fromObject(
-            object.results[i],
+          message.identifiers[i] = $root.resource.Identifier.fromObject(
+            object.identifiers[i],
           );
         }
       }
@@ -4703,12 +8088,12 @@ export const vector = ($root.vector = (() => {
     QueryItemsResponse.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.arrays || options.defaults) object.results = [];
-      if (message.results && message.results.length) {
-        object.results = [];
-        for (let j = 0; j < message.results.length; ++j)
-          object.results[j] = $root.common.Similarity.toObject(
-            message.results[j],
+      if (options.arrays || options.defaults) object.identifiers = [];
+      if (message.identifiers && message.identifiers.length) {
+        object.identifiers = [];
+        for (let j = 0; j < message.identifiers.length; ++j)
+          object.identifiers[j] = $root.resource.Identifier.toObject(
+            message.identifiers[j],
             options,
           );
       }

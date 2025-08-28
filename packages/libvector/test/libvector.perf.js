@@ -34,7 +34,6 @@ describe("LibVector Performance Tests", () => {
         vector,
         magnitude,
         tokens: Math.floor(Math.random() * 1000),
-        scope: `scope-${i % 100}`,
       });
     }
 

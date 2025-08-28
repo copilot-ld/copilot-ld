@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-import { common } from "@copilot-ld/libtype";
+import { resource } from "@copilot-ld/libtype";
 
 import { VectorIndexInterface } from "./types.js";
 
@@ -12,14 +12,15 @@ import { VectorIndexInterface } from "./types.js";
  */
 export class VectorIndex extends VectorIndexInterface {
   #storage;
-  #indexKey = "index.json";
+  #indexKey;
   #index = [];
   #loaded = false;
 
   /** @inheritdoc */
-  constructor(storage) {
+  constructor(storage, indexKey = "index.jsonl") {
     super(storage);
     this.#storage = storage;
+    this.#indexKey = indexKey;
   }
 
   /** @inheritdoc */
@@ -27,103 +28,148 @@ export class VectorIndex extends VectorIndexInterface {
     return this.#storage;
   }
 
+  /**
+   * Gets the index key (filename)
+   * @returns {string} The index key
+   */
+  get indexKey() {
+    return this.#indexKey;
+  }
+
   /** @inheritdoc */
-  async addItem(id, vector, tokens = 0, scope = null) {
+  async addItem(vector, identifier) {
     if (!this.#loaded) await this.loadData();
 
+    identifier.magnitude = calculateMagnitude(vector);
     const item = {
-      id,
+      uri: String(identifier),
+      identifier,
       vector,
-      magnitude: calculateMagnitude(vector),
-      tokens,
-      scope,
     };
 
-    const i = this.#index.findIndex((item) => item.id === id);
+    const i = this.#index.findIndex(
+      (item) => item.identifier.id === identifier.id,
+    );
     if (i !== -1) {
       this.#index[i] = item;
     } else {
       this.#index.push(item);
     }
+
+    // Append item to storage as JSON-ND line
+    const jsonLine = JSON.stringify(item) + "\n";
+    await this.#storage.append(this.#indexKey, jsonLine);
   }
 
   /** @inheritdoc */
   async hasItem(id) {
     if (!this.#loaded) await this.loadData();
-    return this.#index.some((item) => item.id === id);
+    return this.#index.some((item) => item.identifier.id === id);
   }
 
   /** @inheritdoc */
   async loadData() {
     if (!(await this.#storage.exists(this.#indexKey))) {
-      throw new Error(`Vector index not found`);
+      // Initialize empty index for new systems
+      this.#index = [];
+      this.#loaded = true;
+      return;
     }
 
     const content = await this.#storage.get(this.#indexKey);
-    this.#index = JSON.parse(content.toString());
+    const lines = content.toString().trim().split("\n");
+    this.#index = lines
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line));
     this.#loaded = true;
   }
 
   /** @inheritdoc */
   async persist() {
-    await this.#storage.put(this.#indexKey, JSON.stringify(this.#index));
+    const content = this.#index.map((item) => JSON.stringify(item)).join("\n");
+    await this.#storage.put(this.#indexKey, content);
   }
 
   /** @inheritdoc */
-  async queryItems(query, threshold = 0, limit = 0) {
+  async queryItems(query, filter = {}) {
     if (!this.#loaded) await this.loadData();
 
+    const { threshold = 0, limit = 0, max_tokens, prefix } = filter;
     const queryMagnitude = calculateMagnitude(query);
-    const results = limit > 0 ? new Array(limit) : [];
-    let resultCount = 0;
+    const identifiers = limit > 0 ? new Array(limit) : [];
+    let count = 0;
     let minScore = threshold;
 
-    for (const vectorItem of this.#index) {
-      const dotProduct = calculateDotProduct(
-        query,
-        vectorItem.vector,
-        query.length,
-      );
-      const score = dotProduct / (queryMagnitude * vectorItem.magnitude);
+    for (const item of this.#index) {
+      // Apply prefix filter if specified
+      if (prefix && !item.uri.startsWith(prefix)) {
+        continue;
+      }
+
+      const dotProduct = calculateDotProduct(query, item.vector, query.length);
+      const score = dotProduct / (queryMagnitude * item.identifier.magnitude);
 
       // Efficiently maintain top K results without full sort per item
       if (score >= minScore) {
-        const similarity = new common.Similarity({
-          id: vectorItem.id,
-          score,
-          tokens: vectorItem.tokens,
-          scope: vectorItem.scope,
-        });
+        item.identifier.score = score;
+        const identifier = new resource.Identifier(item.identifier);
 
         if (limit > 0) {
-          if (resultCount < limit) {
-            results[resultCount++] = similarity;
+          if (count < limit) {
+            identifiers[count++] = identifier;
             // Sort and set threshold once limit is reached
-            if (resultCount === limit) {
-              results.sort((a, b) => b.score - a.score);
-              minScore = results[limit - 1].score;
+            if (count === limit) {
+              identifiers.sort((a, b) => b.score - a.score);
+              minScore = identifiers[limit - 1].score;
             }
           } else if (score > minScore) {
             // Insert result in sorted position
             let insertIndex = limit - 1;
-            while (insertIndex > 0 && results[insertIndex - 1].score < score) {
-              results[insertIndex] = results[insertIndex - 1];
+            while (
+              insertIndex > 0 &&
+              identifiers[insertIndex - 1].score < score
+            ) {
+              identifiers[insertIndex] = identifiers[insertIndex - 1];
               insertIndex--;
             }
-            results[insertIndex] = similarity;
+            identifiers[insertIndex] = identifier;
             // Update threshold to maintain top-K constraint
-            minScore = results[limit - 1].score;
+            minScore = identifiers[limit - 1].score;
           }
         } else {
-          results.push(similarity);
+          identifiers.push(identifier);
         }
       }
     }
 
+    let finalIdentifiers;
     if (limit > 0) {
-      return results.slice(0, resultCount).sort((a, b) => b.score - a.score);
+      finalIdentifiers = identifiers
+        .slice(0, count)
+        .sort((a, b) => b.score - a.score);
+    } else {
+      finalIdentifiers = identifiers.sort((a, b) => b.score - a.score);
     }
-    return results.sort((a, b) => b.score - a.score);
+
+    // Apply token filtering if max_tokens is specified
+    if (max_tokens !== undefined && max_tokens !== null) {
+      const filteredIdentifiers = [];
+      let totalTokens = 0;
+
+      for (const identifier of finalIdentifiers) {
+        const identifierTokens = identifier.tokens || 0;
+        if (totalTokens + identifierTokens <= max_tokens) {
+          filteredIdentifiers.push(identifier);
+          totalTokens += identifierTokens;
+        } else {
+          break; // Stop when we would exceed token limit
+        }
+      }
+
+      return filteredIdentifiers;
+    }
+
+    return finalIdentifiers;
   }
 }
 
@@ -184,3 +230,4 @@ function calculateDotProduct(a, b, length) {
 }
 
 export { VectorIndexInterface };
+export { VectorProcessor } from "./processor.js";

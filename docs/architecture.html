@@ -98,7 +98,7 @@
 ./extensions/       # Extensions that adapt core system to applications
 ./packages/         # Reusable, domain-focused logic
 ./tools/            # Utility scripts for dev and test
-./data/             # Definitions, vectors, and chunk data
+./data/             # Knowledge base, vectors, and resource data
       </pre>
 
       <h3>High-Level Architecture</h3>
@@ -111,11 +111,11 @@ flowchart TD
     D[History service]
     E[LLM service]
     G[Vector service]
-    H[Text service]
     I[LLM backend]
     J[History cache]
-    L[Vector index]
-    M[Chunk index]
+    L[Content Vector Index]
+    N[Descriptor Vector Index]
+    O[Resource Storage]
 
     %% Clients communicate with Extensions over REST
     A -- REST --> B
@@ -127,7 +127,6 @@ flowchart TD
     C -- gRPC --> D
     C -- gRPC --> E
     C -- gRPC --> G
-    C -- gRPC --> H
 
     %% Interaction with the foundation model
     E -- REST --> I
@@ -135,7 +134,8 @@ flowchart TD
 	%% Services that interact with storage
 	D -- Local I/O --> J
     G -- Local I/O --> L
-    H -- Local I/O --> M
+    G -- Local I/O --> N
+    C -- Local I/O --> O
       </pre>
 
       <h3>Online Sequence Diagram</h3>
@@ -157,8 +157,9 @@ sequenceDiagram
     participant History as History service
     participant LLM as LLM service
     participant Vector as Vector service
-    participant Text as Text service
-    participant Index as Vector index
+    participant ContentIndex as Content Vector Index
+    participant DescIndex as Descriptor Vector Index
+    participant ResourceIndex as Resource Index
 
     Client->>Extension: REST request
     Extension->>Client: REST response
@@ -175,13 +176,19 @@ sequenceDiagram
     end
 
     Agent->>Vector: RPC request (QueryItems)
-    Vector->>Index: I/O request (QueryIndex)
-    Index-->>Vector: I/O response
+    alt Content Search
+        Vector->>ContentIndex: I/O request (QueryIndex)
+        ContentIndex-->>Vector: I/O response
+    else Descriptor Search
+        Vector->>DescIndex: I/O request (QueryIndex)
+        DescIndex-->>Vector: I/O response
+    end
     Vector-->>Agent: RPC response
     Note left of Vector: Orders and reduces<br/>results by similarity
 
-    Agent->>Text: RPC request (GetChunks)
-    Text-->>Agent: RPC response
+    Agent->>ResourceIndex: I/O request (get resources)
+    ResourceIndex-->>Agent: I/O response (filtered by policy)
+    Note right of Agent: Resource retrieval with<br/>access control
 
     Agent--)History: RPC request (UpdateHistory)
     Note right of Agent: Fire-and-forget,<br/>no response awaited
@@ -197,7 +204,9 @@ sequenceDiagram
       <p>
         Central orchestrator that coordinates all other services. Processes
         requests by executing operations in parallel for optimal performance and
-        manages the complete business logic flow.
+        manages the complete business logic flow. Now includes integrated
+        <code>ResourceIndex</code> for direct resource access with policy-based
+        access control.
       </p>
 
       <h5>History Service</h5>
@@ -205,6 +214,10 @@ sequenceDiagram
       <p>
         Maintains conversation history and context. Provides historical data for
         request processing and stores interaction records for continuity.
+        <em
+          >Note: This service is deprecated and will be replaced by Assistant,
+          Task, Conversation, and Context services.</em
+        >
       </p>
 
       <h5>LLM Service</h5>
@@ -217,15 +230,10 @@ sequenceDiagram
       <h5>Vector Service</h5>
 
       <p>
-        Performs similarity search operations against a vector index. Returns
-        chunk IDs and similarity scores ordered by relevance.
-      </p>
-
-      <h5>Text Service</h5>
-
-      <p>
-        Retrieves text content for chunks by their IDs. Provides the actual
-        content corresponding to vector search results.
+        Performs similarity search operations against dual vector indexes
+        (content and descriptor). Returns resource identifiers and similarity
+        scores ordered by relevance, with support for index type selection and
+        token-based filtering.
       </p>
 
       <h3>Offline Sequence Diagram</h3>
@@ -252,36 +260,36 @@ sequenceDiagram
     Download->>Storage: Extract to data/knowledge/
     Note right of Download: HTML files with microdata
 
-    Dev->>Chunk: npm run chunk
-    Chunk->>Storage: Read HTML files from data/knowledge/
-    Storage-->>Chunk: HTML content with microdata
+    Dev->>Resources: node tools/resources.js
+    Resources->>Storage: Read HTML files from data/knowledge/
+    Storage-->>Resources: HTML content with microdata
     loop For each HTML file
-        Chunk->>Chunk: Extract microdata items
-        Chunk->>Chunk: Generate chunk ID (SHA-256)
-        Chunk->>Chunk: Format as JSON, count tokens
-        Chunk->>Storage: Store chunk.json in data/chunks/{id}/
+        Resources->>Resources: Extract microdata items as resources
+        Resources->>Resources: Generate resource identifier (URI)
+        Resources->>Resources: Apply policy filtering
+        Resources->>Storage: Store resource.json with metadata
     end
-    Chunk->>Storage: Persist chunk index
+    Resources->>Storage: Persist resource index
 
-    Dev->>Index: npm run index
-    Index->>Storage: Load chunk index
-    Storage-->>Index: All chunk metadata
+    Dev->>Index: node tools/index.js
+    Index->>Storage: Load resource index
+    Storage-->>Index: All resource metadata
 
-    loop Process chunks in batches
-        Index->>Storage: Load chunk text content
-        Storage-->>Index: Chunk text
-        Index->>LLM: Create embeddings for chunk batch
-        LLM-->>Index: Chunk embeddings
-        Index->>Storage: Add to vector index
+    loop Process resources in batches (content & descriptor)
+        Index->>Storage: Load resource content
+        Storage-->>Index: Resource content/descriptors
+        Index->>LLM: Create embeddings for resource batch
+        LLM-->>Index: Resource embeddings
+        Index->>Storage: Add to dual vector indexes
     end
 
-    Index->>Storage: Persist vector index
-    Note right of Storage: Ready for runtime vector search
+    Index->>Storage: Persist content & descriptor vector indexes
+    Note right of Storage: Ready for runtime vector search with dual indexes
       </pre>
 
       <h4>Offline Processing Workflow</h4>
 
-      <h5>1. Knowledge Download (tools/download.js)</h5>
+      <h5>1. Knowledge Download (<code>tools/download.js</code>)</h5>
 
       <ul>
         <li>Downloads latest release artifacts from GitHub repository</li>
@@ -291,41 +299,45 @@ sequenceDiagram
         <li>Provides HTML files with structured microdata for processing</li>
       </ul>
 
-      <h5>2. Chunk Processing (tools/chunk.js)</h5>
+      <h5>2. Resource Processing (<code>tools/resources.js</code>)</h5>
 
       <ul>
         <li>
           Scans HTML files for microdata items with configurable selectors
         </li>
         <li>
-          Extracts structured content and generates unique chunk IDs using
-          SHA-256
+          Extracts structured content and generates unique resource identifiers
+          using URI format
         </li>
-        <li>Formats content as JSON and calculates token counts</li>
+        <li>Applies policy-based filtering for access control</li>
         <li>
-          Stores individual chunks in <code>data/chunks/{id}/chunk.json</code>
+          Stores individual resources with metadata in unified resource storage
         </li>
-        <li>Creates searchable chunk index for efficient retrieval</li>
+        <li>Creates searchable resource index with type-based organization</li>
       </ul>
 
-      <h5>3. Vector Indexing (tools/index.js)</h5>
+      <h5>3. Vector Indexing (<code>tools/index.js</code>)</h5>
 
       <ul>
         <li>
-          <strong>Batch Processing</strong>: Processes chunks in token-optimized
-          batches to minimize API calls
+          <strong>Dual-Index Architecture</strong>: Creates separate content and
+          descriptor vector indexes
+        </li>
+        <li>
+          <strong>Batch Processing</strong>: Processes resources in
+          token-optimized batches to minimize API calls
         </li>
         <li>
           <strong>Embedding Generation</strong>: Creates vector embeddings for
-          all chunks via LLM API
+          both content and descriptors via LLM API
         </li>
         <li>
-          <strong>Index Creation</strong>: Builds a vector index containing all
-          chunks
+          <strong>Index Creation</strong>: Builds dual indexes for flexible
+          search capabilities
         </li>
         <li>
-          <strong>Persistence</strong>: Stores the index to disk for runtime
-          access
+          <strong>Persistence</strong>: Stores indexes to disk for runtime
+          access with index type selection
         </li>
       </ul>
 
@@ -341,11 +353,15 @@ sequenceDiagram
           calls and costs
         </li>
         <li>
-          <strong>Comprehensive Organization</strong>: Single index enables
-          comprehensive search across all content
+          <strong>Resource-Based Architecture</strong>: Unified resource
+          management with policy control
         </li>
         <li>
-          <strong>Incremental Processing</strong>: Skips existing chunks to
+          <strong>Flexible Search</strong>: Dual-index system enables content
+          and descriptor-based searches
+        </li>
+        <li>
+          <strong>Incremental Processing</strong>: Skips existing resources to
           support iterative updates
         </li>
         <li>
@@ -359,16 +375,16 @@ sequenceDiagram
       <ol>
         <li><strong>Raw Knowledge</strong> → HTML files with microdata</li>
         <li>
-          <strong>Structured Chunks</strong> → Individual JSON files with
-          metadata
+          <strong>Structured Resources</strong> → Individual JSON files with
+          metadata and URI identifiers
         </li>
         <li>
           <strong>Vector Embeddings</strong> → Numerical representations for
-          similarity search
+          similarity search (content & descriptors)
         </li>
         <li>
-          <strong>Vector Index</strong> → Single vector database containing all
-          content ready for runtime queries
+          <strong>Dual Vector Indexes</strong> → Content and descriptor
+          databases ready for runtime queries with index type selection
         </li>
       </ol>
 

@@ -1,7 +1,12 @@
 syntax = "proto3";
 
+import "resource.proto";
+
 package common;
 
+/**
+ * @deprecated
+ */
 message Message {
   string role = 1;
   string content = 2;
@@ -24,12 +29,18 @@ message Embedding {
   repeated float embedding = 2;
 }
 
+/**
+ * @deprecated
+ */
 message Chunk {
   string id = 1;
   string text = 2;
   int32 tokens = 3;
 }
 
+/**
+ * @deprecated
+ */
 message Similarity {
   string id = 1;
   double score = 2;
@@ -37,26 +48,14 @@ message Similarity {
   string text = 4;
 }
 
+/**
+ * @deprecated
+ */
 message Prompt {
   repeated string system_instructions = 1;
   repeated Similarity previous_similarities = 2;
   repeated Similarity current_similarities = 3;
   repeated Message messages = 4;
-}
-
-message Resource {
-  string id = 1; // Universal Resource Name (URN)
-  string name = 2;
-  string type = 3;
-
-  // .toDescription() compiles these to a single structured description string
-  string purpose = 4; // **What** the resource is meant to accomplish
-  string instructions = 5; // **How** to execute or work with the resource
-  string applicability = 6; // **When** or **when not** to use the resource
-  string evaluation = 7; // What successful execution looks like
-
-  optional int32 tokens = 8; // Tokens used by this resource
-  optional double score = 9; // Similarity search score
 }
 
 message ToolProp {
@@ -65,13 +64,13 @@ message ToolProp {
 }
 
 message ToolParam {
-  string type = 1; // @default "object"
+  string type = 1;
   map<string, ToolProp> properties = 2;
   repeated string required = 3;
 }
 
 message ToolFunction {
-  Resource meta = 1;
+  resource.Descriptor descriptor = 1;
   oneof call {
     ToolParam parameters = 2; // When declaring
     string arguments = 3; // When calling
@@ -84,10 +83,26 @@ message Tool {
   optional string id = 3; // When calling
 }
 
+message ToolCallRequest {
+  string role = 1;
+  repeated Tool tool_calls = 2;
+}
+
+message ToolCallResult {
+  string role = 1;
+  string tool_call_id = 2;
+  string content = 3;
+}
+
 message MessageV2 {
-  Resource meta = 1;
-  string role = 2;
-  optional string content = 3;
-  repeated Tool tool_calls = 4; // If role=assistant, requesting calls
-  optional string tool_call_id = 5; // If role=tool, returning results
+  resource.Identifier id = 1;
+  resource.Descriptor descriptor = 2;
+  resource.Content content = 3;
+  string role = 4;
+}
+
+message Assistant {
+  resource.Identifier id = 1;
+  resource.Descriptor descriptor = 2;
+  resource.Content content = 3;
 }

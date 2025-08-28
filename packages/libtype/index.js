@@ -2,6 +2,7 @@
 
 // Re-export selected message constructors from the generated single-file types
 import * as types from "./types.js";
+import { countTokens } from "@copilot-ld/libcopilot";
 import { generateHash } from "@copilot-ld/libutil";
 
 /** @typedef {import("./types.js").common.Message} common.Message */
@@ -9,11 +10,107 @@ import { generateHash } from "@copilot-ld/libutil";
 /** @typedef {import("./types.js").common.Similarity} common.Similarity */
 
 const common = types.common || {};
+const resource = types.resource || {};
 const agent = types.agent || {};
 const history = types.history || {};
 const llm = types.llm || {};
 const text = types.text || {};
 const vector = types.vector || {};
+
+/**
+ * Ensure that the identifier has values assigned. Call before persisting.
+ * @param {string} [parent] - Parent URI
+ */
+function withIdentifier(parent) {
+  if (!this?.id) this.id = new resource.Identifier();
+  const type = this.constructor.getTypeUrl("copilot-ld.dev").split("/").pop();
+
+  if (!type) throw new Error("Resource type must not be null");
+
+  let name;
+  if (this.id?.name) {
+    name = this.id.name.split(".").pop();
+  } else {
+    const content = String(this?.content);
+    if (content === null || content === "null")
+      throw new Error(`Resource content must not be null`);
+    name = generateHash(type, content);
+  }
+  this.id.type = type;
+  this.id.name = `${type}.${name}`;
+  this.id.parent = parent || this.id?.parent;
+}
+
+/**
+ * Ensure tokens are counted for each resource representation.
+ */
+function withTokens() {
+  const representations = ["content", "descriptor"];
+  representations.forEach((r) => {
+    if (this?.[r]) {
+      this[r].tokens = countTokens(String(this[r]));
+    }
+  });
+}
+
+common.Assistant.prototype.withIdentifier = withIdentifier;
+common.MessageV2.prototype.withIdentifier = withIdentifier;
+
+common.Assistant.prototype.withTokens = withTokens;
+common.MessageV2.prototype.withTokens = withTokens;
+
+resource.Identifier.prototype.toString = function () {
+  // Tree of resources, including this one
+  let tree = [];
+
+  if (!this.type) throw new Error("Resource type must not be null");
+  if (!this.name) throw new Error("Resource name must not be null");
+
+  // Extract the tree of resources
+  if (this.parent) {
+    const [, path] = this.parent.split(":");
+    tree = path.split("/");
+    // Push this resource onto the tree
+    tree.push(this.name);
+  }
+
+  // If there is no tree, create a new one
+  if (tree.length == 0) {
+    tree.push(this.name);
+  }
+
+  return `cld:${tree.join("/")}`;
+};
+
+// Compiles a resource descriptor description
+resource.Descriptor.prototype.toString = function () {
+  const sections = [];
+
+  if (this.purpose?.length > 0) sections.push(`## Purpose\n\n${this.purpose}`);
+
+  if (this.instructions?.length > 0)
+    sections.push(`## Instructions\n\n${this.instructions}`);
+
+  if (this.applicability?.length > 0)
+    sections.push(`## Applicability\n\n${this.applicability}`);
+
+  if (this.evaluation?.length > 0)
+    sections.push(`## Evaluation\n\n${this.evaluation}`);
+
+  return sections.join("\n\n");
+};
+
+resource.Content.prototype.toString = function () {
+  if (this?.jsonld) {
+    return this.jsonld;
+  }
+  return this.text || "";
+};
+
+resource.Descriptor.prototype.only = function () {
+  const { id, name, type, tokens, magnitude } = this;
+  return new resource.Descriptor({ id, name, type, tokens, magnitude });
+};
 
 /**
  * Checks if the prompt is empty (no messages or context)
@@ -149,104 +246,10 @@ common.Prompt.prototype.fromMessages = function (messages) {
   });
 };
 
-/**
- * Simple token counting approximation (1 token ≈ 4 characters)
- * This is a temporary implementation until we have access to proper tokenizer
- * @param {object} obj - Object to count tokens for
- * @returns {number} Approximate token count
- */
-function countTokens(obj) {
-  const str = JSON.stringify(obj);
-  return Math.ceil(str.length / 4);
-}
-
-// URN namespace constant
-const URN_NAMESPACE = "cld";
-
-/**
- * Assign metadata to objects that have a meta property.
- * Call this before persisting the object.
- * @param {string} [withParent] - Parent ID (URN)
- */
-function withMeta(withParent) {
-  let path;
-  let tree = [];
-  let hash;
-
-  // Always extract namespace and type from the constructor
-  const type = this.constructor.getTypeUrl("copilot-ld.dev").split("/").pop();
-
-  // Extract metadata from existing URN
-  if (this.meta?.id) {
-    [, path] = this.meta.id.split(":");
-    tree = path.split("/");
-    [, , hash] = tree[tree.length - 1].split(".");
-
-    if (!hash) {
-      throw new Error("Invalid meta.id format, missing hash");
-    }
-  }
-
-  // Generate new metadata
-  if (!hash) {
-    switch (type) {
-      case "common.MessageV2":
-        hash = generateHash(type, this.content);
-        break;
-
-      default:
-        if (!this.meta?.name) {
-          throw new Error("Resource must have a name for metadata generation");
-        }
-        hash = generateHash(type, this.meta.name);
-        break;
-    }
-  }
-
-  // Extract metadata from provided parent URN
-  if (withParent) {
-    [, path] = withParent.split(":");
-    tree = path.split("/");
-    // Push this instance onto the tree
-    tree.push(`${type}.${hash}`);
-  }
-
-  // If no meta.id or parent was provided, create a new root tree
-  if (tree.length == 0) {
-    tree.push(`${type}.${hash}`);
-  }
-
-  if (!this.meta) {
-    this.meta = new common.Resource();
-  }
-
-  this.meta.id = `${URN_NAMESPACE}:${tree.join("/")}`;
-  this.meta.type = type;
-  this.meta.tokens = this.meta.tokens || countTokens(this);
-}
-
-common.MessageV2.prototype.withMeta = withMeta;
-
-// Compiles a resource description
-common.Resource.prototype.toDescription = function () {
-  const sections = [];
-
-  if (this.purpose) sections.push(`**Purpose:** ${this.purpose}`);
-
-  if (this.instructions)
-    sections.push(`**Instructions:** ${this.instructions}`);
-
-  if (this.applicability)
-    sections.push(`**Applicability:** ${this.applicability}`);
-
-  if (this.evaluation) sections.push(`**Evaluation:** ${this.evaluation}`);
-
-  return sections.join("\n\n");
-};
-
 export {
   // Export namespaces only
   common,
+  resource,
   agent,
   history,
   llm,

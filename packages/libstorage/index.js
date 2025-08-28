@@ -44,6 +44,15 @@ export class LocalStorage extends StorageInterface {
   }
 
   /** @inheritdoc */
+  async append(key, data) {
+    const fullPath = this.path(key);
+    const dirToCreate = dirname(fullPath);
+
+    await this.#fs.mkdir(dirToCreate, { recursive: true });
+    await this.#fs.appendFile(fullPath, data);
+  }
+
+  /** @inheritdoc */
   async get(key) {
     return await this.#fs.readFile(this.path(key));
   }
@@ -204,6 +213,26 @@ export class S3Storage extends StorageInterface {
         Body: data,
       }),
     );
+  }
+
+  /** @inheritdoc */
+  async append(key, data) {
+    let existingData = Buffer.alloc(0);
+
+    try {
+      existingData = await this.get(key);
+    } catch (error) {
+      // If key doesn't exist, start with empty data
+      if (
+        error.name !== "NoSuchKey" &&
+        error.$metadata?.httpStatusCode !== 404
+      ) {
+        throw error;
+      }
+    }
+
+    const newData = Buffer.concat([existingData, Buffer.from(data)]);
+    await this.put(key, newData);
   }
 
   /** @inheritdoc */

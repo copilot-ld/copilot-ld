@@ -1,10 +1,11 @@
 /* eslint-env node */
 import readline from "readline";
 
-import { ChunkIndex } from "@copilot-ld/libchunk";
-import { Copilot } from "@copilot-ld/libcopilot";
+import { llmFactory } from "@copilot-ld/libcopilot";
 import { ToolConfig } from "@copilot-ld/libconfig";
+import { Policy } from "@copilot-ld/libpolicy";
 import { Repl } from "@copilot-ld/librepl";
+import { ResourceIndex } from "@copilot-ld/libresource";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
@@ -14,50 +15,63 @@ const config = await ToolConfig.create("search");
 
 // Global state
 /** @type {VectorIndex} */
-let vectorIndex;
-/** @type {ChunkIndex} */
-let chunkIndex;
+let contentIndex;
+/** @type {VectorIndex} */
+let descriptorIndex;
+/** @type {ResourceIndex} */
+let resourceIndex;
 
 /**
  * Performs a semantic search using embeddings
  * @param {string} prompt - The search query text
- * @param {object} state - REPL state containing limit and threshold settings
+ * @param {object} state - REPL state containing limit, threshold, and index settings
  * @returns {Promise<string>} Formatted search results as markdown
  */
 async function performSearch(prompt, state) {
-  const { limit, threshold } = state;
+  const { limit, threshold, index } = state;
 
-  const client = new Copilot(await config.githubToken());
-  const embeddings = await client.createEmbeddings([prompt]);
+  // Select the appropriate index based on index
+  const targetIndex = index() === "descriptor" ? descriptorIndex : contentIndex;
 
-  const results = await vectorIndex.queryItems(
-    embeddings[0].embedding,
-    threshold(),
-    limit() > 0 ? limit() : 0,
-  );
+  const llm = llmFactory(await config.githubToken());
+  const embeddings = await llm.createEmbeddings([prompt]);
 
-  const chunkIds = results.map((result) => result.id);
-  const chunkObjects = await chunkIndex.getChunks(chunkIds);
-
-  let content = ``;
-  results.forEach((result, i) => {
-    const chunkData = chunkObjects[result.id];
-    const text = chunkData.text;
-    content += `# ${i + 1} Score: ${result.score.toFixed(4)}\n\n`;
-    content += `- ID: ${result.id}\n`;
-    content += `\n\n\`\`\`json\n${text.substring(0, 200)}\n\`\`\`\n\n`;
+  const identifiers = await targetIndex.queryItems(embeddings[0].embedding, {
+    threshold: threshold(),
+    limit: limit() > 0 ? limit() : 0,
   });
 
-  return content;
+  const resources = await resourceIndex.get(
+    "cld:common.Assistant.root",
+    identifiers,
+  );
+
+  let output = ``;
+  output += `Searching: ${index()} index\n\n`;
+  identifiers.forEach((identifier, i) => {
+    const resource = resources.find((r) => r.id.name === identifier.name);
+    if (!resource) return;
+
+    const text = String(resource[index()]);
+    output += `# ${i + 1} Score: ${identifier.score.toFixed(4)}\n\n`;
+    output += `${identifier}\n`;
+    output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;
+  });
+
+  return output;
 }
 
 // Create REPL with dependency injection
 const repl = new Repl(readline, process, createTerminalFormatter(), {
   setup: async () => {
     const vectorStorage = storageFactory("vectors");
-    vectorIndex = new VectorIndex(vectorStorage);
-    const chunksStorage = storageFactory("chunks");
-    chunkIndex = new ChunkIndex(chunksStorage);
+    contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
+    descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
+
+    const resourceStorage = storageFactory("resources");
+    const policyStorage = storageFactory("policies");
+    const policy = new Policy(policyStorage);
+    resourceIndex = new ResourceIndex(resourceStorage, policy);
   },
   state: {
     limit: {
@@ -67,6 +81,10 @@ const repl = new Repl(readline, process, createTerminalFormatter(), {
     threshold: {
       initial: 0,
       description: "Minimum score threshold (0.0 - 1.0)",
+    },
+    index: {
+      initial: "content",
+      description: "Index to search: 'content' or 'descriptor'",
     },
   },
   onLine: performSearch,

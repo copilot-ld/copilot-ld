@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWASP Top 10 Web Application Security Risks 2021</title>
+  </head>
+  <body>
+    <article
+      itemscope
+      itemtype="https://schema.org/TechArticle"
+      itemid="#owasp-top10-2021"
+    >
+      <header>
+        <h1 itemprop="headline">
+          OWASP Top 10 Web Application Security Risks 2021
+        </h1>
+        <p itemprop="description">
+          The OWASP Top 10 is a standard awareness document for developers and
+          web application security. It represents a broad consensus about the
+          most critical security risks to web applications.
+        </p>
+        <meta itemprop="datePublished" content="2021-09-24" />
+        <meta itemprop="author" content="OWASP Foundation" />
+      </header>
+
+      <section
+        itemscope
+        itemprop="hasPart"
+        itemtype="https://schema.org/ItemList"
+      >
+        <h2 itemprop="name">Top 10 Web Application Security Risks</h2>
+        <meta itemprop="numberOfItems" content="10" />
+
+        <ol>
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="1" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a01-2021"
+            >
+              <h3 itemprop="name">A01:2021 – Broken Access Control</h3>
+              <p itemprop="description">
+                Access control enforces policy such that users cannot act
+                outside of their intended permissions. Failures typically lead
+                to unauthorized information disclosure, modification, or
+                destruction of all data or performing a business function
+                outside the user's limits.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-200</span>
+                <meta
+                  itemprop="description"
+                  content="Exposure of Sensitive Information to an Unauthorized Actor"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-201</span>
+                <meta
+                  itemprop="description"
+                  content="Insertion of Sensitive Information Into Sent Data"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-352</span>
+                <meta
+                  itemprop="description"
+                  content="Cross-Site Request Forgery"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Easy</li>
+                  <li>Prevalence: Common</li>
+                  <li>Detectability: Average</li>
+                  <li>Impact: Severe</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="2" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a02-2021"
+            >
+              <h3 itemprop="name">A02:2021 – Cryptographic Failures</h3>
+              <p itemprop="description">
+                Cryptographic failures often lead to exposure of sensitive data.
+                Previously known as Sensitive Data Exposure, this category
+                focuses on failures related to cryptography which often leads to
+                sensitive data exposure or system compromise.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-259</span>
+                <meta
+                  itemprop="description"
+                  content="Use of Hard-coded Password"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-327</span>
+                <meta
+                  itemprop="description"
+                  content="Use of a Broken or Risky Cryptographic Algorithm"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-331</span>
+                <meta itemprop="description" content="Insufficient Entropy" />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Difficult</li>
+                  <li>Prevalence: Common</li>
+                  <li>Detectability: Difficult</li>
+                  <li>Impact: Severe</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="3" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a03-2021"
+            >
+              <h3 itemprop="name">A03:2021 – Injection</h3>
+              <p itemprop="description">
+                An application is vulnerable to attack when user-supplied data
+                is not validated, filtered, or sanitized by the application.
+                Hostile data can be used to manipulate the interpreter,
+                affecting the execution of unintended commands or accessing data
+                without proper authorization.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-79</span>
+                <meta itemprop="description" content="Cross-site Scripting" />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-89</span>
+                <meta itemprop="description" content="SQL Injection" />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-564</span>
+                <meta itemprop="description" content="Hibernate Injection" />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Easy</li>
+                  <li>Prevalence: Common</li>
+                  <li>Detectability: Easy</li>
+                  <li>Impact: Severe</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="4" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a04-2021"
+            >
+              <h3 itemprop="name">A04:2021 – Insecure Design</h3>
+              <p itemprop="description">
+                Insecure design is a broad category representing different
+                weaknesses, expressed as missing or ineffective control design.
+                Insecure design is not the source for all other Top 10 risk
+                categories.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-209</span>
+                <meta
+                  itemprop="description"
+                  content="Generation of Error Message Containing Sensitive Information"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-256</span>
+                <meta
+                  itemprop="description"
+                  content="Unprotected Storage of Credentials"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-501</span>
+                <meta
+                  itemprop="description"
+                  content="Trust Boundary Violation"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Moderate</li>
+                  <li>Prevalence: Widespread</li>
+                  <li>Detectability: Difficult</li>
+                  <li>Impact: Moderate</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="5" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a05-2021"
+            >
+              <h3 itemprop="name">A05:2021 – Security Misconfiguration</h3>
+              <p itemprop="description">
+                Security misconfiguration is the most commonly seen issue. This
+                is commonly a result of insecure default configurations,
+                incomplete or ad hoc configurations, open cloud storage,
+                misconfigured HTTP headers, and verbose error messages
+                containing sensitive information.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-16</span>
+                <meta itemprop="description" content="Configuration" />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-260</span>
+                <meta
+                  itemprop="description"
+                  content="Password in Configuration File"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Easy</li>
+                  <li>Prevalence: Widespread</li>
+                  <li>Detectability: Easy</li>
+                  <li>Impact: Moderate</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="6" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a06-2021"
+            >
+              <h3 itemprop="name">
+                A06:2021 – Vulnerable and Outdated Components
+              </h3>
+              <p itemprop="description">
+                Components, such as libraries, frameworks, and other software
+                modules, run with the same privileges as the application. If a
+                vulnerable component is exploited, such an attack can facilitate
+                serious data loss or server takeover.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-1104</span>
+                <meta
+                  itemprop="description"
+                  content="Use of Unmaintained Third Party Components"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Average</li>
+                  <li>Prevalence: Widespread</li>
+                  <li>Detectability: Average</li>
+                  <li>Impact: Moderate</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="7" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a07-2021"
+            >
+              <h3 itemprop="name">
+                A07:2021 – Identification and Authentication Failures
+              </h3>
+              <p itemprop="description">
+                Confirmation of the user's identity, authentication, and session
+                management is critical to protect against authentication-related
+                attacks. There may be authentication weaknesses if the
+                application permits automated attacks such as credential
+                stuffing.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-297</span>
+                <meta
+                  itemprop="description"
+                  content="Improper Validation of Certificate with Host Mismatch"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-287</span>
+                <meta
+                  itemprop="description"
+                  content="Improper Authentication"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Average</li>
+                  <li>Prevalence: Common</li>
+                  <li>Detectability: Average</li>
+                  <li>Impact: Severe</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="8" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a08-2021"
+            >
+              <h3 itemprop="name">
+                A08:2021 – Software and Data Integrity Failures
+              </h3>
+              <p itemprop="description">
+                Software and data integrity failures relate to code and
+                infrastructure that does not protect against integrity
+                violations. An example of this is where an application relies
+                upon plugins, libraries, or modules from untrusted sources,
+                repositories, and content delivery networks.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-829</span>
+                <meta
+                  itemprop="description"
+                  content="Inclusion of Functionality from Untrusted Control Sphere"
+                />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-494</span>
+                <meta
+                  itemprop="description"
+                  content="Download of Code Without Integrity Check"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Average</li>
+                  <li>Prevalence: Uncommon</li>
+                  <li>Detectability: Average</li>
+                  <li>Impact: Severe</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="9" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a09-2021"
+            >
+              <h3 itemprop="name">
+                A09:2021 – Security Logging and Monitoring Failures
+              </h3>
+              <p itemprop="description">
+                Security logging and monitoring failures can allow attackers to
+                further attack systems, maintain persistence, pivot to more
+                systems, and tamper, extract, or destroy data. Most breach
+                studies show time to detection is over 200 days, typically
+                detected by external parties rather than internal processes or
+                monitoring.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-778</span>
+                <meta itemprop="description" content="Insufficient Logging" />
+              </div>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-117</span>
+                <meta
+                  itemprop="description"
+                  content="Improper Output Neutralization for Logs"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Average</li>
+                  <li>Prevalence: Widespread</li>
+                  <li>Detectability: Difficult</li>
+                  <li>Impact: Moderate</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+
+          <li
+            itemprop="itemListElement"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+          >
+            <meta itemprop="position" content="10" />
+            <div
+              itemprop="item"
+              itemscope
+              itemtype="https://schema.org/SecurityScreening"
+              itemid="#a10-2021"
+            >
+              <h3 itemprop="name">
+                A10:2021 – Server-Side Request Forgery (SSRF)
+              </h3>
+              <p itemprop="description">
+                SSRF flaws occur whenever a web application is fetching a remote
+                resource without validating the user-supplied URL. It allows an
+                attacker to coerce the application to send a crafted request to
+                an unexpected destination, even when protected by a firewall,
+                VPN, or another type of network access control list.
+              </p>
+
+              <div
+                itemscope
+                itemprop="identifies"
+                itemtype="https://schema.org/DefinedTerm"
+              >
+                <span itemprop="name">CWE-918</span>
+                <meta
+                  itemprop="description"
+                  content="Server-Side Request Forgery"
+                />
+              </div>
+
+              <aside>
+                <strong>Risk Factors:</strong>
+                <ul>
+                  <li>Exploitability: Average</li>
+                  <li>Prevalence: Uncommon</li>
+                  <li>Detectability: Average</li>
+                  <li>Impact: Moderate</li>
+                </ul>
+              </aside>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <footer>
+        <p>
+          The OWASP Top 10 is published by the Open Web Application Security
+          Project (OWASP), a worldwide not-for-profit charitable organization
+          focused on improving the security of software.
+        </p>
+      </footer>
+    </article>
+  </body>
+</html>

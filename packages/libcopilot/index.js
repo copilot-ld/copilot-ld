@@ -50,6 +50,14 @@ export class Copilot extends LlmInterface {
   }
 
   /**
+   * Set retry delay for testing purposes
+   * @param {number} delay - Delay in milliseconds
+   */
+  _setTestDelay(delay) {
+    this.#delay = delay;
+  }
+
+  /**
    * Throws an Error with HTTP status and a snippet of the response body when response is not OK
    * @param {Response} response - Fetch API response
    * @returns {Promise<void>}
@@ -64,36 +72,15 @@ export class Copilot extends LlmInterface {
     );
   }
 
-  /** @inheritdoc */
-  async createCompletions(params) {
-    const requestParams = {
-      ...params,
-      model: params.model || this.#model,
-    };
-
-    const response = await this.#fetch(`${this.#baseURL}/chat/completions`, {
-      method: "POST",
-      headers: this.#headers,
-      body: JSON.stringify(requestParams),
-    });
-
-    await this.#throwIfNotOk(response);
-    return await response.json();
-  }
-
-  /** @inheritdoc */
-  async createEmbeddings(texts) {
+  /**
+   * Executes API request with exponential backoff retry logic for rate limiting
+   * @param {() => Promise<Response>} requestFn - Function that returns a fetch promise
+   * @returns {Promise<Response>} Response from successful request
+   * @throws {Error} When all retry attempts are exhausted
+   */
+  async #withRetry(requestFn) {
     for (let attempt = 0; attempt <= this.#retries; attempt++) {
-      const response = await this.#fetch(`${this.#baseURL}/embeddings`, {
-        method: "POST",
-        headers: this.#headers,
-        body: JSON.stringify({
-          // TODO: Make this configurable
-          model: "text-embedding-3-small",
-          dimensions: 256,
-          input: texts,
-        }),
-      });
+      const response = await requestFn();
 
       if (response.status === 429 && attempt < this.#retries) {
         const wait = this.#delay * Math.pow(2, attempt);
@@ -102,9 +89,45 @@ export class Copilot extends LlmInterface {
       }
 
       await this.#throwIfNotOk(response);
-      const data = await response.json();
-      return data.data.map((item) => new common.Embedding(item));
+      return response;
     }
+  }
+
+  /** @inheritdoc */
+  async createCompletions(params) {
+    const requestParams = {
+      ...params,
+      model: params.model || this.#model,
+    };
+
+    const response = await this.#withRetry(() =>
+      this.#fetch(`${this.#baseURL}/chat/completions`, {
+        method: "POST",
+        headers: this.#headers,
+        body: JSON.stringify(requestParams),
+      }),
+    );
+
+    return await response.json();
+  }
+
+  /** @inheritdoc */
+  async createEmbeddings(texts) {
+    const response = await this.#withRetry(() =>
+      this.#fetch(`${this.#baseURL}/embeddings`, {
+        method: "POST",
+        headers: this.#headers,
+        body: JSON.stringify({
+          // TODO: Make this configurable
+          model: "text-embedding-3-small",
+          dimensions: 256,
+          input: texts,
+        }),
+      }),
+    );
+
+    const data = await response.json();
+    return data.data.map((item) => new common.Embedding(item));
   }
 
   /** @inheritdoc */
@@ -121,9 +144,19 @@ export class Copilot extends LlmInterface {
 
   /** @inheritdoc */
   countTokens(text) {
-    const tokens = this.#tokenizer.encode(text);
-    return tokens.length;
+    return countTokens(text, this.#tokenizer);
   }
+}
+
+/**
+ * Helper function to count tokens
+ * @param {string} text - Text to count tokens for
+ * @param {Tiktoken} tokenizer - Tokenizer instance
+ * @returns {number} Approximate token count
+ */
+export function countTokens(text, tokenizer) {
+  if (!tokenizer) tokenizer = tokenizerFactory();
+  return tokenizer.encode(text).length;
 }
 
 /**
@@ -138,7 +171,7 @@ export function llmFactory(
   token,
   model = "gpt-4o",
   fetchFn = fetch,
-  tokenizerFn = null,
+  tokenizerFn = tokenizerFactory,
 ) {
   return new Copilot(token, model, fetchFn, tokenizerFn);
 }

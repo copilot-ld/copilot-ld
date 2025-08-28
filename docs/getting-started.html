@@ -72,9 +72,12 @@ cp config.example.yml config.yml</code></pre>
           Fill in required fields:
           <ul>
             <li><strong>GitHub App name</strong>: Your app name</li>
-            <li><strong>Homepage URL</strong>: http://localhost:3001</li>
             <li>
-              <strong>Callback URL</strong>: http://localhost:3001/auth/callback
+              <strong>Homepage URL</strong>: <code>http://localhost:3001</code>
+            </li>
+            <li>
+              <strong>Callback URL</strong>:
+              <code>http://localhost:3001/auth/callback</code>
             </li>
           </ul>
         </li>
@@ -143,12 +146,22 @@ node tools/download.js</code></pre>
 
       <p>Extract and process content from HTML files:</p>
 
-      <pre><code>node tools/chunk.js</code></pre>
+      <pre><code>node tools/resources.js</code></pre>
 
       <p>
         This scans HTML files for microdata items, extracts content, and creates
         searchable chunks stored in <code>data/chunks/</code>.
       </p>
+
+      <h4>Example Knowledge Base</h4>
+
+      <p>
+        An example knowledge base with HTML files is available in
+        <code>examples/knowledge</code>. You can copy these files to your data
+        directory to test the offline processing pipeline:
+      </p>
+
+      <pre><code>cp examples/knowledge/* data/knowledge/</code></pre>
 
       <h4>Build Vector Indices</h4>
 
@@ -227,8 +240,12 @@ node tools/download.js</code></pre>
       <p>Access the web interface at:</p>
 
       <ul>
-        <li><strong>Web Extension</strong>: http://localhost:3000</li>
-        <li><strong>Copilot Extension</strong>: http://localhost:3001</li>
+        <li>
+          <strong>Web Extension</strong>: <code>http://localhost:3000</code>
+        </li>
+        <li>
+          <strong>Copilot Extension</strong>: <code>http://localhost:3001</code>
+        </li>
       </ul>
 
       <h3>Troubleshooting</h3>

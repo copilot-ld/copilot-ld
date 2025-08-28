@@ -43,17 +43,16 @@ export class Repl extends ReplInterface {
     this.#onLine = onLine;
     this.#setup = setup;
     this.#customCommands = commands;
-    this.#stateConfig = state;
+    this.#stateConfig = this.#parseCommandLineArgs(state);
 
     this.#stateCommands = {};
     this.#stateGetters = {};
-    this.initializeState();
+    this.#initializeState();
 
     this.#builtInCommands = {
       help: {
         help: "Show this help message",
-        handler: () =>
-          this.showHelp({ ...this.#stateCommands, ...this.#customCommands }),
+        handler: () => this.showHelp(),
       },
       clear: {
         help: "Clear the history",
@@ -67,20 +66,67 @@ export class Repl extends ReplInterface {
       },
     };
 
-    this.#allCommands = {
+    const combinedCommands = {
       ...this.#builtInCommands,
-      ...this.#stateCommands,
-      ...this.#customCommands,
+      ...this.#toLowerCaseKeys(this.#stateCommands),
+      ...this.#toLowerCaseKeys(this.#customCommands),
     };
+
+    // Sort commands alphabetically by command name
+    this.#allCommands = Object.fromEntries(
+      Object.entries(combinedCommands).sort(([a], [b]) => a.localeCompare(b)),
+    );
+
     this.#rl = null;
+  }
+
+  /**
+   * Converts object keys to lowercase
+   * @param {object} obj - Object to convert
+   * @returns {object} Object with lowercase keys
+   */
+  #toLowerCaseKeys(obj) {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key.toLowerCase()] = value;
+    }
+    return result;
+  }
+
+  /**
+   * Parses command line arguments to override initial state values
+   * @param {object} state - State configuration object
+   * @returns {object} State configuration with command line overrides
+   */
+  #parseCommandLineArgs(state) {
+    const args = this.#process.argv.slice(2);
+    const updatedState = { ...state };
+
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      if (arg.startsWith("--") && i + 1 < args.length) {
+        const stateName = arg.slice(2);
+        const value = args[i + 1];
+
+        if (updatedState[stateName]) {
+          updatedState[stateName] = {
+            ...updatedState[stateName],
+            initial: value,
+          };
+          i++; // Skip the value argument
+        }
+      }
+    }
+
+    return updatedState;
   }
 
   /**
    * Initializes state variables and their corresponding commands
    */
-  initializeState() {
+  #initializeState() {
     Object.entries(this.#stateConfig).forEach(([name, stateHandler]) => {
-      const { command, get } = this.createStateCommand(
+      const { command, get } = this.#createStateCommand(
         name,
         stateHandler.initial,
         stateHandler.description,
@@ -90,8 +136,14 @@ export class Repl extends ReplInterface {
     });
   }
 
-  /** @inheritdoc */
-  createStateCommand(name, initialValue, description) {
+  /**
+   * Creates a state variable command that gets/sets a value
+   * @param {string} name - Variable name
+   * @param {any} initialValue - Initial value
+   * @param {string} description - Brief description for help
+   * @returns {object} Command object and getter function
+   */
+  #createStateCommand(name, initialValue, description) {
     let value = initialValue;
 
     const command = {
@@ -116,7 +168,7 @@ export class Repl extends ReplInterface {
    * @param {string} input - User input
    * @returns {Promise<void>}
    */
-  async safeOnLine(input) {
+  async #safeOnLine(input) {
     if (!this.#onLine) return;
 
     try {
@@ -131,7 +183,7 @@ export class Repl extends ReplInterface {
    * Handles stdin input for non-interactive mode
    * @returns {Promise<void>}
    */
-  async handleStdin() {
+  async #handleStdin() {
     let input = "";
 
     this.#process.stdin.setEncoding("utf8");
@@ -141,14 +193,36 @@ export class Repl extends ReplInterface {
     }
 
     const line = input.trim();
-    await this.safeOnLine(line);
+
+    if (line.startsWith("/")) {
+      const [command, ...args] = line.slice(1).split(" ");
+      const cmd = this.#allCommands[command.toLowerCase()];
+
+      if (cmd) {
+        try {
+          await cmd.handler(args);
+        } catch (error) {
+          console.error("Error executing command:", error);
+        }
+      } else {
+        console.log(
+          "\n" +
+            this.#formatter.format(
+              "Error: Unknown command. Use `/help` for available commands.",
+            ) +
+            "\n",
+        );
+      }
+    } else {
+      await this.#safeOnLine(line);
+    }
   }
 
   /**
    * Sets up readline interface for interactive mode
    * @returns {object} The readline interface
    */
-  setupInteractiveMode() {
+  #setupInteractiveMode() {
     this.#rl = this.#readline.createInterface({
       input: this.#process.stdin,
       output: this.#process.stdout,
@@ -178,9 +252,8 @@ export class Repl extends ReplInterface {
           );
         }
       } else {
-        await this.safeOnLine(line);
+        await this.#safeOnLine(line);
       }
-
       this.#rl.prompt();
     });
 
@@ -196,19 +269,11 @@ export class Repl extends ReplInterface {
   }
 
   /** @inheritdoc */
-  showHelp(customCommands = {}) {
+  showHelp() {
     const help = ["The available commands are:"];
 
-    const commandSources = [
-      this.#builtInCommands,
-      this.#stateCommands,
-      customCommands,
-    ];
-
-    commandSources.forEach((commands) => {
-      Object.entries(commands).forEach(([name, cmd]) => {
-        help.push(`- \`/${name}\` - ${cmd.help}`);
-      });
+    Object.entries(this.#allCommands).forEach(([name, cmd]) => {
+      help.push(`- /${name.padEnd(12)}\t${cmd.help}`);
     });
 
     console.log("\n" + this.#formatter.format(help.join("\n")).trim() + "\n");
@@ -221,54 +286,12 @@ export class Repl extends ReplInterface {
     }
 
     if (!this.#process.stdin.isTTY) {
-      await this.handleStdin();
+      await this.#handleStdin();
       this.#process.exit(0);
     } else {
-      this.#rl = this.setupInteractiveMode();
+      this.#rl = this.#setupInteractiveMode();
       this.#rl.prompt();
     }
-  }
-
-  // Getter methods for legitimate external access
-  get prompt() {
-    return this.#prompt;
-  }
-
-  get onLine() {
-    return this.#onLine;
-  }
-
-  set onLine(handler) {
-    this.#onLine = handler;
-  }
-
-  get stateCommands() {
-    return this.#stateCommands;
-  }
-
-  get stateGetters() {
-    return this.#stateGetters;
-  }
-
-  get builtInCommands() {
-    return this.#builtInCommands;
-  }
-
-  get allCommands() {
-    return this.#allCommands;
-  }
-
-  // Legacy getters for test compatibility (dependencies should not be exposed in real usage)
-  get readline() {
-    return this.#readline;
-  }
-
-  get process() {
-    return this.#process;
-  }
-
-  get formatter() {
-    return this.#formatter;
   }
 }
 

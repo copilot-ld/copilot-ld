@@ -1,7 +1,8 @@
 /* eslint-env node */
-import { common } from "@copilot-ld/libtype";
+import { common, resource } from "@copilot-ld/libtype";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+/** @typedef {import("@copilot-ld/libtype").resource.Descriptor} resource.Descriptor */
 /** @typedef {import("@copilot-ld/libtype").common.Similarity} common.Similarity */
 
 /**
@@ -11,20 +12,19 @@ export class VectorIndexInterface {
   /**
    * Creates a new VectorIndex instance
    * @param {StorageInterface} storage - Storage interface for data operations
+   * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
    * @throws {Error} Not implemented
    */
-  constructor(storage) {}
+  constructor(storage, indexKey = "index.jsonl") {}
 
   /**
    * Adds a vector item to the index
-   * @param {string} id - Unique identifier for the vector
-   * @param {number[]} vector - The vector data
-   * @param {number} tokens - Number of tokens (optional, defaults to 0)
-   * @param {string} scope - Scope classification (optional, defaults to null)
+   * @param {number[]} vector - The vector
+   * @param {resource.Identifier} identifier - Resource identifier
    * @returns {Promise<void>}
    * @throws {Error} Not implemented
    */
-  async addItem(id, vector, tokens = 0, scope = null) {
+  async addItem(vector, identifier) {
     throw new Error("Not implemented");
   }
 
@@ -59,12 +59,15 @@ export class VectorIndexInterface {
   /**
    * Queries items from this vector index using cosine similarity
    * @param {number[]} query - Query vector
-   * @param {number} threshold - Minimum score threshold (default: 0)
-   * @param {number} limit - Maximum number of results to return (default: 0 = all results)
-   * @returns {Promise<common.Similarity[]>} Array of Similarity instances sorted by score
+   * @param {object} filter - Filter object for query constraints
+   * @param {number} [filter.limit] - Maximum number of results to return
+   * @param {number} [filter.threshold] - Minimum score threshold
+   * @param {number} [filter.max_tokens] - Maximum total tokens allowed in results
+   * @param {string} [filter.prefix] - URI prefix filter
+   * @returns {Promise<resource.Identifier[]>} Array of resource identifiers sorted by score
    * @throws {Error} Not implemented
    */
-  async queryItems(query, threshold = 0, limit = 0) {
+  async queryItems(query, filter = {}) {
     throw new Error("Not implemented");
   }
 

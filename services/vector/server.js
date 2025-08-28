@@ -12,7 +12,8 @@ const config = await ServiceConfig.create("vector", {
 });
 
 const vectorStorage = storageFactory("vectors");
-const vectorIndex = new VectorIndex(vectorStorage);
+const contentIndex = new VectorIndex(vectorStorage, "content.json");
+const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.json");
 
-const service = new VectorService(config, vectorIndex);
+const service = new VectorService(config, contentIndex, descriptorIndex);
 await service.start();

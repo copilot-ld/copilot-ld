@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package resource;
+
+message Identifier {
+  string type = 1;
+  string name = 2;
+  string parent = 3;
+
+  // In vector searches, values will be populated from the representation (Descriptor or Content).
+  optional int32 tokens = 4;
+  optional double magnitude = 5;
+  optional double score = 6;
+}
+
+/**
+ * Resource descriptor representation
+ */
+message Descriptor {
+  int32 tokens = 1;
+  double magnitude = 2;
+
+  string purpose = 3; // **What** the resource is meant to accomplish
+  string instructions = 4; // **How** to execute or work with the resource
+  string applicability = 5; // **When** or **when not** to use the resource
+  string evaluation = 6; // What successful execution looks like
+}
+
+/**
+ * Resource content representation
+ */
+message Content {
+  int32 tokens = 1;
+  double magnitude = 2;
+
+  oneof type {
+    string text = 3;
+    string jsonld = 4;
+  }
+}

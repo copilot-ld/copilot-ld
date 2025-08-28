@@ -36,8 +36,6 @@ async function generateJavaScriptTypes(root, protoFiles, outFile) {
     "static-module",
     "-w",
     "es6",
-    "--no-decode",
-    "--no-encode",
     "--no-delimited",
     "--no-create",
     "--no-service",
@@ -83,6 +81,7 @@ async function main() {
 
   // Define proto files to process
   const protoFiles = [
+    "resource.proto",
     "common.proto",
     "agent.proto",
     "history.proto",

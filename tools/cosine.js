@@ -10,25 +10,30 @@ await ToolConfig.create("cosine");
 
 /**
  * Main function to query vector index with cosine similarity
- * Reads a vector from stdin and returns similar items from the policy vector index
+ * Reads a vector from stdin and returns similar items from the specified vector index
  * @returns {Promise<void>}
  */
 async function main() {
   const input = (await process.stdin.toArray()).join("").trim();
   const logger = logFactory("cosine");
   const storage = storageFactory("vectors");
-  const index = new VectorIndex(storage);
+
+  // Get index from command line arguments (default to content)
+  const index = process.argv[2] || "content";
+  const indexKey = index === "descriptor" ? "descriptors.json" : "content.json";
+
+  const vectorIndex = new VectorIndex(storage, indexKey);
   const vector = JSON.parse(input);
 
   const monitor = new PerformanceMonitor();
   monitor.start(vector.length, "dimensions");
 
-  const results = await index.queryItems(vector);
+  const results = await vectorIndex.queryItems(vector);
 
   const metrics = monitor.stop();
 
   console.log(JSON.stringify(results, null, 2));
-  logger.debug(metrics.getDiagnostics());
+  logger.debug(`Searched ${index} index with ${metrics.getDiagnostics()}`);
 }
 
 main();

@@ -1,7 +1,8 @@
 /* eslint-env node */
-import { ChunkIndex } from "@copilot-ld/libchunk";
 import { ToolConfig } from "@copilot-ld/libconfig";
-import { Copilot } from "@copilot-ld/libcopilot";
+import { llmFactory } from "@copilot-ld/libcopilot";
+import { Policy } from "@copilot-ld/libpolicy";
+import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 import { VectorIndex } from "@copilot-ld/libvector";
@@ -11,26 +12,33 @@ import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
 const config = await ToolConfig.create("index");
 
 /**
- * Main indexing function that processes chunks into vector embeddings
+ * Main indexing function that processes resources into vector embeddings
  */
 async function main() {
-  const chunksStorage = storageFactory("chunks");
+  const resourcesStorage = storageFactory("resources");
   const vectorStorage = storageFactory("vectors");
+  const policiesStorage = storageFactory("policies");
 
-  const chunkIndex = new ChunkIndex(chunksStorage);
-  const vectorIndex = new VectorIndex(vectorStorage);
-  const client = new Copilot(await config.githubToken());
+  const policy = new Policy(policiesStorage);
+  const resourceIndex = new ResourceIndex(resourcesStorage, policy);
+  const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
+  const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
+  const llm = llmFactory(await config.githubToken());
   const logger = logFactory("index-tool");
 
   const processor = new VectorProcessor(
-    vectorIndex,
-    chunkIndex,
-    client,
+    contentIndex,
+    descriptorIndex,
+    resourceIndex,
+    llm,
     logger,
   );
 
-  await processor.process();
-  await processor.persist();
+  const actor = "cld:common.System.index";
+
+  // Process both content and descriptor representations
+  await processor.process(actor, "content");
+  await processor.process(actor, "descriptor");
 }
 
 main();

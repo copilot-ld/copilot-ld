@@ -1,23 +1,45 @@
 # Changelog
 
+## 2025-08-28
+
+- Enhanced `resources.js` tool with command-line argument parsing for
+  `--selector` option
+- Added new `dev.js` tool for managing development servers with `--start` and
+  `--stop` options
+- Updated main `package.json` to use `node tools/dev.js --start` for
+  consolidated development workflow
+- Removed unused `release-log.js` tool to simplify codebase
+- Development servers now run in background with consolidated logging to
+  `debug.log`
+
+## 2025-08-26
+
+- **BREAKING**: Migrated from legacy "indices" architecture to dual-index system
+  for content and descriptor processing
+- Updated `index.js` tool to process both content and descriptor representations
+  using separate vector indexes
+- Enhanced `search.js` and `cosine.js` tools to support `index_type` parameter
+  for flexible index selection
+- Modified `VectorProcessor` initialization to use distinct file names for
+  `contentIndex` and `descriptorIndex`
+
 ## 2025-08-25
 
-- Deprecated the `chunk.js` tool
-- Introduced a new `resources.js` tool that replaces `chunk.js`
+- **BREAKING**: Replaced `chunk.js` tool with new `resources.js` tool for
+  improved resource management
+- Updated `search.js` tool to use `ResourceIndex` instead of deprecated
+  `ChunkIndex`
+- Added `Policy` engine integration for access control in search operations
+- Enhanced search results to display resource type information
 
 ## 2025-08-18
 
+- Improved `codegen-services.js` field type normalization with better handling
+  of numeric codes
 - Updated `service.js.mustache` template to use inline import type syntax in
-  JSDoc comments instead of separate `@typedef` declarations for cleaner and
-  more readable service method documentation
-
-## 2025-08-18
-
-- Hardened `codegen-services.js` field type normalization (handles numeric codes
-  for `string`, `boolean`, and number types; resolves `MESSAGE`/`ENUM`)
-- Template now ensures JSDoc `typedef` imports are emitted for custom
-  message/enum field types (e.g., `Prompt`) so `@property { Prompt }` resolves
-  to `common.Prompt` via `@copilot-ld/libtype`
+  `JSDoc` comments
+- Enhanced template to ensure proper `JSDoc` `typedef` imports for custom
+  message/enum field types to `common.Prompt` via `@copilot-ld/libtype`
 
 ## 2025-08-18
 

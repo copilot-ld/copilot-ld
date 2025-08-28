@@ -15,7 +15,9 @@
     "tools"
   ],
   "scripts": {
-    "dev": "concurrently 'npm run dev -w @copilot-ld/web' 'npm run dev -w @copilot-ld/copilot' 'npm run dev -w @copilot-ld/agent' 'npm run dev -w @copilot-ld/llm' 'npm run dev -w @copilot-ld/vector' 'npm run dev -w @copilot-ld/text' 'npm run dev -w @copilot-ld/history'",
+    "dev": "npm run dev:start",
+    "dev:start": "node tools/dev.js --start",
+    "dev:stop": "node tools/dev.js --stop",
     "codegen:types": "node tools/codegen-types.js",
     "codegen:services": "node tools/codegen-services.js",
     "test": "find packages services test -name '*.test.js' | xargs node --test",
@@ -25,7 +27,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write --list-different .",
-    "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' --dictionaries .spellcheck-dict.txt",
+    "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' --dictionaries .spellcheck-dict.txt",
     "check": "npm run lint && npm run format && npm run spellcheck",
     "check:fix": "npm run lint:fix && npm run format:fix",
     "security": "npm audit --audit-level=low --workspaces"
@@ -34,14 +36,13 @@
     "@eslint/js": "^9.15.0",
     "@eslint/json": "^0.13.1",
     "@eslint/markdown": "^7.1.0",
-    "protobufjs": "^7.4.0",
-    "protobufjs-cli": "^1.1.1",
-    "concurrently": "^9.1.0",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^52.0.4",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
+    "protobufjs": "^7.4.0",
+    "protobufjs-cli": "^1.1.1",
     "simple-git-hooks": "^2.13.1",
     "spellchecker-cli": "^7.0.0"
   },

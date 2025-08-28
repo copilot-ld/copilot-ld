@@ -25,21 +25,9 @@ export class ReplInterface {
 
   /**
    * Shows help message with all available commands
-   * @param {object} customCommands - Additional custom commands to include
    * @throws {Error} Not implemented
    */
-  showHelp(customCommands = {}) {
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * Creates a state variable command that gets/sets a value
-   * @param {string} name - Variable name
-   * @param {any} initialValue - Initial value
-   * @param {string} description - Brief description for help
-   * @throws {Error} Not implemented
-   */
-  createStateCommand(name, initialValue, description) {
+  showHelp() {
     throw new Error("Not implemented");
   }
 }

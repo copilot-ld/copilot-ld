@@ -2,7 +2,10 @@
 import { Octokit } from "@octokit/core";
 
 import { ServiceConfig } from "@copilot-ld/libconfig";
+import { Policy } from "@copilot-ld/libpolicy";
+import { ResourceIndex } from "@copilot-ld/libresource";
 import { Client } from "@copilot-ld/libservice";
+import { storageFactory } from "@copilot-ld/libstorage";
 
 import { AgentService } from "./index.js";
 
@@ -25,12 +28,17 @@ const clients = {
   history: new Client(await ServiceConfig.create("history")),
   llm: new Client(await ServiceConfig.create("llm")),
   vector: new Client(await ServiceConfig.create("vector")),
-  text: new Client(await ServiceConfig.create("text")),
 };
+
+// Set up ResourceIndex for accessing resources
+const resourceStorage = storageFactory("resources");
+const policy = new Policy(storageFactory("policies"));
+const resourceIndex = new ResourceIndex(resourceStorage, policy);
 
 const service = new AgentService(
   agentConfig,
   clients,
+  resourceIndex,
   (auth) => new Octokit({ auth }),
 );
 await service.start();

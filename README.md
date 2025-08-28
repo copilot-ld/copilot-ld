@@ -10,12 +10,12 @@ retrieval-augmented generation.
 
 ## 🏗️ Repository Structure
 
-- **/services/**: gRPC microservices (agent, vector, scope, llm, history, text)
+- **/services/**: gRPC microservices (agent, vector, llm, history)
 - **/extensions/**: Application adapters (copilot, teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/tools/**: Development and operational utilities
 - **/proto/**: gRPC protocol buffer definitions
-- **/data/**: Definitions, vectors, and scope data
+- **/data/**: Knowledge base, vectors, and resource data
 
 ## 🚀 Setup
 
@@ -51,7 +51,7 @@ node tools/secret.js
 Create the necessary data directories with empty indices:
 
 ```sh
-mkdir -p data/storage/{chunks,vectors,history}
+mkdir -p data/storage/{resources,vectors,history}
 echo "[]" > data/storage/{policies,resources,vectors}/index.json
 ```
 
@@ -61,10 +61,10 @@ echo "[]" > data/storage/{policies,resources,vectors}/index.json
 node tools/download.js
 ```
 
-### 7. Extract chunks and build vector indices
+### 7. Process resources and build vector indices
 
 ```sh
-node tools/chunk.js
+node tools/resources.js
 node tools/index.js
 ```
 
@@ -101,7 +101,7 @@ This provides:
 
 - **Application Load Balancer**: SSL termination and path-based routing through
   nginx
-- **S3-compatible storage**: MinIO for scope, vectors, and chunks data
+- **S3-compatible storage**: MinIO for resources, vectors, and policies data
 - **SSL encryption**: Self-signed certificates for localhost development
 
 Access the services:

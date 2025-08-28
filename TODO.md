@@ -16,7 +16,7 @@ and policies for robust workflow controls.
 
 - [x] **Step 05**: New `libpolicy`
 - [x] **Step 06**: New `Resource` type and `libresource`
-- [ ] **Step 07**: Use `Resource` type and `libresource`
+- [x] **Step 07**: Use `Resource` type and `libresource`
 
 ### Phase 3: Services & Integration (Steps 8-9+)
 
@@ -66,14 +66,14 @@ That is, the `Graph` service manages Linked Data in a directed graph.
 
 ### Resources and Policies
 
-Resources are identified by a simple Universal Resource Name (URN) formatted as
-`urn_namespace:path` where:
+Resources are identified by a simple Universal Resource Identifier (URI)
+formatted as `uri_namespace:path` where:
 
-- `urn_namespace` is the URN assignment and always set to "cld"
+- `uri_namespace` is the URI assignment and always set to "cld"
 - `path` is parents' path plus the resource's own path element, joined by "/"
 - Each path element consist of a resource type and ID joined by "."
 
-Resources are stored using their URN as the object name. Here are examples
+Resources are stored using their URI as the object name. Here are examples
 looking at the raw local file system:
 
 ```bash
@@ -86,7 +86,7 @@ cld:common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/pl
 
 It is now fast and efficient for the Resource service to fetch all tasks within
 a conversation or all subtasks within a task by searching for objects with the
-appropriate URN prefix.
+appropriate URI prefix.
 
 ### Current State
 
@@ -174,8 +174,8 @@ The Inner Loop remains unchanged from the previous architecture and consists of
 iterative prompt completion with tool execution until no more tools are
 requested.
 
-The URN structure enables easy fetching of all parent resources. For example, a
-sub Task URN like
+The URI structure enables easy fetching of all parent resources. For example, a
+sub Task URI like
 `cld:common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004`
 allows the Assistant to fetch the Conversation, Message, and parent Task
 contexts.
@@ -218,7 +218,7 @@ sequenceDiagram
         loop For each assigned Task
             alt Task has subtasks (Supervisory Mode)
                 Note over Asst: Subscribe to subtask completion events
-                Asst->>Event: Subscribe to RESOURCE_PUT events<br/>with Task URN prefix filter
+                Asst->>Event: Subscribe to RESOURCE_PUT events<br/>with Task URI prefix filter
 
                 loop Monitor subtasks
                     Event-->>Asst: Subtask completion event
@@ -244,7 +244,7 @@ sequenceDiagram
 
             else Task has no subtasks (Direct Mode)
                 %% Fetch task context
-                Note over Asst: Fetch resources from Task URN path
+                Note over Asst: Fetch resources from Task URI path
                 Asst->>Resource: Get parent resources<br/>(Conversation, Message, etc.)
                 Resource-->>Asst: Return context resources
 
@@ -287,89 +287,6 @@ sequenceDiagram
 
 ## Implementation Plan
 
-### Step 07: Use `Resource` Type and `libresource`
-
-**🎯 Objective**: Integrate resource system into existing services, replacing
-deprecated text processing.
-
-**📋 Tasks**:
-
-- Replace Text service functionality with `libresource`
-- Update `libvector` to index all resource types
-- Extend Vector service with type and URN prefix filtering
-- Update Agent service to use `ResourceIndex`
-
-**🔧 Implementation Details**:
-
-With the Text service deprecated, `libresource` takes over.
-
-`libvector` needs to be updated to index all resources. Only the resource's
-metadata is kept in the index, e.g. `common.MessageV2.meta` or `plan.Task.meta`.
-
-When processing resources with `class VectorProcessor` the string returned by
-`common.Resource.toDescription()` is used when creating the vector embedding.
-
-`libvector` and the Vector service is extended with the ability to filter by the
-resource's type, or by URN prefix.
-
-In the Vector service:
-
-```js
-/* eslint-env node */
-import { storageFactory } from "@copilot-ld/libstorage";
-import { VectorIndex } from "@copilot-ld/libvector";
-import { common } from "@copilot-ld/libtype";
-
-const vectorStorage = storageFactory("vectors");
-const vectorIndex = new VectorIndex(vectorStorage);
-
-// Example query vector - provided by the request
-const vector = [0.1, 0.2, 0.3];
-
-// Example filter - provided by the request
-const filter = { type: "common.MessageV2" };
-
-/** @type {common.Resource[]} */
-const similarities = await vectorIndex.queryItems(vector, filter);
-```
-
-And in the Agent service:
-
-```js
-/* eslint-env node */
-import { ResourceIndex } from "@copilot-ld/libresource";
-import { storageFactory } from "@copilot-ld/libstorage";
-import { Policy } from "@copilot-ld/libpolicy";
-import { common } from "@copilot-ld/libtype";
-
-// Example assistant from previous context.
-const assistant = new common.Assistant.fromObject({
-  meta: { name: "data-expert" },
-});
-
-// Assume similarities is already defined from previous context
-/** @type {common.Resource[]} **/
-const similarities = [];
-
-const actor = assistant.meta.id;
-const ids = similarities.map((r) => r.id);
-
-const resourceStorage = storageFactory("resources");
-const policy = new Policy(storageFactory("policies"));
-const resourceIndex = new ResourceIndex(resourceStorage, policy);
-
-// Returns resources created as instances of the right type.
-const instances = await resourceIndex.get(actor, ids);
-```
-
-**✅ Success Criteria**:
-
-- Text service successfully replaced with resource-based processing
-- Vector service supports type and URN filtering
-- Agent service integrates with `ResourceIndex`
-- All existing functionality preserved through resource abstraction
-- Performance tests demonstrate no regression
-
 ### Step 08: Other New Protobuf Definitions
 
 **🎯 Objective**: Define all remaining protobuf schemas needed for the new
@@ -390,10 +307,6 @@ In `common.proto`, these definitions are added:
 // ... existing protobuf definitions, e.g. Choice, Usage
 
 message Conversation {
-  common.Resource meta = 1;
-}
-
-message Assistant {
   common.Resource meta = 1;
 }
 

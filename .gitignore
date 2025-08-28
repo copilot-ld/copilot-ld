@@ -8,6 +8,7 @@
 !**/.env.example
 **/.ghtoken
 **/config.yml
+**/assistants.yml
 
 # Data files
 **/data/
@@ -16,6 +17,10 @@
 .vscode/
 .idea/
 SCRATCHPAD.md
+
+# Development server
+**/dev.pid
+**/dev.log
 
 # Other files
 **/.DS_Store

@@ -1,12 +1,12 @@
 /* eslint-env node */
-import { ToolConfig } from "@copilot-ld/libconfig";
+import { ScriptConfig } from "@copilot-ld/libconfig";
 import { PerformanceMonitor } from "@copilot-ld/libperf";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 import { VectorIndex } from "@copilot-ld/libvector";
 
 // Just call config to have it load environment etc.
-await ToolConfig.create("cosine");
+await ScriptConfig.create("cosine");
 
 /**
  * Main function to query vector index with cosine similarity

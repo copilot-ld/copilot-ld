@@ -45,7 +45,7 @@ jobs:
       - name: Detect changes
         id: detect-changes
         run: |
-          ITEMS=$(node tools/release-changes.js \
+          ITEMS=$(node scripts/release-changes.js \
             ${{ github.event.pull_request.base.sha }} \
             ${{ github.event.pull_request.head.sha }})
           echo "items=$ITEMS" >> $GITHUB_OUTPUT
@@ -95,7 +95,7 @@ jobs:
         run: |
           # Pull latest changes to avoid conflicts
           git pull --rebase origin main
-          VERSIONS=$(node tools/release-bump.js --force \
+          VERSIONS=$(node scripts/release-bump.js --force \
             ${{ needs.prepare.outputs.bump-type }} \
             ${{ join(fromJson(needs.prepare.outputs.changed-items), ' ') }})
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT

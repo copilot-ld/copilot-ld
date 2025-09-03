@@ -2,6 +2,7 @@
 
 ## 2025-09-03
 
+- Updated test fixtures to reference `scripts/` directory instead of `tools/`
 - Added optional `force` behavior to `ReleaseBumper.bump()` allowing tag
   overwrite when a tag already exists
 - Updated `ReleaseBumperInterface.bump()` signature to accept an `options`

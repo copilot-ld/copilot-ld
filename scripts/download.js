@@ -5,9 +5,9 @@ import path from "path";
 
 import { Octokit } from "@octokit/core";
 
-import { ToolConfig } from "@copilot-ld/libconfig";
+import { ScriptConfig } from "@copilot-ld/libconfig";
 
-const config = await ToolConfig.create("download");
+const config = await ScriptConfig.create("download");
 
 /**
  * Downloads a file from a GitHub API URL using authentication

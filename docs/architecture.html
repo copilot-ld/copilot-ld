@@ -98,7 +98,7 @@
 ./services/         # gRPC services
 ./extensions/       # Extensions that adapt core system to applications
 ./packages/         # Reusable, domain-focused logic
-./tools/            # Utility scripts for dev and test
+./scripts/          # Utility scripts for dev and test
 ./data/             # Knowledge base, vectors, and resource data
       </pre>
 
@@ -270,18 +270,18 @@ sequenceDiagram
       <h3>Offline Sequence Diagram</h3>
 
       <p>
-        The platform includes offline tools for knowledge base preparation and
-        vector index creation. These tools process external knowledge sources
+        The platform includes offline scripts for knowledge base preparation and
+        vector index creation. These scripts process external knowledge sources
         into searchable vector indices before the services are deployed.
       </p>
 
       <pre class="mermaid">
 sequenceDiagram
     participant Dev as Developer
-    participant Download as tools/download.js
+    participant Download as scripts/download.js
     participant GitHub as GitHub API
-    participant Chunk as tools/chunk.js
-    participant Index as tools/index.js
+    participant Chunk as scripts/chunk.js
+    participant Index as scripts/index.js
     participant LLM as LLM API
     participant Storage as Local Storage
 
@@ -291,7 +291,7 @@ sequenceDiagram
     Download->>Storage: Extract to data/knowledge/
     Note right of Download: HTML files with microdata
 
-    Dev->>Resources: node tools/resources.js
+    Dev->>Resources: node scripts/resources.js
     Resources->>Storage: Read HTML files from data/knowledge/
     Storage-->>Resources: HTML content with microdata
     loop For each HTML file
@@ -302,7 +302,7 @@ sequenceDiagram
     end
     Resources->>Storage: Persist resource index
 
-    Dev->>Index: node tools/index.js
+    Dev->>Index: node scripts/index.js
     Index->>Storage: Load resource index
     Storage-->>Index: All resource metadata
 
@@ -320,7 +320,7 @@ sequenceDiagram
 
       <h4>Offline Processing Workflow</h4>
 
-      <h5>1. Knowledge Download (<code>tools/download.js</code>)</h5>
+      <h5>1. Knowledge Download (<code>scripts/download.js</code>)</h5>
 
       <ul>
         <li>Downloads latest release artifacts from GitHub repository</li>
@@ -330,7 +330,7 @@ sequenceDiagram
         <li>Provides HTML files with structured microdata for processing</li>
       </ul>
 
-      <h5>2. Resource Processing (<code>tools/resources.js</code>)</h5>
+      <h5>2. Resource Processing (<code>scripts/resources.js</code>)</h5>
 
       <ul>
         <li>
@@ -347,7 +347,7 @@ sequenceDiagram
         <li>Creates searchable resource index with type-based organization</li>
       </ul>
 
-      <h5>3. Vector Indexing (<code>tools/index.js</code>)</h5>
+      <h5>3. Vector Indexing (<code>scripts/index.js</code>)</h5>
 
       <ul>
         <li>

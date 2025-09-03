@@ -1,12 +1,12 @@
 /* eslint-env node */
-import { ToolConfig } from "@copilot-ld/libconfig";
+import { ScriptConfig } from "@copilot-ld/libconfig";
 import { llmFactory } from "@copilot-ld/libcopilot";
 import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex, ResourceProcessor } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
-const config = await ToolConfig.create("resources");
+const config = await ScriptConfig.create("resources");
 
 /**
  * Parse command line arguments
@@ -37,7 +37,7 @@ async function main() {
   const knowledgeStorage = storageFactory("knowledge");
   const resourceStorage = storageFactory("resources");
   const llm = llmFactory(await config.githubToken());
-  const logger = logFactory("tool.resources");
+  const logger = logFactory("script.resources");
   const policy = policyFactory();
 
   const resourceIndex = new ResourceIndex(resourceStorage, policy);

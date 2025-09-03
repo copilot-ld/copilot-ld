@@ -51,51 +51,36 @@ npm install</code></pre>
 
       <p>Copy configuration templates:</p>
 
-      <pre><code>cp .env.example .env
-cp config.example.yml config.yml</code></pre>
+      <pre><code>cp config/.env{.example,}
+cp config/config{.example,}.yml</code></pre>
 
-      <h3>2. GitHub App Configuration</h3>
+      <h3>2. Generate Code from Protocol Buffers</h3>
 
       <p>
-        To use the Copilot Extension, you need to configure GitHub App
-        integration:
+        Generate typed definitions, service bases, and clients from the
+        <code>proto/</code> schemas. Run this after a fresh clone or whenever
+        the proto files change.
       </p>
 
-      <h4>Create GitHub App</h4>
+      <pre><code>npm run codegen
+# or generate a specific artifact
+npm run codegen:type     # libtype types and declarations
+npm run codegen:service  # service base classes for gRPC servers
+npm run codegen:client   # gRPC clients for services</code></pre>
 
-      <ol>
-        <li>
-          Go to GitHub Settings > Developer settings > GitHub Apps > New GitHub
-          App
-        </li>
-        <li>
-          Fill in required fields:
-          <ul>
-            <li><strong>GitHub App name</strong>: Your app name</li>
-            <li>
-              <strong>Homepage URL</strong>: <code>http://localhost:3001</code>
-            </li>
-            <li>
-              <strong>Callback URL</strong>:
-              <code>http://localhost:3001/auth/callback</code>
-            </li>
-          </ul>
-        </li>
-        <li>
-          Under Permissions, grant:
-          <ul>
-            <li><strong>Repository permissions</strong>: Contents (Read)</li>
-            <li><strong>Account permissions</strong>: Copilot Chat (Write)</li>
-          </ul>
-        </li>
-        <li>Save the app and note the <strong>Client ID</strong></li>
-      </ol>
+      <h3>2. GitHub Authentication</h3>
 
-      <h4>Configure Client ID</h4>
+      <p>
+        Authentication uses GitHub's OAuth Device Flow. Set your
+        <code>GITHUB_CLIENT_ID</code> in <code>config/.env</code> before
+        generating a token.
+      </p>
 
-      <p>Add your GitHub App Client ID to the environment file:</p>
+      <h4>Set Client ID</h4>
 
-      <pre><code># Edit .env file
+      <p>Edit the environment file:</p>
+
+      <pre><code># Edit config/.env
 GITHUB_CLIENT_ID=your_20_character_client_id_here</code></pre>
 
       <h3>3. Token Setup</h3>
@@ -105,8 +90,10 @@ GITHUB_CLIENT_ID=your_20_character_client_id_here</code></pre>
       <pre><code>node tools/token.js</code></pre>
 
       <p>
-        This creates a token with appropriate permissions. Store the token
-        securely and add it to your environment configuration.
+        The tool saves the token to <code>config/.ghtoken</code> so services and
+        tools can read it automatically. Alternatively, you can set the
+        <code>GITHUB_TOKEN</code> environment variable in
+        <code>config/.env</code>.
       </p>
 
       <h4>Service Authentication</h4>
@@ -116,7 +103,7 @@ GITHUB_CLIENT_ID=your_20_character_client_id_here</code></pre>
       <pre><code>node tools/secret.js</code></pre>
 
       <p>
-        This command automatically updates your <code>.env</code> file with the
+        This command automatically updates <code>config/.env</code> with the
         generated secret.
       </p>
 
@@ -142,7 +129,7 @@ tool:
 # Download the data
 node tools/download.js</code></pre>
 
-      <h4>Process Content into Chunks</h4>
+      <h4>Process Knowledge Base into Resources</h4>
 
       <p>Extract and process content from HTML files:</p>
 
@@ -150,7 +137,7 @@ node tools/download.js</code></pre>
 
       <p>
         This scans HTML files for microdata items, extracts content, and creates
-        searchable chunks stored in <code>data/chunks/</code>.
+        searchable resources stored in <code>data/storage/resources/</code>.
       </p>
 
       <h4>Example Knowledge Base</h4>
@@ -163,15 +150,16 @@ node tools/download.js</code></pre>
 
       <pre><code>cp examples/knowledge/* data/knowledge/</code></pre>
 
-      <h4>Build Vector Indices</h4>
+      <h4>Create Vector Embeddings</h4>
 
-      <p>Create vector embeddings and search indices:</p>
+      <p>Process resources and create vector embeddings:</p>
 
-      <pre><code>node tools/index.js</code></pre>
+      <pre><code>node tools/vectors.js</code></pre>
 
       <p>
-        This generates embeddings for all chunks and builds scope-specific
-        vector indices for efficient similarity search.
+        This generates embeddings of resource content and descriptors for
+        efficient similarity search, stored in
+        <code>data/storage/vectors/</code>.
       </p>
 
       <h3>5. Example HTML Content</h3>
@@ -217,8 +205,8 @@ node tools/download.js</code></pre>
       <pre><code>npm run dev</code></pre>
 
       <p>
-        This starts all microservices (agent, vector, scope, llm, history, text)
-        and extensions (web, copilot) concurrently.
+        This starts all microservices (agent, llm, memory, vector) and
+        extensions (web, copilot) concurrently.
       </p>
 
       <h3>7. Interactive Chat</h3>
@@ -234,6 +222,19 @@ node tools/download.js</code></pre>
       <h4>Scripted Testing</h4>
 
       <pre><code>echo "Tell me about container security" | node tools/chat.js</code></pre>
+
+      <h3>8. Search with CLI Flags</h3>
+
+      <p>
+        The search tool supports command-line flags via the internal
+        <code>Repl</code> state. This is useful for non-interactive runs:
+      </p>
+
+      <pre><code># Limit results and set a minimum similarity threshold
+echo "docker" | node tools/search.js --limit 10 --threshold 0.25
+
+# Use the descriptor index
+echo "kubernetes deployment" | node tools/search.js --index descriptor --limit 5</code></pre>
 
       <h4>Web Interface</h4>
 
@@ -259,14 +260,14 @@ node tools/download.js</code></pre>
         </li>
         <li>
           <strong>Empty responses</strong>: Verify that vector indices were
-          created successfully in <code>data/vectors/</code>
+          created successfully in <code>data/storage/vectors/</code>
         </li>
         <li>
           <strong>Service startup errors</strong>: Check that all environment
-          variables are configured in <code>.env</code>
+          variables are configured in <code>config/.env</code>
         </li>
         <li>
-          <strong>Network issues</strong>: Ensure ports 3000-3007 are available
+          <strong>Network issues</strong>: Ensure ports 3000–3005 are available
           for service communication
         </li>
       </ul>

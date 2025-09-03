@@ -16,9 +16,9 @@ export class StorageInterface {
   }
 
   /**
-   * Append data to an existing key
+   * Append data to an existing key with automatic newline
    * @param {string} key - Storage key identifier
-   * @param {string|Buffer} data - Data to append
+   * @param {string|Buffer} data - Data to append (newline will be added automatically)
    * @returns {Promise<void>}
    * @throws {Error} Not implemented
    */
@@ -29,7 +29,7 @@ export class StorageInterface {
   /**
    * Retrieve data by key
    * @param {string} key - Storage key identifier
-   * @returns {Promise<string|Buffer>} Retrieved data
+   * @returns {Promise<string|Buffer|object[]|object>} Retrieved data (returns parsed JSON array for .jsonl files, parsed JSON object for .json files)
    * @throws {Error} Not implemented
    */
   async get(key) {

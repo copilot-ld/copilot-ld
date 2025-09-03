@@ -40,12 +40,13 @@ export class ResourceIndex extends ResourceIndexInterface {
 
     const id = resource.id;
     const object = resource.toJSON();
+    const data = JSON.stringify(object);
 
     if (!id) {
       throw new Error("Missing resource identifier");
     }
 
-    await this.#storage.put(`${id}.json`, JSON.stringify(object));
+    await this.#storage.put(`${id}.json`, data);
   }
 
   /** @inheritdoc */
@@ -61,26 +62,42 @@ export class ResourceIndex extends ResourceIndexInterface {
     const keys = ids.map((id) => `${id}.json`);
     const data = await this.#storage.getMany(keys);
 
-    // Convert object values to array and parse JSON in parallel
-    const promises = Object.values(data).map((d) =>
-      Promise.resolve(toType(JSON.parse(d.toString()))),
-    );
+    // Convert object values to array and apply type conversion
+    const promises = Object.values(data).map((d) => Promise.resolve(toType(d)));
     return await Promise.all(promises);
   }
 
   /** @inheritdoc */
-  async getAll(actor) {
-    if (!actor) throw new Error("actor is required");
-
+  async findAll() {
     // Get all keys from storage
-    const keys = await this.#storage.list();
+    const keys = await this.#storage.findByPrefix("");
 
-    // Filter for .json files and extract resource IDs (URIs)
-    const ids = keys
+    // Filter for .json files and extract resource IDs (names)
+    const names = keys
       .filter((key) => key.endsWith(".json"))
       .map((key) => key.slice(0, -5)); // Remove .json extension
 
-    return await this.get(actor, ids);
+    // Names already include "cld:" prefix, so use them directly
+    return names.map((name) => toIdentifier(name));
+  }
+
+  /** @inheritdoc */
+  async findByPrefix(prefix) {
+    if (!prefix) throw new Error("prefix is required");
+
+    // Use the prefix directly as it should already include "cld:"
+    const searchPrefix = prefix;
+
+    // Get keys with the specified prefix from storage
+    const keys = await this.#storage.findByPrefix(searchPrefix);
+
+    // Filter for .json files and extract resource IDs (names)
+    const names = keys
+      .filter((key) => key.endsWith(".json"))
+      .map((key) => key.slice(0, -5)); // Remove .json extension
+
+    // Names already include "cld:" prefix, so use them directly
+    return names.map((name) => toIdentifier(name));
   }
 }
 
@@ -103,8 +120,36 @@ function toType(object) {
   return types[ns][type].fromObject(object);
 }
 
+/**
+ * Helper function creating Identifier instance from resource URI - reverse of resource.Identifier.toString()
+ * @param {string} uri - Resource URI starting with "cld:" (e.g., "cld:common.MessageV2.abc123" or "cld:parent/child/common.MessageV2.abc123")
+ * @returns {types.resource.Identifier} Identifier instance
+ */
+function toIdentifier(uri) {
+  const path = uri.slice(4); // Remove "cld:" prefix
+  const pathParts = path.split("/");
+
+  // The last part is the name, everything before is the parent path
+  const name = pathParts[pathParts.length - 1];
+  const parentParts = pathParts.slice(0, -1);
+
+  // Extract type from name (format: "namespace.Type.hash")
+  const nameParts = name.split(".");
+  const type = `${nameParts[0]}.${nameParts[1]}`;
+
+  // Build parent URI if there are parent parts
+  const parent = parentParts.length > 0 ? `cld:${parentParts.join("/")}` : "";
+
+  return new types.resource.Identifier({
+    type: type,
+    name: name,
+    parent: parent,
+  });
+}
+
 export {
   toType,
+  toIdentifier,
   ResourceProcessor,
   ResourceIndexInterface,
   ResourceProcessorInterface,

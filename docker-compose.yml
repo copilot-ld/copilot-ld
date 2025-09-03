@@ -76,34 +76,18 @@ services:
     container_name: copilot-ld.agent
     env_file: ./config/.env
     environment:
-      - SERVICE_HISTORY_HOST=history
-      - SERVICE_HISTORY_PORT=3000
+      - SERVICE_MEMORY_HOST=memory
+      - SERVICE_MEMORY_PORT=3000
       - SERVICE_LLM_HOST=llm
       - SERVICE_LLM_PORT=3000
       - SERVICE_VECTOR_HOST=vector
       - SERVICE_VECTOR_PORT=3000
-      - SERVICE_TEXT_HOST=text
-      - SERVICE_TEXT_PORT=3000
     networks:
       - internal
     depends_on:
-      - history
+      - memory
       - llm
       - vector
-      - text
-
-  history:
-    build:
-      context: .
-      dockerfile: ./services/history/Dockerfile
-    image: copilot-ld/history:latest
-    container_name: copilot-ld.history
-    env_file: ./config/.env
-    environment:
-      - SERVICE_LLM_HOST=llm
-      - SERVICE_LLM_PORT=3000
-    networks:
-      - internal
 
   llm:
     build:
@@ -127,17 +111,19 @@ services:
     volumes:
       - ./data/storage/vectors:/app/data/storage/vectors
 
-  text:
+  memory:
     build:
       context: .
-      dockerfile: ./services/text/Dockerfile
-    image: copilot-ld/text:latest
-    container_name: copilot-ld.text
+      dockerfile: ./services/memory/Dockerfile
+    image: copilot-ld/memory:latest
+    container_name: copilot-ld.memory
     env_file: ./config/.env
     networks:
       - internal
     volumes:
-      - ./data/storage/chunks:/app/data/storage/chunks
+      - ./data/storage/memories:/app/data/storage/memories
+      - ./data/storage/resources:/app/data/storage/resources
+      - ./data/storage/policies:/app/data/storage/policies
 
 networks:
   external:

@@ -50,6 +50,52 @@ describe("libstorage", () => {
       assert(Buffer.isBuffer(result));
     });
 
+    test("get parses JSON files automatically", async () => {
+      const jsonData = { name: "test", value: 42 };
+      mockFs.readFile = mock.fn(() =>
+        Promise.resolve(Buffer.from(JSON.stringify(jsonData))),
+      );
+
+      const result = await localStorage.get("config.json");
+
+      assert.strictEqual(mockFs.readFile.mock.callCount(), 1);
+      assert.deepStrictEqual(result, jsonData);
+    });
+
+    test("get parses JSON Lines files automatically", async () => {
+      const jsonlData = [
+        { id: 1, name: "first" },
+        { id: 2, name: "second" },
+      ];
+      const jsonlContent = jsonlData
+        .map((obj) => JSON.stringify(obj))
+        .join("\n");
+      mockFs.readFile = mock.fn(() =>
+        Promise.resolve(Buffer.from(jsonlContent)),
+      );
+
+      const result = await localStorage.get("data.jsonl");
+
+      assert.strictEqual(mockFs.readFile.mock.callCount(), 1);
+      assert.deepStrictEqual(result, jsonlData);
+    });
+
+    test("get returns empty object for empty JSON files", async () => {
+      mockFs.readFile = mock.fn(() => Promise.resolve(Buffer.from("")));
+
+      const result = await localStorage.get("empty.json");
+
+      assert.deepStrictEqual(result, {});
+    });
+
+    test("get returns empty array for empty JSON Lines files", async () => {
+      mockFs.readFile = mock.fn(() => Promise.resolve(Buffer.from("")));
+
+      const result = await localStorage.get("empty.jsonl");
+
+      assert.deepStrictEqual(result, []);
+    });
+
     test("append creates directory and appends to file", async () => {
       await localStorage.append("subdir/file.txt", "new content");
 
@@ -57,17 +103,17 @@ describe("libstorage", () => {
       assert.strictEqual(mockFs.appendFile.mock.callCount(), 1);
       assert.deepStrictEqual(mockFs.appendFile.mock.calls[0].arguments, [
         "/test/base/subdir/file.txt",
-        "new content",
+        "new content\n",
       ]);
     });
 
-    test("append does not add newline characters", async () => {
+    test("append automatically adds newline characters", async () => {
       await localStorage.append("file.txt", "line without newline");
 
       assert.strictEqual(mockFs.appendFile.mock.callCount(), 1);
       assert.deepStrictEqual(mockFs.appendFile.mock.calls[0].arguments, [
         "/test/base/file.txt",
-        "line without newline",
+        "line without newline\n",
       ]);
     });
 
@@ -303,6 +349,64 @@ describe("libstorage", () => {
       assert.strictEqual(result.toString(), "chunk1chunk2");
     });
 
+    test("get parses JSON files automatically", async () => {
+      const jsonData = { name: "test", value: 42 };
+      mockClient.send = mock.fn(() =>
+        Promise.resolve({
+          Body: [Buffer.from(JSON.stringify(jsonData))],
+        }),
+      );
+
+      const result = await s3Storage.get("config.json");
+
+      assert.strictEqual(mockClient.send.mock.callCount(), 1);
+      assert.deepStrictEqual(result, jsonData);
+    });
+
+    test("get parses JSON Lines files automatically", async () => {
+      const jsonlData = [
+        { id: 1, name: "first" },
+        { id: 2, name: "second" },
+      ];
+      const jsonlContent = jsonlData
+        .map((obj) => JSON.stringify(obj))
+        .join("\n");
+      mockClient.send = mock.fn(() =>
+        Promise.resolve({
+          Body: [Buffer.from(jsonlContent)],
+        }),
+      );
+
+      const result = await s3Storage.get("data.jsonl");
+
+      assert.strictEqual(mockClient.send.mock.callCount(), 1);
+      assert.deepStrictEqual(result, jsonlData);
+    });
+
+    test("get returns empty object for empty JSON files", async () => {
+      mockClient.send = mock.fn(() =>
+        Promise.resolve({
+          Body: [Buffer.from("")],
+        }),
+      );
+
+      const result = await s3Storage.get("empty.json");
+
+      assert.deepStrictEqual(result, {});
+    });
+
+    test("get returns empty array for empty JSON Lines files", async () => {
+      mockClient.send = mock.fn(() =>
+        Promise.resolve({
+          Body: [Buffer.from("")],
+        }),
+      );
+
+      const result = await s3Storage.get("empty.jsonl");
+
+      assert.deepStrictEqual(result, []);
+    });
+
     test("append reads existing data and puts combined data", async () => {
       // Mock first call to get existing data, second call for put
       let callCount = 0;
@@ -345,7 +449,7 @@ describe("libstorage", () => {
       assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
     });
 
-    test("append does not add newline characters", async () => {
+    test("append automatically adds newline characters", async () => {
       // Mock get to return existing data, then put for append
       let callCount = 0;
       mockClient.send = mock.fn(() => {
@@ -361,12 +465,15 @@ describe("libstorage", () => {
 
       await s3Storage.append("file.txt", "appended data");
 
-      // Verify the put command received exactly what we expect without newlines
+      // Verify the put command received exactly what we expect with automatic newlines
       assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
       const putCall = mockCommands.PutObjectCommand.mock.calls[0].arguments[0];
       assert.strictEqual(putCall.Key, "file.txt");
-      // The body should be the concatenation of existing + new data without added newlines
-      assert.strictEqual(putCall.Body.toString(), "existing dataappended data");
+      // The body should be the concatenation of existing + new data with added newline
+      assert.strictEqual(
+        putCall.Body.toString(),
+        "existing dataappended data\n",
+      );
     });
 
     test("delete sends DeleteObjectCommand", async () => {

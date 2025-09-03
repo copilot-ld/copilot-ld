@@ -1,7 +1,18 @@
 # Changelog
 
+## 2025-09-01
+
+- Updated `VectorService` to import from `./service.js` instead of `./types.js`
+- Generated `VectorClient` class with automatic request/response type conversion
+
 ## 2025-08-28
 
+- Added `GetItem` RPC method to retrieve individual items by resource ID
+- Added `GetItemRequest` and `GetItemResponse` proto message types
+- Implemented `GetItem()` method with support for both content and descriptor
+  indexes
+- Updated `QueryItems()` method to use new filter object parameter for improved
+  consistency
 - Enhanced dual-index architecture with separate `contentIndex` and
   `descriptorIndex` support
 - Added `index_type` parameter to `QueryItems()` method for flexible index

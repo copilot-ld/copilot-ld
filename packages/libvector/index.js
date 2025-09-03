@@ -13,7 +13,7 @@ import { VectorIndexInterface } from "./types.js";
 export class VectorIndex extends VectorIndexInterface {
   #storage;
   #indexKey;
-  #index = [];
+  #index = new Map(); // Map of resource id to index item
   #loaded = false;
 
   /** @inheritdoc */
@@ -40,163 +40,76 @@ export class VectorIndex extends VectorIndexInterface {
   async addItem(vector, identifier) {
     if (!this.#loaded) await this.loadData();
 
-    identifier.magnitude = calculateMagnitude(vector);
     const item = {
       uri: String(identifier),
       identifier,
       vector,
     };
 
-    const i = this.#index.findIndex(
-      (item) => item.identifier.id === identifier.id,
-    );
-    if (i !== -1) {
-      this.#index[i] = item;
-    } else {
-      this.#index.push(item);
-    }
+    // Store item in the map using URI as key
+    this.#index.set(item.uri, item);
 
     // Append item to storage as JSON-ND line
-    const jsonLine = JSON.stringify(item) + "\n";
-    await this.#storage.append(this.#indexKey, jsonLine);
+    await this.#storage.append(this.#indexKey, JSON.stringify(item));
+  }
+
+  /** @inheritdoc */
+  async getItem(id) {
+    if (!this.#loaded) await this.loadData();
+    const item = this.#index.get(id);
+    return item ? item.identifier : null;
   }
 
   /** @inheritdoc */
   async hasItem(id) {
     if (!this.#loaded) await this.loadData();
-    return this.#index.some((item) => item.identifier.id === id);
+    return this.#index.has(id);
   }
 
   /** @inheritdoc */
   async loadData() {
     if (!(await this.#storage.exists(this.#indexKey))) {
       // Initialize empty index for new systems
-      this.#index = [];
+      this.#index.clear();
       this.#loaded = true;
       return;
     }
 
-    const content = await this.#storage.get(this.#indexKey);
-    const lines = content.toString().trim().split("\n");
-    this.#index = lines
-      .filter((line) => line.trim())
-      .map((line) => JSON.parse(line));
-    this.#loaded = true;
-  }
+    // Storage automatically parses .jsonl files into arrays
+    const items = await this.#storage.get(this.#indexKey);
+    const parsedItems = Array.isArray(items) ? items : [];
 
-  /** @inheritdoc */
-  async persist() {
-    const content = this.#index.map((item) => JSON.stringify(item)).join("\n");
-    await this.#storage.put(this.#indexKey, content);
+    // Populate the index map with URI as key
+    this.#index.clear();
+    for (const item of parsedItems) {
+      this.#index.set(item.uri, item);
+    }
+
+    this.#loaded = true;
   }
 
   /** @inheritdoc */
   async queryItems(query, filter = {}) {
     if (!this.#loaded) await this.loadData();
 
-    const { threshold = 0, limit = 0, max_tokens, prefix } = filter;
-    const queryMagnitude = calculateMagnitude(query);
-    const identifiers = limit > 0 ? new Array(limit) : [];
-    let count = 0;
-    let minScore = threshold;
+    const { threshold = 0, limit = 0, prefix } = filter;
+    const identifiers = [];
 
-    for (const item of this.#index) {
-      // Apply prefix filter if specified
-      if (prefix && !item.uri.startsWith(prefix)) {
-        continue;
-      }
-
-      const dotProduct = calculateDotProduct(query, item.vector, query.length);
-      const score = dotProduct / (queryMagnitude * item.identifier.magnitude);
-
-      // Efficiently maintain top K results without full sort per item
-      if (score >= minScore) {
+    for (const item of this.#index.values()) {
+      if (prefix && !item.uri.startsWith(prefix)) continue;
+      const score = calculateDotProduct(query, item.vector, query.length);
+      if (score >= threshold) {
         item.identifier.score = score;
-        const identifier = new resource.Identifier(item.identifier);
-
-        if (limit > 0) {
-          if (count < limit) {
-            identifiers[count++] = identifier;
-            // Sort and set threshold once limit is reached
-            if (count === limit) {
-              identifiers.sort((a, b) => b.score - a.score);
-              minScore = identifiers[limit - 1].score;
-            }
-          } else if (score > minScore) {
-            // Insert result in sorted position
-            let insertIndex = limit - 1;
-            while (
-              insertIndex > 0 &&
-              identifiers[insertIndex - 1].score < score
-            ) {
-              identifiers[insertIndex] = identifiers[insertIndex - 1];
-              insertIndex--;
-            }
-            identifiers[insertIndex] = identifier;
-            // Update threshold to maintain top-K constraint
-            minScore = identifiers[limit - 1].score;
-          }
-        } else {
-          identifiers.push(identifier);
-        }
+        identifiers.push(new resource.Identifier(item.identifier));
       }
     }
 
-    let finalIdentifiers;
+    identifiers.sort((a, b) => b.score - a.score);
     if (limit > 0) {
-      finalIdentifiers = identifiers
-        .slice(0, count)
-        .sort((a, b) => b.score - a.score);
-    } else {
-      finalIdentifiers = identifiers.sort((a, b) => b.score - a.score);
+      return identifiers.slice(0, limit);
     }
-
-    // Apply token filtering if max_tokens is specified
-    if (max_tokens !== undefined && max_tokens !== null) {
-      const filteredIdentifiers = [];
-      let totalTokens = 0;
-
-      for (const identifier of finalIdentifiers) {
-        const identifierTokens = identifier.tokens || 0;
-        if (totalTokens + identifierTokens <= max_tokens) {
-          filteredIdentifiers.push(identifier);
-          totalTokens += identifierTokens;
-        } else {
-          break; // Stop when we would exceed token limit
-        }
-      }
-
-      return filteredIdentifiers;
-    }
-
-    return finalIdentifiers;
+    return identifiers;
   }
-}
-
-/**
- * Magnitude calculation with loop unrolling
- * @param {number[]} vector - The vector to calculate magnitude for
- * @returns {number} The magnitude of the vector
- */
-function calculateMagnitude(vector) {
-  let sum = 0;
-  let i = 0;
-  const length = vector.length;
-
-  for (; i < length - 3; i += 4) {
-    const v0 = vector[i];
-    const v1 = vector[i + 1];
-    const v2 = vector[i + 2];
-    const v3 = vector[i + 3];
-    sum += v0 * v0 + v1 * v1 + v2 * v2 + v3 * v3;
-  }
-
-  for (; i < length; i++) {
-    const v = vector[i];
-    sum += v * v;
-  }
-
-  return Math.sqrt(sum);
 }
 
 /**

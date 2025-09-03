@@ -173,9 +173,12 @@ export class Repl extends ReplInterface {
 
     try {
       const result = await this.#onLine(input, this.#stateGetters);
-      console.log("\n" + this.#formatter.format(result).trim() + "\n");
+      if (result !== undefined && result !== null) {
+        const text = "\n" + this.#formatter.format(result).trim() + "\n";
+        this.#process.stdout.write(text);
+      }
     } catch (error) {
-      console.error("Error:", error);
+      this.#process.stderr.write(`Error: ${error}\n`);
     }
   }
 
@@ -192,29 +195,57 @@ export class Repl extends ReplInterface {
       input += chunk;
     }
 
-    const line = input.trim();
+    // Split input by newlines to handle multiple commands
+    const lines = input
+      .trim()
+      .split("\n")
+      .filter((line) => line.trim() !== "");
 
-    if (line.startsWith("/")) {
-      const [command, ...args] = line.slice(1).split(" ");
-      const cmd = this.#allCommands[command.toLowerCase()];
+    for (const line of lines) {
+      const trimmedLine = line.trim();
 
-      if (cmd) {
-        try {
-          await cmd.handler(args);
-        } catch (error) {
-          console.error("Error executing command:", error);
+      // Skip empty lines
+      if (!trimmedLine) continue;
+
+      // Handle exit command
+      if (trimmedLine.toLowerCase() === "exit") {
+        this.#process.stdout.write(
+          "Goodbye! Let me know if you need any DevSecOps assistance in the future.\n",
+        );
+        break;
+      }
+
+      if (trimmedLine.startsWith("/")) {
+        const [command, ...args] = trimmedLine.slice(1).split(" ");
+        const cmd = this.#allCommands[command.toLowerCase()];
+
+        if (cmd) {
+          try {
+            const result = await cmd.handler(args);
+            if (result !== undefined && result !== null) {
+              const text = "\n" + this.#formatter.format(result).trim() + "\n";
+              this.#process.stdout.write(text);
+            }
+          } catch (error) {
+            this.#process.stderr.write(
+              `Error executing command: ${error?.message || String(error)}\n`,
+            );
+          }
+        } else {
+          this.#process.stdout.write(
+            "\n" +
+              this.#formatter.format(
+                "Error: Unknown command. Use `/help` for available commands.",
+              ) +
+              "\n",
+          );
         }
       } else {
-        console.log(
-          "\n" +
-            this.#formatter.format(
-              "Error: Unknown command. Use `/help` for available commands.",
-            ) +
-            "\n",
-        );
+        await this.#safeOnLine(trimmedLine);
       }
-    } else {
-      await this.#safeOnLine(line);
+
+      // Add a small delay between commands to simulate interactive behavior
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -238,12 +269,18 @@ export class Repl extends ReplInterface {
 
         if (cmd) {
           try {
-            await cmd.handler(args);
+            const result = await cmd.handler(args);
+            if (result !== undefined && result !== null) {
+              const text = "\n" + this.#formatter.format(result).trim() + "\n";
+              this.#process.stdout.write(text);
+            }
           } catch (error) {
-            console.error("Error executing command:", error);
+            this.#process.stderr.write(
+              `Error executing command: ${error?.message || String(error)}\n`,
+            );
           }
         } else {
-          console.log(
+          this.#process.stdout.write(
             "\n" +
               this.#formatter.format(
                 "Error: Unknown command. Use `/help` for available commands.",
@@ -276,7 +313,9 @@ export class Repl extends ReplInterface {
       help.push(`- /${name.padEnd(12)}\t${cmd.help}`);
     });
 
-    console.log("\n" + this.#formatter.format(help.join("\n")).trim() + "\n");
+    this.#process.stdout.write(
+      "\n" + this.#formatter.format(help.join("\n")).trim() + "\n",
+    );
   }
 
   /** @inheritdoc */

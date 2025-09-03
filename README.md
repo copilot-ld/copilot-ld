@@ -10,7 +10,7 @@ retrieval-augmented generation.
 
 ## 🏗️ Repository Structure
 
-- **/services/**: gRPC microservices (agent, vector, llm, history)
+- **/services/**: gRPC microservices (`agent`, `llm`, `memory`, `vector`)
 - **/extensions/**: Application adapters (copilot, teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/tools/**: Development and operational utilities
@@ -32,13 +32,38 @@ cp config/config{.example,}.yml
 npm install
 ```
 
-### 3. Create GitHub token
+### 3. Generate code from Protocol Buffers
+
+Generate typed definitions, service bases, and clients after a fresh clone or
+any time you change files in `proto/` (Protocol Buffers):
+
+```sh
+# Generate everything (types + service bases + clients)
+npm run codegen
+
+# Or run a specific generator
+npm run codegen:type     # Generate `@copilot-ld/libtype` from `proto/*.proto`
+npm run codegen:service  # Generate `services/*/service.js`
+npm run codegen:client   # Generate `services/*/client.js`
+```
+
+These scripts wrap `tools/codegen.js` which uses `protobufjs` and `Mustache`
+templates to produce ESM modules. Generated artifacts are placed in
+`packages/libtype/` and `services/*/`.
+
+### 4. Create GitHub token
+
+First, set your `GITHUB_CLIENT_ID` in `config/.env`, then generate a token via
+OAuth Device Flow:
 
 ```sh
 node tools/token.js
 ```
 
-### 4. Service authentication
+The tool writes the token to `config/.ghtoken` so services can read it. As an
+alternative, you can set `GITHUB_TOKEN` in `config/.env`.
+
+### 5. Service authentication
 
 Generate a shared secret for HMAC authentication between services:
 
@@ -46,29 +71,28 @@ Generate a shared secret for HMAC authentication between services:
 node tools/secret.js
 ```
 
-### 5. Prepare data directory
+### 6. Prepare data directory
 
 Create the necessary data directories with empty indices:
 
 ```sh
-mkdir -p data/storage/{resources,vectors,history}
-echo "[]" > data/storage/{policies,resources,vectors}/index.json
+mkdir -p data/storage/{memories,policies,resources,vectors}
 ```
 
-### 6. Download knowledge data
+### 7. Download knowledge data
 
 ```sh
 node tools/download.js
 ```
 
-### 7. Process resources and build vector indices
+### 8. Process resources and create vector embeddings
 
 ```sh
 node tools/resources.js
-node tools/index.js
+node tools/vectors.js
 ```
 
-### 8. Start services
+### 9. Start services
 
 #### Option A: Local Development Environment
 
@@ -90,8 +114,8 @@ S3-compatible storage:
 # Generate SSL certificates for localhost
 node tools/cert.js
 
-# Uncomment all host and port variables in .env
-sed -i '' -E '/(HOST|PORT)=/s/^/# /' .env
+# Comment out host and port variables in config/.env (GNU sed)
+sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
 
 # Start all services including ALB and MinIO
 docker compose up
@@ -145,6 +169,17 @@ Piping for scripted testing:
 echo "What is Kanban?" | node tools/search.js
 ```
 
+Command-line flags for non-interactive runs (handled by the internal `Repl`
+state):
+
+```sh
+# Limit results and set a minimum similarity threshold
+echo "testing" | node tools/search.js --limit 10 --threshold 0.25
+
+# Target the descriptor index instead of content
+echo "find pipeline tasks" | node tools/search.js --index descriptor --limit 5
+```
+
 ## 👨‍💻 Development
 
 ### Code Quality
@@ -166,7 +201,7 @@ Manual integration testing by using tools:
 
 ```sh
 echo "test prompt" | node tools/chat.js
-echo "search query" | node tools/search.js
+echo "search query" | node tools/search.js --limit 3 --threshold 0.2
 ```
 
 ### Adding New Features
@@ -201,3 +236,11 @@ AI instructions for specific domains:
   secure communication
 - [Testing Instructions](.github/instructions/testing.instructions.md): Testing
   standards using Node.js built-in framework for maintainable tests
+
+### Code Generation Reference
+
+- `tools/codegen.js` supports flags: `--type`, `--service`, `--client`, `--all`
+- Root `npm run codegen:*` scripts are the recommended entry points
+- Generated files:
+  - `packages/libtype/types.js` and `types.d.ts`
+  - `services/<name>/service.js` and `client.js`

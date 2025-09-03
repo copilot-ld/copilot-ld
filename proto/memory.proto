@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "resource.proto";
+
+package memory;
+
+service Memory {
+  rpc Append(AppendRequest) returns (AppendResponse);
+  rpc GetWindow(WindowRequest) returns (Window);
+}
+
+message AppendRequest {
+  string for = 1; // The resource for which to append memory
+  repeated resource.Identifier identifiers = 2;
+}
+
+message AppendResponse {
+  string accepted = 1;
+}
+
+message WindowRequest {
+  string for = 1;
+  repeated double vector = 2;
+  int32 budget = 3;
+  Allocation allocation = 4;
+
+  message Allocation {
+    int32 tools = 1;
+    int32 context = 2;
+    int32 history = 3;
+  }
+}
+
+message Window {
+  string for = 1;
+  repeated resource.Identifier tools = 2;
+  repeated resource.Identifier context = 3;
+  repeated resource.Identifier history = 4;
+}

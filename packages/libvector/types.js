@@ -29,6 +29,16 @@ export class VectorIndexInterface {
   }
 
   /**
+   * Gets an item by its resource ID
+   * @param {string} id - The resource ID to retrieve
+   * @returns {Promise<resource.Identifier|null>} The item identifier, or null if not found
+   * @throws {Error} Not implemented
+   */
+  async getItem(id) {
+    throw new Error("Not implemented");
+  }
+
+  /**
    * Checks if an item with the given ID exists in the index
    * @param {string} id - The ID to check for
    * @returns {Promise<boolean>} True if item exists, false otherwise
@@ -44,15 +54,6 @@ export class VectorIndexInterface {
    * @throws {Error} Not implemented
    */
   async loadData() {
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * Persists the vector index to disk
-   * @returns {Promise<void>}
-   * @throws {Error} Not implemented
-   */
-  async persist() {
     throw new Error("Not implemented");
   }
 

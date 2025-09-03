@@ -9,9 +9,9 @@ service Agent {
 }
 
 message AgentRequest {
-  repeated common.Message messages = 1;
-  optional string session_id = 2;
-  optional string github_token = 8;
+  repeated common.MessageV2 messages = 1;
+  optional string conversation_id = 2;
+  optional string github_token = 3;
 }
 
 message AgentResponse {
@@ -21,5 +21,5 @@ message AgentResponse {
   string model = 4;
   repeated common.Choice choices = 5;
   common.Usage usage = 6;
-  string session_id = 7;
+  string conversation_id = 7;
 }

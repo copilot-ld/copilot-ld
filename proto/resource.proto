@@ -9,8 +9,7 @@ message Identifier {
 
   // In vector searches, values will be populated from the representation (Descriptor or Content).
   optional int32 tokens = 4;
-  optional double magnitude = 5;
-  optional double score = 6;
+  optional double score = 5;
 }
 
 /**
@@ -18,12 +17,10 @@ message Identifier {
  */
 message Descriptor {
   int32 tokens = 1;
-  double magnitude = 2;
-
-  string purpose = 3; // **What** the resource is meant to accomplish
-  string instructions = 4; // **How** to execute or work with the resource
-  string applicability = 5; // **When** or **when not** to use the resource
-  string evaluation = 6; // What successful execution looks like
+  string purpose = 2; // **What** the resource is meant to accomplish
+  string instructions = 3; // **How** to execute or work with the resource
+  string applicability = 4; // **When** or **when not** to use the resource
+  string evaluation = 5; // What successful execution looks like
 }
 
 /**
@@ -31,10 +28,9 @@ message Descriptor {
  */
 message Content {
   int32 tokens = 1;
-  double magnitude = 2;
 
   oneof type {
-    string text = 3;
-    string jsonld = 4;
+    string text = 2;
+    string jsonld = 3;
   }
 }

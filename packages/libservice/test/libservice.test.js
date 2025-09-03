@@ -153,8 +153,14 @@ describe("libservice", () => {
       process.env.SERVICE_AUTH_SECRET = "a".repeat(32);
     });
 
-    test("initializes and creates client methods", async () => {
-      const client = new Client(
+    test("initializes and allows subclasses to implement explicit RPC methods", async () => {
+      class GeneratedTestClient extends Client {
+        async TestMethod(request) {
+          return this.callMethod("TestMethod", request);
+        }
+      }
+
+      const client = new GeneratedTestClient(
         mockConfig,
         mockGrpcFactory,
         mockAuthFactory,
@@ -163,7 +169,6 @@ describe("libservice", () => {
       await client.ensureReady();
 
       assert.ok(typeof client.TestMethod === "function");
-      assert.ok(typeof client.fireAndForget.TestMethod === "function");
 
       const result = await client.TestMethod({ data: "test" });
       assert.deepStrictEqual(result, { success: true });

@@ -103,6 +103,9 @@ export class Actor extends ActorInterface {
   auth = () => this.#auth;
 
   /** @inheritdoc */
+  logger = () => this.#logger;
+
+  /** @inheritdoc */
   debug = (message, context) => this.#logger.debug(message, context);
 
   /** @inheritdoc */
@@ -168,7 +171,6 @@ export class Client extends Actor {
       };
       const clientCredentials = this.grpc().credentials.createInsecure();
       this.#client = new ServiceClass(uri, clientCredentials, options);
-      this.#setupMethods();
     } catch (error) {
       this.#setupPromise = null;
       throw error;
@@ -176,74 +178,28 @@ export class Client extends Actor {
   }
 
   /**
-   * Sets up promisified methods and fire-and-forget variants
+   * Call a gRPC method and return a promise
+   * @param {string} methodName - The name of the gRPC method to call
+   * @param {object} request - The request object to send
+   * @returns {Promise<object>} The response from the gRPC call
    */
-  #setupMethods() {
-    this.fireAndForget = {};
+  async callMethod(methodName, request) {
+    await this.ensureReady();
 
-    // Get methods from both prototype and instance
-    const prototypeMethodNames = Object.getOwnPropertyNames(
-      Object.getPrototypeOf(this.#client),
-    ).filter(
-      (key) => key !== "constructor" && typeof this.#client[key] === "function",
-    );
-
-    const instanceMethodNames = Object.getOwnPropertyNames(this.#client).filter(
-      (key) => typeof this.#client[key] === "function",
-    );
-
-    const methodNames = [
-      ...new Set([...prototypeMethodNames, ...instanceMethodNames]),
-    ];
-
-    for (const method of methodNames) {
-      this[method] = this.#createPromisifiedMethod(method);
-      this.fireAndForget[method] = this.#createFireAndForgetMethod(method);
+    if (!this.#client[methodName]) {
+      throw new Error(`Method ${methodName} not found on gRPC client`);
     }
-  }
 
-  /**
-   * Creates a promisified version of a gRPC method
-   * @param {string} method - Method name
-   * @returns {Function} Promisified method
-   */
-  #createPromisifiedMethod(method) {
-    return async (...args) => {
-      await this.ensureReady();
-      return new Promise((resolve, reject) => {
-        this.#client[method](...args, (error, response) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(response);
-          }
-        });
+    return new Promise((resolve, reject) => {
+      this.#client[methodName](request, (error, response) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(response);
+        }
       });
-    };
+    });
   }
-
-  /**
-   * Creates a fire-and-forget version of a gRPC method
-   * @param {string} method - Method name
-   * @returns {Function} Fire-and-forget method
-   */
-  #createFireAndForgetMethod(method) {
-    return async (...args) => {
-      await this.ensureReady();
-      this.#client[method](...args, () => {});
-    };
-  }
-}
-
-/**
- * Converts a POJO message to a typed message object using bufbuild schemas
- * @param {object} pojo - Plain old JavaScript object from grpc
- * @param {string} typeName - The proto type name (e.g., "common.Message")
- * @returns {object} Typed message object with $typeName property
- */
-export function createTypedMessage(pojo, typeName) {
-  // Simple implementation that just adds the typeName property
-  return { ...pojo, $typeName: typeName };
 }
 
 /**
@@ -317,7 +273,7 @@ export class Service extends Actor {
         (error, port) => {
           if (error) reject(error);
           else {
-            console.log(`Listening on: ${uri}`);
+            this.debug("Listening on", { uri });
             resolve(port);
           }
         },
@@ -404,7 +360,9 @@ export class Service extends Actor {
         const response = await innerHandler(call);
         callback(null, response);
       } catch (error) {
-        console.error("RPC handler error:", error);
+        this.debug("RPC handler error", {
+          error: error?.message || String(error),
+        });
         callback({
           code: this.grpc().status.INTERNAL,
           message: error?.message || String(error),
@@ -418,7 +376,7 @@ export class Service extends Actor {
    */
   #setupShutdown() {
     const shutdown = () => {
-      console.log("Shutting down...");
+      this.debug("Shutting down...");
       this.#server.tryShutdown(() => process.exit(0));
     };
     process.on("SIGINT", shutdown);

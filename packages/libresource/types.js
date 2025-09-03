@@ -26,12 +26,21 @@ export class ResourceIndexInterface {
   }
 
   /**
-   * Retrieve all resources with access control and policy filtering
-   * @param {string} actor - Actor ID requesting access (URI format)
-   * @returns {Promise<object[]>} Array of typed resource objects that pass policy evaluation
+   * Find all resource identifiers
+   * @returns {Promise<object[]>} Array of resource Identifier objects
    * @throws {Error} Not implemented
    */
-  async getAll(actor) {
+  async findAll() {
+    throw new Error("Not implemented");
+  }
+
+  /**
+   * Find resource identifiers by URI prefix
+   * @param {string} prefix - URI prefix to search for (e.g., "cld:common.Conversation.hash0001")
+   * @returns {Promise<object[]>} Array of resource Identifier objects matching the prefix
+   * @throws {Error} Not implemented
+   */
+  async findByPrefix(prefix) {
     throw new Error("Not implemented");
   }
 }

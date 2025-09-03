@@ -1,5 +1,15 @@
 # Changelog
 
+## 2025-09-02
+
+- Normalized Copilot requests: convert `MessageV2` to `{role, content}`, add
+  `max_tokens` default, and ensure returned messages are proper `MessageV2` with
+  `withIdentifier()`
+- Adopted `libtype` content conversion for robust handling of complex message
+  content structures
+
+## 2025-08-29
+
 ## 2025-08-28
 
 - Refactored retry logic in `Copilot` class into reusable `#withRetry()` method

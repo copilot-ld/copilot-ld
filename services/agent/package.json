@@ -15,9 +15,12 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libprompt": "^0.1.1",
     "@copilot-ld/libservice": "^0.1.4",
     "@copilot-ld/libtype": "^0.1.2",
+    "@copilot-ld/libutil": "^0.1.1",
+    "@copilot-ld/llm": "^0.1.6",
+    "@copilot-ld/memory": "^0.1.0",
+    "@copilot-ld/vector": "^0.1.11",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

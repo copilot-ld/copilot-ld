@@ -172,27 +172,27 @@ class LlmService extends ServiceInterface {
 
 ### Logging Requirements
 
-Services must use the injected debug method for all logging following these
-requirements:
+Services must use `this.debug(message, context)` from the generated `Service`
+base. Log key boundaries and external calls:
 
 ```javascript
-import { Service } from "@copilot-ld/libservice";
+/* eslint-env node */
+import { ServiceConfig } from "@copilot-ld/libconfig";
+import { VectorBase } from "./service.js";
 
-class ServiceImplementation extends Service {
-  async processRequest(request) {
-    // Log at service boundaries with context
-    this.debug("Processing request", { session: request.sessionId });
-
-    // Log before external calls
-    this.debug("Querying vector index", { threshold: 0.3, limit: 10 });
-    const results = await this.vectorClient.QueryItems(request);
-
-    // Log state changes with metrics
-    this.debug("Filtered results", { matched: "20/30", tokens: "200/300" });
-
-    return results;
+class ExampleService extends VectorBase {
+  async QueryItems(req) {
+    this.debug("Querying vector index", {
+      threshold: req.filter?.threshold,
+      limit: req.filter?.limit,
+    });
+    const identifiers = [];
+    this.debug("Query complete", { count: identifiers.length });
+    return { identifiers };
   }
 }
+
+await new ExampleService(await ServiceConfig.create("vector"), null).start();
 ```
 
 **Logging Guidelines:**
@@ -387,72 +387,37 @@ export class ConfigLoader {
 ```javascript
 /* eslint-env node */
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { Service } from "@copilot-ld/libservice";
+import { VectorIndex } from "@copilot-ld/libvector";
+import { storageFactory } from "@copilot-ld/libstorage";
+import { VectorBase } from "./service.js";
 
-class VectorService extends Service {
-  #vectorIndices;
-
-  constructor(config, vectorIndices, grpcFn, authFn, logFn) {
+class VectorService extends VectorBase {
+  #contentIndex;
+  constructor(config, contentIndex, grpcFn, authFn, logFn) {
     super(config, grpcFn, authFn, logFn);
-    if (!vectorIndices || !(vectorIndices instanceof Map)) {
-      throw new Error("vectorIndices must be a Map instance");
-    }
-    this.#vectorIndices = vectorIndices;
+    this.#contentIndex = contentIndex;
   }
-
-  async QueryItems({ indices, vector, threshold, limit }) {
-    this.debug("Querying vector indices", {
-      indices: indices.join(","),
-      threshold,
-      limit,
-    });
-
-    if (!vector || !Array.isArray(vector)) {
-      throw new Error("vector must be a non-empty array");
-    }
-
-    const requestedIndices = indices
-      .map((name) => this.#vectorIndices.get(name))
-      .filter((index) => index);
-
-    // No defensive programming - let errors propagate from queryIndices
-    const results = await this.#queryIndices(
-      requestedIndices,
-      vector,
-      threshold,
-      limit,
+  async QueryItems(req) {
+    const identifiers = await this.#contentIndex.queryItems(
+      req.vector,
+      req.filter || {},
     );
-
-    this.debug("Query complete", {
-      results: `${results.items.length}/${results.total}`,
-    });
-
-    return { results: results.items, total: results.total };
-  }
-
-  async #queryIndices(indices, vector, threshold, limit) {
-    // No try/catch - let individual index query errors propagate
-    const queries = indices.map((index) =>
-      index.queryItems(vector, threshold, limit),
-    );
-    const results = await Promise.all(queries);
-    const allItems = results.flat();
-
-    allItems.sort((a, b) => b.score - a.score);
-    return { items: allItems.slice(0, limit), total: allItems.length };
+    return { identifiers };
   }
 }
 
-// Current implementation only - no support for legacy vector formats
-async function initializeVectorIndices(config) {
-  // Mock implementation
-  return new Map();
-}
+const config = await ServiceConfig.create("vector");
+const index = new VectorIndex(storageFactory("vectors"), "content.jsonl");
+await new VectorService(config, index).start();
+```
 
-const config = new ServiceConfig("vector");
-const vectorIndices = await initializeVectorIndices(config);
-const service = new VectorService(config, vectorIndices);
-await service.start();
+### Code Generation and Tooling
+
+- Use `npm run codegen` after modifying `proto/*.proto`.
+- For quick similarity tests during development:
+
+```bash
+echo "testing" | node tools/search.js --limit 10 --threshold 0.25
 ```
 
 ### Package with Interface and Factory

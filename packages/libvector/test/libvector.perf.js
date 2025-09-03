@@ -25,14 +25,10 @@ describe("LibVector Performance Tests", () => {
 
     for (let i = 0; i < count; i++) {
       const vector = generateRandomVector(dimensions);
-      const magnitude = Math.sqrt(
-        vector.reduce((sum, val) => sum + val * val, 0),
-      );
 
       vectors.push({
         id: `item-${i.toString().padStart(6, "0")}`,
         vector,
-        magnitude,
         tokens: Math.floor(Math.random() * 1000),
       });
     }
@@ -112,7 +108,8 @@ describe("LibVector Performance Tests", () => {
         await index.loadData();
         return { index, query: generateRandomVector(512) };
       },
-      testFn: ({ index, query }) => index.queryItems(query, 0.3, 10),
+      testFn: ({ index, query }) =>
+        index.queryItems(query, { threshold: 0.3, limit: 10 }),
       constraints: {
         maxDuration: 2,
         maxMemory: 10,
@@ -134,7 +131,7 @@ describe("LibVector Performance Tests", () => {
       },
       testFn: async ({ index, query, iterations }) => {
         for (let i = 0; i < iterations; i++) {
-          await index.queryItems(query, 0.3, 10);
+          await index.queryItems(query, { threshold: 0.3, limit: 10 });
         }
       },
       constraints: {

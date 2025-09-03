@@ -10,6 +10,7 @@
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
+
   <body>
     <header>
       <hgroup>
@@ -79,11 +80,11 @@
         </li>
         <li>
           <strong>Specialized Services</strong>: Domain-specific services
-          (history, LLM, vector, text)
+          (<code>LLM</code>, <code>Memory</code>, <code>Vector</code>)
         </li>
         <li>
-          <strong>Parallel Processing</strong>: Services execute operations
-          concurrently
+          <strong>Parallelism</strong>: Readiness checks run in parallel; the
+          main request flow is orchestrated sequentially per request
         </li>
         <li>
           <strong>Stateless Design</strong>: Services maintain no persistent
@@ -108,11 +109,11 @@ flowchart TD
     A[Clients]
     B[Extensions]
     C[Agent service]
-    D[History service]
-    E[LLM service]
-    G[Vector service]
+  D[Memory service]
+  E[LLM service]
+  G[Vector service]
     I[LLM backend]
-    J[History cache]
+  J[Memory store]
     L[Content Vector Index]
     N[Descriptor Vector Index]
     O[Resource Storage]
@@ -124,7 +125,7 @@ flowchart TD
     B -- gRPC --> C
 
     %% Agent service interact with backend services
-    C -- gRPC --> D
+  C -- gRPC --> D
     C -- gRPC --> E
     C -- gRPC --> G
 
@@ -141,12 +142,16 @@ flowchart TD
       <h3>Online Sequence Diagram</h3>
 
       <p>
-        The online sequence diagram illustrates the real-time request processing
-        flow when the platform services are actively running. This shows how a
-        client request flows through the REST extensions, gets orchestrated by
-        the Agent service, and triggers parallel operations across specialized
-        backend services to retrieve relevant information through vector
-        similarity search.
+        The online sequence diagram reflects the current implementation in the
+        codebase. The Agent performs operations sequentially: it validates the
+        GitHub token, ensures service readiness in parallel, creates an
+        embedding for the latest user message, queries the
+        <code>content</code> vector index, appends similar identifiers to memory
+        (fire-and-forget), computes a token budget (subtracting
+        <code>assistant.content.tokens</code> and applying configured
+        allocation), assembles a memory window using the query vector and
+        budget, and finally requests a completion. Only readiness checks are
+        executed in parallel; the main request flow is sequential.
       </p>
 
       <pre class="mermaid">
@@ -154,70 +159,95 @@ sequenceDiagram
     participant Client
     participant Extension as Extensions
     participant Agent as Agent service
-    participant History as History service
+    participant Memory as Memory service
     participant LLM as LLM service
     participant Vector as Vector service
-    participant ContentIndex as Content Vector Index
-    participant DescIndex as Descriptor Vector Index
+  participant ContentIndex as Content Vector Index
     participant ResourceIndex as Resource Index
+    participant GitHub as GitHub API
 
     Client->>Extension: REST request
-    Extension->>Client: REST response
 
     Extension->>Agent: RPC request (ProcessRequest)
-    Agent->>Extension: RPC response
 
-    par Parallel
-        Agent->>History: RPC request (GetHistory)
-        History-->>Agent: RPC response
-    and
-        Agent->>LLM: RPC request (CreateEmbeddings)
-        LLM-->>Agent: RPC response
-    end
+    Note right of Agent: Ensure clients ready in parallel (LLM/Vector/Memory)
+    Agent->>GitHub: GET /user (validate token)
+    GitHub-->>Agent: 200 OK (user)
 
-    Agent->>Vector: RPC request (QueryItems)
-    alt Content Search
-        Vector->>ContentIndex: I/O request (QueryIndex)
-        ContentIndex-->>Vector: I/O response
-    else Descriptor Search
-        Vector->>DescIndex: I/O request (QueryIndex)
-        DescIndex-->>Vector: I/O response
-    end
-    Vector-->>Agent: RPC response
-    Note left of Vector: Orders and reduces<br/>results by similarity
+  Agent->>ResourceIndex: Get/Create conversation
+  Agent->>ResourceIndex: Put user message (scoped to conversation)
+  Agent->>ResourceIndex: Get assistant by id (from config)
+  Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
 
-    Agent->>ResourceIndex: I/O request (get resources)
-    ResourceIndex-->>Agent: I/O response (filtered by policy)
-    Note right of Agent: Resource retrieval with<br/>access control
+  Agent->>LLM: CreateEmbeddings (latest user message)
+    LLM-->>Agent: Embedding
 
-    Agent--)History: RPC request (UpdateHistory)
-    Note right of Agent: Fire-and-forget,<br/>no response awaited
+  Agent->>Vector: QueryItems (index: content)
+    Vector->>ContentIndex: QueryIndex (similarity search)
+    ContentIndex-->>Vector: Matches
+    Vector-->>Agent: Identifiers (scored)
 
-    Agent->>Extension: RPC response
-    Extension->>Client: REST response
-      </pre>
+  Agent--)Memory: Append (identifiers)
+  Note right of Agent: Fire-and-forget append (no await)
+
+  Agent->>Memory: GetWindow (for conversation, with vector/budget/allocation)
+  Memory-->>Agent: Window (tools, context, history)
+
+  Agent->>ResourceIndex: Resolve window identifiers (tools/context/history)
+  ResourceIndex-->>Agent: Resources (policy-filtered)
+
+  Agent->>LLM: CreateCompletions (assistant + tasks + tools + context + history)
+    LLM-->>Agent: Completion
+  Agent->>ResourceIndex: Put completion message (scoped to conversation)
+
+    Agent-->>Extension: RPC response
+    Extension-->>Client: REST response
+  </pre
+      >
 
       <h4>Service Responsibilities</h4>
 
       <h5>Agent Service</h5>
 
       <p>
-        Central orchestrator that coordinates all other services. Processes
-        requests by executing operations in parallel for optimal performance and
-        manages the complete business logic flow. Now includes integrated
+        Central orchestrator that coordinates all other services. Requests are
+        processed sequentially as shown in the sequence diagram (readiness
+        checks run in parallel). The service integrates a
         <code>ResourceIndex</code> for direct resource access with policy-based
         access control.
       </p>
 
-      <h5>History Service</h5>
+      <details>
+        <summary>Message assembly order and budgeting</summary>
+        <ul>
+          <li>
+            <strong>Assembly order</strong> (passed to completions):
+            <code>assistant</code> → <code>tasks</code> → <code>tools</code> →
+            <code>context</code> → <code>history</code>
+          </li>
+          <li>
+            <strong>Tasks</strong>: Not yet implemented in the current runtime
+            path (placeholder only)
+          </li>
+          <li>
+            <strong>Budgeting</strong>: Effective token budget is computed as
+            <code>max(0, config.budget.tokens - assistant.content.tokens)</code
+            >, with optional allocation shaping for <code>tools</code>,
+            <code>history</code>, and <code>context</code>
+          </li>
+          <li>
+            <strong>Window inputs</strong>: Memory window selection is driven by
+            the query vector, effective budget, and optional allocation ratios
+          </li>
+        </ul>
+      </details>
+
+      <h5>Memory Service</h5>
 
       <p>
-        Maintains conversation history and context. Provides historical data for
-        request processing and stores interaction records for continuity.
-        <em
-          >Note: This service is deprecated and will be replaced by Assistant,
-          Task, Conversation, and Context services.</em
-        >
+        Manages transient conversation context as resource identifiers with
+        JSONL (newline-delimited JSON) storage for efficient appends. Provides
+        memory windows used by the Agent to assemble context.
       </p>
 
       <h5>LLM Service</h5>
@@ -233,7 +263,8 @@ sequenceDiagram
         Performs similarity search operations against dual vector indexes
         (content and descriptor). Returns resource identifiers and similarity
         scores ordered by relevance, with support for index type selection and
-        token-based filtering.
+        token-based filtering. The current Agent runtime path queries the
+        <code>content</code> index by default.
       </p>
 
       <h3>Offline Sequence Diagram</h3>
@@ -417,58 +448,68 @@ graph TB
     end
 
     subgraph "External Network (copilot-ld.external)"
+  ALB[ALB (NGINX) <br/>:80,:443]
         Web[Web Extension<br/>:3000]
         Copilot[Copilot Extension<br/>:3001]
     end
 
     subgraph "Internal Network (copilot-ld.internal)"
         Agent[Agent Service<br/>:3000]
-        History[History Service<br/>:3000]
+  Memory[Memory Service<br/>:3000]
         LLM[LLM Service<br/>:3000]
-        Vector[Vector Service<br/>:3000]
-        Text[Text Service<br/>:3000]
+  Vector[Vector Service<br/>:3000]
     end
 
-    subgraph "External Services"
-        LLMAPI[LLM API<br/>OpenAI/etc]
-    end
+  subgraph "External Services"
+    LLMAPI[LLM API<br/>OpenAI/etc]
+    GitHubAPI[GitHub API]
+  end
 
-    %% External connections
-    Client -.->|REST/HTTP| Web
-    Client -.->|REST/HTTP| Copilot
+  %% External connections via ALB
+  Client -.->|HTTP/HTTPS| ALB
+  ALB -->|HTTP| Web
+  ALB -->|HTTP| Copilot
 
     %% Extension to Agent connections (via network bridge)
     Web -->|gRPC| Agent
     Copilot -->|gRPC| Agent
 
     %% Internal service mesh (isolated network)
-    Agent -->|gRPC| History
+  Agent -->|gRPC| Memory
     Agent -->|gRPC| LLM
     Agent -->|gRPC| Vector
-    Agent -->|gRPC| Text
 
-    %% External API calls
-    LLM -.->|HTTPS| LLMAPI
+  %% External API calls
+  LLM -.->|HTTPS| LLMAPI
+  Agent -.->|HTTPS| GitHubAPI
 
-    style Web fill:#e1f5fe
+  style ALB fill:#e1f5fe
+  style Web fill:#e1f5fe
     style Copilot fill:#e1f5fe
     style Agent fill:#f3e5f5
-    style History fill:#fff3e0
-    style LLM fill:#fff3e0
-    style Vector fill:#fff3e0
-    style Text fill:#fff3e0
+  style Memory fill:#fff3e0
+  style LLM fill:#fff3e0
+  style Vector fill:#fff3e0
+  style GitHubAPI fill:#fff3e0
       </pre>
 
       <h5>Port Exposure Strategy</h5>
 
       <ul>
         <li>
-          <strong>Web Extension</strong> (<code>copilot-ld.web</code>): Exposes
-          port 3000 to host, bridges external and internal networks
+          <strong>Application Load Balancer</strong>
+          (<code>copilot-ld.alb</code>): Exposes ports 80/443 to the host and
+          proxies to extensions on the external network
+        </li>
+        <li>
+          <strong>Web Extension</strong> (<code>copilot-ld.web</code>): No host
+          port exposure; reachable via the ALB. Bridges external and internal
+          networks
         </li>
         <li>
           <strong>Copilot Extension</strong> (<code>copilot-ld.copilot</code>):
-          Exposes port 3001 to host, bridges external and internal networks
+          No host port exposure; reachable via the ALB. Bridges external and
+          internal networks
         </li>
         <li>
           <strong>Backend Services</strong>: No host port exposure - isolated on
@@ -499,12 +540,27 @@ graph TB
 
       <h4>Authentication Mechanisms</h4>
 
-      <h5>Authentication Flow</h5>
+      <h5>Current State</h5>
+
+      <ul>
+        <li>
+          <strong>Service-to-Service</strong>: No authentication is enforced
+          between internal services. Isolation relies on the internal Docker
+          network. <code>HMAC-based</code> service authentication is planned but
+          not yet implemented in code.
+        </li>
+        <li>
+          <strong>Request-Level</strong>: The Agent validates incoming
+          <code>github_token</code> by calling <code>GET /user</code> via
+          GitHub's API before processing requests.
+        </li>
+      </ul>
+
+      <h5>Planned Service Authentication (Design)</h5>
 
       <p>
-        The platform implements HMAC-SHA256 authentication for
-        service-to-service communication using the
-        <code>HmacAuth</code> class.
+        The following HMAC-SHA256 flow is a design proposal and not yet
+        implemented:
       </p>
 
       <pre class="mermaid">
@@ -530,25 +586,6 @@ sequenceDiagram
         Service B-->>Service A: Authentication error
     end
       </pre>
-
-      <h5>HMAC Implementation Details</h5>
-
-      <ul>
-        <li><strong>Algorithm</strong>: HMAC-SHA256</li>
-        <li>
-          <strong>Secret</strong>: Shared via
-          <code>SERVICE_AUTH_SECRET</code> environment variable (minimum 32
-          characters)
-        </li>
-        <li>
-          <strong>Token Format</strong>:
-          <code>Base64(serviceId:timestamp:signature)</code>
-        </li>
-        <li><strong>Token Lifetime</strong>: 60 seconds (configurable)</li>
-        <li>
-          <strong>Payload Structure</strong>: <code>serviceId:timestamp</code>
-        </li>
-      </ul>
 
       <h5>Token Generation Process</h5>
 
@@ -577,7 +614,7 @@ sequenceDiagram
       <ul>
         <li><strong>Protocol</strong>: gRPC over HTTP/2</li>
         <li><strong>Network</strong>: Isolated Docker bridge network</li>
-        <li><strong>Authentication</strong>: HMAC tokens</li>
+        <li><strong>Authentication</strong>: None (planned HMAC)</li>
         <li>
           <strong>Schema Validation</strong>: Protocol Buffer message validation
         </li>
@@ -586,10 +623,7 @@ sequenceDiagram
       <h5>External API Communication</h5>
 
       <ul>
-        <li>
-          <strong>Extensions to Clients</strong>: REST over HTTP (can be
-          upgraded to HTTPS)
-        </li>
+        <li><strong>Clients to Extensions</strong>: HTTP/HTTPS via the ALB</li>
         <li>
           <strong>LLM Service to External APIs</strong>: HTTPS with API key
           authentication
@@ -684,7 +718,7 @@ sequenceDiagram
         <li>Business logic security validation</li>
       </ul>
 
-      <h5>Backend Services (History, LLM, Vector, Text)</h5>
+      <h5>Backend Services (Memory, LLM, Vector)</h5>
 
       <ul>
         <li>gRPC message validation</li>

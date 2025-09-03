@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-09-01
+
+- Enhanced `#handleStdin` method to properly handle stdin with line breaks for
+  multi-line testing
+- Added support for processing multiple commands sequentially from piped input
+- Added automatic exit handling when "exit" command is encountered in stdin
+- Added small delays between commands in non-interactive mode to simulate
+  interactive behavior
+- Improved testing capabilities for REPL-based tools
+
+## 2025-08-08
+
 ## 2025-08-28
 
 - Fixed command processing issues in non-interactive mode (piped input) with

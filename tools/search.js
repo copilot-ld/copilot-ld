@@ -42,7 +42,7 @@ async function performSearch(prompt, state) {
   });
 
   const resources = await resourceIndex.get(
-    "cld:common.Assistant.root",
+    "cld:common.System.root",
     identifiers,
   );
 

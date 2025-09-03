@@ -1,5 +1,6 @@
 /* eslint-env node */
 import fs from "fs";
+import path from "path";
 
 import { createOAuthDeviceAuth } from "@octokit/auth-oauth-device";
 import { Octokit } from "@octokit/core";
@@ -27,8 +28,11 @@ async function main() {
 
   const { token } = await octokit.auth({ type: "oauth-device" });
 
-  fs.writeFileSync(".ghtoken", token);
-  console.log("Token saved to .ghtoken");
+  const configDir = "config";
+  const tokenPath = path.join(configDir, ".ghtoken");
+  fs.mkdirSync(configDir, { recursive: true });
+  fs.writeFileSync(tokenPath, token);
+  console.log("Token saved to config/.ghtoken");
 
   return token;
 }

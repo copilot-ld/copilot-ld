@@ -20,7 +20,7 @@ message Usage {
 
 message Choice {
   int32 index = 1;
-  Message message = 2;
+  MessageV2 message = 2;
   optional string finish_reason = 3;
 }
 
@@ -56,6 +56,10 @@ message Prompt {
   repeated Similarity previous_similarities = 2;
   repeated Similarity current_similarities = 3;
   repeated Message messages = 4;
+}
+
+message Conversation {
+  resource.Identifier id = 1;
 }
 
 message ToolProp {

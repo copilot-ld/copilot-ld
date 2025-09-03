@@ -27,8 +27,8 @@ function parseArgs() {
 }
 
 /**
- * Main function to process all HTML files in the knowledge base directory
- * and generate resources using the ResourceProcessor
+ * Process all HTML files in the knowledge base directory and generate resources
+ * using the ResourceProcessor
  * @returns {Promise<void>}
  */
 async function main() {
@@ -37,7 +37,7 @@ async function main() {
   const knowledgeStorage = storageFactory("knowledge");
   const resourceStorage = storageFactory("resources");
   const llm = llmFactory(await config.githubToken());
-  const logger = logFactory("resources-tool");
+  const logger = logFactory("tool.resources");
   const policy = policyFactory();
 
   const resourceIndex = new ResourceIndex(resourceStorage, policy);

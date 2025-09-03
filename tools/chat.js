@@ -4,17 +4,18 @@ import readline from "readline";
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { Client } from "@copilot-ld/libservice";
+import { AgentClient } from "../services/agent/client.js";
+import { agent, common } from "@copilot-ld/libtype";
 
-/** @typedef {import("@copilot-ld/libtype").Message} Message */
+/** @typedef {import("@copilot-ld/libtype").common.MessageV2} MessageV2 */
 
 const config = await ServiceConfig.create("agent");
-const agentClient = new Client(config);
+const agentClient = new AgentClient(config);
 
 // Global state
 /** @type {string|null} */
-let sessionId = null;
-/** @type {Message[]} */
+let conversationId = null;
+/** @type {MessageV2[]} */
 const messages = [];
 
 /**
@@ -24,35 +25,45 @@ const messages = [];
  * @returns {Promise<string>} The assistant's response content
  */
 async function handlePrompt(prompt) {
-  messages.push({ role: "user", content: prompt });
+  // Create user message using MessageV2 structure
+  const userMessage = common.MessageV2.fromObject({
+    role: "user",
+    content: { text: prompt },
+  });
+  messages.push(userMessage);
 
   try {
     // Ensure client is ready before making requests
     await agentClient.ensureReady();
 
-    const requestParams = {
+    // Create typed request using agent.AgentRequest
+    const request = agent.AgentRequest.fromObject({
       messages: messages,
       github_token: await config.githubToken(),
-    };
+      conversation_id: conversationId || undefined,
+    });
 
-    if (sessionId) {
-      requestParams.session_id = sessionId;
-    }
-
-    const result = await agentClient.ProcessRequest(requestParams);
+    const result = await agentClient.ProcessRequest(request);
 
     if (!result || !result.choices || result.choices.length === 0) {
       throw new Error("No response from agent service");
     }
 
-    const content = result.choices[0].message.content;
-
-    if (result.session_id) {
-      sessionId = result.session_id;
+    if (result.conversation_id) {
+      conversationId = result.conversation_id;
     }
 
-    messages.push({ role: "assistant", content: content });
-    return content;
+    messages.push(result.choices[0].message);
+
+    // Extract text content from the response message
+    const responseContent = result.choices[0].message.content;
+    if (typeof responseContent === "string") {
+      return responseContent;
+    } else if (responseContent && responseContent.text) {
+      return responseContent.text;
+    } else {
+      return "Received empty response from agent service.";
+    }
   } catch (error) {
     console.error("Error communicating with agent service:", error.message);
 
@@ -76,7 +87,7 @@ const repl = new Repl(readline, process, createTerminalFormatter(), {
       help: "Clear conversation history",
       handler: () => {
         messages.length = 0;
-        sessionId = null;
+        conversationId = null;
         console.log("Conversation history and session cleared.");
       },
     },
@@ -92,7 +103,7 @@ const repl = new Repl(readline, process, createTerminalFormatter(), {
         console.log(
           `Service auth: ${process.env.SERVICE_AUTH_SECRET ? "configured" : "not set"}`,
         );
-        console.log(`Session ID: ${sessionId || "none"}`);
+        console.log(`Conversation ID: ${conversationId || "none"}`);
         console.log(`Messages in history: ${messages.length}`);
       },
     },

@@ -111,45 +111,39 @@ async function serviceMethod(request, callback) {
 
 ### Extension Security Patterns
 
-#### Input Validation for REST Endpoints
+#### Input Validation and Rate Limiting
 
 ```javascript
+/* eslint-env node */
 import { Hono } from "hono";
-import validator from "validator";
+import { cors } from "hono/cors";
+import { createSecurityMiddleware } from "@copilot-ld/libweb";
 
 const app = new Hono();
+const security = createSecurityMiddleware({}); // pass real ExtensionConfig in production
 
-// Mock function for example
-async function processRequest(data) {
-  return { result: "processed" };
-}
+// Error, rate limit, and CORS
+app.use("*", security.createErrorMiddleware());
+app.use("/api/*", security.createRateLimitMiddleware());
+app.use(
+  "/api/*",
+  cors({ origin: ["http://localhost:3000"], allowMethods: ["GET", "POST"] }),
+);
 
-// Input validation middleware
-async function validateInput(c, next) {
-  const { query, userId } = await c.req.json();
-
-  if (!query || !userId) {
-    return c.json({ error: "Missing required fields" }, 400);
-  }
-
-  c.set("validatedData", {
-    query: validator.escape(query),
-    userId: validator.escape(userId),
-  });
-
-  await next();
-}
-
-app.post("/api/query", validateInput, async (c) => {
-  try {
+// Validation example
+app.post(
+  "/api/query",
+  security.createValidationMiddleware({
+    required: ["query", "userId"],
+    types: { query: "string", userId: "string", limit: "number" },
+    maxLengths: { query: 5000, userId: 100 },
+  }),
+  async (c) => {
     const data = c.get("validatedData");
-    const response = await processRequest(data);
-    return c.json({ status: "success", data: response });
-  } catch (error) {
-    console.error("Processing error:", error.message);
-    return c.json({ error: "Processing failed" }, 500);
-  }
-});
+    // process request using validated data
+    return c.json({ status: "success", data });
+  },
+);
 ```
 
 #### CORS Configuration

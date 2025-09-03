@@ -16,10 +16,13 @@
   ],
   "scripts": {
     "dev": "npm run dev:start",
-    "dev:start": "node tools/dev.js --start",
+    "dev:start": "DEBUG=${DEBUG:-*} node tools/dev.js --start",
     "dev:stop": "node tools/dev.js --stop",
-    "codegen:types": "node tools/codegen-types.js",
-    "codegen:services": "node tools/codegen-services.js",
+    "dev:restart": "npm run dev:stop && npm run dev:start",
+    "codegen": "node tools/codegen.js --all",
+    "codegen:type": "node tools/codegen.js --type",
+    "codegen:client": "node tools/codegen.js --client",
+    "codegen:service": "node tools/codegen.js --service",
     "test": "find packages services test -name '*.test.js' | xargs node --test",
     "test:watch": "find packages services test -name '*.test.js' | xargs node --test --watch",
     "perf": "find packages services -name '*.perf.js' | xargs node --expose-gc --test",
@@ -27,7 +30,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write --list-different .",
-    "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' --dictionaries .spellcheck-dict.txt",
+    "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' --dictionaries .dictionary.txt",
     "check": "npm run lint && npm run format && npm run spellcheck",
     "check:fix": "npm run lint:fix && npm run format:fix",
     "security": "npm audit --audit-level=low --workspaces"
@@ -40,6 +43,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^52.0.4",
     "globals": "^16.3.0",
+    "mustache": "^4.2.0",
     "prettier": "^3.6.2",
     "protobufjs": "^7.4.0",
     "protobufjs-cli": "^1.1.1",
@@ -56,8 +60,5 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
-  },
-  "dependencies": {
-    "mustache": "^4.2.0"
   }
 }

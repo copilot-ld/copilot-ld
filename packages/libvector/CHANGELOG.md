@@ -1,7 +1,23 @@
 # Changelog
 
+## 2025-09-01
+
+- Updated tests to use URI-based keys instead of ID-based keys to match vector
+  index implementation
+- Fixed test assertions to properly validate items using `cld:` URI format
+
 ## 2025-08-28
 
+- **BREAKING**: Changed `VectorIndex` internal storage from array to `Map` for
+  O(1) resource ID lookups
+- Added `VectorIndex.getItem(id)` method to retrieve items by resource ID
+- Added `getItem()` method to `VectorIndexInterface` with proper JSDoc
+  documentation
+- Optimized `hasItem()` method to use Map lookup instead of array search
+- Enhanced `addItem()` method to use Map storage for better performance
+- Updated `loadData()` and `persist()` methods to work with Map-based storage
+- All existing functionality maintained with improved performance
+  characteristics
 - Enhanced `VectorIndex` to use new `StorageInterface.append()` method for
   improved data management
 - Fixed all test failures by updating to use `resource.Identifier` objects with

@@ -1,0 +1,23 @@
+/* eslint-env node */
+import { Client } from "@copilot-ld/libservice";
+import { {{namespaceName}} } from "@copilot-ld/libtype";
+
+/**
+ * Typed client for the {{serviceName}} gRPC service with automatic type conversion.
+ * Extends the `Client` class for shared gRPC client functionality.
+ */
+export class {{className}} extends Client {
+{{#methods}}
+  /**
+   * Call the `{{name}}` RPC with request/response type conversion.
+   * @param { {{namespaceName}}.{{requestType}} } {{paramName}} - Typed request message.
+   * @returns {Promise<{{namespaceName}}.{{responseType}}>} Typed response message.
+   */
+  async {{name}}({{paramName}}) {
+    const request = {{paramName}}.toObject ? {{paramName}}.toObject() : {{paramName}};
+    const response = await this.callMethod("{{name}}", request);
+    return {{responseTypeExpr}}.fromObject(response);
+  }
+
+{{/methods}}
+}

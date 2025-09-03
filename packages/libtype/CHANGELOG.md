@@ -1,5 +1,19 @@
 # Changelog
 
+## 2025-09-02
+
+- **BREAKING**: Modified `llm.CompletionsRequest` to use
+  `repeated common.MessageV2 messages` instead of `common.Prompt prompt`
+- Updated generated types to reflect new LLM service interface
+
+## 2025-09-01
+
+- Fixed `withIdentifier()` method to properly handle `undefined` or `null`
+  parent values, preventing literal string `"undefined"` from being assigned to
+  `id.parent`
+- Enhanced parent parameter handling in `withIdentifier()` to ensure empty
+  string (`""`) is used when parent is `undefined` or `null`
+
 ## 2025-08-18
 
 - Added `common.Prompt.prototype.fromMessages()` method to reconstruct `Prompt`

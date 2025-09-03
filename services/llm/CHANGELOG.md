@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-09-02
+
+- Switched `CompletionsRequest` to `repeated common.MessageV2 messages` and
+  updated `CreateCompletions()` to process them, converting to simple
+  `{role, content}` for backend calls
+
+## 2025-09-01
+
+- Updated `LlmService` to import from `./service.js` instead of `./types.js`
+- Generated `LlmClient` class with automatic request/response type conversion
+
+## 2025-08-28
+
 ## 2025-08-18
 
 - Updated `CreateCompletions()` and `CreateEmbeddings()` methods to use single

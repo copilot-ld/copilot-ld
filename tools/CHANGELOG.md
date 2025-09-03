@@ -1,5 +1,74 @@
 # Changelog
 
+## 2025-09-03
+
+- Updated `tools/token.js` to write tokens directly to `config/.ghtoken` instead
+  of the repo root, removing the need to manually move the file
+- Updated `README.md` and `docs/getting-started.html` to reflect the new token
+  location and simplified instructions
+
+## 2025-09-03
+
+- Updated `dev.js` `start()` to log once per service, mirroring `stop()` output
+  - Prints `Starting \`@scope/name\`...` for newly launched services
+  - Prints ``@scope/name`: already running`when a`PID` entry exists
+  - Keeps consolidated log file at `data/dev.log`
+
+## 2025-09-03
+
+- Standardized JSDoc wording across `tools/service.js.mustache` and
+  `tools/client.js.mustache`:
+  - Consistent use of `gRPC` terminology in summaries and parameter docs
+  - Unified phrasing for typed request/response (`Typed request message.` /
+    `Typed response message.`)
+  - Normalized punctuation and `backticks` around symbols and RPC method names
+
+## 2025-09-03
+
+- Added unified `codegen.js` tool supporting:
+  - `node tools/codegen.js --types` to generate `@copilot-ld/libtype` types
+  - `node tools/codegen.js --services` to generate service base classes
+  - `node tools/codegen.js --clients` to generate typed clients
+  - `node tools/codegen.js --all` to run all generators
+- Consolidates duplicated logic from `codegen-types.js`, `codegen-services.js`,
+  and `codegen-clients.js`
+- Preserves output locations and behavior, including `pbjs/pbts` ESM fixes and
+  `tsc`-based `.d.ts` generation
+
+## 2025-09-03
+
+- Refactored `dev.js` to reduce duplication and simplify control flow
+  - Added small helpers (`readJson`, `writeJson`, `matchPattern`) to centralize
+    IO and pattern building
+  - Consolidated `CLI` dispatch via a `commands` map while preserving existing
+    flags
+  - Kept negative `PGID` semantics and signal handling (`SIGTERM` then
+    `SIGKILL`) unchanged
+  - Documented public functions with `JSDoc` to satisfy lint rules
+
+## 2025-09-03
+
+- Updated `dev.js` so `list()` uses the same process match patterns as
+  `cleanup()` via shared `MATCH_PATTERNS`, ensuring consistent filtering of
+  development processes
+
+## 2025-09-01
+
+- Updated `chat.js` tool to use the new `AgentClient` class instead of generic
+  `Client`
+- Enhanced `chat.js` to use proper typed requests with `agent.AgentRequest` and
+  `common.MessageV2`
+- Improved message content handling in `chat.js` to support both string and
+  object content structures
+- Modified `codegen-services.js` to generate `service.js` and `service.d.ts`
+  files instead of `types.js` and `types.d.ts`
+- Added `codegen-clients.js` tool to generate typed client classes from protobuf
+  definitions
+- Added `client.js.mustache` template for generating client classes with
+  automatic request/response type conversion using `fromObject()`
+- Generated client classes extend `libservice` `Client` class and provide typed
+  wrappers for all RPC methods
+
 ## 2025-08-28
 
 - Enhanced `resources.js` tool with command-line argument parsing for

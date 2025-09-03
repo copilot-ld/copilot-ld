@@ -26,7 +26,6 @@ export const resource = ($root.resource = (() => {
      * @property {string|null} [name] Identifier name
      * @property {string|null} [parent] Identifier parent
      * @property {number|null} [tokens] Identifier tokens
-     * @property {number|null} [magnitude] Identifier magnitude
      * @property {number|null} [score] Identifier score
      */
 
@@ -77,14 +76,6 @@ export const resource = ($root.resource = (() => {
     Identifier.prototype.tokens = null;
 
     /**
-     * Identifier magnitude.
-     * @member {number|null|undefined} magnitude
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Identifier.prototype.magnitude = null;
-
-    /**
      * Identifier score.
      * @member {number|null|undefined} score
      * @memberof resource.Identifier
@@ -103,17 +94,6 @@ export const resource = ($root.resource = (() => {
      */
     Object.defineProperty(Identifier.prototype, "_tokens", {
       get: $util.oneOfGetter(($oneOfFields = ["tokens"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Identifier _magnitude.
-     * @member {"magnitude"|undefined} _magnitude
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Object.defineProperty(Identifier.prototype, "_magnitude", {
-      get: $util.oneOfGetter(($oneOfFields = ["magnitude"])),
       set: $util.oneOfSetter($oneOfFields),
     });
 
@@ -153,13 +133,8 @@ export const resource = ($root.resource = (() => {
         Object.hasOwnProperty.call(message, "tokens")
       )
         writer.uint32(/* id 4, wireType 0 =*/ 32).int32(message.tokens);
-      if (
-        message.magnitude != null &&
-        Object.hasOwnProperty.call(message, "magnitude")
-      )
-        writer.uint32(/* id 5, wireType 1 =*/ 41).double(message.magnitude);
       if (message.score != null && Object.hasOwnProperty.call(message, "score"))
-        writer.uint32(/* id 6, wireType 1 =*/ 49).double(message.score);
+        writer.uint32(/* id 5, wireType 1 =*/ 41).double(message.score);
       return writer;
     };
 
@@ -199,10 +174,6 @@ export const resource = ($root.resource = (() => {
             break;
           }
           case 5: {
-            message.magnitude = reader.double();
-            break;
-          }
-          case 6: {
             message.score = reader.double();
             break;
           }
@@ -236,11 +207,6 @@ export const resource = ($root.resource = (() => {
         properties._tokens = 1;
         if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
       }
-      if (message.magnitude != null && message.hasOwnProperty("magnitude")) {
-        properties._magnitude = 1;
-        if (typeof message.magnitude !== "number")
-          return "magnitude: number expected";
-      }
       if (message.score != null && message.hasOwnProperty("score")) {
         properties._score = 1;
         if (typeof message.score !== "number") return "score: number expected";
@@ -263,8 +229,6 @@ export const resource = ($root.resource = (() => {
       if (object.name != null) message.name = String(object.name);
       if (object.parent != null) message.parent = String(object.parent);
       if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.magnitude != null)
-        message.magnitude = Number(object.magnitude);
       if (object.score != null) message.score = Number(object.score);
       return message;
     };
@@ -295,13 +259,6 @@ export const resource = ($root.resource = (() => {
       if (message.tokens != null && message.hasOwnProperty("tokens")) {
         object.tokens = message.tokens;
         if (options.oneofs) object._tokens = "tokens";
-      }
-      if (message.magnitude != null && message.hasOwnProperty("magnitude")) {
-        object.magnitude =
-          options.json && !isFinite(message.magnitude)
-            ? String(message.magnitude)
-            : message.magnitude;
-        if (options.oneofs) object._magnitude = "magnitude";
       }
       if (message.score != null && message.hasOwnProperty("score")) {
         object.score =
@@ -348,7 +305,6 @@ export const resource = ($root.resource = (() => {
      * @memberof resource
      * @interface IDescriptor
      * @property {number|null} [tokens] Descriptor tokens
-     * @property {number|null} [magnitude] Descriptor magnitude
      * @property {string|null} [purpose] Descriptor purpose
      * @property {string|null} [instructions] Descriptor instructions
      * @property {string|null} [applicability] Descriptor applicability
@@ -376,14 +332,6 @@ export const resource = ($root.resource = (() => {
      * @instance
      */
     Descriptor.prototype.tokens = 0;
-
-    /**
-     * Descriptor magnitude.
-     * @member {number} magnitude
-     * @memberof resource.Descriptor
-     * @instance
-     */
-    Descriptor.prototype.magnitude = 0;
 
     /**
      * Descriptor purpose.
@@ -434,30 +382,25 @@ export const resource = ($root.resource = (() => {
       )
         writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
       if (
-        message.magnitude != null &&
-        Object.hasOwnProperty.call(message, "magnitude")
-      )
-        writer.uint32(/* id 2, wireType 1 =*/ 17).double(message.magnitude);
-      if (
         message.purpose != null &&
         Object.hasOwnProperty.call(message, "purpose")
       )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.purpose);
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.purpose);
       if (
         message.instructions != null &&
         Object.hasOwnProperty.call(message, "instructions")
       )
-        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.instructions);
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.instructions);
       if (
         message.applicability != null &&
         Object.hasOwnProperty.call(message, "applicability")
       )
-        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.applicability);
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.applicability);
       if (
         message.evaluation != null &&
         Object.hasOwnProperty.call(message, "evaluation")
       )
-        writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.evaluation);
+        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.evaluation);
       return writer;
     };
 
@@ -485,22 +428,18 @@ export const resource = ($root.resource = (() => {
             break;
           }
           case 2: {
-            message.magnitude = reader.double();
-            break;
-          }
-          case 3: {
             message.purpose = reader.string();
             break;
           }
-          case 4: {
+          case 3: {
             message.instructions = reader.string();
             break;
           }
-          case 5: {
+          case 4: {
             message.applicability = reader.string();
             break;
           }
-          case 6: {
+          case 5: {
             message.evaluation = reader.string();
             break;
           }
@@ -525,9 +464,6 @@ export const resource = ($root.resource = (() => {
         return "object expected";
       if (message.tokens != null && message.hasOwnProperty("tokens"))
         if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
-      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
-        if (typeof message.magnitude !== "number")
-          return "magnitude: number expected";
       if (message.purpose != null && message.hasOwnProperty("purpose"))
         if (!$util.isString(message.purpose)) return "purpose: string expected";
       if (
@@ -560,8 +496,6 @@ export const resource = ($root.resource = (() => {
       if (object instanceof $root.resource.Descriptor) return object;
       let message = new $root.resource.Descriptor();
       if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.magnitude != null)
-        message.magnitude = Number(object.magnitude);
       if (object.purpose != null) message.purpose = String(object.purpose);
       if (object.instructions != null)
         message.instructions = String(object.instructions);
@@ -586,7 +520,6 @@ export const resource = ($root.resource = (() => {
       let object = {};
       if (options.defaults) {
         object.tokens = 0;
-        object.magnitude = 0;
         object.purpose = "";
         object.instructions = "";
         object.applicability = "";
@@ -594,11 +527,6 @@ export const resource = ($root.resource = (() => {
       }
       if (message.tokens != null && message.hasOwnProperty("tokens"))
         object.tokens = message.tokens;
-      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
-        object.magnitude =
-          options.json && !isFinite(message.magnitude)
-            ? String(message.magnitude)
-            : message.magnitude;
       if (message.purpose != null && message.hasOwnProperty("purpose"))
         object.purpose = message.purpose;
       if (
@@ -651,7 +579,6 @@ export const resource = ($root.resource = (() => {
      * @memberof resource
      * @interface IContent
      * @property {number|null} [tokens] Content tokens
-     * @property {number|null} [magnitude] Content magnitude
      * @property {string|null} [text] Content text
      * @property {string|null} [jsonld] Content jsonld
      */
@@ -677,14 +604,6 @@ export const resource = ($root.resource = (() => {
      * @instance
      */
     Content.prototype.tokens = 0;
-
-    /**
-     * Content magnitude.
-     * @member {number} magnitude
-     * @memberof resource.Content
-     * @instance
-     */
-    Content.prototype.magnitude = 0;
 
     /**
      * Content text.
@@ -732,18 +651,13 @@ export const resource = ($root.resource = (() => {
         Object.hasOwnProperty.call(message, "tokens")
       )
         writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
-      if (
-        message.magnitude != null &&
-        Object.hasOwnProperty.call(message, "magnitude")
-      )
-        writer.uint32(/* id 2, wireType 1 =*/ 17).double(message.magnitude);
       if (message.text != null && Object.hasOwnProperty.call(message, "text"))
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.text);
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.text);
       if (
         message.jsonld != null &&
         Object.hasOwnProperty.call(message, "jsonld")
       )
-        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.jsonld);
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.jsonld);
       return writer;
     };
 
@@ -771,14 +685,10 @@ export const resource = ($root.resource = (() => {
             break;
           }
           case 2: {
-            message.magnitude = reader.double();
-            break;
-          }
-          case 3: {
             message.text = reader.string();
             break;
           }
-          case 4: {
+          case 3: {
             message.jsonld = reader.string();
             break;
           }
@@ -804,9 +714,6 @@ export const resource = ($root.resource = (() => {
       let properties = {};
       if (message.tokens != null && message.hasOwnProperty("tokens"))
         if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
-      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
-        if (typeof message.magnitude !== "number")
-          return "magnitude: number expected";
       if (message.text != null && message.hasOwnProperty("text")) {
         properties.type = 1;
         if (!$util.isString(message.text)) return "text: string expected";
@@ -831,8 +738,6 @@ export const resource = ($root.resource = (() => {
       if (object instanceof $root.resource.Content) return object;
       let message = new $root.resource.Content();
       if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.magnitude != null)
-        message.magnitude = Number(object.magnitude);
       if (object.text != null) message.text = String(object.text);
       if (object.jsonld != null) message.jsonld = String(object.jsonld);
       return message;
@@ -850,17 +755,9 @@ export const resource = ($root.resource = (() => {
     Content.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.defaults) {
-        object.tokens = 0;
-        object.magnitude = 0;
-      }
+      if (options.defaults) object.tokens = 0;
       if (message.tokens != null && message.hasOwnProperty("tokens"))
         object.tokens = message.tokens;
-      if (message.magnitude != null && message.hasOwnProperty("magnitude"))
-        object.magnitude =
-          options.json && !isFinite(message.magnitude)
-            ? String(message.magnitude)
-            : message.magnitude;
       if (message.text != null && message.hasOwnProperty("text")) {
         object.text = message.text;
         if (options.oneofs) object.type = "text";
@@ -1333,7 +1230,7 @@ export const common = ($root.common = (() => {
      * @memberof common
      * @interface IChoice
      * @property {number|null} [index] Choice index
-     * @property {common.Message|null} [message] Choice message
+     * @property {common.MessageV2|null} [message] Choice message
      * @property {string|null} [finish_reason] Choice finish_reason
      */
 
@@ -1361,7 +1258,7 @@ export const common = ($root.common = (() => {
 
     /**
      * Choice message.
-     * @member {common.Message|null|undefined} message
+     * @member {common.MessageV2|null|undefined} message
      * @memberof common.Choice
      * @instance
      */
@@ -1406,7 +1303,7 @@ export const common = ($root.common = (() => {
         message.message != null &&
         Object.hasOwnProperty.call(message, "message")
       )
-        $root.common.Message.encode(
+        $root.common.MessageV2.encode(
           message.message,
           writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
         ).ldelim();
@@ -1442,7 +1339,7 @@ export const common = ($root.common = (() => {
             break;
           }
           case 2: {
-            message.message = $root.common.Message.decode(
+            message.message = $root.common.MessageV2.decode(
               reader,
               reader.uint32(),
             );
@@ -1475,7 +1372,7 @@ export const common = ($root.common = (() => {
       if (message.index != null && message.hasOwnProperty("index"))
         if (!$util.isInteger(message.index)) return "index: integer expected";
       if (message.message != null && message.hasOwnProperty("message")) {
-        let error = $root.common.Message.verify(message.message);
+        let error = $root.common.MessageV2.verify(message.message);
         if (error) return "message." + error;
       }
       if (
@@ -1504,7 +1401,7 @@ export const common = ($root.common = (() => {
       if (object.message != null) {
         if (typeof object.message !== "object")
           throw TypeError(".common.Choice.message: object expected");
-        message.message = $root.common.Message.fromObject(object.message);
+        message.message = $root.common.MessageV2.fromObject(object.message);
       }
       if (object.finish_reason != null)
         message.finish_reason = String(object.finish_reason);
@@ -1530,7 +1427,7 @@ export const common = ($root.common = (() => {
       if (message.index != null && message.hasOwnProperty("index"))
         object.index = message.index;
       if (message.message != null && message.hasOwnProperty("message"))
-        object.message = $root.common.Message.toObject(
+        object.message = $root.common.MessageV2.toObject(
           message.message,
           options,
         );
@@ -2587,6 +2484,173 @@ export const common = ($root.common = (() => {
     };
 
     return Prompt;
+  })();
+
+  common.Conversation = (function () {
+    /**
+     * Properties of a Conversation.
+     * @memberof common
+     * @interface IConversation
+     * @property {resource.Identifier|null} [id] Conversation id
+     */
+
+    /**
+     * Constructs a new Conversation.
+     * @memberof common
+     * @classdesc Represents a Conversation.
+     * @implements IConversation
+     * @constructor
+     * @param {common.IConversation=} [properties] Properties to set
+     */
+    function Conversation(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Conversation id.
+     * @member {resource.Identifier|null|undefined} id
+     * @memberof common.Conversation
+     * @instance
+     */
+    Conversation.prototype.id = null;
+
+    /**
+     * Encodes the specified Conversation message. Does not implicitly {@link common.Conversation.verify|verify} messages.
+     * @function encode
+     * @memberof common.Conversation
+     * @static
+     * @param {common.Conversation} message Conversation message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Conversation.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        $root.resource.Identifier.encode(
+          message.id,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a Conversation message from the specified reader or buffer.
+     * @function decode
+     * @memberof common.Conversation
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {common.Conversation} Conversation
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Conversation.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.common.Conversation();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.id = $root.resource.Identifier.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Conversation message.
+     * @function verify
+     * @memberof common.Conversation
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Conversation.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.id != null && message.hasOwnProperty("id")) {
+        let error = $root.resource.Identifier.verify(message.id);
+        if (error) return "id." + error;
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Conversation message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof common.Conversation
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {common.Conversation} Conversation
+     */
+    Conversation.fromObject = function fromObject(object) {
+      if (object instanceof $root.common.Conversation) return object;
+      let message = new $root.common.Conversation();
+      if (object.id != null) {
+        if (typeof object.id !== "object")
+          throw TypeError(".common.Conversation.id: object expected");
+        message.id = $root.resource.Identifier.fromObject(object.id);
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Conversation message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof common.Conversation
+     * @static
+     * @param {common.Conversation} message Conversation
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Conversation.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) object.id = null;
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = $root.resource.Identifier.toObject(message.id, options);
+      return object;
+    };
+
+    /**
+     * Converts this Conversation to JSON.
+     * @function toJSON
+     * @memberof common.Conversation
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Conversation.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Conversation
+     * @function getTypeUrl
+     * @memberof common.Conversation
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Conversation.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/common.Conversation";
+    };
+
+    return Conversation;
   })();
 
   common.ToolProp = (function () {
@@ -4519,8 +4583,8 @@ export const agent = ($root.agent = (() => {
      * Properties of an AgentRequest.
      * @memberof agent
      * @interface IAgentRequest
-     * @property {Array.<common.Message>|null} [messages] AgentRequest messages
-     * @property {string|null} [session_id] AgentRequest session_id
+     * @property {Array.<common.MessageV2>|null} [messages] AgentRequest messages
+     * @property {string|null} [conversation_id] AgentRequest conversation_id
      * @property {string|null} [github_token] AgentRequest github_token
      */
 
@@ -4541,19 +4605,19 @@ export const agent = ($root.agent = (() => {
 
     /**
      * AgentRequest messages.
-     * @member {Array.<common.Message>} messages
+     * @member {Array.<common.MessageV2>} messages
      * @memberof agent.AgentRequest
      * @instance
      */
     AgentRequest.prototype.messages = $util.emptyArray;
 
     /**
-     * AgentRequest session_id.
-     * @member {string|null|undefined} session_id
+     * AgentRequest conversation_id.
+     * @member {string|null|undefined} conversation_id
      * @memberof agent.AgentRequest
      * @instance
      */
-    AgentRequest.prototype.session_id = null;
+    AgentRequest.prototype.conversation_id = null;
 
     /**
      * AgentRequest github_token.
@@ -4567,13 +4631,13 @@ export const agent = ($root.agent = (() => {
     let $oneOfFields;
 
     /**
-     * AgentRequest _session_id.
-     * @member {"session_id"|undefined} _session_id
+     * AgentRequest _conversation_id.
+     * @member {"conversation_id"|undefined} _conversation_id
      * @memberof agent.AgentRequest
      * @instance
      */
-    Object.defineProperty(AgentRequest.prototype, "_session_id", {
-      get: $util.oneOfGetter(($oneOfFields = ["session_id"])),
+    Object.defineProperty(AgentRequest.prototype, "_conversation_id", {
+      get: $util.oneOfGetter(($oneOfFields = ["conversation_id"])),
       set: $util.oneOfSetter($oneOfFields),
     });
 
@@ -4601,20 +4665,22 @@ export const agent = ($root.agent = (() => {
       if (!writer) writer = $Writer.create();
       if (message.messages != null && message.messages.length)
         for (let i = 0; i < message.messages.length; ++i)
-          $root.common.Message.encode(
+          $root.common.MessageV2.encode(
             message.messages[i],
             writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
           ).ldelim();
       if (
-        message.session_id != null &&
-        Object.hasOwnProperty.call(message, "session_id")
+        message.conversation_id != null &&
+        Object.hasOwnProperty.call(message, "conversation_id")
       )
-        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.session_id);
+        writer
+          .uint32(/* id 2, wireType 2 =*/ 18)
+          .string(message.conversation_id);
       if (
         message.github_token != null &&
         Object.hasOwnProperty.call(message, "github_token")
       )
-        writer.uint32(/* id 8, wireType 2 =*/ 66).string(message.github_token);
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.github_token);
       return writer;
     };
 
@@ -4641,15 +4707,15 @@ export const agent = ($root.agent = (() => {
             if (!(message.messages && message.messages.length))
               message.messages = [];
             message.messages.push(
-              $root.common.Message.decode(reader, reader.uint32()),
+              $root.common.MessageV2.decode(reader, reader.uint32()),
             );
             break;
           }
           case 2: {
-            message.session_id = reader.string();
+            message.conversation_id = reader.string();
             break;
           }
-          case 8: {
+          case 3: {
             message.github_token = reader.string();
             break;
           }
@@ -4676,14 +4742,17 @@ export const agent = ($root.agent = (() => {
       if (message.messages != null && message.hasOwnProperty("messages")) {
         if (!Array.isArray(message.messages)) return "messages: array expected";
         for (let i = 0; i < message.messages.length; ++i) {
-          let error = $root.common.Message.verify(message.messages[i]);
+          let error = $root.common.MessageV2.verify(message.messages[i]);
           if (error) return "messages." + error;
         }
       }
-      if (message.session_id != null && message.hasOwnProperty("session_id")) {
-        properties._session_id = 1;
-        if (!$util.isString(message.session_id))
-          return "session_id: string expected";
+      if (
+        message.conversation_id != null &&
+        message.hasOwnProperty("conversation_id")
+      ) {
+        properties._conversation_id = 1;
+        if (!$util.isString(message.conversation_id))
+          return "conversation_id: string expected";
       }
       if (
         message.github_token != null &&
@@ -4714,13 +4783,13 @@ export const agent = ($root.agent = (() => {
         for (let i = 0; i < object.messages.length; ++i) {
           if (typeof object.messages[i] !== "object")
             throw TypeError(".agent.AgentRequest.messages: object expected");
-          message.messages[i] = $root.common.Message.fromObject(
+          message.messages[i] = $root.common.MessageV2.fromObject(
             object.messages[i],
           );
         }
       }
-      if (object.session_id != null)
-        message.session_id = String(object.session_id);
+      if (object.conversation_id != null)
+        message.conversation_id = String(object.conversation_id);
       if (object.github_token != null)
         message.github_token = String(object.github_token);
       return message;
@@ -4742,14 +4811,17 @@ export const agent = ($root.agent = (() => {
       if (message.messages && message.messages.length) {
         object.messages = [];
         for (let j = 0; j < message.messages.length; ++j)
-          object.messages[j] = $root.common.Message.toObject(
+          object.messages[j] = $root.common.MessageV2.toObject(
             message.messages[j],
             options,
           );
       }
-      if (message.session_id != null && message.hasOwnProperty("session_id")) {
-        object.session_id = message.session_id;
-        if (options.oneofs) object._session_id = "session_id";
+      if (
+        message.conversation_id != null &&
+        message.hasOwnProperty("conversation_id")
+      ) {
+        object.conversation_id = message.conversation_id;
+        if (options.oneofs) object._conversation_id = "conversation_id";
       }
       if (
         message.github_token != null &&
@@ -4801,7 +4873,7 @@ export const agent = ($root.agent = (() => {
      * @property {string|null} [model] AgentResponse model
      * @property {Array.<common.Choice>|null} [choices] AgentResponse choices
      * @property {common.Usage|null} [usage] AgentResponse usage
-     * @property {string|null} [session_id] AgentResponse session_id
+     * @property {string|null} [conversation_id] AgentResponse conversation_id
      */
 
     /**
@@ -4870,12 +4942,12 @@ export const agent = ($root.agent = (() => {
     AgentResponse.prototype.usage = null;
 
     /**
-     * AgentResponse session_id.
-     * @member {string} session_id
+     * AgentResponse conversation_id.
+     * @member {string} conversation_id
      * @memberof agent.AgentResponse
      * @instance
      */
-    AgentResponse.prototype.session_id = "";
+    AgentResponse.prototype.conversation_id = "";
 
     /**
      * Encodes the specified AgentResponse message. Does not implicitly {@link agent.AgentResponse.verify|verify} messages.
@@ -4914,10 +4986,12 @@ export const agent = ($root.agent = (() => {
           writer.uint32(/* id 6, wireType 2 =*/ 50).fork(),
         ).ldelim();
       if (
-        message.session_id != null &&
-        Object.hasOwnProperty.call(message, "session_id")
+        message.conversation_id != null &&
+        Object.hasOwnProperty.call(message, "conversation_id")
       )
-        writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.session_id);
+        writer
+          .uint32(/* id 7, wireType 2 =*/ 58)
+          .string(message.conversation_id);
       return writer;
     };
 
@@ -4969,7 +5043,7 @@ export const agent = ($root.agent = (() => {
             break;
           }
           case 7: {
-            message.session_id = reader.string();
+            message.conversation_id = reader.string();
             break;
           }
           default:
@@ -5018,9 +5092,12 @@ export const agent = ($root.agent = (() => {
         let error = $root.common.Usage.verify(message.usage);
         if (error) return "usage." + error;
       }
-      if (message.session_id != null && message.hasOwnProperty("session_id"))
-        if (!$util.isString(message.session_id))
-          return "session_id: string expected";
+      if (
+        message.conversation_id != null &&
+        message.hasOwnProperty("conversation_id")
+      )
+        if (!$util.isString(message.conversation_id))
+          return "conversation_id: string expected";
       return null;
     };
 
@@ -5068,8 +5145,8 @@ export const agent = ($root.agent = (() => {
           throw TypeError(".agent.AgentResponse.usage: object expected");
         message.usage = $root.common.Usage.fromObject(object.usage);
       }
-      if (object.session_id != null)
-        message.session_id = String(object.session_id);
+      if (object.conversation_id != null)
+        message.conversation_id = String(object.conversation_id);
       return message;
     };
 
@@ -5100,7 +5177,7 @@ export const agent = ($root.agent = (() => {
         } else object.created = options.longs === String ? "0" : 0;
         object.model = "";
         object.usage = null;
-        object.session_id = "";
+        object.conversation_id = "";
       }
       if (message.id != null && message.hasOwnProperty("id"))
         object.id = message.id;
@@ -5134,8 +5211,11 @@ export const agent = ($root.agent = (() => {
       }
       if (message.usage != null && message.hasOwnProperty("usage"))
         object.usage = $root.common.Usage.toObject(message.usage, options);
-      if (message.session_id != null && message.hasOwnProperty("session_id"))
-        object.session_id = message.session_id;
+      if (
+        message.conversation_id != null &&
+        message.hasOwnProperty("conversation_id")
+      )
+        object.conversation_id = message.conversation_id;
       return object;
     };
 
@@ -5169,768 +5249,6 @@ export const agent = ($root.agent = (() => {
   })();
 
   return agent;
-})());
-
-export const history = ($root.history = (() => {
-  /**
-   * Namespace history.
-   * @exports history
-   * @namespace
-   */
-  const history = {};
-
-  history.GetHistoryRequest = (function () {
-    /**
-     * Properties of a GetHistoryRequest.
-     * @memberof history
-     * @interface IGetHistoryRequest
-     * @property {string|null} [session_id] GetHistoryRequest session_id
-     */
-
-    /**
-     * Constructs a new GetHistoryRequest.
-     * @memberof history
-     * @classdesc Represents a GetHistoryRequest.
-     * @implements IGetHistoryRequest
-     * @constructor
-     * @param {history.IGetHistoryRequest=} [properties] Properties to set
-     */
-    function GetHistoryRequest(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * GetHistoryRequest session_id.
-     * @member {string} session_id
-     * @memberof history.GetHistoryRequest
-     * @instance
-     */
-    GetHistoryRequest.prototype.session_id = "";
-
-    /**
-     * Encodes the specified GetHistoryRequest message. Does not implicitly {@link history.GetHistoryRequest.verify|verify} messages.
-     * @function encode
-     * @memberof history.GetHistoryRequest
-     * @static
-     * @param {history.GetHistoryRequest} message GetHistoryRequest message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    GetHistoryRequest.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.session_id != null &&
-        Object.hasOwnProperty.call(message, "session_id")
-      )
-        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.session_id);
-      return writer;
-    };
-
-    /**
-     * Decodes a GetHistoryRequest message from the specified reader or buffer.
-     * @function decode
-     * @memberof history.GetHistoryRequest
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {history.GetHistoryRequest} GetHistoryRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    GetHistoryRequest.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.history.GetHistoryRequest();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.session_id = reader.string();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a GetHistoryRequest message.
-     * @function verify
-     * @memberof history.GetHistoryRequest
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    GetHistoryRequest.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.session_id != null && message.hasOwnProperty("session_id"))
-        if (!$util.isString(message.session_id))
-          return "session_id: string expected";
-      return null;
-    };
-
-    /**
-     * Creates a GetHistoryRequest message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof history.GetHistoryRequest
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {history.GetHistoryRequest} GetHistoryRequest
-     */
-    GetHistoryRequest.fromObject = function fromObject(object) {
-      if (object instanceof $root.history.GetHistoryRequest) return object;
-      let message = new $root.history.GetHistoryRequest();
-      if (object.session_id != null)
-        message.session_id = String(object.session_id);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a GetHistoryRequest message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof history.GetHistoryRequest
-     * @static
-     * @param {history.GetHistoryRequest} message GetHistoryRequest
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    GetHistoryRequest.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) object.session_id = "";
-      if (message.session_id != null && message.hasOwnProperty("session_id"))
-        object.session_id = message.session_id;
-      return object;
-    };
-
-    /**
-     * Converts this GetHistoryRequest to JSON.
-     * @function toJSON
-     * @memberof history.GetHistoryRequest
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    GetHistoryRequest.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for GetHistoryRequest
-     * @function getTypeUrl
-     * @memberof history.GetHistoryRequest
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    GetHistoryRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/history.GetHistoryRequest";
-    };
-
-    return GetHistoryRequest;
-  })();
-
-  history.GetHistoryResponse = (function () {
-    /**
-     * Properties of a GetHistoryResponse.
-     * @memberof history
-     * @interface IGetHistoryResponse
-     * @property {common.Prompt|null} [prompt] GetHistoryResponse prompt
-     */
-
-    /**
-     * Constructs a new GetHistoryResponse.
-     * @memberof history
-     * @classdesc Represents a GetHistoryResponse.
-     * @implements IGetHistoryResponse
-     * @constructor
-     * @param {history.IGetHistoryResponse=} [properties] Properties to set
-     */
-    function GetHistoryResponse(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * GetHistoryResponse prompt.
-     * @member {common.Prompt|null|undefined} prompt
-     * @memberof history.GetHistoryResponse
-     * @instance
-     */
-    GetHistoryResponse.prototype.prompt = null;
-
-    /**
-     * Encodes the specified GetHistoryResponse message. Does not implicitly {@link history.GetHistoryResponse.verify|verify} messages.
-     * @function encode
-     * @memberof history.GetHistoryResponse
-     * @static
-     * @param {history.GetHistoryResponse} message GetHistoryResponse message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    GetHistoryResponse.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.prompt != null &&
-        Object.hasOwnProperty.call(message, "prompt")
-      )
-        $root.common.Prompt.encode(
-          message.prompt,
-          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
-        ).ldelim();
-      return writer;
-    };
-
-    /**
-     * Decodes a GetHistoryResponse message from the specified reader or buffer.
-     * @function decode
-     * @memberof history.GetHistoryResponse
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {history.GetHistoryResponse} GetHistoryResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    GetHistoryResponse.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.history.GetHistoryResponse();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.prompt = $root.common.Prompt.decode(
-              reader,
-              reader.uint32(),
-            );
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a GetHistoryResponse message.
-     * @function verify
-     * @memberof history.GetHistoryResponse
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    GetHistoryResponse.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.prompt != null && message.hasOwnProperty("prompt")) {
-        let error = $root.common.Prompt.verify(message.prompt);
-        if (error) return "prompt." + error;
-      }
-      return null;
-    };
-
-    /**
-     * Creates a GetHistoryResponse message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof history.GetHistoryResponse
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {history.GetHistoryResponse} GetHistoryResponse
-     */
-    GetHistoryResponse.fromObject = function fromObject(object) {
-      if (object instanceof $root.history.GetHistoryResponse) return object;
-      let message = new $root.history.GetHistoryResponse();
-      if (object.prompt != null) {
-        if (typeof object.prompt !== "object")
-          throw TypeError(
-            ".history.GetHistoryResponse.prompt: object expected",
-          );
-        message.prompt = $root.common.Prompt.fromObject(object.prompt);
-      }
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a GetHistoryResponse message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof history.GetHistoryResponse
-     * @static
-     * @param {history.GetHistoryResponse} message GetHistoryResponse
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    GetHistoryResponse.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) object.prompt = null;
-      if (message.prompt != null && message.hasOwnProperty("prompt"))
-        object.prompt = $root.common.Prompt.toObject(message.prompt, options);
-      return object;
-    };
-
-    /**
-     * Converts this GetHistoryResponse to JSON.
-     * @function toJSON
-     * @memberof history.GetHistoryResponse
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    GetHistoryResponse.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for GetHistoryResponse
-     * @function getTypeUrl
-     * @memberof history.GetHistoryResponse
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    GetHistoryResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/history.GetHistoryResponse";
-    };
-
-    return GetHistoryResponse;
-  })();
-
-  history.UpdateHistoryRequest = (function () {
-    /**
-     * Properties of an UpdateHistoryRequest.
-     * @memberof history
-     * @interface IUpdateHistoryRequest
-     * @property {string|null} [session_id] UpdateHistoryRequest session_id
-     * @property {common.Prompt|null} [prompt] UpdateHistoryRequest prompt
-     * @property {string|null} [github_token] UpdateHistoryRequest github_token
-     */
-
-    /**
-     * Constructs a new UpdateHistoryRequest.
-     * @memberof history
-     * @classdesc Represents an UpdateHistoryRequest.
-     * @implements IUpdateHistoryRequest
-     * @constructor
-     * @param {history.IUpdateHistoryRequest=} [properties] Properties to set
-     */
-    function UpdateHistoryRequest(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * UpdateHistoryRequest session_id.
-     * @member {string} session_id
-     * @memberof history.UpdateHistoryRequest
-     * @instance
-     */
-    UpdateHistoryRequest.prototype.session_id = "";
-
-    /**
-     * UpdateHistoryRequest prompt.
-     * @member {common.Prompt|null|undefined} prompt
-     * @memberof history.UpdateHistoryRequest
-     * @instance
-     */
-    UpdateHistoryRequest.prototype.prompt = null;
-
-    /**
-     * UpdateHistoryRequest github_token.
-     * @member {string} github_token
-     * @memberof history.UpdateHistoryRequest
-     * @instance
-     */
-    UpdateHistoryRequest.prototype.github_token = "";
-
-    /**
-     * Encodes the specified UpdateHistoryRequest message. Does not implicitly {@link history.UpdateHistoryRequest.verify|verify} messages.
-     * @function encode
-     * @memberof history.UpdateHistoryRequest
-     * @static
-     * @param {history.UpdateHistoryRequest} message UpdateHistoryRequest message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    UpdateHistoryRequest.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.session_id != null &&
-        Object.hasOwnProperty.call(message, "session_id")
-      )
-        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.session_id);
-      if (
-        message.prompt != null &&
-        Object.hasOwnProperty.call(message, "prompt")
-      )
-        $root.common.Prompt.encode(
-          message.prompt,
-          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
-        ).ldelim();
-      if (
-        message.github_token != null &&
-        Object.hasOwnProperty.call(message, "github_token")
-      )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.github_token);
-      return writer;
-    };
-
-    /**
-     * Decodes an UpdateHistoryRequest message from the specified reader or buffer.
-     * @function decode
-     * @memberof history.UpdateHistoryRequest
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {history.UpdateHistoryRequest} UpdateHistoryRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    UpdateHistoryRequest.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.history.UpdateHistoryRequest();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.session_id = reader.string();
-            break;
-          }
-          case 2: {
-            message.prompt = $root.common.Prompt.decode(
-              reader,
-              reader.uint32(),
-            );
-            break;
-          }
-          case 3: {
-            message.github_token = reader.string();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies an UpdateHistoryRequest message.
-     * @function verify
-     * @memberof history.UpdateHistoryRequest
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    UpdateHistoryRequest.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.session_id != null && message.hasOwnProperty("session_id"))
-        if (!$util.isString(message.session_id))
-          return "session_id: string expected";
-      if (message.prompt != null && message.hasOwnProperty("prompt")) {
-        let error = $root.common.Prompt.verify(message.prompt);
-        if (error) return "prompt." + error;
-      }
-      if (
-        message.github_token != null &&
-        message.hasOwnProperty("github_token")
-      )
-        if (!$util.isString(message.github_token))
-          return "github_token: string expected";
-      return null;
-    };
-
-    /**
-     * Creates an UpdateHistoryRequest message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof history.UpdateHistoryRequest
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {history.UpdateHistoryRequest} UpdateHistoryRequest
-     */
-    UpdateHistoryRequest.fromObject = function fromObject(object) {
-      if (object instanceof $root.history.UpdateHistoryRequest) return object;
-      let message = new $root.history.UpdateHistoryRequest();
-      if (object.session_id != null)
-        message.session_id = String(object.session_id);
-      if (object.prompt != null) {
-        if (typeof object.prompt !== "object")
-          throw TypeError(
-            ".history.UpdateHistoryRequest.prompt: object expected",
-          );
-        message.prompt = $root.common.Prompt.fromObject(object.prompt);
-      }
-      if (object.github_token != null)
-        message.github_token = String(object.github_token);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from an UpdateHistoryRequest message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof history.UpdateHistoryRequest
-     * @static
-     * @param {history.UpdateHistoryRequest} message UpdateHistoryRequest
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    UpdateHistoryRequest.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) {
-        object.session_id = "";
-        object.prompt = null;
-        object.github_token = "";
-      }
-      if (message.session_id != null && message.hasOwnProperty("session_id"))
-        object.session_id = message.session_id;
-      if (message.prompt != null && message.hasOwnProperty("prompt"))
-        object.prompt = $root.common.Prompt.toObject(message.prompt, options);
-      if (
-        message.github_token != null &&
-        message.hasOwnProperty("github_token")
-      )
-        object.github_token = message.github_token;
-      return object;
-    };
-
-    /**
-     * Converts this UpdateHistoryRequest to JSON.
-     * @function toJSON
-     * @memberof history.UpdateHistoryRequest
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    UpdateHistoryRequest.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for UpdateHistoryRequest
-     * @function getTypeUrl
-     * @memberof history.UpdateHistoryRequest
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    UpdateHistoryRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/history.UpdateHistoryRequest";
-    };
-
-    return UpdateHistoryRequest;
-  })();
-
-  history.UpdateHistoryResponse = (function () {
-    /**
-     * Properties of an UpdateHistoryResponse.
-     * @memberof history
-     * @interface IUpdateHistoryResponse
-     * @property {boolean|null} [success] UpdateHistoryResponse success
-     * @property {boolean|null} [optimized] UpdateHistoryResponse optimized
-     */
-
-    /**
-     * Constructs a new UpdateHistoryResponse.
-     * @memberof history
-     * @classdesc Represents an UpdateHistoryResponse.
-     * @implements IUpdateHistoryResponse
-     * @constructor
-     * @param {history.IUpdateHistoryResponse=} [properties] Properties to set
-     */
-    function UpdateHistoryResponse(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * UpdateHistoryResponse success.
-     * @member {boolean} success
-     * @memberof history.UpdateHistoryResponse
-     * @instance
-     */
-    UpdateHistoryResponse.prototype.success = false;
-
-    /**
-     * UpdateHistoryResponse optimized.
-     * @member {boolean} optimized
-     * @memberof history.UpdateHistoryResponse
-     * @instance
-     */
-    UpdateHistoryResponse.prototype.optimized = false;
-
-    /**
-     * Encodes the specified UpdateHistoryResponse message. Does not implicitly {@link history.UpdateHistoryResponse.verify|verify} messages.
-     * @function encode
-     * @memberof history.UpdateHistoryResponse
-     * @static
-     * @param {history.UpdateHistoryResponse} message UpdateHistoryResponse message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    UpdateHistoryResponse.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.success != null &&
-        Object.hasOwnProperty.call(message, "success")
-      )
-        writer.uint32(/* id 1, wireType 0 =*/ 8).bool(message.success);
-      if (
-        message.optimized != null &&
-        Object.hasOwnProperty.call(message, "optimized")
-      )
-        writer.uint32(/* id 2, wireType 0 =*/ 16).bool(message.optimized);
-      return writer;
-    };
-
-    /**
-     * Decodes an UpdateHistoryResponse message from the specified reader or buffer.
-     * @function decode
-     * @memberof history.UpdateHistoryResponse
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {history.UpdateHistoryResponse} UpdateHistoryResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    UpdateHistoryResponse.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.history.UpdateHistoryResponse();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.success = reader.bool();
-            break;
-          }
-          case 2: {
-            message.optimized = reader.bool();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies an UpdateHistoryResponse message.
-     * @function verify
-     * @memberof history.UpdateHistoryResponse
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    UpdateHistoryResponse.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.success != null && message.hasOwnProperty("success"))
-        if (typeof message.success !== "boolean")
-          return "success: boolean expected";
-      if (message.optimized != null && message.hasOwnProperty("optimized"))
-        if (typeof message.optimized !== "boolean")
-          return "optimized: boolean expected";
-      return null;
-    };
-
-    /**
-     * Creates an UpdateHistoryResponse message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof history.UpdateHistoryResponse
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {history.UpdateHistoryResponse} UpdateHistoryResponse
-     */
-    UpdateHistoryResponse.fromObject = function fromObject(object) {
-      if (object instanceof $root.history.UpdateHistoryResponse) return object;
-      let message = new $root.history.UpdateHistoryResponse();
-      if (object.success != null) message.success = Boolean(object.success);
-      if (object.optimized != null)
-        message.optimized = Boolean(object.optimized);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from an UpdateHistoryResponse message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof history.UpdateHistoryResponse
-     * @static
-     * @param {history.UpdateHistoryResponse} message UpdateHistoryResponse
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    UpdateHistoryResponse.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) {
-        object.success = false;
-        object.optimized = false;
-      }
-      if (message.success != null && message.hasOwnProperty("success"))
-        object.success = message.success;
-      if (message.optimized != null && message.hasOwnProperty("optimized"))
-        object.optimized = message.optimized;
-      return object;
-    };
-
-    /**
-     * Converts this UpdateHistoryResponse to JSON.
-     * @function toJSON
-     * @memberof history.UpdateHistoryResponse
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    UpdateHistoryResponse.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for UpdateHistoryResponse
-     * @function getTypeUrl
-     * @memberof history.UpdateHistoryResponse
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    UpdateHistoryResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/history.UpdateHistoryResponse";
-    };
-
-    return UpdateHistoryResponse;
-  })();
-
-  return history;
 })());
 
 export const llm = ($root.llm = (() => {
@@ -6332,9 +5650,9 @@ export const llm = ($root.llm = (() => {
      * Properties of a CompletionsRequest.
      * @memberof llm
      * @interface ICompletionsRequest
-     * @property {common.Prompt|null} [prompt] CompletionsRequest prompt
-     * @property {string|null} [github_token] CompletionsRequest github_token
+     * @property {Array.<common.MessageV2>|null} [messages] CompletionsRequest messages
      * @property {number|null} [temperature] CompletionsRequest temperature
+     * @property {string|null} [github_token] CompletionsRequest github_token
      */
 
     /**
@@ -6346,26 +5664,19 @@ export const llm = ($root.llm = (() => {
      * @param {llm.ICompletionsRequest=} [properties] Properties to set
      */
     function CompletionsRequest(properties) {
+      this.messages = [];
       if (properties)
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
     }
 
     /**
-     * CompletionsRequest prompt.
-     * @member {common.Prompt|null|undefined} prompt
+     * CompletionsRequest messages.
+     * @member {Array.<common.MessageV2>} messages
      * @memberof llm.CompletionsRequest
      * @instance
      */
-    CompletionsRequest.prototype.prompt = null;
-
-    /**
-     * CompletionsRequest github_token.
-     * @member {string} github_token
-     * @memberof llm.CompletionsRequest
-     * @instance
-     */
-    CompletionsRequest.prototype.github_token = "";
+    CompletionsRequest.prototype.messages = $util.emptyArray;
 
     /**
      * CompletionsRequest temperature.
@@ -6374,6 +5685,14 @@ export const llm = ($root.llm = (() => {
      * @instance
      */
     CompletionsRequest.prototype.temperature = null;
+
+    /**
+     * CompletionsRequest github_token.
+     * @member {string} github_token
+     * @memberof llm.CompletionsRequest
+     * @instance
+     */
+    CompletionsRequest.prototype.github_token = "";
 
     // OneOf field names bound to virtual getters and setters
     let $oneOfFields;
@@ -6400,14 +5719,12 @@ export const llm = ($root.llm = (() => {
      */
     CompletionsRequest.encode = function encode(message, writer) {
       if (!writer) writer = $Writer.create();
-      if (
-        message.prompt != null &&
-        Object.hasOwnProperty.call(message, "prompt")
-      )
-        $root.common.Prompt.encode(
-          message.prompt,
-          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
-        ).ldelim();
+      if (message.messages != null && message.messages.length)
+        for (let i = 0; i < message.messages.length; ++i)
+          $root.common.MessageV2.encode(
+            message.messages[i],
+            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          ).ldelim();
       if (
         message.temperature != null &&
         Object.hasOwnProperty.call(message, "temperature")
@@ -6441,18 +5758,19 @@ export const llm = ($root.llm = (() => {
         if (tag === error) break;
         switch (tag >>> 3) {
           case 1: {
-            message.prompt = $root.common.Prompt.decode(
-              reader,
-              reader.uint32(),
+            if (!(message.messages && message.messages.length))
+              message.messages = [];
+            message.messages.push(
+              $root.common.MessageV2.decode(reader, reader.uint32()),
             );
-            break;
-          }
-          case 3: {
-            message.github_token = reader.string();
             break;
           }
           case 2: {
             message.temperature = reader.float();
+            break;
+          }
+          case 3: {
+            message.github_token = reader.string();
             break;
           }
           default:
@@ -6475,16 +5793,13 @@ export const llm = ($root.llm = (() => {
       if (typeof message !== "object" || message === null)
         return "object expected";
       let properties = {};
-      if (message.prompt != null && message.hasOwnProperty("prompt")) {
-        let error = $root.common.Prompt.verify(message.prompt);
-        if (error) return "prompt." + error;
+      if (message.messages != null && message.hasOwnProperty("messages")) {
+        if (!Array.isArray(message.messages)) return "messages: array expected";
+        for (let i = 0; i < message.messages.length; ++i) {
+          let error = $root.common.MessageV2.verify(message.messages[i]);
+          if (error) return "messages." + error;
+        }
       }
-      if (
-        message.github_token != null &&
-        message.hasOwnProperty("github_token")
-      )
-        if (!$util.isString(message.github_token))
-          return "github_token: string expected";
       if (
         message.temperature != null &&
         message.hasOwnProperty("temperature")
@@ -6493,6 +5808,12 @@ export const llm = ($root.llm = (() => {
         if (typeof message.temperature !== "number")
           return "temperature: number expected";
       }
+      if (
+        message.github_token != null &&
+        message.hasOwnProperty("github_token")
+      )
+        if (!$util.isString(message.github_token))
+          return "github_token: string expected";
       return null;
     };
 
@@ -6507,15 +5828,24 @@ export const llm = ($root.llm = (() => {
     CompletionsRequest.fromObject = function fromObject(object) {
       if (object instanceof $root.llm.CompletionsRequest) return object;
       let message = new $root.llm.CompletionsRequest();
-      if (object.prompt != null) {
-        if (typeof object.prompt !== "object")
-          throw TypeError(".llm.CompletionsRequest.prompt: object expected");
-        message.prompt = $root.common.Prompt.fromObject(object.prompt);
+      if (object.messages) {
+        if (!Array.isArray(object.messages))
+          throw TypeError(".llm.CompletionsRequest.messages: array expected");
+        message.messages = [];
+        for (let i = 0; i < object.messages.length; ++i) {
+          if (typeof object.messages[i] !== "object")
+            throw TypeError(
+              ".llm.CompletionsRequest.messages: object expected",
+            );
+          message.messages[i] = $root.common.MessageV2.fromObject(
+            object.messages[i],
+          );
+        }
       }
-      if (object.github_token != null)
-        message.github_token = String(object.github_token);
       if (object.temperature != null)
         message.temperature = Number(object.temperature);
+      if (object.github_token != null)
+        message.github_token = String(object.github_token);
       return message;
     };
 
@@ -6531,12 +5861,16 @@ export const llm = ($root.llm = (() => {
     CompletionsRequest.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.defaults) {
-        object.prompt = null;
-        object.github_token = "";
+      if (options.arrays || options.defaults) object.messages = [];
+      if (options.defaults) object.github_token = "";
+      if (message.messages && message.messages.length) {
+        object.messages = [];
+        for (let j = 0; j < message.messages.length; ++j)
+          object.messages[j] = $root.common.MessageV2.toObject(
+            message.messages[j],
+            options,
+          );
       }
-      if (message.prompt != null && message.hasOwnProperty("prompt"))
-        object.prompt = $root.common.Prompt.toObject(message.prompt, options);
       if (
         message.temperature != null &&
         message.hasOwnProperty("temperature")
@@ -6939,410 +6273,6 @@ export const llm = ($root.llm = (() => {
   })();
 
   return llm;
-})());
-
-export const text = ($root.text = (() => {
-  /**
-   * Namespace text.
-   * @exports text
-   * @namespace
-   */
-  const text = {};
-
-  text.GetChunksRequest = (function () {
-    /**
-     * Properties of a GetChunksRequest.
-     * @memberof text
-     * @interface IGetChunksRequest
-     * @property {Array.<string>|null} [ids] GetChunksRequest ids
-     */
-
-    /**
-     * Constructs a new GetChunksRequest.
-     * @memberof text
-     * @classdesc Represents a GetChunksRequest.
-     * @implements IGetChunksRequest
-     * @constructor
-     * @param {text.IGetChunksRequest=} [properties] Properties to set
-     */
-    function GetChunksRequest(properties) {
-      this.ids = [];
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * GetChunksRequest ids.
-     * @member {Array.<string>} ids
-     * @memberof text.GetChunksRequest
-     * @instance
-     */
-    GetChunksRequest.prototype.ids = $util.emptyArray;
-
-    /**
-     * Encodes the specified GetChunksRequest message. Does not implicitly {@link text.GetChunksRequest.verify|verify} messages.
-     * @function encode
-     * @memberof text.GetChunksRequest
-     * @static
-     * @param {text.GetChunksRequest} message GetChunksRequest message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    GetChunksRequest.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (message.ids != null && message.ids.length)
-        for (let i = 0; i < message.ids.length; ++i)
-          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.ids[i]);
-      return writer;
-    };
-
-    /**
-     * Decodes a GetChunksRequest message from the specified reader or buffer.
-     * @function decode
-     * @memberof text.GetChunksRequest
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {text.GetChunksRequest} GetChunksRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    GetChunksRequest.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.text.GetChunksRequest();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            if (!(message.ids && message.ids.length)) message.ids = [];
-            message.ids.push(reader.string());
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a GetChunksRequest message.
-     * @function verify
-     * @memberof text.GetChunksRequest
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    GetChunksRequest.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.ids != null && message.hasOwnProperty("ids")) {
-        if (!Array.isArray(message.ids)) return "ids: array expected";
-        for (let i = 0; i < message.ids.length; ++i)
-          if (!$util.isString(message.ids[i])) return "ids: string[] expected";
-      }
-      return null;
-    };
-
-    /**
-     * Creates a GetChunksRequest message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof text.GetChunksRequest
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {text.GetChunksRequest} GetChunksRequest
-     */
-    GetChunksRequest.fromObject = function fromObject(object) {
-      if (object instanceof $root.text.GetChunksRequest) return object;
-      let message = new $root.text.GetChunksRequest();
-      if (object.ids) {
-        if (!Array.isArray(object.ids))
-          throw TypeError(".text.GetChunksRequest.ids: array expected");
-        message.ids = [];
-        for (let i = 0; i < object.ids.length; ++i)
-          message.ids[i] = String(object.ids[i]);
-      }
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a GetChunksRequest message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof text.GetChunksRequest
-     * @static
-     * @param {text.GetChunksRequest} message GetChunksRequest
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    GetChunksRequest.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.arrays || options.defaults) object.ids = [];
-      if (message.ids && message.ids.length) {
-        object.ids = [];
-        for (let j = 0; j < message.ids.length; ++j)
-          object.ids[j] = message.ids[j];
-      }
-      return object;
-    };
-
-    /**
-     * Converts this GetChunksRequest to JSON.
-     * @function toJSON
-     * @memberof text.GetChunksRequest
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    GetChunksRequest.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for GetChunksRequest
-     * @function getTypeUrl
-     * @memberof text.GetChunksRequest
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    GetChunksRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/text.GetChunksRequest";
-    };
-
-    return GetChunksRequest;
-  })();
-
-  text.GetChunksResponse = (function () {
-    /**
-     * Properties of a GetChunksResponse.
-     * @memberof text
-     * @interface IGetChunksResponse
-     * @property {Object.<string,common.Chunk>|null} [chunks] GetChunksResponse chunks
-     */
-
-    /**
-     * Constructs a new GetChunksResponse.
-     * @memberof text
-     * @classdesc Represents a GetChunksResponse.
-     * @implements IGetChunksResponse
-     * @constructor
-     * @param {text.IGetChunksResponse=} [properties] Properties to set
-     */
-    function GetChunksResponse(properties) {
-      this.chunks = {};
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * GetChunksResponse chunks.
-     * @member {Object.<string,common.Chunk>} chunks
-     * @memberof text.GetChunksResponse
-     * @instance
-     */
-    GetChunksResponse.prototype.chunks = $util.emptyObject;
-
-    /**
-     * Encodes the specified GetChunksResponse message. Does not implicitly {@link text.GetChunksResponse.verify|verify} messages.
-     * @function encode
-     * @memberof text.GetChunksResponse
-     * @static
-     * @param {text.GetChunksResponse} message GetChunksResponse message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    GetChunksResponse.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.chunks != null &&
-        Object.hasOwnProperty.call(message, "chunks")
-      )
-        for (
-          let keys = Object.keys(message.chunks), i = 0;
-          i < keys.length;
-          ++i
-        ) {
-          writer
-            .uint32(/* id 1, wireType 2 =*/ 10)
-            .fork()
-            .uint32(/* id 1, wireType 2 =*/ 10)
-            .string(keys[i]);
-          $root.common.Chunk.encode(
-            message.chunks[keys[i]],
-            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
-          )
-            .ldelim()
-            .ldelim();
-        }
-      return writer;
-    };
-
-    /**
-     * Decodes a GetChunksResponse message from the specified reader or buffer.
-     * @function decode
-     * @memberof text.GetChunksResponse
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {text.GetChunksResponse} GetChunksResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    GetChunksResponse.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.text.GetChunksResponse(),
-        key,
-        value;
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            if (message.chunks === $util.emptyObject) message.chunks = {};
-            let end2 = reader.uint32() + reader.pos;
-            key = "";
-            value = null;
-            while (reader.pos < end2) {
-              let tag2 = reader.uint32();
-              switch (tag2 >>> 3) {
-                case 1:
-                  key = reader.string();
-                  break;
-                case 2:
-                  value = $root.common.Chunk.decode(reader, reader.uint32());
-                  break;
-                default:
-                  reader.skipType(tag2 & 7);
-                  break;
-              }
-            }
-            message.chunks[key] = value;
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a GetChunksResponse message.
-     * @function verify
-     * @memberof text.GetChunksResponse
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    GetChunksResponse.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.chunks != null && message.hasOwnProperty("chunks")) {
-        if (!$util.isObject(message.chunks)) return "chunks: object expected";
-        let key = Object.keys(message.chunks);
-        for (let i = 0; i < key.length; ++i) {
-          let error = $root.common.Chunk.verify(message.chunks[key[i]]);
-          if (error) return "chunks." + error;
-        }
-      }
-      return null;
-    };
-
-    /**
-     * Creates a GetChunksResponse message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof text.GetChunksResponse
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {text.GetChunksResponse} GetChunksResponse
-     */
-    GetChunksResponse.fromObject = function fromObject(object) {
-      if (object instanceof $root.text.GetChunksResponse) return object;
-      let message = new $root.text.GetChunksResponse();
-      if (object.chunks) {
-        if (typeof object.chunks !== "object")
-          throw TypeError(".text.GetChunksResponse.chunks: object expected");
-        message.chunks = {};
-        for (
-          let keys = Object.keys(object.chunks), i = 0;
-          i < keys.length;
-          ++i
-        ) {
-          if (typeof object.chunks[keys[i]] !== "object")
-            throw TypeError(".text.GetChunksResponse.chunks: object expected");
-          message.chunks[keys[i]] = $root.common.Chunk.fromObject(
-            object.chunks[keys[i]],
-          );
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a GetChunksResponse message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof text.GetChunksResponse
-     * @static
-     * @param {text.GetChunksResponse} message GetChunksResponse
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    GetChunksResponse.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.objects || options.defaults) object.chunks = {};
-      let keys2;
-      if (message.chunks && (keys2 = Object.keys(message.chunks)).length) {
-        object.chunks = {};
-        for (let j = 0; j < keys2.length; ++j)
-          object.chunks[keys2[j]] = $root.common.Chunk.toObject(
-            message.chunks[keys2[j]],
-            options,
-          );
-      }
-      return object;
-    };
-
-    /**
-     * Converts this GetChunksResponse to JSON.
-     * @function toJSON
-     * @memberof text.GetChunksResponse
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    GetChunksResponse.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for GetChunksResponse
-     * @function getTypeUrl
-     * @memberof text.GetChunksResponse
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    GetChunksResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/text.GetChunksResponse";
-    };
-
-    return GetChunksResponse;
-  })();
-
-  return text;
 })());
 
 export const vector = ($root.vector = (() => {
@@ -8129,7 +7059,1558 @@ export const vector = ($root.vector = (() => {
     return QueryItemsResponse;
   })();
 
+  vector.GetItemRequest = (function () {
+    /**
+     * Properties of a GetItemRequest.
+     * @memberof vector
+     * @interface IGetItemRequest
+     * @property {string|null} [index] GetItemRequest index
+     * @property {string|null} [id] GetItemRequest id
+     */
+
+    /**
+     * Constructs a new GetItemRequest.
+     * @memberof vector
+     * @classdesc Represents a GetItemRequest.
+     * @implements IGetItemRequest
+     * @constructor
+     * @param {vector.IGetItemRequest=} [properties] Properties to set
+     */
+    function GetItemRequest(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * GetItemRequest index.
+     * @member {string} index
+     * @memberof vector.GetItemRequest
+     * @instance
+     */
+    GetItemRequest.prototype.index = "";
+
+    /**
+     * GetItemRequest id.
+     * @member {string} id
+     * @memberof vector.GetItemRequest
+     * @instance
+     */
+    GetItemRequest.prototype.id = "";
+
+    /**
+     * Encodes the specified GetItemRequest message. Does not implicitly {@link vector.GetItemRequest.verify|verify} messages.
+     * @function encode
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {vector.GetItemRequest} message GetItemRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetItemRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.index);
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.id);
+      return writer;
+    };
+
+    /**
+     * Decodes a GetItemRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.GetItemRequest} GetItemRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetItemRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.GetItemRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.index = reader.string();
+            break;
+          }
+          case 2: {
+            message.id = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a GetItemRequest message.
+     * @function verify
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    GetItemRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.index != null && message.hasOwnProperty("index"))
+        if (!$util.isString(message.index)) return "index: string expected";
+      if (message.id != null && message.hasOwnProperty("id"))
+        if (!$util.isString(message.id)) return "id: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a GetItemRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.GetItemRequest} GetItemRequest
+     */
+    GetItemRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.GetItemRequest) return object;
+      let message = new $root.vector.GetItemRequest();
+      if (object.index != null) message.index = String(object.index);
+      if (object.id != null) message.id = String(object.id);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a GetItemRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {vector.GetItemRequest} message GetItemRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    GetItemRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.index = "";
+        object.id = "";
+      }
+      if (message.index != null && message.hasOwnProperty("index"))
+        object.index = message.index;
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = message.id;
+      return object;
+    };
+
+    /**
+     * Converts this GetItemRequest to JSON.
+     * @function toJSON
+     * @memberof vector.GetItemRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    GetItemRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for GetItemRequest
+     * @function getTypeUrl
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    GetItemRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.GetItemRequest";
+    };
+
+    return GetItemRequest;
+  })();
+
+  vector.GetItemResponse = (function () {
+    /**
+     * Properties of a GetItemResponse.
+     * @memberof vector
+     * @interface IGetItemResponse
+     * @property {resource.Identifier|null} [identifier] GetItemResponse identifier
+     */
+
+    /**
+     * Constructs a new GetItemResponse.
+     * @memberof vector
+     * @classdesc Represents a GetItemResponse.
+     * @implements IGetItemResponse
+     * @constructor
+     * @param {vector.IGetItemResponse=} [properties] Properties to set
+     */
+    function GetItemResponse(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * GetItemResponse identifier.
+     * @member {resource.Identifier|null|undefined} identifier
+     * @memberof vector.GetItemResponse
+     * @instance
+     */
+    GetItemResponse.prototype.identifier = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * GetItemResponse _identifier.
+     * @member {"identifier"|undefined} _identifier
+     * @memberof vector.GetItemResponse
+     * @instance
+     */
+    Object.defineProperty(GetItemResponse.prototype, "_identifier", {
+      get: $util.oneOfGetter(($oneOfFields = ["identifier"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified GetItemResponse message. Does not implicitly {@link vector.GetItemResponse.verify|verify} messages.
+     * @function encode
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {vector.GetItemResponse} message GetItemResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetItemResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.identifier != null &&
+        Object.hasOwnProperty.call(message, "identifier")
+      )
+        $root.resource.Identifier.encode(
+          message.identifier,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a GetItemResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.GetItemResponse} GetItemResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetItemResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.GetItemResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.identifier = $root.resource.Identifier.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a GetItemResponse message.
+     * @function verify
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    GetItemResponse.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.identifier != null && message.hasOwnProperty("identifier")) {
+        properties._identifier = 1;
+        {
+          let error = $root.resource.Identifier.verify(message.identifier);
+          if (error) return "identifier." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a GetItemResponse message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.GetItemResponse} GetItemResponse
+     */
+    GetItemResponse.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.GetItemResponse) return object;
+      let message = new $root.vector.GetItemResponse();
+      if (object.identifier != null) {
+        if (typeof object.identifier !== "object")
+          throw TypeError(
+            ".vector.GetItemResponse.identifier: object expected",
+          );
+        message.identifier = $root.resource.Identifier.fromObject(
+          object.identifier,
+        );
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a GetItemResponse message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {vector.GetItemResponse} message GetItemResponse
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    GetItemResponse.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (message.identifier != null && message.hasOwnProperty("identifier")) {
+        object.identifier = $root.resource.Identifier.toObject(
+          message.identifier,
+          options,
+        );
+        if (options.oneofs) object._identifier = "identifier";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this GetItemResponse to JSON.
+     * @function toJSON
+     * @memberof vector.GetItemResponse
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    GetItemResponse.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for GetItemResponse
+     * @function getTypeUrl
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    GetItemResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.GetItemResponse";
+    };
+
+    return GetItemResponse;
+  })();
+
   return vector;
+})());
+
+export const memory = ($root.memory = (() => {
+  /**
+   * Namespace memory.
+   * @exports memory
+   * @namespace
+   */
+  const memory = {};
+
+  memory.AppendRequest = (function () {
+    /**
+     * Properties of an AppendRequest.
+     * @memberof memory
+     * @interface IAppendRequest
+     * @property {string|null} ["for"] AppendRequest for
+     * @property {Array.<resource.Identifier>|null} [identifiers] AppendRequest identifiers
+     */
+
+    /**
+     * Constructs a new AppendRequest.
+     * @memberof memory
+     * @classdesc Represents an AppendRequest.
+     * @implements IAppendRequest
+     * @constructor
+     * @param {memory.IAppendRequest=} [properties] Properties to set
+     */
+    function AppendRequest(properties) {
+      this.identifiers = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * AppendRequest for.
+     * @member {string} for
+     * @memberof memory.AppendRequest
+     * @instance
+     */
+    AppendRequest.prototype["for"] = "";
+
+    /**
+     * AppendRequest identifiers.
+     * @member {Array.<resource.Identifier>} identifiers
+     * @memberof memory.AppendRequest
+     * @instance
+     */
+    AppendRequest.prototype.identifiers = $util.emptyArray;
+
+    /**
+     * Encodes the specified AppendRequest message. Does not implicitly {@link memory.AppendRequest.verify|verify} messages.
+     * @function encode
+     * @memberof memory.AppendRequest
+     * @static
+     * @param {memory.AppendRequest} message AppendRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    AppendRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message["for"] != null && Object.hasOwnProperty.call(message, "for"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message["for"]);
+      if (message.identifiers != null && message.identifiers.length)
+        for (let i = 0; i < message.identifiers.length; ++i)
+          $root.resource.Identifier.encode(
+            message.identifiers[i],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes an AppendRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof memory.AppendRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {memory.AppendRequest} AppendRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    AppendRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.memory.AppendRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message["for"] = reader.string();
+            break;
+          }
+          case 2: {
+            if (!(message.identifiers && message.identifiers.length))
+              message.identifiers = [];
+            message.identifiers.push(
+              $root.resource.Identifier.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies an AppendRequest message.
+     * @function verify
+     * @memberof memory.AppendRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    AppendRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message["for"] != null && message.hasOwnProperty("for"))
+        if (!$util.isString(message["for"])) return "for: string expected";
+      if (
+        message.identifiers != null &&
+        message.hasOwnProperty("identifiers")
+      ) {
+        if (!Array.isArray(message.identifiers))
+          return "identifiers: array expected";
+        for (let i = 0; i < message.identifiers.length; ++i) {
+          let error = $root.resource.Identifier.verify(message.identifiers[i]);
+          if (error) return "identifiers." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates an AppendRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof memory.AppendRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {memory.AppendRequest} AppendRequest
+     */
+    AppendRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.memory.AppendRequest) return object;
+      let message = new $root.memory.AppendRequest();
+      if (object["for"] != null) message["for"] = String(object["for"]);
+      if (object.identifiers) {
+        if (!Array.isArray(object.identifiers))
+          throw TypeError(".memory.AppendRequest.identifiers: array expected");
+        message.identifiers = [];
+        for (let i = 0; i < object.identifiers.length; ++i) {
+          if (typeof object.identifiers[i] !== "object")
+            throw TypeError(
+              ".memory.AppendRequest.identifiers: object expected",
+            );
+          message.identifiers[i] = $root.resource.Identifier.fromObject(
+            object.identifiers[i],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from an AppendRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof memory.AppendRequest
+     * @static
+     * @param {memory.AppendRequest} message AppendRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    AppendRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.identifiers = [];
+      if (options.defaults) object["for"] = "";
+      if (message["for"] != null && message.hasOwnProperty("for"))
+        object["for"] = message["for"];
+      if (message.identifiers && message.identifiers.length) {
+        object.identifiers = [];
+        for (let j = 0; j < message.identifiers.length; ++j)
+          object.identifiers[j] = $root.resource.Identifier.toObject(
+            message.identifiers[j],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this AppendRequest to JSON.
+     * @function toJSON
+     * @memberof memory.AppendRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    AppendRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for AppendRequest
+     * @function getTypeUrl
+     * @memberof memory.AppendRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    AppendRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/memory.AppendRequest";
+    };
+
+    return AppendRequest;
+  })();
+
+  memory.AppendResponse = (function () {
+    /**
+     * Properties of an AppendResponse.
+     * @memberof memory
+     * @interface IAppendResponse
+     * @property {string|null} [accepted] AppendResponse accepted
+     */
+
+    /**
+     * Constructs a new AppendResponse.
+     * @memberof memory
+     * @classdesc Represents an AppendResponse.
+     * @implements IAppendResponse
+     * @constructor
+     * @param {memory.IAppendResponse=} [properties] Properties to set
+     */
+    function AppendResponse(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * AppendResponse accepted.
+     * @member {string} accepted
+     * @memberof memory.AppendResponse
+     * @instance
+     */
+    AppendResponse.prototype.accepted = "";
+
+    /**
+     * Encodes the specified AppendResponse message. Does not implicitly {@link memory.AppendResponse.verify|verify} messages.
+     * @function encode
+     * @memberof memory.AppendResponse
+     * @static
+     * @param {memory.AppendResponse} message AppendResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    AppendResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.accepted != null &&
+        Object.hasOwnProperty.call(message, "accepted")
+      )
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.accepted);
+      return writer;
+    };
+
+    /**
+     * Decodes an AppendResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof memory.AppendResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {memory.AppendResponse} AppendResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    AppendResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.memory.AppendResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.accepted = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies an AppendResponse message.
+     * @function verify
+     * @memberof memory.AppendResponse
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    AppendResponse.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.accepted != null && message.hasOwnProperty("accepted"))
+        if (!$util.isString(message.accepted))
+          return "accepted: string expected";
+      return null;
+    };
+
+    /**
+     * Creates an AppendResponse message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof memory.AppendResponse
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {memory.AppendResponse} AppendResponse
+     */
+    AppendResponse.fromObject = function fromObject(object) {
+      if (object instanceof $root.memory.AppendResponse) return object;
+      let message = new $root.memory.AppendResponse();
+      if (object.accepted != null) message.accepted = String(object.accepted);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from an AppendResponse message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof memory.AppendResponse
+     * @static
+     * @param {memory.AppendResponse} message AppendResponse
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    AppendResponse.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) object.accepted = "";
+      if (message.accepted != null && message.hasOwnProperty("accepted"))
+        object.accepted = message.accepted;
+      return object;
+    };
+
+    /**
+     * Converts this AppendResponse to JSON.
+     * @function toJSON
+     * @memberof memory.AppendResponse
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    AppendResponse.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for AppendResponse
+     * @function getTypeUrl
+     * @memberof memory.AppendResponse
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    AppendResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/memory.AppendResponse";
+    };
+
+    return AppendResponse;
+  })();
+
+  memory.WindowRequest = (function () {
+    /**
+     * Properties of a WindowRequest.
+     * @memberof memory
+     * @interface IWindowRequest
+     * @property {string|null} ["for"] WindowRequest for
+     * @property {Array.<number>|null} [vector] WindowRequest vector
+     * @property {number|null} [budget] WindowRequest budget
+     * @property {memory.WindowRequest.Allocation|null} [allocation] WindowRequest allocation
+     */
+
+    /**
+     * Constructs a new WindowRequest.
+     * @memberof memory
+     * @classdesc Represents a WindowRequest.
+     * @implements IWindowRequest
+     * @constructor
+     * @param {memory.IWindowRequest=} [properties] Properties to set
+     */
+    function WindowRequest(properties) {
+      this.vector = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * WindowRequest for.
+     * @member {string} for
+     * @memberof memory.WindowRequest
+     * @instance
+     */
+    WindowRequest.prototype["for"] = "";
+
+    /**
+     * WindowRequest vector.
+     * @member {Array.<number>} vector
+     * @memberof memory.WindowRequest
+     * @instance
+     */
+    WindowRequest.prototype.vector = $util.emptyArray;
+
+    /**
+     * WindowRequest budget.
+     * @member {number} budget
+     * @memberof memory.WindowRequest
+     * @instance
+     */
+    WindowRequest.prototype.budget = 0;
+
+    /**
+     * WindowRequest allocation.
+     * @member {memory.WindowRequest.Allocation|null|undefined} allocation
+     * @memberof memory.WindowRequest
+     * @instance
+     */
+    WindowRequest.prototype.allocation = null;
+
+    /**
+     * Encodes the specified WindowRequest message. Does not implicitly {@link memory.WindowRequest.verify|verify} messages.
+     * @function encode
+     * @memberof memory.WindowRequest
+     * @static
+     * @param {memory.WindowRequest} message WindowRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    WindowRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message["for"] != null && Object.hasOwnProperty.call(message, "for"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message["for"]);
+      if (message.vector != null && message.vector.length) {
+        writer.uint32(/* id 2, wireType 2 =*/ 18).fork();
+        for (let i = 0; i < message.vector.length; ++i)
+          writer.double(message.vector[i]);
+        writer.ldelim();
+      }
+      if (
+        message.budget != null &&
+        Object.hasOwnProperty.call(message, "budget")
+      )
+        writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.budget);
+      if (
+        message.allocation != null &&
+        Object.hasOwnProperty.call(message, "allocation")
+      )
+        $root.memory.WindowRequest.Allocation.encode(
+          message.allocation,
+          writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a WindowRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof memory.WindowRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {memory.WindowRequest} WindowRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    WindowRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.memory.WindowRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message["for"] = reader.string();
+            break;
+          }
+          case 2: {
+            if (!(message.vector && message.vector.length)) message.vector = [];
+            if ((tag & 7) === 2) {
+              let end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) message.vector.push(reader.double());
+            } else message.vector.push(reader.double());
+            break;
+          }
+          case 3: {
+            message.budget = reader.int32();
+            break;
+          }
+          case 4: {
+            message.allocation = $root.memory.WindowRequest.Allocation.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a WindowRequest message.
+     * @function verify
+     * @memberof memory.WindowRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    WindowRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message["for"] != null && message.hasOwnProperty("for"))
+        if (!$util.isString(message["for"])) return "for: string expected";
+      if (message.vector != null && message.hasOwnProperty("vector")) {
+        if (!Array.isArray(message.vector)) return "vector: array expected";
+        for (let i = 0; i < message.vector.length; ++i)
+          if (typeof message.vector[i] !== "number")
+            return "vector: number[] expected";
+      }
+      if (message.budget != null && message.hasOwnProperty("budget"))
+        if (!$util.isInteger(message.budget)) return "budget: integer expected";
+      if (message.allocation != null && message.hasOwnProperty("allocation")) {
+        let error = $root.memory.WindowRequest.Allocation.verify(
+          message.allocation,
+        );
+        if (error) return "allocation." + error;
+      }
+      return null;
+    };
+
+    /**
+     * Creates a WindowRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof memory.WindowRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {memory.WindowRequest} WindowRequest
+     */
+    WindowRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.memory.WindowRequest) return object;
+      let message = new $root.memory.WindowRequest();
+      if (object["for"] != null) message["for"] = String(object["for"]);
+      if (object.vector) {
+        if (!Array.isArray(object.vector))
+          throw TypeError(".memory.WindowRequest.vector: array expected");
+        message.vector = [];
+        for (let i = 0; i < object.vector.length; ++i)
+          message.vector[i] = Number(object.vector[i]);
+      }
+      if (object.budget != null) message.budget = object.budget | 0;
+      if (object.allocation != null) {
+        if (typeof object.allocation !== "object")
+          throw TypeError(".memory.WindowRequest.allocation: object expected");
+        message.allocation = $root.memory.WindowRequest.Allocation.fromObject(
+          object.allocation,
+        );
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a WindowRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof memory.WindowRequest
+     * @static
+     * @param {memory.WindowRequest} message WindowRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    WindowRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.vector = [];
+      if (options.defaults) {
+        object["for"] = "";
+        object.budget = 0;
+        object.allocation = null;
+      }
+      if (message["for"] != null && message.hasOwnProperty("for"))
+        object["for"] = message["for"];
+      if (message.vector && message.vector.length) {
+        object.vector = [];
+        for (let j = 0; j < message.vector.length; ++j)
+          object.vector[j] =
+            options.json && !isFinite(message.vector[j])
+              ? String(message.vector[j])
+              : message.vector[j];
+      }
+      if (message.budget != null && message.hasOwnProperty("budget"))
+        object.budget = message.budget;
+      if (message.allocation != null && message.hasOwnProperty("allocation"))
+        object.allocation = $root.memory.WindowRequest.Allocation.toObject(
+          message.allocation,
+          options,
+        );
+      return object;
+    };
+
+    /**
+     * Converts this WindowRequest to JSON.
+     * @function toJSON
+     * @memberof memory.WindowRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    WindowRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for WindowRequest
+     * @function getTypeUrl
+     * @memberof memory.WindowRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    WindowRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/memory.WindowRequest";
+    };
+
+    WindowRequest.Allocation = (function () {
+      /**
+       * Properties of an Allocation.
+       * @memberof memory.WindowRequest
+       * @interface IAllocation
+       * @property {number|null} [tools] Allocation tools
+       * @property {number|null} [context] Allocation context
+       * @property {number|null} [history] Allocation history
+       */
+
+      /**
+       * Constructs a new Allocation.
+       * @memberof memory.WindowRequest
+       * @classdesc Represents an Allocation.
+       * @implements IAllocation
+       * @constructor
+       * @param {memory.WindowRequest.IAllocation=} [properties] Properties to set
+       */
+      function Allocation(properties) {
+        if (properties)
+          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * Allocation tools.
+       * @member {number} tools
+       * @memberof memory.WindowRequest.Allocation
+       * @instance
+       */
+      Allocation.prototype.tools = 0;
+
+      /**
+       * Allocation context.
+       * @member {number} context
+       * @memberof memory.WindowRequest.Allocation
+       * @instance
+       */
+      Allocation.prototype.context = 0;
+
+      /**
+       * Allocation history.
+       * @member {number} history
+       * @memberof memory.WindowRequest.Allocation
+       * @instance
+       */
+      Allocation.prototype.history = 0;
+
+      /**
+       * Encodes the specified Allocation message. Does not implicitly {@link memory.WindowRequest.Allocation.verify|verify} messages.
+       * @function encode
+       * @memberof memory.WindowRequest.Allocation
+       * @static
+       * @param {memory.WindowRequest.Allocation} message Allocation message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      Allocation.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.tools != null &&
+          Object.hasOwnProperty.call(message, "tools")
+        )
+          writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tools);
+        if (
+          message.context != null &&
+          Object.hasOwnProperty.call(message, "context")
+        )
+          writer.uint32(/* id 2, wireType 0 =*/ 16).int32(message.context);
+        if (
+          message.history != null &&
+          Object.hasOwnProperty.call(message, "history")
+        )
+          writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.history);
+        return writer;
+      };
+
+      /**
+       * Decodes an Allocation message from the specified reader or buffer.
+       * @function decode
+       * @memberof memory.WindowRequest.Allocation
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {memory.WindowRequest.Allocation} Allocation
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      Allocation.decode = function decode(reader, length, error) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        let end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.memory.WindowRequest.Allocation();
+        while (reader.pos < end) {
+          let tag = reader.uint32();
+          if (tag === error) break;
+          switch (tag >>> 3) {
+            case 1: {
+              message.tools = reader.int32();
+              break;
+            }
+            case 2: {
+              message.context = reader.int32();
+              break;
+            }
+            case 3: {
+              message.history = reader.int32();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Verifies an Allocation message.
+       * @function verify
+       * @memberof memory.WindowRequest.Allocation
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      Allocation.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.tools != null && message.hasOwnProperty("tools"))
+          if (!$util.isInteger(message.tools)) return "tools: integer expected";
+        if (message.context != null && message.hasOwnProperty("context"))
+          if (!$util.isInteger(message.context))
+            return "context: integer expected";
+        if (message.history != null && message.hasOwnProperty("history"))
+          if (!$util.isInteger(message.history))
+            return "history: integer expected";
+        return null;
+      };
+
+      /**
+       * Creates an Allocation message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof memory.WindowRequest.Allocation
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {memory.WindowRequest.Allocation} Allocation
+       */
+      Allocation.fromObject = function fromObject(object) {
+        if (object instanceof $root.memory.WindowRequest.Allocation)
+          return object;
+        let message = new $root.memory.WindowRequest.Allocation();
+        if (object.tools != null) message.tools = object.tools | 0;
+        if (object.context != null) message.context = object.context | 0;
+        if (object.history != null) message.history = object.history | 0;
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an Allocation message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof memory.WindowRequest.Allocation
+       * @static
+       * @param {memory.WindowRequest.Allocation} message Allocation
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      Allocation.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        let object = {};
+        if (options.defaults) {
+          object.tools = 0;
+          object.context = 0;
+          object.history = 0;
+        }
+        if (message.tools != null && message.hasOwnProperty("tools"))
+          object.tools = message.tools;
+        if (message.context != null && message.hasOwnProperty("context"))
+          object.context = message.context;
+        if (message.history != null && message.hasOwnProperty("history"))
+          object.history = message.history;
+        return object;
+      };
+
+      /**
+       * Converts this Allocation to JSON.
+       * @function toJSON
+       * @memberof memory.WindowRequest.Allocation
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      Allocation.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for Allocation
+       * @function getTypeUrl
+       * @memberof memory.WindowRequest.Allocation
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      Allocation.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/memory.WindowRequest.Allocation";
+      };
+
+      return Allocation;
+    })();
+
+    return WindowRequest;
+  })();
+
+  memory.Window = (function () {
+    /**
+     * Properties of a Window.
+     * @memberof memory
+     * @interface IWindow
+     * @property {string|null} ["for"] Window for
+     * @property {Array.<resource.Identifier>|null} [tools] Window tools
+     * @property {Array.<resource.Identifier>|null} [context] Window context
+     * @property {Array.<resource.Identifier>|null} [history] Window history
+     */
+
+    /**
+     * Constructs a new Window.
+     * @memberof memory
+     * @classdesc Represents a Window.
+     * @implements IWindow
+     * @constructor
+     * @param {memory.IWindow=} [properties] Properties to set
+     */
+    function Window(properties) {
+      this.tools = [];
+      this.context = [];
+      this.history = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Window for.
+     * @member {string} for
+     * @memberof memory.Window
+     * @instance
+     */
+    Window.prototype["for"] = "";
+
+    /**
+     * Window tools.
+     * @member {Array.<resource.Identifier>} tools
+     * @memberof memory.Window
+     * @instance
+     */
+    Window.prototype.tools = $util.emptyArray;
+
+    /**
+     * Window context.
+     * @member {Array.<resource.Identifier>} context
+     * @memberof memory.Window
+     * @instance
+     */
+    Window.prototype.context = $util.emptyArray;
+
+    /**
+     * Window history.
+     * @member {Array.<resource.Identifier>} history
+     * @memberof memory.Window
+     * @instance
+     */
+    Window.prototype.history = $util.emptyArray;
+
+    /**
+     * Encodes the specified Window message. Does not implicitly {@link memory.Window.verify|verify} messages.
+     * @function encode
+     * @memberof memory.Window
+     * @static
+     * @param {memory.Window} message Window message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Window.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message["for"] != null && Object.hasOwnProperty.call(message, "for"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message["for"]);
+      if (message.tools != null && message.tools.length)
+        for (let i = 0; i < message.tools.length; ++i)
+          $root.resource.Identifier.encode(
+            message.tools[i],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
+      if (message.context != null && message.context.length)
+        for (let i = 0; i < message.context.length; ++i)
+          $root.resource.Identifier.encode(
+            message.context[i],
+            writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+          ).ldelim();
+      if (message.history != null && message.history.length)
+        for (let i = 0; i < message.history.length; ++i)
+          $root.resource.Identifier.encode(
+            message.history[i],
+            writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a Window message from the specified reader or buffer.
+     * @function decode
+     * @memberof memory.Window
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {memory.Window} Window
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Window.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.memory.Window();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message["for"] = reader.string();
+            break;
+          }
+          case 2: {
+            if (!(message.tools && message.tools.length)) message.tools = [];
+            message.tools.push(
+              $root.resource.Identifier.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 3: {
+            if (!(message.context && message.context.length))
+              message.context = [];
+            message.context.push(
+              $root.resource.Identifier.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          case 4: {
+            if (!(message.history && message.history.length))
+              message.history = [];
+            message.history.push(
+              $root.resource.Identifier.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Window message.
+     * @function verify
+     * @memberof memory.Window
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Window.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message["for"] != null && message.hasOwnProperty("for"))
+        if (!$util.isString(message["for"])) return "for: string expected";
+      if (message.tools != null && message.hasOwnProperty("tools")) {
+        if (!Array.isArray(message.tools)) return "tools: array expected";
+        for (let i = 0; i < message.tools.length; ++i) {
+          let error = $root.resource.Identifier.verify(message.tools[i]);
+          if (error) return "tools." + error;
+        }
+      }
+      if (message.context != null && message.hasOwnProperty("context")) {
+        if (!Array.isArray(message.context)) return "context: array expected";
+        for (let i = 0; i < message.context.length; ++i) {
+          let error = $root.resource.Identifier.verify(message.context[i]);
+          if (error) return "context." + error;
+        }
+      }
+      if (message.history != null && message.hasOwnProperty("history")) {
+        if (!Array.isArray(message.history)) return "history: array expected";
+        for (let i = 0; i < message.history.length; ++i) {
+          let error = $root.resource.Identifier.verify(message.history[i]);
+          if (error) return "history." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Window message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof memory.Window
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {memory.Window} Window
+     */
+    Window.fromObject = function fromObject(object) {
+      if (object instanceof $root.memory.Window) return object;
+      let message = new $root.memory.Window();
+      if (object["for"] != null) message["for"] = String(object["for"]);
+      if (object.tools) {
+        if (!Array.isArray(object.tools))
+          throw TypeError(".memory.Window.tools: array expected");
+        message.tools = [];
+        for (let i = 0; i < object.tools.length; ++i) {
+          if (typeof object.tools[i] !== "object")
+            throw TypeError(".memory.Window.tools: object expected");
+          message.tools[i] = $root.resource.Identifier.fromObject(
+            object.tools[i],
+          );
+        }
+      }
+      if (object.context) {
+        if (!Array.isArray(object.context))
+          throw TypeError(".memory.Window.context: array expected");
+        message.context = [];
+        for (let i = 0; i < object.context.length; ++i) {
+          if (typeof object.context[i] !== "object")
+            throw TypeError(".memory.Window.context: object expected");
+          message.context[i] = $root.resource.Identifier.fromObject(
+            object.context[i],
+          );
+        }
+      }
+      if (object.history) {
+        if (!Array.isArray(object.history))
+          throw TypeError(".memory.Window.history: array expected");
+        message.history = [];
+        for (let i = 0; i < object.history.length; ++i) {
+          if (typeof object.history[i] !== "object")
+            throw TypeError(".memory.Window.history: object expected");
+          message.history[i] = $root.resource.Identifier.fromObject(
+            object.history[i],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Window message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof memory.Window
+     * @static
+     * @param {memory.Window} message Window
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Window.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) {
+        object.tools = [];
+        object.context = [];
+        object.history = [];
+      }
+      if (options.defaults) object["for"] = "";
+      if (message["for"] != null && message.hasOwnProperty("for"))
+        object["for"] = message["for"];
+      if (message.tools && message.tools.length) {
+        object.tools = [];
+        for (let j = 0; j < message.tools.length; ++j)
+          object.tools[j] = $root.resource.Identifier.toObject(
+            message.tools[j],
+            options,
+          );
+      }
+      if (message.context && message.context.length) {
+        object.context = [];
+        for (let j = 0; j < message.context.length; ++j)
+          object.context[j] = $root.resource.Identifier.toObject(
+            message.context[j],
+            options,
+          );
+      }
+      if (message.history && message.history.length) {
+        object.history = [];
+        for (let j = 0; j < message.history.length; ++j)
+          object.history[j] = $root.resource.Identifier.toObject(
+            message.history[j],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Window to JSON.
+     * @function toJSON
+     * @memberof memory.Window
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Window.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Window
+     * @function getTypeUrl
+     * @memberof memory.Window
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Window.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/memory.Window";
+    };
+
+    return Window;
+  })();
+
+  return memory;
 })());
 
 export { $root as default };

@@ -20,10 +20,11 @@ export class ReleaseBumperInterface {
    * Also updates package-lock.json in root directory after all bumps complete
    * @param {string} bumpType - Version bump type (patch, minor, major)
    * @param {string[]} items - Array of package paths to bump
+   * @param {{ force?: boolean }} [options] - Optional behavior flags
    * @returns {Promise<Array>} Array of bump results with type, name, and version
    * @throws {Error} Not implemented
    */
-  async bump(bumpType, items) {
+  async bump(bumpType, items, options) {
     throw new Error("ReleaseBumperInterface.bump() not implemented");
   }
 }

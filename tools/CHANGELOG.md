@@ -2,6 +2,11 @@
 
 ## 2025-09-03
 
+- Enhanced `release-bump.js` to accept `--force`/`-f` flag which overwrites
+  existing git tags when necessary
+
+## 2025-09-03
+
 - Updated `tools/token.js` to write tokens directly to `config/.ghtoken` instead
   of the repo root, removing the need to manually move the file
 - Updated `README.md` and `docs/getting-started.html` to reflect the new token

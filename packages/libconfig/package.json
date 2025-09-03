@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libconfig",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Configuration management and environment resolution for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

@@ -289,33 +289,267 @@ sequenceDiagram
 
 ### Step 10: New Tool Service
 
-**🎯 Objective**: Each tool should be a standardized gRPC call. Define a simple
-interface, and implement the first tool which is a vector search tool.
+**🎯 Objective**: Create an extensible `Tool` service that acts as a gRPC proxy
+between tool calls requested by `LLMs` and actual tool implementations, with
+automatic tool discovery and registration from `./tools/*.proto` files.
 
 **🔧 Implementation Details:**
 
-- Tools calls are implemented as gRPC calls
-- Tool resources with function parameter schema are code generated from protobuf
-  files
+1. **Tool Discovery**: Tools are defined as `.proto` files in `./tools/`
+   directory with `package toolbox;` namespace
+2. **Proxy Architecture**: Tool service routes tool calls to appropriate gRPC
+   endpoints based on service mappings in configuration
+3. **Auto-Registration**: `scripts/codegen.js` discovers tools and generates
+   `OpenAI`-compatible JSON schemas stored as resources
+4. **Dynamic Routing**: Tool service uses `hostname`/port mappings from
+   `ServiceConfig` to route calls to tool implementations
+5. **Extensible Design**: New tools can be added without modifying core services
+   by adding `.proto` files and updating configuration
 
-**📋 Tasks**:
+**📋 Detailed Tasks**:
 
-- Refine the protobuf types in `common.proto`
-- Define the protobuf request and response types
-- Provide a simple way to configure a map of tool names and host/port/method
-- Provide a standard container in which tools run
-- Define a separate Docker network in which tool containers run
-- Implement a simple policy that manage access to tools
-- Implement a vector search tool
-- Implement a simple single-agent version of the "Inner Loop" with tool calls
+#### Task 1: Create Tool Discovery Infrastructure
+
+- [ ] Create `tools/` directory structure in project root
+- [ ] Create sample tool proto `tools/vector_search.proto`:
+
+  ```proto
+  syntax = "proto3";
+
+  package toolbox;
+
+  service VectorSearch {
+    rpc SearchSimilar(SearchRequest) returns (SearchResponse);
+  }
+
+  message SearchRequest {
+    string query = 1;
+    optional int32 limit = 2;
+    optional double threshold = 3;
+  }
+
+  message SearchResponse {
+    repeated SearchResult results = 1;
+  }
+
+  message SearchResult {
+    string id = 1;
+    double score = 2;
+    string content = 3;
+  }
+  ```
+
+- [ ] Update `.gitignore` if needed to track `tools/` directory
+- [ ] Create `tools/README.md` with tool development guidelines
+
+#### Task 2: Extend Code Generation for Tool Discovery
+
+- [ ] Modify `scripts/codegen.js` to add `--tools` flag:
+  - Add new `runToolDiscovery()` function
+  - Scan `./tools/*.proto` files for `package toolbox;` definitions
+  - Generate `OpenAI`-compatible JSON schemas from protobuf definitions
+  - Output schemas to intermediate files for offline processing
+- [ ] Add tool schema generation logic:
+  - Parse protobuf field definitions to `OpenAI` function schemas
+  - Map protobuf types to JSON schema types (string, number, boolean, etc.)
+  - Generate required/optional field arrays from protobuf field rules
+  - Create tool descriptions from protobuf comments
+- [ ] Add `--tools` to `--all` flag processing
+- [ ] Test tool discovery with sample `vector_search.proto`
+
+#### Task 3: Define Tool Service Protocol
+
+- [ ] Create `proto/tool.proto` with proxy service definition:
+
+  ```proto
+  syntax = "proto3";
+
+  import "common.proto";
+
+  package tool;
+
+  service Tool {
+    rpc ExecuteTool(common.Tool) returns (common.ToolCallResult);
+    rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
+  }
+
+  message ListToolsRequest {
+    optional string namespace = 1;
+  }
+
+  message ListToolsResponse {
+    repeated common.Tool tools = 1;
+  }
+  ```
+
+- [ ] Run `npm run codegen` to generate service base and client
+- [ ] Verify generated files in `services/tool/` directory
+
+#### Task 4: Implement Tool Service Foundation
+
+- [ ] Create `services/tool/` directory structure:
+  - `services/tool/index.js` - Main `ToolService` implementation
+  - `services/tool/package.json` - Service dependencies
+  - `services/tool/Dockerfile` - Container definition
+  - `services/tool/CHANGELOG.md` - Component changelog
+- [ ] Implement `ToolService` extending `ToolBase`:
+  - Constructor accepts `ServiceConfig` following established patterns
+  - Access tool endpoint mappings via `this.config.endpoints` from loaded config
+  - Load available tools from `ResourceIndex` during initialization
+  - Create gRPC client connections to tool services based on config mapping
+  - Implement policy integration for tool access control
+
+#### Task 5: Implement Proxy Logic
+
+- [ ] Implement `ExecuteTool` method in `ToolService`:
+  - Parse tool function name to determine target service
+  - Look up service endpoint from configuration mapping
+  - Convert `common.Tool` request to appropriate protobuf message
+  - Create gRPC client connection to target service
+  - Forward request and convert response back to `common.ToolCallResult`
+  - Add comprehensive error handling and logging
+- [ ] Implement `ListTools` method:
+  - Query `ResourceIndex` for available tool schemas
+  - Return formatted tool definitions for LLM consumption
+  - Support namespace filtering for tool organization
+- [ ] Add connection pooling for tool service gRPC clients
+
+#### Task 6: Tool Configuration and Mapping
+
+- [ ] Define tool service configuration in `config/config.example.yml`:
+  ```yaml
+  service:
+    tool:
+      endpoints:
+        vector_search:
+          host: "vector"
+          port: 50051
+          service: "toolbox.VectorSearch"
+        # Additional tool endpoints...
+  ```
+- [ ] Tool service accesses endpoint mappings via `this.config.endpoints`
+- [ ] Create validation for tool configuration completeness in tool service
+- [ ] Environment variable overrides work through existing `ServiceConfig`
+      patterns
+
+#### Task 7: Create Tool Schema Resource Generator
+
+- [ ] Create `scripts/tools.js` following the pattern of `scripts/resources.js`:
+  - Accept command line arguments for tool discovery options
+  - Use `ScriptConfig.create("tools")` for configuration
+  - Initialize `ResourceIndex`, storage factories, and logging
+  - Process tool schemas generated by `scripts/codegen.js --tools`
+- [ ] Implement tool schema resource creation:
+  - Read `OpenAI`-compatible schemas from `codegen` output
+  - Generate resource files in appropriate resource directory
+  - Use proper resource URIs for tool schema identification
+  - Include tool metadata (description, parameters, examples)
+- [ ] Add resource querying support for dynamic tool discovery in `ToolService`
+
+#### Task 8: Sample Tool Implementation
+
+- [ ] Create sample vector search tool service:
+  - `tools/vector_search/index.js` - Tool implementation
+  - `tools/vector_search/Dockerfile` - Container definition
+  - `tools/vector_search/package.json` - Dependencies
+- [ ] Implement `toolbox.VectorSearch` service:
+  - Accept `SearchRequest` and return `SearchResponse`
+  - Integrate with existing `VectorClient` for actual search
+  - Follow established service patterns with proper logging
+- [ ] Add tool service to Docker configuration for testing
+
+#### Task 9: Docker and Development Integration
+
+- [ ] Add `tool` service to `docker-compose.yml`:
+  ```yaml
+  tool:
+    build:
+      context: .
+      dockerfile: ./services/tool/Dockerfile
+    image: copilot-ld/tool:latest
+    container_name: copilot-ld.tool
+    env_file: ./config/.env
+    networks:
+      - internal
+  ```
+- [ ] Add sample tool services to Docker configuration
+- [ ] Update `scripts/dev.js` to include tool services
+- [ ] Verify service startup and tool discovery functionality
+
+#### Task 10: Agent Integration
+
+- [ ] Add `ToolClient` dependency to `AgentService`:
+  - Update constructor with proper dependency injection
+  - Add tool client validation and initialization
+  - Update `services/agent/server.js` to create `ToolClient` instance
+- [ ] Implement tool call execution in `AgentService.ProcessRequest`:
+  - Detect tool calls in LLM responses
+  - Execute tools via `ToolClient.ExecuteTool` calls
+  - Handle tool results and format for LLM continuation
+  - Add error handling for tool execution failures
+- [ ] Implement basic Inner Loop with tool calling support
+
+#### Task 11: Testing and Validation
+
+- [ ] Create comprehensive test suite `test/tool-service.test.js`:
+  - Test tool discovery and schema generation
+  - Test tool proxy execution with sample vector search
+  - Test error handling for missing tools and invalid requests
+  - Test policy enforcement and access control
+- [ ] Create integration tests for end-to-end tool calling
+- [ ] Test tool configuration loading and endpoint mapping
+- [ ] Validate tool schema generation accuracy
+
+#### Task 12: Documentation Updates
+
+- [ ] Update `services/tool/CHANGELOG.md` with implementation details
+- [ ] Add tool service to `docs/architecture.html`:
+  ```html
+  <h4>Tool Service</h4>
+  <p>
+    <strong>Purpose</strong>: Acts as a gRPC proxy between LLM tool calls and
+    actual tool implementations, with automatic discovery from tools/*.proto
+  </p>
+  <p><strong>Key Operations</strong>:</p>
+  <ul>
+    <li>
+      <code>ExecuteTool</code>: Proxies tool calls to appropriate services
+    </li>
+    <li><code>ListTools</code>: Returns available tools for LLM consumption</li>
+  </ul>
+  ```
+- [ ] Create `tools/README.md` with tool development guidelines
+- [ ] Update main `README.md` with tool development workflow
 
 **✅ Success Criteria**:
 
-- Tools are provided to the LLM
-- Tool calls are requested by the LLM
-- Tool call results are returned
-- The chain of tool calls work without errors
-- A simple policy manage what actors can access a given tool
+1. **Tool Discovery**: Automatic discovery of tools from `./tools/*.proto` files
+2. **Schema Generation**: `OpenAI`-compatible schemas generated and stored as
+   resources
+3. **Proxy Functionality**: Tool service successfully routes calls to target
+   services
+4. **Configuration**: Tool endpoints configurable via service configuration
+5. **Extensibility**: New tools can be added without modifying core services
+6. **Agent Integration**: Agent service can discover and execute tools via proxy
+7. **Testing**: Comprehensive test coverage for tool discovery and execution
+
+**🔗 Dependencies**:
+
+- Current protobuf types in `common.proto` (already contain `Tool` and
+  `ToolCallResult`)
+- Existing `@copilot-ld/libpolicy` for access control
+- Existing `ResourceIndex` for tool schema storage
+- Existing service patterns and Docker infrastructure
+- Modified `scripts/codegen.js` for tool discovery
+
+**🚧 Implementation Notes**:
+
+- Tool service acts as a pure proxy - no business logic, just routing
+- Tools are separate gRPC services that can be developed independently
+- Configuration-driven endpoint mapping allows flexible deployment
+- Resource-based tool schemas enable dynamic tool discovery
+- Follows existing architectural patterns for consistency
+- Extensible design supports future tool ecosystem growth
 
 ## Step 11: New Event service
 

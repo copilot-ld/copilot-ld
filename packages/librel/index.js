@@ -30,14 +30,14 @@ export class ReleaseBumper extends ReleaseBumperInterface {
   }
 
   /** @inheritdoc */
-  async bump(bumpType, items) {
+  async bump(bumpType, items, options = {}) {
     // Capture initial working directory (assuming tool starts at repo root)
     const initialCwd = process.cwd();
 
     const results = [];
     const processed = new Set();
     for (const item of items) {
-      await this.#bumpRecursively(bumpType, item, results, processed);
+      await this.#bumpRecursively(bumpType, item, results, processed, options);
     }
 
     // Update package-lock.json in root after all bumps are complete
@@ -57,7 +57,7 @@ export class ReleaseBumper extends ReleaseBumperInterface {
     return results;
   }
 
-  async #bumpRecursively(bumpType, item, results, processed) {
+  async #bumpRecursively(bumpType, item, results, processed, options) {
     // Prevent infinite loops in circular dependencies
     if (processed.has(item)) return;
     processed.add(item);
@@ -80,7 +80,17 @@ export class ReleaseBumper extends ReleaseBumperInterface {
     if (this.#hasChanges(packagePath)) {
       this.#execSync(`git add ${packagePath}`);
       this.#execSync(`git commit -m "chore: bump ${name} to v${newVersion}"`);
-      this.#execSync(`git tag ${name}@v${newVersion}`);
+      // Create or update the tag. If it exists and force is true, overwrite it
+      try {
+        this.#execSync(`git tag ${name}@v${newVersion}`);
+      } catch (error) {
+        if (options.force === true) {
+          // Overwrite existing tag to point at the new commit
+          this.#execSync(`git tag -f ${name}@v${newVersion}`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     // Record the bump result
@@ -90,7 +100,13 @@ export class ReleaseBumper extends ReleaseBumperInterface {
     const dependents = this.#findDependents(packageName);
     for (const dependent of dependents) {
       this.#updateDependency(dependent, packageName, newVersion);
-      await this.#bumpRecursively(bumpType, dependent, results, processed);
+      await this.#bumpRecursively(
+        bumpType,
+        dependent,
+        results,
+        processed,
+        options,
+      );
     }
   }
 

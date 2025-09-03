@@ -287,32 +287,6 @@ sequenceDiagram
 
 ## Implementation Plan
 
-### Step 09: Rename tools to scripts
-
-**🎯 Objective:** Rename tools to scripts in order to not collide with the
-upcoming implementation of AI tools.
-
-**🔧 Implementation Details:**
-
-- DO rename all instances of "tool" to "script"
-- DO NOT rename the protobuf Tool type
-- DO NOT reference the previous state of tools
-- DO ONLY reference the new state
-
-**📋 Tasks**:
-
-- Rename the directory `./tools` to `./scripts`
-- Update classes, variables, logging namespaces to reference "script" instead of
-  "tool"
-- Update all documentation, including but not limited to `README.md`,
-  `getting-started.html` and `architecture.html`
-- Update all instructions in `.github/instructions`
-
-**✅ Success Criteria**:
-
-- The ONLY reference to "tool" in the ENTIRE codebase should be the existing
-  protobuf Tool types
-
 ### Step 10: New Tool Service
 
 **🎯 Objective**: Each tool should be a standardized gRPC call. Define a simple

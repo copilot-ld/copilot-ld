@@ -53,6 +53,7 @@ class AgentService extends AgentBase {
   #memoryClient;
   #llmClient;
   #vectorClient;
+  #toolClient;
   #resourceIndex;
   #octokitFactory;
 
@@ -62,6 +63,7 @@ class AgentService extends AgentBase {
    * @param {import("../memory/client.js").MemoryClient} memoryClient - Memory service client
    * @param {import("../llm/client.js").LlmClient} llmClient - LLM service client
    * @param {import("../vector/client.js").VectorClient} vectorClient - Vector service client
+   * @param {import("../tool/client.js").ToolClient} toolClient - Tool service client
    * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - ResourceIndex instance for data access
    * @param {(token: string) => object} octokitFactory - Factory function to create Octokit instances
    * @param {() => {grpc: object, protoLoader: object}} [grpcFn] - Optional gRPC factory function
@@ -73,6 +75,7 @@ class AgentService extends AgentBase {
     memoryClient,
     llmClient,
     vectorClient,
+    toolClient,
     resourceIndex,
     octokitFactory,
     grpcFn,
@@ -83,12 +86,14 @@ class AgentService extends AgentBase {
     if (!memoryClient) throw new Error("memoryClient is required");
     if (!llmClient) throw new Error("llmClient is required");
     if (!vectorClient) throw new Error("vectorClient is required");
+    if (!toolClient) throw new Error("toolClient is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
     if (!octokitFactory) throw new Error("octokitFactory is required");
 
     this.#memoryClient = memoryClient;
     this.#llmClient = llmClient;
     this.#vectorClient = vectorClient;
+    this.#toolClient = toolClient;
     this.#resourceIndex = resourceIndex;
     this.#octokitFactory = octokitFactory;
   }
@@ -109,6 +114,7 @@ class AgentService extends AgentBase {
       this.#memoryClient.ensureReady(),
       this.#llmClient.ensureReady(),
       this.#vectorClient.ensureReady(),
+      this.#toolClient.ensureReady(),
     ]);
 
     const octokit = this.#octokitFactory(req.github_token);
@@ -192,7 +198,7 @@ class AgentService extends AgentBase {
           : undefined,
       });
 
-      // Step 5: Get LLM completion
+      // Step 5: Get LLM completion with tool calling support
       completions = await this.#llmClient.CreateCompletions({
         messages: await toMessages(
           assistant,
@@ -204,7 +210,50 @@ class AgentService extends AgentBase {
         github_token: req.github_token,
       });
 
-      // Step 6: Save the response
+      // Step 6: Handle tool calls (basic Inner Loop implementation)
+      if (completions?.choices?.length > 0) {
+        const choice = completions.choices[0];
+
+        // Check if the response contains tool calls
+        if (choice.message?.tool_calls?.length > 0) {
+          this.debug("Processing tool calls", {
+            toolCalls: choice.message.tool_calls.length,
+          });
+
+          // Execute each tool call
+          const toolResults = [];
+          for (const toolCall of choice.message.tool_calls) {
+            try {
+              const toolResult = await this.#toolClient.ExecuteTool(toolCall);
+              toolResults.push(toolResult);
+
+              this.debug("Tool executed", {
+                toolId: toolCall.id,
+                success: true,
+              });
+            } catch (error) {
+              this.debug("Tool execution failed", {
+                toolId: toolCall.id,
+                error: error.message,
+              });
+
+              toolResults.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({ error: error.message }),
+              });
+            }
+          }
+
+          // TODO: Continue conversation with tool results
+          // For now, just log the tool results
+          this.debug("Tool results processed", {
+            results: toolResults.length,
+          });
+        }
+      }
+
+      // Step 7: Save the response
       if (completions?.choices?.length > 0) {
         this.debug("Completion received", {
           choices: completions.choices.length,

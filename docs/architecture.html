@@ -267,6 +267,47 @@ sequenceDiagram
         <code>content</code> index by default.
       </p>
 
+      <h5>Tool Service</h5>
+
+      <p>
+        Acts as a gRPC proxy between tool calls requested by LLMs and actual
+        tool implementations. Supports both mapping to existing services and
+        custom tool implementations through configuration-driven endpoint
+        mapping.
+      </p>
+
+      <p><strong>Key Operations</strong>:</p>
+      <ul>
+        <li>
+          <code>ExecuteTool</code>: Proxies tool calls to appropriate services
+          based on configuration mapping
+        </li>
+        <li>
+          <code>ListTools</code>: Returns available tools with OpenAI-compatible
+          schemas for LLM consumption
+        </li>
+      </ul>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Configuration-driven</strong>: Tools defined via endpoint
+          mappings in <code>config.yml</code>
+        </li>
+        <li>
+          <strong>Pure proxy</strong>: No business logic, just routing and
+          protocol conversion
+        </li>
+        <li>
+          <strong>Extensible</strong>: Supports mapping to existing services
+          (e.g., <code>vector.QueryItems</code>) and custom tools
+        </li>
+        <li>
+          <strong>Schema generation</strong>: Automatically generates
+          OpenAI-compatible JSON schemas from protobuf types
+        </li>
+      </ul>
+
       <h3>Offline Sequence Diagram</h3>
 
       <p>
@@ -458,6 +499,7 @@ graph TB
   Memory[Memory Service<br/>:3000]
         LLM[LLM Service<br/>:3000]
   Vector[Vector Service<br/>:3000]
+  Tool[Tool Service<br/>:3000]
     end
 
   subgraph "External Services"
@@ -478,6 +520,8 @@ graph TB
   Agent -->|gRPC| Memory
     Agent -->|gRPC| LLM
     Agent -->|gRPC| Vector
+    Agent -->|gRPC| Tool
+    Tool -->|gRPC| Vector
 
   %% External API calls
   LLM -.->|HTTPS| LLMAPI
@@ -490,6 +534,7 @@ graph TB
   style Memory fill:#fff3e0
   style LLM fill:#fff3e0
   style Vector fill:#fff3e0
+  style Tool fill:#fff3e0
   style GitHubAPI fill:#fff3e0
       </pre>
 

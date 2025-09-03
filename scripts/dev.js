@@ -14,6 +14,7 @@ const SERVICES = [
   "@copilot-ld/memory",
   "@copilot-ld/llm",
   "@copilot-ld/vector",
+  "@copilot-ld/tool",
 ];
 
 // Small helpers for IO and patterns

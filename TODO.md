@@ -295,67 +295,68 @@ automatic tool discovery and registration from `./tools/*.proto` files.
 
 **🔧 Implementation Details:**
 
-1. **Tool Discovery**: Tools are defined as `.proto` files in `./tools/`
-   directory with `package toolbox;` namespace
+1. **Tool Configuration**: Tools are defined in `service.tool.endpoints`
+   configuration, mapping to existing or new gRPC service methods
 2. **Proxy Architecture**: Tool service routes tool calls to appropriate gRPC
    endpoints based on service mappings in configuration
-3. **Auto-Registration**: `scripts/codegen.js` discovers tools and generates
-   `OpenAI`-compatible JSON schemas stored as resources
+3. **Auto-Registration**: Tool schemas are generated from configuration and
+   stored as resources for LLM consumption
 4. **Dynamic Routing**: Tool service uses `hostname`/port mappings from
-   `ServiceConfig` to route calls to tool implementations
-5. **Extensible Design**: New tools can be added without modifying core services
-   by adding `.proto` files and updating configuration
+   `config.yml` (accessed via `ServiceConfig`) to route calls to service
+   implementations
+5. **Extensible Design**: New tools can be added by updating configuration to
+   map to existing service methods or by creating new services
+6. **Optional `Proto` Files**: Tools can optionally have `.proto` files in
+   `./tools/` directory for new services, but existing services can be mapped
+   directly
 
 **📋 Detailed Tasks**:
 
-#### Task 1: Create Tool Discovery Infrastructure
+#### Task 1: Create Tool Configuration Infrastructure
 
-- [ ] Create `tools/` directory structure in project root
-- [ ] Create sample tool proto `tools/vector_search.proto`:
+- [ ] Create `tools/` directory structure in project root (optional for new
+      tools)
+- [ ] Create sample tool proto `tools/hash_tools.proto` (for new custom tools):
 
   ```proto
   syntax = "proto3";
 
   package toolbox;
 
-  service VectorSearch {
-    rpc SearchSimilar(SearchRequest) returns (SearchResponse);
+  service HashTools {
+    rpc Sha256Hash(HashRequest) returns (HashResponse);
+    rpc Md5Hash(HashRequest) returns (HashResponse);
   }
 
-  message SearchRequest {
-    string query = 1;
-    optional int32 limit = 2;
-    optional double threshold = 3;
+  message HashRequest {
+    string input = 1;
   }
 
-  message SearchResponse {
-    repeated SearchResult results = 1;
-  }
-
-  message SearchResult {
-    string id = 1;
-    double score = 2;
-    string content = 3;
+  message HashResponse {
+    string hash = 1;
+    string algorithm = 2;
   }
   ```
 
 - [ ] Update `.gitignore` if needed to track `tools/` directory
-- [ ] Create `tools/README.md` with tool development guidelines
+- [ ] Create `tools/README.md` explaining that tools can be mapped to existing
+      services or defined as new services
+- [ ] Note: Vector search tool will map to existing `vector.QueryItems` - no
+      proto file needed
 
-#### Task 2: Extend Code Generation for Tool Discovery
+#### Task 2: Extend Type Generation for Tool `Protobuf` Files
 
-- [ ] Modify `scripts/codegen.js` to add `--tools` flag:
-  - Add new `runToolDiscovery()` function
-  - Scan `./tools/*.proto` files for `package toolbox;` definitions
-  - Generate `OpenAI`-compatible JSON schemas from protobuf definitions
-  - Output schemas to intermediate files for offline processing
-- [ ] Add tool schema generation logic:
-  - Parse protobuf field definitions to `OpenAI` function schemas
-  - Map protobuf types to JSON schema types (string, number, boolean, etc.)
-  - Generate required/optional field arrays from protobuf field rules
-  - Create tool descriptions from protobuf comments
-- [ ] Add `--tools` to `--all` flag processing
-- [ ] Test tool discovery with sample `vector_search.proto`
+- [ ] Modify `scripts/codegen.js --type` to include `./tools/*.proto` files:
+  - Update `runTypeGeneration()` function to scan `./tools/*.proto` files
+  - Include tool `proto` files in `protobufjs` compilation alongside existing
+    `proto` files
+  - Generate TypeScript definitions for tool message types in
+    `@copilot-ld/libtype`
+  - Ensure tool protobuf types are available for schema generation and service
+    usage
+- [ ] Test type generation includes tool definitions:
+  - Verify `toolbox.HashRequest` and `toolbox.HashResponse` types are generated
+  - Confirm tool types are exported from `@copilot-ld/libtype`
 
 #### Task 3: Define Tool Service Protocol
 
@@ -408,6 +409,10 @@ automatic tool discovery and registration from `./tools/*.proto` files.
   - Create gRPC client connection to target service
   - Forward request and convert response back to `common.ToolCallResult`
   - Add comprehensive error handling and logging
+  - **Example routing logic**:
+    - `search_similar_content` →
+      `VectorClient.QueryItems(vector.QueryItemsRequest)`
+    - `calculate_sha256` → `HashToolsClient.Sha256Hash(toolbox.HashRequest)`
 - [ ] Implement `ListTools` method:
   - Query `ResourceIndex` for available tool schemas
   - Return formatted tool definitions for LLM consumption
@@ -421,13 +426,20 @@ automatic tool discovery and registration from `./tools/*.proto` files.
   service:
     tool:
       endpoints:
+        # Example 1: Mapping to existing service method
         vector_search:
-          host: "vector"
-          port: 50051
-          service: "toolbox.VectorSearch"
-        # Additional tool endpoints...
+          call: "vector.Vector.QueryItems"
+          name: "search_similar_content"
+          description: "Search for similar content using vector embeddings"
+        # Example 2: New custom tool service
+        sha256_hash:
+          call: "toolbox.HashTools.Sha256Hash"
+          name: "calculate_sha256"
+          description: "Calculate SHA-256 hash of input text"
+        # Additional tool endpoints can map to existing or new services...
   ```
 - [ ] Tool service accesses endpoint mappings via `this.config.endpoints`
+- [ ] Each tool mapping includes service details and user-facing metadata
 - [ ] Create validation for tool configuration completeness in tool service
 - [ ] Environment variable overrides work through existing `ServiceConfig`
       patterns
@@ -435,28 +447,44 @@ automatic tool discovery and registration from `./tools/*.proto` files.
 #### Task 7: Create Tool Schema Resource Generator
 
 - [ ] Create `scripts/tools.js` following the pattern of `scripts/resources.js`:
-  - Accept command line arguments for tool discovery options
+  - Accept command line arguments for tool schema generation options
   - Use `ScriptConfig.create("tools")` for configuration
   - Initialize `ResourceIndex`, storage factories, and logging
-  - Process tool schemas generated by `scripts/codegen.js --tools`
-- [ ] Implement tool schema resource creation:
-  - Read `OpenAI`-compatible schemas from `codegen` output
-  - Generate resource files in appropriate resource directory
+  - Read tool configuration from `config.yml` `service.tool.endpoints` section
+- [ ] Implement OpenAI-compatible JSON schema generation:
+  - Read tool endpoint mappings from configuration
+  - Generate JSON schemas for mapped services using existing `protobuf` types
+    (e.g., `vector.QueryItemsRequest`)
+  - Generate JSON schemas for custom toolbox services using generated `protobuf`
+    types (e.g., `toolbox.HashRequest`)
+  - Map `protobuf` types to JSON schema types (string, number, boolean, etc.)
+  - Generate required/optional field arrays from `protobuf` field definitions
+  - Create tool descriptions from configuration metadata
+- [ ] Store generated schemas as resources using `ResourceIndex`:
+  - Create resource entries for each tool schema
   - Use proper resource URIs for tool schema identification
-  - Include tool metadata (description, parameters, examples)
+  - Include tool metadata (description, parameters, examples) from configuration
+  - No code generation - only JSON schema creation and resource storage
 - [ ] Add resource querying support for dynamic tool discovery in `ToolService`
 
-#### Task 8: Sample Tool Implementation
+#### Task 8: Sample Tool Implementation (Optional)
 
-- [ ] Create sample vector search tool service:
-  - `tools/vector_search/index.js` - Tool implementation
-  - `tools/vector_search/Dockerfile` - Container definition
-  - `tools/vector_search/package.json` - Dependencies
-- [ ] Implement `toolbox.VectorSearch` service:
-  - Accept `SearchRequest` and return `SearchResponse`
-  - Integrate with existing `VectorClient` for actual search
-  - Follow established service patterns with proper logging
-- [ ] Add tool service to Docker configuration for testing
+- [ ] **Example 1: Map to existing service** - Vector search tool:
+  - Configure tool mapping in `service.tool.endpoints` to point to
+    `vector.QueryItems`
+  - Generate tool schema based on `vector.QueryItemsRequest` `protobuf`
+    definition
+  - Test tool execution by proxying calls to existing vector service
+  - No additional implementation required - pure configuration mapping
+- [ ] **Example 2: Create new custom service** - Hash tools:
+  - Create `tools/hash-tools/index.js` implementing `toolbox.HashTools` service
+  - Implement `Sha256Hash` method accepting `HashRequest` and returning
+    `HashResponse`
+  - Add to Docker configuration and service discovery
+  - Test custom tool execution through proxy
+- [ ] Verify both mapping approaches work:
+  - Existing service mapping (vector search - primary approach)
+  - Custom tool service (hash tools - for new functionality)
 
 #### Task 9: Docker and Development Integration
 
@@ -472,9 +500,9 @@ automatic tool discovery and registration from `./tools/*.proto` files.
     networks:
       - internal
   ```
-- [ ] Add sample tool services to Docker configuration
-- [ ] Update `scripts/dev.js` to include tool services
+- [ ] Update `scripts/dev.js` to include tool service
 - [ ] Verify service startup and tool discovery functionality
+- [ ] Test tool execution with mapped vector search functionality
 
 #### Task 10: Agent Integration
 
@@ -492,13 +520,18 @@ automatic tool discovery and registration from `./tools/*.proto` files.
 #### Task 11: Testing and Validation
 
 - [ ] Create comprehensive test suite `test/tool-service.test.js`:
-  - Test tool discovery and schema generation
-  - Test tool proxy execution with sample vector search
+  - Test tool schema generation from configuration via `scripts/tools.js`
+  - Test tool proxy execution with both examples:
+    - Vector search mapping to `vector.QueryItems`
+    - Hash tools mapping to `toolbox.HashTools.Sha256Hash`
   - Test error handling for missing tools and invalid requests
   - Test policy enforcement and access control
 - [ ] Create integration tests for end-to-end tool calling
 - [ ] Test tool configuration loading and endpoint mapping
-- [ ] Validate tool schema generation accuracy
+- [ ] Validate OpenAI schema generation accuracy for both mapped and custom
+      tools
+- [ ] Test routing logic handles both existing service methods and new custom
+      services
 
 #### Task 12: Documentation Updates
 
@@ -518,20 +551,27 @@ automatic tool discovery and registration from `./tools/*.proto` files.
     <li><code>ListTools</code>: Returns available tools for LLM consumption</li>
   </ul>
   ```
-- [ ] Create `tools/README.md` with tool development guidelines
+- [ ] Create `tools/README.md` explaining that tools can be mapped to existing
+      services or implemented as new services
 - [ ] Update main `README.md` with tool development workflow
 
 **✅ Success Criteria**:
 
-1. **Tool Discovery**: Automatic discovery of tools from `./tools/*.proto` files
-2. **Schema Generation**: `OpenAI`-compatible schemas generated and stored as
+1. **Tool Configuration**: Tools can be defined via configuration mapping to
+   existing services
+2. **Type Generation**: Tool `protobuf` types included in `@copilot-ld/libtype`
+   via modified `scripts/codegen.js --type`
+3. **Schema Generation**: OpenAI-compatible JSON schemas generated by
+   `scripts/tools.js` from config.yml endpoint definitions and stored as
    resources
-3. **Proxy Functionality**: Tool service successfully routes calls to target
-   services
-4. **Configuration**: Tool endpoints configurable via service configuration
-5. **Extensibility**: New tools can be added without modifying core services
-6. **Agent Integration**: Agent service can discover and execute tools via proxy
-7. **Testing**: Comprehensive test coverage for tool discovery and execution
+4. **Proxy Functionality**: Tool service successfully routes calls to target
+   services (existing or new)
+5. **Configuration Flexibility**: Tools can map to existing service methods
+   (like `vector.QueryItems`) or new custom services
+6. **Extensibility**: New tools can be added by configuration mapping or
+   optional proto file creation with type generation
+7. **Agent Integration**: Agent service can discover and execute tools via proxy
+8. **Testing**: Comprehensive test coverage for both mapping approaches
 
 **🔗 Dependencies**:
 
@@ -540,16 +580,78 @@ automatic tool discovery and registration from `./tools/*.proto` files.
 - Existing `@copilot-ld/libpolicy` for access control
 - Existing `ResourceIndex` for tool schema storage
 - Existing service patterns and Docker infrastructure
-- Modified `scripts/codegen.js` for tool discovery
+- Modified `scripts/codegen.js --type` for tool protobuf type generation
+- New `scripts/tools.js` for JSON schema generation and resource storage from
+  config.yml
 
 **🚧 Implementation Notes**:
 
 - Tool service acts as a pure proxy - no business logic, just routing
-- Tools are separate gRPC services that can be developed independently
+- Tools can be mapped to existing service methods or implemented as new services
 - Configuration-driven endpoint mapping allows flexible deployment
-- Resource-based tool schemas enable dynamic tool discovery
+- Resource-based tool schemas enable dynamic tool discovery via
+  `scripts/tools.js`
 - Follows existing architectural patterns for consistency
-- Extensible design supports future tool ecosystem growth
+- Extensible design supports both service mapping and custom tool development
+- Primary approach is mapping to existing services; custom tools optional for
+  complex new functionality
+- `scripts/codegen.js --type` only handles low-level protobuf type generation
+- `scripts/tools.js` only generates JSON schemas and saves resources, no code
+  generation
+
+**Generated Tool Schema Examples**:
+
+Example 1 - Existing service mapping (`vector.QueryItems`):
+
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "search_similar_content",
+    "description": "Search for similar content using vector embeddings",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "vector": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Query vector for similarity search"
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "threshold": { "type": "number" },
+            "limit": { "type": "integer" }
+          }
+        }
+      },
+      "required": ["vector"]
+    }
+  }
+}
+```
+
+Example 2 - Custom service (`toolbox.HashTools.Sha256Hash`):
+
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "calculate_sha256",
+    "description": "Calculate SHA-256 hash of input text",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string",
+          "description": "Text to hash"
+        }
+      },
+      "required": ["input"]
+    }
+  }
+}
+```
 
 ## Step 11: New Event service
 
@@ -611,11 +713,11 @@ transition.
 
 **📋 Tasks**:
 
-- **Step 11**: New Plan service
-- **Step 12**: New Assistant service
-- **Step 13**: Update extensions to use Plan service
-- **Step 14**: Remove deprecated items and rename `MessageV2` to `Message`
-- **Step 15**: New Graph tool
+- **Step 12**: New Plan service
+- **Step 13**: New Assistant service
+- **Step 14**: Update extensions to use Plan service
+- **Step 15**: Remove deprecated items and rename `MessageV2` to `Message`
+- **Step 16**: New Graph tool
 
 **⚠️ Implementation Notes**:
 

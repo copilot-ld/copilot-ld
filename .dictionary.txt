@@ -177,3 +177,7 @@ subtasks
 minio
 MinIO
 minioadmin
+OpenAI
+OpenAI-compatible
+proxying
+Proto

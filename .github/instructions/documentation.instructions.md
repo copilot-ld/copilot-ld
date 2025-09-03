@@ -23,12 +23,16 @@ all code changes across the platform.
    focused on essential information
 5. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
    be complete, valid, and pass ES linting with strict configuration
-6. **🚨 CRITICAL: Inline Markdown Formatting 🚨**: All symbols (variable names,
-   class names, method names, property names), file names, directory names,
-   service names, and technical terms must be formatted with inline markdown
-   code blocks using backticks (`` `symbol` ``). This is MANDATORY and prevents
-   spellcheck issues. NEVER add technical terms to `.spellcheck-dict.txt` - use
-   backticks instead.
+6. **🚨 CRITICAL: Spellcheck Strategy 🚨**: Use different approaches for
+   different types of terms:
+   - **Code Elements**: Format programming symbols (variable names, class names,
+     method names, property names), file names, directory names, and API/service
+     names with inline markdown code blocks using backticks (`` `symbol` ``)
+   - **Real Words**: Add proper nouns (company names like "OpenAI"), standard
+     English words (like "proxying"), and established technical terminology to
+     `.dictionary.txt`
+   - **Never mix approaches**: Don't add code elements to dictionary, don't use
+     backticks for real words
 
 ## Implementation Requirements
 
@@ -82,11 +86,12 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 - Simple bullet points for each change
 - Descending chronological order (newest first)
 - Updates must be added when component code changes
-- **🚨 CRITICAL: Inline Markdown Formatting 🚨**: All symbols (classes, methods,
-  variables, properties), file names, service names, and technical terms must be
-  formatted with backticks: `` `ClassName` ``, `` `methodName()` ``,
-  `` `fileName.js` ``, `` `ServiceName` `` - **NEVER add technical terms to
-  `.spellcheck-dict.txt`**
+- **🚨 CRITICAL: Spellcheck Strategy 🚨**: All programming symbols (classes,
+  methods, variables, properties), file names, service names, and technical
+  identifiers must be formatted with backticks: `` `ClassName` ``,
+  `` `methodName()` ``, `` `fileName.js` ``, `` `ServiceName` `` - **NEVER add
+  programming symbols to `.dictionary.txt`**. Real words (company names,
+  standard English terms) should be added to `.dictionary.txt` instead.
 
 ### Update Requirements
 

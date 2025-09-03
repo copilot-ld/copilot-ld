@@ -1,14 +1,14 @@
 /* eslint-env node */
-import { ToolConfig } from "@copilot-ld/libconfig";
+import { ScriptConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { Logger } from "@copilot-ld/libutil";
 
-const logger = new Logger("upload-tool");
+const logger = new Logger("upload-script");
 
 /**
- * Upload tool for synchronizing local storage to S3
+ * Upload script for synchronizing local storage to S3
  */
-class UploadTool {
+class UploadScript {
   #local;
   #remote;
 
@@ -97,8 +97,8 @@ class UploadTool {
  * @returns {Promise<void>}
  */
 async function main() {
-  await ToolConfig.create("upload-tool");
-  const uploader = new UploadTool();
+  await ScriptConfig.create("upload-script");
+  const uploader = new UploadScript();
 
   try {
     await uploader.initialize();

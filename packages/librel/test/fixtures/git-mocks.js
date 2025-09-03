@@ -11,7 +11,7 @@ export const gitDiffOutputs = {
   noPackages: "README.md\ndocs/architecture.html",
   empty: "",
   extensionsOnly: "extensions/web/index.js\nextensions/copilot/types.js",
-  toolsOnly: "tools/search.js\ntools/embed.js",
+  toolsOnly: "scripts/search.js\nscripts/embed.js",
 };
 
 export const directoryStructures = {

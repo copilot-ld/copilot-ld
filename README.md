@@ -13,7 +13,7 @@ retrieval-augmented generation.
 - **/services/**: gRPC microservices (`agent`, `llm`, `memory`, `vector`)
 - **/extensions/**: Application adapters (copilot, teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
-- **/tools/**: Development and operational utilities
+- **/scripts/**: Development and operational utilities
 - **/proto/**: gRPC protocol buffer definitions
 - **/data/**: Knowledge base, vectors, and resource data
 
@@ -47,7 +47,7 @@ npm run codegen:service  # Generate `services/*/service.js`
 npm run codegen:client   # Generate `services/*/client.js`
 ```
 
-These scripts wrap `tools/codegen.js` which uses `protobufjs` and `Mustache`
+These scripts wrap `scripts/codegen.js` which uses `protobufjs` and `Mustache`
 templates to produce ESM modules. Generated artifacts are placed in
 `packages/libtype/` and `services/*/`.
 
@@ -57,7 +57,7 @@ First, set your `GITHUB_CLIENT_ID` in `config/.env`, then generate a token via
 OAuth Device Flow:
 
 ```sh
-node tools/token.js
+node scripts/token.js
 ```
 
 The tool writes the token to `config/.ghtoken` so services can read it. As an
@@ -68,7 +68,7 @@ alternative, you can set `GITHUB_TOKEN` in `config/.env`.
 Generate a shared secret for HMAC authentication between services:
 
 ```sh
-node tools/secret.js
+node scripts/secret.js
 ```
 
 ### 6. Prepare data directory
@@ -82,14 +82,14 @@ mkdir -p data/storage/{memories,policies,resources,vectors}
 ### 7. Download knowledge data
 
 ```sh
-node tools/download.js
+node scripts/download.js
 ```
 
 ### 8. Process resources and create vector embeddings
 
 ```sh
-node tools/resources.js
-node tools/vectors.js
+node scripts/resources.js
+node scripts/vectors.js
 ```
 
 ### 9. Start services
@@ -112,7 +112,7 @@ S3-compatible storage:
 
 ```sh
 # Generate SSL certificates for localhost
-node tools/cert.js
+node scripts/cert.js
 
 # Comment out host and port variables in config/.env (GNU sed)
 sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
@@ -137,36 +137,36 @@ Access the services:
 ## ⚡ Usage
 
 After starting services with `npm run dev`, you can interact with the system
-using available tools.
+using available scripts.
 
-### Chat Tool
+### Chat Script
 
 Interactive mode:
 
 ```sh
-node tools/chat.js
+node scripts/chat.js
 > Hello
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "Hello" | node tools/chat.js
+echo "Hello" | node scripts/chat.js
 ```
 
-### Search Tool
+### Search Script
 
 Interactive mode:
 
 ```sh
-node tools/search.js
+node scripts/search.js
 > What is Kanban?
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "What is Kanban?" | node tools/search.js
+echo "What is Kanban?" | node scripts/search.js
 ```
 
 Command-line flags for non-interactive runs (handled by the internal `Repl`
@@ -174,10 +174,10 @@ state):
 
 ```sh
 # Limit results and set a minimum similarity threshold
-echo "testing" | node tools/search.js --limit 10 --threshold 0.25
+echo "testing" | node scripts/search.js --limit 10 --threshold 0.25
 
 # Target the descriptor index instead of content
-echo "find pipeline tasks" | node tools/search.js --index descriptor --limit 5
+echo "find pipeline tasks" | node scripts/search.js --index descriptor --limit 5
 ```
 
 ## 👨‍💻 Development
@@ -197,11 +197,11 @@ Run unit tests:
 npm test
 ```
 
-Manual integration testing by using tools:
+Manual integration testing by using scripts:
 
 ```sh
-echo "test prompt" | node tools/chat.js
-echo "search query" | node tools/search.js --limit 3 --threshold 0.2
+echo "test prompt" | node scripts/chat.js
+echo "search query" | node scripts/search.js --limit 3 --threshold 0.2
 ```
 
 ### Adding New Features
@@ -239,7 +239,8 @@ AI instructions for specific domains:
 
 ### Code Generation Reference
 
-- `tools/codegen.js` supports flags: `--type`, `--service`, `--client`, `--all`
+- `scripts/codegen.js` supports flags: `--type`, `--service`, `--client`,
+  `--all`
 - Root `npm run codegen:*` scripts are the recommended entry points
 - Generated files:
   - `packages/libtype/types.js` and `types.d.ts`

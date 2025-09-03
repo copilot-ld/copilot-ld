@@ -417,7 +417,7 @@ await new VectorService(config, index).start();
 - For quick similarity tests during development:
 
 ```bash
-echo "testing" | node tools/search.js --limit 10 --threshold 0.25
+echo "testing" | node scripts/search.js --limit 10 --threshold 0.25
 ```
 
 ### Package with Interface and Factory

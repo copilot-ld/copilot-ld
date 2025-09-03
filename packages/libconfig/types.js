@@ -89,16 +89,16 @@ export class ServiceConfigInterface extends ConfigInterface {
 }
 
 /**
- * Base interface for tool configuration
+ * Base interface for script configuration
  */
-export class ToolConfigInterface extends ConfigInterface {
+export class ScriptConfigInterface extends ConfigInterface {
   /**
-   * Creates a tool configuration instance
-   * @param {string} name - Tool name for environment variable prefix
+   * Creates a script configuration instance
+   * @param {string} name - Script name for environment variable prefix
    * @param {object} defaults - Default configuration values
    * @throws {Error} Not implemented
    */
   constructor(name, defaults = {}) {
-    super("tool", name, defaults);
+    super("script", name, defaults);
   }
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-09-03
+
+- **BREAKING**: Renamed `ToolConfig` class to `ScriptConfig` to align with
+  directory restructure
+- **BREAKING**: Updated `ToolConfigInterface` to `ScriptConfigInterface`
+- Changed configuration namespace from `"tool"` to `"script"` for consistency
+
 ## 2025-08-15
 
 - Removed tests for deleted `dataPath()`, `storagePath()`, `publicPath()`, and

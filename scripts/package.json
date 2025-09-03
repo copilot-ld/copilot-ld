@@ -1,7 +1,7 @@
 {
-  "name": "@copilot-ld/tools",
+  "name": "@copilot-ld/scripts",
   "version": "0.1.0",
-  "description": "Development and operational tools for Copilot-LD",
+  "description": "Development and operational scripts for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
@@ -17,7 +17,7 @@
     "search": "node search.js",
     "token": "node token.js",
     "index": "node index.js",
-    "test": "echo 'No tests specified for tools'"
+    "test": "echo 'No tests specified for scripts'"
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.0",

@@ -38,7 +38,7 @@
 - **Breaking change**: Public API now only includes `constructor()`, `start()`,
   and `showHelp()` methods
 - State commands can now be initialized with `--<stateName> <value>` arguments
-- Example: `node tools/search.js --limit 10 --threshold 0.3`
+- Example: `node scripts/search.js --limit 10 --threshold 0.3`
 
 - Fixed duplicated help command output by removing redundant state commands from
   help display

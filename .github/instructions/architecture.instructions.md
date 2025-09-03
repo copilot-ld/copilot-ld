@@ -31,7 +31,7 @@ platform design with proper service organization and communication patterns.
 ./services/         # gRPC services only
 ./extensions/       # REST API adapters only
 ./packages/         # Framework-agnostic logic only
-./tools/            # Development utilities only
+./scripts/          # Development utilities only
 ./data/             # Static definitions and indices only
 ./proto/            # Protocol Buffer schemas only
 ```

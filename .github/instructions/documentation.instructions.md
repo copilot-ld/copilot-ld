@@ -48,7 +48,8 @@ changelogs:
 #### docs/architecture.html Requirements
 
 - **System Overview**: High-level description of the system architecture
-- **Component Structure**: Overview of services, packages, extensions, and tools
+- **Component Structure**: Overview of services, packages, extensions, and
+  scripts
 - **Communication Patterns**: How components interact with each other
 - **Data Flow**: How information flows through the system
 
@@ -93,7 +94,7 @@ When making code changes, update documentation in the same commit:
 
 #### Adding New Components
 
-When adding services, packages, extensions, or tools:
+When adding services, packages, extensions, or scripts:
 
 1. Create a `CHANGELOG.md` file in the component directory using the required
    format

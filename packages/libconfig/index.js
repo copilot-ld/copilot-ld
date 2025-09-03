@@ -8,7 +8,7 @@ import {
   ConfigInterface,
   ExtensionConfigInterface,
   ServiceConfigInterface,
-  ToolConfigInterface,
+  ScriptConfigInterface,
 } from "./types.js";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
@@ -258,23 +258,23 @@ export class ExtensionConfig extends Config {
 }
 
 /**
- * Tool configuration class with environment variable support
- * @implements {ToolConfigInterface}
+ * Script configuration class with environment variable support
+ * @implements {ScriptConfigInterface}
  */
-export class ToolConfig extends Config {
+export class ScriptConfig extends Config {
   /** @inheritdoc */
   constructor(name, defaults = {}) {
-    super("tool", name, defaults);
+    super("script", name, defaults);
   }
 
   /**
-   * Creates and initializes a new ToolConfig instance asynchronously
-   * @param {string} name - Name of the tool configuration
+   * Creates and initializes a new ScriptConfig instance asynchronously
+   * @param {string} name - Name of the script configuration
    * @param {object} defaults - Default configuration values
-   * @returns {Promise<ToolConfig>} Initialized ToolConfig instance
+   * @returns {Promise<ScriptConfig>} Initialized ScriptConfig instance
    */
   static async create(name, defaults = {}) {
-    const instance = new ToolConfig(name, defaults);
+    const instance = new ScriptConfig(name, defaults);
     await instance.load();
     return instance;
   }
@@ -284,5 +284,5 @@ export {
   ConfigInterface,
   ExtensionConfigInterface,
   ServiceConfigInterface,
-  ToolConfigInterface,
+  ScriptConfigInterface,
 };

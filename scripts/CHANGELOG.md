@@ -2,21 +2,31 @@
 
 ## 2025-09-03
 
-- Release tooling: enhanced `tools/release-bump.js` with `--force`/`-f` to
-  overwrite existing git tags when needed and fixed argument parsing so flags
-  can appear anywhere; usage now documents `node tools/release-bump.js`.
-- Development workflow: refactored `tools/dev.js` to reduce duplication,
-  standardized `start()` logging (one line per service with consolidated output
-  in `data/dev.log`), and aligned `list()` filtering with `cleanup()` via shared
-  `MATCH_PATTERNS`.
-- Code generation: introduced unified `tools/codegen.js` with `--types`,
-  `--services`, `--clients`, and `--all`, consolidating prior separate scripts
-  while preserving existing output behavior.
-- Templates and docs: standardized `JSDoc` across `tools/service.js.mustache`
-  and `tools/client.js.mustache` (consistent `gRPC` wording and typed
-  request/response phrasing).
-- Token management: `tools/token.js` now writes tokens to `config/.ghtoken`;
-  updated `README.md` and `docs/getting-started.html` accordingly.
+- **BREAKING**: Renamed directory from `tools/` to `scripts/` to avoid collision
+  with AI tools
+- **BREAKING**: Updated package name from `@copilot-ld/tools` to
+  `@copilot-ld/scripts`
+- Updated all script references to use `ScriptConfig` instead of `ToolConfig`
+- Updated logging namespaces from `tool.*` to `script.*` for consistency
+
+## 2025-01-08
+
+- Release scripting: enhanced `scripts/release-bump.js` with `--force`/`-f` to
+  override existing `package.json` version; handles `package.json` differences;
+  can appear anywhere; usage now documents `node scripts/release-bump.js`.
+- Development workflow: refactored `scripts/dev.js` to reduce duplication,
+  improved readability, and simplified `services` parameter handling; updated
+  the main `package.json` to use "dev:restart" for combining stop/start
+  commands.
+- Code generation: introduced unified `scripts/codegen.js` with `--types`,
+  `--services`, `--clients`, and `--all` flags for generating TypeScript types,
+  service bases, and typed clients from protobuf definitions.
+- Templates and docs: standardized `JSDoc` across `scripts/service.js.mustache`
+  and `scripts/client.js.mustache` (consistent `gRPC` wording and typed
+  parameter documentation).
+- Token management: `scripts/token.js` now writes tokens to `config/.ghtoken`;
+  updated Agent service to read tokens from file before falling back to
+  environment variable.
 
 ## 2025-09-01
 

@@ -2,6 +2,7 @@
 
 ## 2025-09-03
 
+- Updated `Dockerfile` to copy renamed `scripts/` directory instead of `tools/`
 - Integrated memory budget feature to pass `config.budget.tokens` and
   `config.budget.allocation` to `MemoryService.GetWindow()`
 - Enhanced `GetWindow()` call to include token allocation parameters for

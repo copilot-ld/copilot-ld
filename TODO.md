@@ -21,13 +21,14 @@ and policies for robust workflow controls.
 ### Phase 3: Services & Integration (Steps 8-9+)
 
 - [x] **Step 08**: New Memory service
-- [ ] **Step 09**: New Tool service
-- [ ] **Step 10**: New Event service
-- [ ] **Step 11**: New Plan service
-- [ ] **Step 12**: New Assistant service
-- [ ] **Step 13**: Update extensions to use Plan service
-- [ ] **Step 14**: Remove deprecated items and rename `MessageV2` to `Message`
-- [ ] **Step 15**: New Graph tool
+- [x] **Step 09**: Rename tools to scripts
+- [ ] **Step 10**: New Tool service
+- [ ] **Step 11**: New Event service
+- [ ] **Step 12**: New Plan service
+- [ ] **Step 13**: New Assistant service
+- [ ] **Step 14**: Update extensions to use Plan service
+- [ ] **Step 15**: Remove deprecated items and rename `MessageV2` to `Message`
+- [ ] **Step 16**: New Graph tool
 
 **🚨 CRITICAL**: Each step must be completed and tested before proceeding to the
 next step. Dependencies between steps are strict and must be respected.
@@ -286,24 +287,53 @@ sequenceDiagram
 
 ## Implementation Plan
 
-### Step 09: New Tool Service
+### Step 09: Rename tools to scripts
 
-**🎯 Objective**: Define a simple tool interface, and implement the first tool
-which is a vector search tool.
+**🎯 Objective:** Rename tools to scripts in order to not collide with the
+upcoming implementation of AI tools.
+
+**🔧 Implementation Details:**
+
+- DO rename all instances of "tool" to "script"
+- DO NOT rename the protobuf Tool type
+- DO NOT reference the previous state of tools
+- DO ONLY reference the new state
 
 **📋 Tasks**:
 
-- Define a the tool interface
-- Provide a simple way to configure a map of tool names and host/port
+- Rename the directory `./tools` to `./scripts`
+- Update classes, variables, logging namespaces to reference "script" instead of
+  "tool"
+- Update all documentation, including but not limited to `README.md`,
+  `getting-started.html` and `architecture.html`
+- Update all instructions in `.github/instructions`
+
+**✅ Success Criteria**:
+
+- The ONLY reference to "tool" in the ENTIRE codebase should be the existing
+  protobuf Tool types
+
+### Step 10: New Tool Service
+
+**🎯 Objective**: Each tool should be a standardized gRPC call. Define a simple
+interface, and implement the first tool which is a vector search tool.
+
+**🔧 Implementation Details:**
+
+- Tools calls are implemented as gRPC calls
+- Tool resources with function parameter schema are code generated from protobuf
+  files
+
+**📋 Tasks**:
+
+- Refine the protobuf types in `common.proto`
+- Define the protobuf request and response types
+- Provide a simple way to configure a map of tool names and host/port/method
 - Provide a standard container in which tools run
 - Define a separate Docker network in which tool containers run
 - Implement a simple policy that manage access to tools
 - Implement a vector search tool
 - Implement a simple single-agent version of the "Inner Loop" with tool calls
-
-**🔧 Implementation Details**:
-
-TODO
 
 **✅ Success Criteria**:
 
@@ -313,7 +343,7 @@ TODO
 - The chain of tool calls work without errors
 - A simple policy manage what actors can access a given tool
 
-## Step 10: New Event service
+## Step 11: New Event service
 
 **🎯 Objective**: TODO
 
@@ -366,7 +396,7 @@ message SubscribeRequest {
 
 TODO
 
-### Steps 11-15: Other Service Implementations & Integrations
+### Steps 12-16: Other Service Implementations & Integrations
 
 **🎯 Objective**: Implement other new services and complete the architectural
 transition.

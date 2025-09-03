@@ -100,6 +100,7 @@ middleware
 min
 mTLS
 namespace
+namespaces
 natively
 nav
 nginx

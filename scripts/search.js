@@ -2,7 +2,7 @@
 import readline from "readline";
 
 import { llmFactory } from "@copilot-ld/libcopilot";
-import { ToolConfig } from "@copilot-ld/libconfig";
+import { ScriptConfig } from "@copilot-ld/libconfig";
 import { Policy } from "@copilot-ld/libpolicy";
 import { Repl } from "@copilot-ld/librepl";
 import { ResourceIndex } from "@copilot-ld/libresource";
@@ -11,7 +11,7 @@ import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
 
 // Configuration
-const config = await ToolConfig.create("search");
+const config = await ScriptConfig.create("search");
 
 // Global state
 /** @type {VectorIndex} */

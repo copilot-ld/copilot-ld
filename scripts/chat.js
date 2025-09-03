@@ -117,7 +117,7 @@ if (!process.env.SERVICE_AUTH_SECRET) {
     "Warning: SERVICE_AUTH_SECRET is not set. The chat tool requires this for gRPC authentication.",
   );
   console.error(
-    "Please set SERVICE_AUTH_SECRET in your .env file to use the chat tool.",
+    "Please set SERVICE_AUTH_SECRET in your .env file to use the chat script.",
   );
   console.error(
     "You can still use the chat tool commands, but requests will fail until authentication is configured.",

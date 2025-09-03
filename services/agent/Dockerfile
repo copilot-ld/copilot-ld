@@ -7,7 +7,7 @@ COPY package.json package-lock.json ./
 COPY packages/ ./packages/
 COPY services/ ./services/
 COPY extensions/ ./extensions/
-COPY tools/ ./tools/
+COPY scripts/ ./scripts/
 COPY proto/ ./proto/
 
 # Install all dependencies for the entire workspace

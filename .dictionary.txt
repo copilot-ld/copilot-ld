@@ -86,6 +86,7 @@ libtype
 libvector
 lifecycle
 LLM
+LLMs
 llm
 localhost
 lookup
@@ -132,6 +133,7 @@ REPL
 replp
 repo
 repos
+ResourceIndex
 reusability
 Roadmap
 roadmap

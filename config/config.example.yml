@@ -23,3 +23,20 @@ service:
 
   llm:
     model: "claude-3.5-sonnet"
+
+  tool:
+    endpoints:
+      # Example 1: Mapping to existing service method
+      vector_search:
+        call: "vector.Vector.QueryItems"
+        name: "search_similar_content"
+        description: "Search for similar content using vector embeddings"
+      # Example 2: New custom tool service
+      sha256_hash:
+        call: "toolbox.HashTools.Sha256Hash"
+        name: "calculate_sha256"
+        description: "Calculate SHA-256 hash of input text"
+      md5_hash:
+        call: "toolbox.HashTools.Md5Hash"
+        name: "calculate_md5"
+        description: "Calculate MD5 hash of input text"

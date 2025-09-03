@@ -8613,4 +8613,725 @@ export const memory = ($root.memory = (() => {
   return memory;
 })());
 
+export const tool = ($root.tool = (() => {
+  /**
+   * Namespace tool.
+   * @exports tool
+   * @namespace
+   */
+  const tool = {};
+
+  tool.ListToolsRequest = (function () {
+    /**
+     * Properties of a ListToolsRequest.
+     * @memberof tool
+     * @interface IListToolsRequest
+     * @property {string|null} [namespace] ListToolsRequest namespace
+     */
+
+    /**
+     * Constructs a new ListToolsRequest.
+     * @memberof tool
+     * @classdesc Represents a ListToolsRequest.
+     * @implements IListToolsRequest
+     * @constructor
+     * @param {tool.IListToolsRequest=} [properties] Properties to set
+     */
+    function ListToolsRequest(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ListToolsRequest namespace.
+     * @member {string|null|undefined} namespace
+     * @memberof tool.ListToolsRequest
+     * @instance
+     */
+    ListToolsRequest.prototype.namespace = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * ListToolsRequest _namespace.
+     * @member {"namespace"|undefined} _namespace
+     * @memberof tool.ListToolsRequest
+     * @instance
+     */
+    Object.defineProperty(ListToolsRequest.prototype, "_namespace", {
+      get: $util.oneOfGetter(($oneOfFields = ["namespace"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified ListToolsRequest message. Does not implicitly {@link tool.ListToolsRequest.verify|verify} messages.
+     * @function encode
+     * @memberof tool.ListToolsRequest
+     * @static
+     * @param {tool.ListToolsRequest} message ListToolsRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ListToolsRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.namespace != null &&
+        Object.hasOwnProperty.call(message, "namespace")
+      )
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.namespace);
+      return writer;
+    };
+
+    /**
+     * Decodes a ListToolsRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof tool.ListToolsRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {tool.ListToolsRequest} ListToolsRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ListToolsRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.tool.ListToolsRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.namespace = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a ListToolsRequest message.
+     * @function verify
+     * @memberof tool.ListToolsRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ListToolsRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.namespace != null && message.hasOwnProperty("namespace")) {
+        properties._namespace = 1;
+        if (!$util.isString(message.namespace))
+          return "namespace: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a ListToolsRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof tool.ListToolsRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {tool.ListToolsRequest} ListToolsRequest
+     */
+    ListToolsRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.tool.ListToolsRequest) return object;
+      let message = new $root.tool.ListToolsRequest();
+      if (object.namespace != null)
+        message.namespace = String(object.namespace);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ListToolsRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof tool.ListToolsRequest
+     * @static
+     * @param {tool.ListToolsRequest} message ListToolsRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ListToolsRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (message.namespace != null && message.hasOwnProperty("namespace")) {
+        object.namespace = message.namespace;
+        if (options.oneofs) object._namespace = "namespace";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this ListToolsRequest to JSON.
+     * @function toJSON
+     * @memberof tool.ListToolsRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ListToolsRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ListToolsRequest
+     * @function getTypeUrl
+     * @memberof tool.ListToolsRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ListToolsRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/tool.ListToolsRequest";
+    };
+
+    return ListToolsRequest;
+  })();
+
+  tool.ListToolsResponse = (function () {
+    /**
+     * Properties of a ListToolsResponse.
+     * @memberof tool
+     * @interface IListToolsResponse
+     * @property {Array.<common.Tool>|null} [tools] ListToolsResponse tools
+     */
+
+    /**
+     * Constructs a new ListToolsResponse.
+     * @memberof tool
+     * @classdesc Represents a ListToolsResponse.
+     * @implements IListToolsResponse
+     * @constructor
+     * @param {tool.IListToolsResponse=} [properties] Properties to set
+     */
+    function ListToolsResponse(properties) {
+      this.tools = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ListToolsResponse tools.
+     * @member {Array.<common.Tool>} tools
+     * @memberof tool.ListToolsResponse
+     * @instance
+     */
+    ListToolsResponse.prototype.tools = $util.emptyArray;
+
+    /**
+     * Encodes the specified ListToolsResponse message. Does not implicitly {@link tool.ListToolsResponse.verify|verify} messages.
+     * @function encode
+     * @memberof tool.ListToolsResponse
+     * @static
+     * @param {tool.ListToolsResponse} message ListToolsResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ListToolsResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.tools != null && message.tools.length)
+        for (let i = 0; i < message.tools.length; ++i)
+          $root.common.Tool.encode(
+            message.tools[i],
+            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a ListToolsResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof tool.ListToolsResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {tool.ListToolsResponse} ListToolsResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ListToolsResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.tool.ListToolsResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.tools && message.tools.length)) message.tools = [];
+            message.tools.push(
+              $root.common.Tool.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a ListToolsResponse message.
+     * @function verify
+     * @memberof tool.ListToolsResponse
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ListToolsResponse.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.tools != null && message.hasOwnProperty("tools")) {
+        if (!Array.isArray(message.tools)) return "tools: array expected";
+        for (let i = 0; i < message.tools.length; ++i) {
+          let error = $root.common.Tool.verify(message.tools[i]);
+          if (error) return "tools." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a ListToolsResponse message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof tool.ListToolsResponse
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {tool.ListToolsResponse} ListToolsResponse
+     */
+    ListToolsResponse.fromObject = function fromObject(object) {
+      if (object instanceof $root.tool.ListToolsResponse) return object;
+      let message = new $root.tool.ListToolsResponse();
+      if (object.tools) {
+        if (!Array.isArray(object.tools))
+          throw TypeError(".tool.ListToolsResponse.tools: array expected");
+        message.tools = [];
+        for (let i = 0; i < object.tools.length; ++i) {
+          if (typeof object.tools[i] !== "object")
+            throw TypeError(".tool.ListToolsResponse.tools: object expected");
+          message.tools[i] = $root.common.Tool.fromObject(object.tools[i]);
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ListToolsResponse message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof tool.ListToolsResponse
+     * @static
+     * @param {tool.ListToolsResponse} message ListToolsResponse
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ListToolsResponse.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.tools = [];
+      if (message.tools && message.tools.length) {
+        object.tools = [];
+        for (let j = 0; j < message.tools.length; ++j)
+          object.tools[j] = $root.common.Tool.toObject(
+            message.tools[j],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this ListToolsResponse to JSON.
+     * @function toJSON
+     * @memberof tool.ListToolsResponse
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ListToolsResponse.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ListToolsResponse
+     * @function getTypeUrl
+     * @memberof tool.ListToolsResponse
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ListToolsResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/tool.ListToolsResponse";
+    };
+
+    return ListToolsResponse;
+  })();
+
+  return tool;
+})());
+
+export const toolbox = ($root.toolbox = (() => {
+  /**
+   * Namespace toolbox.
+   * @exports toolbox
+   * @namespace
+   */
+  const toolbox = {};
+
+  toolbox.HashRequest = (function () {
+    /**
+     * Properties of a HashRequest.
+     * @memberof toolbox
+     * @interface IHashRequest
+     * @property {string|null} [input] HashRequest input
+     */
+
+    /**
+     * Constructs a new HashRequest.
+     * @memberof toolbox
+     * @classdesc Represents a HashRequest.
+     * @implements IHashRequest
+     * @constructor
+     * @param {toolbox.IHashRequest=} [properties] Properties to set
+     */
+    function HashRequest(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * HashRequest input.
+     * @member {string} input
+     * @memberof toolbox.HashRequest
+     * @instance
+     */
+    HashRequest.prototype.input = "";
+
+    /**
+     * Encodes the specified HashRequest message. Does not implicitly {@link toolbox.HashRequest.verify|verify} messages.
+     * @function encode
+     * @memberof toolbox.HashRequest
+     * @static
+     * @param {toolbox.HashRequest} message HashRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    HashRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.input != null && Object.hasOwnProperty.call(message, "input"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.input);
+      return writer;
+    };
+
+    /**
+     * Decodes a HashRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof toolbox.HashRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {toolbox.HashRequest} HashRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    HashRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.toolbox.HashRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.input = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a HashRequest message.
+     * @function verify
+     * @memberof toolbox.HashRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    HashRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.input != null && message.hasOwnProperty("input"))
+        if (!$util.isString(message.input)) return "input: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a HashRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof toolbox.HashRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {toolbox.HashRequest} HashRequest
+     */
+    HashRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.toolbox.HashRequest) return object;
+      let message = new $root.toolbox.HashRequest();
+      if (object.input != null) message.input = String(object.input);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a HashRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof toolbox.HashRequest
+     * @static
+     * @param {toolbox.HashRequest} message HashRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    HashRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) object.input = "";
+      if (message.input != null && message.hasOwnProperty("input"))
+        object.input = message.input;
+      return object;
+    };
+
+    /**
+     * Converts this HashRequest to JSON.
+     * @function toJSON
+     * @memberof toolbox.HashRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    HashRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for HashRequest
+     * @function getTypeUrl
+     * @memberof toolbox.HashRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    HashRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/toolbox.HashRequest";
+    };
+
+    return HashRequest;
+  })();
+
+  toolbox.HashResponse = (function () {
+    /**
+     * Properties of a HashResponse.
+     * @memberof toolbox
+     * @interface IHashResponse
+     * @property {string|null} [hash] HashResponse hash
+     * @property {string|null} [algorithm] HashResponse algorithm
+     */
+
+    /**
+     * Constructs a new HashResponse.
+     * @memberof toolbox
+     * @classdesc Represents a HashResponse.
+     * @implements IHashResponse
+     * @constructor
+     * @param {toolbox.IHashResponse=} [properties] Properties to set
+     */
+    function HashResponse(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * HashResponse hash.
+     * @member {string} hash
+     * @memberof toolbox.HashResponse
+     * @instance
+     */
+    HashResponse.prototype.hash = "";
+
+    /**
+     * HashResponse algorithm.
+     * @member {string} algorithm
+     * @memberof toolbox.HashResponse
+     * @instance
+     */
+    HashResponse.prototype.algorithm = "";
+
+    /**
+     * Encodes the specified HashResponse message. Does not implicitly {@link toolbox.HashResponse.verify|verify} messages.
+     * @function encode
+     * @memberof toolbox.HashResponse
+     * @static
+     * @param {toolbox.HashResponse} message HashResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    HashResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.hash != null && Object.hasOwnProperty.call(message, "hash"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.hash);
+      if (
+        message.algorithm != null &&
+        Object.hasOwnProperty.call(message, "algorithm")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.algorithm);
+      return writer;
+    };
+
+    /**
+     * Decodes a HashResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof toolbox.HashResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {toolbox.HashResponse} HashResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    HashResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.toolbox.HashResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.hash = reader.string();
+            break;
+          }
+          case 2: {
+            message.algorithm = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a HashResponse message.
+     * @function verify
+     * @memberof toolbox.HashResponse
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    HashResponse.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.hash != null && message.hasOwnProperty("hash"))
+        if (!$util.isString(message.hash)) return "hash: string expected";
+      if (message.algorithm != null && message.hasOwnProperty("algorithm"))
+        if (!$util.isString(message.algorithm))
+          return "algorithm: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a HashResponse message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof toolbox.HashResponse
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {toolbox.HashResponse} HashResponse
+     */
+    HashResponse.fromObject = function fromObject(object) {
+      if (object instanceof $root.toolbox.HashResponse) return object;
+      let message = new $root.toolbox.HashResponse();
+      if (object.hash != null) message.hash = String(object.hash);
+      if (object.algorithm != null)
+        message.algorithm = String(object.algorithm);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a HashResponse message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof toolbox.HashResponse
+     * @static
+     * @param {toolbox.HashResponse} message HashResponse
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    HashResponse.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.hash = "";
+        object.algorithm = "";
+      }
+      if (message.hash != null && message.hasOwnProperty("hash"))
+        object.hash = message.hash;
+      if (message.algorithm != null && message.hasOwnProperty("algorithm"))
+        object.algorithm = message.algorithm;
+      return object;
+    };
+
+    /**
+     * Converts this HashResponse to JSON.
+     * @function toJSON
+     * @memberof toolbox.HashResponse
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    HashResponse.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for HashResponse
+     * @function getTypeUrl
+     * @memberof toolbox.HashResponse
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    HashResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/toolbox.HashResponse";
+    };
+
+    return HashResponse;
+  })();
+
+  return toolbox;
+})());
+
 export { $root as default };

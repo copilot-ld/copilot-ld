@@ -24,6 +24,7 @@ const ORDERED_PROTO_FILES = [
   "llm.proto",
   "vector.proto",
   "memory.proto",
+  "tool.proto",
 ];
 
 /**
@@ -116,6 +117,7 @@ async function generateTypeScriptDeclarationsPbts(root, jsFile, outFile) {
 async function runTypes() {
   const root = resolve(__dirname, "..");
   const protoDir = resolve(root, "proto");
+  const toolsDir = resolve(root, "tools");
   const jsOutFile = resolve(root, "packages/libtype/types.js");
   const dtsOutFile = resolve(root, "packages/libtype/types.d.ts");
 
@@ -123,6 +125,17 @@ async function runTypes() {
 
   // Maintain explicit ordering via top-level constant
   const protoFiles = ORDERED_PROTO_FILES.map((p) => resolve(protoDir, p));
+
+  // Include tool proto files for type generation
+  try {
+    const toolProtoFiles = fs
+      .readdirSync(toolsDir)
+      .filter((f) => f.endsWith(".proto"))
+      .map((f) => resolve(toolsDir, f));
+    protoFiles.push(...toolProtoFiles);
+  } catch {
+    // tools directory may not exist or be empty - this is okay
+  }
 
   await rm(jsOutFile, { force: true });
   await rm(dtsOutFile, { force: true });

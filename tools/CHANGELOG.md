@@ -2,60 +2,21 @@
 
 ## 2025-09-03
 
-- Enhanced `release-bump.js` to accept `--force`/`-f` flag which overwrites
-  existing git tags when necessary
-
-## 2025-09-03
-
-- Updated `tools/token.js` to write tokens directly to `config/.ghtoken` instead
-  of the repo root, removing the need to manually move the file
-- Updated `README.md` and `docs/getting-started.html` to reflect the new token
-  location and simplified instructions
-
-## 2025-09-03
-
-- Updated `dev.js` `start()` to log once per service, mirroring `stop()` output
-  - Prints `Starting \`@scope/name\`...` for newly launched services
-  - Prints ``@scope/name`: already running`when a`PID` entry exists
-  - Keeps consolidated log file at `data/dev.log`
-
-## 2025-09-03
-
-- Standardized JSDoc wording across `tools/service.js.mustache` and
-  `tools/client.js.mustache`:
-  - Consistent use of `gRPC` terminology in summaries and parameter docs
-  - Unified phrasing for typed request/response (`Typed request message.` /
-    `Typed response message.`)
-  - Normalized punctuation and `backticks` around symbols and RPC method names
-
-## 2025-09-03
-
-- Added unified `codegen.js` tool supporting:
-  - `node tools/codegen.js --types` to generate `@copilot-ld/libtype` types
-  - `node tools/codegen.js --services` to generate service base classes
-  - `node tools/codegen.js --clients` to generate typed clients
-  - `node tools/codegen.js --all` to run all generators
-- Consolidates duplicated logic from `codegen-types.js`, `codegen-services.js`,
-  and `codegen-clients.js`
-- Preserves output locations and behavior, including `pbjs/pbts` ESM fixes and
-  `tsc`-based `.d.ts` generation
-
-## 2025-09-03
-
-- Refactored `dev.js` to reduce duplication and simplify control flow
-  - Added small helpers (`readJson`, `writeJson`, `matchPattern`) to centralize
-    IO and pattern building
-  - Consolidated `CLI` dispatch via a `commands` map while preserving existing
-    flags
-  - Kept negative `PGID` semantics and signal handling (`SIGTERM` then
-    `SIGKILL`) unchanged
-  - Documented public functions with `JSDoc` to satisfy lint rules
-
-## 2025-09-03
-
-- Updated `dev.js` so `list()` uses the same process match patterns as
-  `cleanup()` via shared `MATCH_PATTERNS`, ensuring consistent filtering of
-  development processes
+- Release tooling: enhanced `tools/release-bump.js` with `--force`/`-f` to
+  overwrite existing git tags when needed and fixed argument parsing so flags
+  can appear anywhere; usage now documents `node tools/release-bump.js`.
+- Development workflow: refactored `tools/dev.js` to reduce duplication,
+  standardized `start()` logging (one line per service with consolidated output
+  in `data/dev.log`), and aligned `list()` filtering with `cleanup()` via shared
+  `MATCH_PATTERNS`.
+- Code generation: introduced unified `tools/codegen.js` with `--types`,
+  `--services`, `--clients`, and `--all`, consolidating prior separate scripts
+  while preserving existing output behavior.
+- Templates and docs: standardized `JSDoc` across `tools/service.js.mustache`
+  and `tools/client.js.mustache` (consistent `gRPC` wording and typed
+  request/response phrasing).
+- Token management: `tools/token.js` now writes tokens to `config/.ghtoken`;
+  updated `README.md` and `docs/getting-started.html` accordingly.
 
 ## 2025-09-01
 

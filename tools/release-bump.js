@@ -10,16 +10,20 @@ import { ReleaseBumper } from "@copilot-ld/librel";
  */
 async function main() {
   const args = process.argv.slice(2);
-  const bumpType = args[0];
 
-  // Parse optional flags
-  const forceIndex = args.findIndex((a) => a === "--force" || a === "-f");
-  const force = forceIndex !== -1;
-  const filtered =
-    forceIndex === -1
-      ? args.slice(1)
-      : args.slice(1).filter((_, i) => i !== forceIndex - 1);
-  const items = filtered;
+  // Parse flags and positional args robustly
+  let force = false;
+  const positional = [];
+  for (const arg of args) {
+    if (arg === "--force" || arg === "-f") {
+      force = true;
+      continue;
+    }
+    positional.push(arg);
+  }
+
+  const bumpType = positional.shift();
+  const items = positional;
 
   if (!bumpType || items.length === 0) {
     console.error(

@@ -9,7 +9,5 @@
 
 ## 2025-08-08
 
-- Fix `Node.js` setup for release workflow
-- Version reset
-- Version bump
-- Version bump
+- Release workflow stabilization: fixed `Node.js` setup and performed required
+  version reset/bump to align packages

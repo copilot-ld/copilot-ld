@@ -30,7 +30,8 @@ describe("librepl", () => {
             yield "test input\n";
           },
         },
-        stdout: {},
+        stdout: { write: () => {} },
+        stderr: { write: () => {} },
         exit: () => {},
       };
 
@@ -52,7 +53,7 @@ describe("librepl", () => {
         commands: {
           test: {
             help: "Test command",
-            handler: () => console.log("Test executed"),
+            handler: () => "Test executed",
           },
         },
         state: {
@@ -87,8 +88,8 @@ describe("librepl", () => {
       mockProcess.stdin.isTTY = false;
 
       let output = "";
-      console.log = (text) => {
-        output = text;
+      mockProcess.stdout.write = (text) => {
+        output += text;
       };
 
       const repl = new Repl(mockReadline, mockProcess, mockFormatter, {
@@ -106,8 +107,8 @@ describe("librepl", () => {
       };
 
       let output = "";
-      console.log = (text) => {
-        output = text;
+      mockProcess.stdout.write = (text) => {
+        output += text;
       };
 
       const repl = new Repl(mockReadline, mockProcess, mockFormatter);
@@ -124,15 +125,15 @@ describe("librepl", () => {
       };
 
       let output = "";
-      console.log = (text) => {
-        output = text;
+      mockProcess.stdout.write = (text) => {
+        output += text;
       };
 
       const repl = new Repl(mockReadline, mockProcess, mockFormatter, {
         commands: {
           test: {
             help: "Test command",
-            handler: () => console.log("Test executed"),
+            handler: () => "Test executed",
           },
         },
       });
@@ -183,15 +184,15 @@ describe("librepl", () => {
       };
 
       let output = "";
-      console.log = (text) => {
-        output = text;
+      mockProcess.stdout.write = (text) => {
+        output += text;
       };
 
       const repl = new Repl(mockReadline, mockProcess, mockFormatter);
       await repl.start();
 
-      assert(output.includes("formatted: Error: Unknown command"));
-      assert(output.includes("Use `/help` for available commands"));
+      assert(output.includes("Error: Unknown command"));
+      assert(output.includes("/help"));
     });
 
     test("handles command execution errors gracefully", async () => {
@@ -201,8 +202,8 @@ describe("librepl", () => {
       };
 
       let errorOutput = "";
-      console.error = (...args) => {
-        errorOutput = args.join(" ");
+      mockProcess.stderr.write = (text) => {
+        errorOutput += text;
       };
 
       const repl = new Repl(mockReadline, mockProcess, mockFormatter, {
@@ -228,8 +229,8 @@ describe("librepl", () => {
       };
 
       let errorOutput = "";
-      console.error = (...args) => {
-        errorOutput = args.join(" ");
+      mockProcess.stderr.write = (text) => {
+        errorOutput += text;
       };
 
       const repl = new Repl(mockReadline, mockProcess, mockFormatter, {

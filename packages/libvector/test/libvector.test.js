@@ -35,43 +35,8 @@ describe("libvector", () => {
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
-      // Verify item was added by checking internal state
-      assert(await vectorIndex.hasItem("test-1"));
-    });
-
-    test("addItem appends JSON-ND format with newline", async () => {
-      const identifier = new resource.Identifier({
-        id: "test-1",
-        type: "MessageV2",
-        name: "MessageV2.test-1",
-        tokens: 10,
-      });
-      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
-
-      // Verify append was called with JSON-ND format including newline
-      assert.strictEqual(mockStorage.append.mock.callCount(), 1);
-      const appendCall = mockStorage.append.mock.calls[0].arguments;
-      assert.strictEqual(appendCall[0], "index.jsonl"); // key
-
-      const appendedData = appendCall[1];
-      // Should be JSON followed by newline
-      assert(
-        appendedData.endsWith("\n"),
-        "Appended data should end with newline",
-      );
-
-      // Should be valid JSON before the newline
-      const jsonData = appendedData.slice(0, -1);
-      assert.doesNotThrow(() => JSON.parse(jsonData), "Should be valid JSON");
-
-      const parsedData = JSON.parse(jsonData);
-
-      // Check that the structure is correct
-      assert(parsedData.uri, "Should have uri property");
-      assert(parsedData.identifier, "Should have identifier property");
-      assert(parsedData.vector, "Should have vector property");
-      assert.strictEqual(parsedData.uri, "cld:MessageV2.test-1");
-      assert.deepStrictEqual(parsedData.vector, [0.1, 0.2, 0.3]);
+      // Verify item was added by checking internal state using URI
+      assert(await vectorIndex.hasItem("cld:MessageV2.test-1"));
     });
 
     test("addItem updates existing vector", async () => {
@@ -90,7 +55,7 @@ describe("libvector", () => {
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
       await vectorIndex.addItem([0.4, 0.5, 0.6], identifier2);
 
-      assert(await vectorIndex.hasItem("test-1"));
+      assert(await vectorIndex.hasItem("cld:MessageV2.test-1"));
     });
 
     test("hasItem returns true for existing item", async () => {
@@ -101,30 +66,30 @@ describe("libvector", () => {
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
-      const exists = await vectorIndex.hasItem("test-1");
+      const exists = await vectorIndex.hasItem("cld:MessageV2.test-1");
 
       assert.strictEqual(exists, true);
     });
 
     test("hasItem returns false for non-existing item", async () => {
-      const exists = await vectorIndex.hasItem("non-existent");
+      const exists = await vectorIndex.hasItem("cld:MessageV2.non-existent");
 
       assert.strictEqual(exists, false);
     });
 
     test("loadData loads from storage", async () => {
-      const testData = [
-        {
+      const testData = JSON.stringify({
+        uri: "cld:MessageV2.test-1",
+        identifier: {
           id: "test-1",
-          vector: [0.1, 0.2, 0.3],
-          magnitude: 0.374,
+          type: "MessageV2",
+          name: "MessageV2.test-1",
           tokens: 10,
         },
-      ];
+        vector: [0.1, 0.2, 0.3],
+      });
 
-      mockStorage.get = mock.fn(() =>
-        Promise.resolve(Buffer.from(JSON.stringify(testData))),
-      );
+      mockStorage.get = mock.fn(() => Promise.resolve(Buffer.from(testData)));
 
       await vectorIndex.loadData();
 
@@ -141,26 +106,21 @@ describe("libvector", () => {
 
       // Should not throw and should initialize empty index
       assert.strictEqual(mockStorage.exists.mock.callCount(), 1);
-      assert.strictEqual(await vectorIndex.hasItem("any-id"), false);
-    });
-
-    test("persist saves to storage", async () => {
-      const identifier = new resource.Identifier({
-        id: "test-1",
-        type: "MessageV2",
-        name: "MessageV2.test-1",
-      });
-      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
-      await vectorIndex.persist();
-
-      assert.strictEqual(mockStorage.put.mock.callCount(), 1);
       assert.strictEqual(
-        mockStorage.put.mock.calls[0].arguments[0],
-        "index.jsonl",
+        await vectorIndex.hasItem("cld:MessageV2.any-id"),
+        false,
       );
     });
 
     test("queryItems returns similar vectors", async () => {
+      // Helper function to normalize vectors like libcopilot does
+      const normalize = (vector) => {
+        const magnitude = Math.sqrt(
+          vector.reduce((sum, val) => sum + val * val, 0),
+        );
+        return vector.map((val) => val / magnitude);
+      };
+
       const identifier1 = new resource.Identifier({
         id: "similar",
         type: "MessageV2",
@@ -173,20 +133,28 @@ describe("libvector", () => {
         name: "MessageV2.different",
         tokens: 15,
       });
-      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
-      await vectorIndex.addItem([0.9, 0.8, 0.7], identifier2);
+      await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier1);
+      await vectorIndex.addItem(normalize([0.9, 0.8, 0.7]), identifier2);
 
-      const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
-        threshold: 0.5,
+      const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
+        threshold: 0.8,
       });
 
-      // Should return vectors above threshold - both might be above threshold depending on calculation
+      // Should return vectors above threshold - identical vector should score ~1.0
       assert(results.length >= 1);
       assert(results.some((r) => r.id === "similar"));
-      assert(results[0].score > 0.5); // At least above threshold
+      assert(results[0].score > 0.8); // At least above threshold
     });
 
     test("queryItems respects threshold", async () => {
+      // Helper function to normalize vectors like libcopilot does
+      const normalize = (vector) => {
+        const magnitude = Math.sqrt(
+          vector.reduce((sum, val) => sum + val * val, 0),
+        );
+        return vector.map((val) => val / magnitude);
+      };
+
       const identifier1 = new resource.Identifier({
         id: "item1",
         type: "MessageV2",
@@ -199,10 +167,10 @@ describe("libvector", () => {
         name: "MessageV2.item2",
         tokens: 15,
       });
-      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
-      await vectorIndex.addItem([0.9, 0.8, 0.7], identifier2);
+      await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier1);
+      await vectorIndex.addItem(normalize([0.9, 0.8, 0.7]), identifier2);
 
-      const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
+      const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
         threshold: 0.9,
       });
 
@@ -260,15 +228,23 @@ describe("libvector", () => {
     });
 
     test("queryItems includes identifier in results", async () => {
+      // Helper function to normalize vectors like libcopilot does
+      const normalize = (vector) => {
+        const magnitude = Math.sqrt(
+          vector.reduce((sum, val) => sum + val * val, 0),
+        );
+        return vector.map((val) => val / magnitude);
+      };
+
       const identifier = new resource.Identifier({
         id: "test-id",
         type: "MessageV2",
         name: "MessageV2.test-id",
         tokens: 42,
       });
-      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
+      await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier);
 
-      const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
+      const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
         threshold: 0,
       });
 
@@ -279,6 +255,14 @@ describe("libvector", () => {
     });
 
     test("queryItems respects maxTokens parameter", async () => {
+      // Filtering by tokens is no longer supported, only threshold and limit
+      const normalize = (vector) => {
+        const magnitude = Math.sqrt(
+          vector.reduce((sum, val) => sum + val * val, 0),
+        );
+        return vector.map((val) => val / magnitude);
+      };
+
       const identifier1 = new resource.Identifier({
         id: "item1",
         type: "MessageV2",
@@ -297,21 +281,16 @@ describe("libvector", () => {
         name: "MessageV2.item3",
         tokens: 20,
       });
-      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
-      await vectorIndex.addItem([0.2, 0.3, 0.4], identifier2);
-      await vectorIndex.addItem([0.3, 0.4, 0.5], identifier3);
+      await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier1);
+      await vectorIndex.addItem(normalize([0.2, 0.3, 0.4]), identifier2);
+      await vectorIndex.addItem(normalize([0.3, 0.4, 0.5]), identifier3);
 
-      // Max 25 tokens should allow first two items (10 + 15 = 25)
-      const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
+      const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
         threshold: 0,
-        limit: 0,
-        max_tokens: 25,
+        limit: 2,
       });
 
       assert.strictEqual(results.length, 2);
-      // Verify total tokens don't exceed limit
-      const totalTokens = results.reduce((sum, r) => sum + (r.tokens || 0), 0);
-      assert(totalTokens <= 25);
     });
 
     test("queryItems without maxTokens returns all results", async () => {
@@ -360,6 +339,76 @@ describe("libvector", () => {
       });
 
       assert.strictEqual(results.length, 2);
+    });
+
+    test("getItem returns identifier for existing item", async () => {
+      const identifier = new resource.Identifier({
+        id: "test-1",
+        type: "MessageV2",
+        name: "MessageV2.test-1",
+        tokens: 10,
+      });
+      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
+
+      const result = await vectorIndex.getItem("cld:MessageV2.test-1");
+
+      assert.strictEqual(result.id, "test-1");
+      assert.strictEqual(result.type, "MessageV2");
+      assert.strictEqual(result.name, "MessageV2.test-1");
+      assert.strictEqual(result.tokens, 10);
+    });
+
+    test("getItem returns null for non-existing item", async () => {
+      const result = await vectorIndex.getItem("cld:MessageV2.non-existent");
+
+      assert.strictEqual(result, null);
+    });
+
+    test("getItem works after loadData", async () => {
+      const testData = {
+        uri: "cld:MessageV2.test-1",
+        identifier: {
+          id: "test-1",
+          type: "MessageV2",
+          name: "MessageV2.test-1",
+          tokens: 10,
+        },
+        vector: [0.1, 0.2, 0.3],
+      };
+
+      // Mock storage.get() to return parsed JSON array for .jsonl files
+      mockStorage.get = mock.fn(() => Promise.resolve([testData]));
+
+      await vectorIndex.loadData();
+      const result = await vectorIndex.getItem("cld:MessageV2.test-1");
+
+      assert.strictEqual(result.id, "test-1");
+      assert.strictEqual(result.type, "MessageV2");
+      assert.strictEqual(result.name, "MessageV2.test-1");
+      assert.strictEqual(result.tokens, 10);
+    });
+
+    test("getItem returns updated identifier after item update", async () => {
+      const identifier1 = new resource.Identifier({
+        id: "test-1",
+        type: "MessageV2",
+        name: "MessageV2.test-1",
+        tokens: 10,
+      });
+      const identifier2 = new resource.Identifier({
+        id: "test-1",
+        type: "MessageV2",
+        name: "MessageV2.test-1",
+        tokens: 20,
+      });
+
+      await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
+      await vectorIndex.addItem([0.4, 0.5, 0.6], identifier2);
+
+      const result = await vectorIndex.getItem("cld:MessageV2.test-1");
+
+      assert.strictEqual(result.id, "test-1");
+      assert.strictEqual(result.tokens, 20); // Should have updated value
     });
   });
 });

@@ -4,78 +4,87 @@ import { writeFileSync, readFileSync, existsSync } from "fs";
 
 const PID_FILE = "data/dev.pid";
 const LOG_FILE = "data/dev.log";
+
+const MATCH_PATTERNS = ["npm run dev", "node --watch"];
+
 const SERVICES = [
   "@copilot-ld/web",
   "@copilot-ld/copilot",
   "@copilot-ld/agent",
+  "@copilot-ld/memory",
   "@copilot-ld/llm",
   "@copilot-ld/vector",
-  "@copilot-ld/text",
-  "@copilot-ld/history",
 ];
 
+// Small helpers for IO and patterns
+const readJson = (path, fallback = {}) =>
+  existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : fallback;
+const writeJson = (path, obj) =>
+  writeFileSync(path, JSON.stringify(obj, null, 2));
+const matchPattern = () => `(${MATCH_PATTERNS.join("|")})`;
+
+// Consistent per-service status logging
+const logStatus = (service, status) => console.log(`${service}: ${status}`);
+
 /**
- * List all running node and npm processes
+ * List all running development processes matching known patterns
+ * @returns {void}
  */
 function list() {
   const child = spawn(
     "bash",
-    ["-c", "ps aux | grep -E '(node|npm)' | grep -v grep"],
+    ["-c", `ps aux | grep -E '${matchPattern()}' | grep -v grep`],
     { stdio: "inherit" },
   );
   child.on("exit", (code) => process.exit(code));
 }
 
 /**
- * Kill orphaned development processes
+ * Kill orphaned development processes and reset PID file
+ * @returns {void}
  */
 function cleanup() {
-  const match = ["npm run dev", "node --watch"];
-
-  match.forEach((m) => {
+  MATCH_PATTERNS.forEach((m) => {
     spawn("bash", ["-c", `pkill -f '${m}' || true`], { stdio: "inherit" });
   });
-
   writeFileSync(PID_FILE, "{}");
   console.log("Cleanup complete.");
 }
 
 /**
- * Start all dev servers in parallel
+ * Start all dev servers in parallel and record their process group IDs
+ * @returns {void}
  */
 function start() {
   writeFileSync(LOG_FILE, "", { flag: "w" });
 
-  const existingPids = existsSync(PID_FILE)
-    ? JSON.parse(readFileSync(PID_FILE, "utf8"))
-    : {};
-  const pids = { ...existingPids };
+  const pids = { ...readJson(PID_FILE, {}) };
 
   SERVICES.forEach((service) => {
     if (pids[service]) {
-      console.log(`Skipping ${service}: already running`);
+      logStatus(service, "already running");
       return;
     }
 
-    const command = `npm run dev -w ${service} >> ${LOG_FILE} 2>&1`;
-    const child = spawn("bash", ["-c", command], {
-      detached: true,
-      stdio: "ignore",
-    });
-    child.on("error", (error) =>
-      console.error(`Failed to start ${service}:`, error.message),
+    logStatus(service, "starting...");
+    const child = spawn(
+      "bash",
+      ["-c", `npm run dev -w ${service} >> ${LOG_FILE} 2>&1`],
+      { detached: true, stdio: "ignore" },
     );
+    child.on("error", (error) => logStatus(service, `error: ${error.message}`));
     child.unref();
-    // Store the negative PID to represent the process group ID
+    // Negative PID denotes process group ID for group signaling
     pids[service] = -child.pid;
   });
 
-  writeFileSync(PID_FILE, JSON.stringify(pids, null, 2));
-  console.log(`Started services. Logging to: ${LOG_FILE}`);
+  writeJson(PID_FILE, pids);
+  console.log(`All services started. Logging to: ${LOG_FILE}`);
 }
 
 /**
- * Stop all running dev servers
+ * Stop all running dev servers with graceful then forced signals
+ * @returns {void}
  */
 function stop() {
   if (!existsSync(PID_FILE)) {
@@ -84,30 +93,28 @@ function stop() {
   }
 
   try {
-    const pids = JSON.parse(readFileSync(PID_FILE, "utf8"));
-
-    if (!pids || Object.keys(pids).length === 0) {
+    const pids = readJson(PID_FILE, {});
+    const entries = Object.entries(pids);
+    if (entries.length === 0) {
       console.log("No services running.");
       return;
     }
 
-    // Stop all services
-    Object.entries(pids).forEach(([service, pgid]) => {
+    entries.forEach(([service, pgid]) => {
       try {
         process.kill(pgid, "SIGTERM");
-        console.log(`Stopping ${service}...`);
+        logStatus(service, "stopping...");
       } catch (error) {
         const status =
           error.code === "ESRCH"
             ? "already stopped"
             : `error: ${error.message}`;
-        console.log(`${service}: ${status}`);
+        logStatus(service, status);
       }
     });
 
-    // Force kill and cleanup after graceful shutdown attempt
     setTimeout(() => {
-      Object.values(pids).forEach((pgid) => {
+      entries.forEach(([, pgid]) => {
         try {
           process.kill(pgid, "SIGKILL");
         } catch {
@@ -115,7 +122,7 @@ function stop() {
         }
       });
       writeFileSync(PID_FILE, "{}");
-      console.log("Services stopped.");
+      console.log("All services stopped.");
     }, 2000);
   } catch (error) {
     console.error("Error reading PID file:", error.message);
@@ -123,19 +130,23 @@ function stop() {
 }
 
 /**
- * Show help information
+ * Print usage information
+ * @returns {void}
  */
 function help() {
   console.log("Usage: node dev.js [--start | --stop | --list | --cleanup]");
   process.exit(1);
 }
 
-const args = process.argv.slice(2);
-const cmd = args[0];
+const cmd = process.argv[2];
+const commands = new Map([
+  ["--start", start],
+  ["--stop", stop],
+  ["--list", list],
+  ["--cleanup", cleanup],
+  ["--help", help],
+  ["-h", help],
+]);
 
-if (!cmd || cmd === "--help" || cmd === "-h") help();
-if (cmd === "--start") start();
-else if (cmd === "--stop") stop();
-else if (cmd === "--list") list();
-else if (cmd === "--cleanup") cleanup();
-else help();
+if (!cmd || !commands.has(cmd)) help();
+commands.get(cmd)();

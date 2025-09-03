@@ -14,7 +14,9 @@ async function main() {
   const items = args.slice(1);
 
   if (!bumpType || items.length === 0) {
-    console.error("Usage: release-bump <bump-type> <item1> <item2> ...");
+    console.error(
+      "Usage: node release-bump.js <bump-type> <item1> <item2> ...",
+    );
     process.exit(1);
   }
 

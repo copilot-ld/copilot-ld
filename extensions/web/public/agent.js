@@ -7,9 +7,9 @@ class AgentChat extends HTMLElement {
     this.loading = false;
     this.collapsed = localStorage.getItem("agent_collapsed") === "true";
     this.expanded = localStorage.getItem("agent_expanded") === "true";
-    this.session_id = localStorage.getItem("agent_session_id");
+    this.conversation_id = localStorage.getItem("agent_conversation_id");
     const msg = localStorage.getItem("agent_messages");
-    if (this.session_id && msg) this.messages = JSON.parse(msg);
+    if (this.conversation_id && msg) this.messages = JSON.parse(msg);
   }
 
   connectedCallback() {
@@ -84,18 +84,21 @@ class AgentChat extends HTMLElement {
       const response = await fetch(`${this.apiUrl}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, session_id: this.session_id }),
+        body: JSON.stringify({
+          message,
+          conversation_id: this.conversation_id,
+        }),
       });
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
       const data = await response.json();
-      this.session_id = data.session_id;
-      localStorage.setItem("agent_session_id", this.session_id);
+      this.conversation_id = data.conversation_id;
+      localStorage.setItem("agent_conversation_id", this.conversation_id);
 
-      this.addMessage("assistant", data.choices[0].message.content);
+      this.addMessage(data.message.role, data.message.content);
     } catch (error) {
-      console.error("Error:", error);
-      this.addMessage("error", `Error: ${error.message}`);
+      console.error(error.message || String(error));
+      this.addMessage("error", `Error`);
     } finally {
       this.setLoading(false);
     }
@@ -110,9 +113,9 @@ class AgentChat extends HTMLElement {
 
   newSession() {
     this.i = -1;
-    this.session_id = null;
+    this.conversation_id = null;
     this.messages = [];
-    localStorage.removeItem("agent_session_id");
+    localStorage.removeItem("agent_conversation_id");
     localStorage.removeItem("agent_messages");
     this.update();
     this.shadowRoot.querySelector("#prompt").focus();

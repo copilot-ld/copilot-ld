@@ -95,9 +95,21 @@ export class Copilot extends LlmInterface {
 
   /** @inheritdoc */
   async createCompletions(params) {
+    // Convert MessageV2 objects to simple API format
+    const messages =
+      params.messages?.map((msg) => ({
+        role: msg.role || "user",
+        content:
+          typeof msg.content === "string"
+            ? msg.content
+            : msg.content?.text || JSON.stringify(msg.content) || "",
+      })) || [];
+
     const requestParams = {
       ...params,
+      messages,
       model: params.model || this.#model,
+      max_tokens: params.max_tokens || 4000, // Add default max_tokens
     };
 
     const response = await this.#withRetry(() =>
@@ -108,7 +120,23 @@ export class Copilot extends LlmInterface {
       }),
     );
 
-    return await response.json();
+    const data = await response.json();
+
+    // Convert response back to expected format with proper MessageV2 instances
+    // The monkey patch in libtype automatically converts string content to Content objects
+    return {
+      ...data,
+      choices:
+        data.choices?.map((choice) => ({
+          ...choice,
+          message: common.MessageV2.fromObject({
+            id: { name: "" }, // Will be set later with withIdentifier
+            descriptor: { type: "message" },
+            content: choice.message?.content || "", // Monkey patch handles string->Content conversion
+            role: choice.message?.role || "assistant",
+          }),
+        })) || [],
+    };
   }
 
   /** @inheritdoc */
@@ -127,7 +155,13 @@ export class Copilot extends LlmInterface {
     );
 
     const data = await response.json();
-    return data.data.map((item) => new common.Embedding(item));
+    return data.data.map((item) => {
+      const normalizedEmbedding = normalizeVector(item.embedding);
+      return new common.Embedding({
+        ...item,
+        embedding: normalizedEmbedding,
+      });
+    });
   }
 
   /** @inheritdoc */
@@ -157,6 +191,17 @@ export class Copilot extends LlmInterface {
 export function countTokens(text, tokenizer) {
   if (!tokenizer) tokenizer = tokenizerFactory();
   return tokenizer.encode(text).length;
+}
+
+/**
+ * Normalizes a vector to unit length
+ * @param {number[]} vector - Vector to normalize
+ * @returns {number[]} Normalized vector
+ */
+function normalizeVector(vector) {
+  const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+  if (magnitude === 0) return vector.slice(); // Return copy of zero vector
+  return vector.map((val) => val / magnitude);
 }
 
 /**

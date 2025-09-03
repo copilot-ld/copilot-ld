@@ -10,7 +10,7 @@ const config = await ToolConfig.create("models");
  * @returns {Promise<void>}
  */
 async function main() {
-  const client = new Copilot(config.githubToken());
+  const client = new Copilot(await config.githubToken());
   const models = await client.listModels();
 
   const cleanedModels = models.map((model) => {

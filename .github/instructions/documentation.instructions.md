@@ -100,6 +100,8 @@ When adding services, packages, extensions, or tools:
 2. Update `docs/architecture.html` to include the new component
 3. Update `README.md` if the change affects setup or usage
 4. Ensure component descriptions are clear and accurate
+5. If you add or change `.proto` files, document required `npm run codegen`
+   steps and verify generated files are committed when appropriate
 
 #### Modifying Existing Components
 
@@ -109,6 +111,8 @@ When changing existing functionality:
 2. Update `docs/architecture.html` if the change affects system design
 3. Update `README.md` if the change affects user interaction
 4. Verify all references remain accurate
+5. If you modify `proto/*.proto`, update any code samples reflecting message or
+   service names and include the `npm run codegen` step where relevant
 
 ### JavaScript Code Block Standards
 
@@ -212,6 +216,8 @@ services:
 - Reference specific documentation sections in commit messages
 - Create documentation drafts before implementation begins
 - Review documentation changes during code review process
+- When `.proto` changes are included, call out the need to run `npm run codegen`
+  in the PR description
 
 ### Documentation Quality
 

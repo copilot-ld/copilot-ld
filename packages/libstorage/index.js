@@ -15,6 +15,35 @@ import {
 
 import { StorageInterface } from "./types.js";
 
+import { logFactory } from "@copilot-ld/libutil";
+
+/**
+ * Parse JSON Lines (JSONL) format into an array of objects
+ * @param {Buffer|string} content - Content to parse as JSON Lines
+ * @returns {object[]} Array of parsed JSON objects
+ */
+function fromJsonLines(content) {
+  const text = content.toString().trim();
+  if (!text) return [];
+
+  return text
+    .split("\n")
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line));
+}
+
+/**
+ * Parse JSON format into an object
+ * @param {Buffer|string} content - Content to parse as JSON
+ * @returns {object} Parsed JSON object
+ */
+function fromJson(content) {
+  const text = content.toString().trim();
+  if (!text) return {};
+
+  return JSON.parse(text);
+}
+
 /**
  * Local filesystem storage implementation
  * @implements {StorageInterface}
@@ -22,16 +51,18 @@ import { StorageInterface } from "./types.js";
 export class LocalStorage extends StorageInterface {
   #basePath;
   #fs;
+  #logger;
 
   /**
    * Creates a new LocalStorage instance
    * @param {string} basePath - Base path for all storage operations
    * @param {object} fs - File system operations object
    */
-  constructor(basePath, fs) {
+  constructor(basePath, fs, logFn = logFactory) {
     super();
     this.#basePath = basePath;
     this.#fs = fs;
+    this.#logger = logFn("storage.local");
   }
 
   /** @inheritdoc */
@@ -39,6 +70,7 @@ export class LocalStorage extends StorageInterface {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
 
+    this.#logger.debug(`Putting file`, { key, fullPath });
     await this.#fs.mkdir(dirToCreate, { recursive: true });
     await this.#fs.writeFile(fullPath, data);
   }
@@ -48,13 +80,29 @@ export class LocalStorage extends StorageInterface {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
 
+    this.#logger.debug(`Appending file`, { key, fullPath });
     await this.#fs.mkdir(dirToCreate, { recursive: true });
-    await this.#fs.appendFile(fullPath, data);
+
+    // Always append with newline for JSON-ND format consistency
+    const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
+    await this.#fs.appendFile(fullPath, dataWithNewline);
   }
 
   /** @inheritdoc */
   async get(key) {
-    return await this.#fs.readFile(this.path(key));
+    const content = await this.#fs.readFile(this.path(key));
+
+    // Parse JSON Lines format if file has .jsonl extension
+    if (key.endsWith(".jsonl")) {
+      return fromJsonLines(content);
+    }
+
+    // Parse JSON format if file has .json extension
+    if (key.endsWith(".json")) {
+      return fromJson(content);
+    }
+
+    return content;
   }
 
   /** @inheritdoc */
@@ -101,7 +149,7 @@ export class LocalStorage extends StorageInterface {
           if (entry.isDirectory()) {
             await traverse(fullPath, relativeKey);
           } else if (entry.isFile()) {
-            if (!fileFilter || fileFilter(entry.name)) {
+            if (!fileFilter || fileFilter(relativeKey)) {
               keys.push(relativeKey);
             }
           }
@@ -220,7 +268,8 @@ export class S3Storage extends StorageInterface {
     let existingData = Buffer.alloc(0);
 
     try {
-      existingData = await this.get(key);
+      const result = await this.#getRaw(key);
+      existingData = result;
     } catch (error) {
       // If key doesn't exist, start with empty data
       if (
@@ -231,8 +280,32 @@ export class S3Storage extends StorageInterface {
       }
     }
 
-    const newData = Buffer.concat([existingData, Buffer.from(data)]);
+    // Always append with newline for JSON-ND format consistency
+    const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
+    const newData = Buffer.concat([existingData, Buffer.from(dataWithNewline)]);
     await this.put(key, newData);
+  }
+
+  /**
+   * Get raw data without JSON Lines parsing
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<Buffer>} Raw buffer data
+   * @private
+   */
+  async #getRaw(key) {
+    const command = new this.#commands.GetObjectCommand({
+      Bucket: this.#bucket,
+      Key: this.path(key),
+    });
+
+    const response = await this.#client.send(command);
+    const chunks = [];
+
+    for await (const chunk of response.Body) {
+      chunks.push(chunk);
+    }
+
+    return Buffer.concat(chunks);
   }
 
   /** @inheritdoc */
@@ -249,7 +322,19 @@ export class S3Storage extends StorageInterface {
       chunks.push(chunk);
     }
 
-    return Buffer.concat(chunks);
+    const content = Buffer.concat(chunks);
+
+    // Parse JSON Lines format if file has .jsonl extension
+    if (key.endsWith(".jsonl")) {
+      return fromJsonLines(content);
+    }
+
+    // Parse JSON format if file has .json extension
+    if (key.endsWith(".json")) {
+      return fromJson(content);
+    }
+
+    return content;
   }
 
   /** @inheritdoc */

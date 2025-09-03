@@ -341,6 +341,9 @@ Execute tests using these exact commands:
 # Run all tests across workspaces
 npm test
 
+# Re-generate types/services/clients before integration tests if proto changed
+npm run codegen
+
 # Run tests for specific package
 npm test -w @copilot-ld/libservice
 
@@ -352,4 +355,7 @@ npm test -- --watch
 
 # Run specific test file
 node --test services/agent/test/agent.test.js
+
+# Run performance tests
+npm run perf
 ```

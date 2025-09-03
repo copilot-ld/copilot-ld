@@ -13,7 +13,7 @@ function main() {
   const headSha = args[1];
 
   if (!baseSha || !headSha) {
-    console.error("Usage: release-changes <base-sha> <head-sha>");
+    console.error("Usage: node release-changes.js <base-sha> <head-sha>");
     process.exit(1);
   }
 

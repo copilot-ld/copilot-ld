@@ -44,7 +44,10 @@ export class VectorProcessor {
    * @returns {Promise<void>}
    */
   async process(actor, representation = "content") {
-    const resources = await this.#resourceIndex.getAll(actor);
+    const identifiers = await this.#resourceIndex.findAll();
+
+    // Load the full resources using the identifiers
+    const resources = await this.#resourceIndex.get(actor, identifiers);
 
     // Select the appropriate vector index based on representation
     const targetIndex =
@@ -87,7 +90,7 @@ export class VectorProcessor {
           text = String(resource.descriptor);
       }
 
-      if (text === null || text === "null") {
+      if (text === null || text === "null" || text.trim() === "") {
         this.#logger.debug("Skipping, no text", {
           id: resource.id,
           representation,

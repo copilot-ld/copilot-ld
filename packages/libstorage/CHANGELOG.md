@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-09-02
+
+- Added automatic JSON parsing for `.json` files in both `LocalStorage` and
+  `S3Storage`
+- Added automatic JSON Lines parsing for `.jsonl` files (existing functionality)
+- Updated `StorageInterface.get()` to return parsed objects for JSON files
+  instead of raw buffers
+- Added `fromJson()` helper function for consistent JSON parsing behavior
+- Enhanced test coverage for automatic JSON and JSONL parsing scenarios
+- **BREAKING**: Files with `.json` extension now return parsed objects instead
+  of raw data
+
 ## 2025-08-28
 
 - Added `append()` method to `StorageInterface` for `URI-based` data appending

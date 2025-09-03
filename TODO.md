@@ -8,7 +8,7 @@ and policies for robust workflow controls.
 ### Phase 1: Foundation (Steps 1-4)
 
 - [x] **Step 01**: Deprecate History, Agent, Text services
-- [x] **Step 02**: Deprecate `libchunk`, `libprompt`
+- [x] **Step 02**: Remove `libchunk`, `libprompt`
 - [x] **Step 03**: Deprecate some protobuf types
 - [x] **Step 04**: Enhancing `libstorage`
 
@@ -20,15 +20,14 @@ and policies for robust workflow controls.
 
 ### Phase 3: Services & Integration (Steps 8-9+)
 
-- [ ] **Step 08**: Other new protobuf definitions
-- [ ] **Step 09**: New Event service
-- [ ] **Step 10**: New Context service
-- [ ] **Step 11**: New Tool service
-- [ ] **Step 12**: New Plan service
-- [ ] **Step 13**: New Assistant service
-- [ ] **Step 14**: Update extensions to use Plan service
-- [ ] **Step 15**: Remove deprecated items and rename `MessageV2` to `Message`
-- [ ] **Step 16**: New Graph tool
+- [x] **Step 08**: New Memory service
+- [ ] **Step 09**: New Tool service
+- [ ] **Step 10**: New Event service
+- [ ] **Step 11**: New Plan service
+- [ ] **Step 12**: New Assistant service
+- [ ] **Step 13**: Update extensions to use Plan service
+- [ ] **Step 14**: Remove deprecated items and rename `MessageV2` to `Message`
+- [ ] **Step 15**: New Graph tool
 
 **🚨 CRITICAL**: Each step must be completed and tested before proceeding to the
 next step. Dependencies between steps are strict and must be respected.
@@ -287,47 +286,42 @@ sequenceDiagram
 
 ## Implementation Plan
 
-### Step 08: Other New Protobuf Definitions
+### Step 09: New Tool Service
 
-**🎯 Objective**: Define all remaining protobuf schemas needed for the new
-architecture.
+**🎯 Objective**: Define a simple tool interface, and implement the first tool
+which is a vector search tool.
 
 **📋 Tasks**:
 
-- Add remaining types to `common.proto`
-- Create `event.proto` for event streaming
-- Create `context.proto` for context management
-- Create `plan.proto` for task planning
+- Define a the tool interface
+- Provide a simple way to configure a map of tool names and host/port
+- Provide a standard container in which tools run
+- Define a separate Docker network in which tool containers run
+- Implement a simple policy that manage access to tools
+- Implement a vector search tool
+- Implement a simple single-agent version of the "Inner Loop" with tool calls
 
 **🔧 Implementation Details**:
 
-In `common.proto`, these definitions are added:
+TODO
 
-```proto
-// ... existing protobuf definitions, e.g. Choice, Usage
+**✅ Success Criteria**:
 
-message Conversation {
-  common.Resource meta = 1;
-}
+- Tools are provided to the LLM
+- Tool calls are requested by the LLM
+- Tool call results are returned
+- The chain of tool calls work without errors
+- A simple policy manage what actors can access a given tool
 
-message PromptCompletion {
-  // These compile to .messages with .toMessages()
-  repeated MessageV2 instructions = 1;
-  repeated MessageV2 context = 2;
-  repeated MessageV2 history = 3;
-  optional MessageV2 message = 4;
+## Step 10: New Event service
 
-  repeated MessageV2 messages = 5;
+**🎯 Objective**: TODO
 
-  repeated Tool tools = 6;
-  optional Usage usage = 7;
-}
+**📋 Tasks**:
 
-message PromptChoices {
-  repeated Choice choices = 1;
-  optional Usage usage = 2;
-}
-```
+TODO
+
+**🔧 Implementation Details**:
 
 The `event.proto` definitions are added:
 
@@ -368,34 +362,32 @@ message SubscribeRequest {
 }
 ```
 
-The `context.proto` definitions are added:
+**✅ Success Criteria**:
 
-```proto
-syntax = "proto3";
+TODO
 
-import "common.proto";
+### Steps 11-15: Other Service Implementations & Integrations
 
-package context;
+**🎯 Objective**: Implement other new services and complete the architectural
+transition.
 
-service Context {
-  rpc GetWindow(WindowRequest) returns (Window);
-  rpc OptimizeWindow(Window) returns (OptimizationResponse);
-}
+**📋 Tasks**:
 
-message WindowRequest {
-  string id = 1;
-}
+- **Step 11**: New Plan service
+- **Step 12**: New Assistant service
+- **Step 13**: Update extensions to use Plan service
+- **Step 14**: Remove deprecated items and rename `MessageV2` to `Message`
+- **Step 15**: New Graph tool
 
-message OptimizationResponse {
-  bool successful = 1;
-  bool optimized = 2;
-}
+**⚠️ Implementation Notes**:
 
-message Window {
-  string id = 1;
-  repeated Resource resources = 2;
-}
-```
+- Each step builds on previous completed steps
+- Services must follow established gRPC patterns from existing codebase
+- All new services require comprehensive unit and integration tests
+- Performance benchmarks must be established for each service
+- Documentation must be updated incrementally with each service addition
+
+**🔧 Implementation Details**:
 
 The `plan.proto` definitions are added:
 
@@ -418,37 +410,6 @@ message Task {
   optional string completed_at = 5; // ISO 8601
 }
 ```
-
-**✅ Success Criteria**:
-
-- All protobuf schemas compile successfully
-- Generated types are properly structured
-- Import dependencies resolve correctly
-- Type definitions support planned service implementations
-
-### Steps 09-16: Service Implementation & Integration
-
-**🎯 Objective**: Implement all new services and complete the architectural
-transition.
-
-**📋 Tasks**:
-
-- **Step 09**: Implement Event service with streaming capabilities
-- **Step 10**: Implement Context service for resource window management
-- **Step 11**: Implement Tool service for function execution
-- **Step 12**: Implement Plan service for task coordination
-- **Step 13**: Implement Assistant service with supervisory and direct modes
-- **Step 14**: Update extensions to use new Plan service patterns
-- **Step 15**: Remove deprecated items and rename `MessageV2` to `Message`
-- **Step 16**: Implement Graph tool for linked data relationships
-
-**⚠️ Implementation Notes**:
-
-- Each step builds on previous completed steps
-- Services must follow established gRPC patterns from existing codebase
-- All new services require comprehensive unit and integration tests
-- Performance benchmarks must be established for each service
-- Documentation must be updated incrementally with each service addition
 
 **✅ Success Criteria for Each Step**:
 

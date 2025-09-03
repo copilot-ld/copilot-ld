@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { VectorBase } from "./types.js";
+import { VectorBase } from "./service.js";
 
 /**
  * Vector search service for querying content and descriptor vector indexes
@@ -32,19 +32,12 @@ class VectorService extends VectorBase {
     const index =
       req.index === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
 
-    this.debug("Querying vector index", {
-      threshold: req.threshold,
-      limit: req.limit,
-      max_tokens: req.max_tokens || "unlimited",
+    this.debug("Querying index", {
       index: req.index,
+      filters: req.filter.length,
     });
 
-    const identifiers = await index.queryItems(
-      req.vector,
-      req.threshold,
-      req.limit,
-      req.max_tokens,
-    );
+    const identifiers = await index.queryItems(req.vector, req.filter || {});
 
     this.debug("Query complete", {
       index: req.index,
@@ -53,6 +46,31 @@ class VectorService extends VectorBase {
 
     return { identifiers };
   }
+
+  /**
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").vector.GetItemRequest} req - Request message
+   * @returns {Promise<import("@copilot-ld/libtype").vector.GetItemResponse>} Response message
+   */
+  async GetItem(req) {
+    const index =
+      req.index === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
+
+    this.debug("Getting item from vector index", {
+      id: req.id,
+      index: req.index,
+    });
+
+    const identifier = await index.getItem(req.id);
+
+    this.debug("Get item complete", {
+      index: req.index,
+      found: identifier !== null,
+    });
+
+    return { identifier };
+  }
 }
 
 export { VectorService };
+export { VectorClient } from "./client.js";

@@ -319,37 +319,27 @@ This file defines service implementation standards for all gRPC services in this
 
 ### Service Structure Requirements
 
-Every service must implement this exact pattern:
+Generated bases and clients must be used. Extend the generated `*Base` and implement typed RPCs:
 
 ```javascript
-import { Service } from "@copilot-ld/libservice";
+/* eslint-env node */
+import { ServiceConfig } from "@copilot-ld/libconfig";
+import { vector } from "@copilot-ld/libtype";
+import { VectorBase } from "./service.js";
 
-class ServiceImplementation {
-  constructor(config) {
-    this.config = config;
-  }
-
-  async method(request, callback) {
-    try {
-      const result = await this.processRequest(request);
-      callback(null, result);
-    } catch (error) {
-      callback(error);
-    }
+class ExampleService extends VectorBase {
+  /** @param {vector.QueryItemsRequest} req */
+  async QueryItems(req) {
+    return { identifiers: [] };
   }
 }
+
+await new ExampleService(await ServiceConfig.create("vector"), null).start();
 ```
 
 ### Configuration Requirements
 
-Services must load configuration through the standard Config class:
-
-```javascript
-import { Config } from "@copilot-ld/libconfig";
-
-const config = new Config();
-const service = new Service(config.serviceName());
-```
+Use `ServiceConfig.create(name, defaults?)` to construct and load service configuration.
 
 ## Best Practices
 
@@ -363,11 +353,7 @@ callback(new Error(`Service error: ${error.message}`));
 
 ### Logging Standards
 
-Use consistent logging format across all services:
-
-```javascript
-console.log(`[${service.name}] Processing request: ${request.id}`);
-```
+Use `this.debug(message, context)` from the base `Service` class.
 
 ## Explicit Prohibitions
 
@@ -380,29 +366,18 @@ console.log(`[${service.name}] Processing request: ${request.id}`);
 ### Complete Service Implementation
 
 ```javascript
-import { Service } from "@copilot-ld/libservice";
-import { Config } from "@copilot-ld/libconfig";
+/* eslint-env node */
+import { ServiceConfig } from "@copilot-ld/libconfig";
+import { ExampleBase } from "./service.js";
 
-const config = new Config();
-const service = new Service("example");
-
-class ExampleService {
-  async processRequest(request, callback) {
-    try {
-      const result = { status: "success", data: request.query };
-      callback(null, result);
-    } catch (error) {
-      callback(error);
-    }
+class ExampleService extends ExampleBase {
+  async ProcessRequest(req) {
+    return { status: "success", data: req.query };
   }
 }
 
-const exampleService = new ExampleService();
-service.addService(ExampleProto.ExampleService.service, {
-  ProcessRequest: exampleService.processRequest.bind(exampleService),
-});
-
-await service.start();
+await new ExampleService(await ServiceConfig.create("example"))
+  .start();
 ```
 ```
 

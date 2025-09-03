@@ -6,6 +6,7 @@ package vector;
 
 service Vector {
   rpc QueryItems(QueryItemsRequest) returns (QueryItemsResponse);
+  rpc GetItem(GetItemRequest) returns (GetItemResponse);
 }
 
 message Filter {
@@ -24,4 +25,13 @@ message QueryItemsRequest {
 
 message QueryItemsResponse {
   repeated resource.Identifier identifiers = 1;
+}
+
+message GetItemRequest {
+  string index = 1; // "content" or "descriptor"
+  string id = 2; // Resource ID
+}
+
+message GetItemResponse {
+  optional resource.Identifier identifier = 1;
 }

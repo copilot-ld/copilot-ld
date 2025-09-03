@@ -19,9 +19,9 @@ message EmbeddingsResponse {
 }
 
 message CompletionsRequest {
-  common.Prompt prompt = 1;
-  string github_token = 3;
+  repeated common.MessageV2 messages = 1;
   optional float temperature = 2;
+  string github_token = 3;
 }
 
 message CompletionsResponse {

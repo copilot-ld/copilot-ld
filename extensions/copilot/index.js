@@ -6,14 +6,17 @@ import { verifyAndParseRequest } from "@copilot-extensions/preview-sdk";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
+import { logFactory } from "@copilot-ld/libutil";
 
 /**
  * Creates a GitHub Copilot compatible extension
  * @param {Client} client - Agent service gRPC client
+ * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional logger factory
  * @returns {Hono} Configured Hono application
  */
-function createCopilotExtension(client) {
+function createCopilotExtension(client, logFn = logFactory) {
   const app = new Hono();
+  const logger = logFn("extension.copilot");
 
   // Create security middleware with config
   const security = createSecurityMiddleware(config);
@@ -79,7 +82,7 @@ function createCopilotExtension(client) {
         session_id: response.session_id,
       });
     } catch (error) {
-      console.error("Copilot extension error:", {
+      logger.debug("Copilot extension error", {
         error: error.message,
         path: c.req.path,
       });
@@ -118,6 +121,7 @@ serve(
     hostname: config.host,
   },
   () => {
-    console.log(`Listening on: ${config.host}:${config.port}`);
+    const logger = logFactory("extension.copilot");
+    logger.debug("Listening on", { host: config.host, port: config.port });
   },
 );

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2025-09-03
+
+- Integrated memory budget feature to pass `config.budget.tokens` and
+  `config.budget.allocation` to `MemoryService.GetWindow()`
+- Enhanced `GetWindow()` call to include token allocation parameters for
+  `tools`, `history`, `tasks`, and `context` sections
+- Improved memory management by applying token-based filtering to conversation
+  history and context
+- Preloaded `Assistant` resource and subtracted its `content.tokens` from the
+  memory budget prior to window retrieval; recalculated per-section allocations
+  based on the remaining budget
+
+## 2025-09-02
+
+memory budget prior to window retrieval; applied allocation percentages to the
+final available token count when requesting the window resource-backed context
+
+- Hardened error handling around resource retrieval during context assembly
+
+## 2025-09-01
+
+- Refactored `AgentService` to inject typed clients (`LlmClient`,
+  `VectorClient`, `MemoryClient`) with explicit JSDoc types; updated server and
+  tests accordingly
+
 ## 2025-08-28
 
 - **BREAKING**: Replaced `Text` service dependency with `ResourceIndex` for

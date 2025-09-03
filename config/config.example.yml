@@ -5,16 +5,16 @@ tool:
 
 service:
   agent:
-    threshold: 0.35
+    threshold: 0.25
     limit: 100
     temperature: 0.25
-    systemInstructionsTokens: 2000
-    historyTokens: 10000
-    similaritySearchTokens: 75000
-    prompts:
-      - "You help with software development practices."
-      - "Keep your introduction brief and focused on the task."
-      - "Format your responses in Markdown, using code blocks when relevant."
+    budget:
+      tokens: 90000
+      allocation:
+        tools: 0.1
+        history: 0.1
+        context: 0.6
+    assistant: "cld:common.Assistant.software-dev-expert"
 
   history:
     ttl: 3600

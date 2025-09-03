@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-09-02
+
+- Simplified JSON handling by relying on `libstorage` automatic parsing; tests
+  updated to mirror behavior
+- API cleanup: renamed `getAll()` ➜ `findAll()` and `getByPrefix()` ➜
+  `findByPrefix()`; removed `actor` parameter
+- Results now return `resource.Identifier` objects; added `toIdentifier()` and
+  updated dependents (`MemoryService`, `VectorProcessor`)
+
 ## 2025-08-28
 
 - Fixed `DESCRIPTOR_PROMPT` to prevent LLM from responding with markdown code

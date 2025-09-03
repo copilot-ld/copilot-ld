@@ -3,22 +3,26 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 
+import { AgentClient } from "@copilot-ld/agent";
 import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
-import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
+import { logFactory } from "@copilot-ld/libutil";
+import { common } from "@copilot-ld/libtype";
 
 // Create HTML formatter with factory function
 const htmlFormatter = createHtmlFormatter();
 
 /**
  * Creates a web extension with configurable dependencies
- * @param {Client} client - Agent service gRPC client
+ * @param {AgentClient} client - Agent service gRPC client
  * @param {ExtensionConfig} config - Extension configuration
+ * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional logger factory
  * @returns {Promise<Hono>} Configured Hono application
  */
-async function createWebExtension(client, config) {
+async function createWebExtension(client, config, logFn = logFactory) {
   const app = new Hono();
+  const logger = logFn("extension.web");
 
   // Create security middleware with config
   const security = createSecurityMiddleware(config);
@@ -46,50 +50,51 @@ async function createWebExtension(client, config) {
       required: ["message"],
       types: {
         message: "string",
-        session_id: "string",
+        conversation_id: "string",
       },
       maxLengths: {
         message: 5000,
-        session_id: 100,
+        conversation_id: 100,
       },
     }),
     async (c) => {
       try {
         const data = c.get("validatedData");
-        const { message, session_id } = data;
+        const { message, conversation_id } = data;
 
         const requestParams = {
-          messages: [{ role: "user", content: message }],
+          messages: [
+            new common.MessageV2.fromObject({ role: "user", content: message }),
+          ],
           github_token: await config.githubToken(),
         };
 
-        if (session_id) {
-          requestParams.session_id = session_id;
+        if (conversation_id) {
+          requestParams.conversation_id = conversation_id;
         }
 
         // Ensure client is ready before making requests
         await client.ensureReady();
 
         const response = await client.ProcessRequest(requestParams);
+        let reply = { role: "assistant", content: null };
 
         // Format HTML content if present
         if (
-          response.choices &&
-          response.choices.length > 0 &&
-          response.choices[0].message &&
-          response.choices[0].message.content
+          response.choices?.length > 0 &&
+          response.choices[0]?.message?.content
         ) {
-          response.choices[0].message.content = htmlFormatter.format(
-            response.choices[0].message.content,
+          reply.content = htmlFormatter.format(
+            String(response.choices[0].message.content),
           );
         }
 
         return c.json({
-          ...response,
+          message: reply,
           status: "success",
         });
       } catch (error) {
-        console.error("Web extension error:", {
+        logger.debug("Web extension error", {
           error: error.message,
           path: c.req.path,
         });
@@ -111,7 +116,7 @@ async function createWebExtension(client, config) {
 
 // Create and start the application
 const config = await ExtensionConfig.create("web");
-const client = new Client(await ServiceConfig.create("agent"));
+const client = new AgentClient(await ServiceConfig.create("agent"));
 const app = await createWebExtension(client, config);
 
 // Start server
@@ -122,6 +127,7 @@ serve(
     hostname: config.host,
   },
   () => {
-    console.log(`Listening on: ${config.host}:${config.port}`);
+    const logger = logFactory("extension.web");
+    logger.debug("Listening on", { host: config.host, port: config.port });
   },
 );

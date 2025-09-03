@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { common } from "@copilot-ld/libtype";
 
-import { LlmBase } from "./types.js";
+import { LlmBase } from "./service.js";
 
 /**
  * LLM service for completions and embeddings
@@ -30,17 +30,21 @@ class LlmService extends LlmBase {
   async CreateCompletions(req) {
     const llm = this.#llmFactory(req.github_token, this.config.model);
 
-    const messages = req.prompt.toMessages();
+    // Convert MessageV2 objects to simple message format for the LLM
+    const messages = req.messages.map((m) => ({
+      role: m.role,
+      content: String(m.content || ""),
+    }));
 
-    // Log prompt details
-    this.debug("Creating completion for prompt", {
+    // Log completion details
+    this.debug("Creating completion for messages", {
       messages: messages.length,
       temperature: req.temperature,
       model: this.config.model,
     });
 
     const params = {
-      messages: messages,
+      messages,
       temperature: req.temperature,
     };
 
@@ -71,6 +75,10 @@ class LlmService extends LlmBase {
    * @returns {Promise<import("@copilot-ld/libtype").llm.EmbeddingsResponse>} Response message
    */
   async CreateEmbeddings(req) {
+    this.debug("Creating embeddings", {
+      chunks: req.chunks?.length || 0,
+    });
+
     const llm = this.#llmFactory(req.github_token, this.config.model);
     const data = await llm.createEmbeddings(req.chunks);
 
@@ -86,3 +94,4 @@ class LlmService extends LlmBase {
 }
 
 export { LlmService };
+export { LlmClient } from "./client.js";

@@ -1,5 +1,6 @@
 /* eslint-env node */
 import crypto from "crypto";
+import { LoggerInterface } from "./types.js";
 
 /**
  * Generates a deterministic hash from multiple input values
@@ -18,12 +19,14 @@ export function generateHash(...values) {
 /**
  * Logger class for centralized logging with namespace support
  */
-export class Logger {
+export class Logger extends LoggerInterface {
   /**
    * Creates a new Logger instance
    * @param {string} namespace - Namespace for this logger instance
    */
   constructor(namespace) {
+    super(namespace);
+
     if (!namespace || typeof namespace !== "string") {
       throw new Error("namespace must be a non-empty string");
     }
@@ -99,4 +102,30 @@ export class Logger {
  */
 export function logFactory(namespace) {
   return new Logger(namespace);
+}
+
+/**
+ * Generates a unique session ID for conversation tracking
+ * @returns {string} Unique session identifier
+ */
+export function generateSessionId() {
+  return crypto.randomUUID();
+}
+
+/**
+ * Finds the most recent user message in a conversation
+ * @param {object[]} messages - Array of conversation messages
+ * @returns {object|null} Latest user message or null if none found
+ */
+export function getLatestUserMessage(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return null;
+  }
+
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user") {
+      return messages[i];
+    }
+  }
+  return null;
 }

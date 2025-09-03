@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/memory",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Memory service for managing transient resources and memory windows",
   "type": "module",
   "main": "index.js",
@@ -12,7 +12,7 @@
     "@copilot-ld/libconfig": "*",
     "@copilot-ld/libpolicy": "*",
     "@copilot-ld/libresource": "*",
-    "@copilot-ld/libservice": "*",
+    "@copilot-ld/libservice": "^0.1.5",
     "@copilot-ld/libstorage": "*",
     "@copilot-ld/libtype": "*"
   }

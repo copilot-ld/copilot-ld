@@ -93,37 +93,44 @@ class ToolService extends ToolBase {
     });
 
     try {
-      // Query ResourceIndex for tool schemas (for future enhancement)
-      const _actor = "cld:common.System.root";
+      const actor = "cld:common.System.root";
       const tools = [];
 
-      // ResourceIndex will be used in future for storing/retrieving tool schemas
-      this.debug("ResourceIndex available", {
+      // Load tools from ResourceIndex
+      this.debug("Loading tools from ResourceIndex", {
         available: !!this.#resourceIndex,
       });
 
-      // Generate tools from configuration
-      for (const [toolName, endpoint] of Object.entries(this.#endpoints)) {
+      // Query ResourceIndex for ToolFunction resources
+      // For now, we'll implement a simple pattern-based query
+      // In a full implementation, this would use proper resource querying
+      const resourcePattern = "cld:common.ToolFunction.";
+      
+      // Since ResourceIndex doesn't have a query method, we'll iterate through known tools
+      // This would be improved with a proper query interface
+      for (const [toolName] of Object.entries(this.#endpoints)) {
         // Skip if namespace filter doesn't match
         if (req.namespace && !toolName.startsWith(req.namespace)) {
           continue;
         }
 
-        const tool = {
-          type: "function",
-          function: {
-            descriptor: {
-              name: endpoint.name || toolName,
-              description: endpoint.description || `Execute ${toolName} tool`,
-            },
-            parameters: await this.#generateToolSchema(endpoint),
-          },
-        };
-
-        tools.push(tool);
+        try {
+          const resourceId = `${resourcePattern}${toolName}`;
+          const toolResource = await this.#resourceIndex.get(actor, resourceId);
+          
+          if (toolResource && toolResource.toolSchema) {
+            tools.push(toolResource.toolSchema);
+          }
+        } catch (error) {
+          this.debug("Failed to load tool from ResourceIndex", {
+            toolName,
+            error: error.message,
+          });
+          // Continue with next tool instead of failing completely
+        }
       }
 
-      this.debug("Tools listed", { count: tools.length });
+      this.debug("Tools listed from ResourceIndex", { count: tools.length });
 
       return { tools };
     } catch (error) {
@@ -209,56 +216,7 @@ class ToolService extends ToolBase {
         return args;
     }
   }
-
-  /**
-   * Generate OpenAI-compatible JSON schema for a tool endpoint
-   * @param {object} endpoint - Endpoint configuration
-   * @returns {Promise<object>} JSON schema
-   * @private
-   */
-  async #generateToolSchema(endpoint) {
-    // Basic schema generation - would be enhanced with protobuf introspection
-    const [serviceName, methodName] = endpoint.call.split(".");
-
-    switch (`${serviceName}.${methodName}`) {
-      case "vector.QueryItems":
-        return {
-          type: "object",
-          properties: {
-            vector: {
-              type: "array",
-              items: { type: "number" },
-              description: "Query vector embedding",
-            },
-            threshold: {
-              type: "number",
-              description: "Similarity threshold (0-1)",
-              minimum: 0,
-              maximum: 1,
-              default: 0.3,
-            },
-            limit: {
-              type: "integer",
-              description: "Maximum number of results",
-              minimum: 1,
-              default: 10,
-            },
-          },
-          required: ["vector"],
-        };
-      default:
-        return {
-          type: "object",
-          properties: {
-            input: {
-              type: "string",
-              description: "Input data for the tool",
-            },
-          },
-          required: ["input"],
-        };
-    }
-  }
+}
 }
 
 // Bootstrap

@@ -198,60 +198,112 @@ class AgentService extends AgentBase {
           : undefined,
       });
 
-      // Step 5: Get LLM completion with tool calling support
-      completions = await this.#llmClient.CreateCompletions({
-        messages: await toMessages(
-          assistant,
-          tasks,
-          window,
-          this.#resourceIndex,
-        ),
-        temperature: this.config.temperature,
-        github_token: req.github_token,
-      });
+      // Step 5: Get LLM completion with tool calling support - Inner Loop
+      let conversationMessages = await toMessages(
+        assistant,
+        tasks,
+        window,
+        this.#resourceIndex,
+      );
+      
+      // Inner loop to handle tool calls until completion
+      let maxIterations = 10; // Prevent infinite loops
+      let currentIteration = 0;
+      
+      while (currentIteration < maxIterations) {
+        this.debug("Inner loop iteration", {
+          iteration: currentIteration + 1,
+          maxIterations,
+        });
 
-      // Step 6: Handle tool calls (basic Inner Loop implementation)
-      if (completions?.choices?.length > 0) {
-        const choice = completions.choices[0];
+        // Get LLM completion
+        completions = await this.#llmClient.CreateCompletions({
+          messages: conversationMessages,
+          temperature: this.config.temperature,
+          github_token: req.github_token,
+        });
 
-        // Check if the response contains tool calls
-        if (choice.message?.tool_calls?.length > 0) {
-          this.debug("Processing tool calls", {
-            toolCalls: choice.message.tool_calls.length,
-          });
-
-          // Execute each tool call
-          const toolResults = [];
-          for (const toolCall of choice.message.tool_calls) {
-            try {
-              const toolResult = await this.#toolClient.ExecuteTool(toolCall);
-              toolResults.push(toolResult);
-
-              this.debug("Tool executed", {
-                toolId: toolCall.id,
-                success: true,
-              });
-            } catch (error) {
-              this.debug("Tool execution failed", {
-                toolId: toolCall.id,
-                error: error.message,
-              });
-
-              toolResults.push({
-                role: "tool",
-                tool_call_id: toolCall.id,
-                content: JSON.stringify({ error: error.message }),
-              });
-            }
-          }
-
-          // TODO: Continue conversation with tool results
-          // For now, just log the tool results
-          this.debug("Tool results processed", {
-            results: toolResults.length,
-          });
+        // Check if we got a valid response
+        if (!completions?.choices?.length) {
+          this.debug("No completions received, ending inner loop");
+          break;
         }
+
+        const choice = completions.choices[0];
+        
+        // If no tool calls, we're done
+        if (!choice.message?.tool_calls?.length) {
+          this.debug("No tool calls in response, inner loop complete");
+          break;
+        }
+
+        this.debug("Processing tool calls", {
+          toolCalls: choice.message.tool_calls.length,
+          iteration: currentIteration + 1,
+        });
+
+        // Add the assistant's message with tool calls to conversation
+        conversationMessages.push({
+          role: "assistant",
+          content: choice.message.content || "",
+          tool_calls: choice.message.tool_calls,
+        });
+
+        // Execute each tool call and collect results
+        const toolResults = [];
+        for (const toolCall of choice.message.tool_calls) {
+          try {
+            const toolResult = await this.#toolClient.ExecuteTool(toolCall);
+            
+            // Format tool result for LLM consumption
+            toolResults.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify(toolResult),
+            });
+
+            this.debug("Tool executed successfully", {
+              toolId: toolCall.id,
+              toolName: toolCall.function?.name,
+            });
+          } catch (error) {
+            this.debug("Tool execution failed", {
+              toolId: toolCall.id,
+              toolName: toolCall.function?.name,
+              error: error.message,
+            });
+
+            // Add error as tool result
+            toolResults.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify({ 
+                error: error.message,
+                type: "tool_execution_error",
+              }),
+            });
+          }
+        }
+
+        // Add tool results to conversation for next iteration
+        conversationMessages.push(...toolResults);
+
+        this.debug("Tool results added to conversation", {
+          toolResults: toolResults.length,
+          conversationLength: conversationMessages.length,
+        });
+
+        currentIteration++;
       }
+
+      if (currentIteration >= maxIterations) {
+        this.debug("Inner loop reached maximum iterations", {
+          maxIterations,
+        });
+      }
+
+      // Step 6: Handle tool calls (now replaced by inner loop above)
+      // This section is now handled in the inner loop
 
       // Step 7: Save the response
       if (completions?.choices?.length > 0) {

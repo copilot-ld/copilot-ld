@@ -4,6 +4,9 @@ import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 import { policyFactory } from "@copilot-ld/libpolicy";
+import pkg from "protobufjs";
+
+const { load } = pkg;
 
 const config = await ScriptConfig.create("tools");
 
@@ -32,88 +35,142 @@ function parseArgs() {
 
 /**
  * Generate OpenAI-compatible JSON schema from protobuf message type
- * @param {object} _messageType - Protobuf message type
+ * @param {object} messageType - Protobuf message type
  * @returns {object} JSON schema
  * @private
  */
-function _generateSchemaFromProtobuf(_messageType) {
+function _generateSchemaFromProtobuf(messageType) {
   const schema = {
     type: "object",
     properties: {},
     required: [],
   };
 
-  // This is a simplified schema generation
-  // In a full implementation, this would introspect the protobuf types
+  if (!messageType || !messageType.fields) {
+    return schema;
+  }
+
+  // Iterate through protobuf fields to build JSON schema
+  for (const [fieldName, field] of Object.entries(messageType.fields)) {
+    const property = {
+      description: field.comment || `${fieldName} field`,
+    };
+
+    // Map protobuf types to JSON schema types
+    switch (field.type) {
+      case "string":
+        property.type = "string";
+        break;
+      case "int32":
+      case "int64":
+      case "uint32":
+      case "uint64":
+        property.type = "integer";
+        break;
+      case "float":
+      case "double":
+        property.type = "number";
+        break;
+      case "bool":
+        property.type = "boolean";
+        break;
+      default:
+        // Handle repeated fields (arrays)
+        if (field.rule === "repeated") {
+          property.type = "array";
+          if (field.type === "float" || field.type === "double") {
+            property.items = { type: "number" };
+          } else if (field.type === "string") {
+            property.items = { type: "string" };
+          } else {
+            property.items = { type: "object" };
+          }
+        } else {
+          property.type = "object";
+        }
+    }
+
+    schema.properties[fieldName] = property;
+
+    // Add to required fields if not optional
+    if (field.rule === "required" || (!field.rule && !field.optional)) {
+      schema.required.push(fieldName);
+    }
+  }
+
   return schema;
+}
+
+/**
+ * Load protobuf root and extract service method schema
+ * @param {string} protoPath - Path to the proto file
+ * @param {string} serviceName - Service name
+ * @param {string} methodName - Method name
+ * @returns {Promise<object>} JSON schema for the method request
+ */
+async function _loadMethodSchema(protoPath, serviceName, methodName) {
+  try {
+    const root = await load(protoPath);
+    const service = root.lookupService(serviceName);
+    const method = service.methods[methodName];
+    
+    if (!method) {
+      throw new Error(`Method ${methodName} not found in service ${serviceName}`);
+    }
+
+    const requestType = root.lookupType(method.requestType);
+    return _generateSchemaFromProtobuf(requestType);
+  } catch (error) {
+    console.warn(`Failed to load schema for ${serviceName}.${methodName}:`, error.message);
+    // Return a generic schema as fallback
+    return {
+      type: "object",
+      properties: {
+        input: {
+          type: "string",
+          description: "Input data for the tool",
+        },
+      },
+      required: ["input"],
+    };
+  }
 }
 
 /**
  * Generate tool schemas from endpoint configurations
  * @param {object} endpoints - Tool endpoint configurations
- * @returns {Array<object>} Array of tool schemas
+ * @returns {Promise<Array<object>>} Array of tool schemas
  */
-function generateToolSchemas(endpoints) {
+async function generateToolSchemas(endpoints) {
   const tools = [];
 
   for (const [toolName, endpoint] of Object.entries(endpoints)) {
-    const [serviceName, methodName] = endpoint.call.split(".");
+    const callParts = endpoint.call.split(".");
+    if (callParts.length < 3) {
+      console.warn(`Invalid call format for tool ${toolName}: ${endpoint.call}`);
+      continue;
+    }
 
+    const [packageName, serviceName, methodName] = callParts;
+    const protoPath = `proto/${packageName}.proto`;
+
+    // Try to load schema dynamically from protobuf
     let schema;
-    switch (`${serviceName}.${methodName}`) {
-      case "vector.Vector.QueryItems":
-        schema = {
-          type: "object",
-          properties: {
-            vector: {
-              type: "array",
-              items: { type: "number" },
-              description: "Query vector embedding",
-            },
-            threshold: {
-              type: "number",
-              description: "Similarity threshold (0-1)",
-              minimum: 0,
-              maximum: 1,
-              default: 0.3,
-            },
-            limit: {
-              type: "integer",
-              description: "Maximum number of results",
-              minimum: 1,
-              default: 10,
-            },
+    try {
+      schema = await _loadMethodSchema(protoPath, serviceName, methodName);
+    } catch (error) {
+      console.warn(`Failed to generate schema for ${toolName}:`, error.message);
+      // Fallback to generic schema
+      schema = {
+        type: "object",
+        properties: {
+          input: {
+            type: "string",
+            description: "Input data for the tool",
           },
-          required: ["vector"],
-        };
-        break;
-
-      case "toolbox.HashTools.Sha256Hash":
-      case "toolbox.HashTools.Md5Hash":
-        schema = {
-          type: "object",
-          properties: {
-            input: {
-              type: "string",
-              description: "Input text to hash",
-            },
-          },
-          required: ["input"],
-        };
-        break;
-
-      default:
-        // Generic schema for unknown tools
-        schema = {
-          type: "object",
-          properties: {
-            input: {
-              type: "string",
-              description: "Input data for the tool",
-            },
-          },
-          required: ["input"],
-        };
+        },
+        required: ["input"],
+      };
     }
 
     const tool = {
@@ -140,45 +197,60 @@ function generateToolSchemas(endpoints) {
  * @param {ResourceIndex} resourceIndex - Resource index instance
  * @param {string} toolName - Tool name
  * @param {object} toolSchema - Tool schema
+ * @param {object} endpoint - Endpoint configuration
  * @param {object} logger - Logger instance
  * @returns {Promise<void>}
  */
-async function storeToolResource(resourceIndex, toolName, toolSchema, logger) {
+async function storeToolResource(resourceIndex, toolName, toolSchema, endpoint, logger) {
   const actor = "cld:common.System.root";
+
+  // Create resource identifier
+  const resourceId = `cld:common.ToolFunction.${toolName}`;
 
   // Create resource descriptor
   const descriptor = {
     name: toolSchema.function.name,
     description: toolSchema.function.description,
-    type: "tool",
+    type: "ToolFunction",
   };
 
-  // Create resource data with tool schema
-  const resourceData = {
-    meta: {
-      purpose: `Provides ${toolSchema.function.name} functionality`,
-      instructions:
-        "Use this tool when you need to perform the described operation",
-      applicability: toolSchema.function.description,
-      evaluation:
-        "Tool execution should complete without errors and return expected results",
-    },
+  // Get meta fields from endpoint configuration or use defaults
+  const meta = {
+    purpose: endpoint.purpose || `Provides ${toolSchema.function.name} functionality`,
+    instructions: endpoint.instructions || "Use this tool when you need to perform the described operation",
+    applicability: endpoint.applicability || toolSchema.function.description,
+    evaluation: endpoint.evaluation || "Tool execution should complete without errors and return expected results",
+  };
+
+  // Create ToolFunction resource following the pattern used by MessageV2
+  const toolFunction = {
+    id: { uri: resourceId },
     descriptor,
-    schema: toolSchema,
-    endpoints: toolName,
+    parameters: toolSchema.function.parameters,
   };
 
-  // Generate resource URI
-  const resourceUri = `cld:common.Tool.${toolName}`;
+  // Create resource content
+  const resourceContent = {
+    id: { uri: resourceId },
+    descriptor,
+    content: {
+      meta,
+      data: JSON.stringify(toolFunction),
+      mime_type: "application/json",
+    },
+    toolSchema,
+    endpoint: endpoint.call,
+  };
 
   logger.debug("Storing tool resource", {
     toolName,
-    resourceUri,
+    resourceId,
     schema: toolSchema.function.name,
+    call: endpoint.call,
   });
 
   // Store the resource
-  await resourceIndex.put(actor, resourceUri, resourceData);
+  await resourceIndex.put(actor, resourceId, resourceContent);
 }
 
 /**
@@ -208,7 +280,7 @@ async function main() {
   }
 
   // Generate tool schemas
-  const toolSchemas = generateToolSchemas(endpoints);
+  const toolSchemas = await generateToolSchemas(endpoints);
 
   logger.debug("Generated tool schemas", {
     count: toolSchemas.length,
@@ -232,8 +304,8 @@ async function main() {
   }
 
   // Store each tool schema as a resource
-  for (const { toolName, schema } of filteredSchemas) {
-    await storeToolResource(resourceIndex, toolName, schema, logger);
+  for (const { toolName, schema, endpoint } of filteredSchemas) {
+    await storeToolResource(resourceIndex, toolName, schema, endpoint, logger);
   }
 
   logger.debug("Tool schemas stored successfully", {

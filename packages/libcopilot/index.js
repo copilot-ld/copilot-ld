@@ -122,9 +122,6 @@ export class Copilot extends LlmInterface {
 
     const data = await response.json();
 
-    console.log("== FROM COPILOT LIB ==");
-    console.log(JSON.stringify(data, null, 2));
-
     // Convert response back to expected format with proper MessageV2 instances
     // The monkey patch in libtype automatically converts string content to Content objects
     return {

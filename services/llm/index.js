@@ -64,9 +64,6 @@ class LlmService extends LlmBase {
 
     const data = await llm.createCompletions(params);
 
-    console.log("== FROM LLM SERVICE ==");
-    console.log(JSON.stringify(data, null, 2));
-
     // Ensure all response data uses proper typed constructors
     return {
       id: data.id,

@@ -225,26 +225,12 @@ class AgentService extends AgentBase {
         this.#resourceIndex,
       );
 
-      // If memory window has no tool identifiers, attempt eager load via ToolService.ListTools
       let tools = [];
-      if (window.tools && window.tools.length > 0) {
+      if (window?.tools.length > 0) {
         tools = await toTools(window.tools, this.#resourceIndex);
-      } else if (typeof this.#toolClient.ListTools === "function") {
-        try {
-          const listResp = await this.#toolClient.ListTools({ namespace: "" });
-          if (listResp?.tools?.length) {
-            tools = listResp.tools.map((t) =>
-              common.Tool.fromObject({ type: "function", function: t }),
-            );
-            this.debug("Loaded tools via ListTools fallback", {
-              count: tools.length,
-            });
-          }
-        } catch (err) {
-          this.debug("ListTools fallback failed", { error: err.message });
-        }
       }
 
+      console.log(tools);
       // Inner loop to handle tool calls until completion
       let maxIterations = 10; // Prevent infinite loops
       let currentIteration = 0;

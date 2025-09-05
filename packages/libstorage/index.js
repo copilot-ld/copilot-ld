@@ -70,7 +70,6 @@ export class LocalStorage extends StorageInterface {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
 
-    this.#logger.debug(`Putting file`, { key, fullPath });
     await this.#fs.mkdir(dirToCreate, { recursive: true });
     await this.#fs.writeFile(fullPath, data);
   }
@@ -80,7 +79,6 @@ export class LocalStorage extends StorageInterface {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
 
-    this.#logger.debug(`Appending file`, { key, fullPath });
     await this.#fs.mkdir(dirToCreate, { recursive: true });
 
     // Always append with newline for JSON-ND format consistency

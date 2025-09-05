@@ -49,7 +49,7 @@ async function main() {
     logger,
   );
   await processor.processAssistants();
-  await processor.processKnowledge(".html", [args.selector]);
+  //await processor.processKnowledge(".html", [args.selector]);
 }
 
 main();

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from `services/agent/`
+  replaced by consolidated `generated/services/agent/` artifacts
+- Added fallback tool discovery: when `MemoryService.GetWindow()` returns no
+  tool identifiers, `AgentService` now calls `ToolService.ListTools()` to
+  populate available function tools enabling immediate tool calling (e.g.,
+  MD5 hash) on first user prompt
+
 ## 2025-09-03
 
 - Updated `Dockerfile` to copy renamed `scripts/` directory instead of `tools/`

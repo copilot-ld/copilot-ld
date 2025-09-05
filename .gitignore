@@ -1,7 +1,9 @@
 # Node files
 **/node_modules/
 
-# Generated files
+# Generated files and data
+**/data/
+**/generated/
 
 # Config files
 **/.env*
@@ -10,17 +12,10 @@
 **/config.yml
 **/assistants.yml
 
-# Data files
-**/data/
-
 # Editor files
 .vscode/
 .idea/
 SCRATCHPAD.md
-
-# Development server
-**/dev.pid
-**/dev.log
 
 # Other files
 **/.DS_Store

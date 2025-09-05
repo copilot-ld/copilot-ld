@@ -122,6 +122,9 @@ export class Copilot extends LlmInterface {
 
     const data = await response.json();
 
+    console.log("== FROM COPILOT LIB ==");
+    console.log(JSON.stringify(data, null, 2));
+
     // Convert response back to expected format with proper MessageV2 instances
     // The monkey patch in libtype automatically converts string content to Content objects
     return {
@@ -129,12 +132,7 @@ export class Copilot extends LlmInterface {
       choices:
         data.choices?.map((choice) => ({
           ...choice,
-          message: common.MessageV2.fromObject({
-            id: { name: "" }, // Will be set later with withIdentifier
-            descriptor: { type: "message" },
-            content: choice.message?.content || "", // Monkey patch handles string->Content conversion
-            role: choice.message?.role || "assistant",
-          }),
+          message: common.MessageV2.fromObject(choice.message),
         })) || [],
     };
   }

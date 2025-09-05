@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { common } from "@copilot-ld/libtype";
 
-import { LlmBase } from "./service.js";
+import { LlmBase } from "../../generated/services/llm/service.js";
 
 /**
  * LLM service for completions and embeddings
@@ -62,9 +62,10 @@ class LlmService extends LlmBase {
       temperature: req.temperature,
     };
 
-    console.log(JSON.stringify(params, null, 2));
-
     const data = await llm.createCompletions(params);
+
+    console.log("== FROM LLM SERVICE ==");
+    console.log(JSON.stringify(data, null, 2));
 
     // Ensure all response data uses proper typed constructors
     return {
@@ -110,4 +111,4 @@ class LlmService extends LlmBase {
 }
 
 export { LlmService };
-export { LlmClient } from "./client.js";
+export { LlmClient } from "../../generated/services/llm/client.js";

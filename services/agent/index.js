@@ -2,7 +2,7 @@
 import { common, llm } from "@copilot-ld/libtype";
 import { generateSessionId, getLatestUserMessage } from "@copilot-ld/libutil";
 
-import { AgentBase } from "./service.js";
+import { AgentBase } from "../../generated/services/agent/service.js";
 
 /**
  * Converts a memory window to a simple messages array for LLM completion
@@ -225,8 +225,26 @@ class AgentService extends AgentBase {
         this.#resourceIndex,
       );
 
-      const tools = await toTools(window.tools, this.#resourceIndex);
-      // console.log(tools);
+      // If memory window has no tool identifiers, attempt eager load via ToolService.ListTools
+      let tools = [];
+      if (window.tools && window.tools.length > 0) {
+        tools = await toTools(window.tools, this.#resourceIndex);
+      } else if (typeof this.#toolClient.ListTools === "function") {
+        try {
+          const listResp = await this.#toolClient.ListTools({ namespace: "" });
+          if (listResp?.tools?.length) {
+            tools = listResp.tools.map((t) =>
+              common.Tool.fromObject({ type: "function", function: t }),
+            );
+            this.debug("Loaded tools via ListTools fallback", {
+              count: tools.length,
+            });
+          }
+        } catch (err) {
+          this.debug("ListTools fallback failed", { error: err.message });
+        }
+      }
+
       // Inner loop to handle tool calls until completion
       let maxIterations = 10; // Prevent infinite loops
       let currentIteration = 0;
@@ -243,8 +261,6 @@ class AgentService extends AgentBase {
           temperature: this.config.temperature,
           github_token: req.github_token,
         });
-
-        //console.log(JSON.stringify(completionRequest, null, 2));
 
         completions =
           await this.#llmClient.CreateCompletions(completionRequest);
@@ -362,4 +378,4 @@ class AgentService extends AgentBase {
  * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
  */
 export { AgentService };
-export { AgentClient } from "./client.js";
+export { AgentClient } from "../../generated/services/agent/client.js";

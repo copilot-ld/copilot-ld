@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { common, tool } from "@copilot-ld/libtype";
-import { VectorClient } from "../vector/client.js";
-import { ToolBase } from "./service.js";
+import { VectorClient } from "../../generated/services/vector/client.js";
+import { ToolBase } from "../../generated/services/tool/service.js";
 
 /**
  * Tool service implementation that acts as a gRPC proxy between tool calls and actual implementations
@@ -215,4 +215,4 @@ class ToolService extends ToolBase {
 }
 
 export { ToolService };
-export { ToolClient } from "./client.js";
+export { ToolClient } from "../../generated/services/tool/client.js";

@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { VectorBase } from "./service.js";
+import { VectorBase } from "../../generated/services/vector/service.js";
 
 /**
  * Vector search service for querying content and descriptor vector indexes
@@ -74,4 +74,4 @@ class VectorService extends VectorBase {
 }
 
 export { VectorService };
-export { VectorClient } from "./client.js";
+export { VectorClient } from "../../generated/services/vector/client.js";

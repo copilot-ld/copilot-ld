@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { promises as fs, accessSync } from "fs";
+import { promises as fs } from "fs";
 import { dirname, join } from "path";
 
 import {
@@ -15,7 +15,7 @@ import {
 
 import { StorageInterface } from "./types.js";
 
-import { logFactory } from "@copilot-ld/libutil";
+import { logFactory, searchUpward } from "@copilot-ld/libutil";
 
 /**
  * Parse JSON Lines (JSONL) format into an array of objects
@@ -545,35 +545,30 @@ export function storageFactory(bucket, type, process = global.process) {
   switch (finalType) {
     case "local":
     case undefined: {
-      let searchItem;
-      let basePath;
+      let relative;
 
       switch (bucket) {
         case "config":
+          relative = bucket;
+          break;
+
         case "proto":
-          searchItem = bucket;
+          relative = join("generated", bucket);
           break;
 
         case "knowledge":
-          searchItem = `data/${bucket}`;
+          relative = join("data", bucket);
           break;
 
         default:
-          searchItem = `data/storage/${bucket}`;
+          relative = join("data", "storage", bucket);
       }
 
-      const searchPaths = ["./", "../", "../../"];
+      const root = typeof process.cwd === "function"
+        ? process.cwd()
+        : global.process.cwd();
 
-      for (const searchPath of searchPaths) {
-        try {
-          const fullPath = join(searchPath, searchItem);
-          accessSync(fullPath);
-          basePath = fullPath;
-          break; // Exit immediately when valid path is found
-        } catch {
-          // Continue to next path
-        }
-      }
+      const basePath = searchUpward(root, relative);
 
       if (!basePath) {
         throw new Error(`Could not find bucket: ${bucket}`);
@@ -603,6 +598,7 @@ export function storageFactory(bucket, type, process = global.process) {
         PutObjectCommand,
       });
     }
+
     default:
       throw new Error(`Unsupported storage type: ${type}`);
   }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from `services/tool/`
+	due to unified `generated/services/tool/` output
+
 ## 2025-01-03
 
 - Initial implementation of Tool service

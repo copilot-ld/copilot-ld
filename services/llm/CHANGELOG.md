@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from `services/llm/`
+  after migration to consolidated `generated/services/llm/` location
+
 ## 2025-09-02
 
 - Switched `CompletionsRequest` to `repeated common.MessageV2 messages` and

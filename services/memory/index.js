@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { MemoryBase } from "./service.js";
+import { MemoryBase } from "../../generated/services/memory/service.js";
 
 /**
  * Memory service for managing transient resources and memory windows
@@ -197,4 +197,4 @@ export class MemoryService extends MemoryBase {
   }
 }
 
-export { MemoryClient } from "./client.js";
+export { MemoryClient } from "../../generated/services/memory/client.js";

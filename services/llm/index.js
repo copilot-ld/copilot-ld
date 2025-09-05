@@ -31,22 +31,38 @@ class LlmService extends LlmBase {
     const llm = this.#llmFactory(req.github_token, this.config.model);
 
     // Convert MessageV2 objects to simple message format for the LLM
+    // TODO: This is not where fallbacks should be handled
+    // TODO: We need better and more flexible rendering of representations
     const messages = req.messages.map((m) => ({
-      role: m.role,
-      content: String(m.content || ""),
+      role: m.role || "system",
+      content: m.content ? String(m.content) : String(m.descriptor),
+    }));
+
+    // TODO: Again, we need more flexible rendering of representations
+    const tools = req.tools?.map((t) => ({
+      type: t.type,
+      function: {
+        name: String(t.function.id.name.split(".").pop()),
+        description: String(t.function.descriptor),
+        parameters: common.ToolParam.toObject(t.function.parameters) || {},
+      },
     }));
 
     // Log completion details
     this.debug("Creating completion for messages", {
       messages: messages.length,
+      tools: tools?.length || 0,
       temperature: req.temperature,
       model: this.config.model,
     });
 
     const params = {
       messages,
+      tools,
       temperature: req.temperature,
     };
+
+    console.log(JSON.stringify(params, null, 2));
 
     const data = await llm.createCompletions(params);
 

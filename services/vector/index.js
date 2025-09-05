@@ -34,7 +34,8 @@ class VectorService extends VectorBase {
 
     this.debug("Querying index", {
       index: req.index,
-      filters: req.filter.length,
+      threshold: req.filters?.threshold,
+      limit: req.filters?.limit,
     });
 
     const identifiers = await index.queryItems(req.vector, req.filter || {});

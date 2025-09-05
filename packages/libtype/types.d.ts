@@ -1,317 +1,5 @@
 import * as $protobuf from "protobufjs";
 import Long = require("long");
-/** Namespace resource. */
-export namespace resource {
-  /** Properties of an Identifier. */
-  interface IIdentifier {
-    /** Identifier type */
-    type?: string | null;
-
-    /** Identifier name */
-    name?: string | null;
-
-    /** Identifier parent */
-    parent?: string | null;
-
-    /** Identifier tokens */
-    tokens?: number | null;
-
-    /** Identifier score */
-    score?: number | null;
-  }
-
-  /** Represents an Identifier. */
-  class Identifier implements IIdentifier {
-    /**
-     * Constructs a new Identifier.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: resource.IIdentifier);
-
-    /** Identifier type. */
-    public type: string;
-
-    /** Identifier name. */
-    public name: string;
-
-    /** Identifier parent. */
-    public parent: string;
-
-    /** Identifier tokens. */
-    public tokens?: number | null;
-
-    /** Identifier score. */
-    public score?: number | null;
-
-    /** Identifier _tokens. */
-    public _tokens?: "tokens";
-
-    /** Identifier _score. */
-    public _score?: "score";
-
-    /**
-     * Encodes the specified Identifier message. Does not implicitly {@link resource.Identifier.verify|verify} messages.
-     * @param message Identifier message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: resource.Identifier,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes an Identifier message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns Identifier
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): resource.Identifier;
-
-    /**
-     * Verifies an Identifier message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates an Identifier message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns Identifier
-     */
-    public static fromObject(object: { [k: string]: any }): resource.Identifier;
-
-    /**
-     * Creates a plain object from an Identifier message. Also converts values to other types if specified.
-     * @param message Identifier
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: resource.Identifier,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this Identifier to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for Identifier
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-
-  /** Properties of a Descriptor. */
-  interface IDescriptor {
-    /** Descriptor tokens */
-    tokens?: number | null;
-
-    /** Descriptor purpose */
-    purpose?: string | null;
-
-    /** Descriptor instructions */
-    instructions?: string | null;
-
-    /** Descriptor applicability */
-    applicability?: string | null;
-
-    /** Descriptor evaluation */
-    evaluation?: string | null;
-  }
-
-  /** Resource descriptor representation */
-  class Descriptor implements IDescriptor {
-    /**
-     * Constructs a new Descriptor.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: resource.IDescriptor);
-
-    /** Descriptor tokens. */
-    public tokens: number;
-
-    /** Descriptor purpose. */
-    public purpose: string;
-
-    /** Descriptor instructions. */
-    public instructions: string;
-
-    /** Descriptor applicability. */
-    public applicability: string;
-
-    /** Descriptor evaluation. */
-    public evaluation: string;
-
-    /**
-     * Encodes the specified Descriptor message. Does not implicitly {@link resource.Descriptor.verify|verify} messages.
-     * @param message Descriptor message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: resource.Descriptor,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a Descriptor message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns Descriptor
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): resource.Descriptor;
-
-    /**
-     * Verifies a Descriptor message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a Descriptor message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns Descriptor
-     */
-    public static fromObject(object: { [k: string]: any }): resource.Descriptor;
-
-    /**
-     * Creates a plain object from a Descriptor message. Also converts values to other types if specified.
-     * @param message Descriptor
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: resource.Descriptor,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this Descriptor to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for Descriptor
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-
-  /** Properties of a Content. */
-  interface IContent {
-    /** Content tokens */
-    tokens?: number | null;
-
-    /** Content text */
-    text?: string | null;
-
-    /** Content jsonld */
-    jsonld?: string | null;
-  }
-
-  /** Resource content representation */
-  class Content implements IContent {
-    /**
-     * Constructs a new Content.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: resource.IContent);
-
-    /** Content tokens. */
-    public tokens: number;
-
-    /** Content text. */
-    public text?: string | null;
-
-    /** Content jsonld. */
-    public jsonld?: string | null;
-
-    /** Content type. */
-    public type?: "text" | "jsonld";
-
-    /**
-     * Encodes the specified Content message. Does not implicitly {@link resource.Content.verify|verify} messages.
-     * @param message Content message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: resource.Content,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a Content message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns Content
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): resource.Content;
-
-    /**
-     * Verifies a Content message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a Content message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns Content
-     */
-    public static fromObject(object: { [k: string]: any }): resource.Content;
-
-    /**
-     * Creates a plain object from a Content message. Also converts values to other types if specified.
-     * @param message Content
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: resource.Content,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this Content to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for Content
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-}
-
 /** Namespace common. */
 export namespace common {
   /** Properties of a Message. */
@@ -1221,6 +909,9 @@ export namespace common {
 
   /** Properties of a ToolFunction. */
   interface IToolFunction {
+    /** ToolFunction id */
+    id?: resource.Identifier | null;
+
     /** ToolFunction descriptor */
     descriptor?: resource.Descriptor | null;
 
@@ -1238,6 +929,9 @@ export namespace common {
      * @param [properties] Properties to set
      */
     constructor(properties?: common.IToolFunction);
+
+    /** ToolFunction id. */
+    public id?: resource.Identifier | null;
 
     /** ToolFunction descriptor. */
     public descriptor?: resource.Descriptor | null;
@@ -1782,6 +1476,318 @@ export namespace common {
   }
 }
 
+/** Namespace resource. */
+export namespace resource {
+  /** Properties of an Identifier. */
+  interface IIdentifier {
+    /** Identifier type */
+    type?: string | null;
+
+    /** Identifier name */
+    name?: string | null;
+
+    /** Identifier parent */
+    parent?: string | null;
+
+    /** Identifier tokens */
+    tokens?: number | null;
+
+    /** Identifier score */
+    score?: number | null;
+  }
+
+  /** Represents an Identifier. */
+  class Identifier implements IIdentifier {
+    /**
+     * Constructs a new Identifier.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: resource.IIdentifier);
+
+    /** Identifier type. */
+    public type: string;
+
+    /** Identifier name. */
+    public name: string;
+
+    /** Identifier parent. */
+    public parent: string;
+
+    /** Identifier tokens. */
+    public tokens?: number | null;
+
+    /** Identifier score. */
+    public score?: number | null;
+
+    /** Identifier _tokens. */
+    public _tokens?: "tokens";
+
+    /** Identifier _score. */
+    public _score?: "score";
+
+    /**
+     * Encodes the specified Identifier message. Does not implicitly {@link resource.Identifier.verify|verify} messages.
+     * @param message Identifier message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: resource.Identifier,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes an Identifier message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns Identifier
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): resource.Identifier;
+
+    /**
+     * Verifies an Identifier message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates an Identifier message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Identifier
+     */
+    public static fromObject(object: { [k: string]: any }): resource.Identifier;
+
+    /**
+     * Creates a plain object from an Identifier message. Also converts values to other types if specified.
+     * @param message Identifier
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: resource.Identifier,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this Identifier to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for Identifier
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a Descriptor. */
+  interface IDescriptor {
+    /** Descriptor tokens */
+    tokens?: number | null;
+
+    /** Descriptor purpose */
+    purpose?: string | null;
+
+    /** Descriptor instructions */
+    instructions?: string | null;
+
+    /** Descriptor applicability */
+    applicability?: string | null;
+
+    /** Descriptor evaluation */
+    evaluation?: string | null;
+  }
+
+  /** Resource descriptor representation */
+  class Descriptor implements IDescriptor {
+    /**
+     * Constructs a new Descriptor.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: resource.IDescriptor);
+
+    /** Descriptor tokens. */
+    public tokens: number;
+
+    /** Descriptor purpose. */
+    public purpose: string;
+
+    /** Descriptor instructions. */
+    public instructions: string;
+
+    /** Descriptor applicability. */
+    public applicability: string;
+
+    /** Descriptor evaluation. */
+    public evaluation: string;
+
+    /**
+     * Encodes the specified Descriptor message. Does not implicitly {@link resource.Descriptor.verify|verify} messages.
+     * @param message Descriptor message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: resource.Descriptor,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a Descriptor message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns Descriptor
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): resource.Descriptor;
+
+    /**
+     * Verifies a Descriptor message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a Descriptor message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Descriptor
+     */
+    public static fromObject(object: { [k: string]: any }): resource.Descriptor;
+
+    /**
+     * Creates a plain object from a Descriptor message. Also converts values to other types if specified.
+     * @param message Descriptor
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: resource.Descriptor,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this Descriptor to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for Descriptor
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a Content. */
+  interface IContent {
+    /** Content tokens */
+    tokens?: number | null;
+
+    /** Content text */
+    text?: string | null;
+
+    /** Content jsonld */
+    jsonld?: string | null;
+  }
+
+  /** Resource content representation */
+  class Content implements IContent {
+    /**
+     * Constructs a new Content.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: resource.IContent);
+
+    /** Content tokens. */
+    public tokens: number;
+
+    /** Content text. */
+    public text?: string | null;
+
+    /** Content jsonld. */
+    public jsonld?: string | null;
+
+    /** Content type. */
+    public type?: "text" | "jsonld";
+
+    /**
+     * Encodes the specified Content message. Does not implicitly {@link resource.Content.verify|verify} messages.
+     * @param message Content message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: resource.Content,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a Content message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns Content
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): resource.Content;
+
+    /**
+     * Verifies a Content message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a Content message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Content
+     */
+    public static fromObject(object: { [k: string]: any }): resource.Content;
+
+    /**
+     * Creates a plain object from a Content message. Also converts values to other types if specified.
+     * @param message Content
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: resource.Content,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this Content to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for Content
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+}
+
 /** Namespace agent. */
 export namespace agent {
   /** Properties of an AgentRequest. */
@@ -2176,6 +2182,9 @@ export namespace llm {
     /** CompletionsRequest messages */
     messages?: common.MessageV2[] | null;
 
+    /** CompletionsRequest tools */
+    tools?: common.Tool[] | null;
+
     /** CompletionsRequest temperature */
     temperature?: number | null;
 
@@ -2193,6 +2202,9 @@ export namespace llm {
 
     /** CompletionsRequest messages. */
     public messages: common.MessageV2[];
+
+    /** CompletionsRequest tools. */
+    public tools: common.Tool[];
 
     /** CompletionsRequest temperature. */
     public temperature?: number | null;
@@ -2374,480 +2386,6 @@ export namespace llm {
 
     /**
      * Gets the default type url for CompletionsResponse
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-}
-
-/** Namespace vector. */
-export namespace vector {
-  /** Properties of a Filter. */
-  interface IFilter {
-    /** Filter limit */
-    limit?: string | null;
-
-    /** Filter threshold */
-    threshold?: string | null;
-
-    /** Filter max_tokens */
-    max_tokens?: string | null;
-
-    /** Filter prefix */
-    prefix?: string | null;
-
-    /** Filter type */
-    type?: string | null;
-  }
-
-  /** Represents a Filter. */
-  class Filter implements IFilter {
-    /**
-     * Constructs a new Filter.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: vector.IFilter);
-
-    /** Filter limit. */
-    public limit?: string | null;
-
-    /** Filter threshold. */
-    public threshold?: string | null;
-
-    /** Filter max_tokens. */
-    public max_tokens?: string | null;
-
-    /** Filter prefix. */
-    public prefix?: string | null;
-
-    /** Filter type. */
-    public type?: string | null;
-
-    /** Filter _limit. */
-    public _limit?: "limit";
-
-    /** Filter _threshold. */
-    public _threshold?: "threshold";
-
-    /** Filter _max_tokens. */
-    public _max_tokens?: "max_tokens";
-
-    /** Filter _prefix. */
-    public _prefix?: "prefix";
-
-    /** Filter _type. */
-    public _type?: "type";
-
-    /**
-     * Encodes the specified Filter message. Does not implicitly {@link vector.Filter.verify|verify} messages.
-     * @param message Filter message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: vector.Filter,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a Filter message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns Filter
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): vector.Filter;
-
-    /**
-     * Verifies a Filter message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a Filter message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns Filter
-     */
-    public static fromObject(object: { [k: string]: any }): vector.Filter;
-
-    /**
-     * Creates a plain object from a Filter message. Also converts values to other types if specified.
-     * @param message Filter
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: vector.Filter,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this Filter to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for Filter
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-
-  /** Properties of a QueryItemsRequest. */
-  interface IQueryItemsRequest {
-    /** QueryItemsRequest index */
-    index?: string | null;
-
-    /** QueryItemsRequest vector */
-    vector?: number[] | null;
-
-    /** QueryItemsRequest filter */
-    filter?: vector.Filter | null;
-  }
-
-  /** Represents a QueryItemsRequest. */
-  class QueryItemsRequest implements IQueryItemsRequest {
-    /**
-     * Constructs a new QueryItemsRequest.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: vector.IQueryItemsRequest);
-
-    /** QueryItemsRequest index. */
-    public index: string;
-
-    /** QueryItemsRequest vector. */
-    public vector: number[];
-
-    /** QueryItemsRequest filter. */
-    public filter?: vector.Filter | null;
-
-    /** QueryItemsRequest _filter. */
-    public _filter?: "filter";
-
-    /**
-     * Encodes the specified QueryItemsRequest message. Does not implicitly {@link vector.QueryItemsRequest.verify|verify} messages.
-     * @param message QueryItemsRequest message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: vector.QueryItemsRequest,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a QueryItemsRequest message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns QueryItemsRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): vector.QueryItemsRequest;
-
-    /**
-     * Verifies a QueryItemsRequest message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a QueryItemsRequest message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns QueryItemsRequest
-     */
-    public static fromObject(object: {
-      [k: string]: any;
-    }): vector.QueryItemsRequest;
-
-    /**
-     * Creates a plain object from a QueryItemsRequest message. Also converts values to other types if specified.
-     * @param message QueryItemsRequest
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: vector.QueryItemsRequest,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this QueryItemsRequest to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for QueryItemsRequest
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-
-  /** Properties of a QueryItemsResponse. */
-  interface IQueryItemsResponse {
-    /** QueryItemsResponse identifiers */
-    identifiers?: resource.Identifier[] | null;
-  }
-
-  /** Represents a QueryItemsResponse. */
-  class QueryItemsResponse implements IQueryItemsResponse {
-    /**
-     * Constructs a new QueryItemsResponse.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: vector.IQueryItemsResponse);
-
-    /** QueryItemsResponse identifiers. */
-    public identifiers: resource.Identifier[];
-
-    /**
-     * Encodes the specified QueryItemsResponse message. Does not implicitly {@link vector.QueryItemsResponse.verify|verify} messages.
-     * @param message QueryItemsResponse message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: vector.QueryItemsResponse,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a QueryItemsResponse message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns QueryItemsResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): vector.QueryItemsResponse;
-
-    /**
-     * Verifies a QueryItemsResponse message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a QueryItemsResponse message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns QueryItemsResponse
-     */
-    public static fromObject(object: {
-      [k: string]: any;
-    }): vector.QueryItemsResponse;
-
-    /**
-     * Creates a plain object from a QueryItemsResponse message. Also converts values to other types if specified.
-     * @param message QueryItemsResponse
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: vector.QueryItemsResponse,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this QueryItemsResponse to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for QueryItemsResponse
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-
-  /** Properties of a GetItemRequest. */
-  interface IGetItemRequest {
-    /** GetItemRequest index */
-    index?: string | null;
-
-    /** GetItemRequest id */
-    id?: string | null;
-  }
-
-  /** Represents a GetItemRequest. */
-  class GetItemRequest implements IGetItemRequest {
-    /**
-     * Constructs a new GetItemRequest.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: vector.IGetItemRequest);
-
-    /** GetItemRequest index. */
-    public index: string;
-
-    /** GetItemRequest id. */
-    public id: string;
-
-    /**
-     * Encodes the specified GetItemRequest message. Does not implicitly {@link vector.GetItemRequest.verify|verify} messages.
-     * @param message GetItemRequest message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: vector.GetItemRequest,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a GetItemRequest message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns GetItemRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): vector.GetItemRequest;
-
-    /**
-     * Verifies a GetItemRequest message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a GetItemRequest message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns GetItemRequest
-     */
-    public static fromObject(object: {
-      [k: string]: any;
-    }): vector.GetItemRequest;
-
-    /**
-     * Creates a plain object from a GetItemRequest message. Also converts values to other types if specified.
-     * @param message GetItemRequest
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: vector.GetItemRequest,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this GetItemRequest to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for GetItemRequest
-     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns The default type url
-     */
-    public static getTypeUrl(typeUrlPrefix?: string): string;
-  }
-
-  /** Properties of a GetItemResponse. */
-  interface IGetItemResponse {
-    /** GetItemResponse identifier */
-    identifier?: resource.Identifier | null;
-  }
-
-  /** Represents a GetItemResponse. */
-  class GetItemResponse implements IGetItemResponse {
-    /**
-     * Constructs a new GetItemResponse.
-     * @param [properties] Properties to set
-     */
-    constructor(properties?: vector.IGetItemResponse);
-
-    /** GetItemResponse identifier. */
-    public identifier?: resource.Identifier | null;
-
-    /** GetItemResponse _identifier. */
-    public _identifier?: "identifier";
-
-    /**
-     * Encodes the specified GetItemResponse message. Does not implicitly {@link vector.GetItemResponse.verify|verify} messages.
-     * @param message GetItemResponse message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encode(
-      message: vector.GetItemResponse,
-      writer?: $protobuf.Writer,
-    ): $protobuf.Writer;
-
-    /**
-     * Decodes a GetItemResponse message from the specified reader or buffer.
-     * @param reader Reader or buffer to decode from
-     * @param [length] Message length if known beforehand
-     * @returns GetItemResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decode(
-      reader: $protobuf.Reader | Uint8Array,
-      length?: number,
-    ): vector.GetItemResponse;
-
-    /**
-     * Verifies a GetItemResponse message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): string | null;
-
-    /**
-     * Creates a GetItemResponse message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns GetItemResponse
-     */
-    public static fromObject(object: {
-      [k: string]: any;
-    }): vector.GetItemResponse;
-
-    /**
-     * Creates a plain object from a GetItemResponse message. Also converts values to other types if specified.
-     * @param message GetItemResponse
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(
-      message: vector.GetItemResponse,
-      options?: $protobuf.IConversionOptions,
-    ): { [k: string]: any };
-
-    /**
-     * Converts this GetItemResponse to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
-
-    /**
-     * Gets the default type url for GetItemResponse
      * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
      * @returns The default type url
      */
@@ -3492,8 +3030,482 @@ export namespace tool {
   }
 }
 
-/** Namespace toolbox. */
-export namespace toolbox {
+/** Namespace vector. */
+export namespace vector {
+  /** Properties of a Filter. */
+  interface IFilter {
+    /** Filter limit */
+    limit?: string | null;
+
+    /** Filter threshold */
+    threshold?: string | null;
+
+    /** Filter max_tokens */
+    max_tokens?: string | null;
+
+    /** Filter prefix */
+    prefix?: string | null;
+
+    /** Filter type */
+    type?: string | null;
+  }
+
+  /** Represents a Filter. */
+  class Filter implements IFilter {
+    /**
+     * Constructs a new Filter.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: vector.IFilter);
+
+    /** Filter limit. */
+    public limit?: string | null;
+
+    /** Filter threshold. */
+    public threshold?: string | null;
+
+    /** Filter max_tokens. */
+    public max_tokens?: string | null;
+
+    /** Filter prefix. */
+    public prefix?: string | null;
+
+    /** Filter type. */
+    public type?: string | null;
+
+    /** Filter _limit. */
+    public _limit?: "limit";
+
+    /** Filter _threshold. */
+    public _threshold?: "threshold";
+
+    /** Filter _max_tokens. */
+    public _max_tokens?: "max_tokens";
+
+    /** Filter _prefix. */
+    public _prefix?: "prefix";
+
+    /** Filter _type. */
+    public _type?: "type";
+
+    /**
+     * Encodes the specified Filter message. Does not implicitly {@link vector.Filter.verify|verify} messages.
+     * @param message Filter message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: vector.Filter,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a Filter message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns Filter
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): vector.Filter;
+
+    /**
+     * Verifies a Filter message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a Filter message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Filter
+     */
+    public static fromObject(object: { [k: string]: any }): vector.Filter;
+
+    /**
+     * Creates a plain object from a Filter message. Also converts values to other types if specified.
+     * @param message Filter
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: vector.Filter,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this Filter to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for Filter
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a QueryItemsRequest. */
+  interface IQueryItemsRequest {
+    /** QueryItemsRequest index */
+    index?: string | null;
+
+    /** QueryItemsRequest vector */
+    vector?: number[] | null;
+
+    /** QueryItemsRequest filters */
+    filters?: vector.Filter | null;
+  }
+
+  /** Represents a QueryItemsRequest. */
+  class QueryItemsRequest implements IQueryItemsRequest {
+    /**
+     * Constructs a new QueryItemsRequest.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: vector.IQueryItemsRequest);
+
+    /** QueryItemsRequest index. */
+    public index: string;
+
+    /** QueryItemsRequest vector. */
+    public vector: number[];
+
+    /** QueryItemsRequest filters. */
+    public filters?: vector.Filter | null;
+
+    /** QueryItemsRequest _filters. */
+    public _filters?: "filters";
+
+    /**
+     * Encodes the specified QueryItemsRequest message. Does not implicitly {@link vector.QueryItemsRequest.verify|verify} messages.
+     * @param message QueryItemsRequest message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: vector.QueryItemsRequest,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a QueryItemsRequest message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns QueryItemsRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): vector.QueryItemsRequest;
+
+    /**
+     * Verifies a QueryItemsRequest message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a QueryItemsRequest message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns QueryItemsRequest
+     */
+    public static fromObject(object: {
+      [k: string]: any;
+    }): vector.QueryItemsRequest;
+
+    /**
+     * Creates a plain object from a QueryItemsRequest message. Also converts values to other types if specified.
+     * @param message QueryItemsRequest
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: vector.QueryItemsRequest,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this QueryItemsRequest to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for QueryItemsRequest
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a QueryItemsResponse. */
+  interface IQueryItemsResponse {
+    /** QueryItemsResponse identifiers */
+    identifiers?: resource.Identifier[] | null;
+  }
+
+  /** Represents a QueryItemsResponse. */
+  class QueryItemsResponse implements IQueryItemsResponse {
+    /**
+     * Constructs a new QueryItemsResponse.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: vector.IQueryItemsResponse);
+
+    /** QueryItemsResponse identifiers. */
+    public identifiers: resource.Identifier[];
+
+    /**
+     * Encodes the specified QueryItemsResponse message. Does not implicitly {@link vector.QueryItemsResponse.verify|verify} messages.
+     * @param message QueryItemsResponse message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: vector.QueryItemsResponse,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a QueryItemsResponse message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns QueryItemsResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): vector.QueryItemsResponse;
+
+    /**
+     * Verifies a QueryItemsResponse message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a QueryItemsResponse message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns QueryItemsResponse
+     */
+    public static fromObject(object: {
+      [k: string]: any;
+    }): vector.QueryItemsResponse;
+
+    /**
+     * Creates a plain object from a QueryItemsResponse message. Also converts values to other types if specified.
+     * @param message QueryItemsResponse
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: vector.QueryItemsResponse,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this QueryItemsResponse to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for QueryItemsResponse
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a GetItemRequest. */
+  interface IGetItemRequest {
+    /** GetItemRequest index */
+    index?: string | null;
+
+    /** GetItemRequest id */
+    id?: string | null;
+  }
+
+  /** Represents a GetItemRequest. */
+  class GetItemRequest implements IGetItemRequest {
+    /**
+     * Constructs a new GetItemRequest.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: vector.IGetItemRequest);
+
+    /** GetItemRequest index. */
+    public index: string;
+
+    /** GetItemRequest id. */
+    public id: string;
+
+    /**
+     * Encodes the specified GetItemRequest message. Does not implicitly {@link vector.GetItemRequest.verify|verify} messages.
+     * @param message GetItemRequest message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: vector.GetItemRequest,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a GetItemRequest message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns GetItemRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): vector.GetItemRequest;
+
+    /**
+     * Verifies a GetItemRequest message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a GetItemRequest message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns GetItemRequest
+     */
+    public static fromObject(object: {
+      [k: string]: any;
+    }): vector.GetItemRequest;
+
+    /**
+     * Creates a plain object from a GetItemRequest message. Also converts values to other types if specified.
+     * @param message GetItemRequest
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: vector.GetItemRequest,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this GetItemRequest to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for GetItemRequest
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+
+  /** Properties of a GetItemResponse. */
+  interface IGetItemResponse {
+    /** GetItemResponse identifier */
+    identifier?: resource.Identifier | null;
+  }
+
+  /** Represents a GetItemResponse. */
+  class GetItemResponse implements IGetItemResponse {
+    /**
+     * Constructs a new GetItemResponse.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: vector.IGetItemResponse);
+
+    /** GetItemResponse identifier. */
+    public identifier?: resource.Identifier | null;
+
+    /** GetItemResponse _identifier. */
+    public _identifier?: "identifier";
+
+    /**
+     * Encodes the specified GetItemResponse message. Does not implicitly {@link vector.GetItemResponse.verify|verify} messages.
+     * @param message GetItemResponse message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(
+      message: vector.GetItemResponse,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
+
+    /**
+     * Decodes a GetItemResponse message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns GetItemResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): vector.GetItemResponse;
+
+    /**
+     * Verifies a GetItemResponse message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): string | null;
+
+    /**
+     * Creates a GetItemResponse message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns GetItemResponse
+     */
+    public static fromObject(object: {
+      [k: string]: any;
+    }): vector.GetItemResponse;
+
+    /**
+     * Creates a plain object from a GetItemResponse message. Also converts values to other types if specified.
+     * @param message GetItemResponse
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(
+      message: vector.GetItemResponse,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
+
+    /**
+     * Converts this GetItemResponse to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+
+    /**
+     * Gets the default type url for GetItemResponse
+     * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns The default type url
+     */
+    public static getTypeUrl(typeUrlPrefix?: string): string;
+  }
+}
+
+/** Namespace hash. */
+export namespace hash {
   /** Properties of a HashRequest. */
   interface IHashRequest {
     /** HashRequest input */
@@ -3506,19 +3518,19 @@ export namespace toolbox {
      * Constructs a new HashRequest.
      * @param [properties] Properties to set
      */
-    constructor(properties?: toolbox.IHashRequest);
+    constructor(properties?: hash.IHashRequest);
 
     /** HashRequest input. */
     public input: string;
 
     /**
-     * Encodes the specified HashRequest message. Does not implicitly {@link toolbox.HashRequest.verify|verify} messages.
+     * Encodes the specified HashRequest message. Does not implicitly {@link hash.HashRequest.verify|verify} messages.
      * @param message HashRequest message or plain object to encode
      * @param [writer] Writer to encode to
      * @returns Writer
      */
     public static encode(
-      message: toolbox.HashRequest,
+      message: hash.HashRequest,
       writer?: $protobuf.Writer,
     ): $protobuf.Writer;
 
@@ -3533,7 +3545,7 @@ export namespace toolbox {
     public static decode(
       reader: $protobuf.Reader | Uint8Array,
       length?: number,
-    ): toolbox.HashRequest;
+    ): hash.HashRequest;
 
     /**
      * Verifies a HashRequest message.
@@ -3547,7 +3559,7 @@ export namespace toolbox {
      * @param object Plain object
      * @returns HashRequest
      */
-    public static fromObject(object: { [k: string]: any }): toolbox.HashRequest;
+    public static fromObject(object: { [k: string]: any }): hash.HashRequest;
 
     /**
      * Creates a plain object from a HashRequest message. Also converts values to other types if specified.
@@ -3556,7 +3568,7 @@ export namespace toolbox {
      * @returns Plain object
      */
     public static toObject(
-      message: toolbox.HashRequest,
+      message: hash.HashRequest,
       options?: $protobuf.IConversionOptions,
     ): { [k: string]: any };
 
@@ -3589,7 +3601,7 @@ export namespace toolbox {
      * Constructs a new HashResponse.
      * @param [properties] Properties to set
      */
-    constructor(properties?: toolbox.IHashResponse);
+    constructor(properties?: hash.IHashResponse);
 
     /** HashResponse hash. */
     public hash: string;
@@ -3598,13 +3610,13 @@ export namespace toolbox {
     public algorithm: string;
 
     /**
-     * Encodes the specified HashResponse message. Does not implicitly {@link toolbox.HashResponse.verify|verify} messages.
+     * Encodes the specified HashResponse message. Does not implicitly {@link hash.HashResponse.verify|verify} messages.
      * @param message HashResponse message or plain object to encode
      * @param [writer] Writer to encode to
      * @returns Writer
      */
     public static encode(
-      message: toolbox.HashResponse,
+      message: hash.HashResponse,
       writer?: $protobuf.Writer,
     ): $protobuf.Writer;
 
@@ -3619,7 +3631,7 @@ export namespace toolbox {
     public static decode(
       reader: $protobuf.Reader | Uint8Array,
       length?: number,
-    ): toolbox.HashResponse;
+    ): hash.HashResponse;
 
     /**
      * Verifies a HashResponse message.
@@ -3633,9 +3645,7 @@ export namespace toolbox {
      * @param object Plain object
      * @returns HashResponse
      */
-    public static fromObject(object: {
-      [k: string]: any;
-    }): toolbox.HashResponse;
+    public static fromObject(object: { [k: string]: any }): hash.HashResponse;
 
     /**
      * Creates a plain object from a HashResponse message. Also converts values to other types if specified.
@@ -3644,7 +3654,7 @@ export namespace toolbox {
      * @returns Plain object
      */
     public static toObject(
-      message: toolbox.HashResponse,
+      message: hash.HashResponse,
       options?: $protobuf.IConversionOptions,
     ): { [k: string]: any };
 

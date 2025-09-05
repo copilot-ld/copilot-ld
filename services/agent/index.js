@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { common } from "@copilot-ld/libtype";
+import { common, llm } from "@copilot-ld/libtype";
 import { generateSessionId, getLatestUserMessage } from "@copilot-ld/libutil";
 
 import { AgentBase } from "./service.js";
@@ -43,6 +43,25 @@ async function toMessages(assistant, tasks, window, resourceIndex) {
   }
 
   return messages;
+}
+
+/**
+ * Converts an array of ToolFunction resources to common.Tool objects for LLM
+ * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Array of ToolFunction resources
+ * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - Resource index for retrieving actual tool resources
+ * @returns {object[]} Array of Tool objects for LLM
+ */
+async function toTools(identifiers, resourceIndex) {
+  if (!identifiers || identifiers.length === 0) return [];
+
+  const actor = "cld:common.System.root";
+  const functions = await resourceIndex.get(actor, identifiers);
+  return functions.map((func) => {
+    return common.Tool.fromObject({
+      type: "function",
+      function: func,
+    });
+  });
 }
 
 /**
@@ -171,7 +190,7 @@ class AgentService extends AgentBase {
       const { identifiers } = await this.#vectorClient.QueryItems({
         index: "content",
         vector,
-        filter: {
+        filters: {
           threshold: this.config.threshold,
           limit: this.config.limit,
         },
@@ -199,29 +218,36 @@ class AgentService extends AgentBase {
       });
 
       // Step 5: Get LLM completion with tool calling support - Inner Loop
-      let conversationMessages = await toMessages(
+      let messages = await toMessages(
         assistant,
         tasks,
         window,
         this.#resourceIndex,
       );
-      
+
+      const tools = await toTools(window.tools, this.#resourceIndex);
+      // console.log(tools);
       // Inner loop to handle tool calls until completion
       let maxIterations = 10; // Prevent infinite loops
       let currentIteration = 0;
-      
+
       while (currentIteration < maxIterations) {
         this.debug("Inner loop iteration", {
           iteration: currentIteration + 1,
           maxIterations,
         });
 
-        // Get LLM completion
-        completions = await this.#llmClient.CreateCompletions({
-          messages: conversationMessages,
+        const completionRequest = llm.CompletionsRequest.fromObject({
+          messages,
+          tools,
           temperature: this.config.temperature,
           github_token: req.github_token,
         });
+
+        //console.log(JSON.stringify(completionRequest, null, 2));
+
+        completions =
+          await this.#llmClient.CreateCompletions(completionRequest);
 
         // Check if we got a valid response
         if (!completions?.choices?.length) {
@@ -230,7 +256,7 @@ class AgentService extends AgentBase {
         }
 
         const choice = completions.choices[0];
-        
+
         // If no tool calls, we're done
         if (!choice.message?.tool_calls?.length) {
           this.debug("No tool calls in response, inner loop complete");
@@ -238,23 +264,26 @@ class AgentService extends AgentBase {
         }
 
         this.debug("Processing tool calls", {
-          toolCalls: choice.message.tool_calls.length,
+          calls: choice.message.tool_calls.length,
           iteration: currentIteration + 1,
         });
 
         // Add the assistant's message with tool calls to conversation
-        conversationMessages.push({
-          role: "assistant",
-          content: choice.message.content || "",
-          tool_calls: choice.message.tool_calls,
-        });
+        // TODO: Is choice.message already a MessageV2?
+        messages.push(
+          common.MessageV2.fromObject({
+            role: "assistant",
+            content: choice.message.content || "",
+            tool_calls: choice.message.tool_calls,
+          }),
+        );
 
         // Execute each tool call and collect results
         const toolResults = [];
         for (const toolCall of choice.message.tool_calls) {
           try {
             const toolResult = await this.#toolClient.ExecuteTool(toolCall);
-            
+
             // Format tool result for LLM consumption
             toolResults.push({
               role: "tool",
@@ -277,7 +306,7 @@ class AgentService extends AgentBase {
             toolResults.push({
               role: "tool",
               tool_call_id: toolCall.id,
-              content: JSON.stringify({ 
+              content: JSON.stringify({
                 error: error.message,
                 type: "tool_execution_error",
               }),
@@ -286,11 +315,11 @@ class AgentService extends AgentBase {
         }
 
         // Add tool results to conversation for next iteration
-        conversationMessages.push(...toolResults);
+        messages.push(...toolResults);
 
         this.debug("Tool results added to conversation", {
-          toolResults: toolResults.length,
-          conversationLength: conversationMessages.length,
+          results: toolResults.length,
+          messages: messages.length,
         });
 
         currentIteration++;

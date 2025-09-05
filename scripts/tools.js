@@ -1,37 +1,17 @@
 /* eslint-env node */
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { ServiceConfig } from "@copilot-ld/libconfig";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 import { policyFactory } from "@copilot-ld/libpolicy";
+import { common, resource } from "@copilot-ld/libtype";
 import pkg from "protobufjs";
+import { access } from "node:fs/promises";
 
 const { load } = pkg;
 
-const config = await ScriptConfig.create("tools");
-
-/**
- * Parse command line arguments
- * @returns {object} Parsed arguments
- */
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const parsed = {
-    namespace: null,
-    dryRun: false,
-  };
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--namespace" && i + 1 < args.length) {
-      parsed.namespace = args[i + 1];
-      i++; // skip the next argument as it's the value
-    } else if (args[i] === "--dry-run") {
-      parsed.dryRun = true;
-    }
-  }
-
-  return parsed;
-}
+// Use the config of the tools service
+const config = await ServiceConfig.create("tool");
 
 /**
  * Generate OpenAI-compatible JSON schema from protobuf message type
@@ -39,7 +19,7 @@ function parseArgs() {
  * @returns {object} JSON schema
  * @private
  */
-function _generateSchemaFromProtobuf(messageType) {
+function generateSchemaFromProtobuf(messageType) {
   const schema = {
     type: "object",
     properties: {},
@@ -108,32 +88,17 @@ function _generateSchemaFromProtobuf(messageType) {
  * @param {string} methodName - Method name
  * @returns {Promise<object>} JSON schema for the method request
  */
-async function _loadMethodSchema(protoPath, serviceName, methodName) {
-  try {
-    const root = await load(protoPath);
-    const service = root.lookupService(serviceName);
-    const method = service.methods[methodName];
-    
-    if (!method) {
-      throw new Error(`Method ${methodName} not found in service ${serviceName}`);
-    }
+async function loadMethodSchema(protoPath, serviceName, methodName) {
+  const root = await load(protoPath);
+  const service = root.lookupService(serviceName);
+  const method = service.methods[methodName];
 
-    const requestType = root.lookupType(method.requestType);
-    return _generateSchemaFromProtobuf(requestType);
-  } catch (error) {
-    console.warn(`Failed to load schema for ${serviceName}.${methodName}:`, error.message);
-    // Return a generic schema as fallback
-    return {
-      type: "object",
-      properties: {
-        input: {
-          type: "string",
-          description: "Input data for the tool",
-        },
-      },
-      required: ["input"],
-    };
+  if (!method) {
+    throw new Error(`Method ${methodName} not found in service ${serviceName}`);
   }
+
+  const requestType = root.lookupType(method.requestType);
+  return generateSchemaFromProtobuf(requestType);
 }
 
 /**
@@ -145,47 +110,41 @@ async function generateToolSchemas(endpoints) {
   const tools = [];
 
   for (const [toolName, endpoint] of Object.entries(endpoints)) {
-    const callParts = endpoint.call.split(".");
-    if (callParts.length < 3) {
-      console.warn(`Invalid call format for tool ${toolName}: ${endpoint.call}`);
+    const methodParts = endpoint.method.split(".");
+    if (methodParts.length < 3) {
+      console.warn(
+        `Invalid method format for tool ${toolName}: ${endpoint.method}`,
+      );
       continue;
     }
 
-    const [packageName, serviceName, methodName] = callParts;
-    const protoPath = `proto/${packageName}.proto`;
+    const [packageName, serviceName, methodName] = methodParts;
+
+    // Resolve proto path: prefer tools/<package>.proto, fallback to proto/<package>.proto
+    let protoPath = `tools/${packageName}.proto`;
+    try {
+      // Verify the tools-specific proto exists
+      await access(protoPath);
+    } catch {
+      // Fallback to shared proto definition
+      protoPath = `proto/${packageName}.proto`;
+    }
 
     // Try to load schema dynamically from protobuf
-    let schema;
-    try {
-      schema = await _loadMethodSchema(protoPath, serviceName, methodName);
-    } catch (error) {
-      console.warn(`Failed to generate schema for ${toolName}:`, error.message);
-      // Fallback to generic schema
-      schema = {
-        type: "object",
-        properties: {
-          input: {
-            type: "string",
-            description: "Input data for the tool",
-          },
-        },
-        required: ["input"],
-      };
-    }
+    const schema = await loadMethodSchema(protoPath, serviceName, methodName);
 
     const tool = {
       type: "function",
       function: {
-        name: endpoint.name || toolName,
+        name: toolName,
         description: endpoint.description || `Execute ${toolName} tool`,
         parameters: schema,
       },
     };
 
     tools.push({
-      toolName,
       endpoint,
-      schema: tool,
+      tool,
     });
   }
 
@@ -193,64 +152,47 @@ async function generateToolSchemas(endpoints) {
 }
 
 /**
- * Store tool schema as a resource
+ * Store tool object as a resource
  * @param {ResourceIndex} resourceIndex - Resource index instance
- * @param {string} toolName - Tool name
- * @param {object} toolSchema - Tool schema
+ * @param {object} object - Tool object
  * @param {object} endpoint - Endpoint configuration
  * @param {object} logger - Logger instance
  * @returns {Promise<void>}
  */
-async function storeToolResource(resourceIndex, toolName, toolSchema, endpoint, logger) {
-  const actor = "cld:common.System.root";
+async function storeToolResource(resourceIndex, object, endpoint, logger) {
+  // Define the resource identifier
+  const id = resource.Identifier.fromObject({
+    name: object.function.name,
+    type: "common.ToolFunction",
+  });
 
-  // Create resource identifier
-  const resourceId = `cld:common.ToolFunction.${toolName}`;
+  // Define the descriptor
+  const descriptor = resource.Descriptor.fromObject({
+    purpose:
+      endpoint.purpose || `Provides ${object.function.name} functionality`,
+    instructions:
+      endpoint.instructions ||
+      "Use this tool when you need to perform the described operation",
+    applicability: endpoint.applicability || object.function.description,
+    evaluation:
+      endpoint.evaluation ||
+      "Tool execution should complete without errors and return expected results",
+  });
 
-  // Create resource descriptor
-  const descriptor = {
-    name: toolSchema.function.name,
-    description: toolSchema.function.description,
-    type: "ToolFunction",
-  };
-
-  // Get meta fields from endpoint configuration or use defaults
-  const meta = {
-    purpose: endpoint.purpose || `Provides ${toolSchema.function.name} functionality`,
-    instructions: endpoint.instructions || "Use this tool when you need to perform the described operation",
-    applicability: endpoint.applicability || toolSchema.function.description,
-    evaluation: endpoint.evaluation || "Tool execution should complete without errors and return expected results",
-  };
-
-  // Create ToolFunction resource following the pattern used by MessageV2
-  const toolFunction = {
-    id: { uri: resourceId },
+  // Create the resource
+  const tool = common.ToolFunction.fromObject({
+    id,
     descriptor,
-    parameters: toolSchema.function.parameters,
-  };
+    parameters: object.function.parameters,
+  });
 
-  // Create resource content
-  const resourceContent = {
-    id: { uri: resourceId },
-    descriptor,
-    content: {
-      meta,
-      data: JSON.stringify(toolFunction),
-      mime_type: "application/json",
-    },
-    toolSchema,
-    endpoint: endpoint.call,
-  };
-
-  logger.debug("Storing tool resource", {
-    toolName,
-    resourceId,
-    schema: toolSchema.function.name,
-    call: endpoint.call,
+  logger.debug("Putting tool resource", {
+    id: tool.id,
+    method: endpoint.method,
   });
 
   // Store the resource
-  await resourceIndex.put(actor, resourceId, resourceContent);
+  await resourceIndex.put(tool);
 }
 
 /**
@@ -258,21 +200,16 @@ async function storeToolResource(resourceIndex, toolName, toolSchema, endpoint, 
  * @returns {Promise<void>}
  */
 async function main() {
-  const args = parseArgs();
+  // No argument parsing required; all endpoints are always processed
   const resourceStorage = storageFactory("resources");
   const logger = logFactory("script.tools");
   const policy = policyFactory();
 
   const resourceIndex = new ResourceIndex(resourceStorage, policy);
 
-  logger.debug("Generating tool schemas", {
-    namespace: args.namespace,
-    dryRun: args.dryRun,
-  });
+  logger.debug("Generating tool schemas");
 
-  // Get tool endpoints from configuration
-  const toolConfig = (await config.get("service.tool")) || {};
-  const endpoints = toolConfig.endpoints || {};
+  const endpoints = config.endpoints || {};
 
   if (Object.keys(endpoints).length === 0) {
     logger.debug("No tool endpoints configured");
@@ -280,36 +217,20 @@ async function main() {
   }
 
   // Generate tool schemas
-  const toolSchemas = await generateToolSchemas(endpoints);
+  const tools = await generateToolSchemas(endpoints);
 
   logger.debug("Generated tool schemas", {
-    count: toolSchemas.length,
-    tools: toolSchemas.map((t) => t.toolName),
+    count: tools.length,
+    tools: tools.map((t) => t.tool.name),
   });
 
-  // Filter by namespace if specified
-  const filteredSchemas = args.namespace
-    ? toolSchemas.filter((t) => t.toolName.startsWith(args.namespace))
-    : toolSchemas;
-
-  if (args.dryRun) {
-    logger.debug("Dry run - would store schemas", {
-      schemas: filteredSchemas.map((t) => ({
-        toolName: t.toolName,
-        name: t.schema.function.name,
-        description: t.schema.function.description,
-      })),
-    });
-    return;
-  }
-
   // Store each tool schema as a resource
-  for (const { toolName, schema, endpoint } of filteredSchemas) {
-    await storeToolResource(resourceIndex, toolName, schema, endpoint, logger);
+  for (const { tool, endpoint } of tools) {
+    await storeToolResource(resourceIndex, tool, endpoint, logger);
   }
 
   logger.debug("Tool schemas stored successfully", {
-    count: filteredSchemas.length,
+    count: tools.length,
   });
 }
 

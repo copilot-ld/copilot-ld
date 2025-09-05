@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-09-05
+
+- Replaced static `ORDERED_PROTO_FILES` list in `codegen.js` with dynamic
+  discovery of all `.proto` files in `proto/` (alphabetical ordering with
+  `common.proto` forced first) eliminating manual maintenance when adding new
+  protobuf schemas.
+  - Ensures tool proto schemas are automatically included without updating
+    constants.
+  - Preserves deterministic output ordering for `libtype` generation and
+    downstream consumers.
+  - Refactored duplicate proto discovery logic in `runTypes()` and
+    `runForKind()` into shared `collectProtoFiles()` helper for maintainability.
+
 ## 2025-09-03
 
 - **BREAKING**: Renamed directory from `tools/` to `scripts/` to avoid collision

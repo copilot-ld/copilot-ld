@@ -2,7 +2,7 @@
 import { Octokit } from "@octokit/core";
 
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { Policy } from "@copilot-ld/libpolicy";
+import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 
@@ -34,7 +34,7 @@ const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
 // Set up ResourceIndex for accessing resources
 const resourceStorage = storageFactory("resources");
-const policy = new Policy(storageFactory("policies"));
+const policy = policyFactory();
 const resourceIndex = new ResourceIndex(resourceStorage, policy);
 
 const service = new AgentService(

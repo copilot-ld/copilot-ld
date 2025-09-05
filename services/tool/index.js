@@ -1,10 +1,6 @@
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
 import { common, tool } from "@copilot-ld/libtype";
-import { ResourceIndex } from "@copilot-ld/libresource";
-import { storageFactory } from "@copilot-ld/libstorage";
 import { VectorClient } from "../vector/client.js";
-
 import { ToolBase } from "./service.js";
 
 /**
@@ -105,7 +101,7 @@ class ToolService extends ToolBase {
       // For now, we'll implement a simple pattern-based query
       // In a full implementation, this would use proper resource querying
       const resourcePattern = "cld:common.ToolFunction.";
-      
+
       // Since ResourceIndex doesn't have a query method, we'll iterate through known tools
       // This would be improved with a proper query interface
       for (const [toolName] of Object.entries(this.#endpoints)) {
@@ -117,7 +113,7 @@ class ToolService extends ToolBase {
         try {
           const resourceId = `${resourcePattern}${toolName}`;
           const toolResource = await this.#resourceIndex.get(actor, resourceId);
-          
+
           if (toolResource && toolResource.toolSchema) {
             tools.push(toolResource.toolSchema);
           }
@@ -217,14 +213,6 @@ class ToolService extends ToolBase {
     }
   }
 }
-}
 
-// Bootstrap
-const config = await ServiceConfig.create("tool", {
-  endpoints: {},
-});
-
-const storage = storageFactory("resource");
-const resourceIndex = new ResourceIndex(storage, "");
-
-await new ToolService(config, resourceIndex).start();
+export { ToolService };
+export { ToolClient } from "./client.js";

@@ -9,798 +9,6 @@ const $Reader = $protobuf.Reader,
 // Exported root namespace
 const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export const resource = ($root.resource = (() => {
-  /**
-   * Namespace resource.
-   * @exports resource
-   * @namespace
-   */
-  const resource = {};
-
-  resource.Identifier = (function () {
-    /**
-     * Properties of an Identifier.
-     * @memberof resource
-     * @interface IIdentifier
-     * @property {string|null} [type] Identifier type
-     * @property {string|null} [name] Identifier name
-     * @property {string|null} [parent] Identifier parent
-     * @property {number|null} [tokens] Identifier tokens
-     * @property {number|null} [score] Identifier score
-     */
-
-    /**
-     * Constructs a new Identifier.
-     * @memberof resource
-     * @classdesc Represents an Identifier.
-     * @implements IIdentifier
-     * @constructor
-     * @param {resource.IIdentifier=} [properties] Properties to set
-     */
-    function Identifier(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * Identifier type.
-     * @member {string} type
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Identifier.prototype.type = "";
-
-    /**
-     * Identifier name.
-     * @member {string} name
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Identifier.prototype.name = "";
-
-    /**
-     * Identifier parent.
-     * @member {string} parent
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Identifier.prototype.parent = "";
-
-    /**
-     * Identifier tokens.
-     * @member {number|null|undefined} tokens
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Identifier.prototype.tokens = null;
-
-    /**
-     * Identifier score.
-     * @member {number|null|undefined} score
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Identifier.prototype.score = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * Identifier _tokens.
-     * @member {"tokens"|undefined} _tokens
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Object.defineProperty(Identifier.prototype, "_tokens", {
-      get: $util.oneOfGetter(($oneOfFields = ["tokens"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Identifier _score.
-     * @member {"score"|undefined} _score
-     * @memberof resource.Identifier
-     * @instance
-     */
-    Object.defineProperty(Identifier.prototype, "_score", {
-      get: $util.oneOfGetter(($oneOfFields = ["score"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Encodes the specified Identifier message. Does not implicitly {@link resource.Identifier.verify|verify} messages.
-     * @function encode
-     * @memberof resource.Identifier
-     * @static
-     * @param {resource.Identifier} message Identifier message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    Identifier.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
-        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type);
-      if (message.name != null && Object.hasOwnProperty.call(message, "name"))
-        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.name);
-      if (
-        message.parent != null &&
-        Object.hasOwnProperty.call(message, "parent")
-      )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.parent);
-      if (
-        message.tokens != null &&
-        Object.hasOwnProperty.call(message, "tokens")
-      )
-        writer.uint32(/* id 4, wireType 0 =*/ 32).int32(message.tokens);
-      if (message.score != null && Object.hasOwnProperty.call(message, "score"))
-        writer.uint32(/* id 5, wireType 1 =*/ 41).double(message.score);
-      return writer;
-    };
-
-    /**
-     * Decodes an Identifier message from the specified reader or buffer.
-     * @function decode
-     * @memberof resource.Identifier
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {resource.Identifier} Identifier
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    Identifier.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.resource.Identifier();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.type = reader.string();
-            break;
-          }
-          case 2: {
-            message.name = reader.string();
-            break;
-          }
-          case 3: {
-            message.parent = reader.string();
-            break;
-          }
-          case 4: {
-            message.tokens = reader.int32();
-            break;
-          }
-          case 5: {
-            message.score = reader.double();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies an Identifier message.
-     * @function verify
-     * @memberof resource.Identifier
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    Identifier.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      let properties = {};
-      if (message.type != null && message.hasOwnProperty("type"))
-        if (!$util.isString(message.type)) return "type: string expected";
-      if (message.name != null && message.hasOwnProperty("name"))
-        if (!$util.isString(message.name)) return "name: string expected";
-      if (message.parent != null && message.hasOwnProperty("parent"))
-        if (!$util.isString(message.parent)) return "parent: string expected";
-      if (message.tokens != null && message.hasOwnProperty("tokens")) {
-        properties._tokens = 1;
-        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
-      }
-      if (message.score != null && message.hasOwnProperty("score")) {
-        properties._score = 1;
-        if (typeof message.score !== "number") return "score: number expected";
-      }
-      return null;
-    };
-
-    /**
-     * Creates an Identifier message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof resource.Identifier
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {resource.Identifier} Identifier
-     */
-    Identifier.fromObject = function fromObject(object) {
-      if (object instanceof $root.resource.Identifier) return object;
-      let message = new $root.resource.Identifier();
-      if (object.type != null) message.type = String(object.type);
-      if (object.name != null) message.name = String(object.name);
-      if (object.parent != null) message.parent = String(object.parent);
-      if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.score != null) message.score = Number(object.score);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from an Identifier message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof resource.Identifier
-     * @static
-     * @param {resource.Identifier} message Identifier
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    Identifier.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) {
-        object.type = "";
-        object.name = "";
-        object.parent = "";
-      }
-      if (message.type != null && message.hasOwnProperty("type"))
-        object.type = message.type;
-      if (message.name != null && message.hasOwnProperty("name"))
-        object.name = message.name;
-      if (message.parent != null && message.hasOwnProperty("parent"))
-        object.parent = message.parent;
-      if (message.tokens != null && message.hasOwnProperty("tokens")) {
-        object.tokens = message.tokens;
-        if (options.oneofs) object._tokens = "tokens";
-      }
-      if (message.score != null && message.hasOwnProperty("score")) {
-        object.score =
-          options.json && !isFinite(message.score)
-            ? String(message.score)
-            : message.score;
-        if (options.oneofs) object._score = "score";
-      }
-      return object;
-    };
-
-    /**
-     * Converts this Identifier to JSON.
-     * @function toJSON
-     * @memberof resource.Identifier
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    Identifier.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for Identifier
-     * @function getTypeUrl
-     * @memberof resource.Identifier
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    Identifier.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/resource.Identifier";
-    };
-
-    return Identifier;
-  })();
-
-  resource.Descriptor = (function () {
-    /**
-     * Properties of a Descriptor.
-     * @memberof resource
-     * @interface IDescriptor
-     * @property {number|null} [tokens] Descriptor tokens
-     * @property {string|null} [purpose] Descriptor purpose
-     * @property {string|null} [instructions] Descriptor instructions
-     * @property {string|null} [applicability] Descriptor applicability
-     * @property {string|null} [evaluation] Descriptor evaluation
-     */
-
-    /**
-     * Constructs a new Descriptor.
-     * @memberof resource
-     * @classdesc Resource descriptor representation
-     * @implements IDescriptor
-     * @constructor
-     * @param {resource.IDescriptor=} [properties] Properties to set
-     */
-    function Descriptor(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * Descriptor tokens.
-     * @member {number} tokens
-     * @memberof resource.Descriptor
-     * @instance
-     */
-    Descriptor.prototype.tokens = 0;
-
-    /**
-     * Descriptor purpose.
-     * @member {string} purpose
-     * @memberof resource.Descriptor
-     * @instance
-     */
-    Descriptor.prototype.purpose = "";
-
-    /**
-     * Descriptor instructions.
-     * @member {string} instructions
-     * @memberof resource.Descriptor
-     * @instance
-     */
-    Descriptor.prototype.instructions = "";
-
-    /**
-     * Descriptor applicability.
-     * @member {string} applicability
-     * @memberof resource.Descriptor
-     * @instance
-     */
-    Descriptor.prototype.applicability = "";
-
-    /**
-     * Descriptor evaluation.
-     * @member {string} evaluation
-     * @memberof resource.Descriptor
-     * @instance
-     */
-    Descriptor.prototype.evaluation = "";
-
-    /**
-     * Encodes the specified Descriptor message. Does not implicitly {@link resource.Descriptor.verify|verify} messages.
-     * @function encode
-     * @memberof resource.Descriptor
-     * @static
-     * @param {resource.Descriptor} message Descriptor message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    Descriptor.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.tokens != null &&
-        Object.hasOwnProperty.call(message, "tokens")
-      )
-        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
-      if (
-        message.purpose != null &&
-        Object.hasOwnProperty.call(message, "purpose")
-      )
-        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.purpose);
-      if (
-        message.instructions != null &&
-        Object.hasOwnProperty.call(message, "instructions")
-      )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.instructions);
-      if (
-        message.applicability != null &&
-        Object.hasOwnProperty.call(message, "applicability")
-      )
-        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.applicability);
-      if (
-        message.evaluation != null &&
-        Object.hasOwnProperty.call(message, "evaluation")
-      )
-        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.evaluation);
-      return writer;
-    };
-
-    /**
-     * Decodes a Descriptor message from the specified reader or buffer.
-     * @function decode
-     * @memberof resource.Descriptor
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {resource.Descriptor} Descriptor
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    Descriptor.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.resource.Descriptor();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.tokens = reader.int32();
-            break;
-          }
-          case 2: {
-            message.purpose = reader.string();
-            break;
-          }
-          case 3: {
-            message.instructions = reader.string();
-            break;
-          }
-          case 4: {
-            message.applicability = reader.string();
-            break;
-          }
-          case 5: {
-            message.evaluation = reader.string();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a Descriptor message.
-     * @function verify
-     * @memberof resource.Descriptor
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    Descriptor.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.tokens != null && message.hasOwnProperty("tokens"))
-        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
-      if (message.purpose != null && message.hasOwnProperty("purpose"))
-        if (!$util.isString(message.purpose)) return "purpose: string expected";
-      if (
-        message.instructions != null &&
-        message.hasOwnProperty("instructions")
-      )
-        if (!$util.isString(message.instructions))
-          return "instructions: string expected";
-      if (
-        message.applicability != null &&
-        message.hasOwnProperty("applicability")
-      )
-        if (!$util.isString(message.applicability))
-          return "applicability: string expected";
-      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
-        if (!$util.isString(message.evaluation))
-          return "evaluation: string expected";
-      return null;
-    };
-
-    /**
-     * Creates a Descriptor message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof resource.Descriptor
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {resource.Descriptor} Descriptor
-     */
-    Descriptor.fromObject = function fromObject(object) {
-      if (object instanceof $root.resource.Descriptor) return object;
-      let message = new $root.resource.Descriptor();
-      if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.purpose != null) message.purpose = String(object.purpose);
-      if (object.instructions != null)
-        message.instructions = String(object.instructions);
-      if (object.applicability != null)
-        message.applicability = String(object.applicability);
-      if (object.evaluation != null)
-        message.evaluation = String(object.evaluation);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a Descriptor message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof resource.Descriptor
-     * @static
-     * @param {resource.Descriptor} message Descriptor
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    Descriptor.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) {
-        object.tokens = 0;
-        object.purpose = "";
-        object.instructions = "";
-        object.applicability = "";
-        object.evaluation = "";
-      }
-      if (message.tokens != null && message.hasOwnProperty("tokens"))
-        object.tokens = message.tokens;
-      if (message.purpose != null && message.hasOwnProperty("purpose"))
-        object.purpose = message.purpose;
-      if (
-        message.instructions != null &&
-        message.hasOwnProperty("instructions")
-      )
-        object.instructions = message.instructions;
-      if (
-        message.applicability != null &&
-        message.hasOwnProperty("applicability")
-      )
-        object.applicability = message.applicability;
-      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
-        object.evaluation = message.evaluation;
-      return object;
-    };
-
-    /**
-     * Converts this Descriptor to JSON.
-     * @function toJSON
-     * @memberof resource.Descriptor
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    Descriptor.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for Descriptor
-     * @function getTypeUrl
-     * @memberof resource.Descriptor
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    Descriptor.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/resource.Descriptor";
-    };
-
-    return Descriptor;
-  })();
-
-  resource.Content = (function () {
-    /**
-     * Properties of a Content.
-     * @memberof resource
-     * @interface IContent
-     * @property {number|null} [tokens] Content tokens
-     * @property {string|null} [text] Content text
-     * @property {string|null} [jsonld] Content jsonld
-     */
-
-    /**
-     * Constructs a new Content.
-     * @memberof resource
-     * @classdesc Resource content representation
-     * @implements IContent
-     * @constructor
-     * @param {resource.IContent=} [properties] Properties to set
-     */
-    function Content(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * Content tokens.
-     * @member {number} tokens
-     * @memberof resource.Content
-     * @instance
-     */
-    Content.prototype.tokens = 0;
-
-    /**
-     * Content text.
-     * @member {string|null|undefined} text
-     * @memberof resource.Content
-     * @instance
-     */
-    Content.prototype.text = null;
-
-    /**
-     * Content jsonld.
-     * @member {string|null|undefined} jsonld
-     * @memberof resource.Content
-     * @instance
-     */
-    Content.prototype.jsonld = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * Content type.
-     * @member {"text"|"jsonld"|undefined} type
-     * @memberof resource.Content
-     * @instance
-     */
-    Object.defineProperty(Content.prototype, "type", {
-      get: $util.oneOfGetter(($oneOfFields = ["text", "jsonld"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Encodes the specified Content message. Does not implicitly {@link resource.Content.verify|verify} messages.
-     * @function encode
-     * @memberof resource.Content
-     * @static
-     * @param {resource.Content} message Content message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    Content.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.tokens != null &&
-        Object.hasOwnProperty.call(message, "tokens")
-      )
-        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
-      if (message.text != null && Object.hasOwnProperty.call(message, "text"))
-        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.text);
-      if (
-        message.jsonld != null &&
-        Object.hasOwnProperty.call(message, "jsonld")
-      )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.jsonld);
-      return writer;
-    };
-
-    /**
-     * Decodes a Content message from the specified reader or buffer.
-     * @function decode
-     * @memberof resource.Content
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {resource.Content} Content
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    Content.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.resource.Content();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.tokens = reader.int32();
-            break;
-          }
-          case 2: {
-            message.text = reader.string();
-            break;
-          }
-          case 3: {
-            message.jsonld = reader.string();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a Content message.
-     * @function verify
-     * @memberof resource.Content
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    Content.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      let properties = {};
-      if (message.tokens != null && message.hasOwnProperty("tokens"))
-        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
-      if (message.text != null && message.hasOwnProperty("text")) {
-        properties.type = 1;
-        if (!$util.isString(message.text)) return "text: string expected";
-      }
-      if (message.jsonld != null && message.hasOwnProperty("jsonld")) {
-        if (properties.type === 1) return "type: multiple values";
-        properties.type = 1;
-        if (!$util.isString(message.jsonld)) return "jsonld: string expected";
-      }
-      return null;
-    };
-
-    /**
-     * Creates a Content message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof resource.Content
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {resource.Content} Content
-     */
-    Content.fromObject = function fromObject(object) {
-      if (object instanceof $root.resource.Content) return object;
-      let message = new $root.resource.Content();
-      if (object.tokens != null) message.tokens = object.tokens | 0;
-      if (object.text != null) message.text = String(object.text);
-      if (object.jsonld != null) message.jsonld = String(object.jsonld);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a Content message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof resource.Content
-     * @static
-     * @param {resource.Content} message Content
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    Content.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) object.tokens = 0;
-      if (message.tokens != null && message.hasOwnProperty("tokens"))
-        object.tokens = message.tokens;
-      if (message.text != null && message.hasOwnProperty("text")) {
-        object.text = message.text;
-        if (options.oneofs) object.type = "text";
-      }
-      if (message.jsonld != null && message.hasOwnProperty("jsonld")) {
-        object.jsonld = message.jsonld;
-        if (options.oneofs) object.type = "jsonld";
-      }
-      return object;
-    };
-
-    /**
-     * Converts this Content to JSON.
-     * @function toJSON
-     * @memberof resource.Content
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    Content.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for Content
-     * @function getTypeUrl
-     * @memberof resource.Content
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    Content.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/resource.Content";
-    };
-
-    return Content;
-  })();
-
-  return resource;
-})());
-
 export const common = ($root.common = (() => {
   /**
    * Namespace common.
@@ -3128,6 +2336,7 @@ export const common = ($root.common = (() => {
      * Properties of a ToolFunction.
      * @memberof common
      * @interface IToolFunction
+     * @property {resource.Identifier|null} [id] ToolFunction id
      * @property {resource.Descriptor|null} [descriptor] ToolFunction descriptor
      * @property {common.ToolParam|null} [parameters] ToolFunction parameters
      * @property {string|null} ["arguments"] ToolFunction arguments
@@ -3146,6 +2355,14 @@ export const common = ($root.common = (() => {
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
     }
+
+    /**
+     * ToolFunction id.
+     * @member {resource.Identifier|null|undefined} id
+     * @memberof common.ToolFunction
+     * @instance
+     */
+    ToolFunction.prototype.id = null;
 
     /**
      * ToolFunction descriptor.
@@ -3196,13 +2413,18 @@ export const common = ($root.common = (() => {
      */
     ToolFunction.encode = function encode(message, writer) {
       if (!writer) writer = $Writer.create();
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        $root.resource.Identifier.encode(
+          message.id,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
       if (
         message.descriptor != null &&
         Object.hasOwnProperty.call(message, "descriptor")
       )
         $root.resource.Descriptor.encode(
           message.descriptor,
-          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
         ).ldelim();
       if (
         message.parameters != null &&
@@ -3210,13 +2432,13 @@ export const common = ($root.common = (() => {
       )
         $root.common.ToolParam.encode(
           message.parameters,
-          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
         ).ldelim();
       if (
         message["arguments"] != null &&
         Object.hasOwnProperty.call(message, "arguments")
       )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message["arguments"]);
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message["arguments"]);
       return writer;
     };
 
@@ -3240,20 +2462,27 @@ export const common = ($root.common = (() => {
         if (tag === error) break;
         switch (tag >>> 3) {
           case 1: {
-            message.descriptor = $root.resource.Descriptor.decode(
+            message.id = $root.resource.Identifier.decode(
               reader,
               reader.uint32(),
             );
             break;
           }
           case 2: {
-            message.parameters = $root.common.ToolParam.decode(
+            message.descriptor = $root.resource.Descriptor.decode(
               reader,
               reader.uint32(),
             );
             break;
           }
           case 3: {
+            message.parameters = $root.common.ToolParam.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          case 4: {
             message["arguments"] = reader.string();
             break;
           }
@@ -3277,6 +2506,10 @@ export const common = ($root.common = (() => {
       if (typeof message !== "object" || message === null)
         return "object expected";
       let properties = {};
+      if (message.id != null && message.hasOwnProperty("id")) {
+        let error = $root.resource.Identifier.verify(message.id);
+        if (error) return "id." + error;
+      }
       if (message.descriptor != null && message.hasOwnProperty("descriptor")) {
         let error = $root.resource.Descriptor.verify(message.descriptor);
         if (error) return "descriptor." + error;
@@ -3308,6 +2541,11 @@ export const common = ($root.common = (() => {
     ToolFunction.fromObject = function fromObject(object) {
       if (object instanceof $root.common.ToolFunction) return object;
       let message = new $root.common.ToolFunction();
+      if (object.id != null) {
+        if (typeof object.id !== "object")
+          throw TypeError(".common.ToolFunction.id: object expected");
+        message.id = $root.resource.Identifier.fromObject(object.id);
+      }
       if (object.descriptor != null) {
         if (typeof object.descriptor !== "object")
           throw TypeError(".common.ToolFunction.descriptor: object expected");
@@ -3339,7 +2577,12 @@ export const common = ($root.common = (() => {
     ToolFunction.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.defaults) object.descriptor = null;
+      if (options.defaults) {
+        object.id = null;
+        object.descriptor = null;
+      }
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = $root.resource.Identifier.toObject(message.id, options);
       if (message.descriptor != null && message.hasOwnProperty("descriptor"))
         object.descriptor = $root.resource.Descriptor.toObject(
           message.descriptor,
@@ -4570,6 +3813,798 @@ export const common = ($root.common = (() => {
   return common;
 })());
 
+export const resource = ($root.resource = (() => {
+  /**
+   * Namespace resource.
+   * @exports resource
+   * @namespace
+   */
+  const resource = {};
+
+  resource.Identifier = (function () {
+    /**
+     * Properties of an Identifier.
+     * @memberof resource
+     * @interface IIdentifier
+     * @property {string|null} [type] Identifier type
+     * @property {string|null} [name] Identifier name
+     * @property {string|null} [parent] Identifier parent
+     * @property {number|null} [tokens] Identifier tokens
+     * @property {number|null} [score] Identifier score
+     */
+
+    /**
+     * Constructs a new Identifier.
+     * @memberof resource
+     * @classdesc Represents an Identifier.
+     * @implements IIdentifier
+     * @constructor
+     * @param {resource.IIdentifier=} [properties] Properties to set
+     */
+    function Identifier(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Identifier type.
+     * @member {string} type
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.type = "";
+
+    /**
+     * Identifier name.
+     * @member {string} name
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.name = "";
+
+    /**
+     * Identifier parent.
+     * @member {string} parent
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.parent = "";
+
+    /**
+     * Identifier tokens.
+     * @member {number|null|undefined} tokens
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.tokens = null;
+
+    /**
+     * Identifier score.
+     * @member {number|null|undefined} score
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Identifier.prototype.score = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Identifier _tokens.
+     * @member {"tokens"|undefined} _tokens
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Object.defineProperty(Identifier.prototype, "_tokens", {
+      get: $util.oneOfGetter(($oneOfFields = ["tokens"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Identifier _score.
+     * @member {"score"|undefined} _score
+     * @memberof resource.Identifier
+     * @instance
+     */
+    Object.defineProperty(Identifier.prototype, "_score", {
+      get: $util.oneOfGetter(($oneOfFields = ["score"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified Identifier message. Does not implicitly {@link resource.Identifier.verify|verify} messages.
+     * @function encode
+     * @memberof resource.Identifier
+     * @static
+     * @param {resource.Identifier} message Identifier message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Identifier.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type);
+      if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.name);
+      if (
+        message.parent != null &&
+        Object.hasOwnProperty.call(message, "parent")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.parent);
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 4, wireType 0 =*/ 32).int32(message.tokens);
+      if (message.score != null && Object.hasOwnProperty.call(message, "score"))
+        writer.uint32(/* id 5, wireType 1 =*/ 41).double(message.score);
+      return writer;
+    };
+
+    /**
+     * Decodes an Identifier message from the specified reader or buffer.
+     * @function decode
+     * @memberof resource.Identifier
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {resource.Identifier} Identifier
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Identifier.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.resource.Identifier();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.type = reader.string();
+            break;
+          }
+          case 2: {
+            message.name = reader.string();
+            break;
+          }
+          case 3: {
+            message.parent = reader.string();
+            break;
+          }
+          case 4: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 5: {
+            message.score = reader.double();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies an Identifier message.
+     * @function verify
+     * @memberof resource.Identifier
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Identifier.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.type != null && message.hasOwnProperty("type"))
+        if (!$util.isString(message.type)) return "type: string expected";
+      if (message.name != null && message.hasOwnProperty("name"))
+        if (!$util.isString(message.name)) return "name: string expected";
+      if (message.parent != null && message.hasOwnProperty("parent"))
+        if (!$util.isString(message.parent)) return "parent: string expected";
+      if (message.tokens != null && message.hasOwnProperty("tokens")) {
+        properties._tokens = 1;
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      }
+      if (message.score != null && message.hasOwnProperty("score")) {
+        properties._score = 1;
+        if (typeof message.score !== "number") return "score: number expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates an Identifier message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof resource.Identifier
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {resource.Identifier} Identifier
+     */
+    Identifier.fromObject = function fromObject(object) {
+      if (object instanceof $root.resource.Identifier) return object;
+      let message = new $root.resource.Identifier();
+      if (object.type != null) message.type = String(object.type);
+      if (object.name != null) message.name = String(object.name);
+      if (object.parent != null) message.parent = String(object.parent);
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.score != null) message.score = Number(object.score);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from an Identifier message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof resource.Identifier
+     * @static
+     * @param {resource.Identifier} message Identifier
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Identifier.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.type = "";
+        object.name = "";
+        object.parent = "";
+      }
+      if (message.type != null && message.hasOwnProperty("type"))
+        object.type = message.type;
+      if (message.name != null && message.hasOwnProperty("name"))
+        object.name = message.name;
+      if (message.parent != null && message.hasOwnProperty("parent"))
+        object.parent = message.parent;
+      if (message.tokens != null && message.hasOwnProperty("tokens")) {
+        object.tokens = message.tokens;
+        if (options.oneofs) object._tokens = "tokens";
+      }
+      if (message.score != null && message.hasOwnProperty("score")) {
+        object.score =
+          options.json && !isFinite(message.score)
+            ? String(message.score)
+            : message.score;
+        if (options.oneofs) object._score = "score";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Identifier to JSON.
+     * @function toJSON
+     * @memberof resource.Identifier
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Identifier.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Identifier
+     * @function getTypeUrl
+     * @memberof resource.Identifier
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Identifier.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/resource.Identifier";
+    };
+
+    return Identifier;
+  })();
+
+  resource.Descriptor = (function () {
+    /**
+     * Properties of a Descriptor.
+     * @memberof resource
+     * @interface IDescriptor
+     * @property {number|null} [tokens] Descriptor tokens
+     * @property {string|null} [purpose] Descriptor purpose
+     * @property {string|null} [instructions] Descriptor instructions
+     * @property {string|null} [applicability] Descriptor applicability
+     * @property {string|null} [evaluation] Descriptor evaluation
+     */
+
+    /**
+     * Constructs a new Descriptor.
+     * @memberof resource
+     * @classdesc Resource descriptor representation
+     * @implements IDescriptor
+     * @constructor
+     * @param {resource.IDescriptor=} [properties] Properties to set
+     */
+    function Descriptor(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Descriptor tokens.
+     * @member {number} tokens
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.tokens = 0;
+
+    /**
+     * Descriptor purpose.
+     * @member {string} purpose
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.purpose = "";
+
+    /**
+     * Descriptor instructions.
+     * @member {string} instructions
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.instructions = "";
+
+    /**
+     * Descriptor applicability.
+     * @member {string} applicability
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.applicability = "";
+
+    /**
+     * Descriptor evaluation.
+     * @member {string} evaluation
+     * @memberof resource.Descriptor
+     * @instance
+     */
+    Descriptor.prototype.evaluation = "";
+
+    /**
+     * Encodes the specified Descriptor message. Does not implicitly {@link resource.Descriptor.verify|verify} messages.
+     * @function encode
+     * @memberof resource.Descriptor
+     * @static
+     * @param {resource.Descriptor} message Descriptor message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Descriptor.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
+      if (
+        message.purpose != null &&
+        Object.hasOwnProperty.call(message, "purpose")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.purpose);
+      if (
+        message.instructions != null &&
+        Object.hasOwnProperty.call(message, "instructions")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.instructions);
+      if (
+        message.applicability != null &&
+        Object.hasOwnProperty.call(message, "applicability")
+      )
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.applicability);
+      if (
+        message.evaluation != null &&
+        Object.hasOwnProperty.call(message, "evaluation")
+      )
+        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.evaluation);
+      return writer;
+    };
+
+    /**
+     * Decodes a Descriptor message from the specified reader or buffer.
+     * @function decode
+     * @memberof resource.Descriptor
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {resource.Descriptor} Descriptor
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Descriptor.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.resource.Descriptor();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 2: {
+            message.purpose = reader.string();
+            break;
+          }
+          case 3: {
+            message.instructions = reader.string();
+            break;
+          }
+          case 4: {
+            message.applicability = reader.string();
+            break;
+          }
+          case 5: {
+            message.evaluation = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Descriptor message.
+     * @function verify
+     * @memberof resource.Descriptor
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Descriptor.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      if (message.purpose != null && message.hasOwnProperty("purpose"))
+        if (!$util.isString(message.purpose)) return "purpose: string expected";
+      if (
+        message.instructions != null &&
+        message.hasOwnProperty("instructions")
+      )
+        if (!$util.isString(message.instructions))
+          return "instructions: string expected";
+      if (
+        message.applicability != null &&
+        message.hasOwnProperty("applicability")
+      )
+        if (!$util.isString(message.applicability))
+          return "applicability: string expected";
+      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
+        if (!$util.isString(message.evaluation))
+          return "evaluation: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a Descriptor message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof resource.Descriptor
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {resource.Descriptor} Descriptor
+     */
+    Descriptor.fromObject = function fromObject(object) {
+      if (object instanceof $root.resource.Descriptor) return object;
+      let message = new $root.resource.Descriptor();
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.purpose != null) message.purpose = String(object.purpose);
+      if (object.instructions != null)
+        message.instructions = String(object.instructions);
+      if (object.applicability != null)
+        message.applicability = String(object.applicability);
+      if (object.evaluation != null)
+        message.evaluation = String(object.evaluation);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Descriptor message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof resource.Descriptor
+     * @static
+     * @param {resource.Descriptor} message Descriptor
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Descriptor.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.tokens = 0;
+        object.purpose = "";
+        object.instructions = "";
+        object.applicability = "";
+        object.evaluation = "";
+      }
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        object.tokens = message.tokens;
+      if (message.purpose != null && message.hasOwnProperty("purpose"))
+        object.purpose = message.purpose;
+      if (
+        message.instructions != null &&
+        message.hasOwnProperty("instructions")
+      )
+        object.instructions = message.instructions;
+      if (
+        message.applicability != null &&
+        message.hasOwnProperty("applicability")
+      )
+        object.applicability = message.applicability;
+      if (message.evaluation != null && message.hasOwnProperty("evaluation"))
+        object.evaluation = message.evaluation;
+      return object;
+    };
+
+    /**
+     * Converts this Descriptor to JSON.
+     * @function toJSON
+     * @memberof resource.Descriptor
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Descriptor.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Descriptor
+     * @function getTypeUrl
+     * @memberof resource.Descriptor
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Descriptor.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/resource.Descriptor";
+    };
+
+    return Descriptor;
+  })();
+
+  resource.Content = (function () {
+    /**
+     * Properties of a Content.
+     * @memberof resource
+     * @interface IContent
+     * @property {number|null} [tokens] Content tokens
+     * @property {string|null} [text] Content text
+     * @property {string|null} [jsonld] Content jsonld
+     */
+
+    /**
+     * Constructs a new Content.
+     * @memberof resource
+     * @classdesc Resource content representation
+     * @implements IContent
+     * @constructor
+     * @param {resource.IContent=} [properties] Properties to set
+     */
+    function Content(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Content tokens.
+     * @member {number} tokens
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.tokens = 0;
+
+    /**
+     * Content text.
+     * @member {string|null|undefined} text
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.text = null;
+
+    /**
+     * Content jsonld.
+     * @member {string|null|undefined} jsonld
+     * @memberof resource.Content
+     * @instance
+     */
+    Content.prototype.jsonld = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Content type.
+     * @member {"text"|"jsonld"|undefined} type
+     * @memberof resource.Content
+     * @instance
+     */
+    Object.defineProperty(Content.prototype, "type", {
+      get: $util.oneOfGetter(($oneOfFields = ["text", "jsonld"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified Content message. Does not implicitly {@link resource.Content.verify|verify} messages.
+     * @function encode
+     * @memberof resource.Content
+     * @static
+     * @param {resource.Content} message Content message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Content.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.tokens != null &&
+        Object.hasOwnProperty.call(message, "tokens")
+      )
+        writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.tokens);
+      if (message.text != null && Object.hasOwnProperty.call(message, "text"))
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.text);
+      if (
+        message.jsonld != null &&
+        Object.hasOwnProperty.call(message, "jsonld")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.jsonld);
+      return writer;
+    };
+
+    /**
+     * Decodes a Content message from the specified reader or buffer.
+     * @function decode
+     * @memberof resource.Content
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {resource.Content} Content
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Content.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.resource.Content();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.tokens = reader.int32();
+            break;
+          }
+          case 2: {
+            message.text = reader.string();
+            break;
+          }
+          case 3: {
+            message.jsonld = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Content message.
+     * @function verify
+     * @memberof resource.Content
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Content.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        if (!$util.isInteger(message.tokens)) return "tokens: integer expected";
+      if (message.text != null && message.hasOwnProperty("text")) {
+        properties.type = 1;
+        if (!$util.isString(message.text)) return "text: string expected";
+      }
+      if (message.jsonld != null && message.hasOwnProperty("jsonld")) {
+        if (properties.type === 1) return "type: multiple values";
+        properties.type = 1;
+        if (!$util.isString(message.jsonld)) return "jsonld: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Content message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof resource.Content
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {resource.Content} Content
+     */
+    Content.fromObject = function fromObject(object) {
+      if (object instanceof $root.resource.Content) return object;
+      let message = new $root.resource.Content();
+      if (object.tokens != null) message.tokens = object.tokens | 0;
+      if (object.text != null) message.text = String(object.text);
+      if (object.jsonld != null) message.jsonld = String(object.jsonld);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Content message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof resource.Content
+     * @static
+     * @param {resource.Content} message Content
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Content.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) object.tokens = 0;
+      if (message.tokens != null && message.hasOwnProperty("tokens"))
+        object.tokens = message.tokens;
+      if (message.text != null && message.hasOwnProperty("text")) {
+        object.text = message.text;
+        if (options.oneofs) object.type = "text";
+      }
+      if (message.jsonld != null && message.hasOwnProperty("jsonld")) {
+        object.jsonld = message.jsonld;
+        if (options.oneofs) object.type = "jsonld";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Content to JSON.
+     * @function toJSON
+     * @memberof resource.Content
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Content.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Content
+     * @function getTypeUrl
+     * @memberof resource.Content
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Content.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/resource.Content";
+    };
+
+    return Content;
+  })();
+
+  return resource;
+})());
+
 export const agent = ($root.agent = (() => {
   /**
    * Namespace agent.
@@ -5651,6 +5686,7 @@ export const llm = ($root.llm = (() => {
      * @memberof llm
      * @interface ICompletionsRequest
      * @property {Array.<common.MessageV2>|null} [messages] CompletionsRequest messages
+     * @property {Array.<common.Tool>|null} [tools] CompletionsRequest tools
      * @property {number|null} [temperature] CompletionsRequest temperature
      * @property {string|null} [github_token] CompletionsRequest github_token
      */
@@ -5665,6 +5701,7 @@ export const llm = ($root.llm = (() => {
      */
     function CompletionsRequest(properties) {
       this.messages = [];
+      this.tools = [];
       if (properties)
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
@@ -5677,6 +5714,14 @@ export const llm = ($root.llm = (() => {
      * @instance
      */
     CompletionsRequest.prototype.messages = $util.emptyArray;
+
+    /**
+     * CompletionsRequest tools.
+     * @member {Array.<common.Tool>} tools
+     * @memberof llm.CompletionsRequest
+     * @instance
+     */
+    CompletionsRequest.prototype.tools = $util.emptyArray;
 
     /**
      * CompletionsRequest temperature.
@@ -5725,16 +5770,22 @@ export const llm = ($root.llm = (() => {
             message.messages[i],
             writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
           ).ldelim();
+      if (message.tools != null && message.tools.length)
+        for (let i = 0; i < message.tools.length; ++i)
+          $root.common.Tool.encode(
+            message.tools[i],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
       if (
         message.temperature != null &&
         Object.hasOwnProperty.call(message, "temperature")
       )
-        writer.uint32(/* id 2, wireType 5 =*/ 21).float(message.temperature);
+        writer.uint32(/* id 3, wireType 5 =*/ 29).float(message.temperature);
       if (
         message.github_token != null &&
         Object.hasOwnProperty.call(message, "github_token")
       )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.github_token);
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.github_token);
       return writer;
     };
 
@@ -5766,10 +5817,17 @@ export const llm = ($root.llm = (() => {
             break;
           }
           case 2: {
-            message.temperature = reader.float();
+            if (!(message.tools && message.tools.length)) message.tools = [];
+            message.tools.push(
+              $root.common.Tool.decode(reader, reader.uint32()),
+            );
             break;
           }
           case 3: {
+            message.temperature = reader.float();
+            break;
+          }
+          case 4: {
             message.github_token = reader.string();
             break;
           }
@@ -5798,6 +5856,13 @@ export const llm = ($root.llm = (() => {
         for (let i = 0; i < message.messages.length; ++i) {
           let error = $root.common.MessageV2.verify(message.messages[i]);
           if (error) return "messages." + error;
+        }
+      }
+      if (message.tools != null && message.hasOwnProperty("tools")) {
+        if (!Array.isArray(message.tools)) return "tools: array expected";
+        for (let i = 0; i < message.tools.length; ++i) {
+          let error = $root.common.Tool.verify(message.tools[i]);
+          if (error) return "tools." + error;
         }
       }
       if (
@@ -5842,6 +5907,16 @@ export const llm = ($root.llm = (() => {
           );
         }
       }
+      if (object.tools) {
+        if (!Array.isArray(object.tools))
+          throw TypeError(".llm.CompletionsRequest.tools: array expected");
+        message.tools = [];
+        for (let i = 0; i < object.tools.length; ++i) {
+          if (typeof object.tools[i] !== "object")
+            throw TypeError(".llm.CompletionsRequest.tools: object expected");
+          message.tools[i] = $root.common.Tool.fromObject(object.tools[i]);
+        }
+      }
       if (object.temperature != null)
         message.temperature = Number(object.temperature);
       if (object.github_token != null)
@@ -5861,13 +5936,24 @@ export const llm = ($root.llm = (() => {
     CompletionsRequest.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.arrays || options.defaults) object.messages = [];
+      if (options.arrays || options.defaults) {
+        object.messages = [];
+        object.tools = [];
+      }
       if (options.defaults) object.github_token = "";
       if (message.messages && message.messages.length) {
         object.messages = [];
         for (let j = 0; j < message.messages.length; ++j)
           object.messages[j] = $root.common.MessageV2.toObject(
             message.messages[j],
+            options,
+          );
+      }
+      if (message.tools && message.tools.length) {
+        object.tools = [];
+        for (let j = 0; j < message.tools.length; ++j)
+          object.tools[j] = $root.common.Tool.toObject(
+            message.tools[j],
             options,
           );
       }
@@ -6273,1167 +6359,6 @@ export const llm = ($root.llm = (() => {
   })();
 
   return llm;
-})());
-
-export const vector = ($root.vector = (() => {
-  /**
-   * Namespace vector.
-   * @exports vector
-   * @namespace
-   */
-  const vector = {};
-
-  vector.Filter = (function () {
-    /**
-     * Properties of a Filter.
-     * @memberof vector
-     * @interface IFilter
-     * @property {string|null} [limit] Filter limit
-     * @property {string|null} [threshold] Filter threshold
-     * @property {string|null} [max_tokens] Filter max_tokens
-     * @property {string|null} [prefix] Filter prefix
-     * @property {string|null} [type] Filter type
-     */
-
-    /**
-     * Constructs a new Filter.
-     * @memberof vector
-     * @classdesc Represents a Filter.
-     * @implements IFilter
-     * @constructor
-     * @param {vector.IFilter=} [properties] Properties to set
-     */
-    function Filter(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * Filter limit.
-     * @member {string|null|undefined} limit
-     * @memberof vector.Filter
-     * @instance
-     */
-    Filter.prototype.limit = null;
-
-    /**
-     * Filter threshold.
-     * @member {string|null|undefined} threshold
-     * @memberof vector.Filter
-     * @instance
-     */
-    Filter.prototype.threshold = null;
-
-    /**
-     * Filter max_tokens.
-     * @member {string|null|undefined} max_tokens
-     * @memberof vector.Filter
-     * @instance
-     */
-    Filter.prototype.max_tokens = null;
-
-    /**
-     * Filter prefix.
-     * @member {string|null|undefined} prefix
-     * @memberof vector.Filter
-     * @instance
-     */
-    Filter.prototype.prefix = null;
-
-    /**
-     * Filter type.
-     * @member {string|null|undefined} type
-     * @memberof vector.Filter
-     * @instance
-     */
-    Filter.prototype.type = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * Filter _limit.
-     * @member {"limit"|undefined} _limit
-     * @memberof vector.Filter
-     * @instance
-     */
-    Object.defineProperty(Filter.prototype, "_limit", {
-      get: $util.oneOfGetter(($oneOfFields = ["limit"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Filter _threshold.
-     * @member {"threshold"|undefined} _threshold
-     * @memberof vector.Filter
-     * @instance
-     */
-    Object.defineProperty(Filter.prototype, "_threshold", {
-      get: $util.oneOfGetter(($oneOfFields = ["threshold"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Filter _max_tokens.
-     * @member {"max_tokens"|undefined} _max_tokens
-     * @memberof vector.Filter
-     * @instance
-     */
-    Object.defineProperty(Filter.prototype, "_max_tokens", {
-      get: $util.oneOfGetter(($oneOfFields = ["max_tokens"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Filter _prefix.
-     * @member {"prefix"|undefined} _prefix
-     * @memberof vector.Filter
-     * @instance
-     */
-    Object.defineProperty(Filter.prototype, "_prefix", {
-      get: $util.oneOfGetter(($oneOfFields = ["prefix"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Filter _type.
-     * @member {"type"|undefined} _type
-     * @memberof vector.Filter
-     * @instance
-     */
-    Object.defineProperty(Filter.prototype, "_type", {
-      get: $util.oneOfGetter(($oneOfFields = ["type"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Encodes the specified Filter message. Does not implicitly {@link vector.Filter.verify|verify} messages.
-     * @function encode
-     * @memberof vector.Filter
-     * @static
-     * @param {vector.Filter} message Filter message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    Filter.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (message.limit != null && Object.hasOwnProperty.call(message, "limit"))
-        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.limit);
-      if (
-        message.threshold != null &&
-        Object.hasOwnProperty.call(message, "threshold")
-      )
-        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.threshold);
-      if (
-        message.max_tokens != null &&
-        Object.hasOwnProperty.call(message, "max_tokens")
-      )
-        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.max_tokens);
-      if (
-        message.prefix != null &&
-        Object.hasOwnProperty.call(message, "prefix")
-      )
-        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.prefix);
-      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
-        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.type);
-      return writer;
-    };
-
-    /**
-     * Decodes a Filter message from the specified reader or buffer.
-     * @function decode
-     * @memberof vector.Filter
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {vector.Filter} Filter
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    Filter.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.vector.Filter();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.limit = reader.string();
-            break;
-          }
-          case 2: {
-            message.threshold = reader.string();
-            break;
-          }
-          case 3: {
-            message.max_tokens = reader.string();
-            break;
-          }
-          case 4: {
-            message.prefix = reader.string();
-            break;
-          }
-          case 5: {
-            message.type = reader.string();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a Filter message.
-     * @function verify
-     * @memberof vector.Filter
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    Filter.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      let properties = {};
-      if (message.limit != null && message.hasOwnProperty("limit")) {
-        properties._limit = 1;
-        if (!$util.isString(message.limit)) return "limit: string expected";
-      }
-      if (message.threshold != null && message.hasOwnProperty("threshold")) {
-        properties._threshold = 1;
-        if (!$util.isString(message.threshold))
-          return "threshold: string expected";
-      }
-      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
-        properties._max_tokens = 1;
-        if (!$util.isString(message.max_tokens))
-          return "max_tokens: string expected";
-      }
-      if (message.prefix != null && message.hasOwnProperty("prefix")) {
-        properties._prefix = 1;
-        if (!$util.isString(message.prefix)) return "prefix: string expected";
-      }
-      if (message.type != null && message.hasOwnProperty("type")) {
-        properties._type = 1;
-        if (!$util.isString(message.type)) return "type: string expected";
-      }
-      return null;
-    };
-
-    /**
-     * Creates a Filter message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof vector.Filter
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {vector.Filter} Filter
-     */
-    Filter.fromObject = function fromObject(object) {
-      if (object instanceof $root.vector.Filter) return object;
-      let message = new $root.vector.Filter();
-      if (object.limit != null) message.limit = String(object.limit);
-      if (object.threshold != null)
-        message.threshold = String(object.threshold);
-      if (object.max_tokens != null)
-        message.max_tokens = String(object.max_tokens);
-      if (object.prefix != null) message.prefix = String(object.prefix);
-      if (object.type != null) message.type = String(object.type);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a Filter message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof vector.Filter
-     * @static
-     * @param {vector.Filter} message Filter
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    Filter.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (message.limit != null && message.hasOwnProperty("limit")) {
-        object.limit = message.limit;
-        if (options.oneofs) object._limit = "limit";
-      }
-      if (message.threshold != null && message.hasOwnProperty("threshold")) {
-        object.threshold = message.threshold;
-        if (options.oneofs) object._threshold = "threshold";
-      }
-      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
-        object.max_tokens = message.max_tokens;
-        if (options.oneofs) object._max_tokens = "max_tokens";
-      }
-      if (message.prefix != null && message.hasOwnProperty("prefix")) {
-        object.prefix = message.prefix;
-        if (options.oneofs) object._prefix = "prefix";
-      }
-      if (message.type != null && message.hasOwnProperty("type")) {
-        object.type = message.type;
-        if (options.oneofs) object._type = "type";
-      }
-      return object;
-    };
-
-    /**
-     * Converts this Filter to JSON.
-     * @function toJSON
-     * @memberof vector.Filter
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    Filter.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for Filter
-     * @function getTypeUrl
-     * @memberof vector.Filter
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    Filter.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/vector.Filter";
-    };
-
-    return Filter;
-  })();
-
-  vector.QueryItemsRequest = (function () {
-    /**
-     * Properties of a QueryItemsRequest.
-     * @memberof vector
-     * @interface IQueryItemsRequest
-     * @property {string|null} [index] QueryItemsRequest index
-     * @property {Array.<number>|null} [vector] QueryItemsRequest vector
-     * @property {vector.Filter|null} [filter] QueryItemsRequest filter
-     */
-
-    /**
-     * Constructs a new QueryItemsRequest.
-     * @memberof vector
-     * @classdesc Represents a QueryItemsRequest.
-     * @implements IQueryItemsRequest
-     * @constructor
-     * @param {vector.IQueryItemsRequest=} [properties] Properties to set
-     */
-    function QueryItemsRequest(properties) {
-      this.vector = [];
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * QueryItemsRequest index.
-     * @member {string} index
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     */
-    QueryItemsRequest.prototype.index = "";
-
-    /**
-     * QueryItemsRequest vector.
-     * @member {Array.<number>} vector
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     */
-    QueryItemsRequest.prototype.vector = $util.emptyArray;
-
-    /**
-     * QueryItemsRequest filter.
-     * @member {vector.Filter|null|undefined} filter
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     */
-    QueryItemsRequest.prototype.filter = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * QueryItemsRequest _filter.
-     * @member {"filter"|undefined} _filter
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     */
-    Object.defineProperty(QueryItemsRequest.prototype, "_filter", {
-      get: $util.oneOfGetter(($oneOfFields = ["filter"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Encodes the specified QueryItemsRequest message. Does not implicitly {@link vector.QueryItemsRequest.verify|verify} messages.
-     * @function encode
-     * @memberof vector.QueryItemsRequest
-     * @static
-     * @param {vector.QueryItemsRequest} message QueryItemsRequest message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    QueryItemsRequest.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
-        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.index);
-      if (message.vector != null && message.vector.length) {
-        writer.uint32(/* id 2, wireType 2 =*/ 18).fork();
-        for (let i = 0; i < message.vector.length; ++i)
-          writer.double(message.vector[i]);
-        writer.ldelim();
-      }
-      if (
-        message.filter != null &&
-        Object.hasOwnProperty.call(message, "filter")
-      )
-        $root.vector.Filter.encode(
-          message.filter,
-          writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
-        ).ldelim();
-      return writer;
-    };
-
-    /**
-     * Decodes a QueryItemsRequest message from the specified reader or buffer.
-     * @function decode
-     * @memberof vector.QueryItemsRequest
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {vector.QueryItemsRequest} QueryItemsRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    QueryItemsRequest.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.vector.QueryItemsRequest();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.index = reader.string();
-            break;
-          }
-          case 2: {
-            if (!(message.vector && message.vector.length)) message.vector = [];
-            if ((tag & 7) === 2) {
-              let end2 = reader.uint32() + reader.pos;
-              while (reader.pos < end2) message.vector.push(reader.double());
-            } else message.vector.push(reader.double());
-            break;
-          }
-          case 3: {
-            message.filter = $root.vector.Filter.decode(
-              reader,
-              reader.uint32(),
-            );
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a QueryItemsRequest message.
-     * @function verify
-     * @memberof vector.QueryItemsRequest
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    QueryItemsRequest.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      let properties = {};
-      if (message.index != null && message.hasOwnProperty("index"))
-        if (!$util.isString(message.index)) return "index: string expected";
-      if (message.vector != null && message.hasOwnProperty("vector")) {
-        if (!Array.isArray(message.vector)) return "vector: array expected";
-        for (let i = 0; i < message.vector.length; ++i)
-          if (typeof message.vector[i] !== "number")
-            return "vector: number[] expected";
-      }
-      if (message.filter != null && message.hasOwnProperty("filter")) {
-        properties._filter = 1;
-        {
-          let error = $root.vector.Filter.verify(message.filter);
-          if (error) return "filter." + error;
-        }
-      }
-      return null;
-    };
-
-    /**
-     * Creates a QueryItemsRequest message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof vector.QueryItemsRequest
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {vector.QueryItemsRequest} QueryItemsRequest
-     */
-    QueryItemsRequest.fromObject = function fromObject(object) {
-      if (object instanceof $root.vector.QueryItemsRequest) return object;
-      let message = new $root.vector.QueryItemsRequest();
-      if (object.index != null) message.index = String(object.index);
-      if (object.vector) {
-        if (!Array.isArray(object.vector))
-          throw TypeError(".vector.QueryItemsRequest.vector: array expected");
-        message.vector = [];
-        for (let i = 0; i < object.vector.length; ++i)
-          message.vector[i] = Number(object.vector[i]);
-      }
-      if (object.filter != null) {
-        if (typeof object.filter !== "object")
-          throw TypeError(".vector.QueryItemsRequest.filter: object expected");
-        message.filter = $root.vector.Filter.fromObject(object.filter);
-      }
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a QueryItemsRequest message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof vector.QueryItemsRequest
-     * @static
-     * @param {vector.QueryItemsRequest} message QueryItemsRequest
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    QueryItemsRequest.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.arrays || options.defaults) object.vector = [];
-      if (options.defaults) object.index = "";
-      if (message.index != null && message.hasOwnProperty("index"))
-        object.index = message.index;
-      if (message.vector && message.vector.length) {
-        object.vector = [];
-        for (let j = 0; j < message.vector.length; ++j)
-          object.vector[j] =
-            options.json && !isFinite(message.vector[j])
-              ? String(message.vector[j])
-              : message.vector[j];
-      }
-      if (message.filter != null && message.hasOwnProperty("filter")) {
-        object.filter = $root.vector.Filter.toObject(message.filter, options);
-        if (options.oneofs) object._filter = "filter";
-      }
-      return object;
-    };
-
-    /**
-     * Converts this QueryItemsRequest to JSON.
-     * @function toJSON
-     * @memberof vector.QueryItemsRequest
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    QueryItemsRequest.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for QueryItemsRequest
-     * @function getTypeUrl
-     * @memberof vector.QueryItemsRequest
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    QueryItemsRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/vector.QueryItemsRequest";
-    };
-
-    return QueryItemsRequest;
-  })();
-
-  vector.QueryItemsResponse = (function () {
-    /**
-     * Properties of a QueryItemsResponse.
-     * @memberof vector
-     * @interface IQueryItemsResponse
-     * @property {Array.<resource.Identifier>|null} [identifiers] QueryItemsResponse identifiers
-     */
-
-    /**
-     * Constructs a new QueryItemsResponse.
-     * @memberof vector
-     * @classdesc Represents a QueryItemsResponse.
-     * @implements IQueryItemsResponse
-     * @constructor
-     * @param {vector.IQueryItemsResponse=} [properties] Properties to set
-     */
-    function QueryItemsResponse(properties) {
-      this.identifiers = [];
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * QueryItemsResponse identifiers.
-     * @member {Array.<resource.Identifier>} identifiers
-     * @memberof vector.QueryItemsResponse
-     * @instance
-     */
-    QueryItemsResponse.prototype.identifiers = $util.emptyArray;
-
-    /**
-     * Encodes the specified QueryItemsResponse message. Does not implicitly {@link vector.QueryItemsResponse.verify|verify} messages.
-     * @function encode
-     * @memberof vector.QueryItemsResponse
-     * @static
-     * @param {vector.QueryItemsResponse} message QueryItemsResponse message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    QueryItemsResponse.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (message.identifiers != null && message.identifiers.length)
-        for (let i = 0; i < message.identifiers.length; ++i)
-          $root.resource.Identifier.encode(
-            message.identifiers[i],
-            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
-          ).ldelim();
-      return writer;
-    };
-
-    /**
-     * Decodes a QueryItemsResponse message from the specified reader or buffer.
-     * @function decode
-     * @memberof vector.QueryItemsResponse
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {vector.QueryItemsResponse} QueryItemsResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    QueryItemsResponse.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.vector.QueryItemsResponse();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            if (!(message.identifiers && message.identifiers.length))
-              message.identifiers = [];
-            message.identifiers.push(
-              $root.resource.Identifier.decode(reader, reader.uint32()),
-            );
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a QueryItemsResponse message.
-     * @function verify
-     * @memberof vector.QueryItemsResponse
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    QueryItemsResponse.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (
-        message.identifiers != null &&
-        message.hasOwnProperty("identifiers")
-      ) {
-        if (!Array.isArray(message.identifiers))
-          return "identifiers: array expected";
-        for (let i = 0; i < message.identifiers.length; ++i) {
-          let error = $root.resource.Identifier.verify(message.identifiers[i]);
-          if (error) return "identifiers." + error;
-        }
-      }
-      return null;
-    };
-
-    /**
-     * Creates a QueryItemsResponse message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof vector.QueryItemsResponse
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {vector.QueryItemsResponse} QueryItemsResponse
-     */
-    QueryItemsResponse.fromObject = function fromObject(object) {
-      if (object instanceof $root.vector.QueryItemsResponse) return object;
-      let message = new $root.vector.QueryItemsResponse();
-      if (object.identifiers) {
-        if (!Array.isArray(object.identifiers))
-          throw TypeError(
-            ".vector.QueryItemsResponse.identifiers: array expected",
-          );
-        message.identifiers = [];
-        for (let i = 0; i < object.identifiers.length; ++i) {
-          if (typeof object.identifiers[i] !== "object")
-            throw TypeError(
-              ".vector.QueryItemsResponse.identifiers: object expected",
-            );
-          message.identifiers[i] = $root.resource.Identifier.fromObject(
-            object.identifiers[i],
-          );
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a QueryItemsResponse message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof vector.QueryItemsResponse
-     * @static
-     * @param {vector.QueryItemsResponse} message QueryItemsResponse
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    QueryItemsResponse.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.arrays || options.defaults) object.identifiers = [];
-      if (message.identifiers && message.identifiers.length) {
-        object.identifiers = [];
-        for (let j = 0; j < message.identifiers.length; ++j)
-          object.identifiers[j] = $root.resource.Identifier.toObject(
-            message.identifiers[j],
-            options,
-          );
-      }
-      return object;
-    };
-
-    /**
-     * Converts this QueryItemsResponse to JSON.
-     * @function toJSON
-     * @memberof vector.QueryItemsResponse
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    QueryItemsResponse.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for QueryItemsResponse
-     * @function getTypeUrl
-     * @memberof vector.QueryItemsResponse
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    QueryItemsResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/vector.QueryItemsResponse";
-    };
-
-    return QueryItemsResponse;
-  })();
-
-  vector.GetItemRequest = (function () {
-    /**
-     * Properties of a GetItemRequest.
-     * @memberof vector
-     * @interface IGetItemRequest
-     * @property {string|null} [index] GetItemRequest index
-     * @property {string|null} [id] GetItemRequest id
-     */
-
-    /**
-     * Constructs a new GetItemRequest.
-     * @memberof vector
-     * @classdesc Represents a GetItemRequest.
-     * @implements IGetItemRequest
-     * @constructor
-     * @param {vector.IGetItemRequest=} [properties] Properties to set
-     */
-    function GetItemRequest(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * GetItemRequest index.
-     * @member {string} index
-     * @memberof vector.GetItemRequest
-     * @instance
-     */
-    GetItemRequest.prototype.index = "";
-
-    /**
-     * GetItemRequest id.
-     * @member {string} id
-     * @memberof vector.GetItemRequest
-     * @instance
-     */
-    GetItemRequest.prototype.id = "";
-
-    /**
-     * Encodes the specified GetItemRequest message. Does not implicitly {@link vector.GetItemRequest.verify|verify} messages.
-     * @function encode
-     * @memberof vector.GetItemRequest
-     * @static
-     * @param {vector.GetItemRequest} message GetItemRequest message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    GetItemRequest.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
-        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.index);
-      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
-        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.id);
-      return writer;
-    };
-
-    /**
-     * Decodes a GetItemRequest message from the specified reader or buffer.
-     * @function decode
-     * @memberof vector.GetItemRequest
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {vector.GetItemRequest} GetItemRequest
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    GetItemRequest.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.vector.GetItemRequest();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.index = reader.string();
-            break;
-          }
-          case 2: {
-            message.id = reader.string();
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a GetItemRequest message.
-     * @function verify
-     * @memberof vector.GetItemRequest
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    GetItemRequest.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      if (message.index != null && message.hasOwnProperty("index"))
-        if (!$util.isString(message.index)) return "index: string expected";
-      if (message.id != null && message.hasOwnProperty("id"))
-        if (!$util.isString(message.id)) return "id: string expected";
-      return null;
-    };
-
-    /**
-     * Creates a GetItemRequest message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof vector.GetItemRequest
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {vector.GetItemRequest} GetItemRequest
-     */
-    GetItemRequest.fromObject = function fromObject(object) {
-      if (object instanceof $root.vector.GetItemRequest) return object;
-      let message = new $root.vector.GetItemRequest();
-      if (object.index != null) message.index = String(object.index);
-      if (object.id != null) message.id = String(object.id);
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a GetItemRequest message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof vector.GetItemRequest
-     * @static
-     * @param {vector.GetItemRequest} message GetItemRequest
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    GetItemRequest.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (options.defaults) {
-        object.index = "";
-        object.id = "";
-      }
-      if (message.index != null && message.hasOwnProperty("index"))
-        object.index = message.index;
-      if (message.id != null && message.hasOwnProperty("id"))
-        object.id = message.id;
-      return object;
-    };
-
-    /**
-     * Converts this GetItemRequest to JSON.
-     * @function toJSON
-     * @memberof vector.GetItemRequest
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    GetItemRequest.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for GetItemRequest
-     * @function getTypeUrl
-     * @memberof vector.GetItemRequest
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    GetItemRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/vector.GetItemRequest";
-    };
-
-    return GetItemRequest;
-  })();
-
-  vector.GetItemResponse = (function () {
-    /**
-     * Properties of a GetItemResponse.
-     * @memberof vector
-     * @interface IGetItemResponse
-     * @property {resource.Identifier|null} [identifier] GetItemResponse identifier
-     */
-
-    /**
-     * Constructs a new GetItemResponse.
-     * @memberof vector
-     * @classdesc Represents a GetItemResponse.
-     * @implements IGetItemResponse
-     * @constructor
-     * @param {vector.IGetItemResponse=} [properties] Properties to set
-     */
-    function GetItemResponse(properties) {
-      if (properties)
-        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
-    }
-
-    /**
-     * GetItemResponse identifier.
-     * @member {resource.Identifier|null|undefined} identifier
-     * @memberof vector.GetItemResponse
-     * @instance
-     */
-    GetItemResponse.prototype.identifier = null;
-
-    // OneOf field names bound to virtual getters and setters
-    let $oneOfFields;
-
-    /**
-     * GetItemResponse _identifier.
-     * @member {"identifier"|undefined} _identifier
-     * @memberof vector.GetItemResponse
-     * @instance
-     */
-    Object.defineProperty(GetItemResponse.prototype, "_identifier", {
-      get: $util.oneOfGetter(($oneOfFields = ["identifier"])),
-      set: $util.oneOfSetter($oneOfFields),
-    });
-
-    /**
-     * Encodes the specified GetItemResponse message. Does not implicitly {@link vector.GetItemResponse.verify|verify} messages.
-     * @function encode
-     * @memberof vector.GetItemResponse
-     * @static
-     * @param {vector.GetItemResponse} message GetItemResponse message or plain object to encode
-     * @param {$protobuf.Writer} [writer] Writer to encode to
-     * @returns {$protobuf.Writer} Writer
-     */
-    GetItemResponse.encode = function encode(message, writer) {
-      if (!writer) writer = $Writer.create();
-      if (
-        message.identifier != null &&
-        Object.hasOwnProperty.call(message, "identifier")
-      )
-        $root.resource.Identifier.encode(
-          message.identifier,
-          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
-        ).ldelim();
-      return writer;
-    };
-
-    /**
-     * Decodes a GetItemResponse message from the specified reader or buffer.
-     * @function decode
-     * @memberof vector.GetItemResponse
-     * @static
-     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @param {number} [length] Message length if known beforehand
-     * @returns {vector.GetItemResponse} GetItemResponse
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    GetItemResponse.decode = function decode(reader, length, error) {
-      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-      let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.vector.GetItemResponse();
-      while (reader.pos < end) {
-        let tag = reader.uint32();
-        if (tag === error) break;
-        switch (tag >>> 3) {
-          case 1: {
-            message.identifier = $root.resource.Identifier.decode(
-              reader,
-              reader.uint32(),
-            );
-            break;
-          }
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-      return message;
-    };
-
-    /**
-     * Verifies a GetItemResponse message.
-     * @function verify
-     * @memberof vector.GetItemResponse
-     * @static
-     * @param {Object.<string,*>} message Plain object to verify
-     * @returns {string|null} `null` if valid, otherwise the reason why it is not
-     */
-    GetItemResponse.verify = function verify(message) {
-      if (typeof message !== "object" || message === null)
-        return "object expected";
-      let properties = {};
-      if (message.identifier != null && message.hasOwnProperty("identifier")) {
-        properties._identifier = 1;
-        {
-          let error = $root.resource.Identifier.verify(message.identifier);
-          if (error) return "identifier." + error;
-        }
-      }
-      return null;
-    };
-
-    /**
-     * Creates a GetItemResponse message from a plain object. Also converts values to their respective internal types.
-     * @function fromObject
-     * @memberof vector.GetItemResponse
-     * @static
-     * @param {Object.<string,*>} object Plain object
-     * @returns {vector.GetItemResponse} GetItemResponse
-     */
-    GetItemResponse.fromObject = function fromObject(object) {
-      if (object instanceof $root.vector.GetItemResponse) return object;
-      let message = new $root.vector.GetItemResponse();
-      if (object.identifier != null) {
-        if (typeof object.identifier !== "object")
-          throw TypeError(
-            ".vector.GetItemResponse.identifier: object expected",
-          );
-        message.identifier = $root.resource.Identifier.fromObject(
-          object.identifier,
-        );
-      }
-      return message;
-    };
-
-    /**
-     * Creates a plain object from a GetItemResponse message. Also converts values to other types if specified.
-     * @function toObject
-     * @memberof vector.GetItemResponse
-     * @static
-     * @param {vector.GetItemResponse} message GetItemResponse
-     * @param {$protobuf.IConversionOptions} [options] Conversion options
-     * @returns {Object.<string,*>} Plain object
-     */
-    GetItemResponse.toObject = function toObject(message, options) {
-      if (!options) options = {};
-      let object = {};
-      if (message.identifier != null && message.hasOwnProperty("identifier")) {
-        object.identifier = $root.resource.Identifier.toObject(
-          message.identifier,
-          options,
-        );
-        if (options.oneofs) object._identifier = "identifier";
-      }
-      return object;
-    };
-
-    /**
-     * Converts this GetItemResponse to JSON.
-     * @function toJSON
-     * @memberof vector.GetItemResponse
-     * @instance
-     * @returns {Object.<string,*>} JSON object
-     */
-    GetItemResponse.prototype.toJSON = function toJSON() {
-      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-    };
-
-    /**
-     * Gets the default type url for GetItemResponse
-     * @function getTypeUrl
-     * @memberof vector.GetItemResponse
-     * @static
-     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-     * @returns {string} The default type url
-     */
-    GetItemResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-      if (typeUrlPrefix === undefined) {
-        typeUrlPrefix = "type.googleapis.com";
-      }
-      return typeUrlPrefix + "/vector.GetItemResponse";
-    };
-
-    return GetItemResponse;
-  })();
-
-  return vector;
 })());
 
 export const memory = ($root.memory = (() => {
@@ -8985,29 +7910,1190 @@ export const tool = ($root.tool = (() => {
   return tool;
 })());
 
-export const toolbox = ($root.toolbox = (() => {
+export const vector = ($root.vector = (() => {
   /**
-   * Namespace toolbox.
-   * @exports toolbox
+   * Namespace vector.
+   * @exports vector
    * @namespace
    */
-  const toolbox = {};
+  const vector = {};
 
-  toolbox.HashRequest = (function () {
+  vector.Filter = (function () {
+    /**
+     * Properties of a Filter.
+     * @memberof vector
+     * @interface IFilter
+     * @property {string|null} [limit] Filter limit
+     * @property {string|null} [threshold] Filter threshold
+     * @property {string|null} [max_tokens] Filter max_tokens
+     * @property {string|null} [prefix] Filter prefix
+     * @property {string|null} [type] Filter type
+     */
+
+    /**
+     * Constructs a new Filter.
+     * @memberof vector
+     * @classdesc Represents a Filter.
+     * @implements IFilter
+     * @constructor
+     * @param {vector.IFilter=} [properties] Properties to set
+     */
+    function Filter(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Filter limit.
+     * @member {string|null|undefined} limit
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.limit = null;
+
+    /**
+     * Filter threshold.
+     * @member {string|null|undefined} threshold
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.threshold = null;
+
+    /**
+     * Filter max_tokens.
+     * @member {string|null|undefined} max_tokens
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.max_tokens = null;
+
+    /**
+     * Filter prefix.
+     * @member {string|null|undefined} prefix
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.prefix = null;
+
+    /**
+     * Filter type.
+     * @member {string|null|undefined} type
+     * @memberof vector.Filter
+     * @instance
+     */
+    Filter.prototype.type = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * Filter _limit.
+     * @member {"limit"|undefined} _limit
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_limit", {
+      get: $util.oneOfGetter(($oneOfFields = ["limit"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _threshold.
+     * @member {"threshold"|undefined} _threshold
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_threshold", {
+      get: $util.oneOfGetter(($oneOfFields = ["threshold"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _max_tokens.
+     * @member {"max_tokens"|undefined} _max_tokens
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_max_tokens", {
+      get: $util.oneOfGetter(($oneOfFields = ["max_tokens"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _prefix.
+     * @member {"prefix"|undefined} _prefix
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_prefix", {
+      get: $util.oneOfGetter(($oneOfFields = ["prefix"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Filter _type.
+     * @member {"type"|undefined} _type
+     * @memberof vector.Filter
+     * @instance
+     */
+    Object.defineProperty(Filter.prototype, "_type", {
+      get: $util.oneOfGetter(($oneOfFields = ["type"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified Filter message. Does not implicitly {@link vector.Filter.verify|verify} messages.
+     * @function encode
+     * @memberof vector.Filter
+     * @static
+     * @param {vector.Filter} message Filter message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Filter.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.limit != null && Object.hasOwnProperty.call(message, "limit"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.limit);
+      if (
+        message.threshold != null &&
+        Object.hasOwnProperty.call(message, "threshold")
+      )
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.threshold);
+      if (
+        message.max_tokens != null &&
+        Object.hasOwnProperty.call(message, "max_tokens")
+      )
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.max_tokens);
+      if (
+        message.prefix != null &&
+        Object.hasOwnProperty.call(message, "prefix")
+      )
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.prefix);
+      if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.type);
+      return writer;
+    };
+
+    /**
+     * Decodes a Filter message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.Filter
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.Filter} Filter
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Filter.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.Filter();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.limit = reader.string();
+            break;
+          }
+          case 2: {
+            message.threshold = reader.string();
+            break;
+          }
+          case 3: {
+            message.max_tokens = reader.string();
+            break;
+          }
+          case 4: {
+            message.prefix = reader.string();
+            break;
+          }
+          case 5: {
+            message.type = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a Filter message.
+     * @function verify
+     * @memberof vector.Filter
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Filter.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.limit != null && message.hasOwnProperty("limit")) {
+        properties._limit = 1;
+        if (!$util.isString(message.limit)) return "limit: string expected";
+      }
+      if (message.threshold != null && message.hasOwnProperty("threshold")) {
+        properties._threshold = 1;
+        if (!$util.isString(message.threshold))
+          return "threshold: string expected";
+      }
+      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
+        properties._max_tokens = 1;
+        if (!$util.isString(message.max_tokens))
+          return "max_tokens: string expected";
+      }
+      if (message.prefix != null && message.hasOwnProperty("prefix")) {
+        properties._prefix = 1;
+        if (!$util.isString(message.prefix)) return "prefix: string expected";
+      }
+      if (message.type != null && message.hasOwnProperty("type")) {
+        properties._type = 1;
+        if (!$util.isString(message.type)) return "type: string expected";
+      }
+      return null;
+    };
+
+    /**
+     * Creates a Filter message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.Filter
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.Filter} Filter
+     */
+    Filter.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.Filter) return object;
+      let message = new $root.vector.Filter();
+      if (object.limit != null) message.limit = String(object.limit);
+      if (object.threshold != null)
+        message.threshold = String(object.threshold);
+      if (object.max_tokens != null)
+        message.max_tokens = String(object.max_tokens);
+      if (object.prefix != null) message.prefix = String(object.prefix);
+      if (object.type != null) message.type = String(object.type);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a Filter message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.Filter
+     * @static
+     * @param {vector.Filter} message Filter
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Filter.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (message.limit != null && message.hasOwnProperty("limit")) {
+        object.limit = message.limit;
+        if (options.oneofs) object._limit = "limit";
+      }
+      if (message.threshold != null && message.hasOwnProperty("threshold")) {
+        object.threshold = message.threshold;
+        if (options.oneofs) object._threshold = "threshold";
+      }
+      if (message.max_tokens != null && message.hasOwnProperty("max_tokens")) {
+        object.max_tokens = message.max_tokens;
+        if (options.oneofs) object._max_tokens = "max_tokens";
+      }
+      if (message.prefix != null && message.hasOwnProperty("prefix")) {
+        object.prefix = message.prefix;
+        if (options.oneofs) object._prefix = "prefix";
+      }
+      if (message.type != null && message.hasOwnProperty("type")) {
+        object.type = message.type;
+        if (options.oneofs) object._type = "type";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this Filter to JSON.
+     * @function toJSON
+     * @memberof vector.Filter
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Filter.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for Filter
+     * @function getTypeUrl
+     * @memberof vector.Filter
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    Filter.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.Filter";
+    };
+
+    return Filter;
+  })();
+
+  vector.QueryItemsRequest = (function () {
+    /**
+     * Properties of a QueryItemsRequest.
+     * @memberof vector
+     * @interface IQueryItemsRequest
+     * @property {string|null} [index] QueryItemsRequest index
+     * @property {Array.<number>|null} [vector] QueryItemsRequest vector
+     * @property {vector.Filter|null} [filters] QueryItemsRequest filters
+     */
+
+    /**
+     * Constructs a new QueryItemsRequest.
+     * @memberof vector
+     * @classdesc Represents a QueryItemsRequest.
+     * @implements IQueryItemsRequest
+     * @constructor
+     * @param {vector.IQueryItemsRequest=} [properties] Properties to set
+     */
+    function QueryItemsRequest(properties) {
+      this.vector = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * QueryItemsRequest index.
+     * @member {string} index
+     * @memberof vector.QueryItemsRequest
+     * @instance
+     */
+    QueryItemsRequest.prototype.index = "";
+
+    /**
+     * QueryItemsRequest vector.
+     * @member {Array.<number>} vector
+     * @memberof vector.QueryItemsRequest
+     * @instance
+     */
+    QueryItemsRequest.prototype.vector = $util.emptyArray;
+
+    /**
+     * QueryItemsRequest filters.
+     * @member {vector.Filter|null|undefined} filters
+     * @memberof vector.QueryItemsRequest
+     * @instance
+     */
+    QueryItemsRequest.prototype.filters = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * QueryItemsRequest _filters.
+     * @member {"filters"|undefined} _filters
+     * @memberof vector.QueryItemsRequest
+     * @instance
+     */
+    Object.defineProperty(QueryItemsRequest.prototype, "_filters", {
+      get: $util.oneOfGetter(($oneOfFields = ["filters"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified QueryItemsRequest message. Does not implicitly {@link vector.QueryItemsRequest.verify|verify} messages.
+     * @function encode
+     * @memberof vector.QueryItemsRequest
+     * @static
+     * @param {vector.QueryItemsRequest} message QueryItemsRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    QueryItemsRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.index);
+      if (message.vector != null && message.vector.length) {
+        writer.uint32(/* id 2, wireType 2 =*/ 18).fork();
+        for (let i = 0; i < message.vector.length; ++i)
+          writer.double(message.vector[i]);
+        writer.ldelim();
+      }
+      if (
+        message.filters != null &&
+        Object.hasOwnProperty.call(message, "filters")
+      )
+        $root.vector.Filter.encode(
+          message.filters,
+          writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a QueryItemsRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.QueryItemsRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.QueryItemsRequest} QueryItemsRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    QueryItemsRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.QueryItemsRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.index = reader.string();
+            break;
+          }
+          case 2: {
+            if (!(message.vector && message.vector.length)) message.vector = [];
+            if ((tag & 7) === 2) {
+              let end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) message.vector.push(reader.double());
+            } else message.vector.push(reader.double());
+            break;
+          }
+          case 3: {
+            message.filters = $root.vector.Filter.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a QueryItemsRequest message.
+     * @function verify
+     * @memberof vector.QueryItemsRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    QueryItemsRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.index != null && message.hasOwnProperty("index"))
+        if (!$util.isString(message.index)) return "index: string expected";
+      if (message.vector != null && message.hasOwnProperty("vector")) {
+        if (!Array.isArray(message.vector)) return "vector: array expected";
+        for (let i = 0; i < message.vector.length; ++i)
+          if (typeof message.vector[i] !== "number")
+            return "vector: number[] expected";
+      }
+      if (message.filters != null && message.hasOwnProperty("filters")) {
+        properties._filters = 1;
+        {
+          let error = $root.vector.Filter.verify(message.filters);
+          if (error) return "filters." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a QueryItemsRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.QueryItemsRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.QueryItemsRequest} QueryItemsRequest
+     */
+    QueryItemsRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.QueryItemsRequest) return object;
+      let message = new $root.vector.QueryItemsRequest();
+      if (object.index != null) message.index = String(object.index);
+      if (object.vector) {
+        if (!Array.isArray(object.vector))
+          throw TypeError(".vector.QueryItemsRequest.vector: array expected");
+        message.vector = [];
+        for (let i = 0; i < object.vector.length; ++i)
+          message.vector[i] = Number(object.vector[i]);
+      }
+      if (object.filters != null) {
+        if (typeof object.filters !== "object")
+          throw TypeError(".vector.QueryItemsRequest.filters: object expected");
+        message.filters = $root.vector.Filter.fromObject(object.filters);
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a QueryItemsRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.QueryItemsRequest
+     * @static
+     * @param {vector.QueryItemsRequest} message QueryItemsRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    QueryItemsRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.vector = [];
+      if (options.defaults) object.index = "";
+      if (message.index != null && message.hasOwnProperty("index"))
+        object.index = message.index;
+      if (message.vector && message.vector.length) {
+        object.vector = [];
+        for (let j = 0; j < message.vector.length; ++j)
+          object.vector[j] =
+            options.json && !isFinite(message.vector[j])
+              ? String(message.vector[j])
+              : message.vector[j];
+      }
+      if (message.filters != null && message.hasOwnProperty("filters")) {
+        object.filters = $root.vector.Filter.toObject(message.filters, options);
+        if (options.oneofs) object._filters = "filters";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this QueryItemsRequest to JSON.
+     * @function toJSON
+     * @memberof vector.QueryItemsRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    QueryItemsRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for QueryItemsRequest
+     * @function getTypeUrl
+     * @memberof vector.QueryItemsRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    QueryItemsRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.QueryItemsRequest";
+    };
+
+    return QueryItemsRequest;
+  })();
+
+  vector.QueryItemsResponse = (function () {
+    /**
+     * Properties of a QueryItemsResponse.
+     * @memberof vector
+     * @interface IQueryItemsResponse
+     * @property {Array.<resource.Identifier>|null} [identifiers] QueryItemsResponse identifiers
+     */
+
+    /**
+     * Constructs a new QueryItemsResponse.
+     * @memberof vector
+     * @classdesc Represents a QueryItemsResponse.
+     * @implements IQueryItemsResponse
+     * @constructor
+     * @param {vector.IQueryItemsResponse=} [properties] Properties to set
+     */
+    function QueryItemsResponse(properties) {
+      this.identifiers = [];
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * QueryItemsResponse identifiers.
+     * @member {Array.<resource.Identifier>} identifiers
+     * @memberof vector.QueryItemsResponse
+     * @instance
+     */
+    QueryItemsResponse.prototype.identifiers = $util.emptyArray;
+
+    /**
+     * Encodes the specified QueryItemsResponse message. Does not implicitly {@link vector.QueryItemsResponse.verify|verify} messages.
+     * @function encode
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {vector.QueryItemsResponse} message QueryItemsResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    QueryItemsResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.identifiers != null && message.identifiers.length)
+        for (let i = 0; i < message.identifiers.length; ++i)
+          $root.resource.Identifier.encode(
+            message.identifiers[i],
+            writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+          ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a QueryItemsResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.QueryItemsResponse} QueryItemsResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    QueryItemsResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.QueryItemsResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            if (!(message.identifiers && message.identifiers.length))
+              message.identifiers = [];
+            message.identifiers.push(
+              $root.resource.Identifier.decode(reader, reader.uint32()),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a QueryItemsResponse message.
+     * @function verify
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    QueryItemsResponse.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (
+        message.identifiers != null &&
+        message.hasOwnProperty("identifiers")
+      ) {
+        if (!Array.isArray(message.identifiers))
+          return "identifiers: array expected";
+        for (let i = 0; i < message.identifiers.length; ++i) {
+          let error = $root.resource.Identifier.verify(message.identifiers[i]);
+          if (error) return "identifiers." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a QueryItemsResponse message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.QueryItemsResponse} QueryItemsResponse
+     */
+    QueryItemsResponse.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.QueryItemsResponse) return object;
+      let message = new $root.vector.QueryItemsResponse();
+      if (object.identifiers) {
+        if (!Array.isArray(object.identifiers))
+          throw TypeError(
+            ".vector.QueryItemsResponse.identifiers: array expected",
+          );
+        message.identifiers = [];
+        for (let i = 0; i < object.identifiers.length; ++i) {
+          if (typeof object.identifiers[i] !== "object")
+            throw TypeError(
+              ".vector.QueryItemsResponse.identifiers: object expected",
+            );
+          message.identifiers[i] = $root.resource.Identifier.fromObject(
+            object.identifiers[i],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a QueryItemsResponse message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {vector.QueryItemsResponse} message QueryItemsResponse
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    QueryItemsResponse.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.arrays || options.defaults) object.identifiers = [];
+      if (message.identifiers && message.identifiers.length) {
+        object.identifiers = [];
+        for (let j = 0; j < message.identifiers.length; ++j)
+          object.identifiers[j] = $root.resource.Identifier.toObject(
+            message.identifiers[j],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this QueryItemsResponse to JSON.
+     * @function toJSON
+     * @memberof vector.QueryItemsResponse
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    QueryItemsResponse.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for QueryItemsResponse
+     * @function getTypeUrl
+     * @memberof vector.QueryItemsResponse
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    QueryItemsResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.QueryItemsResponse";
+    };
+
+    return QueryItemsResponse;
+  })();
+
+  vector.GetItemRequest = (function () {
+    /**
+     * Properties of a GetItemRequest.
+     * @memberof vector
+     * @interface IGetItemRequest
+     * @property {string|null} [index] GetItemRequest index
+     * @property {string|null} [id] GetItemRequest id
+     */
+
+    /**
+     * Constructs a new GetItemRequest.
+     * @memberof vector
+     * @classdesc Represents a GetItemRequest.
+     * @implements IGetItemRequest
+     * @constructor
+     * @param {vector.IGetItemRequest=} [properties] Properties to set
+     */
+    function GetItemRequest(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * GetItemRequest index.
+     * @member {string} index
+     * @memberof vector.GetItemRequest
+     * @instance
+     */
+    GetItemRequest.prototype.index = "";
+
+    /**
+     * GetItemRequest id.
+     * @member {string} id
+     * @memberof vector.GetItemRequest
+     * @instance
+     */
+    GetItemRequest.prototype.id = "";
+
+    /**
+     * Encodes the specified GetItemRequest message. Does not implicitly {@link vector.GetItemRequest.verify|verify} messages.
+     * @function encode
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {vector.GetItemRequest} message GetItemRequest message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetItemRequest.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+        writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.index);
+      if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+        writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.id);
+      return writer;
+    };
+
+    /**
+     * Decodes a GetItemRequest message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.GetItemRequest} GetItemRequest
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetItemRequest.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.GetItemRequest();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.index = reader.string();
+            break;
+          }
+          case 2: {
+            message.id = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a GetItemRequest message.
+     * @function verify
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    GetItemRequest.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      if (message.index != null && message.hasOwnProperty("index"))
+        if (!$util.isString(message.index)) return "index: string expected";
+      if (message.id != null && message.hasOwnProperty("id"))
+        if (!$util.isString(message.id)) return "id: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a GetItemRequest message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.GetItemRequest} GetItemRequest
+     */
+    GetItemRequest.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.GetItemRequest) return object;
+      let message = new $root.vector.GetItemRequest();
+      if (object.index != null) message.index = String(object.index);
+      if (object.id != null) message.id = String(object.id);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a GetItemRequest message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {vector.GetItemRequest} message GetItemRequest
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    GetItemRequest.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.index = "";
+        object.id = "";
+      }
+      if (message.index != null && message.hasOwnProperty("index"))
+        object.index = message.index;
+      if (message.id != null && message.hasOwnProperty("id"))
+        object.id = message.id;
+      return object;
+    };
+
+    /**
+     * Converts this GetItemRequest to JSON.
+     * @function toJSON
+     * @memberof vector.GetItemRequest
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    GetItemRequest.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for GetItemRequest
+     * @function getTypeUrl
+     * @memberof vector.GetItemRequest
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    GetItemRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.GetItemRequest";
+    };
+
+    return GetItemRequest;
+  })();
+
+  vector.GetItemResponse = (function () {
+    /**
+     * Properties of a GetItemResponse.
+     * @memberof vector
+     * @interface IGetItemResponse
+     * @property {resource.Identifier|null} [identifier] GetItemResponse identifier
+     */
+
+    /**
+     * Constructs a new GetItemResponse.
+     * @memberof vector
+     * @classdesc Represents a GetItemResponse.
+     * @implements IGetItemResponse
+     * @constructor
+     * @param {vector.IGetItemResponse=} [properties] Properties to set
+     */
+    function GetItemResponse(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * GetItemResponse identifier.
+     * @member {resource.Identifier|null|undefined} identifier
+     * @memberof vector.GetItemResponse
+     * @instance
+     */
+    GetItemResponse.prototype.identifier = null;
+
+    // OneOf field names bound to virtual getters and setters
+    let $oneOfFields;
+
+    /**
+     * GetItemResponse _identifier.
+     * @member {"identifier"|undefined} _identifier
+     * @memberof vector.GetItemResponse
+     * @instance
+     */
+    Object.defineProperty(GetItemResponse.prototype, "_identifier", {
+      get: $util.oneOfGetter(($oneOfFields = ["identifier"])),
+      set: $util.oneOfSetter($oneOfFields),
+    });
+
+    /**
+     * Encodes the specified GetItemResponse message. Does not implicitly {@link vector.GetItemResponse.verify|verify} messages.
+     * @function encode
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {vector.GetItemResponse} message GetItemResponse message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    GetItemResponse.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (
+        message.identifier != null &&
+        Object.hasOwnProperty.call(message, "identifier")
+      )
+        $root.resource.Identifier.encode(
+          message.identifier,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      return writer;
+    };
+
+    /**
+     * Decodes a GetItemResponse message from the specified reader or buffer.
+     * @function decode
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {vector.GetItemResponse} GetItemResponse
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    GetItemResponse.decode = function decode(reader, length, error) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.vector.GetItemResponse();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        if (tag === error) break;
+        switch (tag >>> 3) {
+          case 1: {
+            message.identifier = $root.resource.Identifier.decode(
+              reader,
+              reader.uint32(),
+            );
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Verifies a GetItemResponse message.
+     * @function verify
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    GetItemResponse.verify = function verify(message) {
+      if (typeof message !== "object" || message === null)
+        return "object expected";
+      let properties = {};
+      if (message.identifier != null && message.hasOwnProperty("identifier")) {
+        properties._identifier = 1;
+        {
+          let error = $root.resource.Identifier.verify(message.identifier);
+          if (error) return "identifier." + error;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a GetItemResponse message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {vector.GetItemResponse} GetItemResponse
+     */
+    GetItemResponse.fromObject = function fromObject(object) {
+      if (object instanceof $root.vector.GetItemResponse) return object;
+      let message = new $root.vector.GetItemResponse();
+      if (object.identifier != null) {
+        if (typeof object.identifier !== "object")
+          throw TypeError(
+            ".vector.GetItemResponse.identifier: object expected",
+          );
+        message.identifier = $root.resource.Identifier.fromObject(
+          object.identifier,
+        );
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a GetItemResponse message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {vector.GetItemResponse} message GetItemResponse
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    GetItemResponse.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (message.identifier != null && message.hasOwnProperty("identifier")) {
+        object.identifier = $root.resource.Identifier.toObject(
+          message.identifier,
+          options,
+        );
+        if (options.oneofs) object._identifier = "identifier";
+      }
+      return object;
+    };
+
+    /**
+     * Converts this GetItemResponse to JSON.
+     * @function toJSON
+     * @memberof vector.GetItemResponse
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    GetItemResponse.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for GetItemResponse
+     * @function getTypeUrl
+     * @memberof vector.GetItemResponse
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    GetItemResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/vector.GetItemResponse";
+    };
+
+    return GetItemResponse;
+  })();
+
+  return vector;
+})());
+
+export const hash = ($root.hash = (() => {
+  /**
+   * Namespace hash.
+   * @exports hash
+   * @namespace
+   */
+  const hash = {};
+
+  hash.HashRequest = (function () {
     /**
      * Properties of a HashRequest.
-     * @memberof toolbox
+     * @memberof hash
      * @interface IHashRequest
      * @property {string|null} [input] HashRequest input
      */
 
     /**
      * Constructs a new HashRequest.
-     * @memberof toolbox
+     * @memberof hash
      * @classdesc Represents a HashRequest.
      * @implements IHashRequest
      * @constructor
-     * @param {toolbox.IHashRequest=} [properties] Properties to set
+     * @param {hash.IHashRequest=} [properties] Properties to set
      */
     function HashRequest(properties) {
       if (properties)
@@ -9018,17 +9104,17 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * HashRequest input.
      * @member {string} input
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @instance
      */
     HashRequest.prototype.input = "";
 
     /**
-     * Encodes the specified HashRequest message. Does not implicitly {@link toolbox.HashRequest.verify|verify} messages.
+     * Encodes the specified HashRequest message. Does not implicitly {@link hash.HashRequest.verify|verify} messages.
      * @function encode
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @static
-     * @param {toolbox.HashRequest} message HashRequest message or plain object to encode
+     * @param {hash.HashRequest} message HashRequest message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
      */
@@ -9042,18 +9128,18 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Decodes a HashRequest message from the specified reader or buffer.
      * @function decode
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
-     * @returns {toolbox.HashRequest} HashRequest
+     * @returns {hash.HashRequest} HashRequest
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     HashRequest.decode = function decode(reader, length, error) {
       if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
       let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.toolbox.HashRequest();
+        message = new $root.hash.HashRequest();
       while (reader.pos < end) {
         let tag = reader.uint32();
         if (tag === error) break;
@@ -9073,7 +9159,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Verifies a HashRequest message.
      * @function verify
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -9089,14 +9175,14 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Creates a HashRequest message from a plain object. Also converts values to their respective internal types.
      * @function fromObject
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @static
      * @param {Object.<string,*>} object Plain object
-     * @returns {toolbox.HashRequest} HashRequest
+     * @returns {hash.HashRequest} HashRequest
      */
     HashRequest.fromObject = function fromObject(object) {
-      if (object instanceof $root.toolbox.HashRequest) return object;
-      let message = new $root.toolbox.HashRequest();
+      if (object instanceof $root.hash.HashRequest) return object;
+      let message = new $root.hash.HashRequest();
       if (object.input != null) message.input = String(object.input);
       return message;
     };
@@ -9104,9 +9190,9 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Creates a plain object from a HashRequest message. Also converts values to other types if specified.
      * @function toObject
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @static
-     * @param {toolbox.HashRequest} message HashRequest
+     * @param {hash.HashRequest} message HashRequest
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
      */
@@ -9122,7 +9208,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Converts this HashRequest to JSON.
      * @function toJSON
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @instance
      * @returns {Object.<string,*>} JSON object
      */
@@ -9133,7 +9219,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Gets the default type url for HashRequest
      * @function getTypeUrl
-     * @memberof toolbox.HashRequest
+     * @memberof hash.HashRequest
      * @static
      * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
      * @returns {string} The default type url
@@ -9142,16 +9228,16 @@ export const toolbox = ($root.toolbox = (() => {
       if (typeUrlPrefix === undefined) {
         typeUrlPrefix = "type.googleapis.com";
       }
-      return typeUrlPrefix + "/toolbox.HashRequest";
+      return typeUrlPrefix + "/hash.HashRequest";
     };
 
     return HashRequest;
   })();
 
-  toolbox.HashResponse = (function () {
+  hash.HashResponse = (function () {
     /**
      * Properties of a HashResponse.
-     * @memberof toolbox
+     * @memberof hash
      * @interface IHashResponse
      * @property {string|null} [hash] HashResponse hash
      * @property {string|null} [algorithm] HashResponse algorithm
@@ -9159,11 +9245,11 @@ export const toolbox = ($root.toolbox = (() => {
 
     /**
      * Constructs a new HashResponse.
-     * @memberof toolbox
+     * @memberof hash
      * @classdesc Represents a HashResponse.
      * @implements IHashResponse
      * @constructor
-     * @param {toolbox.IHashResponse=} [properties] Properties to set
+     * @param {hash.IHashResponse=} [properties] Properties to set
      */
     function HashResponse(properties) {
       if (properties)
@@ -9174,7 +9260,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * HashResponse hash.
      * @member {string} hash
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @instance
      */
     HashResponse.prototype.hash = "";
@@ -9182,17 +9268,17 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * HashResponse algorithm.
      * @member {string} algorithm
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @instance
      */
     HashResponse.prototype.algorithm = "";
 
     /**
-     * Encodes the specified HashResponse message. Does not implicitly {@link toolbox.HashResponse.verify|verify} messages.
+     * Encodes the specified HashResponse message. Does not implicitly {@link hash.HashResponse.verify|verify} messages.
      * @function encode
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @static
-     * @param {toolbox.HashResponse} message HashResponse message or plain object to encode
+     * @param {hash.HashResponse} message HashResponse message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
      */
@@ -9211,18 +9297,18 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Decodes a HashResponse message from the specified reader or buffer.
      * @function decode
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
-     * @returns {toolbox.HashResponse} HashResponse
+     * @returns {hash.HashResponse} HashResponse
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     HashResponse.decode = function decode(reader, length, error) {
       if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
       let end = length === undefined ? reader.len : reader.pos + length,
-        message = new $root.toolbox.HashResponse();
+        message = new $root.hash.HashResponse();
       while (reader.pos < end) {
         let tag = reader.uint32();
         if (tag === error) break;
@@ -9246,7 +9332,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Verifies a HashResponse message.
      * @function verify
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -9265,14 +9351,14 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Creates a HashResponse message from a plain object. Also converts values to their respective internal types.
      * @function fromObject
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @static
      * @param {Object.<string,*>} object Plain object
-     * @returns {toolbox.HashResponse} HashResponse
+     * @returns {hash.HashResponse} HashResponse
      */
     HashResponse.fromObject = function fromObject(object) {
-      if (object instanceof $root.toolbox.HashResponse) return object;
-      let message = new $root.toolbox.HashResponse();
+      if (object instanceof $root.hash.HashResponse) return object;
+      let message = new $root.hash.HashResponse();
       if (object.hash != null) message.hash = String(object.hash);
       if (object.algorithm != null)
         message.algorithm = String(object.algorithm);
@@ -9282,9 +9368,9 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Creates a plain object from a HashResponse message. Also converts values to other types if specified.
      * @function toObject
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @static
-     * @param {toolbox.HashResponse} message HashResponse
+     * @param {hash.HashResponse} message HashResponse
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
      */
@@ -9305,7 +9391,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Converts this HashResponse to JSON.
      * @function toJSON
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @instance
      * @returns {Object.<string,*>} JSON object
      */
@@ -9316,7 +9402,7 @@ export const toolbox = ($root.toolbox = (() => {
     /**
      * Gets the default type url for HashResponse
      * @function getTypeUrl
-     * @memberof toolbox.HashResponse
+     * @memberof hash.HashResponse
      * @static
      * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
      * @returns {string} The default type url
@@ -9325,13 +9411,13 @@ export const toolbox = ($root.toolbox = (() => {
       if (typeUrlPrefix === undefined) {
         typeUrlPrefix = "type.googleapis.com";
       }
-      return typeUrlPrefix + "/toolbox.HashResponse";
+      return typeUrlPrefix + "/hash.HashResponse";
     };
 
     return HashResponse;
   })();
 
-  return toolbox;
+  return hash;
 })());
 
 export { $root as default };

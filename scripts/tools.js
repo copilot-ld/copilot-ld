@@ -23,6 +23,7 @@ function generateSchemaFromProtobuf(messageType) {
   const schema = {
     type: "object",
     properties: {},
+    // Always include required so downstream tooling (LLM tool calling) has explicit list
     required: [],
   };
 
@@ -72,8 +73,9 @@ function generateSchemaFromProtobuf(messageType) {
 
     schema.properties[fieldName] = property;
 
-    // Add to required fields if not optional
-    if (field.rule === "required" || (!field.rule && !field.optional)) {
+    // Add to required fields if not optional. Protobufjs sets 'optional' flag only for proto2.
+    // For our usage we treat absence of 'optional' AND not repeated as required.
+    if (field.rule !== "repeated" && field.optional !== true) {
       schema.required.push(fieldName);
     }
   }
@@ -132,6 +134,16 @@ async function generateToolSchemas(endpoints) {
 
     // Try to load schema dynamically from protobuf
     const schema = await loadMethodSchema(protoPath, serviceName, methodName);
+
+    // Ensure schema.required exists (defensive) and if empty but properties has single key, mark it required
+    if (schema && schema.properties && !Array.isArray(schema.required)) {
+      schema.required = [];
+    }
+    if (schema && schema.properties && schema.required.length === 0) {
+      for (const key of Object.keys(schema.properties)) {
+        schema.required.push(key);
+      }
+    }
 
     const tool = {
       type: "function",

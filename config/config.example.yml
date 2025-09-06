@@ -19,7 +19,7 @@ service:
         context: 0.6
 
   llm:
-    model: "claude-3.5-sonnet"
+    model: "gpt-4o"
 
   tool:
     endpoints:

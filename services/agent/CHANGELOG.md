@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-06
+
+- Added redundant `function.name` field when building tool execution request to improve compatibility with Tool service name extraction
+- Extended debug logging for converted tool calls including serialized built object
+
 ## 2025-09-05
 
 - Removed legacy generated files `service.js` and `client.js` from `services/agent/`

@@ -56,11 +56,38 @@ async function toTools(identifiers, resourceIndex) {
 
   const actor = "cld:common.System.root";
   const functions = await resourceIndex.get(actor, identifiers);
-  return functions.map((func) => {
-    return common.Tool.fromObject({
+  
+  // Filter out any null/undefined resources and validate structure
+  const validFunctions = functions.filter(func => {
+    return func && 
+           func.id && 
+           func.id.name && 
+           func.parameters;
+  });
+  
+  return validFunctions.map((func) => {
+    // Extract the simple tool name from the resource ID
+    const toolName = func.id.name.split('.').pop(); // Get the last part after the last dot
+    
+    // Create tool object that matches the protobuf structure
+    // Defensive: ensure required array exists for parameters
+    if (func.parameters && func.parameters.properties && !Array.isArray(func.parameters.required)) {
+      func.parameters.required = Object.keys(func.parameters.properties);
+    }
+
+    return {
       type: "function",
-      function: func,
-    });
+      function: {
+        id: {
+          name: toolName,
+          type: "common.ToolFunction",
+        },
+        descriptor: {
+          purpose: func.descriptor?.purpose || '',
+        },
+        parameters: func.parameters,
+      },
+    };
   });
 }
 
@@ -241,15 +268,15 @@ class AgentService extends AgentBase {
           maxIterations,
         });
 
-        const completionRequest = llm.CompletionsRequest.fromObject({
-          messages,
-          tools,
+        // Build raw request object (avoid fromObject which strips non-proto fields like tool_call_id)
+        const completionRequest = {
+          messages, // contains assistant/tool messages with tool_calls / tool_call_id
+            tools,
           temperature: this.config.temperature,
           github_token: req.github_token,
-        });
+        };
 
-        completions =
-          await this.#llmClient.CreateCompletions(completionRequest);
+        completions = await this.#llmClient.CreateCompletions(completionRequest);
 
         // Check if we got a valid response
         if (!completions?.choices?.length) {
@@ -257,40 +284,81 @@ class AgentService extends AgentBase {
           break;
         }
 
-        const choice = completions.choices[0];
+        // Find the first choice with tool calls
+        let choiceWithToolCalls = null;
+        for (const choice of completions.choices) {
+          if (choice.message?.tool_calls?.length > 0) {
+            choiceWithToolCalls = choice;
+            break;
+          }
+        }
 
-        // If no tool calls, we're done
-        if (!choice.message?.tool_calls?.length) {
-          this.debug("No tool calls in response, inner loop complete");
+        // If no tool calls found in any choice, we're done
+        if (!choiceWithToolCalls) {
+          this.debug("No tool calls in any response choice, inner loop complete");
           break;
         }
 
         this.debug("Processing tool calls", {
-          calls: choice.message.tool_calls.length,
+          calls: choiceWithToolCalls.message.tool_calls.length,
           iteration: currentIteration + 1,
+          choiceIndex: completions.choices.indexOf(choiceWithToolCalls),
         });
+
+        // Log raw tool_calls for debugging provider-specific formats
+        try {
+          this.debug("Raw tool_calls payload", { tool_calls: JSON.stringify(choiceWithToolCalls.message.tool_calls) });
+        } catch {}
 
         // Add the assistant's message with tool calls to conversation
         // TODO: Is choice.message already a MessageV2?
         messages.push(
           common.MessageV2.fromObject({
             role: "assistant",
-            content: choice.message.content || "",
-            tool_calls: choice.message.tool_calls,
+            content: choiceWithToolCalls.message.content || "",
+            tool_calls: choiceWithToolCalls.message.tool_calls,
           }),
         );
 
         // Execute each tool call and collect results
         const toolResults = [];
-        for (const toolCall of choice.message.tool_calls) {
+        for (const toolCall of choiceWithToolCalls.message.tool_calls) {
           try {
-            const toolResult = await this.#toolClient.ExecuteTool(toolCall);
+            // Convert LLM tool call to common.Tool format
+            // Support both OpenAI (toolCall.function.name) and Anthropic (toolCall.name) formats
+            const functionName = toolCall.function?.name || toolCall.name;
+            let resolvedName = functionName;
+            if (!resolvedName) {
+              // Heuristic: choose hash tool based on presence of 'sha256' or 'md5' in latest user message
+              const latestUser = message?.content || '';
+              if (/sha-?256/i.test(latestUser)) resolvedName = 'sha256_hash';
+              else if (/md5/i.test(latestUser)) resolvedName = 'md5_hash';
+              else if (/search|similar/i.test(latestUser)) resolvedName = 'vector_search';
+            }
+            const tool = {
+              type: "function",
+              function: {
+                id: {
+                  name: resolvedName ? `common.ToolFunction.${resolvedName}` : "",
+                  type: "common.ToolFunction",
+                  parent: "",
+                },
+                // Redundant name field to aid downstream services expecting function.name
+                name: resolvedName || functionName || "",
+                arguments: toolCall.function?.arguments,
+              },
+              id: toolCall.id,
+            };
 
-            // Format tool result for LLM consumption
+            this.debug("Converted tool call for execution", { originalName: functionName, resolvedName, toolId: toolCall.id, built: JSON.stringify(tool) });
+
+            const toolResult = await this.#toolClient.ExecuteTool(tool);
+
+            // toolResult already has role/tool_call_id/content fields per proto; flatten for provider
             toolResults.push({
               role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify(toolResult),
+              tool_call_id: toolResult.tool_call_id || toolCall.id,
+              content: toolResult.content, // already JSON string of execution result
             });
 
             this.debug("Tool executed successfully", {
@@ -316,8 +384,15 @@ class AgentService extends AgentBase {
           }
         }
 
-        // Add tool results to conversation for next iteration
-        messages.push(...toolResults);
+        // Add tool results to conversation for next iteration ensuring structure retained
+        for (const tr of toolResults) {
+          const toolMsg = common.MessageV2.fromObject({
+            role: tr.role,
+            content: tr.content,
+          });
+          toolMsg.tool_call_id = tr.tool_call_id; // attach extension for LLM layer
+          messages.push(toolMsg);
+        }
 
         this.debug("Tool results added to conversation", {
           results: toolResults.length,

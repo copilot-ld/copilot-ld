@@ -2,9 +2,21 @@
 
 ## 2025-09-02
 
+## 2025-09-05
+
+- Consolidated all generated protobuf types into `generated/types/` and removed
+  legacy `packages/libtype/types.js` & `types.d.ts`
+- Updated `index.js` to re-export core namespaces from
+  `../../generated/types/types.js` and apply monkey patches there
+- Ensured only core namespaces (`common`, `resource`, `agent`, `llm`, `vector`,
+  `memory`, `tool`) are re-exported (tool proto namespaces beyond core remain
+  excluded)
+
 - **BREAKING**: Modified `llm.CompletionsRequest` to use
   `repeated common.MessageV2 messages` instead of `common.Prompt prompt`
 - Updated generated types to reflect new LLM service interface
+- Deleted remaining legacy `packages/libtype/types.js` and `types.d.ts` files
+  from repository (now sourced exclusively from `generated/types/types.js`)
 
 ## 2025-09-01
 

@@ -193,6 +193,11 @@ export class Client extends Actor {
     return new Promise((resolve, reject) => {
       this.#client[methodName](request, (error, response) => {
         if (error) {
+          this.debug("gRPC client call failed", {
+            service: this.config.name,
+            method: methodName,
+            stack: error.stack,
+          });
           reject(error);
         } else {
           resolve(response);

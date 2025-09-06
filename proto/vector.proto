@@ -20,7 +20,7 @@ message Filter {
 message QueryItemsRequest {
   string index = 1; // "content" or "descriptor"
   repeated double vector = 2;
-  optional Filter filter = 3;
+  optional Filter filters = 3;
 }
 
 message QueryItemsResponse {

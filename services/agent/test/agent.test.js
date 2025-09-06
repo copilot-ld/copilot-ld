@@ -23,7 +23,7 @@ describe("agent service", () => {
 
     test("AgentService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(AgentService.length, 9); // config, historyClient, llmClient, vectorClient, resourceIndex, octokitFactory, grpcFn, authFn, logFn
+      assert.strictEqual(AgentService.length, 10); // config, memoryClient, llmClient, vectorClient, toolClient, resourceIndex, octokitFactory, grpcFn, authFn, logFn
     });
 
     // Interface tests removed due to interface deprecation

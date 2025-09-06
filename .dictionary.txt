@@ -15,6 +15,7 @@ charset
 chunking
 CI
 codebase
+codegen
 Config
 config
 configs
@@ -86,6 +87,7 @@ libtype
 libvector
 lifecycle
 LLM
+LLMs
 llm
 localhost
 lookup
@@ -132,6 +134,7 @@ REPL
 replp
 repo
 repos
+ResourceIndex
 reusability
 Roadmap
 roadmap

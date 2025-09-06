@@ -1,6 +1,22 @@
 # Changelog
 
+## 2025-09-05
+
+- Fixed `Actor.loadProto()` path resolution bug where it incorrectly relied on
+  `process.cwd()` and failed inside nested execution contexts; it now searches
+  upward from both module directory and current directory for `generated/proto`
+  and supports explicit override via `SERVICE_PROTO_DIR` or `PROTO_ROOT`.
+- Added internal helper `#loadFromFile()` for clearer separation of discovery vs
+  loading logic.
+
 ## 2025-09-02
+
+## 2025-09-05
+
+- Updated `Actor.loadProto()` to load schemas exclusively from `generated/proto`
+  (removed previous dynamic / storage-based lookup logic)
+- Enabled single operational source of truth for protobuf schemas to simplify
+  service extension and avoid mixed generated locations
 
 - Finalized `Client` simplification by removing dynamic method generation and
   `fireAndForget`; generated clients now expose explicit RPC wrappers that call
@@ -9,6 +25,9 @@
   typed request/response conversions run, fixing plain-object responses missing
   `withIdentifier()`
 - Removed unused `createTypedMessage()` helper from `index.js`
+- Test harness: added creation of `generated/proto/test.proto` during tests to
+  satisfy new file existence check in `Actor.loadProto()` while continuing to
+  mock loader output for behavioral validation
 
 ## 2025-09-01
 

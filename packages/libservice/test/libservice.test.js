@@ -1,6 +1,8 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import fs from "node:fs";
+import path from "node:path";
 
 // Module under test
 import { Actor, Client, Service, createClient } from "../index.js";
@@ -9,6 +11,19 @@ import { Actor, Client, Service, createClient } from "../index.js";
 import { HmacAuth, Interceptor } from "../auth.js";
 
 describe("libservice", () => {
+  // Ensure a test proto exists in the consolidated generated/proto directory so
+  // Actor.loadProto("test") passes the existence check while we still mock
+  // out the loader & package definition. This keeps tests focused on behavior
+  // instead of filesystem preconditions introduced by consolidation.
+  const testProtoDir = path.resolve(process.cwd(), "generated/proto");
+  const testProtoPath = path.join(testProtoDir, "test.proto");
+  const testProtoContent = `syntax = "proto3";\npackage test;\nservice Test { rpc TestMethod (TestRequest) returns (TestResponse); }\nmessage TestRequest { string data = 1; }\nmessage TestResponse { bool success = 1; }\n`;
+  beforeEach(() => {
+    fs.mkdirSync(testProtoDir, { recursive: true });
+    if (!fs.existsSync(testProtoPath)) {
+      fs.writeFileSync(testProtoPath, testProtoContent);
+    }
+  });
   let mockConfig,
     mockGrpcFactory,
     mockAuthFactory,

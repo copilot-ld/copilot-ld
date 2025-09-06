@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from
+  `services/memory/` after relocation to `generated/services/memory/`
+
 ## 2025-09-03
 
 - Implemented token budget filtering in `GetWindow()` method using

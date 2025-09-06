@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-09-06
+
+- Updated default `model` from `claude-3.5-sonnet` to `gpt-4o` in
+  `config/config.yml`, `config/config.example.yml`, and `services/llm/server.js`
+- Fixed tool name derivation using `id.name.split('.')` ensuring plain function
+  names are sent to provider for function calling compatibility
+
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from
+  `services/llm/` after migration to consolidated `generated/services/llm/`
+  location
+
 ## 2025-09-02
 
 - Switched `CompletionsRequest` to `repeated common.MessageV2 messages` and

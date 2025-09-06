@@ -22,6 +22,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.0",
     "@copilot-ld/libcopilot": "^0.1.0",
+    "@copilot-ld/libpolicy": "^0.1.0",
     "@copilot-ld/librel": "^0.1.0",
     "@copilot-ld/librepl": "^0.1.0",
     "@copilot-ld/libservice": "^0.1.0",

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-06
+
+- Updated default `llmFactory` model from `gpt-4o` to `gpt-4.1` for consistency
+  with platform-wide default
+
 ## 2025-09-02
 
 - Normalized Copilot requests: convert `MessageV2` to `{role, content}`, add

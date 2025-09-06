@@ -46,8 +46,13 @@ export class VectorProcessor {
   async process(actor, representation = "content") {
     const identifiers = await this.#resourceIndex.findAll();
 
+    // Don't index conversations, and their child resources (e.g. messages)
+    const filteredIdentifiers = identifiers.filter(
+      (id) => !String(id).startsWith("cld:common.Conversation"),
+    );
+
     // Load the full resources using the identifiers
-    const resources = await this.#resourceIndex.get(actor, identifiers);
+    const resources = await this.#resourceIndex.get(actor, filteredIdentifiers);
 
     // Select the appropriate vector index based on representation
     const targetIndex =
@@ -83,7 +88,10 @@ export class VectorProcessor {
       let text;
       switch (representation) {
         case "content":
-          text = String(resource.content);
+          // Not all resources have content, fallback to descriptor
+          text = resource.content
+            ? String(resource.content)
+            : String(resource.descriptor);
           break;
 
         case "descriptor":

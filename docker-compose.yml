@@ -82,12 +82,15 @@ services:
       - SERVICE_LLM_PORT=3000
       - SERVICE_VECTOR_HOST=vector
       - SERVICE_VECTOR_PORT=3000
+      - SERVICE_TOOL_HOST=tool
+      - SERVICE_TOOL_PORT=3000
     networks:
       - internal
     depends_on:
       - memory
       - llm
       - vector
+      - tool
 
   llm:
     build:
@@ -124,6 +127,21 @@ services:
       - ./data/storage/memories:/app/data/storage/memories
       - ./data/storage/resources:/app/data/storage/resources
       - ./data/storage/policies:/app/data/storage/policies
+
+  tool:
+    build:
+      context: .
+      dockerfile: ./services/tool/Dockerfile
+    image: copilot-ld/tool:latest
+    container_name: copilot-ld.tool
+    env_file: ./config/.env
+    environment:
+      - SERVICE_VECTOR_HOST=vector
+      - SERVICE_VECTOR_PORT=3000
+    networks:
+      - internal
+    depends_on:
+      - vector
 
 networks:
   external:

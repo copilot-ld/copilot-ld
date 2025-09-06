@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from
+  `services/vector/` following consolidation into `generated/services/vector/`
+
 ## 2025-09-01
 
 - Updated `VectorService` to import from `./service.js` instead of `./types.js`

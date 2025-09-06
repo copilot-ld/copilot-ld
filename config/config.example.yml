@@ -5,6 +5,7 @@ tool:
 
 service:
   agent:
+    assistant: "cld:common.Assistant.software-dev-expert"
     threshold: 0.25
     limit: 100
     temperature: 0.25
@@ -14,12 +15,43 @@ service:
         tools: 0.1
         history: 0.1
         context: 0.6
-    assistant: "cld:common.Assistant.software-dev-expert"
-
-  history:
-    ttl: 3600
-    checkperiod: 600
-    historyTokens: 4000
 
   llm:
-    model: "claude-3.5-sonnet"
+    model: "gpt-4o"
+
+  tool:
+    endpoints:
+      # Example 1: Mapping to existing service method
+      vector_search:
+        method: "vector.Vector.QueryItems"
+        purpose: "Create content or recommendations based on similar text."
+        applicability:
+          "Use this tool when you need to find similar text content. Do **not**
+          use this tool when searching for non-textual content."
+        instructions:
+          "Given an input text, returns a list of similar content items with
+          their relevance scores."
+        evaluation:
+          "Relevant content has a score above 0.5. If no relevant content is
+          found, try again with a different input text."
+
+      # Example 2: New custom tool service
+      sha256_hash:
+        method: "hash.Hash.Sha256"
+        purpose: "Create deterministic SHA-256 hash of input text"
+        applicability:
+          "Use this tool when you need a unique identifier for text content. Do
+          **not** use this tool for cryptographic security purposes."
+        instructions: "Given an input text, returns its SHA-256 hash."
+        evaluation:
+          "The output hash should be a 64-character hexadecimal string."
+
+      md5_hash:
+        method: "hash.Hash.Md5"
+        purpose: "Create MD5 hash of input text"
+        applicability:
+          "Use this tool when you need a unique identifier for text content. Do
+          **not** use this tool for cryptographic security purposes."
+        instructions: "Given an input text, returns its MD5 hash."
+        evaluation:
+          "The output hash should be a 32-character hexadecimal string."

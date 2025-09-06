@@ -14,7 +14,10 @@ retrieval-augmented generation.
 - **/extensions/**: Application adapters (copilot, teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/scripts/**: Development and operational utilities
-- **/proto/**: gRPC protocol buffer definitions
+- **/proto/**: Authoritative Protocol Buffer source schemas (copied into
+  `generated/` during codegen)
+- **/generated/**: All generated artifacts (proto schemas, types, service base
+  classes, client classes)
 - **/data/**: Knowledge base, vectors, and resource data
 
 ## 🚀 Setup
@@ -34,22 +37,34 @@ npm install
 
 ### 3. Generate code from Protocol Buffers
 
-Generate typed definitions, service bases, and clients after a fresh clone or
-any time you change files in `proto/` (Protocol Buffers):
+All operational protobuf schemas and generated code now live exclusively under
+`generated/` to eliminate ambiguity about which artifacts are source vs
+generated. The `scripts/codegen.js` script performs these steps:
+
+1. Discovers all `.proto` files in `proto/` (and tool proto files in `tools/`)
+2. Copies them into `generated/proto/`
+3. Generates consolidated static types into `generated/types/`
+4. Generates service base classes into `generated/services/<name>/service.js`
+5. Generates typed clients into `generated/services/<name>/client.js`
+6. Generates tool service/client artifacts into `generated/tools/<name>/`
+
+You should re-run code generation after changing any schema in `proto/` or
+adding a new tool schema in `tools/`:
 
 ```sh
 # Generate everything (types + service bases + clients)
 npm run codegen
 
-# Or run a specific generator
-npm run codegen:type     # Generate `@copilot-ld/libtype` from `proto/*.proto`
-npm run codegen:service  # Generate `services/*/service.js`
-npm run codegen:client   # Generate `services/*/client.js`
+# Or run a specific generator (invokes scripts/codegen.js flags)
+npm run codegen:type     # Generate consolidated types into generated/types/
+npm run codegen:service  # Generate base classes into generated/services/*/
+npm run codegen:client   # Generate typed clients into generated/services/*/
 ```
 
 These scripts wrap `scripts/codegen.js` which uses `protobufjs` and `Mustache`
-templates to produce ESM modules. Generated artifacts are placed in
-`packages/libtype/` and `services/*/`.
+templates to produce ESM modules. Generated artifacts are now placed only in
+`generated/` (previous per-package/service generation paths have been removed).
+Runtime loading of protobuf schemas reads from `generated/proto/`.
 
 ### 4. Create GitHub token
 
@@ -242,6 +257,11 @@ AI instructions for specific domains:
 - `scripts/codegen.js` supports flags: `--type`, `--service`, `--client`,
   `--all`
 - Root `npm run codegen:*` scripts are the recommended entry points
-- Generated files:
-  - `packages/libtype/types.js` and `types.d.ts`
-  - `services/<name>/service.js` and `client.js`
+- Generated files (all under `generated/`):
+  - `generated/proto/*.proto` (copied originals)
+  - `generated/types/types.{js,d.ts}` (consolidated static module)
+  - `generated/services/<name>/{service,client}.{js,d.ts}`
+  - `generated/tools/<tool>/{service,client}.{js,d.ts}`
+
+Legacy generated artifacts in `packages/libtype/` and `services/*/` have been
+removed to prevent accidental edits to generated code.

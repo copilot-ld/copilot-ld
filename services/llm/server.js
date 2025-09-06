@@ -6,7 +6,7 @@ import { LlmService } from "./index.js";
 
 // Start the service
 const config = await ServiceConfig.create("llm", {
-  model: "claude-3.5-sonnet",
+  model: "gpt-4o",
 });
 
 const service = new LlmService(

@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { VectorBase } from "./service.js";
+import { VectorBase } from "../../generated/services/vector/service.js";
 
 /**
  * Vector search service for querying content and descriptor vector indexes
@@ -34,7 +34,8 @@ class VectorService extends VectorBase {
 
     this.debug("Querying index", {
       index: req.index,
-      filters: req.filter.length,
+      threshold: req.filters?.threshold,
+      limit: req.filters?.limit,
     });
 
     const identifiers = await index.queryItems(req.vector, req.filter || {});
@@ -73,4 +74,4 @@ class VectorService extends VectorBase {
 }
 
 export { VectorService };
-export { VectorClient } from "./client.js";
+export { VectorClient } from "../../generated/services/vector/client.js";

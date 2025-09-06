@@ -13,18 +13,50 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Deterministic ordering by:
+// 1. Reading all .proto files in proto/ directory
+// 2. Sorting alphabetically
+// 3. Ensuring 'common.proto' (shared types) is processed first when present
+
 /**
- * Explicit proto filename order for type generation
- * Keep this list synchronized with expectations in libtype consumers.
+ * Collect protobuf file paths for generation.
+ * - Discovers all root proto files (proto/*.proto) with deterministic ordering
+ * - Ensures common.proto loads first when present
+ * - Optionally appends any tool proto files (tools/*.proto)
+ * @param {string} projectRoot - Repository root
+ * @param {object} [opts] - Optional collection settings
+ * @param {boolean} [opts.includeTools] - Whether to include tool proto files
+ * @returns {string[]} Absolute paths to proto files
  */
-const ORDERED_PROTO_FILES = [
-  "resource.proto",
-  "common.proto",
-  "agent.proto",
-  "llm.proto",
-  "vector.proto",
-  "memory.proto",
-];
+function collectProtoFiles(projectRoot, opts = {}) {
+  const { includeTools = true } = opts;
+  const protoDir = path.join(projectRoot, "proto");
+  const toolsDir = path.join(projectRoot, "tools");
+
+  const discovered = fs
+    .readdirSync(protoDir)
+    .filter((f) => f.endsWith(".proto"))
+    .sort();
+  const ordered = [];
+  if (discovered.includes("common.proto"))
+    ordered.push(path.join(protoDir, "common.proto"));
+  for (const f of discovered)
+    if (f !== "common.proto") ordered.push(path.join(protoDir, f));
+
+  if (includeTools) {
+    try {
+      const toolProtos = fs
+        .readdirSync(toolsDir)
+        .filter((f) => f.endsWith(".proto"))
+        .map((f) => path.join(toolsDir, f));
+      ordered.push(...toolProtos);
+    } catch {
+      // tools directory may not exist; ignore
+    }
+  }
+
+  return ordered;
+}
 
 /**
  * Load mustache template for given kind (service|client)
@@ -42,7 +74,7 @@ function loadTemplate(kind) {
 /**
  * Small contract
  * - Inputs: CLI flags --type | --service | --client | --all
- * - Outputs: Generated files in packages/libtype and services/* directories
+ * - Outputs: Generated files in generated/ (types, proto copies, service/client artifacts)
  * - Error modes: throws on subprocess failures or malformed proto
  * - Success: exits 0 after requested generators complete
  */
@@ -115,14 +147,22 @@ async function generateTypeScriptDeclarationsPbts(root, jsFile, outFile) {
  */
 async function runTypes() {
   const root = resolve(__dirname, "..");
-  const protoDir = resolve(root, "proto");
-  const jsOutFile = resolve(root, "packages/libtype/types.js");
-  const dtsOutFile = resolve(root, "packages/libtype/types.d.ts");
+  const generatedRoot = resolve(root, "generated");
+  const typesDir = resolve(generatedRoot, "types");
+  const protoOutDir = resolve(generatedRoot, "proto");
+  const jsOutFile = resolve(typesDir, "types.js");
+  const dtsOutFile = resolve(typesDir, "types.d.ts");
 
-  await mkdir(resolve(root, "packages/libtype"), { recursive: true });
+  await mkdir(typesDir, { recursive: true });
+  await mkdir(protoOutDir, { recursive: true });
 
-  // Maintain explicit ordering via top-level constant
-  const protoFiles = ORDERED_PROTO_FILES.map((p) => resolve(protoDir, p));
+  const protoFiles = collectProtoFiles(root, { includeTools: true });
+
+  // Copy all proto source files into generated/proto for runtime loading
+  for (const abs of protoFiles) {
+    const base = path.basename(abs);
+    await fs.promises.copyFile(abs, resolve(protoOutDir, base));
+  }
 
   await rm(jsOutFile, { force: true });
   await rm(dtsOutFile, { force: true });
@@ -180,8 +220,9 @@ function parseProtoFile(protoPath) {
     );
   });
 
-  if (!serviceKey)
-    throw new Error(`No service definition found in ${protoPath}`);
+  if (!serviceKey) {
+    return null; // Indicate no service for this proto (pure message proto)
+  }
 
   const serviceDef = def[serviceKey];
   const parts = serviceKey.split(".");
@@ -259,9 +300,9 @@ async function generateTypeScriptDeclarationsTsc(root, jsFile, outFile) {
 async function generateArtifact(kind, protoPath, outputDir) {
   const isService = kind === "service";
   const template = loadTemplate(kind);
-
-  const { packageName, serviceName, methods, namespaceName } =
-    parseProtoFile(protoPath);
+  const parsed = parseProtoFile(protoPath);
+  if (!parsed) return; // Skip non-service proto
+  const { packageName, serviceName, methods, namespaceName } = parsed;
   const rendered = mustache.render(template, {
     packageName,
     serviceName,
@@ -272,6 +313,8 @@ async function generateArtifact(kind, protoPath, outputDir) {
   const output = await prettier.format(rendered, { parser: "babel" });
   const jsFile = path.join(outputDir, `${kind}.js`);
   const dtsFile = path.join(outputDir, `${kind}.d.ts`);
+
+  console.log(`Generating artifact: ${jsFile}`);
 
   fs.writeFileSync(jsFile, output);
 
@@ -293,19 +336,21 @@ async function generateArtifact(kind, protoPath, outputDir) {
  */
 async function runForKind(kind) {
   const projectRoot = path.resolve(__dirname, "..");
-  const protoDir = path.join(projectRoot, "proto");
-  const servicesDir = path.join(projectRoot, "services");
-
-  const protoFiles = fs
-    .readdirSync(protoDir)
-    .filter((file) => file.endsWith(".proto") && file !== "common.proto")
-    .map((file) => path.join(protoDir, file));
+  const generatedRoot = path.join(projectRoot, "generated");
+  const protoFiles = collectProtoFiles(projectRoot, {
+    includeTools: true,
+  }).filter((file) => !file.endsWith(path.sep + "common.proto"));
 
   for (const protoFile of protoFiles) {
     const basename = path.basename(protoFile, ".proto");
-    const serviceDir = path.join(servicesDir, basename);
-    if (fs.existsSync(serviceDir))
-      await generateArtifact(kind, protoFile, serviceDir);
+    const isTool = protoFile.includes(path.join(projectRoot, "tools"));
+    const outDir = path.join(
+      generatedRoot,
+      isTool ? "tools" : "services",
+      basename,
+    );
+    await fs.promises.mkdir(outDir, { recursive: true });
+    await generateArtifact(kind, protoFile, outDir);
   }
 }
 

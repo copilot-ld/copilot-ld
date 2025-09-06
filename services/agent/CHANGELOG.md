@@ -1,5 +1,22 @@
 # Changelog
 
+## 2025-09-06
+
+- Added redundant `function.name` field when building tool execution request to
+  improve compatibility with Tool service name extraction
+- Extended debug logging for converted tool calls including serialized built
+  object
+
+## 2025-09-05
+
+- Removed legacy generated files `service.js` and `client.js` from
+  `services/agent/` replaced by consolidated `generated/services/agent/`
+  artifacts
+- Added fallback tool discovery: when `MemoryService.GetWindow()` returns no
+  tool identifiers, `AgentService` now calls `ToolService.ListTools()` to
+  populate available function tools enabling immediate tool calling (e.g., `md5`
+  hash) on first user prompt
+
 ## 2025-09-03
 
 - Updated `Dockerfile` to copy renamed `scripts/` directory instead of `tools/`

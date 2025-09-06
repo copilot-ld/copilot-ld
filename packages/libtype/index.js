@@ -1,20 +1,21 @@
 /* eslint-env node */
 
-// Re-export selected message constructors from the generated single-file types
-import * as types from "./types.js";
+// Re-export selected message constructors from the consolidated generated types
+// NOTE: generated artifacts now live under top-level generated/ directory
+import * as types from "../../generated/types/types.js";
 import { countTokens } from "@copilot-ld/libcopilot";
 import { generateHash } from "@copilot-ld/libutil";
 
-/** @typedef {import("./types.js").common.Message} common.Message */
-/** @typedef {import("./types.js").common.Prompt} common.Prompt */
-/** @typedef {import("./types.js").common.Similarity} common.Similarity */
-
-const common = types.common || {};
-const resource = types.resource || {};
-const agent = types.agent || {};
-const llm = types.llm || {};
-const vector = types.vector || {};
-const memory = types.memory || {};
+// Core namespaces only (tools and any experimental namespaces are excluded intentionally)
+const {
+  common = {},
+  resource = {},
+  agent = {},
+  llm = {},
+  vector = {},
+  memory = {},
+  tool = {},
+} = types;
 
 /**
  * Ensure that the identifier has values assigned. Call before persisting.
@@ -61,10 +62,12 @@ function withTokens() {
 common.Assistant.prototype.withIdentifier = withIdentifier;
 common.Conversation.prototype.withIdentifier = withIdentifier;
 common.MessageV2.prototype.withIdentifier = withIdentifier;
+common.ToolFunction.prototype.withIdentifier = withIdentifier;
 
 common.Assistant.prototype.withTokens = withTokens;
 common.Conversation.prototype.withTokens = withTokens;
 common.MessageV2.prototype.withTokens = withTokens;
+common.ToolFunction.prototype.withTokens = withTokens;
 
 resource.Identifier.prototype.toString = function () {
   // Tree of resources, including this one
@@ -96,6 +99,7 @@ resource.Identifier.prototype.toString = function () {
 resource.Descriptor.prototype.toString = function () {
   const sections = [];
 
+  if (this.summary?.length > 0) sections.push(this.summary);
   if (this.purpose?.length > 0) sections.push(`## Purpose\n\n${this.purpose}`);
 
   if (this.instructions?.length > 0)
@@ -135,4 +139,5 @@ export {
   llm,
   vector,
   memory,
+  tool,
 };

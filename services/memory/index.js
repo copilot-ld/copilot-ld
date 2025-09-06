@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { MemoryBase } from "./service.js";
+import { MemoryBase } from "../../generated/services/memory/service.js";
 
 /**
  * Memory service for managing transient resources and memory windows
@@ -7,6 +7,7 @@ import { MemoryBase } from "./service.js";
 export class MemoryService extends MemoryBase {
   #storage;
   #resourceIndex;
+  #lock = {};
 
   /**
    * Creates a new Memory service instance
@@ -34,28 +35,36 @@ export class MemoryService extends MemoryBase {
   async Append(req) {
     if (!req.for) throw new Error("for is required");
 
-    this.debug("Appending memory", {
-      for: req.for,
-      count: req.identifiers?.length || 0,
-    });
+    // Aquire a lock in case clients append memory as a fire-and-forget call and
+    // immediately wants read back the window
+    this.#lock[req.for] = true;
 
-    // Create memory key based on the resource it's for using JSON-ND format
-    const key = `${req.for}.jsonl`;
-
-    // Append identifiers directly to memory using JSON-ND format
-    if (req.identifiers && req.identifiers.length > 0) {
-      // Convert identifiers to JSON-ND format (one JSON object per line)
-      const lines = req.identifiers
-        .map((identifier) => JSON.stringify(identifier))
-        .join("\n");
-
-      // Use StorageInterface.append() for efficient appending (newline added automatically)
-      await this.#storage.append(key, lines);
-
-      this.debug("Memory appended successfully", {
+    try {
+      this.debug("Appending memory", {
         for: req.for,
-        identifiers: req.identifiers.length,
+        count: req.identifiers?.length || 0,
       });
+
+      // Create memory key based on the resource it's for using JSON-ND format
+      const key = `${req.for}.jsonl`;
+
+      // Append identifiers directly to memory using JSON-ND format
+      if (req.identifiers && req.identifiers.length > 0) {
+        // Convert identifiers to JSON-ND format (one JSON object per line)
+        const lines = req.identifiers
+          .map((identifier) => JSON.stringify(identifier))
+          .join("\n");
+
+        // Use StorageInterface.append() for efficient appending (newline added automatically)
+        await this.#storage.append(key, lines);
+
+        this.debug("Memory appended successfully", {
+          for: req.for,
+          identifiers: req.identifiers.length,
+        });
+      }
+    } finally {
+      delete this.#lock[req.for];
     }
 
     return { accepted: req.for };
@@ -75,12 +84,14 @@ export class MemoryService extends MemoryBase {
       budget: req.budget || "unlimited",
     });
 
-    // TODO: Implement tools
-    let tools = [];
-
     // Load context from memory using JSONL format
     let context = [];
     const key = `${req.for}.jsonl`;
+
+    // Wait for lock to be released if another append is in progress
+    while (this.#lock[req.for]) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
     try {
       // Storage automatically parses .jsonl files into arrays
@@ -93,6 +104,21 @@ export class MemoryService extends MemoryBase {
       this.debug("No memory found", { for: req.for });
     }
 
+    // De-duplicate by identifier
+    const seen = new Set();
+    context = context.filter((identifier) => {
+      if (identifier.name && !seen.has(identifier.name)) {
+        seen.add(identifier.name);
+        return true;
+      }
+      return false;
+    });
+
+    // Filter out tools from context
+    let tools = context.filter((identifier) =>
+      identifier.type?.startsWith("common.Tool"),
+    );
+
     // Load all messages under the given resource using prefix search
     const identifiers = await this.#resourceIndex.findByPrefix(req.for);
 
@@ -103,7 +129,7 @@ export class MemoryService extends MemoryBase {
 
     // Extract message identifiers
     let history = identifiers.filter((identifier) =>
-      identifier.type?.includes("MessageV2"),
+      identifier.type?.startsWith("common.MessageV2"),
     );
 
     // Apply budget filtering if allocation is provided
@@ -171,4 +197,4 @@ export class MemoryService extends MemoryBase {
   }
 }
 
-export { MemoryClient } from "./client.js";
+export { MemoryClient } from "../../generated/services/memory/client.js";

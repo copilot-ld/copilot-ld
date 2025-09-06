@@ -12,6 +12,7 @@
     "packages/*",
     "services/*",
     "extensions/*",
+    "tools/*",
     "scripts"
   ],
   "scripts": {

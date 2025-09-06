@@ -20,8 +20,9 @@ message EmbeddingsResponse {
 
 message CompletionsRequest {
   repeated common.MessageV2 messages = 1;
-  optional float temperature = 2;
-  string github_token = 3;
+  repeated common.Tool tools = 2;
+  optional float temperature = 3;
+  string github_token = 4;
 }
 
 message CompletionsResponse {

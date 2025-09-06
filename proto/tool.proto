@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "common.proto";
+
+package tool;
+
+service Tool {
+  rpc ExecuteTool(common.Tool) returns (common.ToolCallResult);
+  rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
+}
+
+message ListToolsRequest {
+  optional string namespace = 1;
+}
+
+message ListToolsResponse {
+  repeated common.Tool tools = 1;
+}

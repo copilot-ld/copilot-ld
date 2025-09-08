@@ -2,6 +2,8 @@
 
 ## 2025-09-08
 
+- Fixed protobuf type creation using `agent.AgentRequest.fromObject()` instead
+  of plain objects
 - Updated dependencies for architectural restructuring (`libservice` → `librpc`)
 - Updated container configuration to reference renamed `scripts/` directory
 - Enhanced integration with consolidated service architecture

@@ -80,16 +80,15 @@ common.MessageV2.prototype.withTokens = withTokens;
 common.ToolFunction.prototype.withTokens = withTokens;
 
 resource.Identifier.prototype.toString = function () {
-  // Tree of resources, including this one
-  let tree = [];
-
   if (!this.type) throw new Error("Resource type must not be null");
   if (!this.name) throw new Error("Resource name must not be null");
 
   // Check for string, as conversions can have happened earlier
+  // TODO: Do we still need this?
   if (this.parent == "undefined") this.parent = undefined;
 
   // Extract the tree from parent
+  let tree = [];
   if (this.parent !== undefined && this.parent !== null && this.parent !== "") {
     const path = String(this.parent).split(":").pop() || "";
     if (path) tree = path.split("/");

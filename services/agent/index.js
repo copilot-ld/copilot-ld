@@ -53,42 +53,14 @@ async function toMessages(assistant, tasks, window, resourceIndex) {
  */
 async function toTools(identifiers, resourceIndex) {
   if (!identifiers || identifiers.length === 0) return [];
-
   const actor = "cld:common.System.root";
   const functions = await resourceIndex.get(actor, identifiers);
 
-  // Filter out any null/undefined resources and validate structure
-  const validFunctions = functions.filter((func) => {
-    return func && func.id && func.id.name && func.parameters;
-  });
-
-  return validFunctions.map((func) => {
-    // Extract the simple tool name from the resource ID
-    const toolName = func.id.name.split(".").pop(); // Get the last part after the last dot
-
-    // Create tool object that matches the protobuf structure
-    // Defensive: ensure required array exists for parameters
-    if (
-      func.parameters &&
-      func.parameters.properties &&
-      !Array.isArray(func.parameters.required)
-    ) {
-      func.parameters.required = Object.keys(func.parameters.properties);
-    }
-
-    return {
+  return functions.map((func) => {
+    return common.Tool.fromObject({
       type: "function",
-      function: {
-        id: {
-          name: toolName,
-          type: "common.ToolFunction",
-        },
-        descriptor: {
-          purpose: func.descriptor?.purpose || "",
-        },
-        parameters: func.parameters,
-      },
-    };
+      function: func,
+    });
   });
 }
 
@@ -281,30 +253,29 @@ class AgentService extends AgentBase {
         tools = await toTools(window.tools, this.#resourceIndex);
       }
 
-      console.log(tools);
       // Inner loop to handle tool calls until completion
-      let maxIterations = 10; // Prevent infinite loops
+      let maxIterations = 10;
       let currentIteration = 0;
 
       while (currentIteration < maxIterations) {
-        this.debug("Inner loop iteration", {
+        this.debug("Inner loop", {
           iteration: currentIteration + 1,
           maxIterations,
         });
 
         // Build request object using fromObject for proper initialization
         const completionRequest = llm.CompletionsRequest.fromObject({
-          messages, // contains assistant/tool messages with tool_calls / tool_call_id
+          messages,
           tools,
           temperature: this.config.temperature,
           github_token: req.github_token,
         });
+
         completions =
           await this.#llmClient.CreateCompletions(completionRequest);
 
-        // Check if we got a valid response
         if (!completions?.choices?.length) {
-          this.debug("No completions received, ending inner loop");
+          this.debug("No completions, ending inner loop");
           break;
         }
 
@@ -319,103 +290,56 @@ class AgentService extends AgentBase {
 
         // If no tool calls found in any choice, we're done
         if (!choiceWithToolCalls) {
-          this.debug(
-            "No tool calls in any response choice, inner loop complete",
-          );
+          this.debug("No tool calls, ending inner loop");
           break;
         }
 
-        this.debug("Processing tool calls", {
+        this.debug("Processing tool", {
           calls: choiceWithToolCalls.message.tool_calls.length,
           iteration: currentIteration + 1,
-          choiceIndex: completions.choices.indexOf(choiceWithToolCalls),
+          index: completions.choices.indexOf(choiceWithToolCalls),
         });
 
-        // Log raw tool_calls for debugging provider-specific formats
-        try {
-          this.debug("Raw tool_calls payload", {
-            tool_calls: JSON.stringify(choiceWithToolCalls.message.tool_calls),
-          });
-        } catch {
-          // Ignore JSON stringify errors for debug logging
-        }
-
         // Add the assistant's message with tool calls to conversation
-        // TODO: Is choice.message already a MessageV2?
-        messages.push(
-          common.MessageV2.fromObject({
-            role: "assistant",
-            content: choiceWithToolCalls.message.content || "",
-            tool_calls: choiceWithToolCalls.message.tool_calls,
-          }),
-        );
+        messages.push(choiceWithToolCalls.message);
 
         // Execute each tool call and collect results
         const toolResults = [];
         for (const toolCall of choiceWithToolCalls.message.tool_calls) {
           try {
-            console.log("=== DEBUG START ===");
-            console.log(toolCall);
-            console.log("=== DEBUG END ===");
-
             const toolResult = await this.#toolClient.ExecuteTool(toolCall);
 
-            // toolResult already has role/tool_call_id/content fields per proto; flatten for provider
-            toolResults.push({
-              role: "tool",
-              tool_call_id: toolResult.tool_call_id || toolCall.id,
-              content: toolResult.content, // already JSON string of execution result
+            this.debug("Tool execution successful", {
+              callId: toolCall.id,
+              functionId: toolCall.function?.id,
             });
 
-            this.debug("Tool executed successfully", {
-              toolId: toolCall.id,
-              toolName: toolCall.function?.name,
-            });
+            messages.push(toolResult);
           } catch (error) {
             this.debug("Tool execution failed", {
-              toolId: toolCall.id,
-              toolName: toolCall.function?.name,
+              callId: toolCall.id,
+              functionId: toolCall.function?.id,
               error: error.message,
             });
 
             // Add error as tool result
-            toolResults.push({
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify({
-                error: error.message,
-                type: "tool_execution_error",
+            toolResults.push(
+              common.MessageV2.fromObject({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({
+                  error: {
+                    type: "tool_execution_error",
+                    message: error.message || "",
+                    code: error.code || "unknown",
+                  },
+                }),
               }),
-            });
+            );
           }
         }
-
-        // Add tool results to conversation for next iteration ensuring structure retained
-        for (const tr of toolResults) {
-          const toolMsg = common.MessageV2.fromObject({
-            role: tr.role,
-            content: tr.content,
-            tool_call_id: tr.tool_call_id,
-          });
-          messages.push(toolMsg);
-        }
-
-        this.debug("Tool results added to conversation", {
-          results: toolResults.length,
-          messages: messages.length,
-        });
-
         currentIteration++;
       }
-
-      if (currentIteration >= maxIterations) {
-        this.debug("Inner loop reached maximum iterations", {
-          maxIterations,
-        });
-      }
-
-      // Step 6: Handle tool calls (now replaced by inner loop above)
-      // This section is now handled in the inner loop
 
       // Step 7: Save the response
       if (completions?.choices?.length > 0) {
@@ -433,7 +357,6 @@ class AgentService extends AgentBase {
       tokens: completions?.usage?.total_tokens || "unknown",
     });
 
-    // Return properly constructed AgentResponse with typed objects
     return {
       ...completions,
       conversation_id: conversation.id,

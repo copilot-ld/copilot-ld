@@ -2,6 +2,12 @@
 
 ## 2025-09-08
 
+- Added `tool_call_id` field to `MessageV2` protobuf definition for proper tool
+  result handling
+- Updated `CompletionsRequest` creation to use `fromObject()` instead of
+  constructor for proper deep initialization
+- Enhanced tool message creation to include `tool_call_id` in `fromObject()`
+  call rather than post-assignment
 - Enhanced tool handling with typed `common.Tool[]` objects and improved type
   safety throughout pipeline
 - Improved tool discovery with fallback strategy when no tools found in memory

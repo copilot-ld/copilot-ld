@@ -100,6 +100,7 @@ message MessageV2 {
   resource.Content content = 3;
   string role = 4;
   repeated Tool tool_calls = 5;
+  optional string tool_call_id = 6;
 }
 
 message Assistant {

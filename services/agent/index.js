@@ -282,14 +282,13 @@ class AgentService extends AgentBase {
           maxIterations,
         });
 
-        // Build raw request object (avoid fromObject which strips non-proto fields like tool_call_id)
-        const completionRequest = new llm.CompletionsRequest({
+        // Build request object using fromObject for proper initialization
+        const completionRequest = llm.CompletionsRequest.fromObject({
           messages, // contains assistant/tool messages with tool_calls / tool_call_id
           tools,
           temperature: this.config.temperature,
           github_token: req.github_token,
         });
-
         completions =
           await this.#llmClient.CreateCompletions(completionRequest);
 
@@ -418,8 +417,8 @@ class AgentService extends AgentBase {
           const toolMsg = common.MessageV2.fromObject({
             role: tr.role,
             content: tr.content,
+            tool_call_id: tr.tool_call_id,
           });
-          toolMsg.tool_call_id = tr.tool_call_id; // attach extension for LLM layer
           messages.push(toolMsg);
         }
 

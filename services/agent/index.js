@@ -366,7 +366,7 @@ class AgentService extends AgentBase {
               else if (/search|similar/i.test(latestUser))
                 resolvedName = "vector_search";
             }
-            const tool = {
+            const tool = common.Tool.fromObject({
               type: "function",
               function: {
                 id: {
@@ -376,12 +376,10 @@ class AgentService extends AgentBase {
                   type: "common.ToolFunction",
                   parent: "",
                 },
-                // Redundant name field to aid downstream services expecting function.name
-                name: resolvedName || functionName || "",
                 arguments: toolCall.function?.arguments,
               },
               id: toolCall.id,
-            };
+            });
 
             this.debug("Converted tool call for execution", {
               originalName: functionName,

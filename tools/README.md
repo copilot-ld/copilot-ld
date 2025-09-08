@@ -1,10 +1,11 @@
 # Tools Directory
 
-This directory contains **optional protobuf definitions and their services for custom tools** that **extend the core Copilot-LD system**. These tools are not part of the core platform but provide additional functionality that can be integrated with the Tool service.
+This directory contains optional protobuf definitions for custom tools that can
+be used with the Tool service.
 
 ## Tool Architecture
 
-The Tool service supports two approaches for defining tools that **extend the core system**:
+The Tool service supports two approaches for defining tools:
 
 ### 1. Mapping to Existing Services (Recommended)
 
@@ -28,19 +29,19 @@ service:
 ### 2. Custom Tool Services (Optional)
 
 For new functionality that doesn't exist in current services, you can define
-**custom tool protobuf files in this directory that extend the platform**. These files will be included in
-the type generation process and can be implemented as standalone services that integrate with the core system.
+custom tool protobuf files in this directory. These files will be included in
+the type generation process and can be implemented as standalone services.
 
-**Example**: The `hash.proto` file defines custom hashing tools:
+**Example**: The `hash_tools.proto` file defines custom hashing tools:
 
 ```proto
 syntax = "proto3";
 
-package hash;
+package toolbox;
 
-service Hash {
-  rpc Sha256(HashRequest) returns (HashResponse);
-  rpc Md5(HashRequest) returns (HashResponse);
+service HashTools {
+  rpc Sha256Hash(HashRequest) returns (HashResponse);
+  rpc Md5Hash(HashRequest) returns (HashResponse);
 }
 
 message HashRequest {
@@ -53,17 +54,6 @@ message HashResponse {
 }
 ```
 
-## Example Implementation
-
-A complete working example is available in `examples/tools/hash/` which demonstrates how to **extend the platform** with custom tools:
-
-- **Protocol Definition**: `hash.proto` with `Hash` service and `Sha256`/`Md5` methods
-- **Service Implementation**: `index.js` with `HashService` class extending the generated base
-- **Server Bootstrap**: `server.js` showing how to start the service
-- **Package Configuration**: `package.json` with proper dependencies and scripts
-
-This example implements a simple hash service using Node.js built-in crypto module and can be used as a template for creating custom tool services that extend the core platform.
-
 ## Type Generation
 
 Proto files in this directory are automatically included in the type generation
@@ -73,14 +63,15 @@ process when running:
 npm run codegen:type
 ```
 
-**Note**: These tool definitions **extend the core system** and are processed separately from the main platform protobuf schemas in `/proto`.
+This generates TypeScript definitions in `@copilot-ld/libtype` for use
+throughout the platform.
 
 ## Tool Registration
 
 Tools are registered and made available to LLMs through:
 
 1. Configuration mapping in `config.yml`
-2. Resource generation via `scripts/tools.js`
+2. Schema generation via `scripts/tools.js`
 3. Resource storage in the ResourceIndex
 4. Dynamic discovery through the Tool service
 
@@ -88,8 +79,11 @@ Tools are registered and made available to LLMs through:
 
 1. **For existing service mapping**: Add configuration to `config.yml` under
    `service.tool.endpoints`
-2. **For custom tools that extend the platform**: Create a `.proto` file in this directory and implement
+2. **For custom tools**: Create a `.proto` file in this directory and implement
    the corresponding service
 3. Run `npm run codegen` to generate types and service bases
-4. Run `scripts/tools.js` to generate and store tool resources
+4. Run `scripts/tools.js` to generate and store tool schemas
 5. Configure the tool mapping in `config.yml`
+
+Both approaches support the same proxy architecture and tool execution patterns
+through the Tool service.

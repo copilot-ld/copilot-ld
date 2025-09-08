@@ -16,7 +16,7 @@ get started with the platform.
 To integrate the example tools that **extend your development environment**:
 
 ```sh
-cp -r examples/tools/ tools/
+cp -r ./examples/tools/* ./tools/
 npm run codegen
 ```
 

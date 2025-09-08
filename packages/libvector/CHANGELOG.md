@@ -2,6 +2,10 @@
 
 ## 2025-09-08
 
+- **REFACTOR**: `VectorProcessor` now extends `ProcessorBase` from
+  `@copilot-ld/libutil` for unified batch processing
+- Simplified batch processing logic by delegating to `ProcessorBase` while
+  maintaining embedding generation and vector indexing
 - **BREAKING**: Redesigned `VectorIndex` with Map-based storage for O(1)
   resource ID lookups and improved performance
 - Enhanced dual-index architecture with separate `contentIndex` and

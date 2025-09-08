@@ -10,20 +10,21 @@ import { fileURLToPath } from "url";
 import { LlmInterface } from "@copilot-ld/libcopilot";
 import { StorageInterface } from "@copilot-ld/libstorage";
 import { common } from "@copilot-ld/libtype";
+import { ProcessorBase } from "@copilot-ld/libutil";
 
-import { ResourceProcessorInterface, ResourceIndexInterface } from "./types.js";
+import { ResourceIndexInterface } from "./types.js";
 
 /**
  * Resource processor for batch processing HTML files into MessageV2 objects
- * @implements {ResourceProcessorInterface}
+ * @augments {ProcessorBase}
  */
-export class ResourceProcessor extends ResourceProcessorInterface {
+export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
   #configStorage;
   #knowledgeStorage;
-  #logger;
   #llm;
   #descriptorTemplate;
+  #logger;
 
   /**
    * Creates a new ResourceProcessor instance
@@ -34,8 +35,7 @@ export class ResourceProcessor extends ResourceProcessorInterface {
    * @param {object} logger - Logger instance for debug output
    */
   constructor(resourceIndex, configStorage, knowledgeStorage, llm, logger) {
-    super();
-    if (!logger) throw new Error("logger is required");
+    super(logger, 5);
     if (!llm) throw new Error("llm is required");
     this.#resourceIndex = resourceIndex;
     this.#configStorage = configStorage;
@@ -64,7 +64,12 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     }
   }
 
-  /** @inheritdoc */
+  /**
+   * Processes HTML files from a knowledge base
+   * @param {string} extension - File extension to search for (default: ".html")
+   * @param {string[]} selectors - Array of CSS selectors to filter microdata items (default: [])
+   * @returns {Promise<void>}
+   */
   async processKnowledge(extension = ".html", selectors = []) {
     const keys = await this.#knowledgeStorage.findByExtension(extension);
 
@@ -72,43 +77,14 @@ export class ResourceProcessor extends ResourceProcessorInterface {
       const html = await this.#knowledgeStorage.get(key);
       const items = await this.#parseHTML(html, selectors);
 
-      this.#logger.debug("Starting batch processing", {
-        total: items.length,
-        key,
-      });
+      // Convert items to the format expected by ProcessorBase
+      const itemsWithIndexes = items.map((item, index) => ({
+        item,
+        index,
+      }));
 
-      // Process items in batches
-      let currentBatch = [];
-      let processedCount = 0;
-
-      for (let i = 0; i < items.length; i++) {
-        currentBatch.push({
-          item: items[i],
-          index: i,
-        });
-
-        // Process batch when it reaches a reasonable size
-        if (currentBatch.length >= 5) {
-          await this.#processBatch(
-            currentBatch,
-            processedCount,
-            items.length,
-            key,
-          );
-          processedCount += currentBatch.length;
-          currentBatch = [];
-        }
-      }
-
-      // Process any remaining items in the final batch
-      if (currentBatch.length > 0) {
-        await this.#processBatch(
-          currentBatch,
-          processedCount,
-          items.length,
-          key,
-        );
-      }
+      // Use ProcessorBase to handle the batch processing
+      await super.process(itemsWithIndexes, key);
     }
   }
 
@@ -129,32 +105,13 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     }
   }
 
-  /**
-   * Processes a batch of microdata items by generating descriptors and creating resources
-   * @param {Array<{item: object, index: number}>} batch - Array of microdata items to process
-   * @param {number} processed - Number of items already processed
-   * @param {number} total - Total number of items to process
-   * @param {string} key - Storage key for logging context
-   * @returns {Promise<void>}
-   */
-  async #processBatch(batch, processed, total, key) {
-    const batchSize = batch.length;
+  /** @inheritdoc */
+  async processItem(itemData, _itemIndex, _globalIndex) {
+    const { item } = itemData;
 
-    this.#logger.debug("Processing batch", {
-      items:
-        batchSize > 1
-          ? `${processed + 1}-${processed + batchSize}/${total}`
-          : `${processed + 1}/${total}`,
-      key,
-    });
-
-    // Create batch content for template
-    const batchContent = batch
-      .map((data, i) => {
-        const jsonld = JSON.stringify(data.item);
-        return `RESOURCE ${i + 1}:\n${jsonld}`;
-      })
-      .join("\n\n");
+    // Generate descriptor for this single item
+    const jsonld = JSON.stringify(item);
+    const batchContent = `RESOURCE 1:\n${jsonld}`;
 
     // Generate prompt using mustache template
     const prompt = mustache.render(this.#descriptorTemplate, { batchContent });
@@ -166,7 +123,7 @@ export class ResourceProcessor extends ResourceProcessorInterface {
           content: prompt,
         },
       ],
-      max_tokens: 2000, // Increased for batch processing
+      max_tokens: 2000,
       temperature: 0.1,
     });
 
@@ -174,38 +131,18 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     try {
       descriptors = JSON.parse(completion.choices[0].message.content);
     } catch (error) {
-      this.#logger.debug("LLM batch response is not valid JSON", {
-        error: error.message,
-        response: completion.choices[0].message.content,
-      });
-      throw new Error(`LLM batch response parsing failed: ${error.message}`);
+      throw new Error(`LLM response parsing failed: ${error.message}`);
     }
 
-    // Validate we got the expected number of descriptors
-    if (!Array.isArray(descriptors) || descriptors.length !== batchSize) {
-      throw new Error(
-        `Expected ${batchSize} descriptors, got ${descriptors.length}`,
-      );
+    // Validate we got exactly one descriptor
+    if (!Array.isArray(descriptors) || descriptors.length !== 1) {
+      throw new Error(`Expected 1 descriptors, got ${descriptors.length}`);
     }
 
-    // Create and store resources for each item in the batch
-    const promises = batch.map(async (data, i) => {
-      try {
-        const resource = this.#createResourceFromData(
-          data.item,
-          descriptors[i],
-        );
-        await this.#resourceIndex.put(resource);
-      } catch (error) {
-        this.#logger.debug("Skipping, failed to create resource", {
-          item: `${processed + i + 1}/${total}`,
-          key,
-          error: error.message,
-        });
-      }
-    });
-
-    await Promise.all(promises);
+    // Create and store the resource
+    const resource = this.#createResourceFromData(item, descriptors[0]);
+    await this.#resourceIndex.put(resource);
+    return resource;
   }
 
   /**

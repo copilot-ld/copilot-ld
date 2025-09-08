@@ -1,5 +1,7 @@
 /* eslint-env node */
 
+import { ProcessorBase } from "@copilot-ld/libutil";
+
 /** @typedef {import("@copilot-ld/libresource").ResourceIndexInterface} ResourceIndexInterface */
 /** @typedef {import("@copilot-ld/libcopilot").LlmInterface} LlmInterface */
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
@@ -8,13 +10,14 @@
 
 /**
  * VectorProcessor class for processing resources into vector embeddings
+ * @augments {ProcessorBase}
  */
-export class VectorProcessor {
+export class VectorProcessor extends ProcessorBase {
   #contentIndex;
   #descriptorIndex;
   #resourceIndex;
   #llm;
-  #logger;
+  #targetIndex;
 
   /**
    * Creates a new VectorProcessor instance
@@ -25,16 +28,15 @@ export class VectorProcessor {
    * @param {object} logger - Logger instance for debug output
    */
   constructor(contentIndex, descriptorIndex, resourceIndex, llm, logger) {
+    super(logger);
     if (!contentIndex) throw new Error("contentIndex is required");
     if (!descriptorIndex) throw new Error("descriptorIndex is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
     if (!llm) throw new Error("llm is required");
-    if (!logger) throw new Error("logger is required");
     this.#contentIndex = contentIndex;
     this.#descriptorIndex = descriptorIndex;
     this.#resourceIndex = resourceIndex;
     this.#llm = llm;
-    this.#logger = logger;
   }
 
   /**
@@ -55,35 +57,26 @@ export class VectorProcessor {
     const resources = await this.#resourceIndex.get(actor, filteredIdentifiers);
 
     // Select the appropriate vector index based on representation
-    const targetIndex =
+    this.#targetIndex =
       representation === "descriptor"
         ? this.#descriptorIndex
         : this.#contentIndex;
-
-    this.#logger.debug("Starting process", {
-      total: resources.length,
-      representation,
-    });
 
     // Pre-filter resource contents that already exist in the target vector index
     const existing = new Set();
     const checks = await Promise.all(
       resources.map(async (resource) => ({
         id: resource.id,
-        exists: await targetIndex.hasItem(resource.id),
+        exists: await this.#targetIndex.hasItem(resource.id),
       })),
     );
     checks
       .filter((check) => check.exists)
       .forEach((check) => existing.add(check.id));
 
-    // Process resource contents in batches
-    let currentBatch = [];
-    let processedCount = 0;
-
-    for (let i = 0; i < resources.length; i++) {
-      const resource = resources[i];
-
+    // Filter resources to only those that need processing
+    const resourcesToProcess = [];
+    for (const resource of resources) {
       // Determine content to embed based on resource content type
       let text;
       switch (representation) {
@@ -99,85 +92,30 @@ export class VectorProcessor {
       }
 
       if (text === null || text === "null" || text.trim() === "") {
-        this.#logger.debug("Skipping, no text", {
-          id: resource.id,
-          representation,
-        });
-        continue;
+        continue; // Skip resources with no text
       }
 
-      // Skip if already exists (now O(1) lookup)
+      // Skip if already exists
       if (existing.has(resource.id)) {
-        this.#logger.debug("Skipping, already exists", {
-          id: resource.id,
-          representation,
-        });
-        continue;
+        continue; // Skip existing resources
       }
 
-      // Add resource content to current batch
-      currentBatch.push({
+      resourcesToProcess.push({
         text: text,
         identifier: resource.id,
       });
-
-      // Process batch when it reaches a reasonable size
-      if (currentBatch.length >= 10) {
-        await this.#processBatch(
-          currentBatch,
-          processedCount,
-          resources.length,
-          targetIndex,
-          representation,
-        );
-        processedCount += currentBatch.length;
-        currentBatch = [];
-      }
     }
 
-    // Process any remaining resource contents in the final batch
-    if (currentBatch.length > 0) {
-      await this.#processBatch(
-        currentBatch,
-        processedCount,
-        resources.length,
-        targetIndex,
-        representation,
-      );
-    }
+    // Use ProcessorBase to handle the batch processing
+    await super.process(resourcesToProcess, representation);
   }
 
-  /**
-   * Processes a batch of resource contents by generating embeddings and adding them to the vector index
-   * @param {Array<{text: string, identifier: object}>} batch - Array of resource content objects to process
-   * @param {number} processed - Number of resource contents already processed
-   * @param {number} total - Total number of resource contents to process
-   * @param {VectorIndexInterface} targetIndex - The vector index to add embeddings to (content or descriptor index)
-   * @param {string} representation - The representation being processed (content or descriptor)
-   * @returns {Promise<void>}
-   */
-  async #processBatch(batch, processed, total, targetIndex, representation) {
-    const batchSize = batch.length;
-
-    this.#logger.debug("Processing", {
-      resource:
-        batchSize > 1
-          ? `${processed + 1}-${processed + batchSize}/${total}`
-          : `${processed + 1}/${total}`,
-      representation,
-    });
-
-    // Generate embeddings for all resource contents in the batch
-    const texts = batch.map((data) => data.text);
+  /** @inheritdoc */
+  async processItem(item, _itemIndex, _globalIndex) {
+    const texts = [item.text];
     const embeddings = await this.#llm.createEmbeddings(texts);
-
-    // Add all items to the target vector index in parallel
-    const promises = batch.map(async (data, i) => {
-      const vector = embeddings[i].embedding;
-      const identifier = data.identifier;
-      await targetIndex.addItem(vector, identifier);
-    });
-
-    await Promise.all(promises);
+    const vector = embeddings[0].embedding;
+    await this.#targetIndex.addItem(vector, item.identifier);
+    return vector;
   }
 }

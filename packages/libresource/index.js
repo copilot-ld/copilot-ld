@@ -3,7 +3,7 @@
 import { StorageInterface } from "@copilot-ld/libstorage";
 import * as types from "@copilot-ld/libtype";
 
-import { ResourceIndexInterface, ResourceProcessorInterface } from "./types.js";
+import { ResourceIndexInterface } from "./types.js";
 import { ResourceProcessor } from "./processor.js";
 
 /**
@@ -147,10 +147,4 @@ function toIdentifier(uri) {
   });
 }
 
-export {
-  toType,
-  toIdentifier,
-  ResourceProcessor,
-  ResourceIndexInterface,
-  ResourceProcessorInterface,
-};
+export { toType, toIdentifier, ResourceProcessor, ResourceIndexInterface };

@@ -1,6 +1,29 @@
 /* eslint-env node */
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+
 import { LoggerInterface } from "./types.js";
+
+/**
+ * Searches upward from one or more roots for a target file or directory.
+ * Uses synchronous existence checks for simplicity.
+ * @param {string} root - Starting directory to search from
+ * @param {string} relativePath - Relative path to append while traversing upward
+ * @param {number} maxDepth - Maximum parent levels to check
+ * @returns {string|null} Found absolute path or null
+ */
+export function searchUpward(root, relativePath, maxDepth = 3) {
+  let current = root;
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const candidate = path.join(current, relativePath);
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return null;
+}
 
 /**
  * Generates a deterministic hash from multiple input values

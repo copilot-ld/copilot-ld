@@ -1,29 +1,6 @@
 {
   "name": "Copilot-LD Development Container",
   "image": "mcr.microsoft.com/devcontainers/javascript-node",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "ms-vscode.vscode-docker",
-        "zxh404.vscode-proto3"
-      ],
-      "settings": {
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-          "source.fixAll.eslint": "explicit"
-        },
-        "files.associations": {
-          "*.proto": "proto3"
-        }
-      }
-    }
-  },
-  "forwardPorts": [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007],
   "postCreateCommand": "npm install",
   "remoteUser": "node"
 }

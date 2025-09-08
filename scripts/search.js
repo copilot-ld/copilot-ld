@@ -52,7 +52,11 @@ async function performSearch(prompt, state) {
     const resource = resources.find((r) => r.id.name === identifier.name);
     if (!resource) return;
 
-    const text = String(resource[index()]);
+    // Not all resources have content, fallback to descriptor
+    const text = resource[index()]
+      ? String(resource[index()])
+      : String(resource.descriptor);
+
     output += `# ${i + 1} Score: ${identifier.score.toFixed(4)}\n\n`;
     output += `${identifier}\n`;
     output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;

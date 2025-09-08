@@ -1,6 +1,6 @@
 /* eslint-env node */
-import { Client } from "@copilot-ld/libservice";
-import { {{namespaceName}} } from "@copilot-ld/libtype";
+import { Client } from "@copilot-ld/librpc";
+import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
 
 /**
  * Typed client for the {{serviceName}} gRPC service with automatic type conversion.
@@ -10,13 +10,16 @@ export class {{className}} extends Client {
 {{#methods}}
   /**
    * Call the `{{name}}` RPC with request/response type conversion.
-   * @param { {{namespaceName}}.{{requestType}} } {{paramName}} - Typed request message.
-   * @returns {Promise<{{namespaceName}}.{{responseType}}>} Typed response message.
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Typed request message.
+   * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Typed response message.
    */
   async {{name}}({{paramName}}) {
-    const request = {{paramName}}.toObject ? {{paramName}}.toObject() : {{paramName}};
+    if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
+      throw new TypeError(`{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`);
+    }
+    const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
     const response = await this.callMethod("{{name}}", request);
-    return {{responseTypeExpr}}.fromObject(response);
+    return {{responseTypeNamespace}}.{{responseType}}.fromObject(response);
   }
 
 {{/methods}}

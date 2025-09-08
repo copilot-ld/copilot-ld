@@ -62,8 +62,8 @@ export const packageJsonFixtures = {
     dependencies: {},
   },
 
-  libservice: {
-    name: "@copilot-ld/libservice",
+  librpc: {
+    name: "@copilot-ld/librpc",
     version: "0.1.0",
     dependencies: {
       "@copilot-ld/libconfig": "^0.1.0",
@@ -74,7 +74,7 @@ export const packageJsonFixtures = {
     name: "@copilot-ld/agent",
     version: "0.1.0",
     dependencies: {
-      "@copilot-ld/libservice": "^0.1.0",
+      "@copilot-ld/librpc": "^0.1.0",
     },
   },
 };

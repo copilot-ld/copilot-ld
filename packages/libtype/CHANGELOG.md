@@ -1,35 +1,17 @@
 # Changelog
 
-## 2025-09-02
+## 2025-09-08
 
+- Consolidated all generated protobuf types into unified `generated/types/`
+  directory structure
 - **BREAKING**: Modified `llm.CompletionsRequest` to use
   `repeated common.MessageV2 messages` instead of `common.Prompt prompt`
-- Updated generated types to reflect new LLM service interface
-
-## 2025-09-01
-
-- Fixed `withIdentifier()` method to properly handle `undefined` or `null`
-  parent values, preventing literal string `"undefined"` from being assigned to
-  `id.parent`
-- Enhanced parent parameter handling in `withIdentifier()` to ensure empty
-  string (`""`) is used when parent is `undefined` or `null`
-
-## 2025-08-18
-
-- Added `common.Prompt.prototype.fromMessages()` method to reconstruct `Prompt`
-  objects from messages array (reverse of `toMessages()`)
-- Added tests for `common.Prompt.prototype.toMessages()` and
-  `common.Prompt.prototype.fromMessages()` methods in
-  `packages/libtype/test/libtype.test.js`
-- Added re-exports for request/response types: `AgentRequest`, `AgentResponse`,
-  `GetHistoryRequest`, `GetHistoryResponse`, `UpdateHistoryRequest`,
-  `UpdateHistoryResponse`, `EmbeddingRequest`, `EmbeddingResponse`,
-  `CompletionRequest`, `CompletionResponse`, `GetChunksRequest`,
-  `GetChunksResponse`, `QueryItemsRequest`, `QueryItemsResponse` from
-  `libtype/index.js`
-
-- Added test verifying `chunk instanceof Chunk` in
-  `packages/libtype/test/libtype.test.js`
+- Enhanced `withIdentifier()` method to properly handle `null`/`undefined`
+  parent values
+- Restored direct monkey patching approach for imported types from
+  `generated/types/types.js`
+- Added `common.Prompt.prototype.fromMessages()` method for reconstructing
+  prompts from message arrays
 
 ## 2025-01-24
 

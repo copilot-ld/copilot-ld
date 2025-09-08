@@ -1,23 +1,15 @@
 # Changelog
 
-## 2025-09-02
+## 2025-09-08
 
-- Normalized Copilot requests: convert `MessageV2` to `{role, content}`, add
-  `max_tokens` default, and ensure returned messages are proper `MessageV2` with
-  `withIdentifier()`
-- Adopted `libtype` content conversion for robust handling of complex message
-  content structures
-
-## 2025-08-29
-
-## 2025-08-28
-
-- Refactored retry logic in `Copilot` class into reusable `#withRetry()` method
-- Applied retry logic to both `createCompletions()` and `createEmbeddings()`
-  methods
-- Added `_setTestDelay()` method for configurable delays in testing
-- Optimized test suite performance by using minimal delays for retry tests
-- Enhanced test coverage for retry behavior across both API methods
+- Enhanced type safety with `llm.CompletionsResponse` objects and proper
+  `common.Tool.fromObject()` conversions
+- Improved message normalization converting `MessageV2` to standard format with
+  `withIdentifier()` support
+- Streamlined retry logic with reusable `#withRetry()` method applied to both
+  completions and embeddings
+- Updated default model configuration from `gpt-4o` to `gpt-4.1` for platform
+  consistency
 
 ## 2025-08-12
 

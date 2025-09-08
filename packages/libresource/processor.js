@@ -91,7 +91,7 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     for (const [name, object] of Object.entries(objects)) {
       object.id = { name };
       object.descriptor = object.descriptor || {};
-      const assistant = new common.Assistant.fromObject(object);
+      const assistant = new common.Assistant(object);
       this.#resourceIndex.put(assistant);
     }
   }
@@ -175,7 +175,7 @@ export class ResourceProcessor extends ResourceProcessorInterface {
       throw new Error(`LLM response parsing failed: ${error.message}`);
     }
 
-    return new common.MessageV2.fromObject({
+    return common.MessageV2.fromObject({
       role: "system",
       content: { jsonld },
       descriptor,

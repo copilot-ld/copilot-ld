@@ -66,8 +66,14 @@
           external client integration
         </li>
         <li>
-          <strong>Schema Definition</strong>: Protobuf schemas in
-          <code>/proto</code> ensure type safety
+          <strong>Schema Definition</strong>: Authoritative protobuf schemas in
+          <code>/proto</code> (copied verbatim into
+          <code>/generated/proto</code> during code generation) ensure type
+          safety. Optional tool schemas in <code>/tools</code>
+          <strong>extend the core system</strong> with additional functionality.
+          All runtime loading now reads exclusively from
+          <code>/generated/proto</code> for a single source of operational
+          truth.
         </li>
       </ul>
 
@@ -95,12 +101,16 @@
       <h3>Directory Structure</h3>
 
       <pre>
-./services/         # gRPC services
-./extensions/       # Extensions that adapt core system to applications
-./packages/         # Reusable, domain-focused logic
-./scripts/          # Utility scripts for dev and test
-./data/             # Knowledge base, vectors, and resource data
-      </pre>
+./services/          # gRPC service implementations (custom logic only)
+./extensions/        # Extensions that adapt core system to applications
+./packages/          # Reusable, domain-focused logic (framework agnostic)
+./scripts/           # Utility scripts & code generation
+./proto/             # Authoritative protobuf source schemas (never edited in generated/)
+./tools/             # Custom tools that extend the core system
+./generated/         # ALL generated artifacts (proto copies, types, service bases, clients)
+./data/              # Knowledge base, vectors, and resource data
+  </pre
+      >
 
       <h3>High-Level Architecture</h3>
 
@@ -153,7 +163,14 @@ flowchart TD
         budget, and finally requests a completion. Only readiness checks are
         executed in parallel; the main request flow is sequential.
       </p>
-
+      <p>
+        Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
+        data and retrieval-augmented generation. As of 2025-09-05 the platform
+        consolidates all generated protobuf artifacts into a single
+        <code>/generated</code> directory to eliminate ambiguity between source
+        and generated files, simplifying extension with additional tool schemas
+        that <strong>extend the core system</strong>.
+      </p>
       <pre class="mermaid">
 sequenceDiagram
     participant Client
@@ -225,9 +242,11 @@ sequenceDiagram
             <code>assistant</code> → <code>tasks</code> → <code>tools</code> →
             <code>context</code> → <code>history</code>
           </li>
+
           <li>
-            <strong>Tasks</strong>: Not yet implemented in the current runtime
-            path (placeholder only)
+            <strong>gRPC Protocol</strong>: All inter-service communication uses
+            gRPC with Protocol Buffers. Services load schemas exclusively from
+            <code>/generated/proto</code> produced by code generation.
           </li>
           <li>
             <strong>Budgeting</strong>: Effective token budget is computed as
@@ -266,6 +285,49 @@ sequenceDiagram
         token-based filtering. The current Agent runtime path queries the
         <code>content</code> index by default.
       </p>
+
+      <h5>Tool Service</h5>
+
+      <p>
+        Acts as a gRPC proxy between tool calls requested by LLMs and actual
+        tool implementations. Supports both mapping to existing services and
+        custom tool implementations that
+        <strong>extend the core system</strong> through configuration-driven
+        endpoint mapping.
+      </p>
+
+      <p><strong>Key Operations</strong>:</p>
+      <ul>
+        <li>
+          <code>ExecuteTool</code>: Proxies tool calls to appropriate services
+          based on configuration mapping
+        </li>
+        <li>
+          <code>ListTools</code>: Returns available tools with OpenAI-compatible
+          schemas for LLM consumption
+        </li>
+      </ul>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Configuration-driven</strong>: Tools defined via endpoint
+          mappings in <code>config.yml</code>
+        </li>
+        <li>
+          <strong>Pure proxy</strong>: No business logic, just routing and
+          protocol conversion
+        </li>
+        <li>
+          <strong>Extensible</strong>: Supports mapping to existing services
+          (e.g., <code>vector.QueryItems</code>) and custom tools that
+          <strong>extend the platform</strong>
+        </li>
+        <li>
+          <strong>Schema generation</strong>: Automatically generates
+          OpenAI-compatible JSON schemas from protobuf types
+        </li>
+      </ul>
 
       <h3>Offline Sequence Diagram</h3>
 
@@ -458,6 +520,7 @@ graph TB
   Memory[Memory Service<br/>:3000]
         LLM[LLM Service<br/>:3000]
   Vector[Vector Service<br/>:3000]
+  Tool[Tool Service<br/>:3000]
     end
 
   subgraph "External Services"
@@ -478,6 +541,8 @@ graph TB
   Agent -->|gRPC| Memory
     Agent -->|gRPC| LLM
     Agent -->|gRPC| Vector
+    Agent -->|gRPC| Tool
+    Tool -->|gRPC| Vector
 
   %% External API calls
   LLM -.->|HTTPS| LLMAPI
@@ -490,6 +555,7 @@ graph TB
   style Memory fill:#fff3e0
   style LLM fill:#fff3e0
   style Vector fill:#fff3e0
+  style Tool fill:#fff3e0
   style GitHubAPI fill:#fff3e0
       </pre>
 

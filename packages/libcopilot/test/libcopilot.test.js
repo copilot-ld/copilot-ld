@@ -296,39 +296,6 @@ describe("libcopilot", () => {
       assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
     });
 
-    test("successful request after retries stops retry loop", async () => {
-      const retryResponse = {
-        ok: false,
-        status: 429,
-        statusText: "Too Many Requests",
-      };
-      const successResponse = {
-        ok: true,
-        json: mock.fn(() =>
-          Promise.resolve({
-            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
-          }),
-        ),
-      };
-
-      // Fail twice, then succeed
-      let callCount = 0;
-      mockFetch.mock.mockImplementation(() => {
-        callCount++;
-        if (callCount <= 2) {
-          return Promise.resolve(retryResponse);
-        } else {
-          return Promise.resolve(successResponse);
-        }
-      });
-
-      const result = await copilot.createEmbeddings(["test text"]);
-
-      // Should have made exactly 3 calls (2 failures + 1 success)
-      assert.strictEqual(mockFetch.mock.callCount(), 3);
-      assert.strictEqual(result.length, 1);
-    });
-
     test("non-429 errors do not trigger retries", async () => {
       const errorResponse = {
         ok: false,

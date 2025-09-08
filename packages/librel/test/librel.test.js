@@ -107,7 +107,7 @@ describe("ReleaseBumper", () => {
   test("handles cascade dependency updates", async () => {
     setupPackageFiles({
       "packages/libconfig/package.json": "libconfig",
-      "packages/libservice/package.json": "libservice",
+      "packages/librpc/package.json": "librpc",
       "services/agent/package.json": "agent",
     });
 
@@ -135,7 +135,7 @@ describe("ReleaseBumper", () => {
 
     assert.strictEqual(results.length, 3);
     assert(results.some((r) => r.name === "libconfig"));
-    assert(results.some((r) => r.name === "libservice"));
+    assert(results.some((r) => r.name === "librpc"));
     assert(results.some((r) => r.name === "agent"));
   });
 
@@ -256,7 +256,7 @@ describe("ReleaseChanges", () => {
       existsSync: (path) =>
         path.endsWith("package.json") &&
         (path.includes("libconfig") ||
-          path.includes("libservice") ||
+          path.includes("librpc") ||
           path.includes("agent")),
     };
 
@@ -276,7 +276,7 @@ describe("ReleaseChanges", () => {
     const changes = releaseChanges.getChangedPackages("abc123", "def456");
     assert.deepStrictEqual(changes, [
       "packages/libconfig",
-      "packages/libservice",
+      "packages/librpc",
       "services/agent",
     ]);
   });
@@ -418,7 +418,7 @@ describe("ReleaseLog", () => {
 
     assert.deepStrictEqual(paths, [
       "packages/libconfig/CHANGELOG.md",
-      "packages/libservice/CHANGELOG.md",
+      "packages/librpc/CHANGELOG.md",
     ]);
 
     const expectedContent = `# Changelog

@@ -10,16 +10,15 @@
 /**
  * Base interface for gRPC services and clients with shared functionality
  */
-export class ActorInterface {
+export class RpcInterface {
   /**
-   * Creates a new base service instance
+   * Creates a new base RPC instance
    * @param {ServiceConfigInterface} config - Service configuration object
    * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
    * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
-   * @param {(bucket: string, type?: string, process?: object) => object} storageFn - Function that returns storage instance (optional, defaults to storageFactory)
    * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
-  constructor(config, grpcFn, authFn, storageFn, logFn) {
+  constructor(config, grpcFn, authFn, logFn) {
     // Interface constructor - empty implementation
   }
 
@@ -66,7 +65,7 @@ export class ActorInterface {
 /**
  * Base interface for gRPC clients
  */
-export class ClientInterface extends ActorInterface {
+export class ClientInterface extends RpcInterface {
   /**
    * Creates a new gRPC client instance with automatic method wrapping
    * @param {ServiceConfigInterface} config - Service configuration object
@@ -83,30 +82,6 @@ export class ClientInterface extends ActorInterface {
    * @returns {Promise<void>}
    */
   async ensureReady() {
-    throw new Error("Not implemented");
-  }
-}
-
-/**
- * Base interface for gRPC services
- */
-export class ServiceInterface extends ActorInterface {
-  /**
-   * Creates a new gRPC service instance
-   * @param {ServiceConfigInterface} config - Service configuration object
-   * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
-   * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
-   * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
-   */
-  constructor(config, grpcFn, authFn, logFn) {
-    super(config, grpcFn, authFn, logFn);
-  }
-
-  /**
-   * Builds and starts the service with automatic handler discovery
-   * @returns {Promise<number>} The port the server is listening on
-   */
-  async start() {
     throw new Error("Not implemented");
   }
 }

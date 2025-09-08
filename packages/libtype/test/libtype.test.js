@@ -7,7 +7,7 @@ import { common } from "../index.js";
 describe("libtype", () => {
   describe("Simple type", () => {
     test("creates type with required properties", () => {
-      const similarity = common.Similarity.fromObject({
+      const similarity = new common.Similarity({
         id: "test-similarity",
         score: 0.9,
         tokens: 10,
@@ -21,7 +21,7 @@ describe("libtype", () => {
     });
 
     test("type is of the correct instance", () => {
-      const similarity = common.Similarity.fromObject({
+      const similarity = new common.Similarity({
         id: "instance-similarity",
         score: 0.9,
         tokens: 1,

@@ -1,49 +1,67 @@
 /* eslint-env node */
-import { Service } from "@copilot-ld/libservice";
-import { {{namespaceName}} } from "@copilot-ld/libtype";
+import { logFactory } from "@copilot-ld/libutil";
+import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
 
 /**
- * Base implementation for {{serviceName}} gRPC service with typed method stubs.
- * Extends the `Service` class for shared gRPC server functionality.
+ * Base class for {{serviceName}} service implementation
  */
-export class {{className}} extends Service {
+export class {{className}} {
+  config;
+  #logger;
+
   /**
-   * Start the gRPC server with service-specific handlers.
-   * @returns {Promise<number>} Port number the server is listening on.
+   * Creates a new {{serviceName}} service instance
+   * @param { object } config - Service configuration
+   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  async start() {
-    const proto = await this.loadProto("{{packageName}}.proto");
-    const serviceDefinition = proto.{{serviceName}}.service;
+  constructor(config, logFn = logFactory) {
+    if (!config) throw new Error("config is required");
+    this.config = config;
+    this.#logger = logFn(config.name);
+  }
 
-    const handlers = {};
-{{#methods}}
-  handlers.{{name}} = this.handle{{name}};
-{{/methods}}
-
-    return super.start(serviceDefinition, handlers);
+  /**
+   * Logs a debug message.
+   * @param { string } message - The message to log
+   * @param { object } context - Additional context to include in the log
+   */
+  debug(message, context) {
+    this.#logger.debug(message, context);
   }
 
 {{#methods}}
   /**
-   * gRPC handler for `{{name}}`: restores a typed request and delegates to the implementation.
-   * @param {object} call - gRPC call object.
-   * @returns {Promise<{{namespaceName}}.{{responseType}}>} Typed response message.
-   */
-  async handle{{name}}(call) {
-    const {{paramName}} = {{requestTypeExpr}}.fromObject(call.request);
-    return this.{{name}}({{paramName}});
-  }
-
-{{/methods}}
-{{#methods}}
-  /**
-   * Implement the `{{name}}` RPC.
-   * @param { {{namespaceName}}.{{requestType}} } _{{paramName}} - Typed request message.
-   * @returns {Promise<{{namespaceName}}.{{responseType}}>} Typed response message.
+   * Must be implemented by subclass
+   * @param { {{requestTypeNamespace}}.{{requestType}} } _{{paramName}} - Request parameters
+   * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Response object
    */
   async {{name}}(_{{paramName}}) {
-    throw new Error("Not implemented");
+    throw new Error("{{name}} not implemented");
   }
 
 {{/methods}}
+  /**
+   * Gets the proto file name for this service
+   * @returns { string } Proto file name
+   */
+  getProtoName() {
+    return "{{packageName}}.proto";
+  }
+
+  /**
+   * Creates gRPC handlers for this service instance
+   * @returns { object } Map of method names to handler functions
+   */
+  getHandlers() {
+    return {
+{{#methods}}
+      {{name}}: async (call) => {
+        const error = {{requestTypeNamespace}}.{{requestType}}.verify(call.request);
+        if (error) throw new Error(`{{name}}: ${error}`);
+        const req = {{requestTypeNamespace}}.{{requestType}}.fromObject(call.request);
+        return await this.{{name}}(req);
+      },
+{{/methods}}
+    };
+  }
 }

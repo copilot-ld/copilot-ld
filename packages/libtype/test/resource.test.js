@@ -6,12 +6,12 @@ import { common } from "../index.js";
 
 describe("Universal Resource Identifier", () => {
   test("Resource has an identifier", () => {
-    const message = new common.MessageV2.fromObject({});
+    const message = new common.MessageV2({});
     assert.strictEqual(typeof message.id, "object");
   });
 
   test("withIdentifier throws an error if content is null", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       content: null,
     });
     assert.throws(
@@ -25,7 +25,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("withIdentifier generates an identifier", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       content: {
         text: "Hello, world!",
       },
@@ -39,7 +39,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("withIdentifier sets a single parent", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: {
         parent: "cld:common.Conversation.hash0001",
       },
@@ -56,7 +56,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("withIdentifier sets multiple parents", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: {
         parent: "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
       },
@@ -76,7 +76,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("withIdentifier preserves values", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: {
         name: "common.MessageV2.hash0003",
         parent: "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
@@ -97,7 +97,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generation throws an error without type", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: {},
     });
     assert.throws(
@@ -111,7 +111,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generation throws an error without name", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: { type: "common.MessageV2" },
     });
     assert.throws(
@@ -125,7 +125,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generates a URI", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       content: {
         text: "Hello, world!",
       },
@@ -135,7 +135,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generates a URI with name", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: {
         name: "common.MessageV2.hash0001",
       },
@@ -148,7 +148,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generates a URI with name and parent", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       id: {
         name: "common.MessageV2.hash0002",
         parent: "cld:common.Conversation.hash0001",

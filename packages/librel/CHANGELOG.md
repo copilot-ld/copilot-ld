@@ -1,14 +1,10 @@
 # Changelog
 
-## 2025-09-03
+## 2025-09-08
 
-- Updated test fixtures to reference `scripts/` directory instead of `tools/`
-- Added optional `force` behavior to `ReleaseBumper.bump()` allowing tag
-  overwrite when a tag already exists
-- Updated `ReleaseBumperInterface.bump()` signature to accept an `options`
-  parameter with `{ force?: boolean }`
-
-## 2025-08-08
-
-- Release workflow stabilization: fixed `Node.js` setup and performed required
-  version reset/bump to align packages
+- Enhanced `ReleaseBumper.bump()` with optional `force` parameter for tag
+  overwrite functionality
+- Updated test fixtures to reference `scripts/` directory for directory
+  restructure alignment
+- Stabilized release workflow with improved package alignment and version
+  management

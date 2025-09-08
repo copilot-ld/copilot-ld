@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package hash;
+
+service Hash {
+  rpc Sha256(HashRequest) returns (HashResponse);
+  rpc Md5(HashRequest) returns (HashResponse);
+}
+
+message HashRequest {
+  string input = 1;
+}
+
+message HashResponse {
+  string hash = 1;
+  string algorithm = 2;
+}

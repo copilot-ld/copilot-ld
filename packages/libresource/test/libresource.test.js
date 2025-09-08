@@ -113,7 +113,7 @@ describe("ResourceIndex", () => {
   });
 
   test("puts resource content with identifier generation", async () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       role: "system",
       content: { text: "Test message content" },
     });
@@ -128,7 +128,7 @@ describe("ResourceIndex", () => {
 
   test("gets resource contents by IDs with access control", async () => {
     // First, put a resource
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       role: "system",
       content: { text: "Test message for retrieval" },
     });
@@ -152,7 +152,7 @@ describe("ResourceIndex", () => {
 
   test("finds all resource identifiers", async () => {
     // Put some test resources
-    const message1 = new common.MessageV2.fromObject({
+    const message1 = new common.MessageV2({
       role: "system",
       content: { text: "First test message" },
     });
@@ -169,7 +169,7 @@ describe("ResourceIndex", () => {
 
   test("finds resource identifiers by prefix", async () => {
     // Put some test resources
-    const message1 = new common.MessageV2.fromObject({
+    const message1 = new common.MessageV2({
       role: "system",
       content: { text: "First test message" },
     });

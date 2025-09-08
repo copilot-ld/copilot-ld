@@ -74,22 +74,18 @@ message ToolParam {
 }
 
 message ToolFunction {
-  resource.Descriptor descriptor = 1;
+  resource.Identifier id = 1;
+  resource.Descriptor descriptor = 2;
   oneof call {
-    ToolParam parameters = 2; // When declaring
-    string arguments = 3; // When calling
+    ToolParam parameters = 3; // When declaring
+    string arguments = 4; // When calling
   }
 }
 
 message Tool {
-  string type = 1; // @default "function"
+  string type = 1;
   ToolFunction function = 2;
   optional string id = 3; // When calling
-}
-
-message ToolCallRequest {
-  string role = 1;
-  repeated Tool tool_calls = 2;
 }
 
 message ToolCallResult {
@@ -103,6 +99,7 @@ message MessageV2 {
   resource.Descriptor descriptor = 2;
   resource.Content content = 3;
   string role = 4;
+  repeated Tool tool_calls = 5;
 }
 
 message Assistant {

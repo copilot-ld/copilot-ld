@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libcopilot": "^0.1.2",
-    "@copilot-ld/libservice": "^0.1.5"
+    "@copilot-ld/librpc": "^0.1.5"
   },
   "repository": {
     "type": "git",

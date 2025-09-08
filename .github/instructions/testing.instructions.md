@@ -60,7 +60,7 @@ import { testRequestData } from "./mock/data.js";
 │   │   └── data.js              # Agent-specific test data
 │   └── fixture/
 │       └── requests.js          # Agent test fixtures
-../packages/libservice/test/
+../packages/librpc/test/
 │   ├── service.test.js
 │   └── helpers/
 │       └── grpc-helpers.js
@@ -345,7 +345,7 @@ npm test
 npm run codegen
 
 # Run tests for specific package
-npm test -w @copilot-ld/libservice
+npm test -w @copilot-ld/librpc
 
 # Run integration tests
 node --test test/integration/**/*.test.js

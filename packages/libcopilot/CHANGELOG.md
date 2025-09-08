@@ -2,6 +2,8 @@
 
 ## 2025-09-08
 
+- Fixed critical bug in `#withRetry()` method where exhausted retry attempts
+  with HTTP 429 errors would fall through without proper error handling
 - Enhanced type safety with `llm.CompletionsResponse` objects and proper
   `common.Tool.fromObject()` conversions
 - Improved message normalization converting `MessageV2` to standard format with

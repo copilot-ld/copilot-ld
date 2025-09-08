@@ -278,6 +278,7 @@ describe("libcopilot", () => {
       };
 
       // Test both methods fail with max retries
+      // This test verifies that exhausted retries throw proper errors (not undefined)
       mockFetch.mock.mockImplementation(() => Promise.resolve(retryResponse));
 
       // Test createCompletions
@@ -286,14 +287,14 @@ describe("libcopilot", () => {
           messages: [{ role: "user", content: "Hello" }],
         }),
       );
-      assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
+      assert.strictEqual(mockFetch.mock.callCount(), 5); // Initial + 4 retries
 
       // Reset mock for second test
       mockFetch.mock.resetCalls();
 
       // Test createEmbeddings
       await assert.rejects(() => copilot.createEmbeddings(["test text"]));
-      assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
+      assert.strictEqual(mockFetch.mock.callCount(), 5); // Initial + 4 retries
     });
 
     test("non-429 errors do not trigger retries", async () => {

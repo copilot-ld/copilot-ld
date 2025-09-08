@@ -43,8 +43,8 @@ export class Copilot extends LlmInterface {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-    this.#retries = 3;
-    this.#delay = 1000;
+    this.#retries = 4;
+    this.#delay = 1250;
     this.#fetch = fetchFn;
     this.#tokenizer = tokenizerFn();
   }
@@ -79,8 +79,11 @@ export class Copilot extends LlmInterface {
    * @throws {Error} When all retry attempts are exhausted
    */
   async #withRetry(requestFn) {
+    let lastResponse;
+
     for (let attempt = 0; attempt <= this.#retries; attempt++) {
       const response = await requestFn();
+      lastResponse = response;
 
       if (response.status === 429 && attempt < this.#retries) {
         const wait = this.#delay * Math.pow(2, attempt);
@@ -91,6 +94,10 @@ export class Copilot extends LlmInterface {
       await this.#throwIfNotOk(response);
       return response;
     }
+
+    // This should never be reached, but if it is, throw an error for the last response
+    await this.#throwIfNotOk(lastResponse);
+    throw new Error("Retries exhausted without a valid response");
   }
 
   /** @inheritdoc */

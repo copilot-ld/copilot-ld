@@ -211,8 +211,8 @@ describe("libutil", () => {
             this.processedItems = [];
           }
 
-          async processItem(item, itemIndex, globalIndex) {
-            this.processedItems.push({ item, itemIndex, globalIndex });
+          async processItem(item) {
+            this.processedItems.push(item);
             return `processed-${item}`;
           }
         }
@@ -221,26 +221,7 @@ describe("libutil", () => {
         await processor.process(["a", "b", "c", "d"]);
 
         assert.strictEqual(processor.processedItems.length, 4);
-        assert.deepStrictEqual(processor.processedItems[0], {
-          item: "a",
-          itemIndex: 0,
-          globalIndex: 0,
-        });
-        assert.deepStrictEqual(processor.processedItems[1], {
-          item: "b",
-          itemIndex: 1,
-          globalIndex: 1,
-        });
-        assert.deepStrictEqual(processor.processedItems[2], {
-          item: "c",
-          itemIndex: 0,
-          globalIndex: 2,
-        });
-        assert.deepStrictEqual(processor.processedItems[3], {
-          item: "d",
-          itemIndex: 1,
-          globalIndex: 3,
-        });
+        assert.deepStrictEqual(processor.processedItems, ["a", "b", "c", "d"]);
       });
 
       test("continues processing when individual items fail", async () => {
@@ -271,7 +252,7 @@ describe("libutil", () => {
       test("throws error when not implemented", async () => {
         const processor = new ProcessorBase(mockLogger, 2);
 
-        await assert.rejects(() => processor.processItem("item", 0, 0), {
+        await assert.rejects(() => processor.processItem("item"), {
           message: /processItem must be implemented by subclass/,
         });
       });

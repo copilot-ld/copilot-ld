@@ -2,6 +2,8 @@
 
 ## 2025-09-08
 
+- **SIMPLIFIED**: Updated `VectorProcessor.processItem()` to remove unused
+  `itemIndex` and `globalIndex` parameters
 - **REFACTOR**: `VectorProcessor` now extends `ProcessorBase` from
   `@copilot-ld/libutil` for unified batch processing
 - Simplified batch processing logic by delegating to `ProcessorBase` while

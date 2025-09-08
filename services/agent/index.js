@@ -173,7 +173,7 @@ class AgentService extends AgentBase {
         req.conversation_id,
       ]);
     } else {
-      conversation = new common.Conversation({
+      conversation = common.Conversation.fromObject({
         id: {
           name: generateSessionId(),
         },
@@ -182,6 +182,10 @@ class AgentService extends AgentBase {
     }
 
     const message = getLatestUserMessage(req.messages);
+
+    if (!message) {
+      throw new Error("No user message found in request");
+    }
     message.withIdentifier(conversation.id);
     this.#resourceIndex.put(message);
 
@@ -190,6 +194,12 @@ class AgentService extends AgentBase {
       const [assistant] = await this.#resourceIndex.get(actor, [
         this.config.assistant,
       ]);
+
+      if (!assistant) {
+        throw new Error(
+          `Assistant not found: ${this.config.assistant?.name || "unknown"}`,
+        );
+      }
 
       // TODO: Load task tree
       let tasks = [];

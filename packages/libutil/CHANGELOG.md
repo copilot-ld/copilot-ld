@@ -2,6 +2,10 @@
 
 ## 2025-09-08
 
+- **SIMPLIFIED**: Removed unused `itemIndex` and `globalIndex` parameters from
+  `processItem()` method in `ProcessorInterface` and `ProcessorBase`
+- Updated `ProcessorBase.processBatch()` to only pass the `item` parameter to
+  `processItem()`
 - **NEW**: Added `ProcessorInterface` and `ProcessorBase` for unified batch
   processing
 - `ProcessorInterface` defines common batch processing contract with

@@ -29,7 +29,7 @@ async function handlePrompt(prompt) {
   // Create user message using MessageV2 structure
   const userMessage = common.MessageV2.fromObject({
     role: "user",
-    content: prompt, // fromObject will handle string->object conversion
+    content: prompt,
   });
   messages.push(userMessage);
 

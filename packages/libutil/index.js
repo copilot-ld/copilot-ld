@@ -213,7 +213,7 @@ export class ProcessorBase extends ProcessorInterface {
     const promises = batch.map(async (item, itemIndex) => {
       const globalIndex = processed + itemIndex;
       try {
-        return await this.processItem(item, itemIndex, globalIndex);
+        return await this.processItem(item);
       } catch (error) {
         this.#logger.debug("Skipping, failed to process item", {
           item: `${globalIndex + 1}/${total}`,
@@ -228,7 +228,7 @@ export class ProcessorBase extends ProcessorInterface {
   }
 
   /** @inheritdoc */
-  async processItem(_item, _itemIndex, _globalIndex) {
+  async processItem(_item) {
     throw new Error("processItem must be implemented by subclass");
   }
 }

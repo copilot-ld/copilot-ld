@@ -56,12 +56,10 @@ export class ProcessorInterface {
   /**
    * Processes a single item within a batch
    * @param {*} item - The item to process
-   * @param {number} itemIndex - Index of the item within the current batch
-   * @param {number} globalIndex - Global index of the item across all items
    * @returns {Promise<*>} Processing result
    * @throws {Error} Not implemented
    */
-  async processItem(item, itemIndex, globalIndex) {
+  async processItem(item) {
     throw new Error("ProcessorInterface.processItem() not implemented");
   }
 }

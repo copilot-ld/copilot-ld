@@ -57,9 +57,12 @@ export class ResourceProcessor extends ProcessorBase {
     const objects = yaml.load(data);
 
     for (const [name, object] of Object.entries(objects)) {
-      object.id = { name };
+      object.id = {
+        type: "common.Assistant",
+        name: `common.Assistant.${name}`,
+      };
       object.descriptor = object.descriptor || {};
-      const assistant = new common.Assistant(object);
+      const assistant = common.Assistant.fromObject(object);
       this.#resourceIndex.put(assistant);
     }
   }
@@ -106,7 +109,7 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /** @inheritdoc */
-  async processItem(itemData, _itemIndex, _globalIndex) {
+  async processItem(itemData) {
     const { item } = itemData;
 
     // Generate descriptor for this single item

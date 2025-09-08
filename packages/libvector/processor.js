@@ -111,7 +111,7 @@ export class VectorProcessor extends ProcessorBase {
   }
 
   /** @inheritdoc */
-  async processItem(item, _itemIndex, _globalIndex) {
+  async processItem(item) {
     const texts = [item.text];
     const embeddings = await this.#llm.createEmbeddings(texts);
     const vector = embeddings[0].embedding;

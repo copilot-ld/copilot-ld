@@ -2,6 +2,8 @@
 
 ## 2025-09-08
 
+- **SIMPLIFIED**: Updated `ResourceProcessor.processItem()` to remove unused
+  `itemIndex` and `globalIndex` parameters
 - **REFACTOR**: `ResourceProcessor` now extends `ProcessorBase` from
   `@copilot-ld/libutil` for unified batch processing
 - **REMOVED**: `ResourceProcessorInterface` in favor of shared

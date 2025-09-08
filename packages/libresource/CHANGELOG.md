@@ -2,6 +2,8 @@
 
 ## 2025-09-08
 
+- Enhanced `ResourceProcessor` with batch LLM prompting similar to
+  `VectorProcessor` pattern
 - **NEW**: Initial implementation of universal resource management system with
   URI-based identification
 - Enhanced `ResourceProcessor` with semantic descriptor generation powered by

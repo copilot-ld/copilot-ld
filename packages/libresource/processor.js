@@ -2,57 +2,16 @@
 
 import yaml from "js-yaml";
 import { microdata } from "microdata-minimal";
+import mustache from "mustache";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 import { LlmInterface } from "@copilot-ld/libcopilot";
 import { StorageInterface } from "@copilot-ld/libstorage";
 import { common } from "@copilot-ld/libtype";
 
 import { ResourceProcessorInterface, ResourceIndexInterface } from "./types.js";
-
-/**
- * Template for generating resource descriptors via LLM completion
- */
-const DESCRIPTOR_PROMPT = `You are analyzing structured content for an AI agent knowledge base.
-Generate descriptors that help AI agents understand when and how to use this resource effectively.
-
-**CRITICAL:**
-- Your response must be RAW JSON starting with { and ending with }
-- Do not use markdown code blocks, backticks, or any formatting
-
-**YOUR RESPONSE:**
-Reply with a JSON object containing these keys:
-
-1. **purpose**
-   - What this resource accomplishes for software development teams
-   - Start with an action verb (e.g., "Provides", "Defines", "Establishes")
-   - Focus on the tangible outcome or capability it delivers
-
-2. **applicability**
-   - When AI agents should reference this resource
-   - Use "when" statements describing specific scenarios, contexts, or user questions where this content becomes relevant
-   - Examples: "When discussing team collaboration principles", "When evaluating security vulnerabilities"
-
-3. **evaluation**
-   - How to measure successful application of this resource's guidance
-   - Describe observable outcomes, behaviors, or criteria that indicate the resource was applied effectively
-   - Examples: "Teams demonstrate faster decision-making", "Security assessment identifies specific vulnerability categories"
-
-**CONTEXT:**
-- You are helping conversational AI agents make better decisions about which knowledge to reference
-- Agents need to quickly determine relevance to user queries
-- Focus on practical application rather than academic description
-- Consider both explicit questions and implicit needs in conversations
-
-**FORMATTING REQUIREMENTS:**
-- Start your response immediately with { (no backticks, no markdown)
-- End your response with }
-- Each value must be under 280 characters
-- Use clear, specific language that guides decision-making
-- NO explanations, NO code blocks, NO markdown formatting
-- Focus on actionable guidance rather than content summary
-
-**THE CONTENT TO ANALYZE:**
-`;
 
 /**
  * Resource processor for batch processing HTML files into MessageV2 objects
@@ -64,6 +23,7 @@ export class ResourceProcessor extends ResourceProcessorInterface {
   #knowledgeStorage;
   #logger;
   #llm;
+  #descriptorTemplate;
 
   /**
    * Creates a new ResourceProcessor instance
@@ -82,6 +42,14 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
     this.#logger = logger;
+
+    // Load descriptor prompt template
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const templatePath = join(
+      __dirname,
+      "../../scripts/descriptor-prompt.md.mustache",
+    );
+    this.#descriptorTemplate = readFileSync(templatePath, "utf8");
   }
 
   async processAssistants() {
@@ -104,22 +72,42 @@ export class ResourceProcessor extends ResourceProcessorInterface {
       const html = await this.#knowledgeStorage.get(key);
       const items = await this.#parseHTML(html, selectors);
 
+      this.#logger.debug("Starting batch processing", {
+        total: items.length,
+        key,
+      });
+
+      // Process items in batches
+      let currentBatch = [];
+      let processedCount = 0;
+
       for (let i = 0; i < items.length; i++) {
-        const item = `${i + 1}/${items.length}`;
+        currentBatch.push({
+          item: items[i],
+          index: i,
+        });
 
-        this.#logger.debug("Processing", { item, key });
-
-        try {
-          const resource = await this.#createResource(items[i]);
-          await this.#resourceIndex.put(resource);
-        } catch (error) {
-          this.#logger.debug("Skipping, failed to create resource", {
-            item,
+        // Process batch when it reaches a reasonable size
+        if (currentBatch.length >= 5) {
+          await this.#processBatch(
+            currentBatch,
+            processedCount,
+            items.length,
             key,
-            error: error.message,
-          });
-          continue;
+          );
+          processedCount += currentBatch.length;
+          currentBatch = [];
         }
+      }
+
+      // Process any remaining items in the final batch
+      if (currentBatch.length > 0) {
+        await this.#processBatch(
+          currentBatch,
+          processedCount,
+          items.length,
+          key,
+        );
       }
     }
   }
@@ -142,16 +130,34 @@ export class ResourceProcessor extends ResourceProcessorInterface {
   }
 
   /**
-   * Creates a resource object from a microdata item
-   * @param {object} item - The microdata item to create a Message for
-   * @returns {Promise<common.MessageV2>} The created Message content
+   * Processes a batch of microdata items by generating descriptors and creating resources
+   * @param {Array<{item: object, index: number}>} batch - Array of microdata items to process
+   * @param {number} processed - Number of items already processed
+   * @param {number} total - Total number of items to process
+   * @param {string} key - Storage key for logging context
+   * @returns {Promise<void>}
    */
-  async #createResource(item) {
-    // Create content
-    const jsonld = JSON.stringify(item);
+  async #processBatch(batch, processed, total, key) {
+    const batchSize = batch.length;
 
-    // Create descriptor using LLM completion
-    const prompt = `${DESCRIPTOR_PROMPT}${jsonld}`;
+    this.#logger.debug("Processing batch", {
+      items:
+        batchSize > 1
+          ? `${processed + 1}-${processed + batchSize}/${total}`
+          : `${processed + 1}/${total}`,
+      key,
+    });
+
+    // Create batch content for template
+    const batchContent = batch
+      .map((data, i) => {
+        const jsonld = JSON.stringify(data.item);
+        return `RESOURCE ${i + 1}:\n${jsonld}`;
+      })
+      .join("\n\n");
+
+    // Generate prompt using mustache template
+    const prompt = mustache.render(this.#descriptorTemplate, { batchContent });
 
     const completion = await this.#llm.createCompletions({
       messages: [
@@ -160,21 +166,56 @@ export class ResourceProcessor extends ResourceProcessorInterface {
           content: prompt,
         },
       ],
-      max_tokens: 500,
+      max_tokens: 2000, // Increased for batch processing
       temperature: 0.1,
     });
 
-    let descriptor = {};
+    let descriptors = [];
     try {
-      descriptor = JSON.parse(completion.choices[0].message.content);
+      descriptors = JSON.parse(completion.choices[0].message.content);
     } catch (error) {
-      this.#logger.debug("LLM response is not valid JSON", {
+      this.#logger.debug("LLM batch response is not valid JSON", {
         error: error.message,
         response: completion.choices[0].message.content,
       });
-      throw new Error(`LLM response parsing failed: ${error.message}`);
+      throw new Error(`LLM batch response parsing failed: ${error.message}`);
     }
 
+    // Validate we got the expected number of descriptors
+    if (!Array.isArray(descriptors) || descriptors.length !== batchSize) {
+      throw new Error(
+        `Expected ${batchSize} descriptors, got ${descriptors.length}`,
+      );
+    }
+
+    // Create and store resources for each item in the batch
+    const promises = batch.map(async (data, i) => {
+      try {
+        const resource = this.#createResourceFromData(
+          data.item,
+          descriptors[i],
+        );
+        await this.#resourceIndex.put(resource);
+      } catch (error) {
+        this.#logger.debug("Skipping, failed to create resource", {
+          item: `${processed + i + 1}/${total}`,
+          key,
+          error: error.message,
+        });
+      }
+    });
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Creates a resource object from microdata item and pre-generated descriptor
+   * @param {object} item - The microdata item
+   * @param {object} descriptor - The pre-generated descriptor
+   * @returns {common.MessageV2} The created Message resource
+   */
+  #createResourceFromData(item, descriptor) {
+    const jsonld = JSON.stringify(item);
     return common.MessageV2.fromObject({
       role: "system",
       content: { jsonld },

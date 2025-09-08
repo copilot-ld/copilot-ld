@@ -354,41 +354,11 @@ class AgentService extends AgentBase {
         const toolResults = [];
         for (const toolCall of choiceWithToolCalls.message.tool_calls) {
           try {
-            // Convert LLM tool call to common.Tool format
-            // Support both OpenAI (toolCall.function.name) and Anthropic (toolCall.name) formats
-            const functionName = toolCall.function?.name || toolCall.name;
-            let resolvedName = functionName;
-            if (!resolvedName) {
-              // Heuristic: choose hash tool based on presence of 'sha256' or 'md5' in latest user message
-              const latestUser = message?.content || "";
-              if (/sha-?256/i.test(latestUser)) resolvedName = "sha256_hash";
-              else if (/md5/i.test(latestUser)) resolvedName = "md5_hash";
-              else if (/search|similar/i.test(latestUser))
-                resolvedName = "vector_search";
-            }
-            const tool = common.Tool.fromObject({
-              type: "function",
-              function: {
-                id: {
-                  name: resolvedName
-                    ? `common.ToolFunction.${resolvedName}`
-                    : "",
-                  type: "common.ToolFunction",
-                  parent: "",
-                },
-                arguments: toolCall.function?.arguments,
-              },
-              id: toolCall.id,
-            });
+            console.log("=== DEBUG START ===");
+            console.log(toolCall);
+            console.log("=== DEBUG END ===");
 
-            this.debug("Converted tool call for execution", {
-              originalName: functionName,
-              resolvedName,
-              toolId: toolCall.id,
-              built: JSON.stringify(tool),
-            });
-
-            const toolResult = await this.#toolClient.ExecuteTool(tool);
+            const toolResult = await this.#toolClient.ExecuteTool(toolCall);
 
             // toolResult already has role/tool_call_id/content fields per proto; flatten for provider
             toolResults.push({

@@ -76,9 +76,10 @@ message ToolParam {
 message ToolFunction {
   resource.Identifier id = 1;
   resource.Descriptor descriptor = 2;
+  string name = 3; // Passed by tool call requests
   oneof call {
-    ToolParam parameters = 3; // When declaring
-    string arguments = 4; // When calling
+    ToolParam parameters = 4; // When declaring
+    string arguments = 5; // When calling
   }
 }
 

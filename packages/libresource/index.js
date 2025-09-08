@@ -130,11 +130,11 @@ function toIdentifier(uri) {
   const pathParts = path.split("/");
 
   // The last part is the name, everything before is the parent path
-  const name = pathParts[pathParts.length - 1];
+  const nameParts = pathParts[pathParts.length - 1].split(".");
   const parentParts = pathParts.slice(0, -1);
 
   // Extract type from name (format: "namespace.Type.hash")
-  const nameParts = name.split(".");
+  const name = nameParts.pop();
   const type = `${nameParts[0]}.${nameParts[1]}`;
 
   // Build parent URI if there are parent parts

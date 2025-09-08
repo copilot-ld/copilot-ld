@@ -180,15 +180,10 @@ async function storeToolResource(resourceIndex, object, endpoint, logger) {
 
   // Define the descriptor
   const descriptor = resource.Descriptor.fromObject({
-    purpose:
-      endpoint.purpose || `Provides ${object.function.name} functionality`,
-    instructions:
-      endpoint.instructions ||
-      "Use this tool when you need to perform the described operation",
-    applicability: endpoint.applicability || object.function.description,
-    evaluation:
-      endpoint.evaluation ||
-      "Tool execution should complete without errors and return expected results",
+    purpose: endpoint.purpose,
+    instructions: endpoint.instructions,
+    applicability: endpoint.applicability,
+    evaluation: endpoint.evaluation,
   });
 
   // Create the resource

@@ -101,90 +101,54 @@ export class Copilot extends LlmInterface {
   }
 
   /** @inheritdoc */
-  async createCompletions(params) {
-    // Convert MessageV2 objects to simple API format
-    const messages = (params.messages || []).map((msg) => {
-      const content =
-        typeof msg.content === "string"
-          ? msg.content
-          : msg.content?.text || JSON.stringify(msg.content) || "";
-      if (msg.role === "tool") {
-        // Tool messages must include tool_call_id and plain string content.
-        // Some upstream code attaches tool_call_id as a non-enumerable or ad-hoc property; attempt multiple lookups.
-        const toolCallId =
-          msg.tool_call_id ||
-          msg.toolCallId ||
-          msg.id ||
-          (msg.descriptor && msg.descriptor.tool_call_id);
+  async createCompletions(messages, tools, temperature, max_tokens) {
+    // Convert messages from internal MessageV2 format to OpenAI format
+    const formattedMessages = messages
+      ?.map((m) => {
+        if (!m) return null; // Skip null/undefined messages
         return {
-          role: "tool",
-          tool_call_id: toolCallId,
-          content,
+          role: m.role || "user",
+          content: m.content?.text || String(m.content || ""),
+          ...(m.tool_calls && { tool_calls: m.tool_calls }),
+          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
         };
-      }
-      const mapped = { role: msg.role || "user", content };
-      if (Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0) {
-        mapped.tool_calls = msg.tool_calls.map((tc) => ({
-          id: tc.id,
-          type: tc.type || "function",
-          function: {
-            name:
-              (tc.function?.id?.name && tc.function.id.name.split(".").pop()) ||
-              tc.function?.name ||
-              "unknown",
-            arguments: tc.function?.arguments,
-          },
-        }));
-      }
-      return mapped;
+      })
+      .filter(Boolean); // Remove null entries
+
+    // Convert tools from internal Tool format to OpenAI format
+    const formattedTools = tools?.map((t) => {
+      return {
+        type: t.type || "function",
+        function: {
+          name: t.function.id.name,
+          description: String(t.function.descriptor || ""),
+          parameters: t.function.parameters || {},
+        },
+      };
     });
 
-    const requestParams = {
-      ...params,
-      messages,
-      model: params.model || this.#model,
-      max_tokens: params.max_tokens || 4000, // Add default max_tokens
+    const body = {
+      messages: formattedMessages,
+      tools: formattedTools,
+      temperature,
+      max_tokens,
+      model: this.#model,
     };
-
-    // Debug first tool message without leaking full content array size
-    try {
-      const firstToolMsg = messages.find((m) => m.role === "tool");
-      if (firstToolMsg) {
-        console.debug(
-          "[copilot] Outbound tool message sample",
-          JSON.stringify(firstToolMsg),
-        );
-      }
-    } catch {
-      // Ignore JSON stringify errors for debug logging
-    }
 
     const response = await this.#withRetry(() =>
       this.#fetch(`${this.#baseURL}/chat/completions`, {
         method: "POST",
         headers: this.#headers,
-        body: JSON.stringify(requestParams),
+        body: JSON.stringify(body),
       }),
     );
 
     const data = await response.json();
 
-    // Convert response back to expected format with proper MessageV2 instances
-    // The monkey patch in libtype automatically converts string content to Content objects
-    // BUT preserve original tool_calls structure - don't convert through protobuf
     return {
       ...data,
       choices:
-        data.choices?.map((choice) => ({
-          ...choice,
-          message: {
-            ...common.MessageV2.fromObject({
-              ...choice.message,
-              tool_calls: [], // Remove tool_calls from protobuf conversion
-            }),
-            tool_calls: choice.message.tool_calls, // Preserve original structure
-          },
-        })) || [],
+        data.choices?.map((choice) => common.Choice.fromObject(choice)) || [],
     };
   }
 

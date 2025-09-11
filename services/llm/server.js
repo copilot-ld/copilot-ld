@@ -1,7 +1,6 @@
 /* eslint-env node */
-import { Server, grpcFactory, authFactory } from "@copilot-ld/librpc";
+import { Server } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { logFactory } from "@copilot-ld/libutil";
 import { Copilot } from "@copilot-ld/libcopilot";
 
 import { LlmService } from "./index.js";
@@ -17,12 +16,6 @@ const service = new LlmService(
 );
 
 // Create and start the server
-const server = new Server(
-  service,
-  config,
-  grpcFactory,
-  authFactory,
-  logFactory,
-);
+const server = new Server(service, config);
 
 await server.start();

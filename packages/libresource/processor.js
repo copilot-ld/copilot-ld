@@ -119,16 +119,17 @@ export class ResourceProcessor extends ProcessorBase {
     // Generate prompt using mustache template
     const prompt = mustache.render(this.#descriptorTemplate, { batchContent });
 
-    const completion = await this.#llm.createCompletions({
-      messages: [
+    const completion = await this.#llm.createCompletions(
+      [
         {
           role: "user",
           content: prompt,
         },
       ],
-      max_tokens: 2000,
-      temperature: 0.1,
-    });
+      undefined, // tools
+      0.1, // temperature
+      2000, // max_tokens
+    );
 
     let descriptors = [];
     try {

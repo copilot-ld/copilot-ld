@@ -36,13 +36,17 @@ describe("libcopilot", () => {
         Promise.resolve(mockResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-        max_tokens: 100,
-        temperature: 0.5,
-      };
+      const messages = [{ role: "user", content: "Hello" }];
+      const tools = undefined;
+      const temperature = 0.5;
+      const max_tokens = 100;
 
-      const result = await copilot.createCompletions(params);
+      const result = await copilot.createCompletions(
+        messages,
+        tools,
+        temperature,
+        max_tokens,
+      );
 
       assert.strictEqual(mockFetch.mock.callCount(), 1);
       const [url, options] = mockFetch.mock.calls[0].arguments;
@@ -68,11 +72,9 @@ describe("libcopilot", () => {
         Promise.resolve(mockResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-      };
+      const messages = [{ role: "user", content: "Hello" }];
 
-      await copilot.createCompletions(params);
+      await copilot.createCompletions(messages);
 
       const [, options] = mockFetch.mock.calls[0].arguments;
       const body = JSON.parse(options.body);
@@ -90,11 +92,9 @@ describe("libcopilot", () => {
         Promise.resolve(mockResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-      };
+      const messages = [{ role: "user", content: "Hello" }];
 
-      await assert.rejects(() => copilot.createCompletions(params), {
+      await assert.rejects(() => copilot.createCompletions(messages), {
         message: /HTTP 404: Not Found/,
       });
     });
@@ -111,11 +111,9 @@ describe("libcopilot", () => {
         Promise.resolve(errorResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-      };
+      const messages = [{ role: "user", content: "Hello" }];
 
-      await assert.rejects(() => copilot.createCompletions(params), {
+      await assert.rejects(() => copilot.createCompletions(messages), {
         message: /HTTP 500: Internal Server Error/,
       });
 
@@ -283,9 +281,7 @@ describe("libcopilot", () => {
 
       // Test createCompletions
       await assert.rejects(() =>
-        copilot.createCompletions({
-          messages: [{ role: "user", content: "Hello" }],
-        }),
+        copilot.createCompletions([{ role: "user", content: "Hello" }]),
       );
       assert.strictEqual(mockFetch.mock.callCount(), 5); // Initial + 4 retries
 
@@ -310,9 +306,7 @@ describe("libcopilot", () => {
       );
 
       await assert.rejects(() =>
-        copilot.createCompletions({
-          messages: [{ role: "user", content: "Hello" }],
-        }),
+        copilot.createCompletions([{ role: "user", content: "Hello" }]),
       );
 
       // Should only make one call for non-429 errors

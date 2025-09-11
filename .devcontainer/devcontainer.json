@@ -2,5 +2,10 @@
   "name": "Copilot-LD Development Container",
   "image": "mcr.microsoft.com/devcontainers/javascript-node",
   "postCreateCommand": "npm install",
-  "remoteUser": "node"
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "extensions": ["bierner.markdown-mermaid"]
+    }
+  }
 }

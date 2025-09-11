@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { common, llm, memory, vector } from "@copilot-ld/libtype";
-import { generateSessionId, getLatestUserMessage } from "@copilot-ld/libutil";
+import { getLatestUserMessage, generateUUID } from "@copilot-ld/libutil";
 
 import { AgentBase } from "../../generated/services/agent/service.js";
 
@@ -147,7 +147,7 @@ class AgentService extends AgentBase {
     } else {
       conversation = common.Conversation.fromObject({
         id: {
-          name: generateSessionId(),
+          name: generateUUID(),
         },
       });
       this.#resourceIndex.put(conversation);
@@ -240,7 +240,7 @@ class AgentService extends AgentBase {
         }),
       );
 
-      // Step 5: Get LLM completion with tool calling support - Inner Loop
+      // Step 5: Get LLM completion with tool calling support
       let messages = await toMessages(
         assistant,
         tasks,
@@ -257,6 +257,7 @@ class AgentService extends AgentBase {
       let maxIterations = 10;
       let currentIteration = 0;
 
+      // Step 6: Inner loop with tool calls
       while (currentIteration < maxIterations) {
         this.debug("Inner loop", {
           iteration: currentIteration + 1,
@@ -280,13 +281,9 @@ class AgentService extends AgentBase {
         }
 
         // Find the first choice with tool calls
-        let choiceWithToolCalls = null;
-        for (const choice of completions.choices) {
-          if (choice.message?.tool_calls?.length > 0) {
-            choiceWithToolCalls = choice;
-            break;
-          }
-        }
+        const choiceWithToolCalls = completions.choices.find(
+          (choice) => choice.message?.tool_calls?.length > 0,
+        );
 
         // If no tool calls found in any choice, we're done
         if (!choiceWithToolCalls) {

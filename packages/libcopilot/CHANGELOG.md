@@ -1,5 +1,20 @@
 # Changelog
 
+## 2025-09-09
+
+- **BREAKING CHANGE**: Updated `createCompletions()` method to use explicit
+  parameters `(messages, tools, temperature, max_tokens)` instead of object
+  parameter
+- Implemented OpenAI-compatible API format conversions using clean object
+  creation instead of `.toObject()` for better compatibility
+- Enhanced message formatting to extract `content.text` and create clean OpenAI
+  message objects with proper role/content structure
+- Improved tool formatting to create clean OpenAI tool objects with proper
+  type/function structure
+- Added safety checks for null/undefined messages and proper content extraction
+- Removed protobuf dependencies in favor of direct object mapping for more
+  reliable conversion
+
 ## 2025-09-08
 
 - Fixed critical bug in `#withRetry()` method where exhausted retry attempts

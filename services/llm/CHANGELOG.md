@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-09
+
+- **BREAKING CHANGE**: Updated `createCompletions()` call to use explicit
+  parameters and include `max_tokens` parameter
+
 ## 2025-09-08
 
 - **BREAKING**: Switched to `repeated common.MessageV2 messages` in

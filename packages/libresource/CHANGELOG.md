@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-09
+
+- **BREAKING CHANGE**: Updated `createCompletions()` call in `ResourceProcessor`
+  to use explicit parameters instead of object parameter
+
 ## 2025-09-08
 
 - **SIMPLIFIED**: Updated `ResourceProcessor.processItem()` to remove unused

@@ -1,9 +1,8 @@
 /* eslint-env node */
 import { Octokit } from "@octokit/core";
 
-import { Server, grpcFactory, authFactory } from "@copilot-ld/librpc";
+import { Server } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { logFactory } from "@copilot-ld/libutil";
 import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
@@ -50,12 +49,6 @@ const service = new AgentService(
 );
 
 // Create and start the server
-const server = new Server(
-  service,
-  agentConfig,
-  grpcFactory,
-  authFactory,
-  logFactory,
-);
+const server = new Server(service, agentConfig);
 
 await server.start();

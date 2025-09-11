@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { Server, grpcFactory, authFactory } from "@copilot-ld/librpc";
+import { Server } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { logFactory } from "@copilot-ld/libutil";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { Policy } from "@copilot-ld/libpolicy";
@@ -23,12 +22,6 @@ const resourceIndex = new ResourceIndex(resourceStorage, policy);
 const service = new MemoryService(config, memoryStorage, resourceIndex);
 
 // Create and start the server
-const server = new Server(
-  service,
-  config,
-  grpcFactory,
-  authFactory,
-  logFactory,
-);
+const server = new Server(service, config);
 
 await server.start();

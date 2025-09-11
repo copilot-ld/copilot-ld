@@ -7,7 +7,7 @@ export * from "../../generated/types/types.js";
 // NOTE: generated artifacts now live under top-level generated/ directory
 import * as types from "../../generated/types/types.js";
 import { countTokens } from "@copilot-ld/libcopilot";
-import { generateHash } from "@copilot-ld/libutil";
+import { generateHash, generateUUID } from "@copilot-ld/libutil";
 
 // Core namespaces only (tools and any experimental namespaces are excluded intentionally)
 const {
@@ -27,24 +27,23 @@ const {
 function withIdentifier(parent) {
   if (!this?.id) {
     this.id = new resource.Identifier();
-  } else {
-    // Re-cast to ensure proper prototype
-    this.id = resource.Identifier.fromObject(this.id);
   }
 
   const type = this.constructor.getTypeUrl("copilot-ld.dev").split("/").pop();
-
-  if (!type) throw new Error("Resource type must not be null");
+  if (!type)
+    throw new Error("resource.withIdentifier: Resource type must not be null");
 
   let name;
   if (this.id?.name) {
     // Ensure normalization on just the last part of a dotted name
     name = this.id.name.split(".").pop();
+  } else if (this?.name && typeof this.name === "string") {
+    // Some resources have a .name property, use that if no id.name is set
+    name = this.name;
   } else {
-    const content = String(this?.content);
-    if (content === null || content === "null")
-      throw new Error(`Resource content must not be null`);
-    name = generateHash(type, content);
+    name = this?.content
+      ? generateHash(type, String(this.content))
+      : generateUUID();
   }
   this.id.type = type;
   this.id.name = name;
@@ -80,8 +79,15 @@ common.MessageV2.prototype.withTokens = withTokens;
 common.ToolFunction.prototype.withTokens = withTokens;
 
 resource.Identifier.prototype.toString = function () {
-  if (!this.type) throw new Error("Resource type must not be null");
-  if (!this.name) throw new Error("Resource name must not be null");
+  if (!this?.type)
+    throw new Error(
+      "resource.Identifier.toString: Resource type must not be null: " +
+        JSON.stringify(this),
+    );
+  if (!this?.name)
+    throw new Error(
+      "resource.Identifier.toString: Resource name must not be null",
+    );
 
   // Check for string, as conversions can have happened earlier
   // TODO: Do we still need this?
@@ -137,12 +143,15 @@ const originalMessageV2Constructor = common.MessageV2;
 
 // Monkey-patch MessageV2.fromObject to gracefully convert content to an object
 const originalMessageV2fromObject = originalMessageV2Constructor.fromObject;
+
 common.MessageV2.fromObject = function (object) {
   if (typeof object.content === "string") {
     const content = { text: object.content };
     object = { ...object, content };
   }
-  return originalMessageV2fromObject(object);
+  const typed = originalMessageV2fromObject(object);
+  typed.withIdentifier();
+  return typed;
 };
 
 // Patch .verify to handle convert string content to object
@@ -163,17 +172,19 @@ const originalToolFunctionConstructor = common.ToolFunction;
 // Monkey-patch ToolFunction.fromObject to gracefully convert .name to .id.name
 const originalToolFunctionfromObject =
   originalToolFunctionConstructor.fromObject;
+
 common.ToolFunction.fromObject = function (object) {
-  // Name at the root take precedence over id.name as it assigned by the LLM
+  // If the object has a name property, construct the identifier from it
   if (object?.name) {
     if (object?.id) {
       object.id.name = object.name;
     } else {
       object.id = { name: object.name };
     }
-    delete object.name;
   }
-  return originalToolFunctionfromObject(object);
+  const typed = originalToolFunctionfromObject(object);
+  typed.withIdentifier();
+  return typed;
 };
 
 export {

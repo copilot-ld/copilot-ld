@@ -40,6 +40,14 @@ export function generateHash(...values) {
 }
 
 /**
+ * Generates a unique session ID for conversation tracking
+ * @returns {string} Unique session identifier
+ */
+export function generateUUID() {
+  return crypto.randomUUID();
+}
+
+/**
  * Logger class for centralized logging with namespace support
  */
 export class Logger extends LoggerInterface {
@@ -231,14 +239,6 @@ export class ProcessorBase extends ProcessorInterface {
   async processItem(_item) {
     throw new Error("processItem must be implemented by subclass");
   }
-}
-
-/**
- * Generates a unique session ID for conversation tracking
- * @returns {string} Unique session identifier
- */
-export function generateSessionId() {
-  return crypto.randomUUID();
 }
 
 /**

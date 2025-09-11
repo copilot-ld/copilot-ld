@@ -226,7 +226,13 @@ export class Server {
    * @param {(serviceName: string) => object} authFn - Auth factory
    * @param {(namespace: string) => object} logFn - Log factory
    */
-  constructor(service, config, grpcFn, authFn, logFn) {
+  constructor(
+    service,
+    config,
+    grpcFn = grpcFactory,
+    authFn = authFactory,
+    logFn = logFactory,
+  ) {
     if (!service) throw new Error("service is required");
     if (!config) throw new Error("config is required");
 

@@ -1,5 +1,4 @@
 /* eslint-env node */
-import { tool } from "@copilot-ld/libtype";
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { VectorClient } from "../../generated/services/vector/client.js";
 import { ToolBase } from "../../generated/services/tool/service.js";
@@ -9,21 +8,16 @@ import { ToolBase } from "../../generated/services/tool/service.js";
  * @implements {ToolBase}
  */
 class ToolService extends ToolBase {
-  #resourceIndex;
   #clients;
   #endpoints;
 
   /**
    * Creates a new Tool service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
-   * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - ResourceIndex instance for accessing resources
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, resourceIndex, logFn) {
+  constructor(config, logFn) {
     super(config, logFn);
-    if (!resourceIndex) throw new Error("resourceIndex is required");
-
-    this.#resourceIndex = resourceIndex;
     this.#clients = new Map();
     this.#endpoints = config.endpoints || {};
   }
@@ -42,63 +36,14 @@ class ToolService extends ToolBase {
    * @returns {Promise<import("@copilot-ld/libtype").common.ToolCallResult>} Tool execution result
    */
   async ExecuteTool(req) {
-    // Structural dump for deep diagnostics (avoid huge logs by summarizing keys)
-    try {
-      const fn = req?.function || {};
-      this.debug("Executing tool (inbound)", {
-        keys: Object.keys(req || {}),
-        fnType: typeof fn,
-        fnKeys: typeof fn === "object" ? Object.keys(fn) : undefined,
-        hasId: !!fn.id,
-        idKeys: fn.id ? Object.keys(fn.id) : undefined,
-        preview: JSON.stringify({
-          id: fn.id,
-          name: fn.name,
-          arguments: (fn.arguments || "").slice(0, 120),
-        }),
-        toolId: req.id,
-      });
-    } catch {
-      // Ignore diagnostic logging errors
-    }
-
     try {
       // Validate request structure early
-      if (!req || !req.function) {
-        throw new Error("Invalid tool request: missing function");
+      if (!req?.id || !req?.function) {
+        throw new Error("Invalid tool request: missing id or function");
       }
-      this.debug("Raw tool request", { req: JSON.stringify(req) });
-      // Extract tool name from function identifier (format: common.ToolFunction.<name>) with multiple fallbacks
-      let rawName =
-        (req.function && req.function.id && req.function.id.name) ||
-        req.function?.name ||
-        "";
-      if (!rawName && typeof req.function === "object") {
-        // Attempt deep search for recognizable tool names
-        try {
-          const json = JSON.stringify(req.function);
-          const match = json.match(/sha256_hash|md5_hash|vector_search/);
-          if (match) rawName = match[0];
-        } catch {
-          // Ignore JSON stringify errors
-        }
-      }
-      // If the id object exists without name but name exists separately, synthesize id.name
-      if (!req.function?.id?.name && req.function?.name) {
-        req.function.id = req.function.id || {
-          type: "common.ToolFunction",
-          parent: "",
-        };
-        req.function.id.name = `common.ToolFunction.${req.function.name}`;
-        rawName = req.function.id.name;
-      }
-      if (rawName && !rawName.includes("."))
-        rawName = `common.ToolFunction.${rawName}`;
-      const toolName = rawName ? rawName.split(".").pop() : "";
-      this.debug("Resolved tool name", { rawName, toolName });
-      if (!toolName) {
-        throw new Error("Tool function name is required");
-      }
+
+      const toolName = req.function.id.name;
+      this.debug("Executing tool", { name: toolName });
 
       // Look up endpoint configuration
       const endpoint = this.#endpoints[toolName];
@@ -121,11 +66,9 @@ class ToolService extends ToolBase {
         req,
       );
 
-      this.debug("Tool execution completed", { toolName, success: true });
-
       return {
         role: "tool",
-        tool_call_id: req.id || "",
+        tool_call_id: req.id,
         content: JSON.stringify(result),
       };
     } catch (error) {
@@ -143,63 +86,6 @@ class ToolService extends ToolBase {
   }
 
   /**
-   * Implement the `ListTools` RPC.
-   * @param {tool.ListToolsRequest} req - List tools request
-   * @returns {Promise<tool.ListToolsResponse>} Available tools
-   */
-  async ListTools(req) {
-    this.debug("Listing available tools", {
-      namespace: req.namespace,
-    });
-
-    try {
-      const actor = "cld:common.System.root";
-      const tools = [];
-
-      // Load tools from ResourceIndex
-      this.debug("Loading tools from ResourceIndex", {
-        available: !!this.#resourceIndex,
-      });
-
-      // Query ResourceIndex for ToolFunction resources
-      // For now, we'll implement a simple pattern-based query
-      // In a full implementation, this would use proper resource querying
-      const resourcePattern = "cld:common.ToolFunction.";
-
-      // Since ResourceIndex doesn't have a query method, we'll iterate through known tools
-      // This would be improved with a proper query interface
-      for (const [toolName] of Object.entries(this.#endpoints)) {
-        // Skip if namespace filter doesn't match
-        if (req.namespace && !toolName.startsWith(req.namespace)) {
-          continue;
-        }
-
-        try {
-          const resourceId = `${resourcePattern}${toolName}`;
-          const toolResource = await this.#resourceIndex.get(actor, resourceId);
-
-          if (toolResource && toolResource.toolSchema) {
-            tools.push(toolResource.toolSchema);
-          }
-        } catch (error) {
-          this.debug("Failed to load tool from ResourceIndex", {
-            toolName,
-            error: error.message,
-          });
-          // Continue with next tool instead of failing completely
-        }
-      }
-
-      this.debug("Tools listed from ResourceIndex", { count: tools.length });
-
-      return { tools };
-    } catch (error) {
-      this.debug("Failed to list tools", { error: error.message });
-      return { tools: [] };
-    }
-  }
-
-  /**
    * Route tool call to appropriate service
    * @param {string} packageName - Target package name
    * @param {string} serviceName - Target service name
@@ -213,6 +99,7 @@ class ToolService extends ToolBase {
 
     // Get or create gRPC client for service
     let client = this.#clients.get(serviceKey);
+
     if (!client) {
       client = await this.#createServiceClient(packageName, serviceName);
       this.#clients.set(serviceKey, client);

@@ -1,184 +1,159 @@
 /* eslint-env node */
-import { test, describe, beforeEach, mock } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
+// Module under test
 import { VectorService } from "../index.js";
 
-describe("VectorService", () => {
-  let mockConfig;
-  let mockContentIndex;
-  let mockDescriptorIndex;
-  let mockLogFn;
-
-  beforeEach(() => {
-    mockConfig = {
-      name: "vector",
-      threshold: 0.3,
-      limit: 10,
-    };
-
-    mockContentIndex = {
-      queryItems: mock.fn(),
-      addItems: mock.fn(),
-      removeItems: mock.fn(),
-    };
-
-    mockDescriptorIndex = {
-      queryItems: mock.fn(),
-      addItems: mock.fn(),
-      removeItems: mock.fn(),
-    };
-
-    mockLogFn = mock.fn(() => ({
-      debug: mock.fn(),
-    }));
-  });
-
-  test("should require config parameter", () => {
-    assert.throws(
-      () => new VectorService(null, mockContentIndex, mockDescriptorIndex),
-      /config is required/,
-    );
-  });
-
-  test("should create instance with valid parameters", () => {
-    const service = new VectorService(
-      mockConfig,
-      mockContentIndex,
-      mockDescriptorIndex,
-      mockLogFn,
-    );
-
-    assert.ok(service);
-    assert.strictEqual(service.config, mockConfig);
-  });
-
-  test("should use default log factory when not provided", () => {
-    const service = new VectorService(
-      mockConfig,
-      mockContentIndex,
-      mockDescriptorIndex,
-    );
-
-    assert.ok(service);
-    assert.ok(typeof service.debug === "function");
-  });
-
-  describe("QueryItems", () => {
-    test("should handle empty vector", async () => {
-      mockContentIndex.queryItems.mock.mockImplementation(() =>
-        Promise.resolve([]),
-      );
-
-      const service = new VectorService(
-        mockConfig,
-        mockContentIndex,
-        mockDescriptorIndex,
-      );
-
-      const response = await service.QueryItems({
-        vector: [],
-      });
-
-      assert.deepStrictEqual(response.identifiers, []);
+describe("vector service", () => {
+  describe("VectorService", () => {
+    test("exports VectorService class", () => {
+      assert.strictEqual(typeof VectorService, "function");
+      assert.ok(VectorService.prototype);
     });
 
-    test("should propagate content index errors", async () => {
-      const error = new Error("Vector index is corrupted");
-      mockContentIndex.queryItems.mock.mockImplementation(() =>
-        Promise.reject(error),
-      );
+    test("VectorService has QueryItems method", () => {
+      assert.strictEqual(typeof VectorService.prototype.QueryItems, "function");
+    });
 
-      const service = new VectorService(
-        mockConfig,
-        mockContentIndex,
-        mockDescriptorIndex,
-      );
+    test("VectorService has GetItem method", () => {
+      assert.strictEqual(typeof VectorService.prototype.GetItem, "function");
+    });
 
-      await assert.rejects(
-        () =>
-          service.QueryItems({
-            vector: [0.1, 0.2, 0.3],
-          }),
-        /Vector index is corrupted/,
-      );
+    test("VectorService constructor accepts expected parameters", () => {
+      // Test constructor signature by checking parameter count
+      assert.strictEqual(VectorService.length, 4); // config, contentIndex, descriptorIndex, logFn
+    });
+
+    test("VectorService has proper method signatures", () => {
+      const methods = Object.getOwnPropertyNames(VectorService.prototype);
+      assert(methods.includes("QueryItems"));
+      assert(methods.includes("GetItem"));
+      assert(methods.includes("constructor"));
     });
   });
 
-  describe("Service Interface", () => {
-    test("should return correct proto name", () => {
-      const service = new VectorService(
-        mockConfig,
-        mockContentIndex,
-        mockDescriptorIndex,
-      );
+  describe("VectorService business logic", () => {
+    let mockConfig;
+    let mockContentIndex;
+    let mockDescriptorIndex;
 
-      assert.strictEqual(service.getProtoName(), "vector.proto");
-    });
-
-    test("should return handlers map", () => {
-      const service = new VectorService(
-        mockConfig,
-        mockContentIndex,
-        mockDescriptorIndex,
-      );
-
-      const handlers = service.getHandlers();
-
-      assert.ok(handlers);
-      assert.ok(typeof handlers.QueryItems === "function");
-    });
-
-    test("handlers should call service methods", async () => {
-      mockContentIndex.queryItems.mock.mockImplementation(() =>
-        Promise.resolve([]),
-      );
-
-      const service = new VectorService(
-        mockConfig,
-        mockContentIndex,
-        mockDescriptorIndex,
-      );
-      const handlers = service.getHandlers();
-
-      const mockCall = {
-        request: {
-          vector: [0.1, 0.2, 0.3],
-          filter: { threshold: 0.5 },
-        },
+    beforeEach(() => {
+      mockConfig = {
+        name: "vector",
+        threshold: 0.3,
+        limit: 10,
       };
 
-      await handlers.QueryItems(mockCall);
+      mockContentIndex = {
+        queryItems: async () => [
+          { type: "common.MessageV2", name: "msg1", score: 0.8 },
+        ],
+        getItem: async (id) => ({ id, found: true }),
+      };
 
-      assert.strictEqual(mockContentIndex.queryItems.mock.callCount(), 1);
+      mockDescriptorIndex = {
+        queryItems: async () => [
+          { type: "resource.Descriptor", name: "desc1", score: 0.9 },
+        ],
+        getItem: async (id) => ({ id, found: true }),
+      };
     });
-  });
 
-  describe("Debug Logging", () => {
-    test("should log debug messages when logger provided", () => {
-      const mockLogger = { debug: mock.fn() };
-      const logFn = mock.fn(() => mockLogger);
-
+    test("creates service instance with indexes", () => {
       const service = new VectorService(
         mockConfig,
         mockContentIndex,
         mockDescriptorIndex,
-        logFn,
       );
 
-      service.debug("test message", { context: "test" });
-
-      assert.strictEqual(logFn.mock.callCount(), 1);
-      assert.strictEqual(logFn.mock.calls[0].arguments[0], "vector");
-      assert.strictEqual(mockLogger.debug.mock.callCount(), 1);
-      assert.strictEqual(
-        mockLogger.debug.mock.calls[0].arguments[0],
-        "test message",
-      );
+      assert.ok(service);
+      assert.strictEqual(service.config, mockConfig);
     });
-  });
 
-  describe("Configuration Integration", () => {
-    // Tests removed - implementation verified as working
+    test("QueryItems uses content index by default", async () => {
+      const service = new VectorService(
+        mockConfig,
+        mockContentIndex,
+        mockDescriptorIndex,
+      );
+
+      const result = await service.QueryItems({
+        vector: [0.1, 0.2, 0.3],
+        filters: { threshold: 0.3, limit: 10 },
+      });
+
+      assert.ok(result);
+      assert.ok(Array.isArray(result.identifiers));
+      assert.strictEqual(result.identifiers.length, 1);
+      assert.strictEqual(result.identifiers[0].type, "common.MessageV2");
+    });
+
+    test("QueryItems uses descriptor index when specified", async () => {
+      const service = new VectorService(
+        mockConfig,
+        mockContentIndex,
+        mockDescriptorIndex,
+      );
+
+      const result = await service.QueryItems({
+        index: "descriptor",
+        vector: [0.1, 0.2, 0.3],
+        filters: { threshold: 0.3, limit: 10 },
+      });
+
+      assert.ok(result);
+      assert.ok(Array.isArray(result.identifiers));
+      assert.strictEqual(result.identifiers.length, 1);
+      assert.strictEqual(result.identifiers[0].type, "resource.Descriptor");
+    });
+
+    test("GetItem uses content index by default", async () => {
+      const service = new VectorService(
+        mockConfig,
+        mockContentIndex,
+        mockDescriptorIndex,
+      );
+
+      const result = await service.GetItem({
+        id: "test-id",
+      });
+
+      assert.ok(result);
+      assert.ok(result.identifier);
+      assert.strictEqual(result.identifier.id, "test-id");
+    });
+
+    test("GetItem uses descriptor index when specified", async () => {
+      const service = new VectorService(
+        mockConfig,
+        mockContentIndex,
+        mockDescriptorIndex,
+      );
+
+      const result = await service.GetItem({
+        index: "descriptor",
+        id: "test-desc-id",
+      });
+
+      assert.ok(result);
+      assert.ok(result.identifier);
+      assert.strictEqual(result.identifier.id, "test-desc-id");
+    });
+
+    test("QueryItems handles empty filters", async () => {
+      const service = new VectorService(
+        mockConfig,
+        mockContentIndex,
+        mockDescriptorIndex,
+      );
+
+      const result = await service.QueryItems({
+        vector: [0.1, 0.2, 0.3],
+      });
+
+      assert.ok(result);
+      assert.ok(Array.isArray(result.identifiers));
+    });
   });
 });

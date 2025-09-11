@@ -6,7 +6,7 @@ import { common } from "../index.js";
 
 describe("Universal Resource Identifier", () => {
   test("Resource has an identifier", () => {
-    const message = new common.MessageV2({});
+    const message = common.MessageV2.fromObject({});
     assert.strictEqual(typeof message.id, "object");
   });
 
@@ -111,7 +111,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generation throws an error without name", () => {
-    const message = new common.MessageV2.fromObject({
+    const message = common.MessageV2.fromObject({
       id: { type: "common.MessageV2" },
     });
     assert.throws(
@@ -125,17 +125,17 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generates a URI", () => {
-    const message = new common.MessageV2({
+    const message = common.MessageV2.fromObject({
       content: {
         text: "Hello, world!",
       },
     });
     message.withIdentifier();
-    assert.strictEqual(String(message.id), "cld:common.MessageV2.3d775ea3");
+    assert.strictEqual(String(message.id), "cld:common.MessageV2.5afdd107");
   });
 
   test("Identifier generates a URI with name", () => {
-    const message = new common.MessageV2({
+    const message = common.MessageV2.fromObject({
       id: {
         name: "hash0001",
       },
@@ -148,7 +148,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generates a URI with normalized name", () => {
-    const message = new common.MessageV2({
+    const message = common.MessageV2.fromObject({
       id: {
         name: "common.MessageV2.hash0001",
       },
@@ -161,7 +161,7 @@ describe("Universal Resource Identifier", () => {
   });
 
   test("Identifier generates a URI with name and parent", () => {
-    const message = new common.MessageV2({
+    const message = common.MessageV2.fromObject({
       id: {
         name: "common.MessageV2.hash0002",
         parent: "cld:common.Conversation.hash0001",

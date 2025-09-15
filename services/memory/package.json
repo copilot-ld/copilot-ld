@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.4",
-    "@copilot-ld/libpolicy": "*",
+    "@copilot-ld/libpolicy": "^0.1.1",
     "@copilot-ld/libresource": "^0.1.1",
     "@copilot-ld/librpc": "^0.1.6",
-    "@copilot-ld/libstorage": "*",
+    "@copilot-ld/libstorage": "^0.1.2",
     "@copilot-ld/libtype": "*"
   }
 }

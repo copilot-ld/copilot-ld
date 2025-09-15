@@ -9,7 +9,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.3",
+    "@copilot-ld/libconfig": "^0.1.4",
     "@copilot-ld/libpolicy": "*",
     "@copilot-ld/libresource": "*",
     "@copilot-ld/librpc": "^0.1.6",

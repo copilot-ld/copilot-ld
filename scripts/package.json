@@ -22,9 +22,10 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.0",
     "@copilot-ld/libcopilot": "^0.1.0",
+    "@copilot-ld/libpolicy": "^0.1.0",
     "@copilot-ld/librel": "^0.1.0",
     "@copilot-ld/librepl": "^0.1.0",
-    "@copilot-ld/libservice": "^0.1.0",
+    "@copilot-ld/librpc": "^0.1.0",
     "@copilot-ld/libstorage": "^0.1.0",
     "@copilot-ld/libvector": "^0.1.0",
     "@grpc/proto-loader": "^0.7.13",

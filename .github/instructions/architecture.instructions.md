@@ -22,6 +22,11 @@ platform design with proper service organization and communication patterns.
    connections between requests
 5. **Parallel Processing**: Operations must be designed for concurrent execution
    where possible
+6. **Core System Integrity**: The core system (services in `/services`, packages
+   in `/packages`, proto schemas in `/proto`) must remain **completely
+   unchanged** when tools are added to `/tools`. Tools extend the platform
+   without modifying core components. Generated code must adapt to work with the
+   existing core system, never the reverse.
 
 ## Implementation Requirements
 
@@ -34,6 +39,7 @@ platform design with proper service organization and communication patterns.
 ./scripts/          # Development utilities only
 ./data/             # Static definitions and indices only
 ./proto/            # Protocol Buffer schemas only
+./tools/            # Custom tools that extend the core system
 ```
 
 ### Service Structure Pattern
@@ -87,7 +93,8 @@ the implementation class in `index.js` should contain custom logic.
 
 ### Code Generation Workflow
 
-Service bases, clients, and typed messages are generated from `proto/*.proto`:
+Service bases, clients, and typed messages are generated from `proto/*.proto`
+and optional tool schemas in `tools/*.proto` that **extend the core system**:
 
 ```bash
 npm run codegen        # Generate all (types, services, clients)
@@ -95,6 +102,17 @@ npm run codegen:type   # Generate @copilot-ld/libtype
 npm run codegen:service# Generate services/*/service.js
 npm run codegen:client # Generate services/*/client.js
 ```
+
+**Critical Constraint**: Tool definitions in `/tools` are **extensions to the
+core platform** and provide additional functionality beyond the base system
+capabilities. **Generated code from tools must adapt to work with the existing
+core system** - the core system packages, services, and type definitions must
+never be modified to accommodate new tools. This ensures platform stability and
+prevents tool additions from breaking existing functionality.
+
+**Note**: Generated code should always import enhanced types from core packages
+(e.g., `@copilot-ld/libtype`) rather than raw generated types to ensure access
+to all core system enhancements like monkey patches and utility functions.
 
 ### Package Export Pattern
 
@@ -145,22 +163,63 @@ message MethodResponse {
 
 ## Best Practices
 
+### Protobuf Object Creation Patterns
+
+All protobuf types must be created using `Type.fromObject()` instead of
+`new Type()` to ensure proper deep initialization and monkey patch activation:
+
+```javascript
+/* eslint-env node */
+import { common, resource } from "@copilot-ld/libtype";
+
+// ✅ CORRECT - Use fromObject for deep initialization
+const message = common.MessageV2.fromObject({
+  role: "user",
+  content: "Hello world", // Automatically converted to { text: "Hello world" }
+});
+
+const identifier = resource.Identifier.fromObject({
+  name: "example",
+  type: "common.ToolFunction",
+});
+
+// ❌ INCORRECT - Constructor only does flat initialization
+const badMessage = new common.MessageV2({
+  role: "user",
+  content: "Hello world", // Will cause validation errors
+});
+```
+
+**Why fromObject() is Required:**
+
+- Activates monkey patches that handle type conversions (e.g., string → Content
+  object)
+- Ensures proper nested object initialization
+- Provides validation and error handling
+- Maintains consistency with gRPC serialization expectations
+
+**When to Use Each Pattern:**
+
+- `Type.fromObject(data)` - For all normal object creation (99% of cases)
+- `new Type(data)` - Only when specifically avoiding deep initialization to
+  preserve non-proto fields
+
 ### Service Communication Patterns
 
 Agent service must coordinate all operations through parallel execution:
 
 ```javascript
 class AgentService {
-  constructor(historyService, llmService, vectorService) {
-    this.historyService = historyService;
+  constructor(memoryService, llmService, vectorService) {
+    this.memoryService = memoryService;
     this.llmService = llmService;
     this.vectorService = vectorService;
   }
 
   async processRequest(request) {
     // Parallel operations
-    const [historyData, embeddings] = await Promise.all([
-      this.historyService.getHistory(request),
+    const [memoryWindow, embeddings] = await Promise.all([
+      this.memoryService.getWindow(request),
       this.llmService.createEmbeddings(request.query),
     ]);
 
@@ -184,7 +243,7 @@ import NodeCache from "node-cache";
 
 // 2. Internal packages (alphabetical)
 import { Config } from "@copilot-ld/libconfig";
-import { Service } from "@copilot-ld/libservice";
+import { Service } from "@copilot-ld/librpc";
 
 // 3. Local imports (relative paths, alphabetical)
 import { DatabaseInterface } from "./types.js";
@@ -208,6 +267,13 @@ import { DatabaseInterface } from "./types.js";
 5. **DO NOT** create circular dependencies between packages
 6. **DO NOT** put framework-specific code in `/packages` directory
 7. **DO NOT** bypass the Agent service for complex multi-service operations
+8. **DO NOT** modify core system components (`/services`, `/packages`, `/proto`)
+   to accommodate new tools - tools must adapt to the existing core system
+9. **DO NOT** import raw generated types when enhanced core types are
+   available - always use core packages like `@copilot-ld/libtype` to access
+   enhanced functionality
+10. **DO NOT** use `new Type()` constructor for protobuf types - always use
+    `Type.fromObject()` for proper initialization and monkey patch activation
 
 ### Alternative Approaches
 
@@ -215,6 +281,12 @@ import { DatabaseInterface } from "./types.js";
 - Instead of REST inter-service → Use gRPC with Protocol Buffers
 - Instead of stateful services → Design for stateless request processing
 - Instead of framework coupling → Create framework-agnostic abstractions
+- Instead of modifying core system for tools → Design tools to work with
+  existing core system APIs and enhanced types
+- Instead of importing raw generated types → Use enhanced core packages like
+  `@copilot-ld/libtype` for full functionality
+- Instead of `new Type()` constructors → Use `Type.fromObject()` for proper
+  protobuf object initialization
 
 ## Comprehensive Examples
 

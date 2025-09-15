@@ -66,8 +66,14 @@
           external client integration
         </li>
         <li>
-          <strong>Schema Definition</strong>: Protobuf schemas in
-          <code>/proto</code> ensure type safety
+          <strong>Schema Definition</strong>: Authoritative protobuf schemas in
+          <code>/proto</code> (copied verbatim into
+          <code>/generated/proto</code> during code generation) ensure type
+          safety. Optional tool schemas in <code>/tools</code>
+          <strong>extend the core system</strong> with additional functionality.
+          All runtime loading now reads exclusively from
+          <code>/generated/proto</code> for a single source of operational
+          truth.
         </li>
       </ul>
 
@@ -95,12 +101,16 @@
       <h3>Directory Structure</h3>
 
       <pre>
-./services/         # gRPC services
-./extensions/       # Extensions that adapt core system to applications
-./packages/         # Reusable, domain-focused logic
-./scripts/          # Utility scripts for dev and test
-./data/             # Knowledge base, vectors, and resource data
-      </pre>
+./services/          # gRPC service implementations (custom logic only)
+./extensions/        # Extensions that adapt core system to applications
+./packages/          # Reusable, domain-focused logic (framework agnostic)
+./scripts/           # Utility scripts & code generation
+./proto/             # Authoritative protobuf source schemas (never edited in generated/)
+./tools/             # Custom tools that extend the core system
+./generated/         # ALL generated artifacts (proto copies, types, service bases, clients)
+./data/              # Knowledge base, vectors, and resource data
+  </pre
+      >
 
       <h3>High-Level Architecture</h3>
 
@@ -153,7 +163,14 @@ flowchart TD
         budget, and finally requests a completion. Only readiness checks are
         executed in parallel; the main request flow is sequential.
       </p>
-
+      <p>
+        Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
+        data and retrieval-augmented generation. As of 2025-09-05 the platform
+        consolidates all generated protobuf artifacts into a single
+        <code>/generated</code> directory to eliminate ambiguity between source
+        and generated files, simplifying extension with additional tool schemas
+        that <strong>extend the core system</strong>.
+      </p>
       <pre class="mermaid">
 sequenceDiagram
     participant Client
@@ -225,9 +242,11 @@ sequenceDiagram
             <code>assistant</code> → <code>tasks</code> → <code>tools</code> →
             <code>context</code> → <code>history</code>
           </li>
+
           <li>
-            <strong>Tasks</strong>: Not yet implemented in the current runtime
-            path (placeholder only)
+            <strong>gRPC Protocol</strong>: All inter-service communication uses
+            gRPC with Protocol Buffers. Services load schemas exclusively from
+            <code>/generated/proto</code> produced by code generation.
           </li>
           <li>
             <strong>Budgeting</strong>: Effective token budget is computed as
@@ -266,6 +285,49 @@ sequenceDiagram
         token-based filtering. The current Agent runtime path queries the
         <code>content</code> index by default.
       </p>
+
+      <h5>Tool Service</h5>
+
+      <p>
+        Acts as a gRPC proxy between tool calls requested by LLMs and actual
+        tool implementations. Supports both mapping to existing services and
+        custom tool implementations that
+        <strong>extend the core system</strong> through configuration-driven
+        endpoint mapping.
+      </p>
+
+      <p><strong>Key Operations</strong>:</p>
+      <ul>
+        <li>
+          <code>ExecuteTool</code>: Proxies tool calls to appropriate services
+          based on configuration mapping
+        </li>
+        <li>
+          <code>ListTools</code>: Returns available tools with OpenAI-compatible
+          schemas for LLM consumption
+        </li>
+      </ul>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Configuration-driven</strong>: Tools defined via endpoint
+          mappings in <code>config.yml</code>
+        </li>
+        <li>
+          <strong>Pure proxy</strong>: No business logic, just routing and
+          protocol conversion
+        </li>
+        <li>
+          <strong>Extensible</strong>: Supports mapping to existing services
+          (e.g., <code>vector.QueryItems</code>) and custom tools that
+          <strong>extend the platform</strong>
+        </li>
+        <li>
+          <strong>Schema generation</strong>: Automatically generates
+          OpenAI-compatible JSON schemas from protobuf types
+        </li>
+      </ul>
 
       <h3>Offline Sequence Diagram</h3>
 
@@ -425,6 +487,109 @@ sequenceDiagram
         requiring real-time embedding generation.
       </p>
 
+      <h3 id="code-generation">Code Generation</h3>
+
+      <p>
+        All operational protobuf schemas and generated code live exclusively
+        under
+        <code>generated/</code> to eliminate ambiguity about which artifacts are
+        source vs generated. The <code>scripts/codegen.js</code> script performs
+        these steps:
+      </p>
+
+      <ol>
+        <li>
+          Discovers all <code>.proto</code> files in <code>proto/</code> (and
+          <strong
+            >optional tool proto files in <code>tools/</code> that extend the
+            platform</strong
+          >)
+        </li>
+        <li>Copies them into <code>generated/proto/</code></li>
+        <li>
+          Generates consolidated static types into <code>generated/types/</code>
+        </li>
+        <li>
+          Generates service base classes into
+          <code>generated/services/&lt;name&gt;/service.js</code>
+        </li>
+        <li>
+          Generates client classes into
+          <code>generated/services/&lt;name&gt;/client.js</code>
+        </li>
+      </ol>
+
+      <p>
+        You should re-run code generation after changing any schema in
+        <code>proto/</code> or adding a new tool schema in
+        <code>tools/</code> (<strong>tools extend the core system</strong>):
+      </p>
+
+      <pre><code># Generate everything (types + service bases + clients)
+npm run codegen
+
+# Or run a specific generator (invokes scripts/codegen.js flags)
+npm run codegen:type     # Generate consolidated types into generated/types/
+npm run codegen:service  # Generate base classes into generated/services/*/
+npm run codegen:client   # Generate typed clients into generated/services/*/</code></pre>
+
+      <p>
+        These scripts wrap <code>scripts/codegen.js</code> which uses
+        <code>protobufjs</code> and <code>Mustache</code>
+        templates to produce ESM modules. Generated artifacts are now placed
+        only in
+        <code>generated/</code> (previous per-package/service generation paths
+        have been removed). Runtime loading of protobuf schemas reads from
+        <code>generated/proto/</code>.
+      </p>
+
+      <h4>Generated Artifact Structure</h4>
+
+      <pre>
+./generated/
+├── proto/           # Copied original .proto files
+├── types/           # Consolidated static types (types.js, types.d.ts)
+├── services/        # Service base classes and clients
+│   ├── agent/
+│   │   ├── service.js   # Generated base class
+│   │   └── client.js    # Generated typed client
+│   └── .../
+└── tools/           # Tool-specific generated artifacts
+    └── &lt;tool-name&gt;/
+        ├── service.js
+        └── client.js
+      </pre>
+
+      <h4>Code Generation Workflow</h4>
+
+      <p>
+        The code generation process ensures type safety and consistency across
+        the entire platform:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Schema Discovery</strong>: Automatically finds all
+          <code>.proto</code> files in source directories
+        </li>
+        <li>
+          <strong>Type Generation</strong>: Creates unified type definitions
+          accessible via <code>@copilot-ld/libtype</code>
+        </li>
+        <li>
+          <strong>Service Generation</strong>: Produces base classes that
+          services extend with business logic
+        </li>
+        <li>
+          <strong>Client Generation</strong>: Creates typed gRPC clients for
+          inter-service communication
+        </li>
+        <li>
+          <strong>Tool Extension</strong>: Supports additional tools that extend
+          the core system functionality
+        </li>
+      </ul>
+
       <h3>Security Architecture</h3>
 
       <p>
@@ -458,6 +623,7 @@ graph TB
   Memory[Memory Service<br/>:3000]
         LLM[LLM Service<br/>:3000]
   Vector[Vector Service<br/>:3000]
+  Tool[Tool Service<br/>:3000]
     end
 
   subgraph "External Services"
@@ -478,6 +644,8 @@ graph TB
   Agent -->|gRPC| Memory
     Agent -->|gRPC| LLM
     Agent -->|gRPC| Vector
+    Agent -->|gRPC| Tool
+    Tool -->|gRPC| Vector
 
   %% External API calls
   LLM -.->|HTTPS| LLMAPI
@@ -490,6 +658,7 @@ graph TB
   style Memory fill:#fff3e0
   style LLM fill:#fff3e0
   style Vector fill:#fff3e0
+  style Tool fill:#fff3e0
   style GitHubAPI fill:#fff3e0
       </pre>
 

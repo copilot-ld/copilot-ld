@@ -1,14 +1,14 @@
 # Changelog
 
-## 2025-09-02
+## 2025-09-11
 
-- Added `types.js` file with `LoggerInterface` definition
-- Removed `publishConfig` from `package.json` to match other packages
-- Version bump to `v0.1.1` to match dependency requirements
-
-## 2025-08-13
-
-- Added new `Logger` class for centralized logging with namespace support
-- Added `logFactory` function to create `Logger` instances
-- Initial package creation for logging utilities
-- Version bump to `v0.1.0`
+- **SIMPLIFIED**: Removed unused `itemIndex` and `globalIndex` parameters from
+  `processItem()` method in `ProcessorInterface` and `ProcessorBase`
+- **NEW**: Added `ProcessorInterface` and `ProcessorBase` for unified batch
+  processing with configurable batch sizes and progress tracking
+- **NEW**: Initial implementation of centralized logging utilities with `Logger`
+  class and `logFactory` function
+- Extracted common patterns from `VectorProcessor` and `ResourceProcessor` to
+  eliminate duplication
+- Implemented `LoggerInterface` definition for type safety and consistency
+  across the platform

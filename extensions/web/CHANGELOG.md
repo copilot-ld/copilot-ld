@@ -1,8 +1,12 @@
 # Changelog
 
-## 2025-09-03
+## 2025-09-11
 
-- Updated `Dockerfile` to copy renamed `scripts/` directory instead of `tools/`
+- Fixed protobuf type creation using `agent.AgentRequest.fromObject()` instead
+  of plain objects
+- Updated dependencies for architectural restructuring (`libservice` → `librpc`)
+- Updated container configuration to reference renamed `scripts/` directory
+- Enhanced integration with consolidated service architecture
 
 ## 2025-08-12
 

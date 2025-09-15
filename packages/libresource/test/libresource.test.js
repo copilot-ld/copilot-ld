@@ -113,7 +113,7 @@ describe("ResourceIndex", () => {
   });
 
   test("puts resource content with identifier generation", async () => {
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       role: "system",
       content: { text: "Test message content" },
     });
@@ -123,12 +123,12 @@ describe("ResourceIndex", () => {
     // Verify descriptor was generated
     assert.ok(message.id instanceof resource.Identifier);
     assert.strictEqual(message.id.type, "common.MessageV2");
-    assert.strictEqual(message.id.name, "common.MessageV2.196e3d58");
+    assert.strictEqual(message.id.name, "3d775ea3");
   });
 
   test("gets resource contents by IDs with access control", async () => {
     // First, put a resource
-    const message = new common.MessageV2.fromObject({
+    const message = new common.MessageV2({
       role: "system",
       content: { text: "Test message for retrieval" },
     });
@@ -147,12 +147,12 @@ describe("ResourceIndex", () => {
     );
     assert.ok(retrieved[0].id instanceof resource.Identifier);
     assert.strictEqual(retrieved[0].id.type, "common.MessageV2");
-    assert.strictEqual(retrieved[0].id.name, "common.MessageV2.ef1bbc13");
+    assert.strictEqual(retrieved[0].id.name, "3d775ea3");
   });
 
   test("finds all resource identifiers", async () => {
     // Put some test resources
-    const message1 = new common.MessageV2.fromObject({
+    const message1 = new common.MessageV2({
       role: "system",
       content: { text: "First test message" },
     });
@@ -169,7 +169,7 @@ describe("ResourceIndex", () => {
 
   test("finds resource identifiers by prefix", async () => {
     // Put some test resources
-    const message1 = new common.MessageV2.fromObject({
+    const message1 = new common.MessageV2({
       role: "system",
       content: { text: "First test message" },
     });
@@ -232,12 +232,15 @@ describe("ResourceProcessor", () => {
           choices: [
             {
               message: {
-                content: JSON.stringify({
-                  purpose:
-                    "Provide information about articles and their content",
-                  applicability: "Use when displaying article metadata",
-                  evaluation: "Article displays correctly with proper metadata",
-                }),
+                content: JSON.stringify([
+                  {
+                    purpose:
+                      "Provide information about articles and their content",
+                    applicability: "Use when displaying article metadata",
+                    evaluation:
+                      "Article displays correctly with proper metadata",
+                  },
+                ]),
               },
             },
           ],
@@ -259,25 +262,31 @@ describe("ResourceProcessor", () => {
   });
 
   test("processes HTML files into resource contents", async () => {
-    // Start with an empty message
-    let message;
+    // Track calls to put
+    let capturedMessage;
+    let putCallCount = 0;
 
-    // Capture the resource content on the mock
+    // Override the put method to capture the resource
     resourceIndex.put = async (resource) => {
-      message = resource;
-      message.withIdentifier(); // As the real implementation would do
+      putCallCount++;
+      capturedMessage = resource;
     };
 
     await processor.processKnowledge(".html", []);
 
-    assert.ok(message instanceof common.MessageV2);
-    assert.ok(message.id instanceof resource.Identifier);
-    assert.ok(message.content instanceof resource.Content);
-    assert.strictEqual(message.id.type, "common.MessageV2");
-    assert.strictEqual(message.role, "system");
-    assert.ok(message.content.jsonld);
+    assert.strictEqual(
+      putCallCount,
+      1,
+      "put() should have been called exactly once",
+    );
+    assert.ok(capturedMessage instanceof common.MessageV2);
+    assert.ok(capturedMessage.id instanceof resource.Identifier);
+    assert.ok(capturedMessage.content instanceof resource.Content);
+    assert.strictEqual(capturedMessage.id.type, "common.MessageV2");
+    assert.strictEqual(capturedMessage.role, "system");
+    assert.ok(capturedMessage.content.jsonld);
 
-    const jsonld = JSON.parse(String(message.content));
+    const jsonld = JSON.parse(String(capturedMessage.content));
     assert.strictEqual(jsonld["@type"], "Article");
     assert.strictEqual(jsonld["@context"], "http://schema.org/");
     assert.strictEqual(jsonld.headline, "Test Article");
@@ -336,7 +345,7 @@ describe("toIdentifier helper function", () => {
 
     assert.ok(identifier instanceof resource.Identifier);
     assert.strictEqual(identifier.type, "common.MessageV2");
-    assert.strictEqual(identifier.name, "common.MessageV2.abc123");
+    assert.strictEqual(identifier.name, "abc123");
     assert.strictEqual(identifier.parent, "");
   });
 
@@ -346,7 +355,7 @@ describe("toIdentifier helper function", () => {
 
     assert.ok(identifier instanceof resource.Identifier);
     assert.strictEqual(identifier.type, "common.MessageV2");
-    assert.strictEqual(identifier.name, "common.MessageV2.abc123");
+    assert.strictEqual(identifier.name, "abc123");
     assert.strictEqual(identifier.parent, "cld:parent/child");
   });
 
@@ -355,18 +364,15 @@ describe("toIdentifier helper function", () => {
     const uri = "invalid:common.MessageV2.abc123";
     const identifier = toIdentifier(uri);
 
-    // The type will be malformed because "invalid:common.MessageV2.abc123".slice(4) = "lid:common.MessageV2.abc123"
-    // and when split by ".", it becomes ["lid:common", "MessageV2", "abc123"]
-    // so type = "lid:common.MessageV2"
     assert.strictEqual(identifier.type, "lid:common.MessageV2");
-    assert.strictEqual(identifier.name, "lid:common.MessageV2.abc123");
+    assert.strictEqual(identifier.name, "abc123");
     assert.strictEqual(identifier.parent, "");
   });
 
   test("toIdentifier is reverse of Identifier.toString() - simple case", () => {
     const original = new resource.Identifier({
       type: "common.MessageV2",
-      name: "common.MessageV2.abc123",
+      name: "abc123",
       parent: "",
     });
 
@@ -381,7 +387,7 @@ describe("toIdentifier helper function", () => {
   test("toIdentifier is reverse of Identifier.toString() - with parent", () => {
     const original = new resource.Identifier({
       type: "common.MessageV2",
-      name: "common.MessageV2.abc123",
+      name: "abc123",
       parent: "cld:parent.Resource.def456",
     });
 

@@ -7,7 +7,7 @@ import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
-import { ClientInterface, ServiceInterface, ActorInterface } from "./types.js";
+import { ClientInterface, RpcInterface } from "./types.js";
 
 /**
  * Creates a client with a service configuration
@@ -33,7 +33,7 @@ export async function createClient(
  * Default grpc factory that creates gRPC dependencies
  * @returns {object} Object containing grpc and protoLoader
  */
-function grpcFactory() {
+export function grpcFactory() {
   return { grpc, protoLoader };
 }
 
@@ -42,7 +42,7 @@ function grpcFactory() {
  * @param {string} serviceName - Name of the service for the interceptor
  * @returns {Interceptor} Configured interceptor instance
  */
-function authFactory(serviceName) {
+export function authFactory(serviceName) {
   const secret = process.env.SERVICE_AUTH_SECRET;
   if (!secret) {
     throw new Error(
@@ -53,10 +53,10 @@ function authFactory(serviceName) {
 }
 
 /**
- * Base class for both Service and Client with shared functionality
- * @implements {ActorInterface}
+ * Base class for both Server and Client with shared gRPC functionality
+ * @implements {RpcInterface}
  */
-export class Actor extends ActorInterface {
+export class Rpc extends RpcInterface {
   #grpc;
   #protoLoader;
   #auth;
@@ -130,7 +130,7 @@ export class Actor extends ActorInterface {
  * Creates a gRPC client with consistent API
  * @implements {ClientInterface}
  */
-export class Client extends Actor {
+export class Client extends Rpc {
   #client;
   #setupPromise;
 
@@ -193,6 +193,11 @@ export class Client extends Actor {
     return new Promise((resolve, reject) => {
       this.#client[methodName](request, (error, response) => {
         if (error) {
+          this.debug("gRPC client call failed", {
+            service: this.config.name,
+            method: methodName,
+            stack: error.stack,
+          });
           reject(error);
         } else {
           resolve(response);
@@ -203,77 +208,127 @@ export class Client extends Actor {
 }
 
 /**
- * Base Service class for all gRPC services
- * Generated service base classes extend this class
- * @implements {ServiceInterface}
+ * gRPC Server class for hosting services
+ * Takes a service instance and creates a gRPC server around it
  */
-export class Service extends Actor {
+export class Server {
+  #grpc;
+  #auth;
+  #logger;
   #server;
-  #started = false;
+  #service;
 
+  /**
+   * Creates a gRPC server for a service
+   * @param {object} service - Service instance with business logic
+   * @param {object} config - Server configuration
+   * @param {() => {grpc: object, protoLoader: object}} grpcFn - gRPC factory
+   * @param {(serviceName: string) => object} authFn - Auth factory
+   * @param {(namespace: string) => object} logFn - Log factory
+   */
   constructor(
+    service,
     config,
     grpcFn = grpcFactory,
     authFn = authFactory,
     logFn = logFactory,
   ) {
-    super(config, grpcFn, authFn, logFn);
+    if (!service) throw new Error("service is required");
+    if (!config) throw new Error("config is required");
+
+    this.#service = service;
+    this.config = config;
+
+    const { grpc } = grpcFn();
+    this.#grpc = grpc;
+    this.#auth = authFn(config.name);
+    this.#logger = logFn(config.name);
   }
 
-  async start(serviceDefinition, handlers) {
-    if (this.#started) throw new Error("Server is already started");
+  async start() {
+    this.#server = new this.#grpc.Server();
 
-    this.#server = new (this.grpc().Server)();
+    // Load proto and get service definition
+    const definition = await this.#loadServiceDefinition();
 
-    // If no parameters provided, use legacy behavior for backward compatibility
-    if (!serviceDefinition || !handlers) {
-      const proto = await this.loadProto(this.config.name);
-      serviceDefinition = this.#getServiceDefinition(proto);
-      handlers = this.#createHandlers(serviceDefinition);
-    } else {
-      // Wrap provided handlers with centralized auth/error handling when needed
-      handlers = this.#wrapProvidedHandlers(serviceDefinition, handlers);
-    }
+    // Get handlers from the service instance
+    const handlers = this.#service.getHandlers();
 
-    this.#server.addService(serviceDefinition, handlers);
+    // Wrap handlers with auth/error handling
+    const wrappedHandlers = this.#wrapHandlers(handlers);
+
+    this.#server.addService(definition, wrappedHandlers);
 
     const uri = `${this.config.host}:${this.config.port}`;
-    const port = await this.#bindServer(uri);
+    await this.#bindServer(uri);
 
     this.#setupShutdown();
-    this.#started = true;
-    return port;
   }
 
-  /**
-   * Gets service definition from proto
-   * @param {object} proto - Loaded proto definition
-   * @returns {object} Service definition
-   */
-  #getServiceDefinition(proto) {
-    const ServiceClass = proto[capitalizeFirstLetter(this.config.name)];
-    if (!ServiceClass) {
-      throw new Error(
-        `Service ${capitalizeFirstLetter(this.config.name)} not found in proto/${this.config.name}.proto`,
-      );
+  async #loadServiceDefinition() {
+    const protoName = this.#service.getProtoName();
+    const storage = storageFactory("proto", "local");
+    const protoPath = await storage.path(protoName);
+
+    const packageDefinition = protoLoader.loadSync(protoPath, {
+      keepCase: true,
+      longs: String,
+      enums: String,
+    });
+
+    const proto = this.#grpc.loadPackageDefinition(packageDefinition);
+
+    // Extract service definition from proto
+    // This assumes service name matches proto name (e.g., llm.proto -> llm.Llm)
+    const serviceName = protoName.replace(".proto", "");
+    const serviceNameCapitalized =
+      serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
+    return proto[serviceName][serviceNameCapitalized].service;
+  }
+
+  #wrapHandlers(handlers) {
+    const wrapped = {};
+    for (const [method, handler] of Object.entries(handlers)) {
+      wrapped[method] = this.#wrapUnary(handler);
     }
-    return ServiceClass.service;
+    return wrapped;
   }
 
-  /**
-   * Binds server to address and port
-   * @param {string} uri - Server URI
-   * @returns {Promise<number>} Bound port
-   */
+  #wrapUnary(handler) {
+    return async (call, callback) => {
+      // Authenticate
+      const validation = this.#auth.validateCall(call);
+      if (!validation.isValid) {
+        return callback({
+          code: this.#grpc.status.UNAUTHENTICATED,
+          message: `Authentication failed: ${validation.error}`,
+        });
+      }
+
+      try {
+        const response = await handler(call);
+        callback(null, response);
+      } catch (error) {
+        this.#logger.debug("RPC handler error", {
+          error: error?.message || String(error),
+        });
+        callback({
+          code: this.#grpc.status.INTERNAL,
+          message: error?.message || String(error),
+        });
+      }
+    };
+  }
+
   async #bindServer(uri) {
     return new Promise((resolve, reject) => {
       this.#server.bindAsync(
         uri,
-        this.grpc().ServerCredentials.createInsecure(),
+        this.#grpc.ServerCredentials.createInsecure(),
         (error, port) => {
           if (error) reject(error);
           else {
-            this.debug("Listening on", { uri });
+            this.#logger.debug("Server listening", { uri });
             resolve(port);
           }
         },
@@ -281,102 +336,9 @@ export class Service extends Actor {
     });
   }
 
-  /**
-   * Creates handlers for all RPC methods
-   * @param {object} serviceDefinition - Service definition from proto
-   * @returns {object} Handler functions mapped by method name
-   */
-  #createHandlers(serviceDefinition) {
-    const rpcMethods = Object.keys(serviceDefinition);
-    const handlers = {};
-    for (const methodName of rpcMethods) {
-      if (typeof this[methodName] !== "function") {
-        throw new Error(`Missing RPC method implementation: ${methodName}`);
-      }
-      handlers[methodName] = this.#createHandler(methodName);
-    }
-    return handlers;
-  }
-
-  /**
-   * Creates a single handler that delegates to the implementation after centralized auth/error handling
-   * @param {string} methodName - Method name
-   * @returns {Function} Handler function
-   */
-  #createHandler(methodName) {
-    // Inner handler receives the gRPC call and returns a response (or throws)
-    const inner = async (call) =>
-      await this[methodName](call.request, call.metadata, call);
-    return this.#wrapUnary(inner);
-  }
-
-  /**
-   * Wraps provided handlers with centralized auth/error handling.
-   * If a provided handler already follows gRPC signature (call, callback), it is used as-is.
-   * If it is a simplified handler (call) => Promise<Response>, it will be wrapped.
-   * @param {object} serviceDefinition - Service definition object from generated proto (ServiceClass.service)
-   * @param {object} providedHandlers - Map of rpcName => handler function provided by caller
-   * @returns {object} Wrapped handlers ready for addService
-   */
-  #wrapProvidedHandlers(serviceDefinition, providedHandlers) {
-    const rpcMethods = Object.keys(serviceDefinition);
-    const handlers = {};
-    for (const methodName of rpcMethods) {
-      const handler = providedHandlers[methodName];
-      if (!handler) {
-        throw new Error(`Missing RPC handler implementation: ${methodName}`);
-      }
-
-      // Heuristic: if function expects >=2 args, assume (call, callback) gRPC-style and use directly
-      if (typeof handler === "function" && handler.length >= 2) {
-        handlers[methodName] = handler;
-      } else {
-        // Otherwise treat as simplified (call) => resp and wrap
-        handlers[methodName] = this.#wrapUnary(handler.bind(this));
-      }
-    }
-    return handlers;
-  }
-
-  /**
-   * Central wrapper for unary RPC handlers adding auth validation and error handling.
-   * @param {(call: object) => Promise<object>} innerHandler - Simplified handler that returns a response
-   * @returns {(call: object, callback: Function) => Promise<void>} gRPC-compatible handler
-   */
-  #wrapUnary(innerHandler) {
-    return async (call, callback) => {
-      // Authenticate once for all handlers
-      const validation = this.auth().validateCall(call);
-      if (!validation.isValid) {
-        return callback({
-          code: this.grpc().status.UNAUTHENTICATED,
-          message: `Authentication failed: ${validation.error}`,
-        });
-      }
-
-      call.authenticatedServiceId = validation.serviceId;
-
-      try {
-        const response = await innerHandler(call);
-        callback(null, response);
-      } catch (error) {
-        this.debug("RPC handler error", {
-          error: error?.message || String(error),
-        });
-        callback({
-          code: this.grpc().status.INTERNAL,
-          message: error?.message || String(error),
-        });
-      }
-    };
-  }
-
-  /**
-   * Sets up graceful shutdown handlers
-   */
   #setupShutdown() {
     const shutdown = () => {
-      this.debug("Shutting down...");
+      this.#logger.debug("Shutting down...");
       this.#server.tryShutdown(() => process.exit(0));
     };
     process.on("SIGINT", shutdown);
@@ -393,10 +355,4 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-export {
-  ActorInterface,
-  ClientInterface,
-  ServiceInterface,
-  HmacAuth,
-  Interceptor,
-};
+export { RpcInterface, ClientInterface, HmacAuth, Interceptor };

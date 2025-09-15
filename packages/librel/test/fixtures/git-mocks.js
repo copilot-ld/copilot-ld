@@ -6,7 +6,7 @@
 
 export const gitDiffOutputs = {
   multiplePackages:
-    "packages/libconfig/index.js\npackages/libservice/test.js\nservices/agent/service.js\nREADME.md",
+    "packages/libconfig/index.js\npackages/librpc/test.js\nservices/agent/service.js\nREADME.md",
   singlePackage: "packages/libconfig/index.js\npackages/libconfig/types.js",
   noPackages: "README.md\ndocs/architecture.html",
   empty: "",
@@ -18,7 +18,7 @@ export const directoryStructures = {
   standard: {
     packages: [
       { name: "libconfig", isDirectory: () => true },
-      { name: "libservice", isDirectory: () => true },
+      { name: "librpc", isDirectory: () => true },
       { name: "libvector", isDirectory: () => true },
     ],
     services: [
@@ -42,7 +42,7 @@ export const directoryStructures = {
   complex: {
     packages: [
       { name: "libconfig", isDirectory: () => true },
-      { name: "libservice", isDirectory: () => true },
+      { name: "librpc", isDirectory: () => true },
       { name: "libvector", isDirectory: () => true },
       { name: "libweb", isDirectory: () => true },
     ],
@@ -64,7 +64,7 @@ export const globPatterns = {
   recursive: {
     "packages/**/CHANGELOG.md": [
       "packages/libconfig/CHANGELOG.md",
-      "packages/libservice/CHANGELOG.md",
+      "packages/librpc/CHANGELOG.md",
     ],
     "services/**/CHANGELOG.md": [
       "services/agent/CHANGELOG.md",

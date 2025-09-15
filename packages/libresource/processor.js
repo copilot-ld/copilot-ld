@@ -2,68 +2,29 @@
 
 import yaml from "js-yaml";
 import { microdata } from "microdata-minimal";
+import mustache from "mustache";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 import { LlmInterface } from "@copilot-ld/libcopilot";
 import { StorageInterface } from "@copilot-ld/libstorage";
 import { common } from "@copilot-ld/libtype";
+import { ProcessorBase } from "@copilot-ld/libutil";
 
-import { ResourceProcessorInterface, ResourceIndexInterface } from "./types.js";
-
-/**
- * Template for generating resource descriptors via LLM completion
- */
-const DESCRIPTOR_PROMPT = `You are analyzing structured content for an AI agent knowledge base.
-Generate descriptors that help AI agents understand when and how to use this resource effectively.
-
-**CRITICAL:**
-- Your response must be RAW JSON starting with { and ending with }
-- Do not use markdown code blocks, backticks, or any formatting
-
-**YOUR RESPONSE:**
-Reply with a JSON object containing these keys:
-
-1. **purpose**
-   - What this resource accomplishes for software development teams
-   - Start with an action verb (e.g., "Provides", "Defines", "Establishes")
-   - Focus on the tangible outcome or capability it delivers
-
-2. **applicability**
-   - When AI agents should reference this resource
-   - Use "when" statements describing specific scenarios, contexts, or user questions where this content becomes relevant
-   - Examples: "When discussing team collaboration principles", "When evaluating security vulnerabilities"
-
-3. **evaluation**
-   - How to measure successful application of this resource's guidance
-   - Describe observable outcomes, behaviors, or criteria that indicate the resource was applied effectively
-   - Examples: "Teams demonstrate faster decision-making", "Security assessment identifies specific vulnerability categories"
-
-**CONTEXT:**
-- You are helping conversational AI agents make better decisions about which knowledge to reference
-- Agents need to quickly determine relevance to user queries
-- Focus on practical application rather than academic description
-- Consider both explicit questions and implicit needs in conversations
-
-**FORMATTING REQUIREMENTS:**
-- Start your response immediately with { (no backticks, no markdown)
-- End your response with }
-- Each value must be under 280 characters
-- Use clear, specific language that guides decision-making
-- NO explanations, NO code blocks, NO markdown formatting
-- Focus on actionable guidance rather than content summary
-
-**THE CONTENT TO ANALYZE:**
-`;
+import { ResourceIndexInterface } from "./types.js";
 
 /**
  * Resource processor for batch processing HTML files into MessageV2 objects
- * @implements {ResourceProcessorInterface}
+ * @augments {ProcessorBase}
  */
-export class ResourceProcessor extends ResourceProcessorInterface {
+export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
   #configStorage;
   #knowledgeStorage;
-  #logger;
   #llm;
+  #descriptorTemplate;
+  #logger;
 
   /**
    * Creates a new ResourceProcessor instance
@@ -74,14 +35,21 @@ export class ResourceProcessor extends ResourceProcessorInterface {
    * @param {object} logger - Logger instance for debug output
    */
   constructor(resourceIndex, configStorage, knowledgeStorage, llm, logger) {
-    super();
-    if (!logger) throw new Error("logger is required");
+    super(logger, 5);
     if (!llm) throw new Error("llm is required");
     this.#resourceIndex = resourceIndex;
     this.#configStorage = configStorage;
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
     this.#logger = logger;
+
+    // Load descriptor prompt template
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const templatePath = join(
+      __dirname,
+      "../../scripts/descriptor-prompt.md.mustache",
+    );
+    this.#descriptorTemplate = readFileSync(templatePath, "utf8");
   }
 
   async processAssistants() {
@@ -89,14 +57,22 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     const objects = yaml.load(data);
 
     for (const [name, object] of Object.entries(objects)) {
-      object.id = { name };
+      object.id = {
+        type: "common.Assistant",
+        name: `common.Assistant.${name}`,
+      };
       object.descriptor = object.descriptor || {};
-      const assistant = new common.Assistant.fromObject(object);
+      const assistant = common.Assistant.fromObject(object);
       this.#resourceIndex.put(assistant);
     }
   }
 
-  /** @inheritdoc */
+  /**
+   * Processes HTML files from a knowledge base
+   * @param {string} extension - File extension to search for (default: ".html")
+   * @param {string[]} selectors - Array of CSS selectors to filter microdata items (default: [])
+   * @returns {Promise<void>}
+   */
   async processKnowledge(extension = ".html", selectors = []) {
     const keys = await this.#knowledgeStorage.findByExtension(extension);
 
@@ -104,23 +80,14 @@ export class ResourceProcessor extends ResourceProcessorInterface {
       const html = await this.#knowledgeStorage.get(key);
       const items = await this.#parseHTML(html, selectors);
 
-      for (let i = 0; i < items.length; i++) {
-        const item = `${i + 1}/${items.length}`;
+      // Convert items to the format expected by ProcessorBase
+      const itemsWithIndexes = items.map((item, index) => ({
+        item,
+        index,
+      }));
 
-        this.#logger.debug("Processing", { item, key });
-
-        try {
-          const resource = await this.#createResource(items[i]);
-          await this.#resourceIndex.put(resource);
-        } catch (error) {
-          this.#logger.debug("Skipping, failed to create resource", {
-            item,
-            key,
-            error: error.message,
-          });
-          continue;
-        }
-      }
+      // Use ProcessorBase to handle the batch processing
+      await super.process(itemsWithIndexes, key);
     }
   }
 
@@ -141,41 +108,56 @@ export class ResourceProcessor extends ResourceProcessorInterface {
     }
   }
 
-  /**
-   * Creates a resource object from a microdata item
-   * @param {object} item - The microdata item to create a Message for
-   * @returns {Promise<common.MessageV2>} The created Message content
-   */
-  async #createResource(item) {
-    // Create content
+  /** @inheritdoc */
+  async processItem(itemData) {
+    const { item } = itemData;
+
+    // Generate descriptor for this single item
     const jsonld = JSON.stringify(item);
+    const batchContent = `RESOURCE 1:\n${jsonld}`;
 
-    // Create descriptor using LLM completion
-    const prompt = `${DESCRIPTOR_PROMPT}${jsonld}`;
+    // Generate prompt using mustache template
+    const prompt = mustache.render(this.#descriptorTemplate, { batchContent });
 
-    const completion = await this.#llm.createCompletions({
-      messages: [
+    const completion = await this.#llm.createCompletions(
+      [
         {
           role: "user",
           content: prompt,
         },
       ],
-      max_tokens: 500,
-      temperature: 0.1,
-    });
+      undefined, // tools
+      0.1, // temperature
+      2000, // max_tokens
+    );
 
-    let descriptor = {};
+    let descriptors = [];
     try {
-      descriptor = JSON.parse(completion.choices[0].message.content);
+      descriptors = JSON.parse(completion.choices[0].message.content);
     } catch (error) {
-      this.#logger.debug("LLM response is not valid JSON", {
-        error: error.message,
-        response: completion.choices[0].message.content,
-      });
       throw new Error(`LLM response parsing failed: ${error.message}`);
     }
 
-    return new common.MessageV2.fromObject({
+    // Validate we got exactly one descriptor
+    if (!Array.isArray(descriptors) || descriptors.length !== 1) {
+      throw new Error(`Expected 1 descriptors, got ${descriptors.length}`);
+    }
+
+    // Create and store the resource
+    const resource = this.#createResourceFromData(item, descriptors[0]);
+    await this.#resourceIndex.put(resource);
+    return resource;
+  }
+
+  /**
+   * Creates a resource object from microdata item and pre-generated descriptor
+   * @param {object} item - The microdata item
+   * @param {object} descriptor - The pre-generated descriptor
+   * @returns {common.MessageV2} The created Message resource
+   */
+  #createResourceFromData(item, descriptor) {
+    const jsonld = JSON.stringify(item);
+    return common.MessageV2.fromObject({
       role: "system",
       content: { jsonld },
       descriptor,

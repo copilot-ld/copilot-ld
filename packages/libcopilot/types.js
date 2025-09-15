@@ -26,16 +26,14 @@ export class LlmInterface {
 
   /**
    * Creates chat completions using the LLM API
-   * @param {object} params - Parameters for the completion request
-   * @param {string} [params.model] - Model to use for completion (overrides default)
-   * @param {object[]} params.messages - Array of chat messages
-   * @param {number} [params.max_tokens] - Maximum tokens to generate
-   * @param {number} [params.temperature] - Sampling temperature
-   * @param {number} [params.top_p] - Nucleus sampling parameter
+   * @param {import("copilot-ld/libtype").MessageV2[]} messages - Array of message objects with roles and content
+   * @param {import("copilot-ld/libtype").Tool[]} [tools] - Optional array of tool definitions
+   * @param {number} [temperature] - Optional sampling temperature
+   * @param {number} [max_tokens] - Optional maximum tokens to generate
    * @returns {Promise<object>} Completion response from Copilot
    * @throws {Error} Not implemented
    */
-  async createCompletions(params) {
+  async createCompletions(messages, tools, temperature, max_tokens) {
     throw new Error("Not implemented");
   }
 

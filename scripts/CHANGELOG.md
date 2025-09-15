@@ -1,13 +1,15 @@
 # Changelog
 
-## 2025-09-03
+## 2025-09-11
 
-- **BREAKING**: Renamed directory from `tools/` to `scripts/` to avoid collision
-  with AI tools
-- **BREAKING**: Updated package name from `@copilot-ld/tools` to
-  `@copilot-ld/scripts`
-- Updated all script references to use `ScriptConfig` instead of `ToolConfig`
-- Updated logging namespaces from `tool.*` to `script.*` for consistency
+- **BREAKING**: Renamed directory from `tools/` to `scripts/` and updated
+  package name to `@copilot-ld/scripts`
+- Consolidated all code generation outputs into unified `generated/` directory
+  structure
+- Enhanced protobuf discovery with dynamic `.proto` file detection and
+  deterministic ordering
+- Updated dependency from `@copilot-ld/libservice` to `@copilot-ld/librpc`
+- Improved template generation with better `JSDoc` type definitions and imports
 
 ## 2025-01-08
 
@@ -42,7 +44,7 @@
   definitions
 - Added `client.js.mustache` template for generating client classes with
   automatic request/response type conversion using `fromObject()`
-- Generated client classes extend `libservice` `Client` class and provide typed
+- Generated client classes extend `librpc` `Client` class and provide typed
   wrappers for all RPC methods
 
 ## 2025-08-28

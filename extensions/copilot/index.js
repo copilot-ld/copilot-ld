@@ -4,13 +4,14 @@ import { serve } from "@hono/node-server";
 import { verifyAndParseRequest } from "@copilot-extensions/preview-sdk";
 
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
-import { Client } from "@copilot-ld/libservice";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { logFactory } from "@copilot-ld/libutil";
 
+import { AgentClient } from "@copilot-ld/agent";
+
 /**
  * Creates a GitHub Copilot compatible extension
- * @param {Client} client - Agent service gRPC client
+ * @param {import("@copilot-ld/agent").AgentClient} client - Agent service gRPC client
  * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional logger factory
  * @returns {Hono} Configured Hono application
  */
@@ -110,7 +111,7 @@ function createCopilotExtension(client, logFn = logFactory) {
 }
 
 const config = await ExtensionConfig.create("copilot");
-const client = new Client(await ServiceConfig.create("agent"));
+const client = new AgentClient(await ServiceConfig.create("agent"));
 const app = createCopilotExtension(client);
 
 // Start server

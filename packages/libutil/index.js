@@ -1,6 +1,29 @@
 /* eslint-env node */
 import crypto from "crypto";
-import { LoggerInterface } from "./types.js";
+import fs from "fs";
+import path from "path";
+
+import { LoggerInterface, ProcessorInterface } from "./types.js";
+
+/**
+ * Searches upward from one or more roots for a target file or directory.
+ * Uses synchronous existence checks for simplicity.
+ * @param {string} root - Starting directory to search from
+ * @param {string} relativePath - Relative path to append while traversing upward
+ * @param {number} maxDepth - Maximum parent levels to check
+ * @returns {string|null} Found absolute path or null
+ */
+export function searchUpward(root, relativePath, maxDepth = 3) {
+  let current = root;
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const candidate = path.join(current, relativePath);
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return null;
+}
 
 /**
  * Generates a deterministic hash from multiple input values
@@ -14,6 +37,14 @@ export function generateHash(...values) {
     .update(input)
     .digest("hex")
     .substring(0, 8);
+}
+
+/**
+ * Generates a unique session ID for conversation tracking
+ * @returns {string} Unique session identifier
+ */
+export function generateUUID() {
+  return crypto.randomUUID();
 }
 
 /**
@@ -105,11 +136,109 @@ export function logFactory(namespace) {
 }
 
 /**
- * Generates a unique session ID for conversation tracking
- * @returns {string} Unique session identifier
+ * Base class for batch processor implementations with common batch management logic
+ * @implements {ProcessorInterface}
  */
-export function generateSessionId() {
-  return crypto.randomUUID();
+export class ProcessorBase extends ProcessorInterface {
+  #logger;
+  #batchSize;
+
+  /**
+   * Creates a new processor instance
+   * @param {object} logger - Logger instance for debug output
+   * @param {number} batchSize - Size of batches for processing (default: 10)
+   */
+  constructor(logger, batchSize = 20) {
+    super();
+    if (!logger) throw new Error("logger is required");
+    if (typeof batchSize !== "number" || batchSize < 1) {
+      throw new Error("batchSize must be a positive number");
+    }
+
+    this.#logger = logger;
+    this.#batchSize = batchSize;
+  }
+
+  /** @inheritdoc */
+  async process(items, context = "items") {
+    if (!Array.isArray(items)) {
+      throw new Error("items must be an array");
+    }
+
+    if (items.length === 0) {
+      this.#logger.debug("No items to process", { context });
+      return;
+    }
+
+    this.#logger.debug("Starting batch processing", {
+      total: items.length,
+      context,
+    });
+
+    let currentBatch = [];
+    let processedCount = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      currentBatch.push(items[i]);
+
+      // Process batch when it reaches the configured size
+      if (currentBatch.length >= this.#batchSize) {
+        await this.processBatch(
+          currentBatch,
+          processedCount,
+          items.length,
+          context,
+        );
+        processedCount += currentBatch.length;
+        currentBatch = [];
+      }
+    }
+
+    // Process any remaining items in the final batch
+    if (currentBatch.length > 0) {
+      await this.processBatch(
+        currentBatch,
+        processedCount,
+        items.length,
+        context,
+      );
+    }
+  }
+
+  /** @inheritdoc */
+  async processBatch(batch, processed, total, context) {
+    const batchSize = batch.length;
+
+    this.#logger.debug("Processing batch", {
+      items:
+        batchSize > 1
+          ? `${processed + 1}-${processed + batchSize}/${total}`
+          : `${processed + 1}/${total}`,
+      context,
+    });
+
+    // Process all items in the batch in parallel
+    const promises = batch.map(async (item, itemIndex) => {
+      const globalIndex = processed + itemIndex;
+      try {
+        return await this.processItem(item);
+      } catch (error) {
+        this.#logger.debug("Skipping, failed to process item", {
+          item: `${globalIndex + 1}/${total}`,
+          context,
+          error: error.message,
+        });
+        return null;
+      }
+    });
+
+    await Promise.all(promises);
+  }
+
+  /** @inheritdoc */
+  async processItem(_item) {
+    throw new Error("processItem must be implemented by subclass");
+  }
 }
 
 /**
@@ -129,3 +258,6 @@ export function getLatestUserMessage(messages) {
   }
   return null;
 }
+
+// Re-export interfaces
+export { LoggerInterface, ProcessorInterface } from "./types.js";

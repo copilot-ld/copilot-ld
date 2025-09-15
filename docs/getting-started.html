@@ -58,8 +58,10 @@ cp config/config{.example,}.yml</code></pre>
 
       <p>
         Generate typed definitions, service bases, and clients from the
-        <code>proto/</code> schemas. Run this after a fresh clone or whenever
-        the proto files change.
+        <code>proto/</code> schemas. This also includes any optional tool
+        schemas in <code>tools/</code> that
+        <strong>extend the core system</strong>. Run this after a fresh clone or
+        whenever the proto files change.
       </p>
 
       <pre><code>npm run codegen
@@ -128,6 +130,28 @@ tool:
 
 # Download the data
 node tools/download.js</code></pre>
+
+      <h4>Optional: Setup Example Tools that Extend the Platform</h4>
+
+      <p>
+        To experiment with custom tools that
+        <strong>extend the core Copilot-LD system</strong>, you can copy the
+        example tool definitions:
+      </p>
+
+      <pre><code># Copy example tools that extend the platform
+cp -r ./examples/tools/* ./tools/
+
+# Regenerate code to include the new tool definitions
+npm run codegen</code></pre>
+
+      <p>
+        <strong>Note</strong>: These tools are
+        <strong>extensions to the core system</strong> and provide additional
+        functionality beyond the base platform capabilities. They demonstrate
+        how to create custom protobuf definitions and services that integrate
+        with the Tool service.
+      </p>
 
       <h4>Process Knowledge Base into Resources</h4>
 

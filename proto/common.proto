@@ -74,22 +74,20 @@ message ToolParam {
 }
 
 message ToolFunction {
-  resource.Descriptor descriptor = 1;
+  resource.Identifier id = 1;
+  resource.Descriptor descriptor = 2;
+  optional string name = 3; // Passed by tool call requests
   oneof call {
-    ToolParam parameters = 2; // When declaring
-    string arguments = 3; // When calling
+    ToolParam parameters = 4; // When declaring
+    string arguments = 5; // When calling
   }
 }
 
 message Tool {
-  string type = 1; // @default "function"
+  string type = 1;
   ToolFunction function = 2;
   optional string id = 3; // When calling
-}
-
-message ToolCallRequest {
-  string role = 1;
-  repeated Tool tool_calls = 2;
+  optional string github_token = 4; // Github token to pass-on
 }
 
 message ToolCallResult {
@@ -103,6 +101,8 @@ message MessageV2 {
   resource.Descriptor descriptor = 2;
   resource.Content content = 3;
   string role = 4;
+  repeated Tool tool_calls = 5;
+  optional string tool_call_id = 6;
 }
 
 message Assistant {

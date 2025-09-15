@@ -18,7 +18,7 @@
     "@copilot-ld/librpc": "^0.1.6",
     "@copilot-ld/libtype": "^0.1.2",
     "@copilot-ld/libutil": "^0.1.1",
-    "@copilot-ld/llm": "^0.1.7",
+    "@copilot-ld/llm": "^0.1.8",
     "@copilot-ld/memory": "^0.1.1",
     "@copilot-ld/vector": "^0.1.12",
     "@octokit/core": "^7.0.3"

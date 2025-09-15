@@ -13,3 +13,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: npm ci
+
+    - name: Generate code
+      shell: bash
+      run: npm run codegen

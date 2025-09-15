@@ -1,7 +1,7 @@
 /* eslint-env node */
 import crypto from "node:crypto";
 
-import { HashBase } from "../../generated/tools/hash/service.js";
+import { HashBase } from "../../generated/services/hash/service.js";
 
 /**
  * Simple Hash service implementing SHA-256 and MD5 hashing
@@ -42,4 +42,4 @@ export class HashService extends HashBase {
 }
 
 // Export the service class (no bootstrap code here)
-export { HashClient } from "../../generated/tools/hash/client.js";
+export { HashClient } from "../../generated/services/hash/client.js";

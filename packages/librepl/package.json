@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libformat": "^0.1.2",
+    "@copilot-ld/libformat": "^0.1.3",
     "marked": "^16.1.2",
     "marked-terminal": "^7.3.0"
   },

@@ -44,19 +44,3 @@ export class ResourceIndexInterface {
     throw new Error("Not implemented");
   }
 }
-
-/**
- * Base interface for resource processor implementations
- */
-export class ResourceProcessorInterface {
-  /**
-   * Processes HTML files from a knowledge base
-   * @param {string} extension - File extension to search for (default: ".html")
-   * @param {string[]} selectors - Array of CSS selectors to filter microdata items (default: [])
-   * @returns {Promise<void>}
-   * @throws {Error} Not implemented
-   */
-  async processKnowledge(extension = ".html", selectors = []) {
-    throw new Error("Not implemented");
-  }
-}

@@ -100,7 +100,7 @@ export class VectorIndex extends VectorIndexInterface {
       const score = calculateDotProduct(query, item.vector, query.length);
       if (score >= threshold) {
         item.identifier.score = score;
-        identifiers.push(new resource.Identifier(item.identifier));
+        identifiers.push(resource.Identifier.fromObject(item.identifier));
       }
     }
 

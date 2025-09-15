@@ -43,7 +43,7 @@ export class Copilot extends LlmInterface {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-    this.#retries = 3;
+    this.#retries = 5;
     this.#delay = 1000;
     this.#fetch = fetchFn;
     this.#tokenizer = tokenizerFn();
@@ -79,8 +79,11 @@ export class Copilot extends LlmInterface {
    * @throws {Error} When all retry attempts are exhausted
    */
   async #withRetry(requestFn) {
+    let lastResponse;
+
     for (let attempt = 0; attempt <= this.#retries; attempt++) {
       const response = await requestFn();
+      lastResponse = response;
 
       if (response.status === 429 && attempt < this.#retries) {
         const wait = this.#delay * Math.pow(2, attempt);
@@ -91,32 +94,52 @@ export class Copilot extends LlmInterface {
       await this.#throwIfNotOk(response);
       return response;
     }
+
+    // This should never be reached, but if it is, throw an error for the last response
+    await this.#throwIfNotOk(lastResponse);
+    throw new Error("Retries exhausted without a valid response");
   }
 
   /** @inheritdoc */
-  async createCompletions(params) {
-    // Convert MessageV2 objects to simple API format
-    const messages =
-      params.messages?.map((msg) => ({
-        role: msg.role || "user",
-        content:
-          typeof msg.content === "string"
-            ? msg.content
-            : msg.content?.text || JSON.stringify(msg.content) || "",
-      })) || [];
+  async createCompletions(messages, tools, temperature, max_tokens) {
+    // Convert messages from internal MessageV2 format to OpenAI format
+    const formattedMessages = messages
+      ?.map((m) => {
+        if (!m) return null; // Skip null/undefined messages
+        return {
+          role: m.role || "user",
+          content: m.content?.text || String(m.content || ""),
+          ...(m.tool_calls && { tool_calls: m.tool_calls }),
+          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
+        };
+      })
+      .filter(Boolean); // Remove null entries
 
-    const requestParams = {
-      ...params,
-      messages,
-      model: params.model || this.#model,
-      max_tokens: params.max_tokens || 4000, // Add default max_tokens
+    // Convert tools from internal Tool format to OpenAI format
+    const formattedTools = tools?.map((t) => {
+      return {
+        type: t.type || "function",
+        function: {
+          name: t.function?.name,
+          description: String(t.function?.descriptor || ""),
+          ...(t.function?.parameters && { parameters: t.function.parameters }),
+        },
+      };
+    });
+
+    const body = {
+      messages: formattedMessages,
+      tools: formattedTools,
+      temperature,
+      max_tokens,
+      model: this.#model,
     };
 
     const response = await this.#withRetry(() =>
       this.#fetch(`${this.#baseURL}/chat/completions`, {
         method: "POST",
         headers: this.#headers,
-        body: JSON.stringify(requestParams),
+        body: JSON.stringify(body),
       }),
     );
 
@@ -124,17 +147,19 @@ export class Copilot extends LlmInterface {
 
     // Convert response back to expected format with proper MessageV2 instances
     // The monkey patch in libtype automatically converts string content to Content objects
+    // BUT preserve original tool_calls structure - don't convert through protobuf
     return {
       ...data,
       choices:
         data.choices?.map((choice) => ({
           ...choice,
-          message: common.MessageV2.fromObject({
-            id: { name: "" }, // Will be set later with withIdentifier
-            descriptor: { type: "message" },
-            content: choice.message?.content || "", // Monkey patch handles string->Content conversion
-            role: choice.message?.role || "assistant",
-          }),
+          message: {
+            ...common.MessageV2.fromObject({
+              ...choice.message,
+              tool_calls: [], // Remove tool_calls from protobuf conversion
+            }),
+            tool_calls: choice.message.tool_calls, // Preserve original structure
+          },
         })) || [],
     };
   }

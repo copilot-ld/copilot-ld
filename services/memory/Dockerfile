@@ -13,7 +13,7 @@ COPY packages/libprompt/package.json ./packages/libprompt/
 COPY packages/librel/package.json ./packages/librel/
 COPY packages/librepl/package.json ./packages/librepl/
 COPY packages/libresource/package.json ./packages/libresource/
-COPY packages/libservice/package.json ./packages/libservice/
+COPY packages/librpc/package.json ./packages/librpc/
 COPY packages/libstorage/package.json ./packages/libstorage/
 COPY packages/libtype/package.json ./packages/libtype/
 COPY packages/libutil/package.json ./packages/libutil/

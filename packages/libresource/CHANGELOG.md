@@ -1,41 +1,28 @@
 # Changelog
 
-## 2025-09-02
+## 2025-09-09
 
-- Simplified JSON handling by relying on `libstorage` automatic parsing; tests
-  updated to mirror behavior
-- API cleanup: renamed `getAll()` ➜ `findAll()` and `getByPrefix()` ➜
-  `findByPrefix()`; removed `actor` parameter
-- Results now return `resource.Identifier` objects; added `toIdentifier()` and
-  updated dependents (`MemoryService`, `VectorProcessor`)
+- **BREAKING CHANGE**: Updated `createCompletions()` call in `ResourceProcessor`
+  to use explicit parameters instead of object parameter
 
-## 2025-08-28
+## 2025-09-08
 
-- Fixed `DESCRIPTOR_PROMPT` to prevent LLM from responding with markdown code
-  blocks instead of raw JSON
-- Enhanced formatting requirements to explicitly request raw JSON starting with
-  `{` and ending with `}`
-- Enhanced `DESCRIPTOR_PROMPT` in `ResourceProcessor` for more effective AI
-  agent resource understanding
-- Improved prompt specificity with clear examples and AI agent context
-- Added guidance for actionable decision-making criteria in resource descriptors
-- Refactored LLM prompt template into `DESCRIPTOR_PROMPT` constant for better
-  maintainability
-- Enhanced `ResourceProcessor` to generate semantic descriptors using LLM
-  completions through `libcopilot`
-- Added `LlmInterface` dependency to `ResourceProcessor` constructor for
-  descriptor generation
-- Updated `package.json` to include `@copilot-ld/libcopilot` dependency
-- Fixed `ResourceIndex.put()` method to properly serialize Protocol Buffer
-  encoded data by calling `.finish()` on the writer
-- Consolidated resource management features into stable `libresource` package
-- Enhanced `ResourceIndex` with `getAll()` method for bulk resource retrieval
-  with policy filtering
-- Implemented universal resource identification system using `URI` format for
-  consistent addressing
-
-## 2025-08-25
-
-- Initial implementation of `ResourceIndex` class for typed resource management
-- Added `ResourceProcessor` for chunking resource content
-- Added policy integration for access control
+- **SIMPLIFIED**: Updated `ResourceProcessor.processItem()` to remove unused
+  `itemIndex` and `globalIndex` parameters
+- **REFACTOR**: `ResourceProcessor` now extends `ProcessorBase` from
+  `@copilot-ld/libutil` for unified batch processing
+- **REMOVED**: `ResourceProcessorInterface` in favor of shared
+  `ProcessorInterface` from `@copilot-ld/libutil`
+- Simplified batch processing logic by delegating to `ProcessorBase` while
+  maintaining semantic descriptor generation
+- Enhanced `ResourceProcessor` with batch LLM prompting similar to
+  `VectorProcessor` pattern
+- **NEW**: Initial implementation of universal resource management system with
+  URI-based identification
+- Enhanced `ResourceProcessor` with semantic descriptor generation powered by
+  LLM for improved AI agent understanding
+- Streamlined API with method renames (`getAll()` → `findAll()`, `getByPrefix()`
+  → `findByPrefix()`) and simplified JSON handling
+- Integrated policy-based access control for secure resource management
+- Fixed Protocol Buffer serialization issues with proper `.finish()` calls on
+  encoded data

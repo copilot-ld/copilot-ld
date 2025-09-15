@@ -27,10 +27,9 @@ describe("libvector", () => {
     });
 
     test("addItem adds new vector", async () => {
-      const identifier = new resource.Identifier({
-        id: "test-1",
+      const identifier = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
         tokens: 10,
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
@@ -40,16 +39,14 @@ describe("libvector", () => {
     });
 
     test("addItem updates existing vector", async () => {
-      const identifier1 = new resource.Identifier({
-        id: "test-1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "test-1",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
         tokens: 20,
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
@@ -59,10 +56,9 @@ describe("libvector", () => {
     });
 
     test("hasItem returns true for existing item", async () => {
-      const identifier = new resource.Identifier({
-        id: "test-1",
+      const identifier = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
@@ -81,9 +77,8 @@ describe("libvector", () => {
       const testData = JSON.stringify({
         uri: "cld:MessageV2.test-1",
         identifier: {
-          id: "test-1",
           type: "MessageV2",
-          name: "MessageV2.test-1",
+          name: "test-1",
           tokens: 10,
         },
         vector: [0.1, 0.2, 0.3],
@@ -121,16 +116,14 @@ describe("libvector", () => {
         return vector.map((val) => val / magnitude);
       };
 
-      const identifier1 = new resource.Identifier({
-        id: "similar",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.similar",
+        name: "similar",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "different",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.different",
+        name: "different",
         tokens: 15,
       });
       await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier1);
@@ -142,7 +135,7 @@ describe("libvector", () => {
 
       // Should return vectors above threshold - identical vector should score ~1.0
       assert(results.length >= 1);
-      assert(results.some((r) => r.id === "similar"));
+      assert(results.some((r) => r.name === "similar"));
       assert(results[0].score > 0.8); // At least above threshold
     });
 
@@ -155,16 +148,14 @@ describe("libvector", () => {
         return vector.map((val) => val / magnitude);
       };
 
-      const identifier1 = new resource.Identifier({
-        id: "item1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item1",
+        name: "item1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "item2",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item2",
+        name: "item2",
         tokens: 15,
       });
       await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier1);
@@ -175,26 +166,23 @@ describe("libvector", () => {
       });
 
       assert.strictEqual(results.length, 1);
-      assert.strictEqual(results[0].id, "item1");
+      assert.strictEqual(results[0].name, "item1");
     });
 
     test("queryItems respects limit", async () => {
-      const identifier1 = new resource.Identifier({
-        id: "item1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item1",
+        name: "item1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "item2",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item2",
+        name: "item2",
         tokens: 15,
       });
-      const identifier3 = new resource.Identifier({
-        id: "item3",
+      const identifier3 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item3",
+        name: "item3",
         tokens: 20,
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
@@ -212,10 +200,9 @@ describe("libvector", () => {
     });
 
     test("queryItems returns empty array for no matches", async () => {
-      const identifier = new resource.Identifier({
-        id: "item1",
+      const identifier = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item1",
+        name: "item1",
         tokens: 10,
       });
       await vectorIndex.addItem([0.9, 0.8, 0.7], identifier);
@@ -236,10 +223,9 @@ describe("libvector", () => {
         return vector.map((val) => val / magnitude);
       };
 
-      const identifier = new resource.Identifier({
-        id: "test-id",
+      const identifier = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-id",
+        name: "test-id",
         tokens: 42,
       });
       await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier);
@@ -249,7 +235,7 @@ describe("libvector", () => {
       });
 
       assert.strictEqual(results.length, 1);
-      assert.strictEqual(results[0].id, "test-id");
+      assert.strictEqual(results[0].name, "test-id");
       assert.strictEqual(results[0].tokens, 42);
       assert(results[0].score > 0.9);
     });
@@ -263,22 +249,19 @@ describe("libvector", () => {
         return vector.map((val) => val / magnitude);
       };
 
-      const identifier1 = new resource.Identifier({
-        id: "item1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item1",
+        name: "item1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "item2",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item2",
+        name: "item2",
         tokens: 15,
       });
-      const identifier3 = new resource.Identifier({
-        id: "item3",
+      const identifier3 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item3",
+        name: "item3",
         tokens: 20,
       });
       await vectorIndex.addItem(normalize([0.1, 0.2, 0.3]), identifier1);
@@ -294,16 +277,14 @@ describe("libvector", () => {
     });
 
     test("queryItems without maxTokens returns all results", async () => {
-      const identifier1 = new resource.Identifier({
-        id: "item1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item1",
+        name: "item1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "item2",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item2",
+        name: "item2",
         tokens: 15,
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
@@ -317,16 +298,14 @@ describe("libvector", () => {
     });
 
     test("queryItems with maxTokens null returns all results", async () => {
-      const identifier1 = new resource.Identifier({
-        id: "item1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item1",
+        name: "item1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "item2",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.item2",
+        name: "item2",
         tokens: 15,
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
@@ -342,19 +321,17 @@ describe("libvector", () => {
     });
 
     test("getItem returns identifier for existing item", async () => {
-      const identifier = new resource.Identifier({
-        id: "test-1",
+      const identifier = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
         tokens: 10,
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
       const result = await vectorIndex.getItem("cld:MessageV2.test-1");
 
-      assert.strictEqual(result.id, "test-1");
+      assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.type, "MessageV2");
-      assert.strictEqual(result.name, "MessageV2.test-1");
       assert.strictEqual(result.tokens, 10);
     });
 
@@ -368,9 +345,8 @@ describe("libvector", () => {
       const testData = {
         uri: "cld:MessageV2.test-1",
         identifier: {
-          id: "test-1",
           type: "MessageV2",
-          name: "MessageV2.test-1",
+          name: "test-1",
           tokens: 10,
         },
         vector: [0.1, 0.2, 0.3],
@@ -382,23 +358,21 @@ describe("libvector", () => {
       await vectorIndex.loadData();
       const result = await vectorIndex.getItem("cld:MessageV2.test-1");
 
-      assert.strictEqual(result.id, "test-1");
+      assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.type, "MessageV2");
-      assert.strictEqual(result.name, "MessageV2.test-1");
+      assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.tokens, 10);
     });
 
     test("getItem returns updated identifier after item update", async () => {
-      const identifier1 = new resource.Identifier({
-        id: "test-1",
+      const identifier1 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
         tokens: 10,
       });
-      const identifier2 = new resource.Identifier({
-        id: "test-1",
+      const identifier2 = resource.Identifier.fromObject({
         type: "MessageV2",
-        name: "MessageV2.test-1",
+        name: "test-1",
         tokens: 20,
       });
 
@@ -407,7 +381,7 @@ describe("libvector", () => {
 
       const result = await vectorIndex.getItem("cld:MessageV2.test-1");
 
-      assert.strictEqual(result.id, "test-1");
+      assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.tokens, 20); // Should have updated value
     });
   });

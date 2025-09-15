@@ -8,7 +8,7 @@ import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { logFactory } from "@copilot-ld/libutil";
-import { common } from "@copilot-ld/libtype";
+import { agent, common } from "@copilot-ld/libtype";
 
 // Create HTML formatter with factory function
 const htmlFormatter = createHtmlFormatter();
@@ -62,16 +62,13 @@ async function createWebExtension(client, config, logFn = logFactory) {
         const data = c.get("validatedData");
         const { message, conversation_id } = data;
 
-        const requestParams = {
+        const requestParams = agent.AgentRequest.fromObject({
           messages: [
-            new common.MessageV2.fromObject({ role: "user", content: message }),
+            common.MessageV2.fromObject({ role: "user", content: message }),
           ],
           github_token: await config.githubToken(),
-        };
-
-        if (conversation_id) {
-          requestParams.conversation_id = conversation_id;
-        }
+          conversation_id: conversation_id,
+        });
 
         // Ensure client is ready before making requests
         await client.ensureReady();

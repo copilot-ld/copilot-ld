@@ -1,8 +1,9 @@
 /* eslint-env node */
 import { Octokit } from "@octokit/core";
 
+import { Server } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { Policy } from "@copilot-ld/libpolicy";
+import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 
@@ -10,8 +11,9 @@ import { AgentService } from "./index.js";
 import { MemoryClient } from "@copilot-ld/memory";
 import { LlmClient } from "@copilot-ld/llm";
 import { VectorClient } from "@copilot-ld/vector";
+import { ToolClient } from "@copilot-ld/tool";
 
-// Start the service
+// Bootstrap the service
 const agentConfig = await ServiceConfig.create("agent", {
   threshold: 0.3,
   limit: 200,
@@ -29,10 +31,11 @@ const agentConfig = await ServiceConfig.create("agent", {
 const memoryClient = new MemoryClient(await ServiceConfig.create("memory"));
 const llmClient = new LlmClient(await ServiceConfig.create("llm"));
 const vectorClient = new VectorClient(await ServiceConfig.create("vector"));
+const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
 // Set up ResourceIndex for accessing resources
 const resourceStorage = storageFactory("resources");
-const policy = new Policy(storageFactory("policies"));
+const policy = policyFactory();
 const resourceIndex = new ResourceIndex(resourceStorage, policy);
 
 const service = new AgentService(
@@ -40,7 +43,12 @@ const service = new AgentService(
   memoryClient,
   llmClient,
   vectorClient,
+  toolClient,
   resourceIndex,
   (auth) => new Octokit({ auth }),
 );
-await service.start();
+
+// Create and start the server
+const server = new Server(service, agentConfig);
+
+await server.start();

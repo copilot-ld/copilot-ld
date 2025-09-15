@@ -1,26 +1,22 @@
 # Changelog
 
-## 2025-09-02
+## 2025-09-09
 
-- Switched `CompletionsRequest` to `repeated common.MessageV2 messages` and
-  updated `CreateCompletions()` to process them, converting to simple
-  `{role, content}` for backend calls
+- **BREAKING CHANGE**: Updated `createCompletions()` call to use explicit
+  parameters and include `max_tokens` parameter
 
-## 2025-09-01
+## 2025-09-08
 
-- Updated `LlmService` to import from `./service.js` instead of `./types.js`
-- Generated `LlmClient` class with automatic request/response type conversion
-
-## 2025-08-28
-
-## 2025-08-18
-
-- Updated `CreateCompletions()` and `CreateEmbeddings()` methods to use single
-  `req` parameter instead of destructured object parameters
-- Changed method signatures from destructured objects to single parameter
-  pattern
-- Adjusted `CreateCompletions()` to destructure the single request object
-  directly, keeping snake_case fields per service conventions.
+- **BREAKING**: Switched to `repeated common.MessageV2 messages` in
+  `CompletionsRequest` for improved message handling
+- Updated default model configuration from `claude-3.5-sonnet` to `gpt-4o`
+  across all configuration files
+- Enhanced tool name derivation using `id.name.split('.')` for function calling
+  compatibility
+- Migrated to consolidated `generated/services/llm/` artifacts replacing legacy
+  service files
+- Streamlined method signatures to use single request parameter pattern with
+  proper type conversion
 
 ## 2025-08-17
 

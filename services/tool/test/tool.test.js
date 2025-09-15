@@ -1,0 +1,127 @@
+/* eslint-env node */
+import { test, describe, beforeEach } from "node:test";
+import assert from "node:assert";
+
+// Module under test
+import { ToolService } from "../index.js";
+
+describe("tool service", () => {
+  describe("ToolService", () => {
+    test("exports ToolService class", () => {
+      assert.strictEqual(typeof ToolService, "function");
+      assert.ok(ToolService.prototype);
+    });
+
+    test("ToolService has ExecuteTool method", () => {
+      assert.strictEqual(typeof ToolService.prototype.ExecuteTool, "function");
+    });
+
+    test("ToolService constructor accepts expected parameters", () => {
+      // Test constructor signature by checking parameter count
+      assert.strictEqual(ToolService.length, 2); // config, logFn
+    });
+
+    test("ToolService has proper method signatures", () => {
+      const methods = Object.getOwnPropertyNames(ToolService.prototype);
+      assert(methods.includes("ExecuteTool"));
+      assert(methods.includes("constructor"));
+    });
+  });
+
+  describe("ToolService business logic", () => {
+    let mockConfig;
+
+    beforeEach(() => {
+      mockConfig = {
+        name: "tool", // Required for logging
+        endpoints: {
+          "hash.sha256": {
+            method: "hash.Hash.Sha256",
+          },
+          "vector.search": {
+            method: "vector.Vector.QueryItems",
+          },
+        },
+      };
+    });
+
+    test("creates service instance with config", () => {
+      const service = new ToolService(mockConfig);
+
+      assert.ok(service);
+      assert.strictEqual(service.config, mockConfig);
+    });
+
+    test("gets endpoints from config", () => {
+      const service = new ToolService(mockConfig);
+
+      assert.deepStrictEqual(service.endpoints, mockConfig.endpoints);
+    });
+
+    test("ExecuteTool validates request structure", async () => {
+      const service = new ToolService(mockConfig);
+
+      const result = await service.ExecuteTool({});
+
+      assert.ok(result);
+      assert.strictEqual(result.role, "tool");
+      assert.ok(result.content.includes("error"));
+    });
+
+    test("ExecuteTool handles missing endpoint", async () => {
+      const service = new ToolService(mockConfig);
+
+      const result = await service.ExecuteTool({
+        id: "test-call",
+        function: {
+          id: { name: "unknown.tool" },
+        },
+      });
+
+      assert.ok(result);
+      assert.strictEqual(result.role, "tool");
+      assert.strictEqual(result.tool_call_id, "test-call");
+      assert.ok(result.content.includes("not found"));
+    });
+
+    test("ExecuteTool handles invalid endpoint method format", async () => {
+      const invalidConfig = {
+        name: "tool", // Required for logging
+        endpoints: {
+          "invalid.tool": {
+            method: "invalid", // Invalid format - needs package.service.method
+          },
+        },
+      };
+
+      const service = new ToolService(invalidConfig);
+
+      const result = await service.ExecuteTool({
+        id: "test-call",
+        function: {
+          id: { name: "invalid.tool" },
+        },
+      });
+
+      assert.ok(result);
+      assert.strictEqual(result.role, "tool");
+      assert.ok(result.content.includes("Invalid endpoint method format"));
+    });
+
+    test("returns proper tool result structure", async () => {
+      const service = new ToolService(mockConfig);
+
+      const result = await service.ExecuteTool({
+        id: "test-call-123",
+        function: {
+          id: { name: "nonexistent.tool" },
+        },
+      });
+
+      assert.ok(result);
+      assert.strictEqual(result.role, "tool");
+      assert.strictEqual(result.tool_call_id, "test-call-123");
+      assert.ok(typeof result.content === "string");
+    });
+  });
+});

@@ -217,7 +217,7 @@ import NodeCache from "node-cache";
 
 // 2. Internal packages (alphabetical)
 import { Config } from "@copilot-ld/libconfig";
-import { Service } from "@copilot-ld/libservice";
+import { Service } from "@copilot-ld/librpc";
 
 // 3. Local imports (relative paths, alphabetical)
 import { DatabaseInterface } from "./interfaces/database.js";

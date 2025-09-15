@@ -44,8 +44,8 @@ export default [
       "**/data/**",
       "**/package-lock.json",
       "SCRATCHPAD.md",
-      // Ignore generated types file globally
-      "packages/libtype/types.js",
+      // Ignore generated types file globally (moved to top-level generated/)
+      "generated/types/types.js",
     ],
   },
 

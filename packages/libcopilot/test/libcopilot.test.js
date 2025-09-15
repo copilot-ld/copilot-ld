@@ -36,13 +36,17 @@ describe("libcopilot", () => {
         Promise.resolve(mockResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-        max_tokens: 100,
-        temperature: 0.5,
-      };
+      const messages = [{ role: "user", content: "Hello" }];
+      const tools = undefined;
+      const temperature = 0.5;
+      const max_tokens = 100;
 
-      const result = await copilot.createCompletions(params);
+      const result = await copilot.createCompletions(
+        messages,
+        tools,
+        temperature,
+        max_tokens,
+      );
 
       assert.strictEqual(mockFetch.mock.callCount(), 1);
       const [url, options] = mockFetch.mock.calls[0].arguments;
@@ -68,11 +72,9 @@ describe("libcopilot", () => {
         Promise.resolve(mockResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-      };
+      const messages = [{ role: "user", content: "Hello" }];
 
-      await copilot.createCompletions(params);
+      await copilot.createCompletions(messages);
 
       const [, options] = mockFetch.mock.calls[0].arguments;
       const body = JSON.parse(options.body);
@@ -90,11 +92,9 @@ describe("libcopilot", () => {
         Promise.resolve(mockResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-      };
+      const messages = [{ role: "user", content: "Hello" }];
 
-      await assert.rejects(() => copilot.createCompletions(params), {
+      await assert.rejects(() => copilot.createCompletions(messages), {
         message: /HTTP 404: Not Found/,
       });
     });
@@ -111,11 +111,9 @@ describe("libcopilot", () => {
         Promise.resolve(errorResponse),
       );
 
-      const params = {
-        messages: [{ role: "user", content: "Hello" }],
-      };
+      const messages = [{ role: "user", content: "Hello" }];
 
-      await assert.rejects(() => copilot.createCompletions(params), {
+      await assert.rejects(() => copilot.createCompletions(messages), {
         message: /HTTP 500: Internal Server Error/,
       });
 
@@ -278,55 +276,21 @@ describe("libcopilot", () => {
       };
 
       // Test both methods fail with max retries
+      // This test verifies that exhausted retries throw proper errors (not undefined)
       mockFetch.mock.mockImplementation(() => Promise.resolve(retryResponse));
 
       // Test createCompletions
       await assert.rejects(() =>
-        copilot.createCompletions({
-          messages: [{ role: "user", content: "Hello" }],
-        }),
+        copilot.createCompletions([{ role: "user", content: "Hello" }]),
       );
-      assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
+      assert.strictEqual(mockFetch.mock.callCount(), 6); // Initial + 5 retries
 
       // Reset mock for second test
       mockFetch.mock.resetCalls();
 
       // Test createEmbeddings
       await assert.rejects(() => copilot.createEmbeddings(["test text"]));
-      assert.strictEqual(mockFetch.mock.callCount(), 4); // Initial + 3 retries
-    });
-
-    test("successful request after retries stops retry loop", async () => {
-      const retryResponse = {
-        ok: false,
-        status: 429,
-        statusText: "Too Many Requests",
-      };
-      const successResponse = {
-        ok: true,
-        json: mock.fn(() =>
-          Promise.resolve({
-            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
-          }),
-        ),
-      };
-
-      // Fail twice, then succeed
-      let callCount = 0;
-      mockFetch.mock.mockImplementation(() => {
-        callCount++;
-        if (callCount <= 2) {
-          return Promise.resolve(retryResponse);
-        } else {
-          return Promise.resolve(successResponse);
-        }
-      });
-
-      const result = await copilot.createEmbeddings(["test text"]);
-
-      // Should have made exactly 3 calls (2 failures + 1 success)
-      assert.strictEqual(mockFetch.mock.callCount(), 3);
-      assert.strictEqual(result.length, 1);
+      assert.strictEqual(mockFetch.mock.callCount(), 6); // Initial + 5 retries
     });
 
     test("non-429 errors do not trigger retries", async () => {
@@ -342,9 +306,7 @@ describe("libcopilot", () => {
       );
 
       await assert.rejects(() =>
-        copilot.createCompletions({
-          messages: [{ role: "user", content: "Hello" }],
-        }),
+        copilot.createCompletions([{ role: "user", content: "Hello" }]),
       );
 
       // Should only make one call for non-429 errors

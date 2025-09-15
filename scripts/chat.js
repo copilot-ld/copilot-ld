@@ -4,8 +4,9 @@ import readline from "readline";
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { AgentClient } from "../services/agent/client.js";
 import { agent, common } from "@copilot-ld/libtype";
+
+import { AgentClient } from "@copilot-ld/agent";
 
 /** @typedef {import("@copilot-ld/libtype").common.MessageV2} MessageV2 */
 
@@ -28,7 +29,7 @@ async function handlePrompt(prompt) {
   // Create user message using MessageV2 structure
   const userMessage = common.MessageV2.fromObject({
     role: "user",
-    content: { text: prompt },
+    content: prompt,
   });
   messages.push(userMessage);
 
@@ -37,7 +38,7 @@ async function handlePrompt(prompt) {
     await agentClient.ensureReady();
 
     // Create typed request using agent.AgentRequest
-    const request = agent.AgentRequest.fromObject({
+    const request = new agent.AgentRequest({
       messages: messages,
       github_token: await config.githubToken(),
       conversation_id: conversationId || undefined,

@@ -14,7 +14,12 @@ retrieval-augmented generation.
 - **/extensions/**: Application adapters (copilot, teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/scripts/**: Development and operational utilities
-- **/proto/**: gRPC protocol buffer definitions
+- **/proto/**: Authoritative Protocol Buffer source schemas (copied into
+  `generated/` during codegen)
+- **/tools/**: Optional protobuf definitions for custom tools that extend the
+  core system (not part of the base platform)
+- **/generated/**: All generated artifacts (proto schemas, types, service base
+  classes, client classes)
 - **/data/**: Knowledge base, vectors, and resource data
 
 ## 🚀 Setup
@@ -34,22 +39,13 @@ npm install
 
 ### 3. Generate code from Protocol Buffers
 
-Generate typed definitions, service bases, and clients after a fresh clone or
-any time you change files in `proto/` (Protocol Buffers):
-
 ```sh
-# Generate everything (types + service bases + clients)
 npm run codegen
-
-# Or run a specific generator
-npm run codegen:type     # Generate `@copilot-ld/libtype` from `proto/*.proto`
-npm run codegen:service  # Generate `services/*/service.js`
-npm run codegen:client   # Generate `services/*/client.js`
 ```
 
-These scripts wrap `scripts/codegen.js` which uses `protobufjs` and `Mustache`
-templates to produce ESM modules. Generated artifacts are placed in
-`packages/libtype/` and `services/*/`.
+This generates service interfaces and type definitions from the Protocol Buffer
+schemas. See [Code Generation Details](docs/architecture.html#code-generation)
+for more information.
 
 ### 4. Create GitHub token
 
@@ -89,6 +85,7 @@ node scripts/download.js
 
 ```sh
 node scripts/resources.js
+node scripts/tools.js
 node scripts/vectors.js
 ```
 
@@ -242,6 +239,11 @@ AI instructions for specific domains:
 - `scripts/codegen.js` supports flags: `--type`, `--service`, `--client`,
   `--all`
 - Root `npm run codegen:*` scripts are the recommended entry points
-- Generated files:
-  - `packages/libtype/types.js` and `types.d.ts`
-  - `services/<name>/service.js` and `client.js`
+- Generated files (all under `generated/`):
+  - `generated/proto/*.proto` (copied originals)
+  - `generated/types/types.{js,d.ts}` (consolidated static module)
+  - `generated/services/<name>/{service,client}.{js,d.ts}`
+  - `generated/tools/<tool>/{service,client}.{js,d.ts}`
+
+Legacy generated artifacts in `packages/libtype/` and `services/*/` have been
+removed to prevent accidental edits to generated code.

@@ -8,7 +8,6 @@ import { AgentClient } from "../generated/services/agent/client.js";
 import { MemoryClient } from "../generated/services/memory/client.js";
 import { VectorClient } from "../generated/services/vector/client.js";
 import { ToolClient } from "../generated/services/tool/client.js";
-import { HashClient } from "../generated/services/hash/client.js";
 
 import { Client } from "@copilot-ld/librpc";
 
@@ -58,14 +57,6 @@ describe("Generated client locations", () => {
     assert.ok(ToolClient.prototype instanceof Client);
     ["ExecuteTool", "ListTools"].forEach((m) =>
       assert.strictEqual(typeof ToolClient.prototype[m], "function"),
-    );
-  });
-
-  test("Hash service client class shape", () => {
-    assert.ok(HashClient);
-    assert.ok(HashClient.prototype instanceof Client);
-    ["Sha256", "Md5"].forEach((m) =>
-      assert.strictEqual(typeof HashClient.prototype[m], "function"),
     );
   });
 });

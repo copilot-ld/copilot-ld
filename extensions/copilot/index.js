@@ -7,7 +7,7 @@ import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { logFactory } from "@copilot-ld/libutil";
 
-import { AgentClient } from "@copilot-ld/agent";
+import { AgentClient } from "../../generated/services/agent/client.js";
 
 /**
  * Creates a GitHub Copilot compatible extension

@@ -23,7 +23,7 @@
     "@copilot-ld/libtype": "^0.1.7",
     "@copilot-ld/libutil": "^0.1.6",
     "@copilot-ld/llm": "^0.1.14",
-    "@copilot-ld/memory": "^0.1.6",
+    "@copilot-ld/memory": "^0.1.8",
     "@copilot-ld/tool": "^0.1.12",
     "@copilot-ld/vector": "^0.1.17",
     "@octokit/core": "^7.0.3"

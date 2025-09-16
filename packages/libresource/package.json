@@ -15,7 +15,7 @@
   "dependencies": {
     "@copilot-ld/libcopilot": "^0.1.5",
     "@copilot-ld/libpolicy": "^0.1.3",
-    "@copilot-ld/libstorage": "^0.1.2",
+    "@copilot-ld/libstorage": "^0.1.4",
     "@copilot-ld/libtype": "^0.1.3",
     "js-yaml": "^4.1.0",
     "microdata-minimal": "1.0.2",

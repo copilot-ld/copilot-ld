@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/vector",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Vector similarity search service for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -23,5 +23,9 @@
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
     "directory": "services/vector"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   }
 }

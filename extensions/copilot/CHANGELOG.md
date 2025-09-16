@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-09-16
+
+- Bump version for public package publishing
+
 ## 2025-09-11
 
 - Updated dependencies and imports for architectural restructuring (`libservice`

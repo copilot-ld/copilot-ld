@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-09-16
+
+- Bump version for public package publishing
+
 ## 2025-08-15
 
 - Fixed test suite to match updated `PerformanceMetric` constructor signature

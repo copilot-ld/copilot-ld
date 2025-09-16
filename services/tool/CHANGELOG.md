@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-09-16
+
+- Bump version for public package publishing
+
 ## 2025-09-11
 
 - **NEW**: Initial implementation of Tool service as part of Phase 3, Step 10

@@ -1,36 +1,19 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy dependency files
-COPY package*.json ./
-COPY packages/libconfig/package.json ./packages/libconfig/
-COPY packages/libcopilot/package.json ./packages/libcopilot/
-COPY packages/libformat/package.json ./packages/libformat/
-COPY packages/libperf/package.json ./packages/libperf/
-COPY packages/libpolicy/package.json ./packages/libpolicy/
-COPY packages/libprompt/package.json ./packages/libprompt/
-COPY packages/librel/package.json ./packages/librel/
-COPY packages/librepl/package.json ./packages/librepl/
-COPY packages/libresource/package.json ./packages/libresource/
-COPY packages/librpc/package.json ./packages/librpc/
-COPY packages/libstorage/package.json ./packages/libstorage/
-COPY packages/libtype/package.json ./packages/libtype/
-COPY packages/libutil/package.json ./packages/libutil/
-COPY packages/libvector/package.json ./packages/libvector/
-COPY packages/libweb/package.json ./packages/libweb/
-
-# Install dependencies
-RUN npm install
-
-# Copy source files
+# Copy package.json and workspace structure
+COPY package.json package-lock.json ./
 COPY packages/ ./packages/
+COPY services/ ./services/
+COPY extensions/ ./extensions/
+COPY scripts/ ./scripts/
 COPY proto/ ./proto/
-COPY config/ ./config/
-COPY services/memory/ ./services/memory/
 
-# Expose service port
+# Install all dependencies for the entire workspace
+RUN npm ci
+
+WORKDIR /app/services/memory
+
 EXPOSE 3000
-
-# Start service
-CMD ["node", "services/memory/server.js"]
+CMD ["npm", "start"]

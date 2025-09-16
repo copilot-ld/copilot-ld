@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.7",
+    "@copilot-ld/libtype": "^0.1.8",
     "dompurify": "^3.2.6",
     "jsdom": "^26.1.0",
     "marked": "^16.1.2",

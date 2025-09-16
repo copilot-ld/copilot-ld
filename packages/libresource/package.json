@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libresource",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Resource management for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libcopilot": "^0.1.8",
+    "@copilot-ld/libcopilot": "^0.1.9",
     "@copilot-ld/libpolicy": "^0.1.6",
     "@copilot-ld/libstorage": "^0.1.7",
     "@copilot-ld/libtype": "^0.1.8",

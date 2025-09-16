@@ -15,7 +15,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.8",
+    "@copilot-ld/libconfig": "^0.1.10",
     "@copilot-ld/libpolicy": "^0.1.5",
     "@copilot-ld/libresource": "^0.1.5",
     "@copilot-ld/librpc": "^0.1.12",
@@ -25,7 +25,7 @@
     "@copilot-ld/llm": "^0.1.14",
     "@copilot-ld/memory": "^0.1.8",
     "@copilot-ld/tool": "^0.1.14",
-    "@copilot-ld/vector": "^0.1.17",
+    "@copilot-ld/vector": "^0.1.19",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

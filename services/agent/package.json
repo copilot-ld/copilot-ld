@@ -20,7 +20,7 @@
     "@copilot-ld/libutil": "^0.1.5",
     "@copilot-ld/llm": "^0.1.12",
     "@copilot-ld/memory": "^0.1.6",
-    "@copilot-ld/vector": "^0.1.16",
+    "@copilot-ld/vector": "^0.1.17",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

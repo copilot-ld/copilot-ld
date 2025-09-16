@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libconfig",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Configuration management and environment resolution for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -20,5 +20,9 @@
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
     "directory": "packages/libconfig"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   }
 }

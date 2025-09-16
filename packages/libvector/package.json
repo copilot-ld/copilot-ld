@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libvector",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Vector operations and index management library for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,5 +16,9 @@
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
     "directory": "packages/libvector"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   }
 }

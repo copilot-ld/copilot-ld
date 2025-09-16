@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-09-16
+
+- Bump version for public package publishing
+
 ## 2025-09-12
 
 - Fixed test case `should call service methods during setup` which was making

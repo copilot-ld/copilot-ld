@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-09-16
+
+- Bump version for public package publishing
+
 ## 2025-09-11
 
 - Added `tool_call_id` field to `MessageV2` protobuf definition for proper tool

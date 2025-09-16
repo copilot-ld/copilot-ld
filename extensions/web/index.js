@@ -3,12 +3,13 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 
-import { AgentClient } from "@copilot-ld/agent";
 import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { logFactory } from "@copilot-ld/libutil";
 import { agent, common } from "@copilot-ld/libtype";
+
+import { AgentClient } from "../../generated/services/agent/client.js";
 
 // Create HTML formatter with factory function
 const htmlFormatter = createHtmlFormatter();

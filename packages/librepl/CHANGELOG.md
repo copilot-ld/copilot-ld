@@ -2,6 +2,7 @@
 
 ## 2025-09-16
 
+- Bump version one last time
 - Bump version one more time
 - Bump version again
 - Bump version for public package publishing

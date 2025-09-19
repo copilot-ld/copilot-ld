@@ -12,6 +12,9 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
+  "dependencies": {
+    "@copilot-ld/libtype": "^0.1.9"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",

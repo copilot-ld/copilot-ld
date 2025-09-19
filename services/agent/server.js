@@ -8,10 +8,10 @@ import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 
 import { AgentService } from "./index.js";
-import { MemoryClient } from "@copilot-ld/memory";
-import { LlmClient } from "@copilot-ld/llm";
-import { VectorClient } from "@copilot-ld/vector";
-import { ToolClient } from "@copilot-ld/tool";
+import { MemoryClient } from "../../generated/services/memory/client.js";
+import { LlmClient } from "../../generated/services/llm/client.js";
+import { VectorClient } from "../../generated/services/vector/client.js";
+import { ToolClient } from "../../generated/services/tool/client.js";
 
 // Bootstrap the service
 const agentConfig = await ServiceConfig.create("agent", {

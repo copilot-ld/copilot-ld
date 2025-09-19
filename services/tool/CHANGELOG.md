@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-09-19
+
+- Removed client re-exports from service implementations for cleaner separation
+  of concerns
+- Enhanced Dockerfile to use multi-stage build pattern with base image
+  dependency and proper Node.js version
+
 ## 2025-09-16
 
 - Bump version one last time, really

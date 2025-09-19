@@ -64,4 +64,3 @@ export class VectorService extends VectorBase {
 }
 
 // Export the service class (no bootstrap code here)
-export { VectorClient } from "../../generated/services/vector/client.js";

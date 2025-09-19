@@ -109,4 +109,5 @@ message Assistant {
   resource.Identifier id = 1;
   resource.Descriptor descriptor = 2;
   resource.Content content = 3;
+  string role = 4;
 }

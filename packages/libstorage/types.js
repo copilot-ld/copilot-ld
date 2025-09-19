@@ -59,7 +59,7 @@ export class StorageInterface {
   /**
    * Recursively find keys with specified extension
    * @param {string} extension - File extension to search for (e.g., ".json", ".html")
-   * @returns {Promise<string[]>} Array of keys with the specified extension
+   * @returns {Promise<string[]>} Array of keys with the specified extension, sorted by creation timestamp (oldest first)
    * @throws {Error} Not implemented
    */
   async findByExtension(extension) {
@@ -79,7 +79,7 @@ export class StorageInterface {
   /**
    * Find keys with specified prefix for URI-based lookups
    * @param {string} prefix - Key prefix to search for (e.g., "cld:common.Conversation.hash0001/common.MessageV2.hash0002")
-   * @returns {Promise<string[]>} Array of keys with the specified prefix
+   * @returns {Promise<string[]>} Array of keys with the specified prefix, sorted by creation timestamp (oldest first)
    * @throws {Error} Not implemented
    */
   async findByPrefix(prefix) {
@@ -88,7 +88,7 @@ export class StorageInterface {
 
   /**
    * List all keys in the storage
-   * @returns {Promise<string[]>} Array of all storage keys
+   * @returns {Promise<string[]>} Array of all storage keys, sorted by creation timestamp (oldest first)
    * @throws {Error} Not implemented
    */
   async list() {

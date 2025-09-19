@@ -13,6 +13,9 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
+  "dependencies": {
+    "@copilot-ld/libutil": "^0.1.8"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",

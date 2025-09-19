@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-09-19
+
+- Removed client re-exports from service implementations for cleaner separation
+  of concerns
+- Updated imports to use generated client classes from `generated/services/`
+  instead of package imports
+- Enhanced Dockerfile to use multi-stage build pattern with base image
+  dependency
+
 ## 2025-09-16
 
 - Bump version one last time, really

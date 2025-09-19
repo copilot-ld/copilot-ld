@@ -7,6 +7,8 @@
 - Bump version one more time
 - Bump version again
 - Bump version for public package publishing
+- Removed unused `createClient()` function as it was not being used anywhere in
+  the codebase
 
 ## 2025-09-12
 

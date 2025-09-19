@@ -2,32 +2,11 @@
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 
-import { ServiceConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { ClientInterface, RpcInterface } from "./types.js";
-
-/**
- * Creates a client with a service configuration
- * @param {string} serviceName - Name of the service
- * @param {object} defaults - Default configuration values
- * @param {() => {grpc: object, protoLoader: object}} grpcFn - Grpc factory function
- * @param {(serviceName: string) => object} authFn - Optional auth factory function
- * @param {(namespace: string) => object} logFn - Optional log factory function
- * @returns {Promise<Client>} Configured client instance
- */
-export async function createClient(
-  serviceName,
-  defaults = {},
-  grpcFn,
-  authFn,
-  logFn,
-) {
-  const config = await ServiceConfig.create(serviceName, defaults);
-  return new Client(config, grpcFn, authFn, logFn);
-}
 
 /**
  * Default grpc factory that creates gRPC dependencies
@@ -165,7 +144,11 @@ export class Client extends Rpc {
         );
       }
 
-      const uri = `${this.config.host}:${this.config.port}`;
+      // In case default host is used, resort to service name for resolution
+      const host =
+        this.config.host === "0.0.0.0" ? this.name : this.config.host;
+
+      const uri = `${host}:${this.config.port}`;
       const options = {
         interceptors: [this.auth().createClientInterceptor()],
       };

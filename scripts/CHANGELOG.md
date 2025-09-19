@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-09-19
+
+- **NEW**: Added `serve.js` script for local HTTP server with file watching and
+  auto-restart capabilities
+- Updated `chat.js` to use generated client imports instead of package imports
+  for consistency
+- Updated `upload.js` bucket configuration from legacy names to current storage
+  structure
+- Enhanced Dockerfile templates for all services to use multi-stage builds with
+  base image inheritance
+
 ## 2025-09-11
 
 - **BREAKING**: Renamed directory from `tools/` to `scripts/` and updated

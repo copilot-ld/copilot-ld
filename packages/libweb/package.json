@@ -13,6 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "@copilot-ld/libconfig": "^0.1.10",
     "hono": "^4.8.12",
     "validator": "^13.12.0"
   },

@@ -1,5 +1,28 @@
+#
+# Networking and Volumes
+#
+
+networks:
+  external:
+    driver: bridge
+    name: copilot-ld.external
+  internal:
+    driver: bridge
+    name: copilot-ld.internal
+
+volumes:
+  minio_data:
+    driver: local
+
+#
+# Services
+#
+
 services:
-  # Application Load Balancer
+  #
+  # Infrastructure Services
+  #
+
   alb:
     image: nginx:alpine
     container_name: copilot-ld.alb
@@ -19,22 +42,29 @@ services:
       - web
       - copilot
 
-  # S3-compatible storage
   minio:
     image: minio/minio:latest
     container_name: copilot-ld.minio
     env_file: ./config/.env
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
-      - external
       - internal
 
-  # Extensions
+  base:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.base
+    image: copilot-ld/base:latest
+    container_name: copilot-ld.base
+    deploy:
+      replicas: 0
+
+  #
+  # Extension Services
+  #
+
   web:
     build:
       context: .
@@ -42,13 +72,13 @@ services:
     image: copilot-ld/web:latest
     container_name: copilot-ld.web
     env_file: ./config/.env
-    environment:
-      - SERVICE_AGENT_HOST=agent
-      - SERVICE_AGENT_PORT=3000
+    volumes:
+      - ./generated:/app/generated:ro
     networks:
       - external
       - internal
     depends_on:
+      - base
       - agent
 
   copilot:
@@ -58,16 +88,19 @@ services:
     image: copilot-ld/copilot:latest
     container_name: copilot-ld.copilot
     env_file: ./config/.env
-    environment:
-      - SERVICE_AGENT_HOST=agent
-      - SERVICE_AGENT_PORT=3000
+    volumes:
+      - ./generated:/app/generated:ro
     networks:
       - external
       - internal
     depends_on:
+      - base
       - agent
 
-  # Services
+  #
+  # Core Services
+  #
+
   agent:
     build:
       context: .
@@ -75,18 +108,14 @@ services:
     image: copilot-ld/agent:latest
     container_name: copilot-ld.agent
     env_file: ./config/.env
-    environment:
-      - SERVICE_MEMORY_HOST=memory
-      - SERVICE_MEMORY_PORT=3000
-      - SERVICE_LLM_HOST=llm
-      - SERVICE_LLM_PORT=3000
-      - SERVICE_VECTOR_HOST=vector
-      - SERVICE_VECTOR_PORT=3000
-      - SERVICE_TOOL_HOST=tool
-      - SERVICE_TOOL_PORT=3000
+    volumes:
+      - ./generated:/app/generated:ro
+      - ./data/storage/policies:/app/data/storage/policies
+      - ./data/storage/resources:/app/data/storage/resources
     networks:
       - internal
     depends_on:
+      - base
       - memory
       - llm
       - vector
@@ -99,8 +128,12 @@ services:
     image: copilot-ld/llm:latest
     container_name: copilot-ld.llm
     env_file: ./config/.env
+    volumes:
+      - ./generated:/app/generated:ro
     networks:
       - internal
+    depends_on:
+      - base
 
   vector:
     build:
@@ -112,7 +145,10 @@ services:
     networks:
       - internal
     volumes:
+      - ./generated:/app/generated:ro
       - ./data/storage/vectors:/app/data/storage/vectors
+    depends_on:
+      - base
 
   memory:
     build:
@@ -124,9 +160,12 @@ services:
     networks:
       - internal
     volumes:
+      - ./generated:/app/generated:ro
       - ./data/storage/memories:/app/data/storage/memories
-      - ./data/storage/resources:/app/data/storage/resources
       - ./data/storage/policies:/app/data/storage/policies
+      - ./data/storage/resources:/app/data/storage/resources
+    depends_on:
+      - base
 
   tool:
     build:
@@ -135,22 +174,29 @@ services:
     image: copilot-ld/tool:latest
     container_name: copilot-ld.tool
     env_file: ./config/.env
-    environment:
-      - SERVICE_VECTOR_HOST=vector
-      - SERVICE_VECTOR_PORT=3000
+    volumes:
+      - ./generated:/app/generated:ro
     networks:
       - internal
     depends_on:
-      - vector
+      - base
 
-networks:
-  external:
-    driver: bridge
-    name: copilot-ld.external
-  internal:
-    driver: bridge
-    name: copilot-ld.internal
+  #
+  # Example Tool Services
+  #
 
-volumes:
-  minio_data:
-    driver: local
+  hash:
+    build:
+      context: .
+      dockerfile: ./tools/hash/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    image: copilot-ld/hash:latest
+    container_name: copilot-ld.hash
+    env_file: ./config/.env
+    volumes:
+      - ./generated:/app/generated:ro
+    networks:
+      - internal
+    depends_on:
+      - base

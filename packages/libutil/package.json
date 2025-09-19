@@ -12,6 +12,9 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
+  "dependencies": {
+    "js-tiktoken": "^1.0.20"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",

@@ -16,7 +16,7 @@
     "@copilot-ld/libtype": "^0.1.9",
     "dompurify": "^3.2.6",
     "jsdom": "^26.1.0",
-    "marked": "^16.1.2",
+    "marked": "^15.0.12",
     "marked-terminal": "^7.3.0"
   },
   "repository": {

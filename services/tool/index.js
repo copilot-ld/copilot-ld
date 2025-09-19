@@ -187,4 +187,3 @@ class ToolService extends ToolBase {
 }
 
 export { ToolService };
-export { ToolClient } from "../../generated/services/tool/client.js";

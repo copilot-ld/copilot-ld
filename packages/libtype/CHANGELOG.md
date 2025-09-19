@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-09-19
+
+- Moved token counting functionality from `@copilot-ld/libcopilot` to
+  `@copilot-ld/libutil` for better modularity
+- Enhanced `common.Assistant.fromObject()` to apply default role of "system"
+  when not specified
+- Improved monkey-patch organization with cleaner constructor references
+
 ## 2025-09-16
 
 - Bump version one last time, really

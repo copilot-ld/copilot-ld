@@ -22,7 +22,7 @@ class UploadScript {
    * @returns {Promise<void>}
    */
   async initialize() {
-    const buckets = ["config", "chunks", "vectors", "history"];
+    const buckets = ["config", "memories", "policies", "resources", "vectors"];
 
     for (const bucket of buckets) {
       this.#local[bucket] = storageFactory(bucket, "local");
@@ -44,7 +44,7 @@ class UploadScript {
    * @returns {Promise<void>}
    */
   async upload() {
-    const buckets = ["config", "chunks", "vectors", "history"];
+    const buckets = ["config", "memories", "policies", "resources", "vectors"];
 
     for (const bucket of buckets) {
       logger.debug("Processing bucket", { bucket });
@@ -99,14 +99,8 @@ class UploadScript {
 async function main() {
   await ScriptConfig.create("upload-script");
   const uploader = new UploadScript();
-
-  try {
-    await uploader.initialize();
-    await uploader.upload();
-  } catch (error) {
-    logger.debug("Upload failed", { error: error.message });
-    process.exit(1);
-  }
+  await uploader.initialize();
+  await uploader.upload();
 }
 
 main();

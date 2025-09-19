@@ -1,18 +1,8 @@
-FROM node:20-alpine
-
+FROM copilot-ld/base:latest AS base
+FROM base AS tool
+COPY services/tool/ ./services/tool/
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY services/tool/package.json ./services/tool/
-
-# Install dependencies
-RUN npm ci --production
-
-# Copy source code
-COPY packages ./packages
-COPY services/tool ./services/tool
-
-# Start the service
+RUN npm ci
 WORKDIR /app/services/tool
-CMD ["node", "index.js"]
+EXPOSE 3000
+CMD ["npm", "start"]

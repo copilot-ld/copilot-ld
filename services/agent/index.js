@@ -79,10 +79,10 @@ class AgentService extends AgentBase {
   /**
    * Creates a new Agent service instance
    * @param {object} config - Service configuration object
-   * @param {import("../memory/client.js").MemoryClient} memoryClient - Memory service client
-   * @param {import("../llm/client.js").LlmClient} llmClient - LLM service client
-   * @param {import("../vector/client.js").VectorClient} vectorClient - Vector service client
-   * @param {import("../tool/client.js").ToolClient} toolClient - Tool service client
+   * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory service client
+   * @param {import("../../generated/services/llm/client.js").LlmClient} llmClient - LLM service client
+   * @param {import("../../generated/services/vector/client.js").VectorClient} vectorClient - Vector service client
+   * @param {import("../../generated/services/tool/client.js").ToolClient} toolClient - Tool service client
    * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - ResourceIndex instance for data access
    * @param {(token: string) => object} octokitFactory - Factory function to create Octokit instances
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
@@ -358,4 +358,3 @@ class AgentService extends AgentBase {
  * @deprecated This service will be replaced by Assistant, Task, Conversation, and Context services in the new architecture
  */
 export { AgentService };
-export { AgentClient } from "../../generated/services/agent/client.js";

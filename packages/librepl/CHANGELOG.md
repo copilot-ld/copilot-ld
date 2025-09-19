@@ -7,6 +7,11 @@
 - Bump version one more time
 - Bump version again
 - Bump version for public package publishing
+- Removed direct dependencies on `marked` and `marked-terminal` packages
+- Now relies solely on `@copilot-ld/libformat` for markdown formatting
+  functionality
+- Improved architectural separation of concerns by removing duplicate
+  dependencies
 
 ## 2025-09-11
 

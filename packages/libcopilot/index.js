@@ -1,8 +1,6 @@
 /* eslint-env node */
-import { Tiktoken } from "js-tiktoken/lite";
-import o200k_base from "js-tiktoken/ranks/o200k_base";
-
 import { common } from "@copilot-ld/libtype";
+import { countTokens, tokenizerFactory } from "@copilot-ld/libutil";
 
 import { LlmInterface } from "./types.js";
 
@@ -208,17 +206,6 @@ export class Copilot extends LlmInterface {
 }
 
 /**
- * Helper function to count tokens
- * @param {string} text - Text to count tokens for
- * @param {Tiktoken} tokenizer - Tokenizer instance
- * @returns {number} Approximate token count
- */
-export function countTokens(text, tokenizer) {
-  if (!tokenizer) tokenizer = tokenizerFactory();
-  return tokenizer.encode(text).length;
-}
-
-/**
  * Normalizes a vector to unit length
  * @param {number[]} vector - Vector to normalize
  * @returns {number[]} Normalized vector
@@ -244,14 +231,6 @@ export function llmFactory(
   tokenizerFn = tokenizerFactory,
 ) {
   return new Copilot(token, model, fetchFn, tokenizerFn);
-}
-
-/**
- * Creates a new tokenizer instance
- * @returns {Tiktoken} New tokenizer instance
- */
-export function tokenizerFactory() {
-  return new Tiktoken(o200k_base);
 }
 
 export { LlmInterface };

@@ -417,7 +417,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 
-import { AgentClient } from "@copilot-ld/agent";
+import { AgentClient } from "../../generated/services/agent/client.js";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { common } from "@copilot-ld/libtype";

@@ -6,7 +6,7 @@ import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { agent, common } from "@copilot-ld/libtype";
 
-import { AgentClient } from "@copilot-ld/agent";
+import { AgentClient } from "../generated/services/agent/client.js";
 
 /** @typedef {import("@copilot-ld/libtype").common.MessageV2} MessageV2 */
 

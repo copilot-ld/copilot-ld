@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-19
+
+- Added dependency on `@copilot-ld/libconfig` for enhanced configuration
+  management integration
+
 ## 2025-09-16
 
 - Bump version one last time, really

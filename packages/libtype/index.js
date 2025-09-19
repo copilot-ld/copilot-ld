@@ -6,7 +6,7 @@ export * from "../../generated/types/types.js";
 // Re-export selected message constructors from the consolidated generated types
 // NOTE: generated artifacts now live under top-level generated/ directory
 import * as types from "../../generated/types/types.js";
-import { countTokens } from "@copilot-ld/libcopilot";
+import { countTokens } from "@copilot-ld/libutil";
 import { generateHash, generateUUID } from "@copilot-ld/libutil";
 
 // Core namespaces only (tools and any experimental namespaces are excluded intentionally)
@@ -139,40 +139,52 @@ resource.Content.prototype.toString = function () {
 /**
  * Monkey-patches for common.MessageV2
  */
-const originalMessageV2Constructor = common.MessageV2;
+const MessageV2Ctor = common.MessageV2;
+const MessageV2fromObject = MessageV2Ctor.fromObject;
 
 // Monkey-patch MessageV2.fromObject to gracefully convert content to an object
-const originalMessageV2fromObject = originalMessageV2Constructor.fromObject;
-
 common.MessageV2.fromObject = function (object) {
   if (typeof object.content === "string") {
     const content = { text: object.content };
     object = { ...object, content };
   }
-  const typed = originalMessageV2fromObject(object);
+  const typed = MessageV2fromObject(object);
   typed.withIdentifier();
   return typed;
 };
 
 // Patch .verify to handle convert string content to object
-const originalMessageV2verify = originalMessageV2Constructor.verify;
+const MessageV2verify = MessageV2Ctor.verify;
 common.MessageV2.verify = function (message) {
   if (message && typeof message.content === "string") {
     const content = { text: message.content };
     message = { ...message, content };
   }
-  return originalMessageV2verify(message);
+  return MessageV2verify(message);
+};
+
+/**
+ * Monkey-patches for common.Assistant
+ */
+const AssistantCtor = common.Assistant;
+const AssistantfromObject = AssistantCtor.fromObject;
+
+// Monkey-patch Assistant.fromObject to apply a default role if not set
+common.Assistant.fromObject = function (object) {
+  object.role = object?.role || "system";
+
+  const typed = AssistantfromObject(object);
+  typed.withIdentifier();
+  return typed;
 };
 
 /**
  * Monkey-patches for common.ToolFunction
  */
-const originalToolFunctionConstructor = common.ToolFunction;
+const ToolFunctionCtor = common.ToolFunction;
+const ToolFunctionfromObject = ToolFunctionCtor.fromObject;
 
 // Monkey-patch ToolFunction.fromObject to gracefully convert .name to .id.name
-const originalToolFunctionfromObject =
-  originalToolFunctionConstructor.fromObject;
-
 common.ToolFunction.fromObject = function (object) {
   // If the object has a name property, construct the identifier from it
   if (object?.name) {
@@ -185,7 +197,7 @@ common.ToolFunction.fromObject = function (object) {
     object.name = object.id.name;
   }
 
-  const typed = originalToolFunctionfromObject(object);
+  const typed = ToolFunctionfromObject(object);
   typed.withIdentifier();
   return typed;
 };

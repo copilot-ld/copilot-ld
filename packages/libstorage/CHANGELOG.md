@@ -1,5 +1,15 @@
 # Changelog
 
+## 2025-09-19
+
+- Enhanced `#traverse()` methods in both `LocalStorage` and `S3Storage` to sort
+  files by creation timestamp (oldest first) for consistent chronological
+  ordering
+- Added timestamp-based sorting to `list()`, `findByPrefix()`, and
+  `findByExtension()` methods across both storage implementations
+- Improved code organization with method grouping and consistent comment
+  structure
+
 ## 2025-09-16
 
 - Bump version one last time, really
@@ -7,6 +17,21 @@
 - Bump version one more time
 - Bump version again
 - Bump version for public package publishing
+
+## 2025-09-15
+
+- Fixed `S3Storage.put()` method to properly serialize JavaScript arrays back to
+  JSONL format and objects to JSON format before uploading to S3
+- Enhanced `LocalStorage.put()` method with same serialization logic for
+  consistency
+- Added `toJsonLines()` and `toJson()` helper functions for data serialization
+- Added `isJsonLines()` and `isJson()` helper functions for format detection
+- Resolved upload script errors when uploading parsed `.jsonl` files to S3
+- Modified `#traverse()` methods in both `LocalStorage` and `S3Storage` to
+  return files sorted by creation timestamp (oldest first) for consistent
+  ordering
+- Removed try/catch wrapper around `fs.stat()` calls to allow errors to surface
+  more clearly rather than silently falling back to epoch time
 
 ## 2025-09-11
 

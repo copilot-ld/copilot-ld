@@ -58,4 +58,3 @@ export class LlmService extends LlmBase {
 }
 
 // Export the service class (no bootstrap code here)
-export { LlmClient } from "../../generated/services/llm/client.js";

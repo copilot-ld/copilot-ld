@@ -188,4 +188,3 @@ export class MemoryService extends MemoryBase {
 }
 
 // Export the service class (no bootstrap code here)
-export { MemoryClient } from "../../generated/services/memory/client.js";

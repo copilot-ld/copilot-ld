@@ -119,11 +119,13 @@ flowchart TD
     A[Clients]
     B[Extensions]
     C[Agent service]
-  D[Memory service]
-  E[LLM service]
-  G[Vector service]
+    D[Memory service]
+    E[LLM service]
+    F[Tool service]
+    G[Vector service]
+    H[GitHub API]
     I[LLM backend]
-  J[Memory store]
+    J[Memory store]
     L[Content Vector Index]
     N[Descriptor Vector Index]
     O[Resource Storage]
@@ -135,15 +137,17 @@ flowchart TD
     B -- gRPC --> C
 
     %% Agent service interact with backend services
-  C -- gRPC --> D
+    C -- gRPC --> D
     C -- gRPC --> E
+    C -- gRPC --> F
     C -- gRPC --> G
+    C -- REST --> H
 
     %% Interaction with the foundation model
     E -- REST --> I
 
-	%% Services that interact with storage
-	D -- Local I/O --> J
+    %% Services that interact with storage
+    D -- Local I/O --> J
     G -- Local I/O --> L
     G -- Local I/O --> N
     C -- Local I/O --> O
@@ -154,14 +158,16 @@ flowchart TD
       <p>
         The online sequence diagram reflects the current implementation in the
         codebase. The Agent performs operations sequentially: it validates the
-        GitHub token, ensures service readiness in parallel, creates an
-        embedding for the latest user message, queries the
+        GitHub token, ensures service readiness in parallel (including Tool
+        service), creates an embedding for the latest user message, queries the
         <code>content</code> vector index, appends similar identifiers to memory
         (fire-and-forget), computes a token budget (subtracting
         <code>assistant.content.tokens</code> and applying configured
         allocation), assembles a memory window using the query vector and
-        budget, and finally requests a completion. Only readiness checks are
-        executed in parallel; the main request flow is sequential.
+        budget, and then enters a tool calling loop that iteratively requests
+        completions and executes tools until no more tool calls are needed. Only
+        readiness checks are executed in parallel; the main request flow is
+        sequential.
       </p>
       <p>
         Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
@@ -178,46 +184,68 @@ sequenceDiagram
     participant Agent as Agent service
     participant Memory as Memory service
     participant LLM as LLM service
+    participant Tool as Tool service
     participant Vector as Vector service
-  participant ContentIndex as Content Vector Index
+    participant ContentIndex as Content Vector Index
     participant ResourceIndex as Resource Index
     participant GitHub as GitHub API
 
     Client->>Extension: REST request
-
     Extension->>Agent: RPC request (ProcessRequest)
 
-    Note right of Agent: Ensure clients ready in parallel (LLM/Vector/Memory)
-    Agent->>GitHub: GET /user (validate token)
-    GitHub-->>Agent: 200 OK (user)
+    Note right of Agent: Ensure clients ready in parallel (LLM/Vector/Memory/Tool)
+    par Parallel Readiness & Validation
+        Agent->>Memory: ensureReady()
+        Agent->>LLM: ensureReady()
+        Agent->>Vector: ensureReady()
+        Agent->>Tool: ensureReady()
+    and
+        Agent->>GitHub: GET /user (validate token)
+        GitHub-->>Agent: 200 OK (user)
+    end
 
-  Agent->>ResourceIndex: Get/Create conversation
-  Agent->>ResourceIndex: Put user message (scoped to conversation)
-  Agent->>ResourceIndex: Get assistant by id (from config)
-  Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
+    Agent->>ResourceIndex: Get/Create conversation
+    Agent->>ResourceIndex: Put user message (scoped to conversation)
+    Agent->>ResourceIndex: Get assistant by id (from config)
+    Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
 
-  Agent->>LLM: CreateEmbeddings (latest user message)
+    Agent->>LLM: CreateEmbeddings (latest user message)
     LLM-->>Agent: Embedding
 
-  Agent->>Vector: QueryItems (index: content)
+    Agent->>Vector: QueryItems (index: content)
     Vector->>ContentIndex: QueryIndex (similarity search)
     ContentIndex-->>Vector: Matches
     Vector-->>Agent: Identifiers (scored)
 
-  Agent--)Memory: Append (identifiers)
-  Note right of Agent: Fire-and-forget append (no await)
+    Agent--)Memory: Append (identifiers)
+    Note right of Agent: Fire-and-forget append (no await)
 
-  Agent->>Memory: GetWindow (for conversation, with vector/budget/allocation)
-  Memory-->>Agent: Window (tools, context, history)
+    Agent->>Memory: GetWindow (for conversation, with vector/budget/allocation)
+    Memory-->>Agent: Window (tools, context, history)
 
-  Agent->>ResourceIndex: Resolve window identifiers (tools/context/history)
-  ResourceIndex-->>Agent: Resources (policy-filtered)
+    Agent->>ResourceIndex: Resolve window identifiers (tools/context/history)
+    ResourceIndex-->>Agent: Resources (policy-filtered)
 
-  Agent->>LLM: CreateCompletions (assistant + tasks + tools + context + history)
-    LLM-->>Agent: Completion
-  Agent->>ResourceIndex: Put completion message (scoped to conversation)
+    Note over Agent: Tool Calling Loop (max 10 iterations)
+    loop Until no tool calls or max iterations
+        Agent->>LLM: CreateCompletions (assistant + tasks + tools + context + history)
+        LLM-->>Agent: Completion with potential tool calls
+        
+        alt Tool calls present
+            loop For each tool call
+                Agent->>Tool: ExecuteTool (tool call + github_token)
+                Tool-->>Agent: Tool result message
+                Note right of Agent: Add tool result to messages
+            end
+            Note right of Agent: Continue loop with updated messages
+        else No tool calls
+            Note right of Agent: Exit loop - completion ready
+        end
+    end
 
-    Agent-->>Extension: RPC response
+    Agent->>ResourceIndex: Put final completion message (scoped to conversation)
+
+    Agent-->>Extension: RPC response (with conversation_id)
     Extension-->>Client: REST response
   </pre
       >
@@ -536,8 +564,7 @@ npm run codegen:client   # Generate typed clients into generated/services/*/</co
       <p>
         These scripts wrap <code>scripts/codegen.js</code> which uses
         <code>protobufjs</code> and <code>Mustache</code>
-        templates to produce ESM modules. Generated artifacts are now placed
-        only in
+        templates to produce ESM modules. Generated artifacts are placed only in
         <code>generated/</code> (previous per-package/service generation paths
         have been removed). Runtime loading of protobuf schemas reads from
         <code>generated/proto/</code>.
@@ -554,10 +581,6 @@ npm run codegen:client   # Generate typed clients into generated/services/*/</co
 │   │   ├── service.js   # Generated base class
 │   │   └── client.js    # Generated typed client
 │   └── .../
-└── tools/           # Tool-specific generated artifacts
-    └── &lt;tool-name&gt;/
-        ├── service.js
-        └── client.js
       </pre>
 
       <h4>Code Generation Workflow</h4>
@@ -607,59 +630,62 @@ npm run codegen:client   # Generate typed clients into generated/services/*/</co
       <h5>Network Architecture</h5>
 
       <pre class="mermaid">
-graph TB
+flowchart TD
     subgraph "Host Network"
-        Client[External Clients]
+        U[Users/Clients]
+        ALB[Application Load Balancer<br/>nginx:80,443]
     end
 
     subgraph "External Network (copilot-ld.external)"
-  ALB[ALB (NGINX) <br/>:80,:443]
-        Web[Web Extension<br/>:3000]
-        Copilot[Copilot Extension<br/>:3001]
+        WEB[Web Extension<br/>copilot-ld.web]
+        COP[Copilot Extension<br/>copilot-ld.copilot]
     end
 
     subgraph "Internal Network (copilot-ld.internal)"
-        Agent[Agent Service<br/>:3000]
-  Memory[Memory Service<br/>:3000]
-        LLM[LLM Service<br/>:3000]
-  Vector[Vector Service<br/>:3000]
-  Tool[Tool Service<br/>:3000]
+        AGENT[Agent Service<br/>copilot-ld.agent]
+        LLM[LLM Service<br/>copilot-ld.llm]
+        VECTOR[Vector Service<br/>copilot-ld.vector]
+        MEMORY[Memory Service<br/>copilot-ld.memory]
+        TOOL[Tool Service<br/>copilot-ld.tool]
+        HASH[Hash Tool<br/>copilot-ld.hash]
+        MINIO[MinIO Storage<br/>9000,9001]
     end
 
-  subgraph "External Services"
-    LLMAPI[LLM API<br/>OpenAI/etc]
-    GitHubAPI[GitHub API]
-  end
+    subgraph "External APIs"
+        GITHUB[GitHub API]
+        LLMAPI[LLM Providers]
+    end
 
-  %% External connections via ALB
-  Client -.->|HTTP/HTTPS| ALB
-  ALB -->|HTTP| Web
-  ALB -->|HTTP| Copilot
+    %% Host to External Network
+    U -->|HTTP/HTTPS| ALB
+    ALB -->|Proxy| WEB
+    ALB -->|Proxy| COP
 
-    %% Extension to Agent connections (via network bridge)
-    Web -->|gRPC| Agent
-    Copilot -->|gRPC| Agent
+    %% External to Internal (Extensions bridge networks)
+    WEB -.->|gRPC Auth| AGENT
+    COP -.->|gRPC Auth| AGENT
 
-    %% Internal service mesh (isolated network)
-  Agent -->|gRPC| Memory
-    Agent -->|gRPC| LLM
-    Agent -->|gRPC| Vector
-    Agent -->|gRPC| Tool
-    Tool -->|gRPC| Vector
+    %% Internal Network Communication (gRPC with HMAC)
+    AGENT -->|gRPC HMAC| LLM
+    AGENT -->|gRPC HMAC| VECTOR
+    AGENT -->|gRPC HMAC| MEMORY
+    AGENT -->|gRPC HMAC| TOOL
+    TOOL -->|gRPC HMAC| HASH
 
-  %% External API calls
-  LLM -.->|HTTPS| LLMAPI
-  Agent -.->|HTTPS| GitHubAPI
+    %% Internal Storage Access
+    AGENT -->|S3 API| MINIO
+    VECTOR -->|S3 API| MINIO
+    MEMORY -->|S3 API| MINIO
 
-  style ALB fill:#e1f5fe
-  style Web fill:#e1f5fe
-    style Copilot fill:#e1f5fe
-    style Agent fill:#f3e5f5
-  style Memory fill:#fff3e0
-  style LLM fill:#fff3e0
-  style Vector fill:#fff3e0
-  style Tool fill:#fff3e0
-  style GitHubAPI fill:#fff3e0
+    %% External API Access
+    AGENT -->|HTTPS| GITHUB
+    LLM -->|HTTPS| LLMAPI
+
+    %% Network isolation
+    style "Host Network" fill:#f9f9f9
+    style "External Network (copilot-ld.external)" fill:#e1f5fe
+    style "Internal Network (copilot-ld.internal)" fill:#fff3e0
+    style "External APIs" fill:#f3e5f5
       </pre>
 
       <h5>Port Exposure Strategy</h5>
@@ -713,10 +739,10 @@ graph TB
 
       <ul>
         <li>
-          <strong>Service-to-Service</strong>: No authentication is enforced
-          between internal services. Isolation relies on the internal Docker
-          network. <code>HMAC-based</code> service authentication is planned but
-          not yet implemented in code.
+          <strong>Service-to-Service</strong>: HMAC-SHA256 authentication is
+          implemented and enforced between internal services via the
+          <code>@copilot-ld/librpc</code> package. All gRPC communication uses
+          time-limited tokens with Bearer authentication headers.
         </li>
         <li>
           <strong>Request-Level</strong>: The Agent validates incoming
@@ -725,11 +751,11 @@ graph TB
         </li>
       </ul>
 
-      <h5>Planned Service Authentication (Design)</h5>
+      <h5>HMAC Service Authentication (Current Implementation)</h5>
 
       <p>
-        The following HMAC-SHA256 flow is a design proposal and not yet
-        implemented:
+        The platform implements HMAC-SHA256 authentication for all
+        service-to-service communication:
       </p>
 
       <pre class="mermaid">
@@ -756,24 +782,42 @@ sequenceDiagram
     end
       </pre>
 
-      <h5>Token Generation Process</h5>
+      <h5>Token Generation Process (Implemented)</h5>
 
       <ol>
         <li>Create payload combining service ID and current timestamp</li>
-        <li>Generate HMAC-SHA256 signature using shared secret</li>
+        <li>
+          Generate HMAC-SHA256 signature using shared secret from
+          <code>SERVICE_AUTH_SECRET</code>
+        </li>
         <li>
           Encode as Base64: <code>Base64(serviceId:timestamp:signature)</code>
         </li>
+        <li>
+          Attach token to gRPC metadata as
+          <code>Authorization: Bearer &lt;token&gt;</code>
+        </li>
       </ol>
 
-      <h5>Token Verification Process</h5>
+      <h5>Token Verification Process (Implemented)</h5>
 
       <ol>
-        <li>Decode Base64 token</li>
-        <li>Extract service ID, timestamp, and signature</li>
-        <li>Verify timestamp is within token lifetime</li>
+        <li>
+          Extract token from <code>Authorization</code> header in gRPC metadata
+        </li>
+        <li>
+          Decode Base64 token and split into service ID, timestamp, and
+          signature
+        </li>
+        <li>
+          Verify timestamp is within 60-second token lifetime (configurable)
+        </li>
         <li>Recreate expected signature using shared secret</li>
-        <li>Compare signatures using constant-time comparison</li>
+        <li>Compare signatures using secure comparison</li>
+        <li>
+          Reject request with <code>UNAUTHENTICATED</code> status if validation
+          fails
+        </li>
       </ol>
 
       <h4>Communication Security</h4>
@@ -783,7 +827,15 @@ sequenceDiagram
       <ul>
         <li><strong>Protocol</strong>: gRPC over HTTP/2</li>
         <li><strong>Network</strong>: Isolated Docker bridge network</li>
-        <li><strong>Authentication</strong>: None (planned HMAC)</li>
+        <li>
+          <strong>Authentication</strong>: HMAC-SHA256 with time-limited Bearer
+          tokens
+        </li>
+        <li><strong>Token Lifetime</strong>: 60 seconds (configurable)</li>
+        <li>
+          <strong>Secret Management</strong>: Shared
+          <code>SERVICE_AUTH_SECRET</code> environment variable
+        </li>
         <li>
           <strong>Schema Validation</strong>: Protocol Buffer message validation
         </li>
@@ -843,11 +895,15 @@ sequenceDiagram
         </li>
         <li>
           <strong>Service Impersonation</strong>: HMAC authentication prevents
-          unauthorized service access (when enabled)
+          unauthorized service access with cryptographic verification
         </li>
         <li>
-          <strong>Token Replay</strong>: Time-limited tokens reduce replay
-          attack windows
+          <strong>Token Replay</strong>: 60-second time-limited tokens minimize
+          replay attack windows
+        </li>
+        <li>
+          <strong>Request Forgery</strong>: HMAC signatures prevent message
+          tampering and ensure request authenticity
         </li>
       </ol>
 
@@ -856,11 +912,17 @@ sequenceDiagram
       <ol>
         <li>
           <strong>Network Sniffing</strong>: Internal gRPC traffic is
-          unencrypted
+          unencrypted, though authenticated with HMAC tokens
+        </li>
+        <li>
+          <strong>Shared Secret Exposure</strong>: If
+          <code>SERVICE_AUTH_SECRET</code> is compromised, all service
+          authentication is bypassed
         </li>
         <li>
           <strong>Container Compromise</strong>: If one container is
-          compromised, it can access other services on the same network
+          compromised, the attacker gains access to the shared authentication
+          secret
         </li>
         <li>
           <strong>Extension Security</strong>: Extensions are the primary attack

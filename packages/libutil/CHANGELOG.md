@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-09-19
+
+- **NEW**: Added `countTokens()` and `tokenizerFactory()` functions with
+  `js-tiktoken` dependency for consistent token counting
+- Consolidated token counting functionality from `@copilot-ld/libcopilot` to
+  provide centralized token management
+
 ## 2025-09-16
 
 - Bump version one last time, really

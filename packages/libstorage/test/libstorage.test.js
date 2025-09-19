@@ -18,6 +18,12 @@ describe("libstorage", () => {
         readFile: mock.fn(() => Promise.resolve(Buffer.from("test data"))),
         unlink: mock.fn(() => Promise.resolve()),
         access: mock.fn(() => Promise.resolve()),
+        stat: mock.fn(() =>
+          Promise.resolve({
+            birthtime: new Date("2024-01-01T00:00:00Z"),
+            mtime: new Date("2024-01-01T00:00:00Z"),
+          }),
+        ),
         readdir: mock.fn(() =>
           Promise.resolve([
             { name: "file1.txt", isFile: () => true, isDirectory: () => false },
@@ -242,6 +248,22 @@ describe("libstorage", () => {
         return Promise.resolve([]);
       });
 
+      mockFs.stat = mock.fn((path) => {
+        const timestamps = {
+          "/test/base/cld:common.File.hash001.txt": new Date(
+            "2024-01-01T00:00:00Z",
+          ),
+          "/test/base/cld:common.File.hash002.txt": new Date(
+            "2024-01-02T00:00:00Z",
+          ),
+          "/test/base/other:prefix.txt": new Date("2024-01-03T00:00:00Z"),
+        };
+        return Promise.resolve({
+          birthtime: timestamps[path] || new Date("2024-01-01T00:00:00Z"),
+          mtime: timestamps[path] || new Date("2024-01-01T00:00:00Z"),
+        });
+      });
+
       const keys = await localStorage.findByPrefix("cld:common.File");
 
       assert.deepStrictEqual(keys, [
@@ -250,7 +272,7 @@ describe("libstorage", () => {
       ]);
     });
 
-    test("findByExtension renamed from find method", async () => {
+    test("findByExtension method", async () => {
       mockFs.readdir = mock.fn((path) => {
         if (path === "/test/base") {
           return Promise.resolve([
@@ -266,9 +288,62 @@ describe("libstorage", () => {
         return Promise.resolve([]);
       });
 
+      mockFs.stat = mock.fn((path) => {
+        const timestamps = {
+          "/test/base/file1.txt": new Date("2024-01-01T00:00:00Z"),
+          "/test/base/file2.json": new Date("2024-01-02T00:00:00Z"),
+          "/test/base/file3.txt": new Date("2024-01-03T00:00:00Z"),
+        };
+        return Promise.resolve({
+          birthtime: timestamps[path] || new Date("2024-01-01T00:00:00Z"),
+          mtime: timestamps[path] || new Date("2024-01-01T00:00:00Z"),
+        });
+      });
+
       const keys = await localStorage.findByExtension(".txt");
 
       assert.deepStrictEqual(keys, ["file1.txt", "file3.txt"]);
+    });
+
+    test("list returns files in chronological order (oldest first)", async () => {
+      mockFs.readdir = mock.fn((path) => {
+        if (path === "/test/base") {
+          return Promise.resolve([
+            {
+              name: "newest.txt",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+            {
+              name: "oldest.txt",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+            {
+              name: "middle.txt",
+              isDirectory: () => false,
+              isFile: () => true,
+            },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      mockFs.stat = mock.fn((path) => {
+        const timestamps = {
+          "/test/base/newest.txt": new Date("2024-01-03T00:00:00Z"),
+          "/test/base/oldest.txt": new Date("2024-01-01T00:00:00Z"),
+          "/test/base/middle.txt": new Date("2024-01-02T00:00:00Z"),
+        };
+        return Promise.resolve({
+          birthtime: timestamps[path],
+          mtime: timestamps[path],
+        });
+      });
+
+      const keys = await localStorage.list();
+
+      assert.deepStrictEqual(keys, ["oldest.txt", "middle.txt", "newest.txt"]);
     });
   });
 

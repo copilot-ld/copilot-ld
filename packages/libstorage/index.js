@@ -45,6 +45,52 @@ function fromJson(content) {
 }
 
 /**
+ * Convert array of objects to JSON Lines (JSONL) format
+ * @param {object[]} data - Array of objects to convert to JSONL
+ * @returns {string} JSONL formatted string
+ */
+function toJsonLines(data) {
+  if (!Array.isArray(data)) {
+    throw new Error("Data must be an array for JSONL format");
+  }
+  return data.map((item) => JSON.stringify(item)).join("\n") + "\n";
+}
+
+/**
+ * Convert object to JSON format
+ * @param {object} data - Object to convert to JSON
+ * @returns {string} JSON formatted string
+ */
+function toJson(data) {
+  return JSON.stringify(data, null, 2);
+}
+
+/**
+ * Check if key represents a JSON Lines file and data is an array
+ * @param {string} key - Storage key identifier
+ * @param {*} data - Data to check
+ * @returns {boolean} True if this should be serialized as JSONL
+ */
+function isJsonLines(key, data) {
+  return key.endsWith(".jsonl") && Array.isArray(data);
+}
+
+/**
+ * Check if key represents a JSON file and data is an object
+ * @param {string} key - Storage key identifier
+ * @param {*} data - Data to check
+ * @returns {boolean} True if this should be serialized as JSON
+ */
+function isJson(key, data) {
+  return (
+    key.endsWith(".json") &&
+    typeof data === "object" &&
+    data !== null &&
+    !Buffer.isBuffer(data)
+  );
+}
+
+/**
  * Local filesystem storage implementation
  * @implements {StorageInterface}
  */
@@ -64,25 +110,23 @@ export class LocalStorage extends StorageInterface {
     this.#fs = fs;
   }
 
+  // Core CRUD Operations
+
   /** @inheritdoc */
   async put(key, data) {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
+    let serializedData = data;
+
+    // Serialize JavaScript objects back to their appropriate format for storage
+    if (isJsonLines(key, data)) {
+      serializedData = toJsonLines(data);
+    } else if (isJson(key, data)) {
+      serializedData = toJson(data);
+    }
 
     await this.#fs.mkdir(dirToCreate, { recursive: true });
-    await this.#fs.writeFile(fullPath, data);
-  }
-
-  /** @inheritdoc */
-  async append(key, data) {
-    const fullPath = this.path(key);
-    const dirToCreate = dirname(fullPath);
-
-    await this.#fs.mkdir(dirToCreate, { recursive: true });
-
-    // Always append with newline for JSON-ND format consistency
-    const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
-    await this.#fs.appendFile(fullPath, dataWithNewline);
+    await this.#fs.writeFile(fullPath, serializedData);
   }
 
   /** @inheritdoc */
@@ -117,14 +161,99 @@ export class LocalStorage extends StorageInterface {
     }
   }
 
+  // Advanced Operations
+
+  /** @inheritdoc */
+  async append(key, data) {
+    const fullPath = this.path(key);
+    const dirToCreate = dirname(fullPath);
+
+    await this.#fs.mkdir(dirToCreate, { recursive: true });
+
+    // Always append with newline for JSON-ND format consistency
+    const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
+    await this.#fs.appendFile(fullPath, dataWithNewline);
+  }
+
+  /** @inheritdoc */
+  async getMany(keys) {
+    const results = {};
+    await Promise.all(
+      keys.map(async (key) => {
+        try {
+          const data = await this.get(key);
+          results[key] = data;
+        } catch (error) {
+          // If key doesn't exist, skip it (don't add to results)
+          if (error.code !== "ENOENT") {
+            throw error;
+          }
+        }
+      }),
+    );
+    return results;
+  }
+
+  // Search and Listing Operations
+
+  /** @inheritdoc */
+  async list() {
+    return await this.#traverse();
+  }
+
+  /** @inheritdoc */
+  async findByPrefix(prefix) {
+    return await this.#traverse((filename) => filename.startsWith(prefix));
+  }
+
+  /** @inheritdoc */
+  async findByExtension(extension) {
+    return await this.#traverse((filename) => filename.endsWith(extension));
+  }
+
+  // Path Utilities
+
+  /** @inheritdoc */
+  path(key) {
+    if (key.startsWith("/")) {
+      return key; // Use absolute path directly for local filesystem
+    }
+    return join(this.#basePath, key);
+  }
+
+  // Bucket/Directory Management
+
+  /** @inheritdoc */
+  async ensureBucket() {
+    try {
+      await this.#fs.access(this.#basePath);
+      return false; // Directory already exists
+    } catch {
+      await this.#fs.mkdir(this.#basePath, { recursive: true });
+      return true; // Directory was created
+    }
+  }
+
+  /** @inheritdoc */
+  async bucketExists() {
+    try {
+      await this.#fs.access(this.#basePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Private Helper Methods
+
   /**
    * Recursively traverse directories to find files matching a filter
    * @private
    * @param {Function|null} fileFilter - Optional filter function for files
-   * @returns {Promise<string[]>} Array of relative file paths
+   * @returns {Promise<string[]>} Array of relative file paths sorted by creation timestamp (oldest first)
    */
   async #traverse(fileFilter = null) {
-    const keys = [];
+    const filesWithStats = [];
 
     /**
      * Recursively traverse directories
@@ -147,7 +276,11 @@ export class LocalStorage extends StorageInterface {
             await traverse(fullPath, relativeKey);
           } else if (entry.isFile()) {
             if (!fileFilter || fileFilter(relativeKey)) {
-              keys.push(relativeKey);
+              const stats = await this.#fs.stat(fullPath);
+              filesWithStats.push({
+                key: relativeKey,
+                birthtime: stats.birthtime || stats.mtime || new Date(0),
+              });
             }
           }
         }
@@ -160,70 +293,13 @@ export class LocalStorage extends StorageInterface {
     };
 
     await traverse(this.#basePath);
-    return keys;
-  }
 
-  /** @inheritdoc */
-  async findByExtension(extension) {
-    return await this.#traverse((filename) => filename.endsWith(extension));
-  }
-
-  /** @inheritdoc */
-  async getMany(keys) {
-    const results = {};
-    await Promise.all(
-      keys.map(async (key) => {
-        try {
-          const data = await this.get(key);
-          results[key] = data;
-        } catch (error) {
-          // If key doesn't exist, skip it (don't add to results)
-          if (error.code !== "ENOENT") {
-            throw error;
-          }
-        }
-      }),
+    // Sort by creation timestamp (oldest first)
+    filesWithStats.sort(
+      (a, b) => a.birthtime.getTime() - b.birthtime.getTime(),
     );
-    return results;
-  }
 
-  /** @inheritdoc */
-  async findByPrefix(prefix) {
-    return await this.#traverse((filename) => filename.startsWith(prefix));
-  }
-
-  /** @inheritdoc */
-  async list() {
-    return await this.#traverse();
-  }
-
-  /** @inheritdoc */
-  path(key) {
-    if (key.startsWith("/")) {
-      return key; // Use absolute path directly for local filesystem
-    }
-    return join(this.#basePath, key);
-  }
-
-  /** @inheritdoc */
-  async ensureBucket() {
-    try {
-      await this.#fs.access(this.#basePath);
-      return false; // Directory already exists
-    } catch {
-      await this.#fs.mkdir(this.#basePath, { recursive: true });
-      return true; // Directory was created
-    }
-  }
-
-  /** @inheritdoc */
-  async bucketExists() {
-    try {
-      await this.#fs.access(this.#basePath);
-      return true;
-    } catch {
-      return false;
-    }
+    return filesWithStats.map((file) => file.key);
   }
 }
 
@@ -249,60 +325,26 @@ export class S3Storage extends StorageInterface {
     this.#commands = commands;
   }
 
+  // Core CRUD Operations
+
   /** @inheritdoc */
   async put(key, data) {
+    let bodyData = data;
+
+    // Serialize JavaScript objects back to their appropriate format for storage
+    if (isJsonLines(key, data)) {
+      bodyData = toJsonLines(data);
+    } else if (isJson(key, data)) {
+      bodyData = toJson(data);
+    }
+
     await this.#client.send(
       new this.#commands.PutObjectCommand({
         Bucket: this.#bucket,
         Key: this.path(key),
-        Body: data,
+        Body: bodyData,
       }),
     );
-  }
-
-  /** @inheritdoc */
-  async append(key, data) {
-    let existingData = Buffer.alloc(0);
-
-    try {
-      const result = await this.#getRaw(key);
-      existingData = result;
-    } catch (error) {
-      // If key doesn't exist, start with empty data
-      if (
-        error.name !== "NoSuchKey" &&
-        error.$metadata?.httpStatusCode !== 404
-      ) {
-        throw error;
-      }
-    }
-
-    // Always append with newline for JSON-ND format consistency
-    const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
-    const newData = Buffer.concat([existingData, Buffer.from(dataWithNewline)]);
-    await this.put(key, newData);
-  }
-
-  /**
-   * Get raw data without JSON Lines parsing
-   * @param {string} key - Storage key identifier
-   * @returns {Promise<Buffer>} Raw buffer data
-   * @private
-   */
-  async #getRaw(key) {
-    const command = new this.#commands.GetObjectCommand({
-      Bucket: this.#bucket,
-      Key: this.path(key),
-    });
-
-    const response = await this.#client.send(command);
-    const chunks = [];
-
-    for await (const chunk of response.Body) {
-      chunks.push(chunk);
-    }
-
-    return Buffer.concat(chunks);
   }
 
   /** @inheritdoc */
@@ -365,31 +407,29 @@ export class S3Storage extends StorageInterface {
     }
   }
 
+  // Advanced Operations
+
   /** @inheritdoc */
-  async findByExtension(extension) {
-    const keys = [];
-    let continuationToken;
+  async append(key, data) {
+    let existingData = Buffer.alloc(0);
 
-    do {
-      const command = new this.#commands.ListObjectsV2Command({
-        Bucket: this.#bucket,
-        ContinuationToken: continuationToken,
-      });
-
-      const response = await this.#client.send(command);
-
-      if (response.Contents) {
-        for (const object of response.Contents) {
-          if (object.Key && object.Key.endsWith(extension)) {
-            keys.push(object.Key);
-          }
-        }
+    try {
+      const result = await this.#getRaw(key);
+      existingData = result;
+    } catch (error) {
+      // If key doesn't exist, start with empty data
+      if (
+        error.name !== "NoSuchKey" &&
+        error.$metadata?.httpStatusCode !== 404
+      ) {
+        throw error;
       }
+    }
 
-      continuationToken = response.NextContinuationToken;
-    } while (continuationToken);
-
-    return keys;
+    // Always append with newline for JSON-ND format consistency
+    const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
+    const newData = Buffer.concat([existingData, Buffer.from(dataWithNewline)]);
+    await this.put(key, newData);
   }
 
   /** @inheritdoc */
@@ -414,60 +454,24 @@ export class S3Storage extends StorageInterface {
     return results;
   }
 
-  /** @inheritdoc */
-  async findByPrefix(prefix) {
-    const keys = [];
-    let continuationToken;
-
-    do {
-      const command = new this.#commands.ListObjectsV2Command({
-        Bucket: this.#bucket,
-        Prefix: prefix,
-        ContinuationToken: continuationToken,
-      });
-
-      const response = await this.#client.send(command);
-
-      if (response.Contents) {
-        for (const object of response.Contents) {
-          if (object.Key) {
-            keys.push(object.Key);
-          }
-        }
-      }
-
-      continuationToken = response.NextContinuationToken;
-    } while (continuationToken);
-
-    return keys;
-  }
+  // Search and Listing Operations
 
   /** @inheritdoc */
   async list() {
-    const keys = [];
-    let continuationToken;
-
-    do {
-      const command = new this.#commands.ListObjectsV2Command({
-        Bucket: this.#bucket,
-        ContinuationToken: continuationToken,
-      });
-
-      const response = await this.#client.send(command);
-
-      if (response.Contents) {
-        for (const object of response.Contents) {
-          if (object.Key) {
-            keys.push(object.Key);
-          }
-        }
-      }
-
-      continuationToken = response.NextContinuationToken;
-    } while (continuationToken);
-
-    return keys;
+    return await this.#traverse();
   }
+
+  /** @inheritdoc */
+  async findByPrefix(prefix) {
+    return await this.#traverse({ Prefix: prefix });
+  }
+
+  /** @inheritdoc */
+  async findByExtension(extension) {
+    return await this.#traverse({}, (key) => key.endsWith(extension));
+  }
+
+  // Path Utilities
 
   /** @inheritdoc */
   path(key) {
@@ -478,6 +482,8 @@ export class S3Storage extends StorageInterface {
     // For relative paths, use key as-is
     return key;
   }
+
+  // Bucket Management
 
   /** @inheritdoc */
   async ensureBucket() {
@@ -524,6 +530,75 @@ export class S3Storage extends StorageInterface {
       }
       throw error;
     }
+  }
+
+  // Private Helper Methods
+
+  /**
+   * Get raw data without JSON Lines parsing
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<Buffer>} Raw buffer data
+   * @private
+   */
+  async #getRaw(key) {
+    const command = new this.#commands.GetObjectCommand({
+      Bucket: this.#bucket,
+      Key: this.path(key),
+    });
+
+    const response = await this.#client.send(command);
+    const chunks = [];
+
+    for await (const chunk of response.Body) {
+      chunks.push(chunk);
+    }
+
+    return Buffer.concat(chunks);
+  }
+
+  /**
+   * Recursively list objects in S3 bucket with optional filtering
+   * @private
+   * @param {object} [options] - S3 ListObjectsV2 command options
+   * @param {Function|null} [keyFilter] - Optional filter function for keys
+   * @returns {Promise<string[]>} Array of object keys sorted by creation timestamp (oldest first)
+   */
+  async #traverse(options = {}, keyFilter = null) {
+    const objectsWithTimestamps = [];
+    let continuationToken;
+
+    do {
+      const command = new this.#commands.ListObjectsV2Command({
+        Bucket: this.#bucket,
+        ContinuationToken: continuationToken,
+        ...options,
+      });
+
+      const response = await this.#client.send(command);
+
+      if (response.Contents) {
+        for (const object of response.Contents) {
+          if (object.Key) {
+            if (!keyFilter || keyFilter(object.Key)) {
+              objectsWithTimestamps.push({
+                key: object.Key,
+                lastModified: object.LastModified || new Date(0),
+              });
+            }
+          }
+        }
+      }
+
+      continuationToken = response.NextContinuationToken;
+    } while (continuationToken);
+
+    // Sort by creation timestamp (oldest first)
+    // Note: S3 uses LastModified as the closest approximation to creation time
+    objectsWithTimestamps.sort(
+      (a, b) => a.lastModified.getTime() - b.lastModified.getTime(),
+    );
+
+    return objectsWithTimestamps.map((object) => object.key);
   }
 }
 

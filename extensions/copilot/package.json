@@ -18,7 +18,7 @@
     "@copilot-extensions/preview-sdk": "^5.0.1",
     "@copilot-ld/libconfig": "^0.1.11",
     "@copilot-ld/librpc": "^0.1.13",
-    "@copilot-ld/libutil": "^0.1.8",
+    "@copilot-ld/libutil": "^0.1.9",
     "@copilot-ld/libweb": "^0.1.9",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"

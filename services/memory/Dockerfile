@@ -7,5 +7,6 @@ ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
 WORKDIR /app/
 RUN npm install --omit=dev
+
 EXPOSE 3000
 CMD ["npm", "start"]

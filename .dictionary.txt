@@ -14,6 +14,7 @@ Changelog
 charset
 chunking
 CI
+CloudFormation
 CLI
 codebase
 codegen

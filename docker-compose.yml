@@ -46,10 +46,14 @@ services:
     image: minio/minio:latest
     container_name: copilot-ld.minio
     env_file: ./config/.env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
+      - external # Needs to be available to the host for administrative tasks
       - internal
 
   base:

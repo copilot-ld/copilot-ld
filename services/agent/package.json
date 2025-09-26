@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.12",
-    "@copilot-ld/libpolicy": "^0.1.8",
-    "@copilot-ld/libresource": "^0.1.8",
+    "@copilot-ld/libpolicy": "^0.1.9",
+    "@copilot-ld/libresource": "^0.1.9",
     "@copilot-ld/librpc": "^0.1.15",
-    "@copilot-ld/libstorage": "^0.1.9",
+    "@copilot-ld/libstorage": "^0.1.10",
     "@copilot-ld/libtype": "^0.1.10",
     "@copilot-ld/libutil": "^0.1.9",
     "@octokit/core": "^7.0.3"

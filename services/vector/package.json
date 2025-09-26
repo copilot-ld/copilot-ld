@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.12",
-    "@copilot-ld/librpc": "^0.1.15",
+    "@copilot-ld/librpc": "^0.1.16",
     "@copilot-ld/libstorage": "^0.1.10",
     "@copilot-ld/libtype": "^0.1.13",
-    "@copilot-ld/libutil": "^0.1.10",
+    "@copilot-ld/libutil": "^0.1.11",
     "@copilot-ld/libvector": "^0.1.12"
   },
   "repository": {

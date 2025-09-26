@@ -2,6 +2,7 @@
 
 ## 2025-09-26
 
+- Bump version
 - **UPDATED**: Enhanced package exports to support new code generation system
 - **IMPROVED**: Compatibility with `@copilot-ld/librpc` aggregated
   service/client imports

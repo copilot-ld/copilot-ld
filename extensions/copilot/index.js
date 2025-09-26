@@ -26,10 +26,10 @@ function createCopilotExtension(client, logFn = logFactory) {
   const security = createSecurityMiddleware(config);
 
   // Add security middleware
-  app.use("*", security.createErrorMiddleware());
-  app.use("/api/*", security.createRateLimitMiddleware());
+  app.use("/copilot/*", security.createErrorMiddleware());
+  app.use("/copilot/api/*", security.createRateLimitMiddleware());
   app.use(
-    "/api/*",
+    "/copilot/api/*",
     security.createCorsMiddleware({
       origin: [
         "https://github.com",
@@ -42,7 +42,7 @@ function createCopilotExtension(client, logFn = logFactory) {
 
   // Add input validation for POST requests
   app.use(
-    "/",
+    "/copilot/",
     security.createValidationMiddleware({
       required: [],
       types: {},
@@ -51,14 +51,14 @@ function createCopilotExtension(client, logFn = logFactory) {
   );
 
   // Route handlers
-  app.get("/", (c) => {
+  app.get("/copilot/", (c) => {
     return c.json({
       message: "GitHub Copilot Extension",
       status: "ready",
     });
   });
 
-  app.post("/", async (c) => {
+  app.post("/copilot/", async (c) => {
     try {
       // Verify and parse the Copilot request using the SDK
       const copilotRequest = await verifyAndParseRequest(

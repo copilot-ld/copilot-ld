@@ -32,10 +32,10 @@ async function createWebExtension(client, config, logFn = logFactory) {
   const security = createSecurityMiddleware(config);
 
   // Add security middleware
-  app.use("*", security.createErrorMiddleware());
-  app.use("/api/*", security.createRateLimitMiddleware());
+  app.use("/web/*", security.createErrorMiddleware());
+  app.use("/web/api/*", security.createRateLimitMiddleware());
   app.use(
-    "/api/*",
+    "/web/api/*",
     security.createCorsMiddleware({
       origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
       allowMethods: ["GET", "POST"],
@@ -45,11 +45,11 @@ async function createWebExtension(client, config, logFn = logFactory) {
 
   // Serve static files
   // TODO: Decouple the web extension from the example at extensions/web/public
-  app.use("/*", serveStatic({ root: "public" }));
+  app.use("/web/*", serveStatic({ root: "public" }));
 
   // Route handlers with input validation
   app.post(
-    "/api/chat",
+    "/web/api/chat",
     security.createValidationMiddleware({
       required: ["message"],
       types: {

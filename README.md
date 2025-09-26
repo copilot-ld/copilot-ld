@@ -97,8 +97,8 @@ npm run dev
 
 Access the services:
 
-- **Web Extension**: `http://localhost:3000`
-- **Copilot Extension**: `http://localhost:3001`
+- **Web Extension**: `http://localhost:3000/web`
+- **Copilot Extension**: `http://localhost:3001/copilot`
 
 #### Option B: Production-Like Environment
 

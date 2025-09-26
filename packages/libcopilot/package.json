@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@copilot-ld/libtype": "^0.1.13",
-    "@copilot-ld/libutil": "^0.1.10"
+    "@copilot-ld/libutil": "^0.1.11"
   },
   "repository": {
     "type": "git",

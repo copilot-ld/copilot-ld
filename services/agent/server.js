@@ -1,17 +1,15 @@
 /* eslint-env node */
 import { Octokit } from "@octokit/core";
 
-import { Server } from "@copilot-ld/librpc";
+import { Server, clients } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 
 import { AgentService } from "./index.js";
-import { MemoryClient } from "../../generated/services/memory/client.js";
-import { LlmClient } from "../../generated/services/llm/client.js";
-import { VectorClient } from "../../generated/services/vector/client.js";
-import { ToolClient } from "../../generated/services/tool/client.js";
+
+const { MemoryClient, LlmClient, VectorClient, ToolClient } = clients;
 
 // Bootstrap the service
 const agentConfig = await ServiceConfig.create("agent", {

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/web",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Web interface extension for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.12",
-    "@copilot-ld/libformat": "^0.1.12",
+    "@copilot-ld/libformat": "^0.1.13",
     "@copilot-ld/librpc": "^0.1.15",
     "@copilot-ld/libtype": "^0.1.12",
     "@copilot-ld/libutil": "^0.1.10",

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/web",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Web interface extension for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

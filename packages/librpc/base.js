@@ -184,13 +184,9 @@ export class Client extends Rpc {
     return new Promise((resolve, reject) => {
       this.#client[methodName](request, (error, response) => {
         if (error) {
-          this.debug(`gRPC call failed: ${methodName}`, { error, request });
+          this.debug(`gRPC call failed: ${methodName}`, { error });
           reject(error);
         } else {
-          this.debug(`gRPC call succeeded: ${methodName}`, {
-            request,
-            response,
-          });
           resolve(response);
         }
       });

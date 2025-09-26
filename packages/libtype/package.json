@@ -6,12 +6,6 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
-  "imports": {
-    "#generated/*": {
-      "docker": "./generated/*",
-      "default": "./generated/*"
-    }
-  },
   "engines": {
     "node": ">=22.0.0"
   },

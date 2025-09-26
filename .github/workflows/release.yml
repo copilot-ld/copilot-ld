@@ -150,7 +150,7 @@ jobs:
           fi
 
   publish-containers:
-    needs: [bump, validate-packages]
+    needs: [bump, validate-packages, publish-packages]
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
     permissions:

@@ -48,7 +48,7 @@ export class ReleaseBumper extends ReleaseBumperInterface {
       if (this.#hasChanges("package-lock.json", initialCwd)) {
         this.#execSync("git add package-lock.json", { cwd: initialCwd });
         this.#execSync(
-          'git commit -m "chore: update package-lock.json after dependency bumps"',
+          'git commit --no-verify -m "chore: update package-lock.json after dependency bumps"',
           { cwd: initialCwd },
         );
       }
@@ -79,7 +79,9 @@ export class ReleaseBumper extends ReleaseBumperInterface {
     // Create git commit and tag for this version bump only if there are changes
     if (this.#hasChanges(packagePath)) {
       this.#execSync(`git add ${packagePath}`);
-      this.#execSync(`git commit -m "chore: bump ${name} to v${newVersion}"`);
+      this.#execSync(
+        `git commit --no-verify -m "chore: bump ${name} to v${newVersion}"`,
+      );
       // Create or update the tag. If it exists and force is true, overwrite it
       try {
         this.#execSync(`git tag ${name}@v${newVersion}`);

@@ -2,6 +2,7 @@
 
 ## 2025-09-26
 
+- Bump version
 - **BREAKING**: Updated imports to use `@copilot-ld/librpc` services and clients
   instead of local `generated/` files
 - **CONTAINERIZATION**: Simplified `Dockerfile` to use standalone

@@ -184,7 +184,7 @@ jobs:
           VERSION="${{ matrix.item.version }}"
           if [[ -f "$TYPE/$NAME/Dockerfile" ]]; then
             IMAGE="ghcr.io/${{ github.repository }}/$NAME"
-            docker build -f "$TYPE/$NAME/Dockerfile" -t $IMAGE:$VERSION -t $IMAGE:latest .
+            docker build -f "$TYPE/$NAME/Dockerfile" --build-arg GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} -t $IMAGE:$VERSION -t $IMAGE:latest .
             docker push $IMAGE:$VERSION
             docker push $IMAGE:latest
           fi

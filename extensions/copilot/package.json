@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/copilot",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "GitHub Copilot extension for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -18,7 +18,7 @@
     "@copilot-extensions/preview-sdk": "^5.0.1",
     "@copilot-ld/libconfig": "^0.1.12",
     "@copilot-ld/librpc": "^0.1.15",
-    "@copilot-ld/libtype": "^0.1.12",
+    "@copilot-ld/libtype": "^0.1.13",
     "@copilot-ld/libutil": "^0.1.10",
     "@copilot-ld/libweb": "^0.1.10",
     "@hono/node-server": "^1.18.1",

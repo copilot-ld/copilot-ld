@@ -2,7 +2,7 @@
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import * as types from "@copilot-ld/libtype";
 
-import { services } from "@copilot-ld/librpc";
+import { services, clients } from "@copilot-ld/librpc";
 
 const { ToolBase } = services;
 
@@ -145,14 +145,12 @@ class ToolService extends ToolBase {
    */
   async #createServiceClient(servicePackage, serviceName) {
     const clientClassName = `${serviceName}Client`;
-    const clientModule = await import(
-      `../../generated/services/${servicePackage}/client.js`
-    );
 
-    if (!clientModule[clientClassName])
+    if (!clients[clientClassName]) {
       throw new Error(`Client class not found: ${clientClassName}`);
+    }
 
-    const ClientClass = clientModule[clientClassName];
+    const ClientClass = clients[clientClassName];
     return new ClientClass(await ServiceConfig.create(servicePackage));
   }
 

@@ -9,7 +9,10 @@ import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { logFactory } from "@copilot-ld/libutil";
 import { agent, common } from "@copilot-ld/libtype";
 
-import { AgentClient } from "../../generated/services/agent/client.js";
+import { clients } from "@copilot-ld/librpc";
+
+// Extract generated clients
+const { AgentClient } = clients;
 
 // Create HTML formatter with factory function
 const htmlFormatter = createHtmlFormatter();

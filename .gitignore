@@ -3,7 +3,7 @@
 
 # Generated files and data
 /data/
-/generated/
+**/generated
 
 # Custom tools
 /tools

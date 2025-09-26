@@ -15,7 +15,7 @@ import {
 
 import { StorageInterface } from "./types.js";
 
-import { logFactory, searchUpward } from "@copilot-ld/libutil";
+import { searchUpward } from "@copilot-ld/libutil";
 
 /**
  * Parse JSON Lines (JSONL) format into an array of objects
@@ -102,9 +102,8 @@ export class LocalStorage extends StorageInterface {
    * Creates a new LocalStorage instance
    * @param {string} basePath - Base path for all storage operations
    * @param {object} fs - File system operations object
-   * @param {Function} _logFn - Logging function (unused)
    */
-  constructor(basePath, fs, _logFn = logFactory) {
+  constructor(basePath, fs) {
     super();
     this.#basePath = basePath;
     this.#fs = fs;

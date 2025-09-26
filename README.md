@@ -15,11 +15,9 @@ retrieval-augmented generation.
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/scripts/**: Development and operational utilities
 - **/proto/**: Authoritative Protocol Buffer source schemas (copied into
-  `generated/` during codegen)
+  `packages/libtype/generated/proto/` during codegen)
 - **/tools/**: Optional protobuf definitions for custom tools that extend the
   core system (not part of the base platform)
-- **/generated/**: All generated artifacts (proto schemas, types, service base
-  classes, client classes)
 - **/data/**: Knowledge base, vectors, and resource data
 
 ## 🚀 Setup
@@ -233,17 +231,3 @@ AI instructions for specific domains:
   secure communication
 - [Testing Instructions](.github/instructions/testing.instructions.md): Testing
   standards using Node.js built-in framework for maintainable tests
-
-### Code Generation Reference
-
-- `scripts/codegen.js` supports flags: `--type`, `--service`, `--client`,
-  `--all`
-- Root `npm run codegen:*` scripts are the recommended entry points
-- Generated files (all under `generated/`):
-  - `generated/proto/*.proto` (copied originals)
-  - `generated/types/types.{js,d.ts}` (consolidated static module)
-  - `generated/services/<name>/{service,client}.{js,d.ts}`
-  - `generated/tools/<tool>/{service,client}.{js,d.ts}`
-
-Legacy generated artifacts in `packages/libtype/` and `services/*/` have been
-removed to prevent accidental edits to generated code.

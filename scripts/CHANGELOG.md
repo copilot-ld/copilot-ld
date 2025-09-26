@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-09-26
+
+- **BREAKING**: Migrated `codegen.js` functionality to `@copilot-ld/libutil`
+  package with `Codegen` class implementation
+- **REMOVED**: Deleted `codegen.js`, `client.js.mustache`, and
+  `service.js.mustache` as they moved to `packages/libutil`
+- **ENHANCED**: Updated `chat.js` to use `@copilot-ld/librpc` aggregated
+  exports: `const { AgentClient } = clients;`
+- **CLI**: Code generation now available via `npx codegen` from
+  `@copilot-ld/libutil` package
+
 ## 2025-09-19
 
 - **NEW**: Added `serve.js` script for local HTTP server with file watching and

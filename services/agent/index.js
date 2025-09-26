@@ -1,8 +1,9 @@
 /* eslint-env node */
 import { common, llm, memory, vector } from "@copilot-ld/libtype";
 import { getLatestUserMessage, generateUUID } from "@copilot-ld/libutil";
+import { services } from "@copilot-ld/librpc";
 
-import { AgentBase } from "../../generated/services/agent/service.js";
+const { AgentBase } = services;
 
 /**
  * Converts a memory window to a simple messages array for LLM completion
@@ -79,10 +80,10 @@ class AgentService extends AgentBase {
   /**
    * Creates a new Agent service instance
    * @param {object} config - Service configuration object
-   * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory service client
-   * @param {import("../../generated/services/llm/client.js").LlmClient} llmClient - LLM service client
-   * @param {import("../../generated/services/vector/client.js").VectorClient} vectorClient - Vector service client
-   * @param {import("../../generated/services/tool/client.js").ToolClient} toolClient - Tool service client
+   * @param {object} memoryClient - Memory service client
+   * @param {object} llmClient - LLM service client
+   * @param {object} vectorClient - Vector service client
+   * @param {object} toolClient - Tool service client
    * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - ResourceIndex instance for data access
    * @param {(token: string) => object} octokitFactory - Factory function to create Octokit instances
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function

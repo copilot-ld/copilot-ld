@@ -1,7 +1,8 @@
 /* eslint-env node */
 import { common, llm } from "@copilot-ld/libtype";
+import { services } from "@copilot-ld/librpc";
 
-import { LlmBase } from "../../generated/services/llm/service.js";
+const { LlmBase } = services;
 
 /**
  * LLM service for completions and embeddings

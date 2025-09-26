@@ -1,6 +1,7 @@
 FROM copilot-ld/base:latest AS base
 FROM base AS hash
 COPY tools/hash/ ./tools/hash/
+COPY generated/ /app/generated/
 WORKDIR /app
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=$GITHUB_TOKEN

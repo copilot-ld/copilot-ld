@@ -63,3 +63,81 @@ export class ProcessorInterface {
     throw new Error("ProcessorInterface.processItem() not implemented");
   }
 }
+
+/**
+ * Base interface for code generation implementations
+ */
+export class CodegenInterface {
+  /**
+   * Creates a new codegen instance
+   * @param {object} projectRoot - Project root directory path
+   * @param {object} path - Path module for file operations
+   * @param {object} mustache - Mustache template rendering module
+   * @param {object} protoLoader - Protocol buffer loader module
+   * @param {object} fs - File system module (sync operations only)
+   * @throws {Error} Not implemented
+   */
+  constructor(projectRoot, path, mustache, protoLoader, fs) {
+    // Interface constructor - does not implement logic
+  }
+
+  // High-level operations (main entry points)
+
+  /**
+   * Generate libtype/types.js and types.d.ts from project protobufs
+   * @param {string} generatedPath - Absolute path to libtype package generated directory
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async runTypes(generatedPath) {
+    throw new Error("CodegenInterface.runTypes() not implemented");
+  }
+
+  /**
+   * Generate service or client artifacts
+   * @param {"service"|"client"} kind - Artifact kind to generate
+   * @param {string} generatedPath - Absolute path to librpc package generated directory
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async runForKind(kind, generatedPath) {
+    throw new Error("CodegenInterface.runForKind() not implemented");
+  }
+
+  /**
+   * Generate dynamic service exports file
+   * @param {string} generatedPath - Absolute path to librpc package generated directory
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async runServicesExports(generatedPath) {
+    throw new Error("CodegenInterface.runServicesExports() not implemented");
+  }
+
+  // Mid-level operations (core generation functions)
+
+  /**
+   * Generate JavaScript types using protobufjs pbjs
+   * @param {string[]} protoFiles - Array of absolute .proto file paths
+   * @param {string} outFile - Absolute output path for generated JS module
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async generateJavaScriptTypes(protoFiles, outFile) {
+    throw new Error(
+      "CodegenInterface.generateJavaScriptTypes() not implemented",
+    );
+  }
+
+  // Low-level utilities (helper functions)
+
+  /**
+   * Collect protobuf file paths for generation
+   * @param {object} [opts] - Collection options
+   * @param {boolean} [opts.includeTools] - Whether to include tool proto files
+   * @throws {Error} Not implemented
+   */
+  collectProtoFiles(opts = {}) {
+    throw new Error("CodegenInterface.collectProtoFiles() not implemented");
+  }
+}

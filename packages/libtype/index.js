@@ -1,11 +1,9 @@
 /* eslint-env node */
 
 // Export everything from generated types (includes both core and tool namespaces)
-export * from "../../generated/types/types.js";
+export * from "#generated/types/types.js";
 
-// Re-export selected message constructors from the consolidated generated types
-// NOTE: generated artifacts now live under top-level generated/ directory
-import * as types from "../../generated/types/types.js";
+import * as types from "#generated/types/types.js";
 import { countTokens } from "@copilot-ld/libutil";
 import { generateHash, generateUUID } from "@copilot-ld/libutil";
 

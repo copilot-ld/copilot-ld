@@ -1,8 +1,12 @@
-FROM copilot-ld/base:latest AS base
-FROM base AS web
-COPY extensions/web/ ./extensions/web/
+FROM node:22-alpine
+
+COPY extensions/web/ /app/
+
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=$GITHUB_TOKEN
+
 WORKDIR /app
-RUN npm ci
-WORKDIR /app/extensions/web
+RUN npm install --omit=dev
+
 EXPOSE 3000
 CMD ["npm", "start"]

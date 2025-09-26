@@ -56,15 +56,6 @@ services:
       - external # Needs to be available to the host for administrative tasks
       - internal
 
-  base:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.base
-    image: copilot-ld/base:latest
-    container_name: copilot-ld.base
-    deploy:
-      replicas: 0
-
   #
   # Extension Services
   #
@@ -73,6 +64,8 @@ services:
     build:
       context: .
       dockerfile: ./extensions/web/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/web:latest
     container_name: copilot-ld.web
     env_file: ./config/.env
@@ -82,13 +75,14 @@ services:
       - external
       - internal
     depends_on:
-      - base
       - agent
 
   copilot:
     build:
       context: .
       dockerfile: ./extensions/copilot/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/copilot:latest
     container_name: copilot-ld.copilot
     env_file: ./config/.env
@@ -98,7 +92,6 @@ services:
       - external
       - internal
     depends_on:
-      - base
       - agent
 
   #
@@ -109,6 +102,8 @@ services:
     build:
       context: .
       dockerfile: ./services/agent/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/agent:latest
     container_name: copilot-ld.agent
     env_file: ./config/.env
@@ -119,7 +114,6 @@ services:
     networks:
       - internal
     depends_on:
-      - base
       - memory
       - llm
       - vector
@@ -129,6 +123,8 @@ services:
     build:
       context: .
       dockerfile: ./services/llm/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/llm:latest
     container_name: copilot-ld.llm
     env_file: ./config/.env
@@ -136,13 +132,13 @@ services:
       - ./generated:/app/generated:ro
     networks:
       - internal
-    depends_on:
-      - base
 
   vector:
     build:
       context: .
       dockerfile: ./services/vector/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/vector:latest
     container_name: copilot-ld.vector
     env_file: ./config/.env
@@ -151,13 +147,13 @@ services:
     volumes:
       - ./generated:/app/generated:ro
       - ./data/storage/vectors:/app/data/storage/vectors
-    depends_on:
-      - base
 
   memory:
     build:
       context: .
       dockerfile: ./services/memory/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/memory:latest
     container_name: copilot-ld.memory
     env_file: ./config/.env
@@ -168,13 +164,13 @@ services:
       - ./data/storage/memories:/app/data/storage/memories
       - ./data/storage/policies:/app/data/storage/policies
       - ./data/storage/resources:/app/data/storage/resources
-    depends_on:
-      - base
 
   tool:
     build:
       context: .
       dockerfile: ./services/tool/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: copilot-ld/tool:latest
     container_name: copilot-ld.tool
     env_file: ./config/.env
@@ -182,8 +178,6 @@ services:
       - ./generated:/app/generated:ro
     networks:
       - internal
-    depends_on:
-      - base
 
   #
   # Example Tool Services
@@ -202,5 +196,3 @@ services:
       - ./generated:/app/generated:ro
     networks:
       - internal
-    depends_on:
-      - base

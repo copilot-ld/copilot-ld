@@ -521,8 +521,8 @@ sequenceDiagram
         All operational protobuf schemas and generated code live exclusively
         under
         <code>generated/</code> to eliminate ambiguity about which artifacts are
-        source vs generated. The <code>scripts/codegen.js</code> script performs
-        these steps:
+        source vs generated. The <code>@copilot-ld/libutil</code>
+        <code>Codegen</code> class performs these steps:
       </p>
 
       <ol>
@@ -533,19 +533,37 @@ sequenceDiagram
             platform</strong
           >)
         </li>
-        <li>Copies them into <code>generated/proto/</code></li>
+        <li>Copies them into <code>packages/libtype/generated/proto/</code></li>
         <li>
-          Generates consolidated static types into <code>generated/types/</code>
+          Generates consolidated JavaScript types in
+          <code>packages/libtype/generated/types.js</code> and TypeScript
+          declarations in <code>types.d.ts</code>
         </li>
         <li>
           Generates service base classes into
-          <code>generated/services/&lt;name&gt;/service.js</code>
+          <code
+            >packages/librpc/generated/services/&lt;name&gt;/service.js</code
+          >
         </li>
         <li>
           Generates client classes into
-          <code>generated/services/&lt;name&gt;/client.js</code>
+          <code>packages/librpc/generated/services/&lt;name&gt;/client.js</code>
+        </li>
+        <li>
+          Generates dynamic exports aggregating all services and clients into
+          <code>packages/librpc/generated/services/exports.js</code>
         </li>
       </ol>
+
+      <p>
+        <strong>Package Architecture:</strong> Generated code is distributed
+        across two packages for clean separation:
+        <code>@copilot-ld/libtype</code> contains pure protobuf type
+        definitions, while <code>@copilot-ld/librpc</code> contains RPC
+        infrastructure (service bases, clients, networking). This prevents
+        circular dependencies and ensures services import types from libtype and
+        applications import service/client classes from librpc.
+      </p>
 
       <p>
         You should re-run code generation after changing any schema in
@@ -556,31 +574,36 @@ sequenceDiagram
       <pre><code># Generate everything (types + service bases + clients)
 npm run codegen
 
-# Or run a specific generator (invokes scripts/codegen.js flags)
-npm run codegen:type     # Generate consolidated types into generated/types/
-npm run codegen:service  # Generate base classes into generated/services/*/
-npm run codegen:client   # Generate typed clients into generated/services/*/</code></pre>
+# Or run a specific generator (invokes @copilot-ld/libutil codegen utility)
+npm run codegen:type     # Generate consolidated types into packages/libtype/generated/
+npm run codegen:service  # Generate base classes into packages/librpc/generated/
+npm run codegen:client   # Generate typed clients into packages/librpc/generated/</code></pre>
 
       <p>
-        These scripts wrap <code>scripts/codegen.js</code> which uses
-        <code>protobufjs</code> and <code>Mustache</code>
-        templates to produce ESM modules. Generated artifacts are placed only in
-        <code>generated/</code> (previous per-package/service generation paths
-        have been removed). Runtime loading of protobuf schemas reads from
-        <code>generated/proto/</code>.
+        These scripts use the <code>@copilot-ld/libutil</code>
+        <code>Codegen</code> class (available via <code>npx codegen</code>)
+        which uses <code>protobufjs</code> and <code>Mustache</code> templates
+        to produce ESM modules. Generated artifacts are placed in
+        package-specific <code>generated/</code> directories. Runtime loading of
+        protobuf schemas reads from
+        <code>packages/libtype/generated/proto/</code>.
       </p>
 
       <h4>Generated Artifact Structure</h4>
 
       <pre>
-./generated/
+./packages/libtype/generated/
 ├── proto/           # Copied original .proto files
-├── types/           # Consolidated static types (types.js, types.d.ts)
-├── services/        # Service base classes and clients
-│   ├── agent/
-│   │   ├── service.js   # Generated base class
-│   │   └── client.js    # Generated typed client
-│   └── .../
+├── types.js         # Consolidated static types
+└── types.d.ts       # TypeScript declarations
+
+./packages/librpc/generated/
+└── services/        # Service base classes and clients
+    ├── agent/
+    │   ├── service.js   # Generated base class
+    │   └── client.js    # Generated typed client
+    ├── exports.js       # Aggregated service/client exports
+    └── .../
       </pre>
 
       <h4>Code Generation Workflow</h4>

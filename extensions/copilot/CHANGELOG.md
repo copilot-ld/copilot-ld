@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-09-26
+
+- **BREAKING**: Updated client imports to use `@copilot-ld/librpc` aggregated
+  exports instead of local `generated/` files
+- **CONTAINERIZATION**: Simplified `Dockerfile` to use standalone
+  `node:22-alpine` base with private `@copilot-ld` packages via `.npmrc`
+- **IMPORTS**: Enhanced extension to use cleaner import patterns with
+  `@copilot-ld/librpc`
+
 ## 2025-09-16
 
 - Bump version one last time, really

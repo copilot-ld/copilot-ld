@@ -1,5 +1,7 @@
 /* eslint-env node */
-import { MemoryBase } from "../../generated/services/memory/service.js";
+import { services } from "@copilot-ld/librpc";
+
+const { MemoryBase } = services;
 
 /**
  * Memory service for managing transient resources and memory windows

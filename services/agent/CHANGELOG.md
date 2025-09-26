@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-09-26
+
+- **BREAKING**: Updated imports to use `@copilot-ld/librpc` services and clients
+  instead of local `generated/` files
+- **CONTAINERIZATION**: Simplified `Dockerfile` to use standalone
+  `node:22-alpine` base with private `@copilot-ld` packages via `.npmrc`
+- **IMPORTS**: Enhanced service implementation to use destructured imports:
+  `const { AgentBase } = services;`
+
 ## 2025-09-19
 
 - Removed client re-exports from service implementations for cleaner separation

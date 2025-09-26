@@ -44,8 +44,8 @@ export default [
       "**/data/**",
       "**/package-lock.json",
       "SCRATCHPAD.md",
-      // Ignore generated types file globally (moved to top-level generated/)
-      "generated/types/types.js",
+      // Ignore protobuf generated types file (contains invalid JSDoc from protobufjs)
+      "**/generated/types/types.js",
     ],
   },
 

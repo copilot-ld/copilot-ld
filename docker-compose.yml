@@ -1,5 +1,6 @@
 #
 # Networking and Volumes
+# Note: This file requires Docker BuildKit. Set DOCKER_BUILDKIT=1 or COMPOSE_DOCKER_CLI_BUILD=1
 #
 
 networks:
@@ -13,6 +14,10 @@ networks:
 volumes:
   minio_data:
     driver: local
+
+secrets:
+  github_token:
+    environment: GITHUB_TOKEN
 
 #
 # Services
@@ -64,8 +69,8 @@ services:
     build:
       context: .
       dockerfile: ./extensions/web/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/web:latest
     container_name: copilot-ld.web
     env_file: ./config/.env
@@ -81,8 +86,8 @@ services:
     build:
       context: .
       dockerfile: ./extensions/copilot/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/copilot:latest
     container_name: copilot-ld.copilot
     env_file: ./config/.env
@@ -102,8 +107,8 @@ services:
     build:
       context: .
       dockerfile: ./services/agent/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/agent:latest
     container_name: copilot-ld.agent
     env_file: ./config/.env
@@ -123,8 +128,8 @@ services:
     build:
       context: .
       dockerfile: ./services/llm/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/llm:latest
     container_name: copilot-ld.llm
     env_file: ./config/.env
@@ -137,8 +142,8 @@ services:
     build:
       context: .
       dockerfile: ./services/vector/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/vector:latest
     container_name: copilot-ld.vector
     env_file: ./config/.env
@@ -152,8 +157,8 @@ services:
     build:
       context: .
       dockerfile: ./services/memory/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/memory:latest
     container_name: copilot-ld.memory
     env_file: ./config/.env
@@ -169,8 +174,8 @@ services:
     build:
       context: .
       dockerfile: ./services/tool/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/tool:latest
     container_name: copilot-ld.tool
     env_file: ./config/.env
@@ -187,8 +192,8 @@ services:
     build:
       context: .
       dockerfile: ./tools/hash/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
     image: copilot-ld/hash:latest
     container_name: copilot-ld.hash
     env_file: ./config/.env

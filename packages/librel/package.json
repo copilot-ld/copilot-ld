@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/librel",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Release management tools for version bumping and change detection",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

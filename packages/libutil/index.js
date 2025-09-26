@@ -2,6 +2,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { createRequire } from "node:module";
 
 import { Tiktoken } from "js-tiktoken/lite";
 import o200k_base from "js-tiktoken/ranks/o200k_base";
@@ -26,6 +27,44 @@ export function searchUpward(root, relativePath, maxDepth = 3) {
     current = parent;
   }
   return null;
+}
+
+/**
+ * Find the project root directory
+ * @param {string} startPath - Starting directory path
+ * @returns {string} Project root directory path
+ */
+export function resolveProjectRoot(startPath) {
+  const projectRoot = searchUpward(startPath, "../../../package.json", 5);
+  if (projectRoot) {
+    return path.dirname(projectRoot);
+  }
+
+  throw new Error("Could not find project root");
+}
+
+/**
+ * Resolve the actual filesystem path to a package
+ * Works both in monorepo (./packages) and when installed as dependency
+ * @param {string} projectRoot - Project root directory path
+ * @param {"libtype"|"librpc"} packageName - Package name without scope
+ * @returns {string} Absolute path to package directory
+ */
+export function resolvePackagePath(projectRoot, packageName) {
+  const fullPackageName = `@copilot-ld/${packageName}`;
+
+  // First try local monorepo structure
+  const localPath = path.join(projectRoot, "packages", packageName);
+  if (fs.existsSync(localPath)) {
+    return localPath;
+  }
+
+  // Fall back to Node module resolution for installed packages
+  const require = createRequire(path.join(projectRoot, "package.json"));
+
+  // Resolve the package.json path
+  const packageJsonPath = require.resolve(`${fullPackageName}/package.json`);
+  return path.dirname(packageJsonPath);
 }
 
 /**
@@ -282,4 +321,9 @@ export function tokenizerFactory() {
 }
 
 // Re-export interfaces
-export { LoggerInterface, ProcessorInterface } from "./types.js";
+export {
+  LoggerInterface,
+  ProcessorInterface,
+  CodegenInterface,
+} from "./types.js";
+export { Codegen } from "./codegen.js";

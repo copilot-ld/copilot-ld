@@ -14,6 +14,7 @@ Changelog
 charset
 chunking
 CI
+CloudFormation
 CLI
 codebase
 codegen
@@ -30,6 +31,7 @@ DDoS
 debuggable
 destructure
 destructured
+destructuring
 dev
 DevOps
 DI
@@ -101,6 +103,7 @@ MinIO
 minioadmin
 minio
 modularity
+monorepo
 mTLS
 namespace
 namespaces

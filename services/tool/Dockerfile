@@ -1,8 +1,12 @@
-FROM copilot-ld/base:latest AS base
-FROM base AS tool
-COPY services/tool/ ./services/tool/
-WORKDIR /app
-RUN npm ci
-WORKDIR /app/services/tool
+FROM node:22-alpine
+
+COPY services/tool/ /app/
+
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=$GITHUB_TOKEN
+
+WORKDIR /app/
+RUN npm install --omit=dev
+
 EXPOSE 3000
 CMD ["npm", "start"]

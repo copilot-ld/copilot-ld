@@ -1,5 +1,32 @@
 # Changelog
 
+## 2025-09-26
+
+- **BREAKING**: Services now import base classes and clients from
+  `@copilot-ld/librpc` instead of local `generated/` files
+- **ENHANCED**: New aggregated exports system with `services` and `clients`
+  objects for convenient destructuring
+- **IMPROVED**: All service implementations updated to use
+  `const { AgentBase } = services;` pattern for cleaner imports
+- **TEMPLATE**: Enhanced `exports.js` generation with proper service/client
+  aggregation using `exports.js.mustache`
+
+## 2025-09-25
+
+## 2025-09-24
+
+- **BREAKING**: Now contains all generated service bases and clients previously
+  in project root `generated/`
+- Added dynamic import system for generated service/client exports
+- Generated code now located in `packages/librpc/generated/` with automatic
+  aggregation in `exports.js`
+- Enhanced package to export `services` and `clients` objects for convenient
+  access
+- Improved separation of concerns: RPC infrastructure separated from type
+  definitions
+- Fixed circular dependency issues by moving service/client generation from
+  `@copilot-ld/libtype`
+
 ## 2025-09-16
 
 - Bump version one last time, really

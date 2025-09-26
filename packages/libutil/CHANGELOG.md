@@ -1,5 +1,21 @@
 # Changelog
 
+## 2025-09-26
+
+- **BREAKING**: Completed migration of code generation system from
+  `scripts/codegen.js` to reusable `@copilot-ld/libutil` package with
+  object-oriented `Codegen` class and dependency injection
+- **NEW**: Added `CodegenInterface` and `Codegen` implementation with logical
+  method organization (high-level operations, mid-level functions, low-level
+  utilities)
+- **NEW**: Added `codegen` CLI utility available via `npx codegen` with
+  `--target` path resolution supporting relative paths
+- **NEW**: Added `resolveProjectRoot()` and `resolvePackagePath()` utilities for
+  robust monorepo package resolution
+- **ENHANCED**: Moved and improved mustache templates to
+  `packages/libutil/templates/` with new `exports.js.mustache` for
+  service/client aggregation
+
 ## 2025-09-19
 
 - **NEW**: Added `countTokens()` and `tokenizerFactory()` functions with

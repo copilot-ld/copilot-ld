@@ -1,5 +1,7 @@
 /* eslint-env node */
-import { VectorBase } from "../../generated/services/vector/service.js";
+import { services } from "@copilot-ld/librpc";
+
+const { VectorBase } = services;
 
 /**
  * Vector search service for querying content and descriptor vector indexes

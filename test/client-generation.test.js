@@ -2,12 +2,13 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-// Generated client/base classes now live exclusively under generated/
-import { LlmClient } from "../generated/services/llm/client.js";
-import { AgentClient } from "../generated/services/agent/client.js";
-import { MemoryClient } from "../generated/services/memory/client.js";
-import { VectorClient } from "../generated/services/vector/client.js";
-import { ToolClient } from "../generated/services/tool/client.js";
+// Generated client/base classes now live in @copilot-ld/librpc
+import { services, clients } from "@copilot-ld/librpc";
+
+// Extract individual classes from the objects
+const { _LlmBase, _AgentBase, _MemoryBase, _VectorBase, _ToolBase } = services;
+const { LlmClient, AgentClient, MemoryClient, VectorClient, ToolClient } =
+  clients;
 
 import { Client } from "@copilot-ld/librpc";
 

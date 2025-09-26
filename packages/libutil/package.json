@@ -6,6 +6,9 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "codegen": "./bin/codegen.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
@@ -13,7 +16,10 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "js-tiktoken": "^1.0.20"
+    "@grpc/proto-loader": "^0.7.13",
+    "js-tiktoken": "^1.0.20",
+    "mustache": "^4.2.0",
+    "protobufjs": "^7.4.0"
   },
   "repository": {
     "type": "git",

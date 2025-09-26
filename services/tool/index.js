@@ -2,7 +2,9 @@
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import * as types from "@copilot-ld/libtype";
 
-import { ToolBase } from "../../generated/services/tool/service.js";
+import { services } from "@copilot-ld/librpc";
+
+const { ToolBase } = services;
 
 /**
  * Tool service implementation that acts as a gRPC proxy between tool calls and actual implementations

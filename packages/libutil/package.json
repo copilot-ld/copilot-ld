@@ -7,7 +7,9 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "codegen": "./bin/codegen.js"
+    "codegen": "./bin/codegen.js",
+    "upload": "./bin/upload.js",
+    "download": "./bin/download.js"
   },
   "engines": {
     "node": ">=22.0.0"

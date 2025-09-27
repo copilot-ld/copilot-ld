@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-09-27
+
+- **BREAKING**: Removed `@copilot-ld/libstorage` dependency - proto files now
+  loaded directly from `./generated/proto`
+- **IMPROVED**: Simplified proto loading logic in `Server` and `Client` classes
+  to use direct file paths
+- **ENHANCED**: Better performance by eliminating storage abstraction layer for
+  proto file access
+
 ## 2025-09-26
 
 - **BREAKING**: Services now import base classes and clients from

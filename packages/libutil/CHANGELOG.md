@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-09-27
+
+- **NEW**: Added bundle creation feature to codegen CLI - generates
+  `bundle.tar.gz` archive of all generated directories
+- **ENHANCED**: Improved codegen workflow with automatic archive creation for
+  portable deployment packages
+
 ## 2025-09-26
 
 - **BREAKING**: Completed migration of code generation system from

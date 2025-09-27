@@ -95,17 +95,17 @@ function isJson(key, data) {
  * @implements {StorageInterface}
  */
 export class LocalStorage extends StorageInterface {
-  #basePath;
+  #prefix;
   #fs;
 
   /**
    * Creates a new LocalStorage instance
-   * @param {string} basePath - Base path for all storage operations
+   * @param {string} prefix - Base path for all storage operations
    * @param {object} fs - File system operations object
    */
-  constructor(basePath, fs) {
+  constructor(prefix, fs) {
     super();
-    this.#basePath = basePath;
+    this.#prefix = prefix;
     this.#fs = fs;
   }
 
@@ -217,7 +217,7 @@ export class LocalStorage extends StorageInterface {
     if (key.startsWith("/")) {
       return key; // Use absolute path directly for local filesystem
     }
-    return join(this.#basePath, key);
+    return join(this.#prefix, key);
   }
 
   // Bucket/Directory Management
@@ -225,10 +225,10 @@ export class LocalStorage extends StorageInterface {
   /** @inheritdoc */
   async ensureBucket() {
     try {
-      await this.#fs.access(this.#basePath);
+      await this.#fs.access(this.#prefix);
       return false; // Directory already exists
     } catch {
-      await this.#fs.mkdir(this.#basePath, { recursive: true });
+      await this.#fs.mkdir(this.#prefix, { recursive: true });
       return true; // Directory was created
     }
   }
@@ -236,7 +236,7 @@ export class LocalStorage extends StorageInterface {
   /** @inheritdoc */
   async bucketExists() {
     try {
-      await this.#fs.access(this.#basePath);
+      await this.#fs.access(this.#prefix);
       return true;
     } catch {
       return false;
@@ -291,7 +291,7 @@ export class LocalStorage extends StorageInterface {
       }
     };
 
-    await traverse(this.#basePath);
+    await traverse(this.#prefix);
 
     // Sort by creation timestamp (oldest first)
     filesWithStats.sort(
@@ -308,17 +308,20 @@ export class LocalStorage extends StorageInterface {
  */
 export class S3Storage extends StorageInterface {
   #bucket;
+  #prefix;
   #client;
   #commands;
 
   /**
    * Creates a new S3Storage instance
+   * @param {string} prefix - Prefix for all storage operations
    * @param {string} bucket - S3 bucket name
    * @param {object} client - S3 client instance
    * @param {object} commands - S3 command classes
    */
-  constructor(bucket, client, commands) {
+  constructor(prefix, bucket, client, commands) {
     super();
+    this.#prefix = prefix;
     this.#bucket = bucket;
     this.#client = client;
     this.#commands = commands;
@@ -462,7 +465,7 @@ export class S3Storage extends StorageInterface {
 
   /** @inheritdoc */
   async findByPrefix(prefix) {
-    return await this.#traverse({ Prefix: prefix });
+    return await this.#traverse({ Prefix: `${this.#prefix}/${prefix}` });
   }
 
   /** @inheritdoc */
@@ -474,12 +477,13 @@ export class S3Storage extends StorageInterface {
 
   /** @inheritdoc */
   path(key) {
+    let cleanKey = key;
     if (key.startsWith("/")) {
       // For absolute paths, remove leading slash
-      return key.substring(1);
+      cleanKey = key.substring(1);
     }
-    // For relative paths, use key as-is
-    return key;
+    // Prepend prefix to create the full S3 key
+    return `${this.#prefix}/${cleanKey}`;
   }
 
   // Bucket Management
@@ -566,11 +570,17 @@ export class S3Storage extends StorageInterface {
     const objectsWithTimestamps = [];
     let continuationToken;
 
+    // Add prefix to the S3 list query
+    const listOptions = {
+      Prefix: `${this.#prefix}/`,
+      ...options,
+    };
+
     do {
       const command = new this.#commands.ListObjectsV2Command({
         Bucket: this.#bucket,
         ContinuationToken: continuationToken,
-        ...options,
+        ...listOptions,
       });
 
       const response = await this.#client.send(command);
@@ -578,9 +588,11 @@ export class S3Storage extends StorageInterface {
       if (response.Contents) {
         for (const object of response.Contents) {
           if (object.Key) {
-            if (!keyFilter || keyFilter(object.Key)) {
+            // Strip the prefix from the key to maintain API compatibility
+            const strippedKey = object.Key.substring(`${this.#prefix}/`.length);
+            if (!keyFilter || keyFilter(strippedKey)) {
               objectsWithTimestamps.push({
-                key: object.Key,
+                key: strippedKey,
                 lastModified: object.LastModified || new Date(0),
               });
             }
@@ -603,14 +615,14 @@ export class S3Storage extends StorageInterface {
 
 /**
  * Creates a storage instance based on environment variables
- * @param {string} bucket - Bucket for the storage operations
+ * @param {string} prefix - Prefix for the storage operations (for S3) or bucket/directory name (for local)
  * @param {string} type - Storage type ("local" or "s3")
  * @param {object} process - Process environment access (for testing)
  * @returns {StorageInterface} Storage instance
  * @throws {Error} When unsupported storage type is provided
  * @todo Clean this up with dedicated factories for each bucket type.
  */
-export function storageFactory(bucket, type, process = global.process) {
+export function storageFactory(prefix, type, process = global.process) {
   const finalType = type || process.env.STORAGE_TYPE || "local";
 
   switch (finalType) {
@@ -618,21 +630,15 @@ export function storageFactory(bucket, type, process = global.process) {
     case undefined: {
       let relative;
 
-      switch (bucket) {
+      switch (prefix) {
         case "config":
-          relative = bucket;
-          break;
-
-        case "proto":
-          relative = join("generated", bucket);
-          break;
-
-        case "knowledge":
-          relative = join("data", bucket);
+        case "generated":
+          relative = prefix;
           break;
 
         default:
-          relative = join("data", "storage", bucket);
+          relative = join("data", prefix);
+          break;
       }
 
       const root =
@@ -643,7 +649,7 @@ export function storageFactory(bucket, type, process = global.process) {
       const basePath = searchUpward(root, relative);
 
       if (!basePath) {
-        throw new Error(`Could not find bucket: ${bucket}`);
+        throw new Error(`Could not find bucket: ${prefix}`);
       }
 
       return new LocalStorage(basePath, fs);
@@ -660,7 +666,9 @@ export function storageFactory(bucket, type, process = global.process) {
         },
       });
 
-      return new S3Storage(bucket, client, {
+      // Get bucket name from environment, use the factory parameter as prefix
+      const bucketName = process.env.S3_BUCKET || "copilot-ld";
+      return new S3Storage(prefix, bucketName, client, {
         CreateBucketCommand,
         DeleteObjectCommand,
         GetObjectCommand,

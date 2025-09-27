@@ -161,7 +161,7 @@ npm run codegen</code></pre>
 
       <p>
         This scans HTML files for microdata items, extracts content, and creates
-        searchable resources stored in <code>data/storage/resources/</code>.
+        searchable resources stored in <code>data/resources/</code>.
       </p>
 
       <h4>Example Knowledge Base</h4>
@@ -183,7 +183,7 @@ npm run codegen</code></pre>
       <p>
         This generates embeddings of resource content and descriptors for
         efficient similarity search, stored in
-        <code>data/storage/vectors/</code>.
+        <code>data/vectors/</code>.
       </p>
 
       <h3>5. Example HTML Content</h3>
@@ -285,7 +285,7 @@ echo "kubernetes deployment" | node tools/search.js --index descriptor --limit 5
         </li>
         <li>
           <strong>Empty responses</strong>: Verify that vector indices were
-          created successfully in <code>data/storage/vectors/</code>
+          created successfully in <code>data/vectors/</code>
         </li>
         <li>
           <strong>Service startup errors</strong>: Check that all environment

@@ -70,7 +70,7 @@ node scripts/secret.js
 Create the necessary data directories with empty indices:
 
 ```sh
-mkdir -p data/storage/{memories,policies,resources,vectors}
+mkdir -p data/{memories,policies,resources,vectors}
 ```
 
 ### 7. Download knowledge data

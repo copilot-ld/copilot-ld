@@ -1,11 +1,16 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { RpcInterface, ClientInterface } from "./types.js";
-import { logFactory } from "@copilot-ld/libutil";
-import { storageFactory } from "@copilot-ld/libstorage";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Capitalize first letter of a string
@@ -97,8 +102,7 @@ export class Rpc extends RpcInterface {
 
   /** @inheritdoc */
   async loadProto(key) {
-    const storage = storageFactory("proto", "local");
-    const filename = await storage.path(key);
+    const filename = join(__dirname, "generated", "proto", key);
 
     const serviceName = key.replace(".proto", "");
     const packageDefinition = this.grpc().loadPackageDefinition(

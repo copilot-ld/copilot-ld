@@ -17,8 +17,8 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.13",
     "@copilot-ld/librpc": "^0.1.19",
-    "@copilot-ld/libtype": "^0.1.14",
-    "@copilot-ld/libutil": "^0.1.12"
+    "@copilot-ld/libtype": "^0.1.15",
+    "@copilot-ld/libutil": "^0.1.13"
   },
   "repository": {
     "type": "git",

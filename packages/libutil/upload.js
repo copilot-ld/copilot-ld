@@ -1,20 +1,31 @@
 /* eslint-env node */
-import { ScriptConfig } from "@copilot-ld/libconfig";
-import { storageFactory } from "@copilot-ld/libstorage";
-import { Logger } from "@copilot-ld/libutil";
-
-const logger = new Logger("upload-script");
+import { UploadInterface } from "./types.js";
 
 /**
- * Upload script for synchronizing local storage to S3
+ * Upload utility for synchronizing local storage to remote storage
+ * Implements object-oriented approach with dependency injection
  */
-class UploadScript {
+export class Upload extends UploadInterface {
   #prefixes;
   #local;
   #remote;
+  #storageFactory;
+  #logger;
 
-  constructor() {
-    this.#prefixes = [
+  /**
+   * Creates a new upload instance with dependency injection
+   * @param {Function} storageFactory - Storage factory function
+   * @param {object} logger - Logger instance
+   * @param {string[]} prefixes - Storage area prefixes to synchronize
+   */
+  constructor(storageFactory, logger, prefixes = null) {
+    super();
+    if (!storageFactory) throw new Error("storageFactory is required");
+    if (!logger) throw new Error("logger is required");
+
+    this.#storageFactory = storageFactory;
+    this.#logger = logger;
+    this.#prefixes = prefixes || [
       "config",
       "generated",
       "memories",
@@ -32,16 +43,16 @@ class UploadScript {
    */
   async initialize() {
     for (const prefix of this.#prefixes) {
-      this.#local[prefix] = storageFactory(prefix, "local");
-      this.#remote[prefix] = storageFactory(prefix, "s3");
+      this.#local[prefix] = this.#storageFactory(prefix, "local");
+      this.#remote[prefix] = this.#storageFactory(prefix, "s3");
 
       // Ensure S3 bucket exists (single bucket with prefixes)
-      logger.debug("Ensuring S3 bucket exists", { prefix });
+      this.#logger.debug("Ensuring S3 bucket exists", { prefix });
       const created = await this.#remote[prefix].ensureBucket();
       if (created) {
-        logger.debug("S3 bucket created", { prefix });
+        this.#logger.debug("S3 bucket created", { prefix });
       } else {
-        logger.debug("S3 bucket already exists", { prefix });
+        this.#logger.debug("S3 bucket already exists", { prefix });
       }
     }
   }
@@ -52,7 +63,7 @@ class UploadScript {
    */
   async upload() {
     for (const prefix of this.#prefixes) {
-      logger.debug("Processing storage area", { prefix });
+      this.#logger.debug("Processing storage area", { prefix });
       await this.#uploadPrefix(prefix);
     }
   }
@@ -73,7 +84,7 @@ class UploadScript {
       // Filter out hidden files (starting with ".")
       const filteredKeys = keys.filter((key) => !key.startsWith("."));
 
-      logger.debug("Items found for upload", {
+      this.#logger.debug("Items found for upload", {
         prefix,
         total: keys.length,
         uploaded: filteredKeys.length,
@@ -84,28 +95,15 @@ class UploadScript {
         try {
           const data = await local.get(key);
           await remote.put(key, data);
-          logger.debug("Item uploaded", { prefix, key });
+          this.#logger.debug("Item uploaded", { prefix, key });
         } catch (error) {
-          logger.debug("Item error", { prefix, key, error: error.message });
+          this.#logger.debug("Item error", { prefix, key, error: error.message });
           throw error;
         }
       }
     } catch (error) {
-      logger.debug("Processing error", { prefix, error: error.message });
+      this.#logger.debug("Processing error", { prefix, error: error.message });
       throw error;
     }
   }
 }
-
-/**
- * Main execution function
- * @returns {Promise<void>}
- */
-async function main() {
-  await ScriptConfig.create("upload-script");
-  const uploader = new UploadScript();
-  await uploader.initialize();
-  await uploader.upload();
-}
-
-main();

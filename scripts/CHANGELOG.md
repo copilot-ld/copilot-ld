@@ -2,11 +2,11 @@
 
 ## 2025-09-27
 
-- **ENHANCED**: Updated `upload.js` to work with new single-bucket S3 storage
-  architecture using prefixes
-- **IMPROVED**: Simplified upload logic by replacing bucket-specific handling
-  with prefix-based approach
-- **NEW**: Added support for `generated` storage area in upload operations
+- **BREAKING**: Migrated `upload.js` functionality to `@copilot-ld/libutil` package with `Upload` class implementation  
+- **REMOVED**: Deleted `upload.js` - functionality now available via `npx upload` from libutil package
+- **ENHANCED**: Updated upload functionality to work with new single-bucket S3 storage architecture using prefixes (now in libutil)
+- **IMPROVED**: Simplified upload logic by replacing bucket-specific handling with prefix-based approach (now in libutil)
+- **NEW**: Added support for `generated` storage area in upload operations (now in libutil)
 
 ## 2025-09-26
 

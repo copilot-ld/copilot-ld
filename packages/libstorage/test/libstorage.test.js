@@ -391,7 +391,12 @@ describe("libstorage", () => {
         }),
       };
 
-      s3Storage = new S3Storage("test-bucket", mockClient, mockCommands);
+      s3Storage = new S3Storage(
+        "test-prefix",
+        "copilot-ld",
+        mockClient,
+        mockCommands,
+      );
     });
 
     test("put sends PutObjectCommand", async () => {
@@ -402,8 +407,8 @@ describe("libstorage", () => {
       assert.deepStrictEqual(
         mockCommands.PutObjectCommand.mock.calls[0].arguments[0],
         {
-          Bucket: "test-bucket",
-          Key: "file.txt",
+          Bucket: "copilot-ld",
+          Key: "test-prefix/file.txt",
           Body: "content",
         },
       );
@@ -543,7 +548,7 @@ describe("libstorage", () => {
       // Verify the put command received exactly what we expect with automatic newlines
       assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
       const putCall = mockCommands.PutObjectCommand.mock.calls[0].arguments[0];
-      assert.strictEqual(putCall.Key, "file.txt");
+      assert.strictEqual(putCall.Key, "test-prefix/file.txt");
       // The body should be the concatenation of existing + new data with added newline
       assert.strictEqual(
         putCall.Body.toString(),
@@ -559,8 +564,8 @@ describe("libstorage", () => {
       assert.deepStrictEqual(
         mockCommands.DeleteObjectCommand.mock.calls[0].arguments[0],
         {
-          Bucket: "test-bucket",
-          Key: "file.txt",
+          Bucket: "copilot-ld",
+          Key: "test-prefix/file.txt",
         },
       );
     });
@@ -596,19 +601,16 @@ describe("libstorage", () => {
       mockClient.send = mock.fn(() =>
         Promise.resolve({
           Contents: [
-            { Key: "test/prefix/file1.txt" },
-            { Key: "test/prefix/file2.txt" },
-            { Key: "test/prefix/other.json" },
+            { Key: "test-prefix/file1.txt" },
+            { Key: "test-prefix/file2.txt" },
+            { Key: "test-prefix/other.json" },
           ],
         }),
       );
 
       const keys = await s3Storage.findByExtension(".txt");
 
-      assert.deepStrictEqual(keys, [
-        "test/prefix/file1.txt",
-        "test/prefix/file2.txt",
-      ]);
+      assert.deepStrictEqual(keys, ["file1.txt", "file2.txt"]);
     });
 
     test("handles absolute paths by removing leading slash", async () => {
@@ -616,7 +618,7 @@ describe("libstorage", () => {
 
       assert.deepStrictEqual(
         mockCommands.PutObjectCommand.mock.calls[0].arguments[0].Key,
-        "absolute/file.txt",
+        "test-prefix/absolute/file.txt",
       );
     });
 
@@ -717,10 +719,10 @@ describe("libstorage", () => {
 
     test("getMany retrieves multiple items by keys", async () => {
       mockClient.send = mock.fn((command) => {
-        if (command.params && command.params.Key === "file1.txt") {
+        if (command.params && command.params.Key === "test-prefix/file1.txt") {
           return Promise.resolve({ Body: [Buffer.from("content1")] });
         }
-        if (command.params && command.params.Key === "file2.txt") {
+        if (command.params && command.params.Key === "test-prefix/file2.txt") {
           return Promise.resolve({ Body: [Buffer.from("content2")] });
         }
         const error = new Error("Not found");
@@ -755,9 +757,9 @@ describe("libstorage", () => {
       mockClient.send = mock.fn(() =>
         Promise.resolve({
           Contents: [
-            { Key: "cld:common.File.hash001.txt" },
-            { Key: "cld:common.File.hash002.txt" },
-            { Key: "other:prefix.txt" },
+            { Key: "test-prefix/cld:common.File.hash001.txt" },
+            { Key: "test-prefix/cld:common.File.hash002.txt" },
+            { Key: "test-prefix/other:prefix.txt" },
           ],
         }),
       );
@@ -772,7 +774,7 @@ describe("libstorage", () => {
       assert.strictEqual(mockCommands.ListObjectsV2Command.mock.callCount(), 1);
       assert.deepStrictEqual(
         mockCommands.ListObjectsV2Command.mock.calls[0].arguments[0].Prefix,
-        "cld:common.File",
+        "test-prefix/cld:common.File",
       );
     });
 
@@ -782,12 +784,12 @@ describe("libstorage", () => {
         callCount++;
         if (callCount === 1) {
           return Promise.resolve({
-            Contents: [{ Key: "prefix1.txt" }],
+            Contents: [{ Key: "test-prefix/prefix1.txt" }],
             NextContinuationToken: "token123",
           });
         } else {
           return Promise.resolve({
-            Contents: [{ Key: "prefix2.txt" }],
+            Contents: [{ Key: "test-prefix/prefix2.txt" }],
           });
         }
       });

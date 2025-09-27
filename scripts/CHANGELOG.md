@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-09-27
+
+- **ENHANCED**: Updated `upload.js` to work with new single-bucket S3 storage
+  architecture using prefixes
+- **IMPROVED**: Simplified upload logic by replacing bucket-specific handling
+  with prefix-based approach
+- **NEW**: Added support for `generated` storage area in upload operations
+
 ## 2025-09-26
 
 - **BREAKING**: Migrated `codegen.js` functionality to `@copilot-ld/libutil`

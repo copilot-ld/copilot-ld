@@ -9,32 +9,39 @@ const logger = new Logger("upload-script");
  * Upload script for synchronizing local storage to S3
  */
 class UploadScript {
+  #prefixes;
   #local;
   #remote;
 
   constructor() {
+    this.#prefixes = [
+      "config",
+      "generated",
+      "memories",
+      "policies",
+      "resources",
+      "vectors",
+    ];
     this.#local = {};
     this.#remote = {};
   }
 
   /**
-   * Initialize storage instances for all buckets
+   * Initialize storage instances for all storage areas (prefixes)
    * @returns {Promise<void>}
    */
   async initialize() {
-    const buckets = ["config", "memories", "policies", "resources", "vectors"];
+    for (const prefix of this.#prefixes) {
+      this.#local[prefix] = storageFactory(prefix, "local");
+      this.#remote[prefix] = storageFactory(prefix, "s3");
 
-    for (const bucket of buckets) {
-      this.#local[bucket] = storageFactory(bucket, "local");
-      this.#remote[bucket] = storageFactory(bucket, "s3");
-
-      // Ensure S3 bucket exists using the new bucket management method
-      logger.debug("Ensuring bucket exists", { bucket });
-      const created = await this.#remote[bucket].ensureBucket();
+      // Ensure S3 bucket exists (single bucket with prefixes)
+      logger.debug("Ensuring S3 bucket exists", { prefix });
+      const created = await this.#remote[prefix].ensureBucket();
       if (created) {
-        logger.debug("Bucket created", { bucket });
+        logger.debug("S3 bucket created", { prefix });
       } else {
-        logger.debug("Bucket already exists", { bucket });
+        logger.debug("S3 bucket already exists", { prefix });
       }
     }
   }
@@ -44,23 +51,21 @@ class UploadScript {
    * @returns {Promise<void>}
    */
   async upload() {
-    const buckets = ["config", "memories", "policies", "resources", "vectors"];
-
-    for (const bucket of buckets) {
-      logger.debug("Processing bucket", { bucket });
-      await this.#uploadBucket(bucket);
+    for (const prefix of this.#prefixes) {
+      logger.debug("Processing storage area", { prefix });
+      await this.#uploadPrefix(prefix);
     }
   }
 
   /**
-   * Upload all items from a bucket, skipping hidden files
-   * @param {string} bucket - Bucket name
+   * Upload all items from a storage area, skipping hidden files
+   * @param {string} prefix - Storage area prefix
    * @returns {Promise<void>}
    * @private
    */
-  async #uploadBucket(bucket) {
-    const local = this.#local[bucket];
-    const remote = this.#remote[bucket];
+  async #uploadPrefix(prefix) {
+    const local = this.#local[prefix];
+    const remote = this.#remote[prefix];
 
     try {
       const keys = await local.list();
@@ -69,7 +74,7 @@ class UploadScript {
       const filteredKeys = keys.filter((key) => !key.startsWith("."));
 
       logger.debug("Items found for upload", {
-        bucket,
+        prefix,
         total: keys.length,
         uploaded: filteredKeys.length,
         filtered: keys.length - filteredKeys.length,
@@ -79,14 +84,14 @@ class UploadScript {
         try {
           const data = await local.get(key);
           await remote.put(key, data);
-          logger.debug("Item uploaded", { bucket, key });
+          logger.debug("Item uploaded", { prefix, key });
         } catch (error) {
-          logger.debug("Item error", { bucket, key, error: error.message });
+          logger.debug("Item error", { prefix, key, error: error.message });
           throw error;
         }
       }
     } catch (error) {
-      logger.debug("Processing error", { bucket, error: error.message });
+      logger.debug("Processing error", { prefix, error: error.message });
       throw error;
     }
   }

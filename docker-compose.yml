@@ -114,8 +114,8 @@ services:
     env_file: ./config/.env
     volumes:
       - ./generated:/app/generated:ro
-      - ./data/storage/policies:/app/data/storage/policies
-      - ./data/storage/resources:/app/data/storage/resources
+      - ./data/policies:/app/data/policies
+      - ./data/resources:/app/data/resources
     networks:
       - internal
     depends_on:
@@ -151,7 +151,6 @@ services:
       - internal
     volumes:
       - ./generated:/app/generated:ro
-      - ./data/storage/vectors:/app/data/storage/vectors
 
   memory:
     build:
@@ -166,9 +165,8 @@ services:
       - internal
     volumes:
       - ./generated:/app/generated:ro
-      - ./data/storage/memories:/app/data/storage/memories
-      - ./data/storage/policies:/app/data/storage/policies
-      - ./data/storage/resources:/app/data/storage/resources
+      - ./data/policies:/app/data/policies
+      - ./data/resources:/app/data/resources
 
   tool:
     build:

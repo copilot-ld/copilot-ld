@@ -1,16 +1,19 @@
 /* eslint-env node */
-// Import and re-export base classes (no circular dependency with generated files)
-export { grpcFactory, authFactory, Rpc, Client } from "./base.js";
+import protoLoader from "@grpc/proto-loader";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-// Import and re-export auth, types
+import { logFactory } from "@copilot-ld/libutil";
+
+import { grpcFactory, authFactory } from "./base.js";
+import * as exports from "./generated/services/exports.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export { grpcFactory, authFactory, Rpc, Client } from "./base.js";
 export { Interceptor, HmacAuth } from "./auth.js";
 export { RpcInterface, ClientInterface } from "./types.js";
-
-// Import and re-export server (not used by generated clients, so safe)
-import protoLoader from "@grpc/proto-loader";
-import { storageFactory } from "@copilot-ld/libstorage";
-import { logFactory } from "@copilot-ld/libutil";
-import { grpcFactory, authFactory } from "./base.js";
 
 /**
  * gRPC Server class for hosting services
@@ -72,8 +75,7 @@ export class Server {
 
   async #loadServiceDefinition() {
     const protoName = this.#service.getProtoName();
-    const storage = storageFactory("proto", "local");
-    const protoPath = await storage.path(protoName);
+    const protoPath = join(__dirname, "generated", "proto", protoName);
 
     const packageDefinition = protoLoader.loadSync(protoPath, {
       keepCase: true,
@@ -151,9 +153,6 @@ export class Server {
   }
 }
 
-// Static import for generated exports - code generation runs before npm install
-import * as generatedExports from "./generated/services/exports.js";
-
 // Export services and clients objects for runtime access
-export const services = generatedExports.services || {};
-export const clients = generatedExports.clients || {};
+export const services = exports.services || {};
+export const clients = exports.clients || {};

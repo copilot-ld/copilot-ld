@@ -1,5 +1,15 @@
 # Changelog
 
+## 2025-09-27
+
+- **BREAKING**: Refactored `S3Storage` to use single bucket with prefixes
+  instead of multiple buckets
+- **ENHANCED**: Unified constructor parameters across `LocalStorage` and
+  `S3Storage` for consistency
+- **NEW**: Added `S3_BUCKET` environment variable configuration support
+- **IMPROVED**: Simplified storage factory with better S3 bucket management and
+  ability to test
+
 ## 2025-09-19
 
 - Enhanced `#traverse()` methods in both `LocalStorage` and `S3Storage` to sort

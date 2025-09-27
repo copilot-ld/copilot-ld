@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 
 import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
@@ -26,6 +27,34 @@ const __dirname = path.dirname(__filename);
 function resolveGeneratedPath(projectRoot, packageName) {
   const packagePath = resolvePackagePath(projectRoot, packageName);
   return path.join(packagePath, "generated");
+}
+
+/**
+ * Create tar.gz bundle of all directories inside targetPath
+ * @param {string} targetPath - Path containing directories to bundle
+ */
+async function createBundle(targetPath) {
+  const bundlePath = path.join(targetPath, "bundle.tar.gz");
+
+  // Get all directories in targetPath
+  const entries = fs.readdirSync(targetPath, { withFileTypes: true });
+  const directories = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+  if (directories.length === 0) {
+    return; // No directories to bundle
+  }
+
+  // Create tar.gz archive using system tar command
+  try {
+    const directoriesArg = directories.join(" ");
+    execSync(`tar -czf "${bundlePath}" -C "${targetPath}" ${directoriesArg}`, {
+      stdio: "pipe",
+    });
+  } catch (error) {
+    throw new Error(`Failed to create bundle: ${error.message}`);
+  }
 }
 
 /**
@@ -160,6 +189,11 @@ async function runCodegen(codegen, projectRoot, flags) {
     if (doTypes) packageNames.push("libtype");
     if (doLibrpc) packageNames.push("librpc");
     await createPackageSymlinks(projectRoot, targetPath, packageNames);
+
+    // Create bundle.tar.gz of all directories in targetPath
+    if (hasGenerationFlags) {
+      await createBundle(targetPath);
+    }
   }
 }
 

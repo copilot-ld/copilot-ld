@@ -2,6 +2,25 @@
 
 ## 2025-09-27
 
+- **NEW**: Added `DownloadInterface` and `Download` implementation for
+  downloading and extracting `bundle.tar.gz` from remote storage
+- **NEW**: Download utility specifically targets "generated" prefix in remote
+  storage and extracts to local "generated" storage area
+- **ENHANCED**: Extended `libutil` package with download capabilities using same
+  dependency injection pattern as `Upload` class
+- **NEW**: Added tar.gz extraction functionality using system `tar` command for
+  portable bundle handling
+- **NEW**: Added `download` CLI utility available via `npx download` for
+  remote-to-local bundle synchronization
+
+## 2025-09-27
+
+- **NEW**: Added `UploadInterface` and `Upload` implementation for storage
+  synchronization utilities with dependency injection pattern
+- **NEW**: Added `upload` CLI utility available via `npx upload` for
+  local-to-remote storage synchronization
+- **MIGRATION**: Moved upload functionality from `scripts/upload.js` to reusable
+  `@copilot-ld/libutil` package following established patterns
 - **NEW**: Added bundle creation feature to codegen CLI - generates
   `bundle.tar.gz` archive of all generated directories
 - **ENHANCED**: Improved codegen workflow with automatic archive creation for

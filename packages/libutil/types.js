@@ -16,51 +16,62 @@ export class LoggerInterface {
 }
 
 /**
- * Base interface for batch processor implementations
+ * Base interface for processor implementations
+ * Defines the contract for configurable processing utilities
  */
 export class ProcessorInterface {
   /**
-   * Creates a new processor instance
-   * @param {object} logger - Logger instance for debug output
-   * @param {number} batchSize - Size of batches for processing (default: 10)
-   * @throws {Error} Not implemented
+   * Process input with given configuration
+   * @param {any} input - Input to process
+   * @param {object} config - Processing configuration
+   * @returns {Promise<any>} Processing result
    */
-  constructor(logger, batchSize = 10) {
-    // Interface constructor - does not implement logic
-  }
-
-  /**
-   * Processes items from a collection in batches
-   * @param {Array} items - Array of items to process
-   * @param {string} [context] - Context string for logging
-   * @returns {Promise<void>}
-   * @throws {Error} Not implemented
-   */
-  async process(items, context = "items") {
+  async process(input, config) {
     throw new Error("ProcessorInterface.process() not implemented");
   }
+}
 
+/**
+ * Base interface for upload implementations
+ * Defines the contract for storage synchronization utilities
+ */
+export class UploadInterface {
   /**
-   * Processes a single batch of items
-   * @param {Array} batch - Array of items in the current batch
-   * @param {number} processed - Number of items already processed
-   * @param {number} total - Total number of items to process
-   * @param {string} context - Context string for logging
+   * Initialize storage instances for all storage areas
    * @returns {Promise<void>}
-   * @throws {Error} Not implemented
    */
-  async processBatch(batch, processed, total, context) {
-    throw new Error("ProcessorInterface.processBatch() not implemented");
+  async initialize() {
+    throw new Error("UploadInterface.initialize() not implemented");
   }
 
   /**
-   * Processes a single item within a batch
-   * @param {*} item - The item to process
-   * @returns {Promise<*>} Processing result
-   * @throws {Error} Not implemented
+   * Upload all items from local storage to remote storage
+   * @returns {Promise<void>}
    */
-  async processItem(item) {
-    throw new Error("ProcessorInterface.processItem() not implemented");
+  async upload() {
+    throw new Error("UploadInterface.upload() not implemented");
+  }
+}
+
+/**
+ * Base interface for download implementations
+ * Defines the contract for downloading and extracting bundle.tar.gz from remote storage
+ */
+export class DownloadInterface {
+  /**
+   * Initialize storage instances for download operations
+   * @returns {Promise<void>}
+   */
+  async initialize() {
+    throw new Error("DownloadInterface.initialize() not implemented");
+  }
+
+  /**
+   * Download bundle.tar.gz from remote storage and extract to local storage
+   * @returns {Promise<void>}
+   */
+  async download() {
+    throw new Error("DownloadInterface.download() not implemented");
   }
 }
 

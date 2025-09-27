@@ -325,5 +325,9 @@ export {
   LoggerInterface,
   ProcessorInterface,
   CodegenInterface,
+  UploadInterface,
+  DownloadInterface,
 } from "./types.js";
 export { Codegen } from "./codegen.js";
+export { Upload } from "./upload.js";
+export { Download } from "./download.js";

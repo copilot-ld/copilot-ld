@@ -19,6 +19,7 @@
     "codegen:type": "npx --workspace=@copilot-ld/libutil codegen --type --target=generated",
     "codegen:client": "npx --workspace=@copilot-ld/libutil codegen --client --target=generated",
     "codegen:service": "npx --workspace=@copilot-ld/libutil codegen --service --target=generated",
+    "upload": "npx --workspace=@copilot-ld/libutil upload",
     "dev": "npm run dev:start",
     "dev:start": "DEBUG=${DEBUG:-*} node scripts/dev.js --start",
     "dev:stop": "node scripts/dev.js --stop",

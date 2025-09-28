@@ -18,7 +18,7 @@
   "dependencies": {
     "@copilot-extensions/preview-sdk": "^5.0.1",
     "@copilot-ld/libconfig": "^0.1.13",
-    "@copilot-ld/librpc": "^0.1.19",
+    "@copilot-ld/librpc": "^0.1.20",
     "@copilot-ld/libtype": "^0.1.15",
     "@copilot-ld/libutil": "^0.1.13",
     "@copilot-ld/libweb": "^0.1.11",

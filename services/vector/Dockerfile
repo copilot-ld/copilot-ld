@@ -10,7 +10,7 @@ RUN --mount=type=secret,id=github_token \
 
 RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
-    npx @copilot-ld/libutil codegen --target=/app/generated
+    npx codegen --target=/app/generated
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["npm", "run", "docker"]

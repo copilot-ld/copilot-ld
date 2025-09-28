@@ -3,10 +3,6 @@ tool:
     owner: "some-github-owner"
     repo: "some-github-repo"
 
-hash:
-  host: "localhost"
-  port: 3007
-
 service:
   agent:
     assistant: "cld:common.Assistant.software-dev-expert"
@@ -57,15 +53,16 @@ service:
           field, plus optional filter. Output: List of similar content with
           relevance scores.
         evaluation: |
-          Success: Returns identifiers of similar content. Scores above 0.5
+          Returns identifiers of similar content. Scores above 0.5
           indicate high relevance. If no results, the search term may not exist
           in the knowledge base.
 
-      # UTILITY TOOLS: Use only when specifically requested by user
+      # EXAMPLE TOOLS: Use only when specifically requested by user
       sha256_hash:
         method: "hash.Hash.Sha256"
         request: "hash.HashRequest"
-        purpose: "Create deterministic SHA-256 hash of input text"
+        purpose: |
+          Create deterministic SHA-256 hash of input text.
         applicability: |
           Use ONLY when user explicitly requests SHA-256 hashing. DO NOT use
           for search or content analysis.
@@ -73,13 +70,13 @@ service:
           Input: Text string in 'input' field. Output: 64-character hexadecimal
           SHA-256 hash.
         evaluation: |
-          Success: Returns exactly 64-character hexadecimal string. Do not use
-          this tool unless user specifically asks for hashing.
+          Returns exactly 64-character hexadecimal string.
 
       md5_hash:
         method: "hash.Hash.Md5"
         request: "hash.HashRequest"
-        purpose: "Create MD5 hash of input text"
+        purpose: |
+          Create MD5 hash of input text.
         applicability: |
           Use ONLY when user explicitly requests MD5 hashing. DO NOT use for
           search or content analysis.
@@ -87,5 +84,4 @@ service:
           Input: Text string in 'input' field. Output: 32-character hexadecimal
           MD5 hash.
         evaluation: |
-          Success: Returns exactly 32-character hexadecimal string. Do not use
-          this tool unless user specifically asks for hashing.
+          Returns exactly 32-character hexadecimal string.

@@ -1,0 +1,530 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot-LD – Processing Guide</title>
+    <link rel="icon" href="favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+    <link rel="stylesheet" href="assets/main.css" />
+  </head>
+  <body>
+    <header>
+      <hgroup>
+        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="configuration.html">Configuration</a></li>
+          <li><a href="processing.html" class="active">Processing</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="development.html">Development</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>Processing Guide</h2>
+      <p>
+        Complete guide to processing knowledge bases, resources, tools, and
+        vectors in Copilot-LD. This covers the offline pipeline that transforms
+        raw knowledge into searchable, embedded content.
+      </p>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li><a href="configuration.html">Configuration Guide</a> completed</li>
+        <li>
+          Basic understanding of HTML microdata. See
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Microdata"
+            target="_blank"
+            >Using microdata in HTML</a
+          >
+          on MDN Web Docs.
+        </li>
+      </ul>
+
+      <h3>Overview</h3>
+      <p>
+        The Copilot-LD processing pipeline transforms your knowledge base
+        through several stages in sequence:
+      </p>
+      <ol>
+        <li>
+          <strong>Knowledge Base Setup</strong>: Organize HTML content with
+          structured microdata
+        </li>
+        <li>
+          <strong>Resource Processing</strong>: Extract and index content from
+          HTML files
+        </li>
+        <li>
+          <strong>Tool Processing</strong>: Generate tool schemas and
+          documentation
+        </li>
+        <li>
+          <strong>Vector Processing</strong>: Create embeddings for semantic
+          search
+        </li>
+        <li>
+          <strong>Data Management</strong>: Upload/download processed data for
+          deployment
+        </li>
+      </ol>
+
+      <h3>1. Knowledge Base Structure</h3>
+      <p>
+        Copilot-LD uses HTML files with structured microdata to organize
+        knowledge. This approach provides semantic context and enables accurate
+        content extraction.
+      </p>
+
+      <h4>HTML with Microdata</h4>
+      <p>
+        Knowledge files should use HTML5 microdata with Schema.org vocabularies
+        to structure content:
+      </p>
+
+      <pre><code>&lt;!-- Example: data/knowledge/security-practices.html --&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Security Best Practices&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;article itemscope itemtype="http://schema.org/Article"&gt;
+        &lt;h1 itemprop="headline"&gt;Docker Security Best Practices&lt;/h1&gt;
+        &lt;div itemprop="articleBody"&gt;
+            &lt;p&gt;Always use specific image tags instead of 'latest' to ensure reproducible builds.&lt;/p&gt;
+            &lt;p&gt;Implement multi-stage builds to reduce attack surface and image size.&lt;/p&gt;
+            &lt;p&gt;Run containers as non-root users whenever possible.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/article&gt;
+    
+    &lt;article itemscope itemtype="http://schema.org/Article"&gt;
+        &lt;h1 itemprop="headline"&gt;Container Registry Security&lt;/h1&gt;
+        &lt;div itemprop="articleBody"&gt;
+            &lt;p&gt;Scan container images for vulnerabilities before deployment.&lt;/p&gt;
+            &lt;p&gt;Use private registries for proprietary or sensitive applications.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/article&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+      <h4>Schema.org Types</h4>
+      <p>
+        The processing pipeline works with any Schema.org types. Common examples
+        include:
+      </p>
+      <ul>
+        <li>
+          <a href="https://schema.org/Article" target="_blank"
+            ><code>Article</code></a
+          >: Technical articles, best practices, guides
+        </li>
+        <li>
+          <a href="https://schema.org/HowTo" target="_blank"
+            ><code>HowTo</code></a
+          >: Step-by-step procedures and tutorials
+        </li>
+        <li>
+          <a href="https://schema.org/FAQPage" target="_blank"
+            ><code>FAQPage</code></a
+          >: Frequently asked questions
+        </li>
+        <li>
+          <a href="https://schema.org/TechArticle" target="_blank"
+            ><code>TechArticle</code></a
+          >: Technical documentation
+        </li>
+      </ul>
+      <p>
+        You can use any Schema.org type that fits your content structure and
+        semantic needs.
+      </p>
+
+      <h4>Example Knowledge Base</h4>
+      <p>
+        Copilot-LD includes example knowledge files to demonstrate the HTML
+        microdata structure:
+      </p>
+
+      <pre><code># Copy example knowledge base to your data directory
+cp examples/knowledge/* data/knowledge/</code></pre>
+
+      <h3>2. Resource Processing</h3>
+      <p>
+        Resource processing extracts structured content from HTML files and
+        creates searchable resources stored in the
+        <code>data/resources/</code> directory.
+      </p>
+
+      <h4>Processing HTML Content</h4>
+      <p>
+        The resource processor scans HTML files for elements with microdata
+        attributes and extracts them as individual knowledge items:
+      </p>
+
+      <pre><code>node scripts/resources.js</code></pre>
+
+      <h5>Custom CSS Selectors</h5>
+      <p>
+        By default, the processor looks for <code>[itemscope]</code> elements.
+        You can specify custom selectors:
+      </p>
+
+      <pre><code># Process only article elements
+node scripts/resources.js --selector "article[itemscope]"
+
+# Process multiple content types
+node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']"</code></pre>
+
+      <h4>Output Structure</h4>
+      <p>
+        Resource processing creates individual JSON files in
+        <code>data/resources/</code> with Copilot-LD (CLD) identifiers:
+      </p>
+
+      <pre><code>data/resources/
+├── cld:common.MessageV2.{hash}.json        # Individual message resources
+├── cld:common.Assistant.{name}.json        # Assistant configurations
+├── cld:common.ToolFunction.{name}.json     # Tool definitions
+└── cld:common.Conversation.{uuid}.json     # Conversation metadata</code></pre>
+
+      <h5>Resource Format</h5>
+      <p>Each extracted resource contains:</p>
+      <ul>
+        <li>
+          <strong>Identifier</strong>: Unique resource ID based on content hash
+        </li>
+        <li>
+          <strong>Content</strong>: Extracted text content from the HTML element
+        </li>
+        <li>
+          <strong>Metadata</strong>: Schema.org type, source file, extraction
+          timestamp
+        </li>
+        <li>
+          <strong>Descriptor</strong>: AI-generated description of the content's
+          purpose and applicability
+        </li>
+      </ul>
+
+      <h4>Assistant Processing</h4>
+      <p>
+        The resource processor also processes assistant configurations, creating
+        resources for each defined assistant persona. This enables the system to
+        search and select appropriate assistants based on context.
+      </p>
+
+      <h3>3. Tool Processing</h3>
+      <p>
+        Tool processing generates OpenAI-compatible JSON schemas from Protocol
+        Buffer definitions, enabling dynamic tool registration and validation.
+      </p>
+
+      <h4>Generate Tool Schemas</h4>
+      <pre><code>node scripts/tools.js</code></pre>
+
+      <h4>Protocol Buffer Tool Definitions</h4>
+      <p>
+        Tools are defined using Protocol Buffer messages that describe their
+        parameters and functionality. The tool processor scans
+        <code>tools/</code> directory for <code>*.proto</code> files:
+      </p>
+
+      <pre><code>// examples/tools/hash.proto
+syntax = "proto3";
+
+package hash;
+
+service Hash {
+  rpc Sha256(HashRequest) returns (HashResponse);
+  rpc Md5(HashRequest) returns (HashResponse);
+}
+
+message HashRequest {
+  string input = 1;
+}
+
+message HashResponse {
+  string hash = 1;
+  string algorithm = 2;
+}</code></pre>
+
+      <h4>JSON Schema Generation</h4>
+      <p>
+        The tool processor converts Protocol Buffer definitions into
+        OpenAI-compatible JSON schemas that can be used for LLM tool calling.
+        Each RPC method in the service definition becomes a separate tool
+        function:
+      </p>
+
+      <pre><code>// Generated schema for sha256_hash tool
+{
+  "type": "object",
+  "properties": {
+    "input": {
+      "type": "string",
+      "description": "input field"
+    }
+  },
+  "required": ["input"]
+}</code></pre>
+
+      <h4>Tool Configuration</h4>
+      <p>
+        Generated tool schemas are stored as individual JSON files in
+        <code>data/resources/</code> with the pattern
+        <code>cld:common.ToolFunction.{name}.json</code> and automatically
+        registered with the Tool service during startup. Each tool entry
+        includes:
+      </p>
+      <ul>
+        <li>
+          <strong>Tool Name</strong>: Method name from the Protocol Buffer
+          service (e.g., <code>sha256_hash</code>, <code>md5_hash</code>)
+        </li>
+        <li>
+          <strong>Parameters Schema</strong>: JSON schema for validating tool
+          parameters
+        </li>
+        <li>
+          <strong>Purpose Description</strong>: AI-generated description of tool
+          functionality
+        </li>
+        <li>
+          <strong>Usage Instructions</strong>: Detailed instructions for proper
+          tool usage
+        </li>
+        <li>
+          <strong>Applicability Guidelines</strong>: When and when not to use
+          the tool
+        </li>
+      </ul>
+
+      <h5>Example Tool Resource</h5>
+      <p>
+        The hash tool generates separate resources for each RPC method. Here's
+        the generated
+        <code>sha256_hash</code> tool resource:
+      </p>
+
+      <pre><code>{
+  "id": {
+    "type": "common.ToolFunction",
+    "name": "sha256_hash"
+  },
+  "descriptor": {
+    "tokens": 89,
+    "purpose": "Create deterministic SHA-256 hash of input text.",
+    "instructions": "Input: Text string in 'input' field. Output: 64-character hexadecimal SHA-256 hash.",
+    "applicability": "Use ONLY when user explicitly requests SHA-256 hashing. DO NOT use for search or content analysis.",
+    "evaluation": "Returns exactly 64-character hexadecimal string."
+  },
+  "name": "sha256_hash",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "input": {
+        "type": "string",
+        "description": "input field"
+      }
+    },
+    "required": ["input"]
+  }
+}</code></pre>
+
+      <h3>4. Vector Processing</h3>
+      <p>
+        Vector processing creates embeddings of resource content and descriptors
+        for efficient similarity search and retrieval-augmented generation.
+      </p>
+
+      <h4>Generate Vector Embeddings</h4>
+      <pre><code>node scripts/vectors.js</code></pre>
+
+      <h4>Embedding Strategy</h4>
+      <p>The vector processor creates two types of embeddings:</p>
+
+      <h5>Content Embeddings</h5>
+      <ul>
+        <li>
+          <strong>Purpose</strong>: Direct semantic search of actual content
+        </li>
+        <li>
+          <strong>Source</strong>: Full text content extracted from HTML
+          elements
+        </li>
+        <li>
+          <strong>Use Case</strong>: Finding specific information, facts, and
+          detailed explanations
+        </li>
+      </ul>
+
+      <h5>Descriptor Embeddings</h5>
+      <ul>
+        <li><strong>Purpose</strong>: Conceptual and categorical search</li>
+        <li>
+          <strong>Source</strong>: AI-generated descriptions of content purpose
+          and applicability
+        </li>
+        <li>
+          <strong>Use Case</strong>: Finding relevant content types,
+          methodologies, and approaches
+        </li>
+      </ul>
+
+      <h4>Vector Storage</h4>
+      <p>Embeddings are stored in <code>data/vectors/</code> as JSONL files:</p>
+
+      <pre><code>data/vectors/
+├── content.jsonl         # Content-based embeddings  
+└── descriptors.jsonl     # Descriptor-based embeddings</code></pre>
+
+      <p>Each vector entry contains:</p>
+      <ul>
+        <li>
+          <strong>Identifier</strong>: Links back to the original resource
+        </li>
+        <li>
+          <strong>Embedding</strong>: 1536-dimensional vector from OpenAI
+          text-embedding-3-small
+        </li>
+      </ul>
+
+      <h3>5. Data Management Utilities</h3>
+      <p>
+        Copilot-LD includes utilities for managing processed data across
+        development and deployment environments. These commands require that the
+        <a href="deployment.html">Deployment Guide</a> be completed first for
+        proper S3 configuration.
+      </p>
+
+      <h4>Upload Processed Data</h4>
+      <p>
+        Upload all processed data from local storage to S3-compatible remote
+        storage:
+      </p>
+
+      <pre><code>npx @copilot-ld/libutil upload</code></pre>
+
+      <h5>Upload Process</h5>
+      <p>The upload utility synchronizes these storage areas:</p>
+      <ul>
+        <li><strong>config/</strong>: Configuration files and secrets</li>
+        <li>
+          <strong>generated/</strong>: Generated code and Protocol Buffer
+          artifacts
+        </li>
+        <li>
+          <strong>memories/</strong>: Conversation history and chat memories
+        </li>
+        <li><strong>resources/</strong>: Processed knowledge base resources</li>
+        <li>
+          <strong>vectors/</strong>: Embedding indices for semantic search
+        </li>
+      </ul>
+
+      <h5>S3 Configuration Requirements</h5>
+      <p>
+        Upload requires S3-compatible storage configuration. See the
+        <a href="configuration.html#storage-configuration"
+          >Storage Configuration</a
+        >
+        section in the Configuration Guide for complete setup details including
+        environment variables and MinIO options.
+      </p>
+
+      <h4>Download Processed Data</h4>
+      <p>Download pre-processed data bundle from remote storage:</p>
+
+      <pre><code>npx @copilot-ld/libutil download</code></pre>
+
+      <h5>Download Process</h5>
+      <p>
+        The download utility retrieves and extracts a
+        <code>bundle.tar.gz</code> archive containing generated code and
+        processed data. This is useful for:
+      </p>
+      <ul>
+        <li>
+          <strong>Quick Setup</strong>: Skip processing steps with pre-processed
+          data
+        </li>
+        <li>
+          <strong>CI/CD Pipelines</strong>: Download consistent data sets for
+          automated deployments
+        </li>
+        <li>
+          <strong>Team Synchronization</strong>: Share processed knowledge base
+          across team members
+        </li>
+      </ul>
+
+      <h5>Bundle Configuration</h5>
+      <p>Configure the download source in <code>config/config.yml</code>:</p>
+      <pre><code>tool:
+  download:
+    owner: "your-organization"
+    repo: "your-knowledge-repository"</code></pre>
+
+      <h4>Data Management Workflow</h4>
+      <p>Typical workflow for managing processed data across environments:</p>
+
+      <h5>Development Environment</h5>
+      <pre><code># Process knowledge base locally
+node scripts/resources.js
+node scripts/tools.js  
+node scripts/vectors.js
+
+# Upload processed data to S3
+npx @copilot-ld/libutil upload</code></pre>
+
+      <h5>Production Environment</h5>
+      <pre><code># Download pre-processed data bundle
+npx @copilot-ld/libutil download
+
+# Or synchronize from S3 if using upload/download pattern
+# Deploy with processed data available</code></pre>
+
+      <h4>Storage Monitoring</h4>
+      <p>Monitor data storage usage and processing status:</p>
+
+      <pre><code># Check local storage sizes
+du -sh data/*/
+
+# Monitor S3 bucket usage (if using AWS)
+aws s3 ls s3://your-copilot-ld-bucket --recursive --human-readable --summarize
+
+# Check resource count by type
+ls data/resources/ | grep "MessageV2" | wc -l
+ls data/resources/ | grep "ToolFunction" | wc -l
+ls data/resources/ | grep "Assistant" | wc -l</code></pre>
+
+      <h3>Next Steps</h3>
+      <p>Once processing is complete, proceed to:</p>
+      <ul>
+        <li>
+          <a href="deployment.html">Deployment Guide</a> - Deploy the system
+          with your processed knowledge base
+        </li>
+        <li>
+          <a href="development.html">Development Guide</a> - Set up local
+          development environment for further customization
+        </li>
+        <li>
+          <a href="architecture.html">Architecture Overview</a> - Understand how
+          processing fits into the overall system
+        </li>
+      </ul>
+    </main>
+    <footer>
+      <p>© D. Olsson</p>
+    </footer>
+  </body>
+</html>

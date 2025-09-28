@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "S3 bucket for all Copilot-LD data storage"
+
+Resources:
+  # S3 bucket for persistent data storage with security restrictions
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "copilot-ld-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # IAM role providing ECS tasks access to S3 data bucket
+  S3BucketRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:*
+                Resource:
+                  - !GetAtt S3Bucket.Arn
+                  - !Sub "${S3Bucket.Arn}/*"
+
+Outputs:
+  BucketName:
+    Description: S3 bucket name for data storage
+    Value: !Ref S3Bucket
+
+  BucketRoleArn:
+    Description: IAM role ARN for accessing the data storage bucket
+    Value: !GetAtt S3BucketRole.Arn

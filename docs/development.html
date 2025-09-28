@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Copilot-LD – Getting Started</title>
+    <title>Copilot-LD – Development Guide</title>
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
@@ -20,25 +20,26 @@
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="getting-started.html">Getting Started</a></li>
+          <li><a href="configuration.html">Configuration</a></li>
+          <li><a href="processing.html">Processing</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="development.html" class="active">Development</a></li>
         </ul>
       </nav>
     </header>
     <main>
-      <h2>Getting Started</h2>
+      <h2>Development Guide</h2>
 
       <p>
-        This guide helps you quickly set up and run Copilot-LD for the first
-        time. Follow these steps to configure GitHub integration, prepare your
-        knowledge base, and start interacting with the system.
+        This guide helps you set up Copilot-LD for local development. Follow
+        these steps to configure GitHub integration, prepare your knowledge
+        base, and run the system with <code>npm run dev</code>.
       </p>
 
       <h3>Prerequisites</h3>
 
       <ul>
-        <li>Node.js 22+ installed</li>
         <li>GitHub account with access to GitHub Copilot</li>
-        <li>Basic familiarity with command line tools</li>
       </ul>
 
       <h3>1. Initial Setup</h3>
@@ -51,65 +52,37 @@ npm install</code></pre>
 
       <p>Copy configuration templates:</p>
 
-      <pre><code>cp config/.env{.example,}
-cp config/config{.example,}.yml</code></pre>
+      <pre><code># Copy configuration templates (see Configuration Guide for details)
+cp config/.env{.example,}
+cp config/config{.example,}.yml
+cp config/assistants{.example,}.yml</code></pre>
 
-      <h3>2. Generate Code from Protocol Buffers</h3>
+      <h3>2. Configuration</h3>
+
+      <p>
+        Set up your environment variables, authentication, and service
+        configuration. Follow the
+        <a href="configuration.html">Configuration Guide</a>
+        for complete setup instructions including GitHub authentication and
+        service secrets.
+      </p>
+
+      <h3>3. Generate Code from Protocol Buffers</h3>
 
       <p>
         Generate typed definitions, service bases, and clients from the
-        <code>proto/</code> schemas. This also includes any optional tool
-        schemas in <code>tools/</code> that
-        <strong>extend the core system</strong>. Run this after a fresh clone or
-        whenever the proto files change.
+        <code>proto/</code> schemas and any optional tool schemas in
+        <code>tools/</code>:
       </p>
 
-      <pre><code>npm run codegen
-# or generate a specific artifact
-npm run codegen:type     # libtype types and declarations
-npm run codegen:service  # service base classes for gRPC servers
-npm run codegen:client   # gRPC clients for services</code></pre>
-
-      <h3>2. GitHub Authentication</h3>
+      <pre><code>npm run codegen</code></pre>
 
       <p>
-        Authentication uses GitHub's OAuth Device Flow. Set your
-        <code>GITHUB_CLIENT_ID</code> in <code>config/.env</code> before
-        generating a token.
+        For details about the code generation process and specific generators,
+        see the
+        <a href="architecture.html#code-generation">Code Generation</a> section
+        in the Architecture Guide.
       </p>
-
-      <h4>Set Client ID</h4>
-
-      <p>Edit the environment file:</p>
-
-      <pre><code># Edit config/.env
-GITHUB_CLIENT_ID=your_20_character_client_id_here</code></pre>
-
-      <h3>3. Token Setup</h3>
-
-      <p>Generate a GitHub token for API access:</p>
-
-      <pre><code>node tools/token.js</code></pre>
-
-      <p>
-        The tool saves the token to <code>config/.ghtoken</code> so services and
-        tools can read it automatically. Alternatively, you can set the
-        <code>GITHUB_TOKEN</code> environment variable in
-        <code>config/.env</code>.
-      </p>
-
-      <h4>Service Authentication</h4>
-
-      <p>Generate a shared secret for service-to-service authentication:</p>
-
-      <pre><code>node tools/secret.js</code></pre>
-
-      <p>
-        This command automatically updates <code>config/.env</code> with the
-        generated secret.
-      </p>
-
-      <h3>4. Offline Knowledge Processing</h3>
 
       <p>
         Prepare your knowledge base through the offline processing pipeline:
@@ -155,74 +128,54 @@ npm run codegen</code></pre>
 
       <h4>Process Knowledge Base into Resources</h4>
 
-      <p>Extract and process content from HTML files:</p>
+      <p>
+        Extract and process content from HTML files into searchable resources.
+        For complete processing instructions including tool and vector
+        processing, see the <a href="processing.html">Processing Guide</a>.
+      </p>
 
       <pre><code>node tools/resources.js</code></pre>
-
-      <p>
-        This scans HTML files for microdata items, extracts content, and creates
-        searchable resources stored in <code>data/resources/</code>.
-      </p>
 
       <h4>Example Knowledge Base</h4>
 
       <p>
-        An example knowledge base with HTML files is available in
-        <code>examples/knowledge</code>. You can copy these files to your data
-        directory to test the offline processing pipeline:
+        For testing and demonstration, you can use the example knowledge base
+        provided in the repository. See the
+        <a href="processing.html#example-knowledge-base">Processing Guide</a>
+        for details on setting up example knowledge files and processing them
+        into searchable resources.
       </p>
-
-      <pre><code>cp examples/knowledge/* data/knowledge/</code></pre>
 
       <h4>Create Vector Embeddings</h4>
 
-      <p>Process resources and create vector embeddings:</p>
+      <p>
+        Process resources and create vector embeddings for semantic search. For
+        details on the vector processing pipeline, see the
+        <a href="processing.html#vector-processing">Vector Processing</a>
+        section in the Processing Guide.
+      </p>
 
       <pre><code>node tools/vectors.js</code></pre>
-
-      <p>
-        This generates embeddings of resource content and descriptors for
-        efficient similarity search, stored in
-        <code>data/vectors/</code>.
-      </p>
 
       <h3>5. Example HTML Content</h3>
 
       <p>
-        If you don't have existing knowledge assets, create an example HTML file
-        with microdata:
+        If you don't have existing knowledge assets, you can create example HTML
+        files with structured microdata. For detailed examples and best
+        practices on knowledge base structure, see the
+        <a href="processing.html#knowledge-base-structure"
+          >Knowledge Base Structure</a
+        >
+        section in the Processing Guide.
       </p>
-
-      <pre><code>&lt;!-- Save as data/knowledge/example.html --&gt;
-&lt;html&gt;
-&lt;head&gt;
-    &lt;title&gt;Example Knowledge&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;article itemscope itemtype="http://schema.org/Article"&gt;
-        &lt;h1 itemprop="headline"&gt;Docker Security Best Practices&lt;/h1&gt;
-        &lt;div itemprop="articleBody"&gt;
-            &lt;p&gt;Always use specific image tags instead of 'latest' to ensure reproducible builds and security.&lt;/p&gt;
-            &lt;p&gt;Implement multi-stage builds to reduce attack surface and image size.&lt;/p&gt;
-        &lt;/div&gt;
-    &lt;/article&gt;
-    
-    &lt;article itemscope itemtype="http://schema.org/Article"&gt;
-        &lt;h1 itemprop="headline"&gt;Kubernetes Deployment Strategies&lt;/h1&gt;
-        &lt;div itemprop="articleBody"&gt;
-            &lt;p&gt;Rolling updates provide zero-downtime deployments by gradually replacing instances.&lt;/p&gt;
-            &lt;p&gt;Use readiness and liveness probes to ensure application health during deployments.&lt;/p&gt;
-        &lt;/div&gt;
-    &lt;/article&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
 
       <p>
-        The chunking process looks for elements with microdata attributes and
-        extracts them as individual knowledge items using structured data.
+        The processing pipeline looks for elements with microdata attributes and
+        extracts them as individual knowledge items using structured data
+        (Schema.org vocabularies).
       </p>
 
-      <h3>6. Start the System</h3>
+      <h3>5. Start the System</h3>
 
       <p>Launch all services in development mode:</p>
 
@@ -233,7 +186,7 @@ npm run codegen</code></pre>
         extensions (web, copilot) concurrently.
       </p>
 
-      <h3>7. Interactive Chat</h3>
+      <h3>6. Interactive Chat</h3>
 
       <p>Use the chat tool to interact with your configured knowledge base:</p>
 
@@ -247,7 +200,7 @@ npm run codegen</code></pre>
 
       <pre><code>echo "Tell me about container security" | node tools/chat.js</code></pre>
 
-      <h3>8. Search with CLI Flags</h3>
+      <h3>7. Search with CLI Flags</h3>
 
       <p>
         The search tool supports command-line flags via the internal
@@ -321,8 +274,8 @@ echo "hello" | node tools/chat.js</code></pre>
           understand component interactions
         </li>
         <li>
-          Review development guidelines in the main
-          <code>README.md</code> for contributing
+          For production deployment, see the
+          <a href="deployment.html">deployment guide</a>
         </li>
       </ul>
     </main>

@@ -22,12 +22,18 @@ retrieval-augmented generation.
 
 ## 🚀 Setup
 
-### 1. Environment configuration
+### 1. Configuration
+
+Set up environment variables and service configuration:
 
 ```sh
 cp config/.env{.example,}
 cp config/config{.example,}.yml
+cp config/assistants{.example,}.yml
 ```
+
+For detailed configuration options, see the
+[Configuration Guide](docs/configuration.html).
 
 ### 2. Install dependencies
 
@@ -45,27 +51,17 @@ This generates service interfaces and type definitions from the Protocol Buffer
 schemas. See [Code Generation Details](docs/architecture.html#code-generation)
 for more information.
 
-### 4. Create GitHub token
-
-First, set your `GITHUB_CLIENT_ID` in `config/.env`, then generate a token via
-OAuth Device Flow:
+### 4. Authentication and secrets
 
 ```sh
+# Set GITHUB_CLIENT_ID in config/.env, then generate token
 node scripts/token.js
-```
 
-The tool writes the token to `config/.ghtoken` so services can read it. As an
-alternative, you can set `GITHUB_TOKEN` in `config/.env`.
-
-### 5. Service authentication
-
-Generate a shared secret for HMAC authentication between services:
-
-```sh
+# Generate service authentication secret
 node scripts/secret.js
 ```
 
-### 6. Prepare data directory
+### 5. Prepare data directory
 
 Create the necessary data directories with empty indices:
 
@@ -73,7 +69,7 @@ Create the necessary data directories with empty indices:
 mkdir -p data/{memories,policies,resources,vectors}
 ```
 
-### 7. Download knowledge data
+### 6. Download knowledge data
 
 ```sh
 node scripts/download.js
@@ -116,18 +112,24 @@ sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
 docker compose up
 ```
 
-This provides:
-
-- **Application Load Balancer**: SSL termination and path-based routing through
-  nginx
-- **S3-compatible storage**: MinIO for resources, vectors, and policies data
-- **SSL encryption**: Self-signed certificates for localhost development
+This provides SSL termination, path-based routing, and S3-compatible storage.
+See the [Configuration Guide](docs/configuration.html) for detailed setup
+options.
 
 Access the services:
 
 - **Web Extension**: `https://localhost/web`
 - **Copilot Extension**: `https://localhost/copilot`
 - **MinIO Console**: `http://localhost:9001`
+
+## 📖 Detailed Guides
+
+For comprehensive setup and deployment information:
+
+- **[Development Setup](docs/development.html)**: Complete development
+  environment configuration with detailed troubleshooting
+- **[Deployment Guide](docs/deployment.html)**: Production deployment with
+  Docker Compose or AWS CloudFormation
 
 ## ⚡ Usage
 
@@ -209,7 +211,13 @@ echo "search query" | node scripts/search.js --limit 3 --threshold 0.2
 
 ### Human Documentation
 
+- [Configuration Guide](docs/configuration.html): Environment variables and YAML
+  configuration
 - [Architecture Overview](docs/architecture.html): System design and structure
+- [Development Setup](docs/development.html): Local development and
+  configuration
+- [Deployment Guide](docs/deployment.html): Docker Compose and AWS
+  CloudFormation deployment
 
 ### AI Instructions
 

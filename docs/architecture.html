@@ -20,8 +20,11 @@
       <nav>
         <ul>
           <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="getting-started.html">Getting Started</a></li>
+          <li><a href="architecture.html" class="active">Architecture</a></li>
+          <li><a href="configuration.html">Configuration</a></li>
+          <li><a href="processing.html">Processing</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="development.html">Development</a></li>
         </ul>
       </nav>
     </header>
@@ -639,122 +642,9 @@ npm run codegen:client   # Generate typed clients into packages/librpc/generated
       <h3>Security Architecture</h3>
 
       <p>
-        The security design focuses on network isolation, service
-        authentication, and secure communication channels.
+        The security design focuses on service authentication and secure
+        communication channels.
       </p>
-
-      <h4>Network Topology</h4>
-
-      <p>
-        The system implements a defense-in-depth approach with network isolation
-        between external-facing extensions and internal backend services.
-      </p>
-
-      <h5>Network Architecture</h5>
-
-      <pre class="mermaid">
-flowchart TD
-    subgraph "Host Network"
-        U[Users/Clients]
-        ALB[Application Load Balancer<br/>nginx:80,443]
-    end
-
-    subgraph "External Network (copilot-ld.external)"
-        WEB[Web Extension<br/>copilot-ld.web]
-        COP[Copilot Extension<br/>copilot-ld.copilot]
-    end
-
-    subgraph "Internal Network (copilot-ld.internal)"
-        AGENT[Agent Service<br/>copilot-ld.agent]
-        LLM[LLM Service<br/>copilot-ld.llm]
-        VECTOR[Vector Service<br/>copilot-ld.vector]
-        MEMORY[Memory Service<br/>copilot-ld.memory]
-        TOOL[Tool Service<br/>copilot-ld.tool]
-        HASH[Hash Tool<br/>copilot-ld.hash]
-        MINIO[MinIO Storage<br/>9000,9001]
-    end
-
-    subgraph "External APIs"
-        GITHUB[GitHub API]
-        LLMAPI[LLM Providers]
-    end
-
-    %% Host to External Network
-    U -->|HTTP/HTTPS| ALB
-    ALB -->|Proxy| WEB
-    ALB -->|Proxy| COP
-
-    %% External to Internal (Extensions bridge networks)
-    WEB -.->|gRPC Auth| AGENT
-    COP -.->|gRPC Auth| AGENT
-
-    %% Internal Network Communication (gRPC with HMAC)
-    AGENT -->|gRPC HMAC| LLM
-    AGENT -->|gRPC HMAC| VECTOR
-    AGENT -->|gRPC HMAC| MEMORY
-    AGENT -->|gRPC HMAC| TOOL
-    TOOL -->|gRPC HMAC| HASH
-
-    %% Internal Storage Access
-    AGENT -->|S3 API| MINIO
-    VECTOR -->|S3 API| MINIO
-    MEMORY -->|S3 API| MINIO
-
-    %% External API Access
-    AGENT -->|HTTPS| GITHUB
-    LLM -->|HTTPS| LLMAPI
-
-    %% Network isolation
-    style "Host Network" fill:#f9f9f9
-    style "External Network (copilot-ld.external)" fill:#e1f5fe
-    style "Internal Network (copilot-ld.internal)" fill:#fff3e0
-    style "External APIs" fill:#f3e5f5
-      </pre>
-
-      <h5>Port Exposure Strategy</h5>
-
-      <ul>
-        <li>
-          <strong>Application Load Balancer</strong>
-          (<code>copilot-ld.alb</code>): Exposes ports 80/443 to the host and
-          proxies to extensions on the external network
-        </li>
-        <li>
-          <strong>Web Extension</strong> (<code>copilot-ld.web</code>): No host
-          port exposure; reachable via the ALB. Bridges external and internal
-          networks
-        </li>
-        <li>
-          <strong>Copilot Extension</strong> (<code>copilot-ld.copilot</code>):
-          No host port exposure; reachable via the ALB. Bridges external and
-          internal networks
-        </li>
-        <li>
-          <strong>Backend Services</strong>: No host port exposure - isolated on
-          internal network only
-        </li>
-      </ul>
-
-      <h5>Network Isolation Benefits</h5>
-
-      <ol>
-        <li>
-          <strong>Enhanced Attack Surface Reduction</strong>: Backend services
-          are completely isolated on internal network
-        </li>
-        <li>
-          <strong>Network Segmentation</strong>: Extensions on external network
-          bridge to internal network for controlled access
-        </li>
-        <li>
-          <strong>Service Mesh Isolation</strong>: Internal gRPC communication
-          is fully segmented from external traffic
-        </li>
-        <li>
-          <strong>Defense in Depth</strong>: Dual network topology provides
-          additional security boundaries
-        </li>
-      </ol>
 
       <h4>Authentication Mechanisms</h4>
 
@@ -849,7 +739,6 @@ sequenceDiagram
 
       <ul>
         <li><strong>Protocol</strong>: gRPC over HTTP/2</li>
-        <li><strong>Network</strong>: Isolated Docker bridge network</li>
         <li>
           <strong>Authentication</strong>: HMAC-SHA256 with time-limited Bearer
           tokens
@@ -914,7 +803,7 @@ sequenceDiagram
       <ol>
         <li>
           <strong>External Service Access</strong>: Backend services cannot be
-          directly accessed from outside the Docker network
+          directly accessed from outside the Docker environment
         </li>
         <li>
           <strong>Service Impersonation</strong>: HMAC authentication prevents
@@ -933,10 +822,6 @@ sequenceDiagram
       <h5>Current Vulnerabilities</h5>
 
       <ol>
-        <li>
-          <strong>Network Sniffing</strong>: Internal gRPC traffic is
-          unencrypted, though authenticated with HMAC tokens
-        </li>
         <li>
           <strong>Shared Secret Exposure</strong>: If
           <code>SERVICE_AUTH_SECRET</code> is compromised, all service

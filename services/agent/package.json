@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "node --watch server.js",
+    "docker": "npx download && npm start",
     "start": "node server.js",
     "test": "node --test test/*.test.js"
   },

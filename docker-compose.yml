@@ -1,15 +1,7 @@
 #
-# Networking and Volumes
+# Volumes
 # Note: This file requires Docker BuildKit. Set DOCKER_BUILDKIT=1 or COMPOSE_DOCKER_CLI_BUILD=1
 #
-
-networks:
-  external:
-    driver: bridge
-    name: copilot-ld.external
-  internal:
-    driver: bridge
-    name: copilot-ld.internal
 
 volumes:
   minio_data:
@@ -18,6 +10,14 @@ volumes:
 secrets:
   github_token:
     environment: GITHUB_TOKEN
+
+#
+# Networks
+#
+
+networks:
+  internal:
+    driver: bridge
 
 #
 # Services
@@ -30,7 +30,7 @@ services:
 
   alb:
     image: nginx:alpine
-    container_name: copilot-ld.alb
+    container_name: alb.copilot-ld
     env_file: ./config/.env
     ports:
       - "80:80"
@@ -42,24 +42,27 @@ services:
       - ./data/cert/localhost.crt:/etc/ssl/certs/localhost.crt:ro
       - ./data/cert/localhost.key:/etc/ssl/private/localhost.key:ro
     networks:
-      - external
+      internal:
+        aliases:
+          - alb.copilot-ld.local
     depends_on:
       - web
       - copilot
 
   minio:
     image: minio/minio:latest
-    container_name: copilot-ld.minio
+    container_name: minio.copilot-ld
     env_file: ./config/.env
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio_data:/data
-    command: server /data --console-address ":9001"
     networks:
-      - external # Needs to be available to the host for administrative tasks
-      - internal
+      internal:
+        aliases:
+          - minio.copilot-ld.local
+    command: server /data --console-address ":9001"
 
   #
   # Extension Services
@@ -72,13 +75,12 @@ services:
       secrets:
         - github_token
     image: copilot-ld/web:latest
-    container_name: copilot-ld.web
+    container_name: web.copilot-ld
     env_file: ./config/.env
-    volumes:
-      - ./generated:/app/generated:ro
     networks:
-      - external
-      - internal
+      internal:
+        aliases:
+          - web.copilot-ld.local
     depends_on:
       - agent
 
@@ -89,13 +91,12 @@ services:
       secrets:
         - github_token
     image: copilot-ld/copilot:latest
-    container_name: copilot-ld.copilot
+    container_name: copilot.copilot-ld
     env_file: ./config/.env
-    volumes:
-      - ./generated:/app/generated:ro
     networks:
-      - external
-      - internal
+      internal:
+        aliases:
+          - copilot.copilot-ld.local
     depends_on:
       - agent
 
@@ -110,14 +111,15 @@ services:
       secrets:
         - github_token
     image: copilot-ld/agent:latest
-    container_name: copilot-ld.agent
+    container_name: agent.copilot-ld
     env_file: ./config/.env
     volumes:
-      - ./generated:/app/generated:ro
       - ./data/policies:/app/data/policies
       - ./data/resources:/app/data/resources
     networks:
-      - internal
+      internal:
+        aliases:
+          - agent.copilot-ld.local
     depends_on:
       - memory
       - llm
@@ -131,12 +133,12 @@ services:
       secrets:
         - github_token
     image: copilot-ld/llm:latest
-    container_name: copilot-ld.llm
+    container_name: llm.copilot-ld
     env_file: ./config/.env
-    volumes:
-      - ./generated:/app/generated:ro
     networks:
-      - internal
+      internal:
+        aliases:
+          - llm.copilot-ld.local
 
   vector:
     build:
@@ -145,12 +147,12 @@ services:
       secrets:
         - github_token
     image: copilot-ld/vector:latest
-    container_name: copilot-ld.vector
+    container_name: vector.copilot-ld
     env_file: ./config/.env
     networks:
-      - internal
-    volumes:
-      - ./generated:/app/generated:ro
+      internal:
+        aliases:
+          - vector.copilot-ld.local
 
   memory:
     build:
@@ -159,14 +161,15 @@ services:
       secrets:
         - github_token
     image: copilot-ld/memory:latest
-    container_name: copilot-ld.memory
+    container_name: memory.copilot-ld
     env_file: ./config/.env
-    networks:
-      - internal
     volumes:
-      - ./generated:/app/generated:ro
       - ./data/policies:/app/data/policies
       - ./data/resources:/app/data/resources
+    networks:
+      internal:
+        aliases:
+          - memory.copilot-ld.local
 
   tool:
     build:
@@ -175,12 +178,12 @@ services:
       secrets:
         - github_token
     image: copilot-ld/tool:latest
-    container_name: copilot-ld.tool
+    container_name: tool.copilot-ld
     env_file: ./config/.env
-    volumes:
-      - ./generated:/app/generated:ro
     networks:
-      - internal
+      internal:
+        aliases:
+          - tool.copilot-ld.local
 
   #
   # Example Tool Services
@@ -193,9 +196,9 @@ services:
       secrets:
         - github_token
     image: copilot-ld/hash:latest
-    container_name: copilot-ld.hash
+    container_name: hash.copilot-ld
     env_file: ./config/.env
-    volumes:
-      - ./generated:/app/generated:ro
     networks:
-      - internal
+      internal:
+        aliases:
+          - hash.copilot-ld.local

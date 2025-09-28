@@ -42,8 +42,10 @@ domain-specific instructions:
 
 - **Follow**: `.github/instructions/architecture.instructions.md` for system
   design
+- **Follow**: `.github/instructions/configuration.instructions.md` for
+  configuration management
 - **Follow**: `.github/instructions/documentation.instructions.md` for
-  architectural updates
+  documentation updates
 
 ### JavaScript Files (`**/*.js`)
 

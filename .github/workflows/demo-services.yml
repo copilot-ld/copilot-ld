@@ -1,0 +1,63 @@
+name: Simple Services Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      vpc_id:
+        description: "VPC ID for deployment"
+        required: true
+        type: string
+      public_subnet_id:
+        description: "Public subnet ID for ALB"
+        required: true
+        type: string
+      private_subnet_id:
+        description: "Private subnet ID for services"
+        required: true
+        type: string
+      container_tag:
+        description: "Container image tag to deploy"
+        required: false
+        default: "latest"
+        type: string
+
+jobs:
+  deploy-services:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: copilot-ld-services
+          aws-region: us-east-1
+
+      - name: Deploy services
+        run: |
+          aws cloudformation deploy \
+            --template-file infrastructure/cloudformation/services.yml \
+            --stack-name copilot-ld-services \
+            --parameter-overrides \
+              VpcId=${{ inputs.vpc_id }} \
+              PublicSubnetId=${{ inputs.public_subnet_id }} \
+              PrivateSubnetId=${{ inputs.private_subnet_id }} \
+              ContainerTag=${{ inputs.container_tag }} \
+              GitHubToken="${{ secrets.GITHUB_TOKEN }}" \
+            --capabilities CAPABILITY_IAM
+
+      - name: Get ALB DNS
+        run: |
+          ALB_DNS=$(aws cloudformation describe-stacks \
+            --stack-name copilot-ld-services \
+            --query "Stacks[0].Outputs[?OutputKey=='LoadBalancerDNSName'].OutputValue" \
+            --output text)
+
+          echo "✅ Services deployed successfully!"
+          echo "Access URL: http://$ALB_DNS"

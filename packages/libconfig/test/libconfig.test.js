@@ -173,7 +173,7 @@ describe("libconfig", () => {
           S3_ENDPOINT: "https://s3.amazonaws.com",
           S3_ACCESS_KEY_ID: "test-key",
           S3_SECRET_ACCESS_KEY: "test-secret",
-          S3_BUCKET: "test-bucket",
+          S3_DATA_BUCKET: "test-bucket",
         },
         cwd: () => "/test/dir",
       };

@@ -1,0 +1,448 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot-LD – Configuration Guide</title>
+    <link rel="icon" href="favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+    <link rel="stylesheet" href="assets/main.css" />
+  </head>
+  <body>
+    <header>
+      <hgroup>
+        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="configuration.html" class="active">Configuration</a></li>
+          <li><a href="processing.html">Processing</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="development.html">Development</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>Configuration Guide</h2>
+      <p>
+        Comprehensive configuration guide for environment variables and YAML
+        settings across all Copilot-LD components.
+      </p>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Node.js 22.0.0 or later</li>
+        <li>Git</li>
+        <li>GitHub account for authentication and API access</li>
+      </ul>
+
+      <h3>Configuration Files</h3>
+      <p>The Copilot-LD platform uses two primary configuration approaches:</p>
+      <ul>
+        <li>
+          <strong>Environment Variables</strong> (<code>config/.env</code>):
+          Runtime configuration for services, networking, and authentication
+        </li>
+        <li>
+          <strong>YAML Configuration</strong> (<code>config/*.yml</code>):
+          Service behavior, tool definitions, and assistant configurations
+        </li>
+      </ul>
+
+      <h3>Environment Variables</h3>
+
+      <h4>Initial Setup</h4>
+      <p>Create your environment configuration:</p>
+      <pre><code>cp config/.env{.example,}
+cp config/config{.example,}.yml
+cp config/assistants{.example,}.yml</code></pre>
+
+      <h4>Service Networking</h4>
+      <p>
+        Configure service host and port settings. When using Docker Compose,
+        comment out these variables to use container networking:
+      </p>
+
+      <h5>Extension Services</h5>
+      <pre><code># Web Extension (User Interface)
+EXTENSION_WEB_HOST=localhost
+EXTENSION_WEB_PORT=3000
+
+# Copilot Extension (GitHub Integration)
+EXTENSION_COPILOT_HOST=localhost
+EXTENSION_COPILOT_PORT=3001</code></pre>
+
+      <h5>Core Services</h5>
+      <pre><code># Agent Service (Main Orchestrator)
+SERVICE_AGENT_HOST=localhost
+SERVICE_AGENT_PORT=3002
+
+# Memory Service (Conversation Storage)
+SERVICE_MEMORY_HOST=localhost
+SERVICE_MEMORY_PORT=3003
+
+# LLM Service (Language Model Interface)
+SERVICE_LLM_HOST=localhost
+SERVICE_LLM_PORT=3004
+
+# Vector Service (Embedding Search)
+SERVICE_VECTOR_HOST=localhost
+SERVICE_VECTOR_PORT=3005
+
+# Tool Service (Function Calls)
+SERVICE_TOOL_HOST=localhost
+SERVICE_TOOL_PORT=3006</code></pre>
+
+      <h5>Tool Services</h5>
+      <p>Example tool service configuration:</p>
+      <pre><code># Hash Tool Service (Example)
+SERVICE_HASH_HOST=localhost
+SERVICE_HASH_PORT=3007</code></pre>
+
+      <h4>GitHub Authentication</h4>
+      <p>
+        Configure GitHub integration for Copilot API access and repository
+        operations:
+      </p>
+      <pre><code># GitHub Client ID (20-character string)
+GITHUB_CLIENT_ID=your_client_id_here
+
+# GitHub Token (40-character string)
+# Alternative: Use scripts/token.js to store in config/.ghtoken
+GITHUB_TOKEN=your_github_token_here</code></pre>
+
+      <h5>Token Generation</h5>
+      <p>Generate a GitHub token using the OAuth device flow:</p>
+      <pre><code># Set GITHUB_CLIENT_ID first, then run:
+node scripts/token.js</code></pre>
+      <p>
+        This saves the token to <code>config/.ghtoken</code> which services read
+        automatically. Alternatively, set <code>GITHUB_TOKEN</code> directly in
+        <code>config/.env</code>.
+      </p>
+
+      <h4>Service Authentication</h4>
+      <p>Generate shared secrets for inter-service authentication:</p>
+      <pre><code># Service Authentication Secret (32-character string)
+SERVICE_AUTH_SECRET=your_generated_secret_here</code></pre>
+
+      <h5>Secret Generation</h5>
+      <pre><code># Generate and automatically update config/.env
+node scripts/secret.js</code></pre>
+
+      <h4>Storage Configuration</h4>
+      <p>
+        Configure storage backends for data persistence. Supports local
+        filesystem and S3-compatible storage:
+      </p>
+
+      <h5>Local Storage (Default)</h5>
+      <pre><code># Use local filesystem (default)
+# STORAGE_TYPE=local</code></pre>
+
+      <h6>S3-Compatible Storage</h6>
+      <pre><code>STORAGE_TYPE=s3
+
+S3_REGION=us-east-1
+S3_BUCKET_NAME=copilot-ld
+S3_BUCKET_ROLE_ARN=arn:aws:iam::xxxxxxxxxxxx:xxx      # When deploying with AWS
+S3_ACCESS_KEY_ID=xxx                                  # When deploying with MinIO
+S3_SECRET_ACCESS_KEY=xxx                              # When deploying with MinIO
+</code></pre>
+
+      <h4>Development Options</h4>
+      <pre><code># Enable debug logging for all components
+DEBUG=*
+
+# Or enable for specific components
+DEBUG=agent</code></pre>
+
+      <h3>YAML Configuration</h3>
+
+      <h4>Service Configuration (<code>config.yml</code>)</h4>
+      <p>
+        Defines service behavior, tool endpoints, and operational parameters.
+      </p>
+
+      <pre><code>service:
+  agent:
+    assistant: "cld:common.Assistant.software-dev-expert"
+    threshold: 0.25
+    limit: 100
+    temperature: 0.25
+    budget:
+      tokens: 90000
+      allocation:
+        tools: 0.1
+        history: 0.1
+        context: 0.6
+
+  llm:
+    model: "gpt-4o"
+
+  tool:
+    endpoints:
+      sha256_hash:
+        method: "hash.Hash.Sha256"
+        request: "hash.HashRequest"
+        purpose: |
+          Create deterministic SHA-256 hash of input text.
+        applicability: |
+          Use ONLY when user explicitly requests SHA-256 hashing. DO NOT use
+          for search or content analysis.
+        instructions: |
+          Input: Text string in 'input' field. Output: 64-character hexadecimal
+          SHA-256 hash.
+        evaluation: |
+          Returns exactly 64-character hexadecimal string.</code></pre>
+
+      <h5>Assistant Configuration (<code>assistants.yml</code>)</h5>
+      <p>Defines AI assistant personas and their specialized behaviors.</p>
+
+      <pre><code>software-dev-expert:
+  descriptor:
+    purpose: |
+      Provide expert guidance on software development practices, 
+      architecture patterns, and best practices
+    instructions: |
+      Analyze code structure, suggest improvements, provide 
+      architectural guidance, and help with implementation patterns.
+    applicability: |
+      Use for code review, architecture design, refactoring, and 
+      software engineering best practices
+    evaluation: |
+      Success measured by code quality improvements and architectural 
+      coherence
+  content:
+    text: |
+      You are a software development expert with deep knowledge of:
+      - Software architecture patterns and principles
+      - Code quality and maintainability best practices
+      - Security considerations in software development
+
+documentation-specialist:
+  descriptor:
+    purpose: |
+      Create, update, and maintain high-quality technical documentation
+    instructions: |
+      Generate clear, accurate documentation that follows project 
+      standards
+    applicability: |
+      Use for README updates, API documentation, architecture 
+      documentation
+    evaluation: |
+      Success measured by documentation clarity, accuracy, and 
+      completeness</code></pre>
+
+      <h3>Runtime Configuration</h3>
+
+      <h4>Docker Compose Environment</h4>
+      <p>
+        When using Docker Compose, comment out host and port variables to use
+        container networking:
+      </p>
+      <pre><code># Comment out for Docker Compose (GNU sed)
+sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
+
+# Start with container networking
+docker compose up</code></pre>
+
+      <h4>Development vs Production</h4>
+
+      <h5>Development Configuration</h5>
+      <ul>
+        <li>Set explicit host/port variables for direct service access</li>
+        <li>Use local storage or MinIO for data persistence</li>
+        <li>Enable debug logging with <code>DEBUG=*</code></li>
+        <li>Use self-signed certificates for SSL</li>
+      </ul>
+
+      <h5>Production Configuration</h5>
+      <ul>
+        <li>Use container networking (comment out host/port variables)</li>
+        <li>Configure S3-compatible storage with proper credentials</li>
+        <li>Disable debug logging or set specific namespaces</li>
+        <li>Use valid TLS certificates from trusted CA</li>
+        <li>Store secrets in AWS Secrets Manager or similar</li>
+      </ul>
+
+      <h3>Environment Variable Reference</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th>Purpose</th>
+            <th>Default</th>
+            <th>Required</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GITHUB_CLIENT_ID</code></td>
+            <td>GitHub OAuth application client ID</td>
+            <td>-</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><code>GITHUB_TOKEN</code></td>
+            <td>GitHub personal access token</td>
+            <td>Read from <code>.ghtoken</code></td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><code>SERVICE_AUTH_SECRET</code></td>
+            <td>HMAC secret for service authentication</td>
+            <td>-</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><code>STORAGE_TYPE</code></td>
+            <td>Storage backend type</td>
+            <td><code>local</code></td>
+            <td>No</td>
+          </tr>
+          <tr>
+            `
+            <td><code>S3_BUCKET_NAME</code></td>
+            <td>S3 bucket name for data storage</td>
+            <td><code>copilot-ld</code></td>
+            <td>S3 or MinIO</td>
+          </tr>
+          <tr>
+            `
+            <td><code>S3_BUCKET_ROLE_ARN</code></td>
+            <td>S3 bucket role ARN for data storage</td>
+            <td><code>arn:aws:iam::123456789012:role/S3Access</code></td>
+            <td>S3 or MinIO</td>
+          </tr>
+          <tr>
+            <td><code>S3_ENDPOINT</code></td>
+            <td>S3-compatible endpoint URL</td>
+            <td>AWS S3</td>
+            <td>MinIO only</td>
+          </tr>
+          <tr>
+            <td><code>MINIO_ROOT_USER</code></td>
+            <td>MinIO administrator username</td>
+            <td>-</td>
+            <td>MinIO only</td>
+          </tr>
+          <tr>
+            <td><code>MINIO_ROOT_PASSWORD</code></td>
+            <td>MinIO administrator password</td>
+            <td>-</td>
+            <td>MinIO only</td>
+          </tr>
+          <tr>
+            <td><code>AWS_REGION</code></td>
+            <td>AWS region for S3 operations</td>
+            <td>-</td>
+            <td>S3 only</td>
+          </tr>
+          <tr>
+            <td><code>DEBUG</code></td>
+            <td>Debug logging configuration</td>
+            <td>Disabled</td>
+            <td>No</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>SSL Certificate Configuration</h3>
+      <p>For HTTPS support in Docker Compose deployments:</p>
+
+      <h4>Generate Self-Signed Certificates</h4>
+      <pre><code># Generate certificates for localhost development
+node scripts/cert.js</code></pre>
+
+      <h4>Use Production Certificates</h4>
+      <pre><code># Copy your production certificates
+cp your-cert.crt data/cert/localhost.crt
+cp your-cert.key data/cert/localhost.key</code></pre>
+
+      <h3>Configuration Validation</h3>
+      <p>Verify your configuration is properly set up:</p>
+
+      <h4>Test GitHub Authentication</h4>
+      <pre><code># Test GitHub token validity
+node scripts/token.js --validate</code></pre>
+
+      <h4>Check Service Configuration</h4>
+      <pre><code># Generate and validate protocol buffer types
+npm run codegen
+
+# Run configuration tests
+npm test -- --grep="Config"</code></pre>
+
+      <h3>Troubleshooting Configuration Issues</h3>
+
+      <h4>Common Problems</h4>
+
+      <h5>GitHub Authentication Failures</h5>
+      <ul>
+        <li>Ensure <code>GITHUB_CLIENT_ID</code> is correctly set</li>
+        <li>Regenerate token with <code>node scripts/token.js</code></li>
+        <li>
+          Verify token has required scopes (typically <code>repo</code> and
+          <code>read:user</code>)
+        </li>
+      </ul>
+
+      <h5>Service Communication Issues</h5>
+      <ul>
+        <li>
+          Check that <code>SERVICE_AUTH_SECRET</code> is consistent across all
+          services
+        </li>
+        <li>Verify host/port configuration matches your deployment method</li>
+        <li>
+          For Docker Compose, ensure host/port variables are commented out
+        </li>
+      </ul>
+
+      <h5>Storage Problems</h5>
+      <ul>
+        <li>Verify <code>S3_*</code> credentials are valid for S3 storage</li>
+        <li>
+          Ensure MinIO is running when using
+          <code>S3_ENDPOINT=http://minio:9000</code>
+        </li>
+        <li>Check that data directories exist for local storage</li>
+      </ul>
+
+      <h5>SSL Certificate Issues</h5>
+      <ul>
+        <li>Regenerate certificates with <code>node scripts/cert.js</code></li>
+        <li>Ensure certificate files have correct permissions</li>
+        <li>Verify certificate paths in <code>docker-compose.yml</code></li>
+      </ul>
+
+      <h3>Next Steps</h3>
+      <p>Once configuration is complete, proceed to:</p>
+      <ul>
+        <li>
+          <a href="processing.html">Processing Guide</a> - Set up knowledge base
+          and process content
+        </li>
+        <li>
+          <a href="deployment.html">Deployment Guide</a> - Deploy to production
+          infrastructure
+        </li>
+        <li>
+          <a href="development.html">Development Guide</a> - Set up local
+          development environment
+        </li>
+        <li>
+          <a href="architecture.html">Architecture Overview</a> - Understand
+          system components
+        </li>
+      </ul>
+    </main>
+  </body>
+</html>

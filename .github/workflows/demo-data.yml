@@ -1,0 +1,71 @@
+name: Simple Data Processing
+
+on:
+  workflow_dispatch:
+    inputs:
+      knowledge_source:
+        description: "Knowledge source repository (owner/repo format)"
+        required: false
+        default: "copilot-ld/copilot-ld"
+        type: string
+
+jobs:
+  process-data:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: copilot-ld-data
+          aws-region: us-east-1
+
+      - name: Deploy data infrastructure
+        run: |
+          aws cloudformation deploy \
+            --template-file infrastructure/cloudformation/data.yml \
+            --stack-name copilot-ld-data \
+            --capabilities CAPABILITY_IAM
+
+      - name: Get bucket name
+        id: bucket
+        run: |
+          S3_BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name copilot-ld-data \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+            --output text)
+          S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name copilot-ld-data \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
+            --output text)
+
+          echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+
+      - name: Process knowledge data
+        env:
+          S3_BUCKET_NAME: ${{ steps.bucket.outputs.s3_bucket_name }}
+          S3_BUCKET_ROLE_ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}
+
+        run: |
+          # Copy example knowledge files
+          mkdir -p data/knowledge
+          cp examples/knowledge/* data/knowledge/
+
+          # Process resources
+          node scripts/resources.js || echo "Resources processing skipped"
+
+          # Upload all data using the upload utility
+          npx @copilot-ld/libutil upload
+
+          echo "✅ Data processing completed"

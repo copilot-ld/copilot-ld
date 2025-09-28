@@ -71,7 +71,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Setup Node.js and Install dependencies
+      - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
       - name: Bump versions and tag
@@ -101,7 +101,7 @@ jobs:
         with:
           ref: ${{ needs.bump.outputs.ref }}
 
-      - name: Setup Node.js and Install dependencies
+      - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
       - name: Validate package
@@ -134,7 +134,7 @@ jobs:
         with:
           ref: ${{ needs.bump.outputs.ref }}
 
-      - name: Setup Node.js and Install dependencies
+      - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
       - name: Publish package

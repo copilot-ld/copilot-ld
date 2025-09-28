@@ -7,23 +7,32 @@ applyTo: "**"
 ## Purpose Declaration
 
 This file defines simple documentation standards for this project to ensure that
-`README.md` and `docs/architecture.html` remain current and synchronized with
-all code changes across the platform.
+`README.md`, `docs/configuration.html`, `docs/architecture.html`,
+`docs/development.html`, and `docs/deployment.html` remain current and
+synchronized with all code changes across the platform.
 
 ## Core Principles
 
-1. **Two-File Documentation**: This project maintains only `README.md` and
-   `docs/architecture.html` as official documentation
-2. **Component Changelogs**: Each component in `extensions/`, `packages/`, and
+1. **Six-File Documentation**: This project maintains `README.md`,
+   `docs/configuration.html`, `docs/architecture.html`, `docs/processing.html`,
+   `docs/development.html`, and `docs/deployment.html` as official documentation
+2. **Domain-Specific Documentation**: Each piece of information must exist in
+   exactly ONE place. Carefully consider which guide is the authoritative source
+   for each topic and use cross-references to avoid duplication
+3. **Single Source of Truth**: Configuration, processing, architectural
+   concepts, and deployment procedures must be documented in their respective
+   domain-specific guides with other guides referencing these authoritative
+   sources
+4. **Component Changelogs**: Each component in `extensions/`, `packages/`, and
    `services/` must maintain a simple `CHANGELOG.md` in descending chronological
    order
-3. **Synchronous Updates**: Documentation updates must accompany code changes in
+5. **Synchronous Updates**: Documentation updates must accompany code changes in
    the same commit or pull request
-4. **Simple Maintenance**: Keep documentation updates straightforward and
+6. **Simple Maintenance**: Keep documentation updates straightforward and
    focused on essential information
-5. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
+7. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
    be complete, valid, and pass ES linting with strict configuration
-6. **🚨 CRITICAL: Spellcheck Strategy 🚨**: Use different approaches for
+8. **🚨 CRITICAL: Spellcheck Strategy 🚨**: Use different approaches for
    different types of terms:
    - **Code Elements**: Format programming symbols (variable names, class names,
      method names, property names), file names, directory names, and API/service
@@ -38,16 +47,30 @@ all code changes across the platform.
 
 ### Documentation Files
 
-This project maintains exactly two main documentation files plus component
-changelogs:
+This project maintains exactly six main documentation files plus component
+changelogs. Each file has a specific domain focus and serves as the
+authoritative source for its subject matter:
 
 #### README.md Requirements
 
 - **Project Overview**: Clear description of what the project does
-- **Setup Instructions**: How to install and configure the project
+- **Quick Setup Instructions**: Essential steps to get started quickly
 - **Usage Examples**: Basic examples of how to use the project
-- **Development Instructions**: Links to all instruction files for developers
+- **Links to Detailed Guides**: References to comprehensive documentation
 - **Development Workflow**: How to contribute and develop locally
+
+#### docs/configuration.html Requirements
+
+- **Configuration Overview**: Complete guide to environment variables and YAML
+  configuration
+- **Environment Variables**: Comprehensive table of all environment variables
+  with descriptions, defaults, and examples
+- **YAML Configuration**: Documentation of config.yml and assistants.yml
+  structure and options
+- **Deployment Scenarios**: Configuration differences between local, Docker, and
+  AWS deployments
+- **Security Guidelines**: Best practices for handling sensitive configuration
+  values
 
 #### docs/architecture.html Requirements
 
@@ -56,6 +79,37 @@ changelogs:
   scripts
 - **Communication Patterns**: How components interact with each other
 - **Data Flow**: How information flows through the system
+- **Code Generation**: Authoritative documentation of Protocol Buffer
+  compilation and type generation processes
+
+#### docs/processing.html Requirements
+
+- **Knowledge Base Processing**: Complete guide to processing HTML knowledge
+  sources into searchable resources
+- **Processing Pipeline**: Resource extraction, tool generation, and vector
+  embedding creation workflows
+- **Data Management**: Upload/download utilities and storage management
+  procedures
+- **HTML Structure Examples**: Authoritative examples of microdata markup and
+  Schema.org usage patterns
+- **Processing Troubleshooting**: Issues specific to offline processing
+  workflows
+
+#### docs/development.html Requirements
+
+- **Development Setup**: Complete local development environment configuration
+- **Development Workflow**: Running with `npm run dev` and local testing
+- **Development Troubleshooting**: Issues specific to local development setup
+- **Cross-References**: Links to Configuration Guide for setup details and
+  Processing Guide for knowledge base preparation
+
+#### docs/deployment.html Requirements
+
+- **Production Deployment**: Docker Compose and AWS CloudFormation options
+- **Infrastructure Requirements**: Prerequisites and dependencies
+- **Security Configuration**: SSL certificates, secrets management
+- **Operational Procedures**: Monitoring, scaling, and maintenance
+- **Troubleshooting**: Common deployment issues and solutions
 
 #### Component CHANGELOG.md Requirements
 
@@ -103,22 +157,43 @@ When adding services, packages, extensions, or scripts:
 
 1. Create a `CHANGELOG.md` file in the component directory using the required
    format
-2. Update `docs/architecture.html` to include the new component
-3. Update `README.md` if the change affects setup or usage
-4. Ensure component descriptions are clear and accurate
-5. If you add or change `.proto` files, document required `npm run codegen`
-   steps and verify generated files are committed when appropriate
+2. **Determine Domain Ownership**: Carefully consider which documentation file
+   should be the authoritative source for the new component
+3. Update `docs/configuration.html` if the change adds new configuration options
+4. Update `docs/architecture.html` to include the new component
+5. Update `docs/processing.html` if the change affects knowledge base processing
+   or data management workflows
+6. Update `docs/development.html` if the change affects local development setup
+7. Update `docs/deployment.html` if the change affects deployment procedures
+8. Update `README.md` if the change affects quick setup or usage
+9. **Add Cross-References**: Include references from other guides to the
+   authoritative documentation instead of duplicating information
+10. Ensure component descriptions are clear and accurate
+11. If you add or change `.proto` files, document required `npm run codegen`
+    steps in `docs/architecture.html` and verify generated files are committed
+    when appropriate
 
 #### Modifying Existing Components
 
 When changing existing functionality:
 
 1. Add entry to component's `CHANGELOG.md` with current date
-2. Update `docs/architecture.html` if the change affects system design
-3. Update `README.md` if the change affects user interaction
-4. Verify all references remain accurate
-5. If you modify `proto/*.proto`, update any code samples reflecting message or
-   service names and include the `npm run codegen` step where relevant
+2. **Identify Domain Owner**: Determine which documentation file is the
+   authoritative source for the affected functionality
+3. Update `docs/configuration.html` if the change affects configuration options
+4. Update `docs/architecture.html` if the change affects system design or code
+   generation
+5. Update `docs/processing.html` if the change affects knowledge processing or
+   data management
+6. Update `docs/development.html` if the change affects local development setup
+7. Update `docs/deployment.html` if the change affects deployment procedures
+8. Update `README.md` if the change affects quick setup or core usage
+9. **Update Cross-References**: Verify that references from other guides still
+   point to the correct authoritative sections
+10. Verify all references remain accurate across all documentation files
+11. If you modify `proto/*.proto`, update any code samples in the authoritative
+    `docs/architecture.html` and ensure references from other guides remain
+    valid
 
 ### JavaScript Code Block Standards
 
@@ -216,8 +291,11 @@ services:
 
 ### Documentation Timing
 
-- Update `README.md` and `docs/architecture.html` in the same commit as code
-  changes
+- Update `README.md`, `docs/configuration.html`, `docs/architecture.html`,
+  `docs/processing.html`, `docs/development.html`, and `docs/deployment.html` in
+  the same commit as code changes
+- **Domain-First Updates**: Always update the authoritative documentation file
+  first, then update cross-references in other files
 - Include documentation updates in pull request descriptions
 - Reference specific documentation sections in commit messages
 - Create documentation drafts before implementation begins
@@ -240,6 +318,11 @@ services:
   implementations
 - Ensure setup instructions in `README.md` work with current code
 - Validate that usage examples reflect current functionality
+- Ensure configuration documentation in `docs/configuration.html` is complete
+  and current
+- Ensure development setup in `docs/development.html` is complete and accurate
+- Verify deployment procedures in `docs/deployment.html` work with current
+  infrastructure
 - Check that all service names match proto definitions
 - Verify port numbers and configuration options are current
 - Ensure dependency lists are complete and accurate
@@ -249,12 +332,20 @@ services:
 Before committing, verify:
 
 1. `README.md` accurately describes current functionality
-2. `docs/architecture.html` reflects actual system design
-3. Setup and usage instructions are current and functional
-4. Component descriptions match implementation
-5. All external links are functional and relevant
-6. Code examples compile and execute successfully
-7. All JavaScript code blocks pass ES linting with strict configuration
+2. `docs/configuration.html` contains complete configuration documentation
+3. `docs/architecture.html` reflects actual system design
+4. `docs/processing.html` provides complete processing pipeline documentation
+5. `docs/development.html` contains complete development setup instructions
+6. `docs/deployment.html` provides accurate deployment procedures
+7. **No Information Duplication**: Each piece of information exists in exactly
+   one authoritative location with appropriate cross-references
+8. **Cross-References Work**: All links between documentation files point to
+   valid sections and remain accurate
+9. Setup and usage instructions are current and functional
+10. Component descriptions match implementation
+11. All external links are functional and relevant
+12. Code examples compile and execute successfully
+13. All JavaScript code blocks pass ES linting with strict configuration
 
 ### Content Organization Guidelines
 
@@ -263,10 +354,23 @@ Before committing, verify:
 - **Quick Start Section**: Essential commands for immediate setup
 - **Prerequisites**: System requirements and dependencies
 - **Installation**: Step-by-step setup instructions
-- **Configuration**: Environment variables and config file setup
+- **Configuration**: Basic environment setup with link to configuration.html
 - **Usage Examples**: Common workflows and API usage
 - **Development**: Contribution guidelines and local development setup
 - **Troubleshooting**: Common issues and solutions
+
+#### docs/configuration.html Structure Requirements
+
+- **Configuration Overview**: Introduction to the configuration system
+- **Environment Variables**: Complete reference table with descriptions,
+  defaults, and examples
+- **YAML Configuration Files**: Structure and options for config.yml and
+  assistants.yml
+- **Deployment Scenarios**: Configuration differences for local, Docker, and AWS
+  environments
+- **Security Guidelines**: Best practices for handling API keys and sensitive
+  values
+- **Troubleshooting**: Common configuration issues and solutions
 
 #### docs/architecture.html Structure Requirements
 
@@ -276,7 +380,37 @@ Before committing, verify:
 - **Data Flow Diagrams**: Request/response patterns and information flow
 - **Network Architecture**: Container networking and port configurations
 - **Security Model**: Authentication, authorization, and data protection
+- **Code Generation**: Complete documentation of Protocol Buffer compilation
 - **Deployment Considerations**: Scaling, monitoring, and operational concerns
+
+#### docs/processing.html Structure Requirements
+
+- **Knowledge Base Structure**: HTML microdata patterns and Schema.org usage
+- **Processing Pipeline Workflow**: Complete step-by-step processing guide
+- **Resource Processing**: HTML extraction and resource creation
+- **Tool Processing**: Protocol Buffer tool schema generation
+- **Vector Processing**: Embedding creation and index building
+- **Data Management**: Upload/download utilities and storage workflows
+- **Processing Troubleshooting**: Issues specific to offline processing
+
+#### docs/development.html Structure Requirements
+
+- **Prerequisites**: System requirements and dependencies
+- **Initial Setup**: Environment configuration and installation
+- **GitHub Integration**: Token setup and authentication
+- **Code Generation**: Protocol Buffer compilation and type generation
+- **Knowledge Base Processing**: Resource extraction and vector index creation
+- **Development Workflow**: Running with `npm run dev` and local testing
+- **Troubleshooting**: Common development issues and solutions
+
+#### docs/deployment.html Structure Requirements
+
+- **Deployment Options**: Docker Compose and AWS CloudFormation methods
+- **Infrastructure Requirements**: Prerequisites and dependencies
+- **Security Configuration**: SSL certificates, secrets management, network
+  isolation
+- **Production Considerations**: Monitoring, scaling, maintenance procedures
+- **Troubleshooting**: Common deployment issues and validation procedures
 
 ### Documentation Maintenance Workflows
 
@@ -306,22 +440,35 @@ Before committing, verify:
 
 ### Forbidden Documentation Practices
 
-1. **DO NOT** leave outdated references in `README.md` or
-   `docs/architecture.html`
-2. **DO NOT** implement new components without updating documentation
-3. **DO NOT** create additional documentation files beyond `README.md` and
-   `docs/architecture.html`
-4. **DO NOT** document implementation details that should be in code comments
-5. **DO NOT** omit documentation updates when making functional changes
+1. **DO NOT** duplicate information across multiple documentation files -
+   establish a single authoritative source and reference it from other locations
+2. **DO NOT** leave outdated references in `README.md`,
+   `docs/architecture.html`, `docs/processing.html`, `docs/development.html`, or
+   `docs/deployment.html`
+3. **DO NOT** implement new components without carefully determining which
+   documentation file should be the authoritative source
+4. **DO NOT** create additional documentation files beyond the six official
+   files
+5. **DO NOT** add detailed instructions to guides that should reference other
+   domain-specific guides instead
+6. **DO NOT** document implementation details that should be in code comments
+7. **DO NOT** omit documentation updates when making functional changes
+8. **DO NOT** create cross-references that bypass the authoritative
+   documentation source
 
 ### Alternative Approaches
 
+- Instead of duplicating information → Establish single authoritative sources
+  with cross-references from other guides
 - Instead of outdated references → Update documentation in the same commit as
   code changes
 - Instead of missing documentation → Include documentation updates in every
   functional change
-- Instead of additional files → Use `README.md` for user information and
-  `docs/architecture.html` for system design
+- Instead of additional files → Use the six official documentation files for all
+  documentation needs
+- Instead of detailed instructions in wrong guide → Reference the
+  domain-specific authoritative guide (e.g., Configuration Guide for setup,
+  Processing Guide for knowledge base work)
 - Instead of implementation details in docs → Keep high-level descriptions in
   documentation, details in code
 - Instead of separate documentation commits → Bundle documentation with code
@@ -356,6 +503,30 @@ Service for embeddings **State**: Stateless processing service
 - **Analysis**: Text analysis and processing
 - **Vector**: Document embeddings and similarity
 - **Memory**: Conversation and interaction tracking
+```
+
+**docs/development.html update (if affects development):**
+
+```html
+<h4>Analysis Service Setup</h4>
+<p>Configure the analysis service models:</p>
+<pre><code>node scripts/configure-analysis.js</code></pre>
+```
+
+**docs/deployment.html update (if affects deployment):**
+
+```html
+<h4>Analysis Service Deployment</h4>
+<p>The analysis service requires additional GPU resources:</p>
+<pre><code># Update docker-compose.yml for GPU support
+analysis:
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]</code></pre>
 ```
 
 ### Component Modification Example
@@ -397,6 +568,8 @@ persistent vector storage
    git checkout -b feature/sentiment-analysis
    # Draft documentation changes first
    vim docs/architecture.html  # Add new component
+   vim docs/development.html # Update development workflow if needed
+   vim docs/deployment.html # Update deployment if needed
    vim services/example/CHANGELOG.md # Update changelog
    vim README.md # Update usage examples
    ```
@@ -431,6 +604,6 @@ persistent vector storage
 5. Commit code and documentation together
 6. Verify documentation accuracy in pull request
 
-This approach keeps documentation simple, current, and focused on the two
+This approach keeps documentation simple, current, and focused on the four
 essential files that users and developers need to understand and work with the
 system.

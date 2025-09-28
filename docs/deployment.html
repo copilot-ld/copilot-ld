@@ -1,0 +1,323 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot-LD – Deployment Guide</title>
+    <link rel="icon" href="favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+    <link rel="stylesheet" href="assets/main.css" />
+  </head>
+  <body>
+    <header>
+      <hgroup>
+        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="configuration.html">Configuration</a></li>
+          <li><a href="processing.html">Processing</a></li>
+          <li><a href="deployment.html" class="active">Deployment</a></li>
+          <li><a href="development.html">Development</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>Deployment Guide</h2>
+
+      <p>
+        This guide covers how to deploy and run Copilot-LD in production using
+        either Docker Compose or AWS CloudFormation. Choose the deployment
+        method that best fits your infrastructure requirements.
+      </p>
+
+      <h3>Prerequisites</h3>
+
+      <ul>
+        <li><a href="processing.html">Processing Guide</a> completed</li>
+        <li>Docker and Docker Compose installed (for Docker deployment)</li>
+        <li>AWS CLI configured (for CloudFormation deployment)</li>
+      </ul>
+
+      <p>
+        <strong>Note:</strong> For GitHub Actions workflows, ensure S3 access
+        credentials are configured as repository secrets.
+      </p>
+
+      <h3>Docker Compose Deployment</h3>
+
+      <p>
+        The Docker Compose deployment provides a complete containerized stack
+        with application load balancing, object storage, and all microservices.
+      </p>
+
+      <h4>Architecture Overview</h4>
+
+      <p>The Docker Compose stack includes:</p>
+
+      <ul>
+        <li>
+          <strong>Application Load Balancer (ALB)</strong>: nginx-based reverse
+          proxy with SSL termination
+        </li>
+        <li>
+          <strong>Object Storage</strong>: MinIO S3-compatible storage for data
+          persistence
+        </li>
+        <li>
+          <strong>Extension Services</strong>: Web and Copilot API interfaces
+        </li>
+        <li>
+          <strong>Core Services</strong>: Agent, LLM, Memory, Vector, and Tool
+          services
+        </li>
+        <li>
+          <strong>Custom Tools</strong>: Example Hash service demonstrating tool
+          extensibility
+        </li>
+      </ul>
+
+      <h4>SSL Certificate Setup</h4>
+
+      <p>
+        Configure SSL certificates for secure HTTPS access. See the
+        <a href="configuration.html#ssl-certificate-configuration"
+          >SSL Certificate Configuration</a
+        >
+        section in the Configuration Guide for detailed setup instructions
+        including self-signed certificate generation and production certificate
+        installation.
+      </p>
+
+      <h4>Configuration</h4>
+
+      <p>
+        Configure environment variables and service settings. See the
+        <a href="configuration.html">Configuration Guide</a> for complete
+        details on all environment variables and YAML configuration options.
+      </p>
+
+      <h4>Deploy the Stack</h4>
+
+      <p>Build and start all services:</p>
+
+      <pre><code># Build all container images
+docker-compose build
+
+# Start the complete stack
+docker-compose up -d
+
+# Check service status
+docker-compose ps</code></pre>
+
+      <h4>Access Points</h4>
+
+      <p>Once deployed, access the system via:</p>
+
+      <ul>
+        <li>
+          <strong>Web Interface</strong>: <code>https://localhost/web</code>
+        </li>
+        <li>
+          <strong>Copilot Extension</strong>:
+          <code>https://localhost/copilot</code>
+        </li>
+        <li>
+          <strong>MinIO Console</strong>: <code>http://localhost:9001</code>
+        </li>
+      </ul>
+
+      <h3>AWS CloudFormation Deployment</h3>
+
+      <p>
+        Deploy Copilot-LD on AWS using ECS Fargate with CloudFormation for
+        production-grade scalability and managed infrastructure.
+      </p>
+
+      <h4>Deploy Data Infrastructure</h4>
+
+      <p>First, deploy the data storage and IAM infrastructure:</p>
+
+      <pre><code># Deploy the data stack
+aws cloudformation create-stack \
+  --stack-name copilot-ld-data \
+  --template-body file://infrastructure/cloudformation/data.yml \
+  --capabilities CAPABILITY_IAM
+
+# Wait for completion and get outputs
+aws cloudformation describe-stacks \
+  --stack-name copilot-ld-data \
+  --query 'Stacks[0].Outputs'</code></pre>
+
+      <h4>Build and Push Container Images</h4>
+
+      <p>Build and push images to GitHub Container Registry:</p>
+
+      <pre><code># Login to GitHub Container Registry
+echo "$GITHUB_TOKEN" | docker login ghcr.io -u USERNAME --password-stdin
+
+# Build and push all images
+docker-compose build
+docker tag copilot-ld/agent:latest ghcr.io/copilot-ld/copilot-ld/agent:latest
+docker push ghcr.io/copilot-ld/copilot-ld/agent:latest
+
+# Repeat for all services...</code></pre>
+
+      <h4>Deploy Services Stack</h4>
+
+      <p>Deploy the ECS services and ALB:</p>
+
+      <pre><code># Deploy the services stack
+aws cloudformation create-stack \
+  --stack-name copilot-ld-services \
+  --template-body file://infrastructure/cloudformation/services.yml \
+  --parameters \
+    ParameterKey=VpcId,ParameterValue=vpc-12345678 \
+    ParameterKey=PublicSubnetId,ParameterValue=subnet-12345678 \
+    ParameterKey=PrivateSubnetId,ParameterValue=subnet-87654321 \
+    ParameterKey=GitHubToken,ParameterValue=your_github_token \
+    ParameterKey=DataBucketName,ParameterValue=your-data-bucket-name \
+    ParameterKey=DataAccessRoleArn,ParameterValue=arn:aws:iam::123456789012:role/DataAccessRole \
+  --capabilities CAPABILITY_IAM
+
+# Monitor deployment progress
+aws cloudformation describe-stack-events \
+  --stack-name copilot-ld-services</code></pre>
+
+      <h4>Data Upload</h4>
+
+      <p>
+        Upload your processed knowledge base to S3 for deployment. For complete
+        data management instructions including upload configuration, download
+        utilities, and storage management, see the
+        <a href="processing.html#data-management-utilities"
+          >Data Management Utilities</a
+        >
+        section in the Processing Guide.
+      </p>
+
+      <h3>Production Considerations</h3>
+
+      <h4>Security</h4>
+
+      <ul>
+        <li>
+          <strong>SSL Certificates</strong>: Use valid TLS certificates from a
+          trusted CA
+        </li>
+        <li>
+          <strong>Secret Management</strong>: Store GitHub tokens in AWS Secrets
+          Manager or similar
+        </li>
+        <li>
+          <strong>Network Security</strong>: Configure VPC security groups and
+          NACLs appropriately
+        </li>
+        <li>
+          <strong>Service Authentication</strong>: Rotate service secrets
+          regularly
+        </li>
+      </ul>
+
+      <h3>Troubleshooting</h3>
+
+      <h4>Docker Compose Issues</h4>
+
+      <ul>
+        <li>
+          <strong>Build Failures</strong>: Ensure Docker BuildKit is enabled
+          (<code>DOCKER_BUILDKIT=1</code>)
+        </li>
+        <li>
+          <strong>Port Conflicts</strong>: Check that ports 80, 443, 9000, and
+          9001 are available
+        </li>
+        <li>
+          <strong>Memory Issues</strong>: Increase Docker memory limits for
+          resource-intensive services
+        </li>
+        <li>
+          <strong>Network Problems</strong>: Verify internal service
+          connectivity with <code>docker-compose logs</code>
+        </li>
+      </ul>
+
+      <h4>AWS CloudFormation Issues</h4>
+
+      <ul>
+        <li>
+          <strong>Stack Creation Failures</strong>: Check CloudFormation events
+          for detailed error messages
+        </li>
+        <li>
+          <strong>Service Health</strong>: Monitor ECS service health and task
+          failures
+        </li>
+        <li>
+          <strong>Load Balancer</strong>: Verify target group health checks are
+          passing
+        </li>
+        <li>
+          <strong>IAM Permissions</strong>: Ensure service roles have required
+          permissions for S3 access
+        </li>
+      </ul>
+
+      <h4>Common Deployment Validation</h4>
+
+      <p>Validate your deployment:</p>
+
+      <pre><code># Docker Compose validation
+docker-compose ps
+curl -k https://localhost/web/health
+
+# AWS ECS validation
+aws ecs list-services --cluster copilot-ld
+aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:...</code></pre>
+
+      <h3>Maintenance</h3>
+
+      <h4>Updates</h4>
+
+      <ul>
+        <li>
+          <strong>Rolling Updates</strong>: Update container images and redeploy
+          services
+        </li>
+        <li>
+          <strong>Configuration Changes</strong>: Update environment variables
+          and restart services
+        </li>
+        <li>
+          <strong>Knowledge Base Updates</strong>: Re-process and re-upload
+          vector indices periodically
+        </li>
+      </ul>
+
+      <h4>Backup</h4>
+
+      <ul>
+        <li>
+          <strong>Data Backup</strong>: Regular S3 backups or MinIO data volume
+          snapshots
+        </li>
+        <li>
+          <strong>Configuration Backup</strong>: Version control all
+          configuration files
+        </li>
+        <li>
+          <strong>Image Registry</strong>: Maintain tagged container images for
+          rollback capability
+        </li>
+      </ul>
+    </main>
+    <footer>
+      <p>© D. Olsson</p>
+    </footer>
+  </body>
+</html>

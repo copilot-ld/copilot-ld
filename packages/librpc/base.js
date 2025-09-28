@@ -156,9 +156,11 @@ export class Client extends Rpc {
         );
       }
 
-      // In case default host is used, resort to service name for resolution
+      // In case default host is used, resort to a well-known service name
       const host =
-        this.config.host === "0.0.0.0" ? this.config.name : this.config.host;
+        this.config.host === "0.0.0.0"
+          ? `${this.config.name}.copilot-ld.local`
+          : this.config.host;
 
       const uri = `${host}:${this.config.port}`;
       const options = {

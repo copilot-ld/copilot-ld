@@ -12,10 +12,11 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-
-import { StorageInterface } from "./types.js";
+import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
 import { searchUpward } from "@copilot-ld/libutil";
+
+import { StorageInterface } from "./types.js";
 
 /**
  * Parse JSON Lines (JSONL) format into an array of objects
@@ -656,18 +657,36 @@ export function storageFactory(prefix, type, process = global.process) {
     }
 
     case "s3": {
-      const client = new S3Client({
+      const config = {
         forcePathStyle: true,
         region: process.env.S3_REGION,
-        endpoint: process.env.S3_ENDPOINT,
-        credentials: {
+      };
+
+      // Configure credentials
+      if (process.env.S3_BUCKET_ROLE_ARN) {
+        config.credentials = fromTemporaryCredentials({
+          roleArn: process.env.S3_BUCKET_ROLE_ARN,
+        });
+      } else if (
+        process.env.S3_ACCESS_KEY_ID &&
+        process.env.S3_SECRET_ACCESS_KEY
+      ) {
+        config.credentials = {
           accessKeyId: process.env.S3_ACCESS_KEY_ID,
           secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-        },
-      });
+        };
+      } else {
+        throw new Error("S3 storage requires a role ARN or access keys");
+      }
+
+      // Optional custom endpoint for S3-compatible services
+      if (process.env.MINIO_ENDPOINT)
+        config.endpoint = process.env.MINIO_ENDPOINT;
+
+      const client = new S3Client(config);
 
       // Get bucket name from environment, use the factory parameter as prefix
-      const bucketName = process.env.S3_BUCKET || "copilot-ld";
+      const bucketName = process.env.S3_BUCKET_NAME || "copilot-ld";
       return new S3Storage(prefix, bucketName, client, {
         CreateBucketCommand,
         DeleteObjectCommand,

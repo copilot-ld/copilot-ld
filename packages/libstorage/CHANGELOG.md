@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-09-28
+
+- **FIXED**: Added missing `@aws-sdk/credential-providers` dependency that was
+  causing test failures
+- **BREAKING**: Changed environment variable from `S3_BUCKET` to
+  `S3_DATA_BUCKET` for standardized naming scheme
+- **ENHANCED**: Updated naming convention to support future multiple bucket
+  types (`S3_DATA_BUCKET`, `S3_CONFIG_BUCKET`, etc.)
+- **IMPROVED**: Consolidated bucket name references across libstorage and
+  CloudFormation infrastructure
+
 ## 2025-09-27
 
 - **BREAKING**: Refactored `S3Storage` to use single bucket with prefixes

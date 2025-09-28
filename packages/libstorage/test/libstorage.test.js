@@ -824,9 +824,9 @@ describe("libstorage", () => {
         STORAGE_TYPE: "s3",
         S3_REGION: "us-east-1",
         S3_ENDPOINT: "https://s3.amazonaws.com",
-        S3_ACCESS_KEY_ID: "access-key",
-        S3_SECRET_ACCESS_KEY: "secret-key",
-        S3_BUCKET: "test-bucket",
+        S3_ACCESS_KEY_ID: "test-key",
+        S3_SECRET_ACCESS_KEY: "test-secret",
+        S3_DATA_BUCKET: "test-bucket",
       };
 
       const storage = storageFactory("/test/path", "s3", mockProcess);

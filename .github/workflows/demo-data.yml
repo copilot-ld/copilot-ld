@@ -3,11 +3,6 @@ name: Demo Deployment of Data
 on:
   workflow_dispatch:
     inputs:
-      knowledge_source:
-        description: "Knowledge source repository (owner/repo format)"
-        required: false
-        default: "copilot-ld/copilot-ld"
-        type: string
       aws_region:
         description: "AWS region for deployment"
         required: true
@@ -70,14 +65,17 @@ jobs:
           S3_BUCKET_ROLE_ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}
 
         run: |
-          # Copy example knowledge files
-          mkdir -p data/knowledge
-          cp examples/knowledge/* data/knowledge/
+          cp ./config/config{.example,}.yml
+          cp ./config/assistants{.example,}.yml
+          mkdir -p ./data/{memories,policies,resources,vectors}
+          cp -r ./examples/knowledge data/
 
-          # Process resources
-          node scripts/resources.js || echo "Resources processing skipped"
+          # Process resources, tools, and vectors
+          DEBUG=* node ./scripts/resources.js
+          DEBUG=* node ./scripts/tools.js
+          DEBUG=* node ./scripts/vectors.js
 
           # Upload all data using the upload utility
-          npx @copilot-ld/libutil upload
+          npx --workspace=@copilot-ld/libutil upload
 
           echo "✅ Data processing completed"

@@ -56,6 +56,10 @@
       </p>
       <ol>
         <li>
+          <strong>Storage Setup</strong>: Prepare local storage directories for
+          data processing
+        </li>
+        <li>
           <strong>Knowledge Base Setup</strong>: Organize HTML content with
           structured microdata
         </li>
@@ -77,7 +81,15 @@
         </li>
       </ol>
 
-      <h3>1. Knowledge Base Structure</h3>
+      <h3>1. Storage Setup</h3>
+      <p>
+        Prepare local storage directories for data processing. This ensures a
+        consistent workspace for all pipeline stages.
+      </p>
+
+      <pre><code>mkdir -p data/{memories,policies,resources,vectors}</code></pre>
+
+      <h3>2. Knowledge Base Structure</h3>
       <p>
         Copilot-LD uses HTML files with structured microdata to organize
         knowledge. This approach provides semantic context and enables accurate
@@ -154,9 +166,9 @@
       </p>
 
       <pre><code># Copy example knowledge base to your data directory
-cp examples/knowledge/* data/knowledge/</code></pre>
+cp -r examples/knowledge data/</code></pre>
 
-      <h3>2. Resource Processing</h3>
+      <h3>3. Resource Processing</h3>
       <p>
         Resource processing extracts structured content from HTML files and
         creates searchable resources stored in the
@@ -221,7 +233,7 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
         search and select appropriate assistants based on context.
       </p>
 
-      <h3>3. Tool Processing</h3>
+      <h3>4. Tool Processing</h3>
       <p>
         Tool processing generates OpenAI-compatible JSON schemas from Protocol
         Buffer definitions, enabling dynamic tool registration and validation.
@@ -339,7 +351,7 @@ message HashResponse {
   }
 }</code></pre>
 
-      <h3>4. Vector Processing</h3>
+      <h3>5. Vector Processing</h3>
       <p>
         Vector processing creates embeddings of resource content and descriptors
         for efficient similarity search and retrieval-augmented generation.
@@ -397,7 +409,7 @@ message HashResponse {
         </li>
       </ul>
 
-      <h3>5. Data Management Utilities</h3>
+      <h3>6. Data Management Utilities</h3>
       <p>
         Copilot-LD includes utilities for managing processed data across
         development and deployment environments. These commands require that the

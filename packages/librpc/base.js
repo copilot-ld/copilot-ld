@@ -35,10 +35,10 @@ export function grpcFactory() {
  * @returns {Interceptor} Configured interceptor instance
  */
 export function authFactory(serviceName) {
-  const secret = process.env.SERVICE_AUTH_SECRET;
+  const secret = process.env.SERVICE_SECRET;
   if (!secret) {
     throw new Error(
-      `SERVICE_AUTH_SECRET environment variable is required for service ${serviceName}`,
+      `SERVICE_SECRET environment variable is required for service ${serviceName}`,
     );
   }
   return new Interceptor(new HmacAuth(secret), serviceName);

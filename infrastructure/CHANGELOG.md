@@ -2,7 +2,21 @@
 
 ## 2025-09-28
 
+- **NEW**: Created `secrets.yml` CloudFormation template for AWS Secrets Manager
+  integration
+- **ENHANCED**: Updated `services.yml` to use AWS Secrets Manager for
+  `GITHUB_TOKEN` and `SERVICE_SECRET`
+- **NEW**: Added `demo-secrets.yml` GitHub workflow for automated secrets
+  deployment
+- **IMPROVED**: Enhanced `scripts/secret.js` with `--output-only` flag for CI/CD
+  integration
+- **SECURITY**: Removed plain text secrets from CloudFormation parameters in
+  favor of secure ARN references
 - **NEW**: Created `docs/configuration.html` with comprehensive configuration
+- **STANDARDIZED**: Updated `demo-secrets.yml` workflow to use consistent
+  `AWS_DEPLOY_ROLE_ARN` secret name
+- **DOCUMENTATION**: Added comprehensive AWS OIDC setup guide to
+  `docs/deployment.html` with step-by-step configuration instructions
   documentation consolidating all environment variables and YAML configuration
 - **ENHANCED**: Updated all documentation navigation to include Configuration
   guide ordered before Development and Deployment

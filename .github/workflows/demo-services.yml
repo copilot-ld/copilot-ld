@@ -7,18 +7,40 @@ on:
         description: "VPC ID for deployment"
         required: true
         type: string
-      public_subnet_id:
-        description: "Public subnet ID for ALB"
+      public_subnet_ids:
+        description:
+          "Public subnet IDs for ALB (comma-separated list, minimum two)"
         required: true
         type: string
-      private_subnet_id:
-        description: "Private subnet ID for services"
+      private_subnet_ids:
+        description:
+          "Private subnet IDs for services (comma-separated list, minimum two)"
         required: true
+        type: string
+      secrets_stack_name:
+        description: "Name of the secrets CloudFormation stack"
+        required: true
+        default: "copilot-ld-demo-secrets"
+        type: string
+      data_stack_name:
+        description: "Name of the data CloudFormation stack"
+        required: true
+        default: "copilot-ld-demo-data"
         type: string
       container_tag:
         description: "Container image tag to deploy"
         required: false
         default: "latest"
+        type: string
+      aws_region:
+        description: "AWS region for deployment"
+        required: true
+        default: "us-east-1"
+        type: string
+      stack_name:
+        description: "CloudFormation stack name"
+        required: true
+        default: "copilot-ld-demo-services"
         type: string
 
 jobs:
@@ -35,29 +57,75 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          role-session-name: copilot-ld-services
-          aws-region: us-east-1
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Get stack outputs
+        id: stack-outputs
+        run: |
+          # Get outputs from secrets stack
+          GITHUB_TOKEN_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.secrets_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`GitHubTokenArn`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          SERVICE_SECRET_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.secrets_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecretArn`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          SECRETS_ROLE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.secrets_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`SecretsRoleArn`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          # Get outputs from data stack
+          BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.data_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.data_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`BucketRoleArn`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          echo "github_token_arn=$GITHUB_TOKEN_ARN" >> $GITHUB_OUTPUT
+          echo "service_secret_arn=$SERVICE_SECRET_ARN" >> $GITHUB_OUTPUT
+          echo "secrets_role_arn=$SECRETS_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "bucket_role_arn=$BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
 
       - name: Deploy services
         run: |
           aws cloudformation deploy \
             --template-file infrastructure/cloudformation/services.yml \
-            --stack-name copilot-ld-services \
+            --stack-name ${{ inputs.stack_name }} \
             --parameter-overrides \
               VpcId=${{ inputs.vpc_id }} \
-              PublicSubnetId=${{ inputs.public_subnet_id }} \
-              PrivateSubnetId=${{ inputs.private_subnet_id }} \
+              PublicSubnetIds="${{ inputs.public_subnet_ids }}" \
+              PrivateSubnetIds="${{ inputs.private_subnet_ids }}" \
               ContainerTag=${{ inputs.container_tag }} \
-              GitHubToken="${{ secrets.GITHUB_TOKEN }}" \
-            --capabilities CAPABILITY_IAM
+              GitHubTokenArn="${{ steps.stack-outputs.outputs.github_token_arn }}" \
+              ServiceSecretArn="${{ steps.stack-outputs.outputs.service_secret_arn }}" \
+              BucketName="${{ steps.stack-outputs.outputs.bucket_name }}" \
+              BucketRoleArn="${{ steps.stack-outputs.outputs.bucket_role_arn }}" \
+              SecretsRoleArn="${{ steps.stack-outputs.outputs.secrets_role_arn }}" \
+            --capabilities CAPABILITY_IAM \
+            --region ${{ inputs.aws_region }}
 
       - name: Get ALB DNS
         run: |
           ALB_DNS=$(aws cloudformation describe-stacks \
-            --stack-name copilot-ld-services \
+            --stack-name ${{ inputs.stack_name }} \
             --query "Stacks[0].Outputs[?OutputKey=='LoadBalancerDNSName'].OutputValue" \
-            --output text)
+            --output text \
+            --region ${{ inputs.aws_region }})
 
           echo "✅ Services deployed successfully!"
           echo "Access URL: http://$ALB_DNS"

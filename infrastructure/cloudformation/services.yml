@@ -19,10 +19,13 @@ Parameters:
     Default: latest
     Description: Container image tag
 
-  GitHubToken:
+  GitHubTokenArn:
     Type: String
-    NoEcho: true
-    Description: GitHub token for Copilot access
+    Description: ARN of the GitHub token secret in AWS Secrets Manager
+
+  ServiceSecretArn:
+    Type: String
+    Description: ARN of the service authentication secret in AWS Secrets Manager
 
   BucketName:
     Type: String
@@ -31,6 +34,10 @@ Parameters:
   BucketRoleArn:
     Type: String
     Description: IAM role ARN for data access services
+
+  SecretsRoleArn:
+    Type: String
+    Description: IAM role ARN for secrets access services
 
 Resources:
   # ==========================================
@@ -76,8 +83,7 @@ Resources:
       Name: copilot-ld-alb
       Type: application
       Scheme: internet-facing
-      Subnets:
-        - !Ref PublicSubnetIds
+      Subnets: !Ref PublicSubnetIds
       SecurityGroups:
         - !Ref ServiceSecurityGroup
 
@@ -136,20 +142,6 @@ Resources:
       Name: copilot-ld.local
       Vpc: !Ref VpcId
 
-  # IAM roles for ECS task execution and runtime permissions
-  TaskExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-
   # CloudWatch log groups for service logging
   WebLogGroup:
     Type: AWS::Logs::LogGroup
@@ -195,7 +187,7 @@ Resources:
         - FARGATE
       Cpu: 256
       Memory: 512
-      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ExecutionRoleArn: !Ref SecretsRoleArn
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: web
@@ -206,14 +198,17 @@ Resources:
           Environment:
             - Name: NODE_ENV
               Value: production
-            - Name: GITHUB_TOKEN
-              Value: !Ref GitHubToken
             - Name: STORAGE_TYPE
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
             - Name: S3_BUCKET_ROLE_ARN
               Value: !Ref BucketRoleArn
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -230,7 +225,7 @@ Resources:
         - FARGATE
       Cpu: 512
       Memory: 1024
-      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ExecutionRoleArn: !Ref SecretsRoleArn
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: agent
@@ -241,14 +236,17 @@ Resources:
           Environment:
             - Name: NODE_ENV
               Value: production
-            - Name: GITHUB_TOKEN
-              Value: !Ref GitHubToken
             - Name: STORAGE_TYPE
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
             - Name: S3_BUCKET_ROLE_ARN
               Value: !Ref BucketRoleArn
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -265,7 +263,7 @@ Resources:
         - FARGATE
       Cpu: 256
       Memory: 512
-      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ExecutionRoleArn: !Ref SecretsRoleArn
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: memory
@@ -276,14 +274,17 @@ Resources:
           Environment:
             - Name: NODE_ENV
               Value: production
-            - Name: GITHUB_TOKEN
-              Value: !Ref GitHubToken
             - Name: STORAGE_TYPE
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
             - Name: S3_BUCKET_ROLE_ARN
               Value: !Ref BucketRoleArn
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -300,7 +301,7 @@ Resources:
         - FARGATE
       Cpu: 512
       Memory: 1024
-      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ExecutionRoleArn: !Ref SecretsRoleArn
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: llm
@@ -311,14 +312,17 @@ Resources:
           Environment:
             - Name: NODE_ENV
               Value: production
-            - Name: GITHUB_TOKEN
-              Value: !Ref GitHubToken
             - Name: STORAGE_TYPE
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
             - Name: S3_BUCKET_ROLE_ARN
               Value: !Ref BucketRoleArn
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -335,7 +339,7 @@ Resources:
         - FARGATE
       Cpu: 256
       Memory: 512
-      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ExecutionRoleArn: !Ref SecretsRoleArn
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: vector
@@ -346,14 +350,17 @@ Resources:
           Environment:
             - Name: NODE_ENV
               Value: production
-            - Name: GITHUB_TOKEN
-              Value: !Ref GitHubToken
             - Name: STORAGE_TYPE
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
             - Name: S3_BUCKET_ROLE_ARN
               Value: !Ref BucketRoleArn
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -370,7 +377,7 @@ Resources:
         - FARGATE
       Cpu: 256
       Memory: 512
-      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ExecutionRoleArn: !Ref SecretsRoleArn
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: tool
@@ -381,14 +388,17 @@ Resources:
           Environment:
             - Name: NODE_ENV
               Value: production
-            - Name: GITHUB_TOKEN
-              Value: !Ref GitHubToken
             - Name: STORAGE_TYPE
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
             - Name: S3_BUCKET_ROLE_ARN
               Value: !Ref BucketRoleArn
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
             LogDriver: awslogs
             Options:

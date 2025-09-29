@@ -3,7 +3,7 @@ Description: "S3 bucket for all Copilot-LD data storage"
 
 Resources:
   # S3 bucket for persistent data storage with security restrictions
-  S3Bucket:
+  Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "copilot-ld-${AWS::AccountId}"
@@ -14,7 +14,7 @@ Resources:
         RestrictPublicBuckets: true
 
   # IAM role providing ECS tasks access to S3 data bucket
-  S3BucketRole:
+  BucketRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -34,14 +34,14 @@ Resources:
               - Effect: Allow
                 Action: s3:*
                 Resource:
-                  - !GetAtt S3Bucket.Arn
-                  - !Sub "${S3Bucket.Arn}/*"
+                  - !GetAtt Bucket.Arn
+                  - !Sub "${Bucket.Arn}/*"
 
 Outputs:
   BucketName:
-    Description: S3 bucket name for data storage
-    Value: !Ref S3Bucket
+    Description: Bucket name for data storage
+    Value: !Ref Bucket
 
   BucketRoleArn:
-    Description: IAM role ARN for accessing the data storage bucket
-    Value: !GetAtt S3BucketRole.Arn
+    Description: IAM role ARN for accessing the data storage
+    Value: !GetAtt BucketRole.Arn

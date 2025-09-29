@@ -126,10 +126,10 @@ node scripts/token.js</code></pre>
         <code>config/.env</code>.
       </p>
 
-      <h4>Service Authentication</h4>
-      <p>Generate shared secrets for inter-service authentication:</p>
-      <pre><code># Service Authentication Secret (32-character string)
-SERVICE_AUTH_SECRET=your_generated_secret_here</code></pre>
+      <h4>Service Secret</h4>
+      <p>Generate shared secrets for inter-service authentication</p>
+      <pre><code># Service Secret (32-character string)
+SERVICE_SECRET=your_generated_secret_here</code></pre>
 
       <h5>Secret Generation</h5>
       <pre><code># Generate and automatically update config/.env
@@ -296,7 +296,7 @@ docker compose up</code></pre>
             <td>Yes</td>
           </tr>
           <tr>
-            <td><code>SERVICE_AUTH_SECRET</code></td>
+            <td><code>SERVICE_SECRET</code></td>
             <td>HMAC secret for service authentication</td>
             <td>-</td>
             <td>Yes</td>
@@ -379,49 +379,6 @@ npm run codegen
 
 # Run configuration tests
 npm test -- --grep="Config"</code></pre>
-
-      <h3>Troubleshooting Configuration Issues</h3>
-
-      <h4>Common Problems</h4>
-
-      <h5>GitHub Authentication Failures</h5>
-      <ul>
-        <li>Ensure <code>GITHUB_CLIENT_ID</code> is correctly set</li>
-        <li>Regenerate token with <code>node scripts/token.js</code></li>
-        <li>
-          Verify token has required scopes (typically <code>repo</code> and
-          <code>read:user</code>)
-        </li>
-      </ul>
-
-      <h5>Service Communication Issues</h5>
-      <ul>
-        <li>
-          Check that <code>SERVICE_AUTH_SECRET</code> is consistent across all
-          services
-        </li>
-        <li>Verify host/port configuration matches your deployment method</li>
-        <li>
-          For Docker Compose, ensure host/port variables are commented out
-        </li>
-      </ul>
-
-      <h5>Storage Problems</h5>
-      <ul>
-        <li>Verify <code>S3_*</code> credentials are valid for S3 storage</li>
-        <li>
-          Ensure MinIO is running when using
-          <code>S3_ENDPOINT=http://minio:9000</code>
-        </li>
-        <li>Check that data directories exist for local storage</li>
-      </ul>
-
-      <h5>SSL Certificate Issues</h5>
-      <ul>
-        <li>Regenerate certificates with <code>node scripts/cert.js</code></li>
-        <li>Ensure certificate files have correct permissions</li>
-        <li>Verify certificate paths in <code>docker-compose.yml</code></li>
-      </ul>
 
       <h3>Next Steps</h3>
       <p>Once configuration is complete, proceed to:</p>

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libconfig",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Configuration management and environment resolution for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libstorage": "^0.1.15",
+    "@copilot-ld/libstorage": "^0.1.16",
     "dotenv": "^17.2.1",
     "js-yaml": "^4.1.0"
   },

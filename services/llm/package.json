@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/llm",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "Language model service providing embeddings and completions for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -18,7 +18,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.14",
     "@copilot-ld/libcopilot": "^0.1.15",
-    "@copilot-ld/librpc": "^0.1.20",
+    "@copilot-ld/librpc": "^0.1.21",
     "@copilot-ld/libtype": "^0.1.15",
     "@copilot-ld/libutil": "^0.1.13"
   },

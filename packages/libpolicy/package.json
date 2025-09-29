@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libpolicy",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Policy engine foundation for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libstorage": "^0.1.13"
+    "@copilot-ld/libstorage": "^0.1.14"
   },
   "repository": {
     "type": "git",

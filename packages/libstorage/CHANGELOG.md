@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-09-29
+
+- **FIXED**: Added missing `roleSessionName` and `durationSeconds` parameters to
+  `fromTemporaryCredentials()` configuration for S3 storage to resolve GitHub
+  Actions OIDC authentication issues
+
 ## 2025-09-27
 
 - **BREAKING**: Refactored `S3Storage` to use single bucket with prefixes

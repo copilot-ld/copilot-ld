@@ -13,7 +13,7 @@ RUN --mount=type=secret,id=github_token \
 
 RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
-    npx codegen --target=/app/generated
+    npx codegen --source=/app/generated
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["npm", "run", "docker"]

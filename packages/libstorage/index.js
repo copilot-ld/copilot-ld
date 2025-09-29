@@ -665,9 +665,11 @@ export function storageFactory(prefix, type, process = global.process) {
       // Configure credentials
       if (process.env.S3_BUCKET_ROLE_ARN) {
         config.credentials = fromTemporaryCredentials({
-          RoleArn: process.env.S3_BUCKET_ROLE_ARN,
-          RoleSessionName: `copilot-ld-${generateUUID()}`,
-          DurationSeconds: 3600, // 1 hour
+          params: {
+            RoleArn: process.env.S3_BUCKET_ROLE_ARN,
+            RoleSessionName: `copilot-ld-${generateUUID()}`,
+            DurationSeconds: 3600, // 1 hour
+          },
         });
       } else if (
         process.env.S3_ACCESS_KEY_ID &&

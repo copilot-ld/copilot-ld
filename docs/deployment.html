@@ -298,19 +298,12 @@ aws iam attach-role-policy \
         </li>
       </ul>
 
-      <p>Each workflow uses this configuration:</p>
-
-      <pre><code>permissions:
-  id-token: write  # Required for OIDC token requests
-  contents: read   # Required for repository checkout
-
-steps:
-  - name: Configure AWS credentials
-    uses: aws-actions/configure-aws-credentials@v4
-    with:
-      role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-      role-session-name: copilot-ld-deployment
-      aws-region: us-east-1</code></pre>
+      <p>
+        For detailed CloudFormation deployment commands and parameters, refer to
+        the actual workflow files in <code>.github/workflows/</code>. These
+        workflows contain the most current deployment procedures and parameter
+        configurations.
+      </p>
 
       <p>
         <strong>Reference:</strong>
@@ -321,55 +314,14 @@ steps:
         >
       </p>
 
-      <h4>Deploy Data Infrastructure</h4>
+      <h4>Automated Deployment</h4>
 
-      <p>First, deploy the data storage and IAM infrastructure:</p>
-
-      <pre><code># Deploy the data stack
-aws cloudformation create-stack \
-  --stack-name copilot-ld-data \
-  --template-body file://infrastructure/cloudformation/data.yml \
-  --capabilities CAPABILITY_IAM
-
-# Wait for completion and get outputs
-aws cloudformation describe-stacks \
-  --stack-name copilot-ld-data \
-  --query 'Stacks[0].Outputs'</code></pre>
-
-      <h4>Build and Push Container Images</h4>
-
-      <p>Build and push images to GitHub Container Registry:</p>
-
-      <pre><code># Login to GitHub Container Registry
-echo "$GITHUB_TOKEN" | docker login ghcr.io -u USERNAME --password-stdin
-
-# Build and push all images
-docker-compose build
-docker tag copilot-ld/agent:latest ghcr.io/copilot-ld/copilot-ld/agent:latest
-docker push ghcr.io/copilot-ld/copilot-ld/agent:latest
-
-# Repeat for all services...</code></pre>
-
-      <h4>Deploy Services Stack</h4>
-
-      <p>Deploy the ECS services and ALB:</p>
-
-      <pre><code># Deploy the services stack
-aws cloudformation create-stack \
-  --stack-name copilot-ld-services \
-  --template-body file://infrastructure/cloudformation/services.yml \
-  --parameters \
-    ParameterKey=VpcId,ParameterValue=vpc-12345678 \
-    ParameterKey=PublicSubnetId,ParameterValue=subnet-12345678 \
-    ParameterKey=PrivateSubnetId,ParameterValue=subnet-87654321 \
-    ParameterKey=GitHubToken,ParameterValue=your_github_token \
-    ParameterKey=DataBucketName,ParameterValue=your-data-bucket-name \
-    ParameterKey=DataAccessRoleArn,ParameterValue=arn:aws:iam::123456789012:role/DataAccessRole \
-  --capabilities CAPABILITY_IAM
-
-# Monitor deployment progress
-aws cloudformation describe-stack-events \
-  --stack-name copilot-ld-services</code></pre>
+      <p>
+        Use the GitHub Actions workflows for automated deployment. The workflows
+        handle all CloudFormation stack creation, parameter management, and
+        deployment orchestration. See the workflow files for specific
+        implementation details and current deployment procedures.
+      </p>
 
       <h4>Data Upload</h4>
 

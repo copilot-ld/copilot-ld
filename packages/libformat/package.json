@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libformat",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Markdown formatting and text processing utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.15",
+    "@copilot-ld/libtype": "^0.1.16",
     "dompurify": "^3.2.6",
     "jsdom": "^26.1.0",
     "marked": "^15.0.12",

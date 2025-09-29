@@ -61,7 +61,7 @@ jobs:
 
       - name: Process knowledge data
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
           S3_BUCKET_NAME: ${{ steps.bucket.outputs.s3_bucket_name }}
           S3_BUCKET_ROLE_ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}
 

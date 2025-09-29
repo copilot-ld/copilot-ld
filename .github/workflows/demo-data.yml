@@ -1,4 +1,4 @@
-name: Simple Data Processing
+name: Demo Deployment of Data
 
 on:
   workflow_dispatch:

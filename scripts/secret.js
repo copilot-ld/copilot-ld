@@ -13,7 +13,7 @@ function generateSecret(length = 32) {
 }
 
 /**
- * Updates or creates SERVICE_AUTH_SECRET in .env file
+ * Updates or creates SERVICE_SECRET in .env file
  * @param {string} secret - The secret to write
  * @param {string} envPath - Path to .env file
  */
@@ -25,15 +25,15 @@ function updateEnvFile(secret, envPath) {
     envContent = fs.readFileSync(envPath, "utf8");
   }
 
-  const secretLine = `SERVICE_AUTH_SECRET=${secret}`;
+  const secretLine = `SERVICE_SECRET=${secret}`;
   const lines = envContent.split("\n");
   let found = false;
 
-  // Look for existing SERVICE_AUTH_SECRET line
+  // Look for existing SERVICE_SECRET line
   for (let i = 0; i < lines.length; i++) {
     if (
-      lines[i].startsWith("SERVICE_AUTH_SECRET=") ||
-      lines[i].startsWith("# SERVICE_AUTH_SECRET=")
+      lines[i].startsWith("SERVICE_SECRET=") ||
+      lines[i].startsWith("# SERVICE_SECRET=")
     ) {
       lines[i] = secretLine;
       found = true;
@@ -57,7 +57,17 @@ function updateEnvFile(secret, envPath) {
  * Main function to generate and update secret in .env file
  */
 function main() {
+  const args = process.argv.slice(2);
+  const outputOnly = args.includes("--stdout");
+
   const secret = generateSecret();
+
+  if (outputOnly) {
+    // Just output the secret for use in scripts/CI
+    console.log(secret);
+    return;
+  }
+
   const envPath = path.join(process.cwd(), "config/.env");
 
   try {

@@ -30,14 +30,14 @@ function resolveGeneratedPath(projectRoot, packageName) {
 }
 
 /**
- * Create tar.gz bundle of all directories inside targetPath
- * @param {string} targetPath - Path containing directories to bundle
+ * Create tar.gz bundle of all directories inside sourcePath
+ * @param {string} sourcePath - Path containing directories to bundle
  */
-async function createBundle(targetPath) {
-  const bundlePath = path.join(targetPath, "bundle.tar.gz");
+async function createBundle(sourcePath) {
+  const bundlePath = path.join(sourcePath, "bundle.tar.gz");
 
-  // Get all directories in targetPath
-  const entries = fs.readdirSync(targetPath, { withFileTypes: true });
+  // Get all directories in sourcePath
+  const entries = fs.readdirSync(sourcePath, { withFileTypes: true });
   const directories = entries
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name);
@@ -49,7 +49,7 @@ async function createBundle(targetPath) {
   // Create tar.gz archive using system tar command
   try {
     const directoriesArg = directories.join(" ");
-    execSync(`tar -czf "${bundlePath}" -C "${targetPath}" ${directoriesArg}`, {
+    execSync(`tar -czf "${bundlePath}" -C "${sourcePath}" ${directoriesArg}`, {
       stdio: "pipe",
     });
   } catch (error) {
@@ -62,19 +62,19 @@ async function createBundle(targetPath) {
  * @param {string[]} args - Command line arguments
  * @returns {string|null} Target path or null if not specified
  */
-function parseTargetPath(args) {
-  const targetArg = args.find((arg) => arg.startsWith("--target="));
-  if (!targetArg) return null;
+function parseSourcePath(args) {
+  const sourceArg = args.find((arg) => arg.startsWith("--source="));
+  if (!sourceArg) return null;
 
-  const targetPath = targetArg.substring("--target=".length);
-  if (!targetPath) {
-    throw new Error("--target requires a path: --target=/path/to/generated");
+  const sourcePath = sourceArg.substring("--source=".length);
+  if (!sourcePath) {
+    throw new Error("--source requires a path");
   }
 
-  // Resolve relative paths based on where the command was originally executed from
-  // process.env.INIT_CWD contains the original working directory before npm/npx changed it
-  const originalCwd = process.env.INIT_CWD || process.cwd();
-  return path.resolve(originalCwd, targetPath);
+  // Resolve relative paths based on original working directory.
+  // INIT_CWD contains the original working directory before npm/npx changed it.
+  const cwd = process.env.INIT_CWD || process.cwd();
+  return path.resolve(cwd, sourcePath);
 }
 
 /**
@@ -83,32 +83,32 @@ function parseTargetPath(args) {
  * @param {string} targetPath - Target directory path
  */
 async function createSymlink(sourcePath, targetPath) {
+  // Ensure the source directory exists
+  fs.mkdirSync(sourcePath, { recursive: true });
+
+  // Remove the existing target if it exists
   if (fs.existsSync(targetPath)) {
     const stats = fs.lstatSync(targetPath);
     if (stats.isSymbolicLink()) {
       fs.unlinkSync(targetPath);
-    } else if (stats.isDirectory()) {
-      fs.rmSync(targetPath, { recursive: true, force: true });
     } else {
-      throw new Error(
-        `Target path exists and is not a directory or symlink: ${targetPath}`,
-      );
+      fs.rmSync(targetPath, { recursive: true, force: true });
     }
   }
 
-  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  // Create the symlink
   fs.symlinkSync(sourcePath, targetPath, "dir");
 }
 
 /**
  * Create symlinks for generated packages
  * @param {string} projectRoot - Project root directory path
- * @param {string} targetPath - Target path for symlinks
+ * @param {string} sourcePath - Source path for symlinks
  * @param {string[]} packageNames - Array of package names to create symlinks for
  */
-async function createPackageSymlinks(projectRoot, targetPath, packageNames) {
+async function createPackageSymlinks(projectRoot, sourcePath, packageNames) {
   const tasks = packageNames.map((packageName) =>
-    createSymlink(targetPath, resolveGeneratedPath(projectRoot, packageName)),
+    createSymlink(sourcePath, resolveGeneratedPath(projectRoot, packageName)),
   );
 
   await Promise.all(tasks);
@@ -121,12 +121,12 @@ function printUsage() {
   process.stdout.write(
     [
       "Usage:",
-      `  npx codegen --type`,
-      `  npx codegen --service  # Generate service bases`,
-      `  npx codegen --client   # Generate clients`,
-      `  npx codegen --all      # Generate all`,
-      `  npx codegen --target=/path/to/generated  # Create symlinks only`,
-      `  npx codegen --all --target=/path/to/generated  # Generate and symlink`,
+      `  npx codegen --source=/path/to/generated        # Create symlinks only`,
+      `  npx codegen --all --source=/path/to/generated  # Generate all code **and** create symlinks`,
+      `  npx codegen --all                              # Generate all code only`,
+      `  npx codegen --type                             # Generate protobuf types only`,
+      `  npx codegen --service                          # Generate service bases only`,
+      `  npx codegen --client                           # Generate clients only`,
     ].join("\n") + "\n",
   );
 }
@@ -143,14 +143,14 @@ async function runCodegen(codegen, projectRoot, flags) {
   const doTypes = doAll || flagSet.has("--type");
   const doServices = doAll || flagSet.has("--service");
   const doClients = doAll || flagSet.has("--client");
-  const targetPath = parseTargetPath(flags);
-  const doLibrpc = doServices || doClients || doAll;
-  const hasGenerationFlags = doTypes || doServices || doClients;
+  const sourcePath = parseSourcePath(flags);
+  const doExports = doServices || doClients || doAll;
+  const doGenerate = doTypes || doServices || doClients;
 
-  // Handle --target only case (no generation flags)
-  if (!hasGenerationFlags) {
-    if (targetPath) {
-      await createPackageSymlinks(projectRoot, targetPath, [
+  // Handle --source only case (no generation flags)
+  if (!doGenerate) {
+    if (sourcePath) {
+      await createPackageSymlinks(projectRoot, sourcePath, [
         "libtype",
         "librpc",
       ]);
@@ -163,10 +163,10 @@ async function runCodegen(codegen, projectRoot, flags) {
 
   // Determine output paths
   const libtypeGeneratedPath = doTypes
-    ? targetPath || resolveGeneratedPath(projectRoot, "libtype")
+    ? sourcePath || resolveGeneratedPath(projectRoot, "libtype")
     : null;
-  const librpcGeneratedPath = doLibrpc
-    ? targetPath || resolveGeneratedPath(projectRoot, "librpc")
+  const librpcGeneratedPath = doExports
+    ? sourcePath || resolveGeneratedPath(projectRoot, "librpc")
     : null;
 
   // Run generation tasks
@@ -179,20 +179,20 @@ async function runCodegen(codegen, projectRoot, flags) {
   );
 
   // Generate librpc exports after services and clients
-  if (doLibrpc) {
+  if (doExports) {
     await codegen.runServicesExports(librpcGeneratedPath);
   }
 
-  // Create symlinks if using target path
-  if (targetPath) {
+  // Create symlinks if using source path
+  if (sourcePath) {
     const packageNames = [];
     if (doTypes) packageNames.push("libtype");
-    if (doLibrpc) packageNames.push("librpc");
-    await createPackageSymlinks(projectRoot, targetPath, packageNames);
+    if (doExports) packageNames.push("librpc");
+    await createPackageSymlinks(projectRoot, sourcePath, packageNames);
 
-    // Create bundle.tar.gz of all directories in targetPath
-    if (hasGenerationFlags) {
-      await createBundle(targetPath);
+    // Create bundle of all directories in source path
+    if (doGenerate) {
+      await createBundle(sourcePath);
     }
   }
 }

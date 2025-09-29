@@ -343,7 +343,7 @@ sequenceDiagram
       <ul>
         <li>
           <strong>Configuration-driven</strong>: Tools defined via endpoint
-          mappings in <code>config.yml</code>
+          mappings in configuration files
         </li>
         <li>
           <strong>Pure proxy</strong>: No business logic, just routing and
@@ -521,121 +521,133 @@ sequenceDiagram
       <h3 id="code-generation">Code Generation</h3>
 
       <p>
-        All operational protobuf schemas and generated code live exclusively
-        under
-        <code>generated/</code> to eliminate ambiguity about which artifacts are
-        source vs generated. The <code>@copilot-ld/libutil</code>
-        <code>Codegen</code> class performs these steps:
+        The platform uses a centralized code generation approach with all
+        generated artifacts consolidated in a single
+        <code>generated/</code> directory at the project root. The
+        <code>@copilot-ld/libutil</code>
+        codegen utility discovers protobuf schemas from both core services and
+        tools, generating type-safe JavaScript code and service infrastructure.
       </p>
+
+      <h4>Generation Process</h4>
 
       <ol>
         <li>
-          Discovers all <code>.proto</code> files in <code>proto/</code> (and
-          <strong
-            >optional tool proto files in <code>tools/</code> that extend the
-            platform</strong
-          >)
-        </li>
-        <li>Copies them into <code>packages/libtype/generated/proto/</code></li>
-        <li>
-          Generates consolidated JavaScript types in
-          <code>packages/libtype/generated/types.js</code> and TypeScript
-          declarations in <code>types.d.ts</code>
+          <strong>Schema Discovery</strong>: Scans <code>proto/</code> for core
+          service definitions and <code>tools/</code> for
+          <strong>extension schemas that extend the platform</strong>
         </li>
         <li>
-          Generates service base classes into
-          <code
-            >packages/librpc/generated/services/&lt;name&gt;/service.js</code
-          >
+          <strong>Centralized Output</strong>: Creates all artifacts in
+          <code>generated/</code> with organized sub-directories for types,
+          services, and copied proto files
         </li>
         <li>
-          Generates client classes into
-          <code>packages/librpc/generated/services/&lt;name&gt;/client.js</code>
+          <strong>Type Generation</strong>: Produces consolidated JavaScript
+          types and TypeScript declarations accessible via
+          <code>@copilot-ld/libtype</code>
         </li>
         <li>
-          Generates dynamic exports aggregating all services and clients into
-          <code>packages/librpc/generated/services/exports.js</code>
+          <strong>Service Generation</strong>: Creates base service classes and
+          typed clients for gRPC communication via
+          <code>@copilot-ld/librpc</code>
+        </li>
+        <li>
+          <strong>Package Integration</strong>: Uses symlinks to make generated
+          code available through framework-agnostic packages
         </li>
       </ol>
 
-      <p>
-        <strong>Package Architecture:</strong> Generated code is distributed
-        across two packages for clean separation:
-        <code>@copilot-ld/libtype</code> contains pure protobuf type
-        definitions, while <code>@copilot-ld/librpc</code> contains RPC
-        infrastructure (service bases, clients, networking). This prevents
-        circular dependencies and ensures services import types from libtype and
-        applications import service/client classes from librpc.
-      </p>
+      <h4>Output Structure</h4>
+
+      <pre>
+./generated/
+├── proto/           # Copied .proto files for runtime loading
+├── types/
+│   └── types.js     # Consolidated protobuf type definitions
+└── services/
+    ├── exports.js   # Aggregated service and client exports
+    └── service-name/
+        ├── service.js  # Generated base class
+        └── client.js   # Generated typed client
+      </pre>
+
+      <h4>Code Generation Commands</h4>
 
       <p>
-        You should re-run code generation after changing any schema in
-        <code>proto/</code> or adding a new tool schema in
-        <code>tools/</code> (<strong>tools extend the core system</strong>):
+        Re-run code generation after changing schemas in <code>proto/</code> or
+        adding tool definitions in <code>tools/</code>:
       </p>
 
-      <pre><code># Generate everything (types + service bases + clients)
+      <pre><code># Generate everything (recommended)
 npm run codegen
 
-# Or run a specific generator (invokes @copilot-ld/libutil codegen utility)
-npm run codegen:type     # Generate consolidated types into packages/libtype/generated/
-npm run codegen:service  # Generate base classes into packages/librpc/generated/
-npm run codegen:client   # Generate typed clients into packages/librpc/generated/</code></pre>
+# Generate specific components
+npm run codegen:type     # Types only
+npm run codegen:service  # Service base classes only  
+npm run codegen:client   # Client classes only</code></pre>
 
       <p>
-        These scripts use the <code>@copilot-ld/libutil</code>
-        <code>Codegen</code> class (available via <code>npx codegen</code>)
-        which uses <code>protobufjs</code> and <code>Mustache</code> templates
-        to produce ESM modules. Generated artifacts are placed in
-        package-specific <code>generated/</code> directories. Runtime loading of
-        protobuf schemas reads from
-        <code>packages/libtype/generated/proto/</code>.
+        The codegen utility uses <code>protobufjs</code> for schema processing
+        and <code>Mustache</code> templates for code generation, producing ES
+        modules with full type safety. Package symlinks ensure generated code is
+        accessible through <code>@copilot-ld/libtype</code> and
+        <code>@copilot-ld/librpc</code> while maintaining clean package
+        separation.
       </p>
 
       <h4>Generated Artifact Structure</h4>
 
       <pre>
-./packages/libtype/generated/
-├── proto/           # Copied original .proto files
-├── types.js         # Consolidated static types
-└── types.d.ts       # TypeScript declarations
-
-./packages/librpc/generated/
+./generated/
+├── bundle.tar.gz    # Compressed archive of all generated artifacts
+├── proto/           # Copied original .proto files for runtime access
+├── types/
+│   └── types.js     # Consolidated protobuf type definitions
 └── services/        # Service base classes and clients
     ├── agent/
     │   ├── service.js   # Generated base class
     │   └── client.js    # Generated typed client
     ├── exports.js       # Aggregated service/client exports
     └── .../
+
+# Package symlinks provide access through framework-agnostic packages
+./packages/libtype/generated/    → symlink to ./generated/
+./packages/librpc/generated/     → symlink to ./generated/
       </pre>
 
       <h4>Code Generation Workflow</h4>
 
       <p>
-        The code generation process ensures type safety and consistency across
-        the entire platform:
+        The centralized generation approach ensures consistency and eliminates
+        ambiguity between source and generated artifacts:
       </p>
 
       <ul>
         <li>
-          <strong>Schema Discovery</strong>: Automatically finds all
-          <code>.proto</code> files in source directories
+          <strong>Unified Location</strong>: All generated code lives in a
+          single <code>generated/</code> directory at the project root
         </li>
         <li>
-          <strong>Type Generation</strong>: Creates unified type definitions
+          <strong>Schema Discovery</strong>: Automatically finds protobuf
+          schemas in <code>proto/</code> and tool extensions in
+          <code>tools/</code>
+        </li>
+        <li>
+          <strong>Type Safety</strong>: Creates unified type definitions
           accessible via <code>@copilot-ld/libtype</code>
         </li>
         <li>
-          <strong>Service Generation</strong>: Produces base classes that
-          services extend with business logic
+          <strong>Service Infrastructure</strong>: Produces base classes and
+          typed clients through <code>@copilot-ld/librpc</code>
         </li>
         <li>
-          <strong>Client Generation</strong>: Creates typed gRPC clients for
-          inter-service communication
+          <strong>Package Integration</strong>: Symlinks provide clean access
+          through framework-agnostic packages
         </li>
         <li>
-          <strong>Tool Extension</strong>: Supports additional tools that extend
-          the core system functionality
+          <strong>Tool Extension</strong>: Supports additional schemas that
+          extend core system functionality
         </li>
       </ul>
 
@@ -648,14 +660,20 @@ npm run codegen:client   # Generate typed clients into packages/librpc/generated
 
       <h4>Authentication Mechanisms</h4>
 
+      <p>
+        For specific configuration details including environment variables,
+        token formats, and timeout values, see the
+        <a href="configuration.html">Configuration Guide</a>.
+      </p>
+
       <h5>Current State</h5>
 
       <ul>
         <li>
-          <strong>Service-to-Service</strong>: HMAC-SHA256 authentication is
+          <strong>Service-to-Service</strong>: Cryptographic authentication is
           implemented and enforced between internal services via the
           <code>@copilot-ld/librpc</code> package. All gRPC communication uses
-          time-limited tokens with Bearer authentication headers.
+          time-limited tokens with secure headers.
         </li>
         <li>
           <strong>Request-Level</strong>: The Agent validates incoming
@@ -664,10 +682,10 @@ npm run codegen:client   # Generate typed clients into packages/librpc/generated
         </li>
       </ul>
 
-      <h5>HMAC Service Authentication (Current Implementation)</h5>
+      <h5>Service Authentication (Current Implementation)</h5>
 
       <p>
-        The platform implements HMAC-SHA256 authentication for all
+        The platform implements cryptographic authentication for all
         service-to-service communication:
       </p>
 
@@ -679,8 +697,8 @@ sequenceDiagram
 
     Service A->>Authenticator: generateToken(serviceId)
     Authenticator->>Authenticator: Create payload: serviceId:timestamp
-    Authenticator->>Authenticator: Sign with HMAC-SHA256
-    Authenticator-->>Service A: Base64 encoded token
+    Authenticator->>Authenticator: Sign with cryptographic algorithm
+    Authenticator-->>Service A: Encoded authentication token
 
     Service A->>Service B: gRPC request + token
     Service B->>Authenticator: verifyToken(token)
@@ -699,54 +717,46 @@ sequenceDiagram
 
       <ol>
         <li>Create payload combining service ID and current timestamp</li>
-        <li>
-          Generate HMAC-SHA256 signature using shared secret from
-          <code>SERVICE_AUTH_SECRET</code>
-        </li>
-        <li>
-          Encode as Base64: <code>Base64(serviceId:timestamp:signature)</code>
-        </li>
-        <li>
-          Attach token to gRPC metadata as
-          <code>Authorization: Bearer &lt;token&gt;</code>
-        </li>
+        <li>Generate cryptographic signature using a shared secret</li>
+        <li>Encode authentication token with service identity and timestamp</li>
+        <li>Attach token to gRPC metadata headers</li>
       </ol>
 
       <h5>Token Verification Process (Implemented)</h5>
 
       <ol>
+        <li>Extract token from authentication headers in gRPC metadata</li>
         <li>
-          Extract token from <code>Authorization</code> header in gRPC metadata
-        </li>
-        <li>
-          Decode Base64 token and split into service ID, timestamp, and
+          Decode token and extract service ID, timestamp, and cryptographic
           signature
         </li>
-        <li>
-          Verify timestamp is within 60-second token lifetime (configurable)
-        </li>
+        <li>Verify timestamp is within configured token lifetime</li>
         <li>Recreate expected signature using shared secret</li>
         <li>Compare signatures using secure comparison</li>
-        <li>
-          Reject request with <code>UNAUTHENTICATED</code> status if validation
-          fails
-        </li>
+        <li>Reject request with authentication error if validation fails</li>
       </ol>
 
       <h4>Communication Security</h4>
 
+      <p>
+        For specific protocol details, timeout configurations, and environment
+        variables, see the <a href="configuration.html">Configuration Guide</a>.
+      </p>
+
       <h5>gRPC Internal Communication</h5>
 
       <ul>
-        <li><strong>Protocol</strong>: gRPC over HTTP/2</li>
+        <li><strong>Protocol</strong>: gRPC over secure transport</li>
         <li>
-          <strong>Authentication</strong>: HMAC-SHA256 with time-limited Bearer
-          tokens
+          <strong>Authentication</strong>: Cryptographic signatures with
+          time-limited tokens
         </li>
-        <li><strong>Token Lifetime</strong>: 60 seconds (configurable)</li>
         <li>
-          <strong>Secret Management</strong>: Shared
-          <code>SERVICE_AUTH_SECRET</code> environment variable
+          <strong>Token Lifetime</strong>: Short-lived configurable duration
+        </li>
+        <li>
+          <strong>Secret Management</strong>: Shared secret from environment
+          variables
         </li>
         <li>
           <strong>Schema Validation</strong>: Protocol Buffer message validation
@@ -756,7 +766,9 @@ sequenceDiagram
       <h5>External API Communication</h5>
 
       <ul>
-        <li><strong>Clients to Extensions</strong>: HTTP/HTTPS via the ALB</li>
+        <li>
+          <strong>Clients to Extensions</strong>: HTTP/HTTPS via load balancer
+        </li>
         <li>
           <strong>LLM Service to External APIs</strong>: HTTPS with API key
           authentication
@@ -775,7 +787,7 @@ sequenceDiagram
       <ul>
         <li>Certificate-based service authentication</li>
         <li>Encrypted gRPC communication channels</li>
-        <li>Service identity verification via X.509 certificates</li>
+        <li>Service identity verification via digital certificates</li>
       </ul>
 
       <h5>Rate-Limiting Not Implemented</h5>
@@ -810,8 +822,8 @@ sequenceDiagram
           unauthorized service access with cryptographic verification
         </li>
         <li>
-          <strong>Token Replay</strong>: 60-second time-limited tokens minimize
-          replay attack windows
+          <strong>Token Replay</strong>: Short-lived time-limited tokens
+          minimize replay attack windows
         </li>
         <li>
           <strong>Request Forgery</strong>: HMAC signatures prevent message
@@ -823,9 +835,8 @@ sequenceDiagram
 
       <ol>
         <li>
-          <strong>Shared Secret Exposure</strong>: If
-          <code>SERVICE_AUTH_SECRET</code> is compromised, all service
-          authentication is bypassed
+          <strong>Shared Secret Exposure</strong>: If the authentication secret
+          is compromised, all service authentication is bypassed
         </li>
         <li>
           <strong>Container Compromise</strong>: If one container is

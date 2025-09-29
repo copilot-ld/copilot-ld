@@ -36,52 +36,28 @@ async function handlePrompt(prompt) {
   });
   messages.push(userMessage);
 
-  try {
-    // Ensure client is ready before making requests
-    await agentClient.ensureReady();
+  // Ensure client is ready before making requests
+  await agentClient.ensureReady();
 
-    // Create typed request using agent.AgentRequest
-    const request = new agent.AgentRequest({
-      messages: messages,
-      github_token: await config.githubToken(),
-      conversation_id: conversationId || undefined,
-    });
+  // Create typed request using agent.AgentRequest
+  const request = new agent.AgentRequest({
+    messages: messages,
+    github_token: await config.githubToken(),
+    conversation_id: conversationId || undefined,
+  });
 
-    const result = await agentClient.ProcessRequest(request);
+  const result = await agentClient.ProcessRequest(request);
 
-    if (!result || !result.choices || result.choices.length === 0) {
-      throw new Error("No response from agent service");
-    }
-
-    if (result.conversation_id) {
-      conversationId = result.conversation_id;
-    }
-
-    messages.push(result.choices[0].message);
-
-    // Extract text content from the response message
-    const responseContent = result.choices[0].message.content;
-    if (typeof responseContent === "string") {
-      return responseContent;
-    } else if (responseContent && responseContent.text) {
-      return responseContent.text;
-    } else {
-      return "Received empty response from agent service.";
-    }
-  } catch (error) {
-    console.error("Error communicating with agent service:", error.message);
-
-    // Provide helpful error messages for common issues
-    if (error.message.includes("SERVICE_AUTH_SECRET")) {
-      return "Error: SERVICE_AUTH_SECRET environment variable is required for gRPC authentication. Please set it in your .env file.";
-    }
-
-    if (error.message.includes("ECONNREFUSED")) {
-      return "Error: Cannot connect to Agent service. Please ensure the Agent service is running.";
-    }
-
-    return "Sorry, I encountered an error processing your request.";
+  if (!result || !result.choices || result.choices.length === 0) {
+    throw new Error("No response from agent service");
   }
+
+  if (result.conversation_id) {
+    conversationId = result.conversation_id;
+  }
+
+  messages.push(result.choices[0].message);
+  return result.choices[0].message.content.text;
 }
 
 // Create REPL with dependency injection
@@ -95,37 +71,8 @@ const repl = new Repl(readline, process, createTerminalFormatter(), {
         console.log("Conversation history and session cleared.");
       },
     },
-    status: {
-      help: "Show connection status",
-      handler: () => {
-        console.log(
-          `Agent service configured at ${config.host}:${config.port}`,
-        );
-        console.log(
-          `GitHub token: ${config.githubToken() ? "configured" : "not set"}`,
-        );
-        console.log(
-          `Service auth: ${process.env.SERVICE_AUTH_SECRET ? "configured" : "not set"}`,
-        );
-        console.log(`Conversation ID: ${conversationId || "none"}`);
-        console.log(`Messages in history: ${messages.length}`);
-      },
-    },
   },
   onLine: handlePrompt,
 });
-
-// Check environment before starting
-if (!process.env.SERVICE_AUTH_SECRET) {
-  console.error(
-    "Warning: SERVICE_AUTH_SECRET is not set. The chat tool requires this for gRPC authentication.",
-  );
-  console.error(
-    "Please set SERVICE_AUTH_SECRET in your .env file to use the chat script.",
-  );
-  console.error(
-    "You can still use the chat tool commands, but requests will fail until authentication is configured.",
-  );
-}
 
 repl.start();

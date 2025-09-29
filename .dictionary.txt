@@ -1,5 +1,6 @@
 APIs
 ARN
+AssumeRole
 assistants-yml
 async
 auth
@@ -31,6 +32,7 @@ Copilot-LD
 copilot-ld
 CORS
 cryptographic
+Cryptographic
 CSS
 css
 DDoS
@@ -81,6 +83,7 @@ JSON-ND
 JSDoc
 JSONL
 JWT
+keyless
 li
 libanalysis
 libcache
@@ -130,12 +133,14 @@ Node.js
 nodejs
 npm
 OAuth
+OIDC
 Olsson
 OOP
 OPA
 OPA-compatible
 OpenAI
 OpenAI-compatible
+OpenID
 orchestrator
 PGID
 pico
@@ -185,6 +190,8 @@ stdin
 stdout
 subtask
 subtasks
+symlinks
+Symlinks
 tiktoken
 TLS
 TODO

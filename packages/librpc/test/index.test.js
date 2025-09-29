@@ -11,8 +11,8 @@ describe("Rpc", () => {
 
   test("should accept valid config", () => {
     // Mock the environment variable required by authFactory
-    const originalEnv = process.env.SERVICE_AUTH_SECRET;
-    process.env.SERVICE_AUTH_SECRET =
+    const originalEnv = process.env.SERVICE_SECRET;
+    process.env.SERVICE_SECRET =
       "test-secret-that-is-at-least-32-characters-long";
 
     try {
@@ -23,9 +23,9 @@ describe("Rpc", () => {
     } finally {
       // Restore original environment
       if (originalEnv !== undefined) {
-        process.env.SERVICE_AUTH_SECRET = originalEnv;
+        process.env.SERVICE_SECRET = originalEnv;
       } else {
-        delete process.env.SERVICE_AUTH_SECRET;
+        delete process.env.SERVICE_SECRET;
       }
     }
   });

@@ -139,6 +139,180 @@ docker-compose ps</code></pre>
         production-grade scalability and managed infrastructure.
       </p>
 
+      <h4>AWS OIDC Setup for GitHub Actions</h4>
+
+      <p>
+        Before using the GitHub Actions workflows for automated deployment, you
+        must configure AWS OpenID Connect (OIDC) to allow secure, keyless
+        authentication from GitHub Actions to your AWS account.
+      </p>
+
+      <h5>1. Create GitHub OIDC Identity Provider in AWS</h5>
+
+      <p>First, create an OIDC identity provider in your AWS account:</p>
+
+      <pre><code># Using AWS CLI
+aws iam create-open-id-connect-provider \
+  --url https://token.actions.githubusercontent.com \
+  --client-id-list sts.amazonaws.com \
+  --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1 \
+  --thumbprint-list 1c58a3a8518e8759bf075b76b750d4f2df264fcd</code></pre>
+
+      <p>Or create via AWS Console:</p>
+      <ul>
+        <li>
+          Navigate to <strong>IAM → Identity providers → Add provider</strong>
+        </li>
+        <li>Provider type: <strong>OpenID Connect</strong></li>
+        <li>
+          Provider URL: <code>https://token.actions.githubusercontent.com</code>
+        </li>
+        <li>Audience: <code>sts.amazonaws.com</code></li>
+        <li>Add the thumbprints above (GitHub's current thumbprints)</li>
+      </ul>
+
+      <p>
+        <strong>Reference:</strong>
+        <a
+          href="https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services"
+          target="_blank"
+          >GitHub Docs: Configuring OIDC in AWS</a
+        >
+      </p>
+
+      <h5>2. Create IAM Role for GitHub Actions</h5>
+
+      <p>
+        Create an IAM role that GitHub Actions can assume. Save this as
+        <code>github-actions-role.json</code>:
+      </p>
+
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:copilot-ld/copilot-ld:*"
+        }
+      }
+    }
+  ]
+}</code></pre>
+
+      <p>Create the role and attach policies:</p>
+
+      <pre><code># Create the role
+aws iam create-role \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --assume-role-policy-document file://github-actions-role.json
+
+# Attach CloudFormation permissions
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/CloudFormationFullAccess
+
+# Attach ECS permissions for service deployment
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/AmazonECS_FullAccess
+
+# Attach IAM permissions for role creation
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/IAMFullAccess
+
+# Attach S3 permissions for data management
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+# Attach Secrets Manager permissions
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/SecretsManagerReadWrite</code></pre>
+
+      <p>
+        <strong>Security Note:</strong> For production environments, replace
+        <code>*FullAccess</code> policies with more restrictive,
+        principle-of-least-privilege policies tailored to your specific
+        deployment needs.
+      </p>
+
+      <h5>3. Configure GitHub Repository Secrets</h5>
+
+      <p>
+        Add the following secrets to your GitHub repository (<strong
+          >Settings → Secrets and variables → Actions</strong
+        >):
+      </p>
+
+      <ul>
+        <li>
+          <strong>DEMO_AWS_DEPLOY_ROLE_ARN</strong>:
+          <code
+            >arn:aws:iam::YOUR_ACCOUNT_ID:role/GitHubActions-CopilotLD-Deploy</code
+          >
+        </li>
+        <li>
+          <strong>DEMO_GITHUB_TOKEN</strong>: Personal access token for GitHub
+          API access (required for some workflows)
+        </li>
+      </ul>
+
+      <h5>4. Workflow Usage</h5>
+
+      <p>
+        The configured OIDC role enables secure access in three deployment
+        workflows:
+      </p>
+
+      <ul>
+        <li>
+          <strong>demo-secrets.yml</strong>: Deploys AWS Secrets Manager secrets
+          for GitHub tokens and service authentication
+        </li>
+        <li>
+          <strong>demo-data.yml</strong>: Creates S3 data storage infrastructure
+          and processes knowledge base
+        </li>
+        <li>
+          <strong>demo-services.yml</strong>: Deploys the complete ECS service
+          stack with load balancing
+        </li>
+      </ul>
+
+      <p>Each workflow uses this configuration:</p>
+
+      <pre><code>permissions:
+  id-token: write  # Required for OIDC token requests
+  contents: read   # Required for repository checkout
+
+steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+      role-session-name: copilot-ld-deployment
+      aws-region: us-east-1</code></pre>
+
+      <p>
+        <strong>Reference:</strong>
+        <a
+          href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html"
+          target="_blank"
+          >AWS Docs: Creating OIDC Identity Providers</a
+        >
+      </p>
+
       <h4>Deploy Data Infrastructure</h4>
 
       <p>First, deploy the data storage and IAM infrastructure:</p>
@@ -211,6 +385,11 @@ aws cloudformation describe-stack-events \
           trusted CA
         </li>
         <li>
+          <strong>GitHub Actions OIDC</strong>: Use OIDC authentication instead
+          of long-lived AWS access keys for secure, keyless deployment from
+          GitHub Actions
+        </li>
+        <li>
           <strong>Secret Management</strong>: Store GitHub tokens in AWS Secrets
           Manager or similar
         </li>
@@ -221,6 +400,10 @@ aws cloudformation describe-stack-events \
         <li>
           <strong>Service Authentication</strong>: Rotate service secrets
           regularly
+        </li>
+        <li>
+          <strong>IAM Role Policies</strong>: Use principle of least privilege
+          for GitHub Actions deployment role and ECS service roles
         </li>
       </ul>
 
@@ -267,6 +450,46 @@ aws cloudformation describe-stack-events \
           permissions for S3 access
         </li>
       </ul>
+
+      <h4>GitHub Actions OIDC Issues</h4>
+
+      <ul>
+        <li>
+          <strong>AssumeRole Failures</strong>: Verify the OIDC identity
+          provider exists and the role trust policy matches your repository
+          exactly (<code>repo:copilot-ld/copilot-ld:*</code>)
+        </li>
+        <li>
+          <strong>Token Validation Errors</strong>: Check that
+          <code>id-token: write</code> permission is set in workflow and
+          thumbprints in OIDC provider are current
+        </li>
+        <li>
+          <strong>Policy Permissions</strong>: Ensure the assumed role has
+          sufficient permissions for CloudFormation, ECS, S3, and IAM operations
+        </li>
+        <li>
+          <strong>Region Mismatches</strong>: Verify all resources are being
+          created in the same AWS region (default: <code>us-east-1</code>)
+        </li>
+        <li>
+          <strong>Secret Configuration</strong>: Confirm
+          <code>AWS_DEPLOY_ROLE_ARN</code> secret contains the correct IAM role
+          ARN format
+        </li>
+      </ul>
+
+      <p>Debug OIDC authentication issues:</p>
+
+      <pre><code># Validate OIDC provider exists
+aws iam get-open-id-connect-provider \
+  --open-id-connect-provider-arn arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com
+
+# Check role trust policy
+aws iam get-role --role-name GitHubActions-CopilotLD-Deploy --query 'Role.AssumeRolePolicyDocument'
+
+# Test role assumption locally (requires AWS STS GetCallerIdentity)
+aws sts get-caller-identity</code></pre>
 
       <h4>Common Deployment Validation</h4>
 

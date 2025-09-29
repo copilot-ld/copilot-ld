@@ -61,14 +61,24 @@ jobs:
 
       - name: Process knowledge data
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           S3_BUCKET_NAME: ${{ steps.bucket.outputs.s3_bucket_name }}
           S3_BUCKET_ROLE_ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}
 
         run: |
+          set -e
+
+          # Prepare configuration and data directories
           cp ./config/config{.example,}.yml
           cp ./config/assistants{.example,}.yml
           mkdir -p ./data/{memories,policies,resources,vectors}
+
+          # Copy the example knowledge base
           cp -r ./examples/knowledge data/
+
+          # Copy the example tools and re-generate code
+          cp -r ./examples/tools/* tools/
+          npm run codegen
 
           # Process resources, tools, and vectors
           DEBUG=* node ./scripts/resources.js

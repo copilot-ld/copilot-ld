@@ -192,24 +192,28 @@ aws iam create-open-id-connect-provider \
       </p>
 
       <pre><code>{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-        },
-        "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:copilot-ld/copilot-ld:*"
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Principal": {
+                "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": [
+                        "sts.amazonaws.com"
+                    ]
+                },
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": [
+                        "repo:copilot-ld/copilot-ld:*"
+                    ]
+                }
+            }
         }
-      }
-    }
-  ]
+    ]
 }</code></pre>
 
       <p>Create the role and attach policies:</p>
@@ -263,7 +267,7 @@ aws iam attach-role-policy \
         <li>
           <strong>DEMO_AWS_DEPLOY_ROLE_ARN</strong>:
           <code
-            >arn:aws:iam::YOUR_ACCOUNT_ID:role/GitHubActions-CopilotLD-Deploy</code
+            >arn:aws:iam::YOUR_ACCOUNT_ID:role/GitHubActions-CopilotLD-Demo-Deploy</code
           >
         </li>
         <li>

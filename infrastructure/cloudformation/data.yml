@@ -13,7 +13,7 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  # IAM role providing ECS tasks access to S3 data bucket
+  # IAM role providing ECS tasks and GitHub Actions access to S3 data bucket
   BucketRole:
     Type: AWS::IAM::Role
     Properties:
@@ -23,6 +23,10 @@ Resources:
           - Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubActions-CopilotLD-Demo-Deploy"
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy

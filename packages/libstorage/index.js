@@ -666,6 +666,8 @@ export function storageFactory(prefix, type, process = global.process) {
       if (process.env.S3_BUCKET_ROLE_ARN) {
         config.credentials = fromTemporaryCredentials({
           roleArn: process.env.S3_BUCKET_ROLE_ARN,
+          roleSessionName: `copilot-ld-${Date.now()}`,
+          durationSeconds: 3600, // 1 hour
         });
       } else if (
         process.env.S3_ACCESS_KEY_ID &&

@@ -12,9 +12,12 @@
 # Config files
 **/.env*
 !**/.env.example
-**/.ghtoken
+**/.github_token
 **/config.yml
 **/assistants.yml
+
+# For developers
+**/.build_token
 
 # Editor files
 .vscode/

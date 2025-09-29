@@ -104,16 +104,20 @@
 
       <h4>Deploy the Stack</h4>
 
-      <p>Build and start all services:</p>
+      <p>
+        Building the containers requires a GitHub Personal Access Token (PAT)
+        with at minimum the <code>read:packages</code> scope. Put the token in
+        <code>config/.build_token</code> and deploy the stack like this:
+      </p>
 
       <pre><code># Build all container images
-docker-compose build
+GITHUB_TOKEN=$(cat config/.build_token) docker compose build
 
 # Start the complete stack
-docker-compose up -d
+docker compose up -d
 
 # Check service status
-docker-compose ps</code></pre>
+docker compose ps</code></pre>
 
       <h4>Access Points</h4>
 

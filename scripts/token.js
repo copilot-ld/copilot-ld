@@ -29,10 +29,10 @@ async function main() {
   const { token } = await octokit.auth({ type: "oauth-device" });
 
   const configDir = "config";
-  const tokenPath = path.join(configDir, ".ghtoken");
+  const tokenPath = path.join(configDir, ".github_token");
   fs.mkdirSync(configDir, { recursive: true });
   fs.writeFileSync(tokenPath, token);
-  console.log("Token saved to config/.ghtoken");
+  console.log("Token saved to config/.github_token");
 
   return token;
 }

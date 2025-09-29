@@ -31,191 +31,143 @@
       <h2>Development Guide</h2>
 
       <p>
-        This guide helps you set up Copilot-LD for local development. Follow
-        these steps to configure GitHub integration, prepare your knowledge
-        base, and run the system with <code>npm run dev</code>.
+        This guide focuses on local development, testing, and validation
+        workflows for Copilot-LD. For initial setup and configuration, see the
+        <a href="configuration.html">Configuration Guide</a>. For knowledge base
+        processing, see the <a href="processing.html">Processing Guide</a>.
       </p>
 
       <h3>Prerequisites</h3>
 
+      <p>Complete the initial setup steps:</p>
       <ul>
-        <li>GitHub account with access to GitHub Copilot</li>
+        <li>
+          <a href="configuration.html">Configuration Guide</a> - Environment
+          setup and GitHub authentication
+        </li>
+        <li>
+          <a href="processing.html">Processing Guide</a> - Knowledge base
+          processing (if using custom content)
+        </li>
       </ul>
 
-      <h3>1. Initial Setup</h3>
-
-      <p>Clone the repository and install dependencies:</p>
-
-      <pre><code>git clone https://github.com/copilot-ld/copilot-ld.git
-cd copilot-ld
-npm install</code></pre>
-
-      <p>Copy configuration templates:</p>
-
-      <pre><code># Copy configuration templates (see Configuration Guide for details)
-cp config/.env{.example,}
-cp config/config{.example,}.yml
-cp config/assistants{.example,}.yml</code></pre>
-
-      <h3>2. Configuration</h3>
+      <h3>Development Workflow</h3>
 
       <p>
-        Set up your environment variables, authentication, and service
-        configuration. Follow the
-        <a href="configuration.html">Configuration Guide</a>
-        for complete setup instructions including GitHub authentication and
-        service secrets.
+        By default all services run in development mode with debug logging
+        enabled.
       </p>
 
-      <h3>3. Generate Code from Protocol Buffers</h3>
+      <pre><code># Launch all services in development mode
+npm run dev:start
+
+# Stop development environment
+npm run dev:stop
+
+# Restart development environment
+npm run dev:restart</code></pre>
+
+      <h3>Testing and Validation</h3>
+
+      <p>Run various testing and validation checks:</p>
+
+      <pre><code># Execute all tests
+npm test
+
+# Execute tests in watch mode for TDD
+npm run test:watch
+
+# Run performance benchmarks
+npm run perf
+
+# Run all quality checks
+npm run check
+
+# Auto-fix issues where possible
+npm run check:fix
+
+# Individual checks
+npm run lint           # ESLint code analysis
+npm run format         # Prettier formatting check
+npm run spellcheck     # Spell check documentation</code></pre>
+
+      <h4>Security Auditing</h4>
+
+      <p>Check for security vulnerabilities:</p>
+
+      <pre><code>npm run security</code></pre>
+
+      <h3>Development Scripts</h3>
 
       <p>
-        Generate typed definitions, service bases, and clients from the
-        <code>proto/</code> schemas and any optional tool schemas in
-        <code>tools/</code>:
+        The <code>scripts/</code> directory contains utilities for development
+        and testing:
       </p>
 
-      <pre><code>npm run codegen</code></pre>
+      <h4>Interactive Testing</h4>
+
+      <pre><code># Interactive chat with the system
+node scripts/chat.js
+&gt; What are Docker security best practices?
+&gt; How do I implement rolling updates in Kubernetes?
+
+# Semantic search testing
+node scripts/search.js
+&gt; docker security
+&gt; kubernetes deployment</code></pre>
+
+      <h4>Scripted Testing</h4>
+
+      <pre><code># Pipe input for automated testing
+echo "Tell me about container security" | node scripts/chat.js
+
+# Search with CLI flags for precise testing
+echo "docker" | node scripts/search.js --limit 10 --threshold 0.25
+
+# Test descriptor-based search
+echo "kubernetes deployment" | node scripts/search.js --index descriptor --limit 5</code></pre>
+
+      <h4>System Validation Scripts</h4>
+
+      <pre><code># Test vector embeddings and similarity
+node scripts/cosine.js "first text" "second text"
+
+# Validate model configurations
+node scripts/models.js
+
+# Test embedding generation
+echo "sample text" | node scripts/embed.js</code></pre>
+
+      <h4>Development Utilities</h4>
+
+      <pre><code># Generate SSL certificates for HTTPS development
+node scripts/cert.js
+
+# Generate service authentication secrets
+node scripts/secret.js
+
+# GitHub token setup and validation
+node scripts/token.js</code></pre>
+
+      <h3>Code Generation Workflow</h3>
 
       <p>
-        For details about the code generation process and specific generators,
-        see the
+        For details about Protocol Buffer compilation and type generation, see
+        the
         <a href="architecture.html#code-generation">Code Generation</a> section
         in the Architecture Guide.
       </p>
 
-      <p>
-        Prepare your knowledge base through the offline processing pipeline:
-      </p>
+      <pre><code># Generate all code from proto definitions
+npm run codegen
 
-      <h4>Download Knowledge Data</h4>
+npm run codegen:type      # Type definitions only
+npm run codegen:client    # Client stubs only
+npm run codegen:service   # Service bases only</code></pre>
 
-      <p>
-        Configure the download source in <code>config.yml</code> and download
-        knowledge assets:
-      </p>
+      <h3>Web Interface Testing</h3>
 
-      <pre><code># Edit config.yml to set your source repository
-tool:
-  download:
-    owner: "your-github-owner"
-    repo: "your-knowledge-repo"
-
-# Download the data
-node tools/download.js</code></pre>
-
-      <h4>Optional: Setup Example Tools that Extend the Platform</h4>
-
-      <p>
-        To experiment with custom tools that
-        <strong>extend the core Copilot-LD system</strong>, you can copy the
-        example tool definitions:
-      </p>
-
-      <pre><code># Copy example tools that extend the platform
-cp -r ./examples/tools/* ./tools/
-
-# Regenerate code to include the new tool definitions
-npm run codegen</code></pre>
-
-      <p>
-        <strong>Note</strong>: These tools are
-        <strong>extensions to the core system</strong> and provide additional
-        functionality beyond the base platform capabilities. They demonstrate
-        how to create custom protobuf definitions and services that integrate
-        with the Tool service.
-      </p>
-
-      <h4>Process Knowledge Base into Resources</h4>
-
-      <p>
-        Extract and process content from HTML files into searchable resources.
-        For complete processing instructions including tool and vector
-        processing, see the <a href="processing.html">Processing Guide</a>.
-      </p>
-
-      <pre><code>node tools/resources.js</code></pre>
-
-      <h4>Example Knowledge Base</h4>
-
-      <p>
-        For testing and demonstration, you can use the example knowledge base
-        provided in the repository. See the
-        <a href="processing.html#example-knowledge-base">Processing Guide</a>
-        for details on setting up example knowledge files and processing them
-        into searchable resources.
-      </p>
-
-      <h4>Create Vector Embeddings</h4>
-
-      <p>
-        Process resources and create vector embeddings for semantic search. For
-        details on the vector processing pipeline, see the
-        <a href="processing.html#vector-processing">Vector Processing</a>
-        section in the Processing Guide.
-      </p>
-
-      <pre><code>node tools/vectors.js</code></pre>
-
-      <h3>5. Example HTML Content</h3>
-
-      <p>
-        If you don't have existing knowledge assets, you can create example HTML
-        files with structured microdata. For detailed examples and best
-        practices on knowledge base structure, see the
-        <a href="processing.html#knowledge-base-structure"
-          >Knowledge Base Structure</a
-        >
-        section in the Processing Guide.
-      </p>
-
-      <p>
-        The processing pipeline looks for elements with microdata attributes and
-        extracts them as individual knowledge items using structured data
-        (Schema.org vocabularies).
-      </p>
-
-      <h3>5. Start the System</h3>
-
-      <p>Launch all services in development mode:</p>
-
-      <pre><code>npm run dev</code></pre>
-
-      <p>
-        This starts all microservices (agent, llm, memory, vector) and
-        extensions (web, copilot) concurrently.
-      </p>
-
-      <h3>6. Interactive Chat</h3>
-
-      <p>Use the chat tool to interact with your configured knowledge base:</p>
-
-      <h4>Interactive Mode</h4>
-
-      <pre><code>node tools/chat.js
-&gt; What are Docker security best practices?
-&gt; How do I implement rolling updates in Kubernetes?</code></pre>
-
-      <h4>Scripted Testing</h4>
-
-      <pre><code>echo "Tell me about container security" | node tools/chat.js</code></pre>
-
-      <h3>7. Search with CLI Flags</h3>
-
-      <p>
-        The search tool supports command-line flags via the internal
-        <code>Repl</code> state. This is useful for non-interactive runs:
-      </p>
-
-      <pre><code># Limit results and set a minimum similarity threshold
-echo "docker" | node tools/search.js --limit 10 --threshold 0.25
-
-# Use the descriptor index
-echo "kubernetes deployment" | node tools/search.js --index descriptor --limit 5</code></pre>
-
-      <h4>Web Interface</h4>
-
-      <p>Access the web interface at:</p>
+      <p>Access the development interfaces:</p>
 
       <ul>
         <li>
@@ -225,57 +177,87 @@ echo "kubernetes deployment" | node tools/search.js --index descriptor --limit 5
           <strong>Copilot Extension</strong>:
           <code>http://localhost:3001/copilot</code>
         </li>
+        <li>
+          <strong>Documentation Server</strong>:
+          <code>npm run docs</code> serves on <code>http://localhost:8080</code>
+        </li>
       </ul>
 
-      <h3>Troubleshooting</h3>
+      <h3>Development Troubleshooting</h3>
 
-      <h4>Common Issues</h4>
+      <h4>Service Issues</h4>
 
       <ul>
         <li>
-          <strong>Token permissions</strong>: Ensure your GitHub token has
-          Copilot access and appropriate repository permissions
+          <strong>Port conflicts</strong>: Ensure ports 3000–3007 are available
         </li>
         <li>
-          <strong>Empty responses</strong>: Verify that vector indices were
-          created successfully in <code>data/vectors/</code>
+          <strong>Service startup failures</strong>: Check
+          <code>config/.env</code> configuration
         </li>
         <li>
-          <strong>Service startup errors</strong>: Check that all environment
-          variables are configured in <code>config/.env</code>
+          <strong>gRPC connection errors</strong>: Verify service networking
+          configuration
         </li>
         <li>
-          <strong>Network issues</strong>: Ensure ports 3000–3005 are available
-          for service communication
+          <strong>Authentication failures</strong>: Validate
+          <code>SERVICE_SECRET</code> and <code>GITHUB_TOKEN</code>
         </li>
       </ul>
 
-      <h4>Validation</h4>
+      <h4>Knowledge Base Issues</h4>
 
-      <p>Verify your setup by running:</p>
+      <ul>
+        <li>
+          <strong>Empty responses</strong>: Verify vector indices exist in
+          <code>data/vectors/</code>
+        </li>
+        <li>
+          <strong>Processing errors</strong>: Check
+          <code>data/resources/</code> for processed content
+        </li>
+        <li>
+          <strong>Missing tools</strong>: Ensure
+          <code>npm run codegen</code> completed successfully
+        </li>
+      </ul>
 
-      <pre><code># Check code quality
-npm run check
+      <h4>Development Validation</h4>
 
-# Test basic functionality
-echo "hello" | node tools/chat.js</code></pre>
+      <p>Quick validation of your development environment:</p>
+
+      <pre><code># Test basic system functionality
+echo "hello" | node scripts/chat.js
+
+# Verify code generation
+ls generated/types/
+ls generated/services/
+
+# Check processed knowledge base
+ls data/resources/ | head -5
+ls data/vectors/
+
+# Validate service configuration
+npm test -- --grep="Config"</code></pre>
 
       <h3>Next Steps</h3>
 
       <ul>
         <li>
-          Customize system prompts in <code>config.yml</code> for your domain
+          <a href="configuration.html">Configuration Guide</a> - Environment
+          setup and authentication
         </li>
         <li>
-          Add more knowledge sources by updating the download configuration
+          <a href="processing.html">Processing Guide</a> - Knowledge base
+          processing and tool setup
         </li>
         <li>
-          Explore the <a href="architecture.html">system architecture</a> to
-          understand component interactions
+          <a href="architecture.html">Architecture Guide</a> - Understanding
+          system components and patterns
         </li>
         <li>
-          For production deployment, see the
-          <a href="deployment.html">deployment guide</a>
+          <a href="deployment.html">Deployment Guide</a> - Production deployment
+          options
         </li>
       </ul>
     </main>

@@ -138,8 +138,8 @@ export class Config extends ConfigInterface {
     }
 
     try {
-      if (await this.#storage.exists(".ghtoken")) {
-        const tokenContent = await this.#storage.get(".ghtoken");
+      if (await this.#storage.exists(".github_token")) {
+        const tokenContent = await this.#storage.get(".github_token");
         this.#githubToken = tokenContent.toString().trim();
         return this.#githubToken;
       }
@@ -147,7 +147,9 @@ export class Config extends ConfigInterface {
       // Continue to error
     }
 
-    throw new Error("GitHub token not found in environment or .ghtoken file");
+    throw new Error(
+      "GitHub token not found in environment or .github_token file",
+    );
   }
 
   /** @inheritdoc */

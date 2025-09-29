@@ -14,7 +14,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
-import { searchUpward } from "@copilot-ld/libutil";
+import { searchUpward, generateUUID } from "@copilot-ld/libutil";
 
 import { StorageInterface } from "./types.js";
 
@@ -665,9 +665,9 @@ export function storageFactory(prefix, type, process = global.process) {
       // Configure credentials
       if (process.env.S3_BUCKET_ROLE_ARN) {
         config.credentials = fromTemporaryCredentials({
-          roleArn: process.env.S3_BUCKET_ROLE_ARN,
-          roleSessionName: `copilot-ld-${Date.now()}`,
-          durationSeconds: 3600, // 1 hour
+          RoleArn: process.env.S3_BUCKET_ROLE_ARN,
+          RoleSessionName: `copilot-ld-${generateUUID()}`,
+          DurationSeconds: 3600, // 1 hour
         });
       } else if (
         process.env.S3_ACCESS_KEY_ID &&

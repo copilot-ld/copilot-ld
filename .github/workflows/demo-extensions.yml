@@ -1,4 +1,4 @@
-name: Demo Deployment of Services
+name: Demo Deployment of Extensions
 
 on:
   workflow_dispatch:
@@ -14,7 +14,8 @@ on:
         type: string
       private_subnet_ids:
         description:
-          "Private subnet IDs for services (comma-separated list, minimum two)"
+          "Private subnet IDs for web extension (comma-separated list, minimum
+          two)"
         required: true
         type: string
       network_stack_name:
@@ -44,7 +45,7 @@ on:
         type: string
 
 jobs:
-  deploy-services:
+  deploy-extensions:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -70,9 +71,21 @@ jobs:
             --output text \
             --region ${{ inputs.aws_region }})
 
+          ALB_LISTENER_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.network_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`ALBListenerArn`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
           SERVICE_DISCOVERY_NAMESPACE_ID=$(aws cloudformation describe-stacks \
             --stack-name ${{ inputs.network_stack_name }} \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceDiscoveryNamespaceId`].OutputValue' \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          ALB_DNS_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.network_stack_name }} \
+            --query 'Stacks[0].Outputs[?OutputKey==`ApplicationLoadBalancerDNSName`].OutputValue' \
             --output text \
             --region ${{ inputs.aws_region }})
 
@@ -109,24 +122,28 @@ jobs:
             --region ${{ inputs.aws_region }})
 
           echo "service_security_group_id=$SERVICE_SECURITY_GROUP_ID" >> $GITHUB_OUTPUT
+          echo "alb_listener_arn=$ALB_LISTENER_ARN" >> $GITHUB_OUTPUT
           echo "service_discovery_namespace_id=$SERVICE_DISCOVERY_NAMESPACE_ID" >> $GITHUB_OUTPUT
+          echo "alb_dns_name=$ALB_DNS_NAME" >> $GITHUB_OUTPUT
           echo "github_token_arn=$GITHUB_TOKEN_ARN" >> $GITHUB_OUTPUT
           echo "service_secret_arn=$SERVICE_SECRET_ARN" >> $GITHUB_OUTPUT
           echo "secrets_role_arn=$SECRETS_ROLE_ARN" >> $GITHUB_OUTPUT
           echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
           echo "bucket_role_arn=$BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
 
-      - name: Deploy services
+      - name: Deploy extensions
+        id: deploy
         run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-services-stack-cf"
+          STACK_NAME="${{ inputs.environment_name }}-cld-extensions-stack-cf"
           aws cloudformation deploy \
-            --template-file infrastructure/cloudformation/services.yml \
+            --template-file infrastructure/cloudformation/extensions.yml \
             --stack-name $STACK_NAME \
             --parameter-overrides \
               EnvironmentName="${{ inputs.environment_name }}" \
               VpcId="${{ inputs.vpc_id }}" \
               PrivateSubnetIds="${{ inputs.private_subnet_ids }}" \
               ServiceSecurityGroupId="${{ steps.stack-outputs.outputs.service_security_group_id }}" \
+              ALBListenerArn="${{ steps.stack-outputs.outputs.alb_listener_arn }}" \
               ServiceDiscoveryNamespaceId="${{ steps.stack-outputs.outputs.service_discovery_namespace_id }}" \
               ContainerTag="${{ inputs.container_tag }}" \
               GitHubTokenArn="${{ steps.stack-outputs.outputs.github_token_arn }}" \
@@ -136,20 +153,15 @@ jobs:
               SecretsRoleArn="${{ steps.stack-outputs.outputs.secrets_role_arn }}" \
             --capabilities CAPABILITY_IAM \
             --region ${{ inputs.aws_region }}
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
 
       - name: Display deployment summary
         run: |
-          echo "✅ Copilot-LD Demo: Backend Services Deployed (Step 4/5)"
+          echo "✅ Copilot-LD Demo: Extensions Deployed (Step 5/5)"
           echo ""
-          echo "Stack: ${{ inputs.environment_name }}-cld-services-stack-cf"
+          echo "Stack: ${{ steps.deploy.outputs.stack_name }}"
           echo "Region: ${{ inputs.aws_region }}"
           echo ""
-          echo "Backend Services:"
-          echo "  - Agent Service"
-          echo "  - Memory Service"
-          echo "  - LLM Service"
-          echo "  - Vector Service"
-          echo "  - Tool Service"
+          echo "Web Extension URL: http://${{ steps.stack-outputs.outputs.alb_dns_name }}/web"
           echo ""
-          echo "Next Step: Deploy extensions infrastructure"
-          echo "Workflow: demo-extensions.yml"
+          echo "✅ Deployment Complete! All services are ready for use."

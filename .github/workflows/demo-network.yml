@@ -6,17 +6,12 @@ on:
       environment_name:
         description: "Environment name prefix for resources"
         required: true
-        default: "copilot-ld-demo"
+        default: "demo"
         type: string
       aws_region:
         description: "AWS region for deployment"
         required: true
         default: "us-east-1"
-        type: string
-      stack_name:
-        description: "CloudFormation stack name"
-        required: true
-        default: "copilot-ld-demo-network"
         type: string
 
 jobs:
@@ -38,9 +33,10 @@ jobs:
 
       - name: Deploy network infrastructure
         run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
           aws cloudformation deploy \
             --template-file infrastructure/cloudformation/network.yml \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
             --parameter-overrides \
               EnvironmentName=${{ inputs.environment_name }} \
             --capabilities CAPABILITY_IAM \
@@ -49,21 +45,22 @@ jobs:
       - name: Get network stack outputs
         id: network-outputs
         run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
           # Get outputs from network stack
           VPC_ID=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`VpcId`].OutputValue' \
             --output text \
             --region ${{ inputs.aws_region }})
 
           PUBLIC_SUBNET_IDS=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`PublicSubnetIds`].OutputValue' \
             --output text \
             --region ${{ inputs.aws_region }})
 
           PRIVATE_SUBNET_IDS=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`PrivateSubnetIds`].OutputValue' \
             --output text \
             --region ${{ inputs.aws_region }})
@@ -71,12 +68,13 @@ jobs:
           echo "vpc_id=$VPC_ID" >> $GITHUB_OUTPUT
           echo "public_subnet_ids=$PUBLIC_SUBNET_IDS" >> $GITHUB_OUTPUT
           echo "private_subnet_ids=$PRIVATE_SUBNET_IDS" >> $GITHUB_OUTPUT
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
 
       - name: Display deployment summary
         run: |
-          echo "✅ Copilot-LD Demo: Network Infrastructure Deployed (Step 1/4)"
+          echo "✅ Copilot-LD Demo: Network Infrastructure Deployed (Step 1/5)"
           echo ""
-          echo "Stack: ${{ inputs.stack_name }}"
+          echo "Stack: ${{ steps.network-outputs.outputs.stack_name }}"
           echo "Region: ${{ inputs.aws_region }}"
           echo ""
           echo "Network Resources:"

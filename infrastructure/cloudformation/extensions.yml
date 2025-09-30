@@ -1,0 +1,195 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description:
+  "Extensions stack for Copilot-LD platform - Web extension and ALB routing"
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: copilot-ld-demo
+    Description: Environment name for resource naming
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC for deployment
+
+  PrivateSubnetIds:
+    Type: CommaDelimitedList
+    Description: Private subnets for web extension (minimum two)
+
+  ServiceSecurityGroupId:
+    Type: String
+    Description: Security group ID for services
+
+  ALBListenerArn:
+    Type: String
+    Description: ARN of the ALB HTTP listener
+
+  ServiceDiscoveryNamespaceId:
+    Type: String
+    Description: Service discovery namespace ID
+
+  ContainerTag:
+    Type: String
+    Default: latest
+    Description: Container image tag
+
+  GitHubTokenArn:
+    Type: String
+    Description: ARN of the GitHub token secret in AWS Secrets Manager
+
+  ServiceSecretArn:
+    Type: String
+    Description: ARN of the service authentication secret in AWS Secrets Manager
+
+  BucketName:
+    Type: String
+    Description: S3 bucket name for all data storage
+
+  BucketRoleArn:
+    Type: String
+    Description: IAM role ARN for data access services
+
+  SecretsRoleArn:
+    Type: String
+    Description: IAM role ARN for secrets access services
+
+Resources:
+  # ==========================================
+  # ECS INFRASTRUCTURE
+  # ==========================================
+
+  # ECS cluster for hosting extension services
+  ExtensionsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${EnvironmentName}-cld-extensions-cluster-cf"
+
+  # ==========================================
+  # ALB TARGET GROUP AND ROUTING
+  # ==========================================
+
+  # Target group for web extension load balancer routing
+  WebTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${EnvironmentName}-cld-web-tgroup-cf"
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckPath: /web/health
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+
+  # Listener rule for web extension
+  WebListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref WebTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - "/web/*"
+      ListenerArn: !Ref ALBListenerArn
+      Priority: 100
+
+  # ==========================================
+  # LOGGING
+  # ==========================================
+
+  # CloudWatch log group for web extension logging
+  WebLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-web-loggroup-cf"
+      RetentionInDays: 7
+
+  # ==========================================
+  # TASK DEFINITION
+  # ==========================================
+
+  # ECS task definition for web extension container
+  WebTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${EnvironmentName}-cld-web-taskdef-cf"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !Ref SecretsRoleArn
+      TaskRoleArn: !Ref BucketRoleArn
+      ContainerDefinitions:
+        - Name: web
+          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/web:${ContainerTag}"
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: STORAGE_TYPE
+              Value: s3
+            - Name: S3_BUCKET_NAME
+              Value: !Ref BucketName
+            - Name: DEBUG
+              Value: "*"
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref WebLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: web
+
+  # ==========================================
+  # ECS SERVICE
+  # ==========================================
+
+  # ECS service for running web extension container
+  WebService:
+    Type: AWS::ECS::Service
+    DependsOn: WebListenerRule
+    Properties:
+      ServiceName: !Sub "${EnvironmentName}-cld-web-service-cf"
+      Cluster: !Ref ExtensionsCluster
+      TaskDefinition: !Ref WebTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ServiceSecurityGroupId
+          Subnets: !Ref PrivateSubnetIds
+      LoadBalancers:
+        - ContainerName: web
+          ContainerPort: 3000
+          TargetGroupArn: !Ref WebTargetGroup
+
+Outputs:
+  ExtensionsClusterName:
+    Description: Name of the extensions ECS cluster
+    Value: !Ref ExtensionsCluster
+
+  ExtensionsClusterArn:
+    Description: ARN of the extensions ECS cluster
+    Value: !GetAtt ExtensionsCluster.Arn
+
+  WebServiceArn:
+    Description: ARN of the web service
+    Value: !Ref WebService
+
+  WebTargetGroupArn:
+    Description: ARN of the web target group
+    Value: !Ref WebTargetGroup

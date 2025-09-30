@@ -43,6 +43,11 @@ async function createWebExtension(client, config, logFn = logFactory) {
     }),
   );
 
+  // Health check endpoint
+  app.get("/web/health", (c) => {
+    return c.json({ status: "ok" });
+  });
+
   // Serve static files
   // TODO: Decouple the web extension from the example at extensions/web/public
   app.use("/web/*", serveStatic({ root: "public" }));

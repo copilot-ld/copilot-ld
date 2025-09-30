@@ -302,7 +302,12 @@ aws iam attach-role-policy \
 # Attach Secrets Manager permissions
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
-  --policy-arn arn:aws:iam::aws:policy/SecretsManagerReadWrite</code></pre>
+  --policy-arn arn:aws:iam::aws:policy/SecretsManagerReadWrite
+
+# Attach CloudWatch Logs permissions for log group management
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/CloudWatchLogsFullAccess</code></pre>
 
       <p>
         <strong>Security Note:</strong> For production environments, replace

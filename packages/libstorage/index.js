@@ -672,16 +672,15 @@ export function storageFactory(prefix, type, process = global.process) {
           },
         });
       } else if (
-        process.env.S3_ACCESS_KEY_ID &&
-        process.env.S3_SECRET_ACCESS_KEY
+        process.env.AWS_ACCESS_KEY_ID &&
+        process.env.AWS_SECRET_ACCESS_KEY
       ) {
         config.credentials = {
-          accessKeyId: process.env.S3_ACCESS_KEY_ID,
-          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         };
-      } else {
-        throw new Error("S3 storage requires a role ARN or access keys");
       }
+      // If no explicit credentials are provided, use default credential chain
 
       // Optional custom endpoint for S3-compatible services
       if (process.env.MINIO_ENDPOINT)

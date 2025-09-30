@@ -2,6 +2,11 @@
 
 ## 2025-09-30
 
+- **FIXED**: Removed `S3_BUCKET_ROLE_ARN` environment variable from all ECS task
+  definitions since containers already run with the role via `TaskRoleArn`
+- **SIMPLIFIED**: Application code now relies on default AWS credential chain
+  when no explicit credentials are provided, eliminating role assumption
+  conflicts
 - **NEW**: Created minimal `network.yml` CloudFormation template for VPC and
   networking infrastructure
 - **NEW**: Added `demo-network.yml` GitHub workflow for automated network

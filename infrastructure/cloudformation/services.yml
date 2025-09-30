@@ -202,8 +202,6 @@ Resources:
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
-            - Name: S3_BUCKET_ROLE_ARN
-              Value: !Ref BucketRoleArn
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -240,8 +238,6 @@ Resources:
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
-            - Name: S3_BUCKET_ROLE_ARN
-              Value: !Ref BucketRoleArn
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -278,8 +274,6 @@ Resources:
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
-            - Name: S3_BUCKET_ROLE_ARN
-              Value: !Ref BucketRoleArn
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -316,8 +310,6 @@ Resources:
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
-            - Name: S3_BUCKET_ROLE_ARN
-              Value: !Ref BucketRoleArn
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -354,8 +346,6 @@ Resources:
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
-            - Name: S3_BUCKET_ROLE_ARN
-              Value: !Ref BucketRoleArn
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -392,8 +382,6 @@ Resources:
               Value: s3
             - Name: S3_BUCKET_NAME
               Value: !Ref BucketName
-            - Name: S3_BUCKET_ROLE_ARN
-              Value: !Ref BucketRoleArn
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"

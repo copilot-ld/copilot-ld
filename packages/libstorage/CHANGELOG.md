@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-09-30
+
+- **CHANGED**: Updated to use standard `AWS_ACCESS_KEY_ID` and
+  `AWS_SECRET_ACCESS_KEY` environment variables instead of `S3_ACCESS_KEY_ID`
+  and `S3_SECRET_ACCESS_KEY`
+- **SIMPLIFIED**: Credential configuration now falls back to default AWS
+  credential chain when no explicit credentials are provided
+
 ## 2025-09-29
 
 - **FIXED**: Added missing `roleSessionName` and `durationSeconds` parameters to

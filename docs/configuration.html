@@ -150,9 +150,9 @@ node scripts/secret.js</code></pre>
 
 S3_REGION=us-east-1
 S3_BUCKET_NAME=copilot-ld
-S3_BUCKET_ROLE_ARN=arn:aws:iam::xxxxxxxxxxxx:xxx      # When deploying with AWS
-S3_ACCESS_KEY_ID=xxx                                  # When deploying with MinIO
-S3_SECRET_ACCESS_KEY=xxx                              # When deploying with MinIO
+S3_BUCKET_ROLE_ARN=arn:aws:iam::xxxxxxxxxxxx:xxx      # For local development and CI/CD
+AWS_ACCESS_KEY_ID=xxx                                 # For MinIO or direct S3 access
+AWS_SECRET_ACCESS_KEY=xxx                             # For MinIO or direct S3 access
 </code></pre>
 
       <h4>Development Options</h4>
@@ -315,11 +315,22 @@ docker compose up</code></pre>
             <td>S3 or MinIO</td>
           </tr>
           <tr>
-            `
             <td><code>S3_BUCKET_ROLE_ARN</code></td>
-            <td>S3 bucket role ARN for data storage</td>
+            <td>S3 bucket role ARN for local development and CI/CD</td>
             <td><code>arn:aws:iam::123456789012:role/S3Access</code></td>
-            <td>S3 or MinIO</td>
+            <td>Local/CI only</td>
+          </tr>
+          <tr>
+            <td><code>AWS_ACCESS_KEY_ID</code></td>
+            <td>AWS access key ID for S3 operations</td>
+            <td>-</td>
+            <td>MinIO or direct S3</td>
+          </tr>
+          <tr>
+            <td><code>AWS_SECRET_ACCESS_KEY</code></td>
+            <td>AWS secret access key for S3 operations</td>
+            <td>-</td>
+            <td>MinIO or direct S3</td>
           </tr>
           <tr>
             <td><code>S3_ENDPOINT</code></td>

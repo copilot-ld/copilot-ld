@@ -1,5 +1,22 @@
 # Changelog
 
+## 2025-09-30
+
+- **NEW**: Created minimal `network.yml` CloudFormation template for VPC and
+  networking infrastructure
+- **NEW**: Added `demo-network.yml` GitHub workflow for automated network
+  deployment
+- **SIMPLIFIED**: Minimal template uses hardcoded CIDR blocks and single NAT
+  Gateway for cost efficiency
+- **ARCHITECTURE**: Provides essential networking requirements for
+  `services.yml` deployment
+- **OUTPUTS**: Added three core outputs: `VpcId`, `PublicSubnetIds`,
+  `PrivateSubnetIds`
+- **ENHANCED**: Standardized all demo workflow outputs with consistent
+  formatting and step indicators
+- **IMPROVED**: Added cohesive deployment messaging that clearly shows
+  progression through 4-step deployment process
+
 ## 2025-09-28
 
 - **NEW**: Created `secrets.yml` CloudFormation template for AWS Secrets Manager

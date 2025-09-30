@@ -107,10 +107,10 @@ jobs:
             --template-file infrastructure/cloudformation/services.yml \
             --stack-name ${{ inputs.stack_name }} \
             --parameter-overrides \
-              VpcId=${{ inputs.vpc_id }} \
+              VpcId="${{ inputs.vpc_id }}" \
               PublicSubnetIds="${{ inputs.public_subnet_ids }}" \
               PrivateSubnetIds="${{ inputs.private_subnet_ids }}" \
-              ContainerTag=${{ inputs.container_tag }} \
+              ContainerTag="${{ inputs.container_tag }}" \
               GitHubTokenArn="${{ steps.stack-outputs.outputs.github_token_arn }}" \
               ServiceSecretArn="${{ steps.stack-outputs.outputs.service_secret_arn }}" \
               BucketName="${{ steps.stack-outputs.outputs.bucket_name }}" \
@@ -127,5 +127,11 @@ jobs:
             --output text \
             --region ${{ inputs.aws_region }})
 
-          echo "✅ Services deployed successfully!"
-          echo "Access URL: http://$ALB_DNS"
+          echo "✅ Copilot-LD Demo: Application Services Deployed (Step 4/4)"
+          echo ""
+          echo "Stack: ${{ inputs.stack_name }}"
+          echo "Region: ${{ inputs.aws_region }}"
+          echo ""
+          echo "Application URL: http://$ALB_DNS/web"
+          echo ""
+          echo "🎉 Demo deployment complete! All services are running."

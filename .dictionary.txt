@@ -19,6 +19,7 @@ Changelog
 charset
 chunking
 CI
+CIDR
 CloudFormation
 CloudWatch
 CLI
@@ -64,6 +65,7 @@ gRPC
 grpc-enabled
 gRPC-enabled
 gRPCs
+hardcoded
 hgroup
 HMAC
 HMAC-based
@@ -188,6 +190,8 @@ ssl
 SSL
 stdin
 stdout
+subnet
+subnets
 subtask
 subtasks
 symlinks

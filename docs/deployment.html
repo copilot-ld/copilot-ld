@@ -228,6 +228,11 @@ aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/CloudFormationFullAccess
 
+# Attach EC2 permissions for network infrastructure deployment
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess
+
 # Attach ECS permissions for service deployment
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
@@ -279,11 +284,15 @@ aws iam attach-role-policy \
       <h5>4. Workflow Usage</h5>
 
       <p>
-        The configured OIDC role enables secure access in three deployment
+        The configured OIDC role enables secure access in four deployment
         workflows:
       </p>
 
       <ul>
+        <li>
+          <strong>demo-network.yml</strong>: Deploys VPC network infrastructure
+          including subnets, NAT gateway, and routing tables
+        </li>
         <li>
           <strong>demo-secrets.yml</strong>: Deploys AWS Secrets Manager secrets
           for GitHub tokens and service authentication
@@ -321,6 +330,42 @@ aws iam attach-role-policy \
         handle all CloudFormation stack creation, parameter management, and
         deployment orchestration. See the workflow files for specific
         implementation details and current deployment procedures.
+      </p>
+
+      <h4>Deployment Order</h4>
+
+      <p>
+        Deploy the CloudFormation stacks in the following order using the GitHub
+        Actions workflows:
+      </p>
+
+      <ol>
+        <li>
+          <strong>Network Infrastructure</strong>: Deploy
+          <code>demo-network.yml</code> workflow first to create the VPC,
+          subnets, NAT gateways, and routing infrastructure
+        </li>
+        <li>
+          <strong>Secrets Management</strong>: Deploy
+          <code>demo-secrets.yml</code> workflow to create AWS Secrets Manager
+          resources for secure credential storage
+        </li>
+        <li>
+          <strong>Data Storage</strong>: Deploy
+          <code>demo-data.yml</code> workflow to create S3 bucket and IAM roles
+          for data access
+        </li>
+        <li>
+          <strong>Services</strong>: Deploy
+          <code>demo-services.yml</code> workflow to create ECS services, load
+          balancer, and application infrastructure
+        </li>
+      </ol>
+
+      <p>
+        Each stack outputs the necessary parameters for the next stack in the
+        deployment chain. The network stack provides VPC and subnet IDs required
+        by the services stack.
       </p>
 
       <h4>Data Upload</h4>

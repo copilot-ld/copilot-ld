@@ -88,4 +88,18 @@ jobs:
           # Upload all data using the upload utility
           npx --workspace=@copilot-ld/libutil upload
 
-          echo "✅ Data processing completed"
+      - name: Display deployment summary
+        run: |
+          echo "✅ Copilot-LD Demo: Data Infrastructure & Knowledge Base Deployed (Step 3/4)"
+          echo ""
+          echo "Stack: ${{ inputs.stack_name }}"
+          echo "Region: ${{ inputs.aws_region }}"
+          echo ""
+          echo "Data Resources:"
+          echo "  S3 Bucket: ${{ steps.bucket.outputs.s3_bucket_name }}"
+          echo "  Bucket Role ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}"
+          echo ""
+          echo "Knowledge Base: Example data uploaded and indexed"
+          echo ""
+          echo "Next Step: Deploy application services"
+          echo "Workflow: demo-services.yml"

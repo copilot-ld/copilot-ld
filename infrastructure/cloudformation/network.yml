@@ -5,6 +5,7 @@ Parameters:
   EnvironmentName:
     Type: String
     Default: copilot-ld-demo
+    Description: Environment name for resource naming
 
 Resources:
   # VPC
@@ -16,7 +17,7 @@ Resources:
       EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-vpc"
+          Value: !Sub "${EnvironmentName}-cld-network-vpc-cf"
 
   # Internet Gateway
   InternetGateway:
@@ -24,7 +25,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-igw"
+          Value: !Sub "${EnvironmentName}-cld-network-igw-cf"
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -42,7 +43,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-1"
+          Value: !Sub "${EnvironmentName}-cld-public1-subnet-cf"
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -53,7 +54,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-2"
+          Value: !Sub "${EnvironmentName}-cld-public2-subnet-cf"
 
   # Private Subnets
   PrivateSubnet1:
@@ -64,7 +65,7 @@ Resources:
       CidrBlock: 10.0.3.0/24
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-1"
+          Value: !Sub "${EnvironmentName}-cld-private1-subnet-cf"
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -74,7 +75,7 @@ Resources:
       CidrBlock: 10.0.4.0/24
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-2"
+          Value: !Sub "${EnvironmentName}-cld-private2-subnet-cf"
 
   # NAT Gateway (single instance for cost efficiency)
   NatGatewayEIP:
@@ -96,7 +97,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-routes"
+          Value: !Sub "${EnvironmentName}-cld-publicroutes-rtable-cf"
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -124,7 +125,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-routes"
+          Value: !Sub "${EnvironmentName}-cld-privateroutes-rtable-cf"
 
   DefaultPrivateRoute:
     Type: AWS::EC2::Route
@@ -145,15 +146,120 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref PrivateSubnet2
 
+  # ==========================================
+  # SECURITY GROUPS
+  # ==========================================
+
+  # Security group allowing HTTP traffic and internal service communication
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${EnvironmentName}-cld-services-secgroup-cf"
+      GroupDescription: Security group for all Copilot-LD services
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-cld-services-secgroup-cf"
+
+  # Add self-referencing ingress rules separately to avoid circular dependency
+  ServiceSecurityGroupIngressInternal:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ServiceSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3000
+      ToPort: 3005
+      SourceSecurityGroupId: !Ref ServiceSecurityGroup
+
+  ServiceSecurityGroupIngressGRPC:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ServiceSecurityGroup
+      IpProtocol: tcp
+      FromPort: 50051
+      ToPort: 50055
+      SourceSecurityGroupId: !Ref ServiceSecurityGroup
+
+  # ==========================================
+  # APPLICATION LOAD BALANCER
+  # ==========================================
+
+  # Application Load Balancer for web traffic distribution
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${EnvironmentName}-cld-web-alb-cf"
+      Type: application
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref ServiceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-cld-web-alb-cf"
+
+  # HTTP listener with default 404 response for unmatched paths
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: 404
+            ContentType: text/plain
+            MessageBody: "Not found"
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  # ==========================================
+  # SERVICE DISCOVERY
+  # ==========================================
+
+  # Service discovery namespace for internal communication
+  ServiceDiscoveryNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: !Sub "${EnvironmentName}.cld.local"
+      Vpc: !Ref VPC
+      Description: Service discovery namespace for Copilot-LD services
+
 Outputs:
   VpcId:
     Description: VPC ID for use by dependent stacks
     Value: !Ref VPC
 
   PublicSubnetIds:
-    Description: Comma-separated list of public subnet IDs
+    Description: List of public subnet IDs
     Value: !Sub "${PublicSubnet1},${PublicSubnet2}"
 
   PrivateSubnetIds:
-    Description: Comma-separated list of private subnet IDs
+    Description: List of private subnet IDs
     Value: !Sub "${PrivateSubnet1},${PrivateSubnet2}"
+
+  ServiceSecurityGroupId:
+    Description: Security group ID for services
+    Value: !Ref ServiceSecurityGroup
+
+  ApplicationLoadBalancerArn:
+    Description: ARN of the Application Load Balancer
+    Value: !Ref ApplicationLoadBalancer
+
+  ApplicationLoadBalancerDNSName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+  ALBListenerArn:
+    Description: ARN of the ALB HTTP listener
+    Value: !Ref ALBListener
+
+  ServiceDiscoveryNamespaceId:
+    Description: Service discovery namespace ID
+    Value: !Ref ServiceDiscoveryNamespace

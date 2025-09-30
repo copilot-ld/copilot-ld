@@ -1,12 +1,23 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "S3 bucket for all Copilot-LD data storage"
 
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: copilot-ld-demo
+    Description: Environment name for resource naming
+
+  GitHubActionsRoleName:
+    Type: String
+    Default: GitHubActions-CopilotLD-Demo-Deploy
+    Description: Name of the GitHub Actions IAM role for deployment access
+
 Resources:
   # S3 bucket for persistent data storage with security restrictions
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "copilot-ld-${AWS::AccountId}"
+      BucketName: !Sub "${EnvironmentName}-cld-data-s3-cf-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -26,7 +37,7 @@ Resources:
             Action: sts:AssumeRole
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/GitHubActions-CopilotLD-Demo-Deploy"
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/${GitHubActionsRoleName}"
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy

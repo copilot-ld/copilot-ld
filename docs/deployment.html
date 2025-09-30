@@ -143,6 +143,57 @@ docker compose ps</code></pre>
         production-grade scalability and managed infrastructure.
       </p>
 
+      <h4>Infrastructure Naming Standard</h4>
+
+      <p>
+        All AWS resources follow a consistent naming pattern:
+        <code
+          >${EnvironmentName}-cld-&lt;Component&gt;-&lt;resourcetype&gt;-cf</code
+        >
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Examples</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>EnvironmentName</code></td>
+            <td>
+              Environment identifier (e.g., <code>demo</code>,
+              <code>prod</code>)
+            </td>
+          </tr>
+          <tr>
+            <td><code>cld</code></td>
+            <td>Copilot-LD project identifier</td>
+          </tr>
+          <tr>
+            <td><code>component</code></td>
+            <td>
+              Single string: <code>network</code>, <code>agent</code>,
+              <code>web</code>, <code>public1</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>resourcetype</code></td>
+            <td>
+              <code>vpc</code>, <code>subnet</code>, <code>cluster</code>,
+              <code>service</code>, <code>taskdef</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>cf</code></td>
+            <td>CloudFormation deployment indicator</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><strong>Example:</strong> <code>demo-cld-agent-service-cf</code></p>
+
       <h4>AWS OIDC Setup for GitHub Actions</h4>
 
       <p>

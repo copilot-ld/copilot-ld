@@ -3,15 +3,15 @@ name: Demo Deployment of Data
 on:
   workflow_dispatch:
     inputs:
+      environment_name:
+        description: "Environment name prefix for resources"
+        required: true
+        default: "demo"
+        type: string
       aws_region:
         description: "AWS region for deployment"
         required: true
         default: "us-east-1"
-        type: string
-      stack_name:
-        description: "CloudFormation stack name"
-        required: true
-        default: "copilot-ld-demo-data"
         type: string
 
 jobs:
@@ -36,28 +36,33 @@ jobs:
 
       - name: Deploy data infrastructure
         run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
           aws cloudformation deploy \
             --template-file infrastructure/cloudformation/data.yml \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
+            --parameter-overrides \
+              EnvironmentName=${{ inputs.environment_name }} \
             --capabilities CAPABILITY_IAM \
             --region ${{ inputs.aws_region }}
 
       - name: Get bucket name
         id: bucket
         run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
           S3_BUCKET_NAME=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
             --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
             --output text \
             --region ${{ inputs.aws_region }})
           S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.stack_name }} \
+            --stack-name $STACK_NAME \
             --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
             --output text \
             --region ${{ inputs.aws_region }})
 
           echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
           echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
 
       - name: Process knowledge data
         env:
@@ -90,9 +95,9 @@ jobs:
 
       - name: Display deployment summary
         run: |
-          echo "✅ Copilot-LD Demo: Data Infrastructure & Knowledge Base Deployed (Step 3/4)"
+          echo "✅ Copilot-LD Demo: Data Infrastructure & Knowledge Base Deployed (Step 3/5)"
           echo ""
-          echo "Stack: ${{ inputs.stack_name }}"
+          echo "Stack: ${{ steps.bucket.outputs.stack_name }}"
           echo "Region: ${{ inputs.aws_region }}"
           echo ""
           echo "Data Resources:"

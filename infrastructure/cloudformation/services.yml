@@ -2,17 +2,26 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "AWS ALB and Fargate services for Copilot-LD platform"
 
 Parameters:
+  EnvironmentName:
+    Type: String
+    Default: copilot-ld-demo
+    Description: Environment name for resource naming
+
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC for deployment
 
-  PublicSubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: Public subnets for ALB (minimum two)
-
   PrivateSubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
+    Type: CommaDelimitedList
     Description: Private subnets for services (minimum two)
+
+  ServiceSecurityGroupId:
+    Type: String
+    Description: Security group ID for services
+
+  ServiceDiscoveryNamespaceId:
+    Type: String
+    Description: Service discovery namespace ID
 
   ContainerTag:
     Type: String
@@ -41,97 +50,6 @@ Parameters:
 
 Resources:
   # ==========================================
-  # NETWORKING & SECURITY
-  # ==========================================
-
-  # Security group allowing HTTP traffic and internal service communication
-  ServiceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: copilot-ld-services
-      GroupDescription: Security group for all Copilot-LD services
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-
-  # Add self-referencing ingress rules separately to avoid circular dependency
-  ServiceSecurityGroupIngressInternal:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref ServiceSecurityGroup
-      IpProtocol: tcp
-      FromPort: 3000
-      ToPort: 3005
-      SourceSecurityGroupId: !Ref ServiceSecurityGroup
-
-  ServiceSecurityGroupIngressGRPC:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref ServiceSecurityGroup
-      IpProtocol: tcp
-      FromPort: 50051
-      ToPort: 50055
-      SourceSecurityGroupId: !Ref ServiceSecurityGroup
-
-  # Application Load Balancer for web traffic distribution
-  ApplicationLoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Name: copilot-ld-alb
-      Type: application
-      Scheme: internet-facing
-      Subnets: !Ref PublicSubnetIds
-      SecurityGroups:
-        - !Ref ServiceSecurityGroup
-
-  # Target group for web service load balancer routing
-  WebTargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      Name: copilot-ld-web
-      Port: 3000
-      Protocol: HTTP
-      VpcId: !Ref VpcId
-      TargetType: ip
-      HealthCheckPath: /web/health
-      HealthCheckProtocol: HTTP
-      HealthCheckIntervalSeconds: 30
-      HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 3
-
-  # HTTP listener with default 404 response for unmatched paths
-  ALBListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      DefaultActions:
-        - Type: fixed-response
-          FixedResponseConfig:
-            StatusCode: 404
-            ContentType: text/plain
-            MessageBody: "Not found"
-      LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: 80
-      Protocol: HTTP
-
-  # Listener rule for web service
-  WebListenerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    Properties:
-      Actions:
-        - Type: forward
-          TargetGroupArn: !Ref WebTargetGroup
-      Conditions:
-        - Field: path-pattern
-          Values:
-            - "/web/*"
-      ListenerArn: !Ref ALBListener
-      Priority: 100
-
-  # ==========================================
   # ECS INFRASTRUCTURE
   # ==========================================
 
@@ -139,93 +57,48 @@ Resources:
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: copilot-ld
-
-  # Service discovery namespace for internal communication
-  ServiceDiscoveryNamespace:
-    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
-    Properties:
-      Name: copilot-ld.local
-      Vpc: !Ref VpcId
+      ClusterName: !Sub "${EnvironmentName}-cld-services-cluster-cf"
 
   # CloudWatch log groups for service logging
-  WebLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /ecs/copilot-ld-web
-
   AgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /ecs/copilot-ld-agent
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-agent-loggroup-cf"
+      RetentionInDays: 7
 
   MemoryLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /ecs/copilot-ld-memory
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-memory-loggroup-cf"
+      RetentionInDays: 7
 
   LLMLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /ecs/copilot-ld-llm
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-llm-loggroup-cf"
+      RetentionInDays: 7
 
   VectorLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /ecs/copilot-ld-vector
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-vector-loggroup-cf"
+      RetentionInDays: 7
 
   ToolLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /ecs/copilot-ld-tool
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-tool-loggroup-cf"
+      RetentionInDays: 7
 
   # ==========================================
   # TASK DEFINITIONS
   # ==========================================
 
-  # ECS task definitions for service containers
-  WebTaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      Family: copilot-ld-web
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-      Cpu: 256
-      Memory: 512
-      ExecutionRoleArn: !Ref SecretsRoleArn
-      TaskRoleArn: !Ref BucketRoleArn
-      ContainerDefinitions:
-        - Name: web
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/web:${ContainerTag}"
-          Essential: true
-          PortMappings:
-            - ContainerPort: 3000
-          Environment:
-            - Name: NODE_ENV
-              Value: production
-            - Name: STORAGE_TYPE
-              Value: s3
-            - Name: S3_BUCKET_NAME
-              Value: !Ref BucketName
-            - Name: DEBUG
-              Value: "*"
-          Secrets:
-            - Name: GITHUB_TOKEN
-              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
-            - Name: SERVICE_SECRET
-              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: !Ref WebLogGroup
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: web
-
+  # ECS task definitions for backend service containers
   AgentTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: copilot-ld-agent
+      Family: !Sub "${EnvironmentName}-cld-agent-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -263,7 +136,7 @@ Resources:
   MemoryTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: copilot-ld-memory
+      Family: !Sub "${EnvironmentName}-cld-memory-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -301,7 +174,7 @@ Resources:
   LLMTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: copilot-ld-llm
+      Family: !Sub "${EnvironmentName}-cld-llm-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -339,7 +212,7 @@ Resources:
   VectorTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: copilot-ld-vector
+      Family: !Sub "${EnvironmentName}-cld-vector-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -377,7 +250,7 @@ Resources:
   ToolTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: copilot-ld-tool
+      Family: !Sub "${EnvironmentName}-cld-tool-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -416,7 +289,7 @@ Resources:
   # SERVICE DISCOVERY
   # ==========================================
 
-  # Service discovery services for backend services
+  # Service discovery services for backend services (using passed namespace)
   AgentServiceDiscovery:
     Type: AWS::ServiceDiscovery::Service
     Properties:
@@ -425,7 +298,7 @@ Resources:
         DnsRecords:
           - Type: A
             TTL: 300
-      NamespaceId: !Ref ServiceDiscoveryNamespace
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
   MemoryServiceDiscovery:
     Type: AWS::ServiceDiscovery::Service
@@ -435,7 +308,7 @@ Resources:
         DnsRecords:
           - Type: A
             TTL: 300
-      NamespaceId: !Ref ServiceDiscoveryNamespace
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
   LLMServiceDiscovery:
     Type: AWS::ServiceDiscovery::Service
@@ -445,7 +318,7 @@ Resources:
         DnsRecords:
           - Type: A
             TTL: 300
-      NamespaceId: !Ref ServiceDiscoveryNamespace
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
   VectorServiceDiscovery:
     Type: AWS::ServiceDiscovery::Service
@@ -455,7 +328,7 @@ Resources:
         DnsRecords:
           - Type: A
             TTL: 300
-      NamespaceId: !Ref ServiceDiscoveryNamespace
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
   ToolServiceDiscovery:
     Type: AWS::ServiceDiscovery::Service
@@ -465,37 +338,17 @@ Resources:
         DnsRecords:
           - Type: A
             TTL: 300
-      NamespaceId: !Ref ServiceDiscoveryNamespace
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
   # ==========================================
   # ECS SERVICES
   # ==========================================
 
-  # ECS services for running containerized applications
-  WebService:
-    Type: AWS::ECS::Service
-    DependsOn: ALBListener
-    Properties:
-      ServiceName: copilot-ld-web
-      Cluster: !Ref ECSCluster
-      TaskDefinition: !Ref WebTaskDefinition
-      DesiredCount: 1
-      LaunchType: FARGATE
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: DISABLED
-          SecurityGroups:
-            - !Ref ServiceSecurityGroup
-          Subnets: !Ref PrivateSubnetIds
-      LoadBalancers:
-        - ContainerName: web
-          ContainerPort: 3000
-          TargetGroupArn: !Ref WebTargetGroup
-
+  # ECS services for running backend containerized applications
   AgentService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: copilot-ld-agent
+      ServiceName: !Sub "${EnvironmentName}-cld-agent-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref AgentTaskDefinition
       DesiredCount: 1
@@ -504,7 +357,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
           SecurityGroups:
-            - !Ref ServiceSecurityGroup
+            - !Ref ServiceSecurityGroupId
           Subnets: !Ref PrivateSubnetIds
       ServiceRegistries:
         - RegistryArn: !GetAtt AgentServiceDiscovery.Arn
@@ -512,7 +365,7 @@ Resources:
   MemoryService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: copilot-ld-memory
+      ServiceName: !Sub "${EnvironmentName}-cld-memory-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref MemoryTaskDefinition
       DesiredCount: 1
@@ -521,7 +374,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
           SecurityGroups:
-            - !Ref ServiceSecurityGroup
+            - !Ref ServiceSecurityGroupId
           Subnets: !Ref PrivateSubnetIds
       ServiceRegistries:
         - RegistryArn: !GetAtt MemoryServiceDiscovery.Arn
@@ -529,7 +382,7 @@ Resources:
   LLMService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: copilot-ld-llm
+      ServiceName: !Sub "${EnvironmentName}-cld-llm-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref LLMTaskDefinition
       DesiredCount: 1
@@ -538,7 +391,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
           SecurityGroups:
-            - !Ref ServiceSecurityGroup
+            - !Ref ServiceSecurityGroupId
           Subnets: !Ref PrivateSubnetIds
       ServiceRegistries:
         - RegistryArn: !GetAtt LLMServiceDiscovery.Arn
@@ -546,7 +399,7 @@ Resources:
   VectorService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: copilot-ld-vector
+      ServiceName: !Sub "${EnvironmentName}-cld-vector-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref VectorTaskDefinition
       DesiredCount: 1
@@ -555,7 +408,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
           SecurityGroups:
-            - !Ref ServiceSecurityGroup
+            - !Ref ServiceSecurityGroupId
           Subnets: !Ref PrivateSubnetIds
       ServiceRegistries:
         - RegistryArn: !GetAtt VectorServiceDiscovery.Arn
@@ -563,7 +416,7 @@ Resources:
   ToolService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: copilot-ld-tool
+      ServiceName: !Sub "${EnvironmentName}-cld-tool-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref ToolTaskDefinition
       DesiredCount: 1
@@ -572,27 +425,19 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
           SecurityGroups:
-            - !Ref ServiceSecurityGroup
+            - !Ref ServiceSecurityGroupId
           Subnets: !Ref PrivateSubnetIds
       ServiceRegistries:
         - RegistryArn: !GetAtt ToolServiceDiscovery.Arn
 
 Outputs:
-  LoadBalancerDNSName:
-    Description: DNS name of the load balancer
-    Value: !GetAtt ApplicationLoadBalancer.DNSName
-
-  WebServiceURL:
-    Description: URL for the web service with /web prefix
-    Value: !Sub "http://${ApplicationLoadBalancer.DNSName}/web"
-
   ECSClusterName:
     Description: Name of the ECS cluster
     Value: !Ref ECSCluster
 
-  WebServiceArn:
-    Description: ARN of the web service
-    Value: !Ref WebService
+  ECSClusterArn:
+    Description: ARN of the ECS cluster
+    Value: !GetAtt ECSCluster.Arn
 
   AgentServiceArn:
     Description: ARN of the agent service

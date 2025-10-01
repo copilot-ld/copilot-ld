@@ -318,7 +318,7 @@ Resources:
   ServiceDiscoveryNamespace:
     Type: AWS::ServiceDiscovery::PrivateDnsNamespace
     Properties:
-      Name: !Sub "${EnvironmentName}.cld.local"
+      Name: !Sub "${EnvironmentName}.copilot-ld.local"
       Vpc: !Ref VPC
       Description: Service discovery namespace for Copilot-LD services
 

@@ -18,8 +18,10 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "js-tiktoken": "^1.0.20"
+  },
+  "devDependencies": {
     "@grpc/proto-loader": "^0.8.0",
-    "js-tiktoken": "^1.0.20",
     "mustache": "^4.2.0",
     "protobufjs": "^7.4.0"
   },

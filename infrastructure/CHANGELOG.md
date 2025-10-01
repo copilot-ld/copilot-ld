@@ -2,16 +2,6 @@
 
 ## 2025-10-01
 
-- **ENHANCED**: Updated `secrets.yml` CloudFormation template to handle existing
-  secrets gracefully when stack is redeployed
-- **SIMPLIFIED**: Uses native `AWS::SecretsManager::Secret` resources with
-  `DeletionPolicy: Retain` and `RecoveryWindowInDays: 0`
-- **FIXED**: Resolved stack deployment failures when secrets already exist from
-  previous deployments
-- **IMPROVED**: Secrets are retained when stack is deleted but immediately
-  available for recreation without recovery window
-- **ARCHITECTURE**: Simple, native CloudFormation approach without custom Lambda
-  complexity
 - **FIXED**: Added VPC endpoints to `network.yml` CloudFormation template to
   resolve ECS tasks' inability to access AWS Secrets Manager from private
   subnets

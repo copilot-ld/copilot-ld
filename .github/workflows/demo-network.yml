@@ -53,12 +53,6 @@ jobs:
             --output text \
             --region ${{ inputs.aws_region }})
 
-          PUBLIC_SUBNET_IDS=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`PublicSubnetIds`].OutputValue' \
-            --output text \
-            --region ${{ inputs.aws_region }})
-
           PRIVATE_SUBNET_IDS=$(aws cloudformation describe-stacks \
             --stack-name $STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`PrivateSubnetIds`].OutputValue' \
@@ -66,7 +60,6 @@ jobs:
             --region ${{ inputs.aws_region }})
 
           echo "vpc_id=$VPC_ID" >> $GITHUB_OUTPUT
-          echo "public_subnet_ids=$PUBLIC_SUBNET_IDS" >> $GITHUB_OUTPUT
           echo "private_subnet_ids=$PRIVATE_SUBNET_IDS" >> $GITHUB_OUTPUT
           echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
 
@@ -79,7 +72,6 @@ jobs:
           echo ""
           echo "Network Resources:"
           echo "  VPC ID: ${{ steps.network-outputs.outputs.vpc_id }}"
-          echo "  Public Subnets: ${{ steps.network-outputs.outputs.public_subnet_ids }}"
           echo "  Private Subnets: ${{ steps.network-outputs.outputs.private_subnet_ids }}"
           echo ""
           echo "Next Step: Deploy secrets infrastructure"

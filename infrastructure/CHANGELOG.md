@@ -1,5 +1,21 @@
 # Changelog
 
+## 2025-10-01
+
+- **FIXED**: Added VPC endpoints to `network.yml` CloudFormation template to
+  resolve ECS tasks' inability to access AWS Secrets Manager from private
+  subnets
+- **NEW**: Created `VPCEndpointSecurityGroup` in network infrastructure to allow
+  HTTPS traffic from ECS services to VPC endpoints
+- **NEW**: Added VPC endpoints for `secretsmanager`, `s3`, `ecr.api`, `ecr.dkr`,
+  and `logs` services to enable private subnet connectivity
+- **ARCHITECTURE**: VPC endpoints properly located in network layer as shared
+  infrastructure for both services and extensions
+- **ENHANCED**: Both `services.yml` and `extensions.yml` deployments now benefit
+  from shared VPC endpoint infrastructure
+- **IMPROVED**: Reduced deployment costs by eliminating unnecessary internet
+  traffic for AWS service communication
+
 ## 2025-09-30
 
 - **FIXED**: Removed `S3_BUCKET_ROLE_ARN` environment variable from all ECS task

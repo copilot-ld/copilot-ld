@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-02
+
+- Replaced `jsdom` and `dompurify` dependencies with `sanitize-html` for
+  simplified HTML sanitization
+- Updated `HtmlFormatter` to use `sanitize-html` API with streamlined
+  configuration
+
 ## 2025-09-16
 
 - Bump version one last time, really

@@ -1,7 +1,6 @@
 /* eslint-env node */
 
 /** @typedef {typeof import("process")} Process */
-/** @typedef {typeof import("dotenv").config} DotenvConfig */
 
 /**
  * Base interface for configuration management
@@ -14,7 +13,6 @@ export class ConfigInterface {
    * @param {object} _defaults - Default configuration values
    * @param {object} _fs - File system operations
    * @param {object} _process - Process environment access
-   * @param {(options?: object) => object} _dotenv - Dotenv config function
    * @param {(bucket: string, type?: string, process?: object) => object} _storageFn - Optional storage factory function
    * @throws {Error} Not implemented
    */
@@ -24,7 +22,6 @@ export class ConfigInterface {
     _defaults = {},
     _fs = null,
     _process = null,
-    _dotenv = null,
     _storageFn = null,
   ) {
     this.namespace = namespace;

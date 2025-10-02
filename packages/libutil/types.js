@@ -116,6 +116,26 @@ export class CodegenInterface {
   }
 
   /**
+   * Generate service definition artifacts (pre-compiled to eliminate proto-loader)
+   * @param {string} generatedPath - Absolute path to librpc package generated directory
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async runDefinitions(generatedPath) {
+    throw new Error("CodegenInterface.runDefinitions() not implemented");
+  }
+
+  /**
+   * Generate definitions exports file
+   * @param {string} generatedPath - Absolute path to librpc package generated directory
+   * @returns {Promise<void>}
+   * @throws {Error} Not implemented
+   */
+  async runDefinitionsExports(generatedPath) {
+    throw new Error("CodegenInterface.runDefinitionsExports() not implemented");
+  }
+
+  /**
    * Generate dynamic service exports file
    * @param {string} generatedPath - Absolute path to librpc package generated directory
    * @returns {Promise<void>}

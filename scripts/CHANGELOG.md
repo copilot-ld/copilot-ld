@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-02
+
+- Updated `tools.js` to read tool configurations from dedicated
+  `config/tools.yml` instead of service configuration
+- Simplified tool configuration management by removing `ScriptConfig` dependency
+
 ## 2025-09-27
 
 - **BREAKING**: Migrated `upload.js` functionality to `@copilot-ld/libutil`

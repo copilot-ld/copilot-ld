@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-02
+
+- **BREAKING**: Migrated configuration format from YAML (`config.yml`) to JSON
+  (`config.json`) for simplified parsing
+- **BREAKING**: Removed `dotenv` and `js-yaml` dependencies, using Node.js
+  `--env-file` flag and native JSON parsing instead
+- Enhanced configuration loading with native Node.js APIs for improved
+  performance and reduced dependencies
+
 ## 2025-09-16
 
 - Bump version one last time, really

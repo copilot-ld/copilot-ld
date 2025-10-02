@@ -4,8 +4,7 @@ import fs from "fs";
 import path from "path";
 import { createRequire } from "node:module";
 
-import { Tiktoken } from "js-tiktoken/lite";
-import o200k_base from "js-tiktoken/ranks/o200k_base";
+import { Tokenizer, ranks } from "./tokenizer.js";
 
 import { LoggerInterface, ProcessorInterface } from "./types.js";
 
@@ -304,7 +303,7 @@ export function getLatestUserMessage(messages) {
 /**
  * Helper function to count tokens
  * @param {string} text - Text to count tokens for
- * @param {Tiktoken} tokenizer - Tokenizer instance
+ * @param {Tokenizer} tokenizer - Tokenizer instance
  * @returns {number} Approximate token count
  */
 export function countTokens(text, tokenizer) {
@@ -314,10 +313,10 @@ export function countTokens(text, tokenizer) {
 
 /**
  * Creates a new tokenizer instance
- * @returns {Tiktoken} New tokenizer instance
+ * @returns {Tokenizer} New tokenizer instance
  */
 export function tokenizerFactory() {
-  return new Tiktoken(o200k_base);
+  return new Tokenizer(ranks);
 }
 
 // Re-export interfaces

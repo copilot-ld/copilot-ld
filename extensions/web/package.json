@@ -10,7 +10,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "node --watch index.js",
+    "dev": "node --env-file=../../config/.env --watch index.js",
     "docker": "npx download && npm start",
     "start": "node index.js",
     "test": "echo 'No tests specified for this extension'"

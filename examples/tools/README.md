@@ -10,20 +10,17 @@ The Tool service supports two approaches for defining tools:
 ### 1. Mapping to Existing Services (Recommended)
 
 Tools can be mapped to existing gRPC service methods through configuration in
-`config.yml`. This approach requires no additional proto files and leverages
-existing service implementations.
+`config/tools.yml`. This approach requires no additional proto files and
+leverages existing service implementations.
 
 **Example**: A vector search tool can map to the existing `vector.QueryItems`
 method:
 
 ```yaml
-service:
-  tool:
-    endpoints:
-      vector_search:
-        call: "vector.Vector.QueryItems"
-        name: "search_similar_content"
-        description: "Search for similar content using vector embeddings"
+vector_search:
+  call: "vector.Vector.QueryItems"
+  name: "search_similar_content"
+  description: "Search for similar content using vector embeddings"
 ```
 
 ### 2. Custom Tool Services (Optional)
@@ -70,20 +67,19 @@ throughout the platform.
 
 Tools are registered and made available to LLMs through:
 
-1. Configuration mapping in `config.yml`
+1. Configuration mapping in `config/tools.yml`
 2. Schema generation via `scripts/tools.js`
 3. Resource storage in the ResourceIndex
 4. Dynamic discovery through the Tool service
 
 ## Getting Started
 
-1. **For existing service mapping**: Add configuration to `config.yml` under
-   `service.tool.endpoints`
+1. **For existing service mapping**: Add configuration to `config/tools.yml`
 2. **For custom tools**: Create a `.proto` file in this directory and implement
    the corresponding service
 3. Run `npm run codegen` to generate types and service bases
 4. Run `scripts/tools.js` to generate and store tool schemas
-5. Configure the tool mapping in `config.yml`
+5. Configure the tool mapping in `config/tools.yml`
 
 Both approaches support the same proxy architecture and tool execution patterns
 through the Tool service.

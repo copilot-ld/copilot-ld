@@ -98,6 +98,64 @@ export class Codegen extends CodegenInterface {
   }
 
   /** @inheritdoc */
+  async runDefinitions(generatedPath) {
+    if (!generatedPath) throw new Error("generatedPath is required");
+    const protoFiles = this.collectProtoFiles({ includeTools: true }).filter(
+      (file) => !file.endsWith(this.#path.sep + "common.proto"),
+    );
+
+    const definitionsDir = this.#path.join(generatedPath, "definitions");
+    this.#fs.mkdirSync(definitionsDir, { recursive: true });
+
+    for (const protoFile of protoFiles) {
+      const basename = this.#path.basename(protoFile, ".proto");
+      await this.#generateArtifact(
+        "definition",
+        protoFile,
+        definitionsDir,
+        `${basename}.js`,
+      );
+    }
+
+    // Generate the definitions exports file
+    await this.runDefinitionsExports(generatedPath);
+  }
+
+  /** @inheritdoc */
+  async runDefinitionsExports(generatedPath) {
+    if (!generatedPath) throw new Error("generatedPath is required");
+    const definitionsDir = this.#path.join(generatedPath, "definitions");
+    const outputFile = this.#path.join(definitionsDir, "exports.js");
+
+    this.#fs.mkdirSync(this.#path.dirname(outputFile), { recursive: true });
+
+    const definitions = [];
+
+    if (this.#fs.existsSync(definitionsDir)) {
+      for (const file of this.#fs.readdirSync(definitionsDir)) {
+        if (!file.endsWith(".js") || file === "exports.js") continue;
+
+        const serviceName = this.#path.basename(file, ".js");
+        const pascalServiceName = this.#pascalCase(serviceName);
+        definitions.push({
+          name: `${pascalServiceName}ServiceDefinition`,
+          serviceName: serviceName,
+        });
+      }
+    }
+
+    const content = this.#mustache.render(
+      this.#loadTemplate("definitions-exports"),
+      {
+        definitions,
+        hasDefinitions: definitions.length > 0,
+      },
+    );
+
+    this.#fs.writeFileSync(outputFile, content);
+  }
+
+  /** @inheritdoc */
   async runServicesExports(generatedPath) {
     if (!generatedPath) throw new Error("generatedPath is required");
     const serviceDir = this.#path.join(generatedPath, "services");
@@ -129,12 +187,15 @@ export class Codegen extends CodegenInterface {
       }
     }
 
-    const content = this.#mustache.render(this.#loadTemplate("exports"), {
-      services,
-      clients,
-      hasServices: services.length > 0,
-      hasClients: clients.length > 0,
-    });
+    const content = this.#mustache.render(
+      this.#loadTemplate("services-exports"),
+      {
+        services,
+        clients,
+        hasServices: services.length > 0,
+        hasClients: clients.length > 0,
+      },
+    );
 
     this.#fs.writeFileSync(outputFile, content);
   }
@@ -201,8 +262,8 @@ export class Codegen extends CodegenInterface {
   // Private helper methods (implementation details)
 
   /**
-   * Load mustache template for given kind (service|client|exports)
-   * @param {"service"|"client"|"exports"} kind - Template kind
+   * Load mustache template for given kind (service|client|exports|definition)
+   * @param {"service"|"client"|"exports"|"definition"} kind - Template kind
    * @returns {string} Template content
    * @private
    */
@@ -368,13 +429,14 @@ export class Codegen extends CodegenInterface {
 
   /**
    * Render and write a service/client artifact for a given proto into a service dir
-   * @param {"service"|"client"} kind - Artifact kind to generate
+   * @param {"service"|"client"|"definition"} kind - Artifact kind to generate
    * @param {string} protoPath - Absolute path to .proto file
    * @param {string} outputDir - Absolute directory path for output
+   * @param {string} [filename] - Optional custom filename (defaults to kind.js)
    * @returns {Promise<void>}
    * @private
    */
-  async #generateArtifact(kind, protoPath, outputDir) {
+  async #generateArtifact(kind, protoPath, outputDir, filename) {
     const parsed = this.#parseProtoFile(protoPath);
     if (!parsed) return; // Skip non-service proto
 
@@ -391,10 +453,10 @@ export class Codegen extends CodegenInterface {
       methods,
       namespaceName,
       importNamespaces,
-      className: `${serviceName}${kind === "service" ? "Base" : "Client"}`,
+      className: `${serviceName}${kind === "service" ? "Base" : kind === "client" ? "Client" : "ServiceDefinition"}`,
     });
 
-    const jsFile = this.#path.join(outputDir, `${kind}.js`);
+    const jsFile = this.#path.join(outputDir, filename || `${kind}.js`);
     this.#fs.writeFileSync(jsFile, rendered);
   }
 }

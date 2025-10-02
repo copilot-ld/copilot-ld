@@ -583,9 +583,10 @@ sequenceDiagram
 npm run codegen
 
 # Generate specific components
-npm run codegen:type     # Types only
-npm run codegen:service  # Service base classes only  
-npm run codegen:client   # Client classes only</code></pre>
+npm run codegen:type        # Types only
+npm run codegen:service     # Service base classes only  
+npm run codegen:client      # Client classes only
+npm run codegen:definition  # Service definitions only</code></pre>
 
       <p>
         The codegen utility uses <code>protobufjs</code> for schema processing
@@ -609,7 +610,10 @@ npm run codegen:client   # Client classes only</code></pre>
     │   ├── service.js   # Generated base class
     │   └── client.js    # Generated typed client
     ├── exports.js       # Aggregated service/client exports
-    └── .../
+    └── definitions/     # Pre-compiled service definitions
+        ├── agent.js     # gRPC service definition for Agent
+        ├── vector.js    # gRPC service definition for Vector
+        └── exports.js   # Aggregated definitions exports
 
 # Package symlinks provide access through framework-agnostic packages
 ./packages/libtype/generated/    → symlink to ./generated/
@@ -638,8 +642,14 @@ npm run codegen:client   # Client classes only</code></pre>
           accessible via <code>@copilot-ld/libtype</code>
         </li>
         <li>
-          <strong>Service Infrastructure</strong>: Produces base classes and
-          typed clients through <code>@copilot-ld/librpc</code>
+          <strong>Service Infrastructure</strong>: Produces base classes, typed
+          clients, and pre-compiled service definitions through
+          <code>@copilot-ld/librpc</code>
+        </li>
+        <li>
+          <strong>Pre-compiled Definitions</strong>: Generates runtime-ready
+          gRPC service definitions that eliminate the need for proto-loader
+          dependencies
         </li>
         <li>
           <strong>Package Integration</strong>: Symlinks provide clean access

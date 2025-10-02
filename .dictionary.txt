@@ -150,11 +150,13 @@ PID
 plugins
 pre-compile
 pre-compiled
+Pre-compiled
 pre-processed
 preloaded
 Preloaded
 prod
 proto
+proto-loader
 Proto
 Protobuf
 protobuf

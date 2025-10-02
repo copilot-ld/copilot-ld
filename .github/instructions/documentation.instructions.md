@@ -26,13 +26,16 @@ synchronized with all code changes across the platform.
 4. **Component Changelogs**: Each component in `extensions/`, `packages/`, and
    `services/` must maintain a simple `CHANGELOG.md` in descending chronological
    order
-5. **Synchronous Updates**: Documentation updates must accompany code changes in
+5. **Present Tense Only**: All documentation must describe the current state
+   using simple present tense. Never reference previous states, past
+   configurations, or what has changed (changelog files are the only exception)
+6. **Synchronous Updates**: Documentation updates must accompany code changes in
    the same commit or pull request
-6. **Simple Maintenance**: Keep documentation updates straightforward and
+7. **Simple Maintenance**: Keep documentation updates straightforward and
    focused on essential information
-7. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
+8. **Valid JavaScript Code Blocks**: All JavaScript code blocks in Markdown must
    be complete, valid, and pass ES linting with strict configuration
-8. **🚨 CRITICAL: Spellcheck Strategy 🚨**: Use different approaches for
+9. **🚨 CRITICAL: Spellcheck Strategy 🚨**: Use different approaches for
    different types of terms:
    - **Code Elements**: Format programming symbols (variable names, class names,
      method names, property names), file names, directory names, and API/service
@@ -306,6 +309,8 @@ services:
 ### Documentation Quality
 
 - Use present tense for current capabilities: "provides", "handles", "processes"
+- **Never reference past states**: Document only what the system currently does,
+  not what it used to do or what changed (except in changelog files)
 - Be specific about system components and data flows
 - Keep descriptions clear and concise
 - Focus on essential information that helps users and developers

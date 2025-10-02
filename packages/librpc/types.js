@@ -14,7 +14,7 @@ export class RpcInterface {
   /**
    * Creates a new base RPC instance
    * @param {ServiceConfigInterface} config - Service configuration object
-   * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
+   * @param {() => {grpc: object}} grpcFn - Function that returns gRPC instance (optional, defaults to grpcFactory)
    * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
    * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */
@@ -26,13 +26,6 @@ export class RpcInterface {
    * Gets the gRPC instance
    */
   grpc() {
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * Gets the proto loader instance
-   */
-  protoLoader() {
     throw new Error("Not implemented");
   }
 
@@ -51,15 +44,6 @@ export class RpcInterface {
   debug(message, context) {
     throw new Error("Not implemented");
   }
-
-  /**
-   * Loads proto definition with standard options using a config object
-   * @param {string} serviceName - Name of the service to load proto for
-   * @returns {Promise<object>} Loaded proto package definition
-   */
-  async loadProto(serviceName) {
-    throw new Error("Not implemented");
-  }
 }
 
 /**
@@ -69,7 +53,7 @@ export class ClientInterface extends RpcInterface {
   /**
    * Creates a new gRPC client instance with automatic method wrapping
    * @param {ServiceConfigInterface} config - Service configuration object
-   * @param {() => {grpc: object, protoLoader: object}} grpcFn - Function that returns gRPC dependencies (optional, defaults to grpcFactory)
+   * @param {() => {grpc: object}} grpcFn - Function that returns gRPC instance (optional, defaults to grpcFactory)
    * @param {(serviceName: string) => object} authFn - Function that returns auth instance (optional, defaults to authFactory)
    * @param {(namespace: string) => object} logFn - Function that returns logger instance (optional, defaults to logFactory)
    */

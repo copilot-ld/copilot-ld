@@ -13,8 +13,9 @@
 **/.env*
 !**/.env.example
 **/.github_token
-**/config.yml
+**/config.json
 **/assistants.yml
+**/tools.yml
 
 # For developers
 **/.build_token

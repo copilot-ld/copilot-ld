@@ -330,7 +330,6 @@ syntax:
  * Creates a service instance with dependency injection
  * @param {string} name - Service name identifier
  * @param {object} config - Configuration object
- * @param {(options?: object) => object} dotenv - Dotenv configuration function
  * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Storage factory function
  * @param {() => {grpc: object, protoLoader: object}} grpcFn - gRPC libraries factory function
  * @param {(serviceName: string) => object} authFn - Authentication factory function
@@ -342,7 +341,6 @@ syntax:
 async function createService(
   name,
   config,
-  dotenv,
   storageFn,
   grpcFn,
   authFn,

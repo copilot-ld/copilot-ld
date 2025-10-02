@@ -2,8 +2,6 @@
 import { common } from "@copilot-ld/libtype";
 import { countTokens, tokenizerFactory } from "@copilot-ld/libutil";
 
-import { LlmInterface } from "./types.js";
-
 /**
  * @typedef {object} CompletionParams
  * @property {string} [model] - Model to use for completion (overrides default)
@@ -15,9 +13,8 @@ import { LlmInterface } from "./types.js";
 
 /**
  * GitHub Copilot API client with direct HTTP calls
- * @implements {LlmInterface}
  */
-export class Copilot extends LlmInterface {
+export class Copilot {
   #model;
   #baseURL;
   #headers;
@@ -26,9 +23,14 @@ export class Copilot extends LlmInterface {
   #fetch;
   #tokenizer;
 
-  /** @inheritdoc */
+  /**
+   * Creates a new LLM instance
+   * @param {string} token - LLM token
+   * @param {string} model - Default model to use for completions
+   * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
+   * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
+   */
   constructor(token, model, fetchFn = fetch, tokenizerFn = tokenizerFactory) {
-    super(token, model, fetchFn, tokenizerFn);
     if (typeof fetchFn !== "function")
       throw new Error("Invalid fetch function");
     if (typeof tokenizerFn !== "function")
@@ -98,7 +100,14 @@ export class Copilot extends LlmInterface {
     throw new Error("Retries exhausted without a valid response");
   }
 
-  /** @inheritdoc */
+  /**
+   * Creates chat completions using the LLM API
+   * @param {import("copilot-ld/libtype").MessageV2[]} messages - Array of message objects with roles and content
+   * @param {import("copilot-ld/libtype").Tool[]} [tools] - Optional array of tool definitions
+   * @param {number} [temperature] - Optional sampling temperature
+   * @param {number} [max_tokens] - Optional maximum tokens to generate
+   * @returns {Promise<object>} Completion response from Copilot
+   */
   async createCompletions(messages, tools, temperature, max_tokens) {
     // Convert messages from internal MessageV2 format to OpenAI format
     const formattedMessages = messages
@@ -162,7 +171,11 @@ export class Copilot extends LlmInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * Creates embeddings using the LLM API
+   * @param {string[]} texts - Array of text strings to embed
+   * @returns {Promise<common.Embedding[]>} Array of Embedding instances
+   */
   async createEmbeddings(texts) {
     const response = await this.#withRetry(() =>
       this.#fetch(`${this.#baseURL}/embeddings`, {
@@ -187,7 +200,10 @@ export class Copilot extends LlmInterface {
     });
   }
 
-  /** @inheritdoc */
+  /**
+   * Lists models available to the current user
+   * @returns {Promise<object[]>} Array of available models
+   */
   async listModels() {
     const response = await this.#fetch(`${this.#baseURL}/models`, {
       method: "GET",
@@ -199,7 +215,11 @@ export class Copilot extends LlmInterface {
     return responseData.data;
   }
 
-  /** @inheritdoc */
+  /**
+   * Counts tokens in the given text using the tokenizer
+   * @param {string} text - The text to count tokens for
+   * @returns {number} Number of tokens in the text
+   */
   countTokens(text) {
     return countTokens(text, this.#tokenizer);
   }
@@ -232,5 +252,3 @@ export function llmFactory(
 ) {
   return new Copilot(token, model, fetchFn, tokenizerFn);
 }
-
-export { LlmInterface };

@@ -16,7 +16,105 @@ import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
 import { searchUpward, generateUUID } from "@copilot-ld/libutil";
 
-import { StorageInterface } from "./types.js";
+/**
+ * Base interface for storage implementations
+ */
+export class StorageInterface {
+  /**
+   * Store data with the given key
+   * @param {string} _key - Storage key identifier
+   * @param {string|Buffer|object} _data - Data to store
+   * @returns {Promise<void>}
+   * @throws {Error} When storage operation fails
+   */
+  async put(_key, _data) {
+    throw new Error("StorageInterface.put() not implemented");
+  }
+
+  /**
+   * Retrieve data by key
+   * @param {string} _key - Storage key identifier
+   * @returns {Promise<any>} Retrieved data
+   * @throws {Error} When retrieval fails
+   */
+  async get(_key) {
+    throw new Error("StorageInterface.get() not implemented");
+  }
+
+  /**
+   * Remove data by key
+   * @param {string} _key - Storage key identifier
+   * @returns {Promise<void>}
+   * @throws {Error} When deletion fails
+   */
+  async delete(_key) {
+    throw new Error("StorageInterface.delete() not implemented");
+  }
+
+  /**
+   * Check if key exists
+   * @param {string} _key - Storage key identifier
+   * @returns {Promise<boolean>} True if key exists
+   */
+  async exists(_key) {
+    throw new Error("StorageInterface.exists() not implemented");
+  }
+
+  /**
+   * Append data to an existing key
+   * @param {string} _key - Storage key identifier
+   * @param {string|Buffer} _data - Data to append
+   * @returns {Promise<void>}
+   * @throws {Error} When append fails
+   */
+  async append(_key, _data) {
+    throw new Error("StorageInterface.append() not implemented");
+  }
+
+  /**
+   * Retrieve multiple items by their keys
+   * @param {string[]} _keys - Array of storage key identifiers
+   * @returns {Promise<object>} Object with key-value pairs
+   */
+  async getMany(_keys) {
+    throw new Error("StorageInterface.getMany() not implemented");
+  }
+
+  /**
+   * Lists all keys in storage
+   * @returns {Promise<string[]>} Array of keys
+   */
+  async list() {
+    throw new Error("StorageInterface.list() not implemented");
+  }
+
+  /**
+   * Find keys with specified prefix
+   * @param {string} _prefix - Key prefix to match
+   * @returns {Promise<string[]>} Array of matching keys
+   */
+  async findByPrefix(_prefix) {
+    throw new Error("StorageInterface.findByPrefix() not implemented");
+  }
+
+  /**
+   * Find keys with specified extension
+   * @param {string} _extension - File extension to search for
+   * @returns {Promise<string[]>} Array of keys with the extension
+   */
+  async findByExtension(_extension) {
+    throw new Error("StorageInterface.findByExtension() not implemented");
+  }
+
+  /**
+   * Gets the path for a storage key
+   * @param {string} _key - Storage key identifier
+   * @returns {string} Key path
+   */
+  path(_key) {
+    return "";
+  }
+}
 
 /**
  * Parse JSON Lines (JSONL) format into an array of objects
@@ -93,7 +191,6 @@ function isJson(key, data) {
 
 /**
  * Local filesystem storage implementation
- * @implements {StorageInterface}
  */
 export class LocalStorage extends StorageInterface {
   #prefix;
@@ -112,7 +209,12 @@ export class LocalStorage extends StorageInterface {
 
   // Core CRUD Operations
 
-  /** @inheritdoc */
+  /**
+   * Store data with the given key
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer|object} data - Data to store
+   * @returns {Promise<void>}
+   */
   async put(key, data) {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
@@ -129,7 +231,11 @@ export class LocalStorage extends StorageInterface {
     await this.#fs.writeFile(fullPath, serializedData);
   }
 
-  /** @inheritdoc */
+  /**
+   * Retrieve data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<any>} Retrieved data
+   */
   async get(key) {
     const content = await this.#fs.readFile(this.path(key));
 
@@ -146,12 +252,20 @@ export class LocalStorage extends StorageInterface {
     return content;
   }
 
-  /** @inheritdoc */
+  /**
+   * Remove data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<void>}
+   */
   async delete(key) {
     await this.#fs.unlink(this.path(key));
   }
 
-  /** @inheritdoc */
+  /**
+   * Check if key exists
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<boolean>} True if key exists
+   */
   async exists(key) {
     try {
       await this.#fs.access(this.path(key));
@@ -163,7 +277,12 @@ export class LocalStorage extends StorageInterface {
 
   // Advanced Operations
 
-  /** @inheritdoc */
+  /**
+   * Append data to an existing key with automatic newline
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer} data - Data to append
+   * @returns {Promise<void>}
+   */
   async append(key, data) {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
@@ -175,7 +294,11 @@ export class LocalStorage extends StorageInterface {
     await this.#fs.appendFile(fullPath, dataWithNewline);
   }
 
-  /** @inheritdoc */
+  /**
+   * Retrieve multiple items by their keys
+   * @param {string[]} keys - Array of storage key identifiers
+   * @returns {Promise<object>} Object with key-value pairs
+   */
   async getMany(keys) {
     const results = {};
     await Promise.all(
@@ -196,24 +319,39 @@ export class LocalStorage extends StorageInterface {
 
   // Search and Listing Operations
 
-  /** @inheritdoc */
+  /**
+   * Lists all keys in storage
+   * @returns {Promise<string[]>} Array of keys
+   */
   async list() {
     return await this.#traverse();
   }
 
-  /** @inheritdoc */
+  /**
+   * Find keys with specified prefix
+   * @param {string} prefix - Key prefix to match
+   * @returns {Promise<string[]>} Array of matching keys
+   */
   async findByPrefix(prefix) {
     return await this.#traverse((filename) => filename.startsWith(prefix));
   }
 
-  /** @inheritdoc */
+  /**
+   * Find keys with specified extension
+   * @param {string} extension - File extension to search for
+   * @returns {Promise<string[]>} Array of keys with the extension
+   */
   async findByExtension(extension) {
     return await this.#traverse((filename) => filename.endsWith(extension));
   }
 
   // Path Utilities
 
-  /** @inheritdoc */
+  /**
+   * Gets the full file path for a storage key
+   * @param {string} key - Storage key identifier
+   * @returns {string} Full file path
+   */
   path(key) {
     if (key.startsWith("/")) {
       return key; // Use absolute path directly for local filesystem
@@ -223,7 +361,10 @@ export class LocalStorage extends StorageInterface {
 
   // Bucket/Directory Management
 
-  /** @inheritdoc */
+  /**
+   * Ensures the storage bucket/directory exists
+   * @returns {Promise<boolean>} True if directory was created
+   */
   async ensureBucket() {
     try {
       await this.#fs.access(this.#prefix);
@@ -234,7 +375,10 @@ export class LocalStorage extends StorageInterface {
     }
   }
 
-  /** @inheritdoc */
+  /**
+   * Checks if the storage bucket/directory exists
+   * @returns {Promise<boolean>} True if directory exists
+   */
   async bucketExists() {
     try {
       await this.#fs.access(this.#prefix);
@@ -305,7 +449,6 @@ export class LocalStorage extends StorageInterface {
 
 /**
  * S3-compatible storage implementation
- * @implements {StorageInterface}
  */
 export class S3Storage extends StorageInterface {
   #bucket;
@@ -330,7 +473,12 @@ export class S3Storage extends StorageInterface {
 
   // Core CRUD Operations
 
-  /** @inheritdoc */
+  /**
+   * Store data with the given key
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer|object} data - Data to store
+   * @returns {Promise<void>}
+   */
   async put(key, data) {
     let bodyData = data;
 
@@ -350,7 +498,11 @@ export class S3Storage extends StorageInterface {
     );
   }
 
-  /** @inheritdoc */
+  /**
+   * Retrieve data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<any>} Retrieved data
+   */
   async get(key) {
     const command = new this.#commands.GetObjectCommand({
       Bucket: this.#bucket,
@@ -379,7 +531,11 @@ export class S3Storage extends StorageInterface {
     return content;
   }
 
-  /** @inheritdoc */
+  /**
+   * Remove data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<void>}
+   */
   async delete(key) {
     await this.#client.send(
       new this.#commands.DeleteObjectCommand({
@@ -389,7 +545,11 @@ export class S3Storage extends StorageInterface {
     );
   }
 
-  /** @inheritdoc */
+  /**
+   * Check if key exists
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<boolean>} True if key exists
+   */
   async exists(key) {
     try {
       await this.#client.send(
@@ -412,7 +572,12 @@ export class S3Storage extends StorageInterface {
 
   // Advanced Operations
 
-  /** @inheritdoc */
+  /**
+   * Append data to an existing key with automatic newline
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer} data - Data to append
+   * @returns {Promise<void>}
+   */
   async append(key, data) {
     let existingData = Buffer.alloc(0);
 
@@ -435,7 +600,11 @@ export class S3Storage extends StorageInterface {
     await this.put(key, newData);
   }
 
-  /** @inheritdoc */
+  /**
+   * Retrieve multiple items by their keys
+   * @param {string[]} keys - Array of storage key identifiers
+   * @returns {Promise<object>} Object with key-value pairs
+   */
   async getMany(keys) {
     const results = {};
     await Promise.all(
@@ -459,24 +628,39 @@ export class S3Storage extends StorageInterface {
 
   // Search and Listing Operations
 
-  /** @inheritdoc */
+  /**
+   * Lists all keys in storage
+   * @returns {Promise<string[]>} Array of keys
+   */
   async list() {
     return await this.#traverse();
   }
 
-  /** @inheritdoc */
+  /**
+   * Find keys with specified prefix
+   * @param {string} prefix - Key prefix to match
+   * @returns {Promise<string[]>} Array of matching keys
+   */
   async findByPrefix(prefix) {
     return await this.#traverse({ Prefix: `${this.#prefix}/${prefix}` });
   }
 
-  /** @inheritdoc */
+  /**
+   * Find keys with specified extension
+   * @param {string} extension - File extension to search for
+   * @returns {Promise<string[]>} Array of keys with the extension
+   */
   async findByExtension(extension) {
     return await this.#traverse({}, (key) => key.endsWith(extension));
   }
 
   // Path Utilities
 
-  /** @inheritdoc */
+  /**
+   * Gets the path for a storage key
+   * @param {string} key - Storage key identifier
+   * @returns {string} Key path
+   */
   path(key) {
     let cleanKey = key;
     if (key.startsWith("/")) {
@@ -489,7 +673,10 @@ export class S3Storage extends StorageInterface {
 
   // Bucket Management
 
-  /** @inheritdoc */
+  /**
+   * Ensures the storage bucket exists
+   * @returns {Promise<boolean>} True if bucket was created
+   */
   async ensureBucket() {
     try {
       await this.#client.send(
@@ -515,7 +702,10 @@ export class S3Storage extends StorageInterface {
     }
   }
 
-  /** @inheritdoc */
+  /**
+   * Checks if the storage bucket exists
+   * @returns {Promise<boolean>} True if bucket exists
+   */
   async bucketExists() {
     try {
       await this.#client.send(
@@ -619,7 +809,7 @@ export class S3Storage extends StorageInterface {
  * @param {string} prefix - Prefix for the storage operations (for S3) or bucket/directory name (for local)
  * @param {string} type - Storage type ("local" or "s3")
  * @param {object} process - Process environment access (for testing)
- * @returns {StorageInterface} Storage instance
+ * @returns {object} Storage instance
  * @throws {Error} When unsupported storage type is provided
  * @todo Clean this up with dedicated factories for each bucket type.
  */
@@ -705,5 +895,3 @@ export function storageFactory(prefix, type, process = global.process) {
       throw new Error(`Unsupported storage type: ${type}`);
   }
 }
-
-export { StorageInterface };

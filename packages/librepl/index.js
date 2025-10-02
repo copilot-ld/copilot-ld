@@ -1,11 +1,9 @@
 /* eslint-env node */
-import { ReplInterface } from "./types.js";
 
 /**
  * Object-oriented REPL with dependency injection
- * @implements {ReplInterface}
  */
-export class Repl extends ReplInterface {
+export class Repl {
   #readline;
   #process;
   #formatter;
@@ -20,9 +18,14 @@ export class Repl extends ReplInterface {
   #allCommands;
   #rl;
 
-  /** @inheritdoc */
+  /**
+   * Creates a REPL instance with injected dependencies
+   * @param {object} readline - Readline module for creating interfaces
+   * @param {object} process - Process object for stdin/stdout and exit
+   * @param {import("@copilot-ld/libformat").FormatterInterface} formatter - Formatter instance for output formatting
+   * @param {object} handlers - REPL configuration and handlers
+   */
   constructor(readline, process, formatter, handlers = {}) {
-    super();
     if (!readline) throw new Error("readline dependency is required");
     if (!process) throw new Error("process dependency is required");
     if (!formatter) throw new Error("formatter dependency is required");
@@ -305,7 +308,10 @@ export class Repl extends ReplInterface {
     return this.#rl;
   }
 
-  /** @inheritdoc */
+  /**
+   * Shows help message with all available commands
+   * @returns {void}
+   */
   showHelp() {
     const help = ["The available commands are:"];
 
@@ -318,7 +324,10 @@ export class Repl extends ReplInterface {
     );
   }
 
-  /** @inheritdoc */
+  /**
+   * Starts the REPL in either interactive or non-interactive mode
+   * @returns {Promise<void>}
+   */
   async start() {
     if (this.#setup) {
       await this.#setup();
@@ -333,5 +342,3 @@ export class Repl extends ReplInterface {
     }
   }
 }
-
-export { ReplInterface };

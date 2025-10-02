@@ -4,8 +4,19 @@ import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";
 import sanitizeHtml from "sanitize-html";
 
-// Local imports
-import { FormatterInterface } from "./types.js";
+/**
+ * Base interface for formatter implementations
+ */
+export class FormatterInterface {
+  /**
+   * Formats markdown content to the target format
+   * @param {string} _markdown - Markdown content to format
+   * @returns {string} Formatted output
+   */
+  format(_markdown) {
+    return "";
+  }
+}
 
 /**
  * Formats markdown content to sanitized HTML
@@ -36,7 +47,8 @@ export class HtmlFormatter extends FormatterInterface {
   }
 
   /**
-   * @inheritdoc
+   * Formats markdown content to the target format
+   * @param {string} markdown - Markdown content to format
    * @returns {string} Sanitized HTML with allowed tags and attributes
    */
   format(markdown) {
@@ -107,7 +119,8 @@ export class TerminalFormatter extends FormatterInterface {
   }
 
   /**
-   * @inheritdoc
+   * Formats markdown content to the target format
+   * @param {string} markdown - Markdown content to format
    * @returns {string} Terminal-formatted text with ANSI escape codes
    */
   format(markdown) {
@@ -130,5 +143,3 @@ export function createHtmlFormatter() {
 export function createTerminalFormatter() {
   return new TerminalFormatter({ Marked: Marked }, markedTerminal);
 }
-
-export { FormatterInterface };

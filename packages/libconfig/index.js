@@ -1,20 +1,12 @@
 /* eslint-env node */
 import { storageFactory } from "@copilot-ld/libstorage";
 
-import {
-  ConfigInterface,
-  ExtensionConfigInterface,
-  ServiceConfigInterface,
-  ScriptConfigInterface,
-} from "./types.js";
-
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /**
  * Centralized configuration management class
- * @implements {ConfigInterface}
  */
-export class Config extends ConfigInterface {
+export class Config {
   #envLoaded = false;
   #githubToken = null;
   #fileData = null;
@@ -38,12 +30,12 @@ export class Config extends ConfigInterface {
     process = global.process,
     storageFn = storageFactory,
   ) {
-    super(namespace, name, defaults);
     this.#process = process;
     this.#storageFn = storageFn;
 
     this.name = name;
     this.namespace = namespace;
+    this.defaults = defaults;
   }
 
   /**
@@ -103,13 +95,19 @@ export class Config extends ConfigInterface {
     Object.assign(this, data);
   }
 
-  /** @inheritdoc */
+  /**
+   * Gets the GitHub client ID from environment variable
+   * @returns {string} GitHub client ID
+   */
   githubClientId() {
     this.#loadEnv();
     return this.#process.env.GITHUB_CLIENT_ID;
   }
 
-  /** @inheritdoc */
+  /**
+   * Gets the GitHub token from environment variable or .github_token file
+   * @returns {Promise<string>} GitHub token
+   */
   async githubToken() {
     if (this.#githubToken) return this.#githubToken;
 
@@ -136,7 +134,10 @@ export class Config extends ConfigInterface {
     );
   }
 
-  /** @inheritdoc */
+  /**
+   * Resets cached values (useful for testing)
+   * @returns {void}
+   */
   reset() {
     this.#envLoaded = false;
     this.#githubToken = null;
@@ -194,10 +195,13 @@ export class Config extends ConfigInterface {
 
 /**
  * Service configuration class with environment variable support
- * @implements {ServiceConfigInterface}
  */
 export class ServiceConfig extends Config {
-  /** @inheritdoc */
+  /**
+   * Creates a service configuration instance
+   * @param {string} name - Service name for environment variable prefix
+   * @param {object} defaults - Default configuration values
+   */
   constructor(name, defaults = {}) {
     super("service", name, defaults);
   }
@@ -217,10 +221,13 @@ export class ServiceConfig extends Config {
 
 /**
  * Extension configuration class with environment variable support
- * @implements {ExtensionConfigInterface}
  */
 export class ExtensionConfig extends Config {
-  /** @inheritdoc */
+  /**
+   * Creates an extension configuration instance
+   * @param {string} name - Extension name for environment variable prefix
+   * @param {object} defaults - Default configuration values
+   */
   constructor(name, defaults = {}) {
     super("extension", name, defaults);
   }
@@ -240,10 +247,13 @@ export class ExtensionConfig extends Config {
 
 /**
  * Script configuration class with environment variable support
- * @implements {ScriptConfigInterface}
  */
 export class ScriptConfig extends Config {
-  /** @inheritdoc */
+  /**
+   * Creates a script configuration instance
+   * @param {string} name - Script name for environment variable prefix
+   * @param {object} defaults - Default configuration values
+   */
   constructor(name, defaults = {}) {
     super("script", name, defaults);
   }
@@ -260,10 +270,3 @@ export class ScriptConfig extends Config {
     return instance;
   }
 }
-
-export {
-  ConfigInterface,
-  ExtensionConfigInterface,
-  ServiceConfigInterface,
-  ScriptConfigInterface,
-};

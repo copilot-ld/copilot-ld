@@ -1,26 +1,20 @@
 /* eslint-env node */
 
-import { StorageInterface } from "@copilot-ld/libstorage";
 import * as types from "@copilot-ld/libtype";
-
-import { ResourceIndexInterface } from "./types.js";
-import { ResourceProcessor } from "./processor.js";
 
 /**
  * Resource index for typed resource management with access control
- * @implements {ResourceIndexInterface}
  */
-export class ResourceIndex extends ResourceIndexInterface {
+export class ResourceIndex {
   #storage;
   #policy;
 
   /**
    * Creates a new ResourceIndex
-   * @param {StorageInterface} storage - Storage backend for persistence
-   * @param {object} policy - Policy engine for access control
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for persistence
+   * @param {import("@copilot-ld/libpolicy").Policy} policy - Policy engine for access control
    */
   constructor(storage, policy) {
-    super();
     if (!storage) throw new Error("storage is required");
     if (!policy) throw new Error("policy is required");
 
@@ -28,7 +22,11 @@ export class ResourceIndex extends ResourceIndexInterface {
     this.#policy = policy;
   }
 
-  /** @inheritdoc */
+  /**
+   * Stores a resource in the index
+   * @param {object} resource - Resource object to store
+   * @returns {Promise<void>}
+   */
   async put(resource) {
     if (!resource) throw new Error("resource is required");
 
@@ -49,7 +47,12 @@ export class ResourceIndex extends ResourceIndexInterface {
     await this.#storage.put(`${id}.json`, data);
   }
 
-  /** @inheritdoc */
+  /**
+   * Gets resources by their identifiers with access control
+   * @param {string} actor - Actor identifier for access control
+   * @param {string[]} ids - Array of resource identifiers
+   * @returns {Promise<import("@copilot-ld/libtype").resource.Resource[]>} Array of resources
+   */
   async get(actor, ids) {
     if (!actor) throw new Error("actor is required");
     if (!Array.isArray(ids)) throw new Error("ids must be an array");
@@ -67,7 +70,10 @@ export class ResourceIndex extends ResourceIndexInterface {
     return await Promise.all(promises);
   }
 
-  /** @inheritdoc */
+  /**
+   * Finds all resources in the index
+   * @returns {Promise<import("@copilot-ld/libtype").resource.Identifier[]>} Array of resource identifiers
+   */
   async findAll() {
     // Get all keys from storage
     const keys = await this.#storage.findByPrefix("");
@@ -81,7 +87,11 @@ export class ResourceIndex extends ResourceIndexInterface {
     return names.map((name) => toIdentifier(name));
   }
 
-  /** @inheritdoc */
+  /**
+   * Finds resources by URI prefix
+   * @param {string} prefix - URI prefix to match
+   * @returns {Promise<import("@copilot-ld/libtype").resource.Identifier[]>} Array of matching resource identifiers
+   */
   async findByPrefix(prefix) {
     if (!prefix) throw new Error("prefix is required");
 
@@ -147,4 +157,5 @@ function toIdentifier(uri) {
   });
 }
 
-export { toType, toIdentifier, ResourceProcessor, ResourceIndexInterface };
+export { toType, toIdentifier };
+export { ResourceProcessor } from "./processor.js";

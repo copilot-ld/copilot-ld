@@ -1,24 +1,16 @@
 /* eslint-env node */
 import { join } from "path";
 
-import {
-  ReleaseBumperInterface,
-  ReleaseChangesInterface,
-  ReleaseLogInterface,
-} from "./types.js";
-
 /**
  * Release bumper implementation with dependency injection
- * @implements {ReleaseBumperInterface}
  */
-export class ReleaseBumper extends ReleaseBumperInterface {
+export class ReleaseBumper {
   #execSync;
   #readFileSync;
   #writeFileSync;
   #readdirSync;
 
   constructor(execSyncFn, readFileSyncFn, writeFileSyncFn, readdirSyncFn) {
-    super();
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!readFileSyncFn) throw new Error("readFileSyncFn is required");
     if (!writeFileSyncFn) throw new Error("writeFileSyncFn is required");
@@ -29,7 +21,13 @@ export class ReleaseBumper extends ReleaseBumperInterface {
     this.#readdirSync = readdirSyncFn;
   }
 
-  /** @inheritdoc */
+  /**
+   * Bumps version for items
+   * @param {string} bumpType - Type of version bump (major, minor, patch)
+   * @param {string[]} items - Items to bump
+   * @param {object} options - Bump options
+   * @returns {Promise<object[]>} Bump results
+   */
   async bump(bumpType, items, options = {}) {
     // Capture initial working directory (assuming tool starts at repo root)
     const initialCwd = process.cwd();
@@ -173,14 +171,12 @@ export class ReleaseBumper extends ReleaseBumperInterface {
 
 /**
  * Release changes detection implementation with dependency injection
- * @implements {ReleaseChangesInterface}
  */
-export class ReleaseChanges extends ReleaseChangesInterface {
+export class ReleaseChanges {
   #execSync;
   #existsSync;
 
   constructor(execSyncFn, existsSyncFn) {
-    super();
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!existsSyncFn) throw new Error("existsSyncFn is required");
     this.#execSync = execSyncFn;
@@ -246,16 +242,14 @@ export class ReleaseChanges extends ReleaseChangesInterface {
 
 /**
  * Release log management implementation with dependency injection
- * @implements {ReleaseLogInterface}
  */
-export class ReleaseLog extends ReleaseLogInterface {
+export class ReleaseLog {
   #globSync;
   #readFileSync;
   #writeFileSync;
   #existsSync;
 
   constructor(globSyncFn, readFileSyncFn, writeFileSyncFn, existsSyncFn) {
-    super();
     if (!globSyncFn) throw new Error("globSyncFn is required");
     if (!readFileSyncFn) throw new Error("readFileSyncFn is required");
     if (!writeFileSyncFn) throw new Error("writeFileSyncFn is required");
@@ -266,7 +260,13 @@ export class ReleaseLog extends ReleaseLogInterface {
     this.#existsSync = existsSyncFn;
   }
 
-  /** @inheritdoc */
+  /**
+   * Adds a note to changelog
+   * @param {string} path - Path to changelog
+   * @param {string} note - Note to add
+   * @param {string} date - Date for the note
+   * @returns {Promise<string[]>} Updated changelog paths
+   */
   async addNote(path, note, date) {
     if (!path) throw new Error("path is required");
     if (!note) throw new Error("note is required");
@@ -426,5 +426,3 @@ export class ReleaseLog extends ReleaseLogInterface {
     this.#writeFileSync(filePath, updatedContent);
   }
 }
-
-export { ReleaseBumperInterface, ReleaseChangesInterface, ReleaseLogInterface };

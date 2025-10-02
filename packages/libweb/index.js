@@ -3,18 +3,16 @@ import { cors } from "hono/cors";
 import validator from "validator";
 
 import { ExtensionConfig } from "@copilot-ld/libconfig";
-import {
-  ValidationInterface,
-  RateLimiterInterface,
-  SecurityMiddlewareInterface,
-} from "./types.js";
 
 /**
  * Simple request validation implementation
- * @implements {ValidationInterface}
  */
-export class RequestValidator extends ValidationInterface {
-  /** @inheritdoc */
+export class RequestValidator {
+  /**
+   * Validates request data against schema
+   * @param {object} data - Data to validate
+   * @returns {object} Validation result with isValid and errors
+   */
   validate(data) {
     const errors = [];
 
@@ -28,9 +26,8 @@ export class RequestValidator extends ValidationInterface {
 
 /**
  * Memory-based rate limiter implementation
- * @implements {RateLimiterInterface}
  */
-export class MemoryRateLimiter extends RateLimiterInterface {
+export class MemoryRateLimiter {
   #requests;
   #windowMs;
   #maxRequests;
@@ -43,7 +40,6 @@ export class MemoryRateLimiter extends RateLimiterInterface {
    * @param {number} options.maxRequests - Maximum requests per window
    */
   constructor(options = {}) {
-    super();
     this.#requests = new Map();
     this.#windowMs = options.windowMs || 60000; // 1 minute default
     this.#maxRequests = options.maxRequests || 100; // 100 requests default
@@ -53,7 +49,11 @@ export class MemoryRateLimiter extends RateLimiterInterface {
     this.#cleanupInterval.unref(); // Allow process to exit even with active interval
   }
 
-  /** @inheritdoc */
+  /**
+   * Checks if request should be rate limited
+   * @param {string} key - Identifier for the request (IP, user ID, etc.)
+   * @returns {Promise<object>} Result with allowed, remaining, and resetTime
+   */
   async checkLimit(key) {
     const now = Date.now();
     const windowStart = now - this.#windowMs;
@@ -86,7 +86,11 @@ export class MemoryRateLimiter extends RateLimiterInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * Resets rate limit for a key
+   * @param {string} key - Identifier to reset
+   * @returns {Promise<void>}
+   */
   async reset(key) {
     this.#requests.delete(key);
   }
@@ -122,21 +126,23 @@ export class MemoryRateLimiter extends RateLimiterInterface {
 
 /**
  * Security middleware implementation for Hono
- * @implements {SecurityMiddlewareInterface}
  */
-export class SecurityMiddleware extends SecurityMiddlewareInterface {
+export class SecurityMiddleware {
   #rateLimiter;
 
   /**
    * Creates security middleware instance
-   * @param {RateLimiterInterface} rateLimiter - Rate limiter implementation
+   * @param {MemoryRateLimiter} rateLimiter - Rate limiter implementation
    */
   constructor(rateLimiter) {
-    super();
     this.#rateLimiter = rateLimiter;
   }
 
-  /** @inheritdoc */
+  /**
+   * Creates input validation middleware
+   * @param {object} schema - Validation schema
+   * @returns {Function} Hono middleware function
+   */
   createValidationMiddleware(schema) {
     return async (c, next) => {
       try {
@@ -212,7 +218,11 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * Creates rate limiting middleware
+   * @param {object} options - Rate limiting options
+   * @returns {Function} Hono middleware function
+   */
   createRateLimitMiddleware(options = {}) {
     return async (c, next) => {
       const key = this.#getRateLimitKey(c, options);
@@ -235,7 +245,11 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * Creates CORS middleware
+   * @param {object} options - CORS options
+   * @returns {Function} Hono middleware function
+   */
   createCorsMiddleware(options = {}) {
     const defaultOptions = {
       origin: ["http://localhost:3000"],
@@ -246,7 +260,10 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
     return cors({ ...defaultOptions, ...options });
   }
 
-  /** @inheritdoc */
+  /**
+   * Creates error handling middleware
+   * @returns {Function} Hono middleware function
+   */
   createErrorMiddleware() {
     return async (c, next) => {
       try {
@@ -331,8 +348,3 @@ export function createSecurityMiddleware(config) {
 }
 
 // Export all interfaces and implementations
-export {
-  ValidationInterface,
-  RateLimiterInterface,
-  SecurityMiddlewareInterface,
-};

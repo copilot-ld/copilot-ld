@@ -2,28 +2,29 @@
 
 import { resource } from "@copilot-ld/libtype";
 
-import { VectorIndexInterface } from "./types.js";
-
-/** @typedef {import("@copilot-ld/libconfig").ConfigInterface} ConfigInterface */
-
 /**
  * VectorIndex class for managing vector data with lazy loading
- * @implements {VectorIndexInterface}
  */
-export class VectorIndex extends VectorIndexInterface {
+export class VectorIndex {
   #storage;
   #indexKey;
   #index = new Map(); // Map of resource id to index item
   #loaded = false;
 
-  /** @inheritdoc */
+  /**
+   * Creates a new VectorIndex instance
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage interface for data operations
+   * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
+   */
   constructor(storage, indexKey = "index.jsonl") {
-    super(storage);
     this.#storage = storage;
     this.#indexKey = indexKey;
   }
 
-  /** @inheritdoc */
+  /**
+   * Gets the storage instance
+   * @returns {import("@copilot-ld/libstorage").StorageInterface} Storage instance
+   */
   storage() {
     return this.#storage;
   }
@@ -36,7 +37,12 @@ export class VectorIndex extends VectorIndexInterface {
     return this.#indexKey;
   }
 
-  /** @inheritdoc */
+  /**
+   * Adds a vector item to the index
+   * @param {number[]} vector - The vector
+   * @param {resource.Identifier} identifier - Resource identifier
+   * @returns {Promise<void>}
+   */
   async addItem(vector, identifier) {
     if (!this.#loaded) await this.loadData();
 
@@ -53,20 +59,31 @@ export class VectorIndex extends VectorIndexInterface {
     await this.#storage.append(this.#indexKey, JSON.stringify(item));
   }
 
-  /** @inheritdoc */
+  /**
+   * Gets an item by its resource ID
+   * @param {string} id - The resource ID to retrieve
+   * @returns {Promise<resource.Identifier|null>} The item identifier, or null if not found
+   */
   async getItem(id) {
     if (!this.#loaded) await this.loadData();
     const item = this.#index.get(id);
     return item ? item.identifier : null;
   }
 
-  /** @inheritdoc */
+  /**
+   * Checks if an item with the given ID exists in the index
+   * @param {string} id - The ID to check for
+   * @returns {Promise<boolean>} True if item exists, false otherwise
+   */
   async hasItem(id) {
     if (!this.#loaded) await this.loadData();
     return this.#index.has(id);
   }
 
-  /** @inheritdoc */
+  /**
+   * Loads vector data from disk
+   * @returns {Promise<void>}
+   */
   async loadData() {
     if (!(await this.#storage.exists(this.#indexKey))) {
       // Initialize empty index for new systems
@@ -88,7 +105,16 @@ export class VectorIndex extends VectorIndexInterface {
     this.#loaded = true;
   }
 
-  /** @inheritdoc */
+  /**
+   * Queries items from this vector index using cosine similarity
+   * @param {number[]} query - Query vector
+   * @param {object} filter - Filter object for query constraints
+   * @param {number} [filter.limit] - Maximum number of results to return
+   * @param {number} [filter.threshold] - Minimum score threshold
+   * @param {number} [filter.max_tokens] - Maximum total tokens allowed in results
+   * @param {string} [filter.prefix] - URI prefix filter
+   * @returns {Promise<resource.Identifier[]>} Array of resource identifiers sorted by score
+   */
   async queryItems(query, filter = {}) {
     if (!this.#loaded) await this.loadData();
 
@@ -142,5 +168,4 @@ function calculateDotProduct(a, b, length) {
   return dotProduct;
 }
 
-export { VectorIndexInterface };
 export { VectorProcessor } from "./processor.js";

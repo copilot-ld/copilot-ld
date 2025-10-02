@@ -2,13 +2,11 @@
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { CodegenInterface } from "./types.js";
-
 /**
  * Code generation utility for protobuf-based services and types
  * Implements object-oriented approach with dependency injection
  */
-export class Codegen extends CodegenInterface {
+export class Codegen {
   #projectRoot;
   #path;
   #mustache;
@@ -24,7 +22,6 @@ export class Codegen extends CodegenInterface {
    * @param {object} fs - File system module (sync operations only)
    */
   constructor(projectRoot, path, mustache, protoLoader, fs) {
-    super();
     if (!projectRoot) throw new Error("projectRoot is required");
     if (!path) throw new Error("path module is required");
     if (!mustache) throw new Error("mustache module is required");

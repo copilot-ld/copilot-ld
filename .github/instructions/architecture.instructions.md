@@ -116,7 +116,7 @@ to all core system enhancements like monkey patches and utility functions.
 
 ### Package Export Pattern
 
-All packages must export through a main `index.js` with interface definitions:
+All packages must export through a main `index.js`:
 
 ```javascript
 // External imports first
@@ -124,17 +124,16 @@ import thirdPartyLibrary from "library";
 
 // Internal imports second (alphabetical)
 import { helperFunction } from "./helpers/index.js";
-import { PackageInterface } from "./types.js";
 
 // Implementation
-export class PackageImplementation extends PackageInterface {
+export class PackageImplementation {
   method() {
     // Implementation
   }
 }
 
-// Re-exports (including interface)
-export { PackageInterface, helperFunction };
+// Re-exports
+export { helperFunction };
 ```
 
 ### Protocol Buffer Schema Requirements
@@ -246,7 +245,6 @@ import { Config } from "@copilot-ld/libconfig";
 import { Service } from "@copilot-ld/librpc";
 
 // 3. Local imports (relative paths, alphabetical)
-import { DatabaseInterface } from "./types.js";
 ```
 
 ### Network Isolation Requirements
@@ -327,26 +325,15 @@ await new VectorService(config, index).start();
 
 ```javascript
 /* eslint-env node */
-export class CacheInterface {
-  async get(key) {
-    throw new Error("Not implemented");
-  }
+export class MemoryCache {
+  #cache;
+  #ttls;
+  #defaultTtl;
 
-  async set(key, value, ttl) {
-    throw new Error("Not implemented");
-  }
-
-  async delete(key) {
-    throw new Error("Not implemented");
-  }
-}
-
-export class MemoryCache extends CacheInterface {
   constructor(options = {}) {
-    super();
-    this.cache = new Map();
-    this.ttls = new Map();
-    this.defaultTtl = options.defaultTtl || 3600000;
+    this.#cache = new Map();
+    this.#ttls = new Map();
+    this.#defaultTtl = options.defaultTtl || 3600000;
   }
 
   async get(key) {
@@ -354,43 +341,45 @@ export class MemoryCache extends CacheInterface {
       await this.delete(key);
       return null;
     }
-    return this.cache.get(key) || null;
+    return this.#cache.get(key) || null;
   }
 
   async set(key, value, ttl) {
-    this.cache.set(key, value);
-    this.ttls.set(key, Date.now() + (ttl || this.defaultTtl));
+    this.#cache.set(key, value);
+    this.#ttls.set(key, Date.now() + (ttl || this.#defaultTtl));
   }
 
   async delete(key) {
-    this.cache.delete(key);
-    this.ttls.delete(key);
+    this.#cache.delete(key);
+    this.#ttls.delete(key);
   }
 
   isExpired(key) {
-    const ttl = this.ttls.get(key);
+    const ttl = this.#ttls.get(key);
     return ttl && Date.now() > ttl;
   }
 }
 
-export class PersistentCache extends CacheInterface {
+export class PersistentCache {
+  #storage;
+  #defaultTtl;
+
   constructor(storage, options = {}) {
-    super();
-    this.storage = storage;
-    this.defaultTtl = options.defaultTtl || 3600000;
+    this.#storage = storage;
+    this.#defaultTtl = options.defaultTtl || 3600000;
   }
 
   async get(key) {
-    const value = await this.storage.get(key);
+    const value = await this.#storage.get(key);
     return value || null;
   }
 
   async set(key, value, ttl) {
-    await this.storage.set(key, value, ttl || this.defaultTtl);
+    await this.#storage.set(key, value, ttl || this.#defaultTtl);
   }
 
   async delete(key) {
-    await this.storage.delete(key);
+    await this.#storage.delete(key);
   }
 }
 

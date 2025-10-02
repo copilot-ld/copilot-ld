@@ -8,8 +8,8 @@ applyTo: "**/*.js"
 
 This file defines comprehensive coding standards and patterns for all JavaScript
 files in this project to ensure consistent implementation across the
-microservices-based platform through radical simplicity, constructor-based
-dependency injection, and interface-first design patterns.
+microservices-based platform through radical simplicity and constructor-based
+dependency injection.
 
 ## Core Principles
 
@@ -19,13 +19,11 @@ dependency injection, and interface-first design patterns.
    exactly one clear, well-defined purpose with measurable boundaries
 3. **Constructor-Based Dependency Injection**: All dependencies must be injected
    through constructors with explicit validation, never created internally
-4. **Interface-First Design**: All packages must define TypeScript-style
-   interfaces in types.js before any implementation
-5. **Explicit Over Implicit**: All behavior, dependencies, and side effects must
+4. **Explicit Over Implicit**: All behavior, dependencies, and side effects must
    be explicitly declared and visible in method signatures
-6. **No Defensive Programming**: Never use defensive programming patterns - let
+5. **No Defensive Programming**: Never use defensive programming patterns - let
    errors bubble up naturally without try/catch blocks that add no value
-7. **No Backward Compatibility**: Never provide backward compatibility,
+6. **No Backward Compatibility**: Never provide backward compatibility,
    fallbacks, or legacy code handling - implement current requirements only
 
 ## Implementation Requirements
@@ -36,29 +34,24 @@ Every class must use constructor dependency injection with private fields and
 validation:
 
 ```javascript
-export class ServiceInterface {
-  constructor(config) {
-    if (!config) throw new Error("config is required");
-    this.config = config;
-  }
-}
-
-export class Service extends ServiceInterface {
+export class Service {
   #dependency1;
   #dependency2;
+  #config;
 
   constructor(config, dependency1, dependency2) {
-    super(config);
+    if (!config) throw new Error("config is required");
     if (!dependency1) throw new Error("dependency1 is required");
     if (!dependency2) throw new Error("dependency2 is required");
 
+    this.#config = config;
     this.#dependency1 = dependency1;
     this.#dependency2 = dependency2;
   }
 
   async methodName(params) {
     const result = await this.#dependency1.operation(params);
-    return this.#dependency2.process(result);
+    return this.#dependency2.process(result, this.#config);
   }
 }
 ```
@@ -110,20 +103,6 @@ class ReplService {
 
 ### Interface Definition Requirements
 
-All packages must define interfaces in types.js with complete method signatures:
-
-```javascript
-export class ServiceInterface {
-  constructor(config) {
-    throw new Error("Interface method not implemented");
-  }
-
-  async operation(params) {
-    throw new Error("Interface method not implemented");
-  }
-}
-```
-
 ### Factory Function Requirements
 
 Use factory functions for runtime dependency creation:
@@ -145,26 +124,21 @@ function createCopilotInstance(token, model) {
   return new Copilot(token, model);
 }
 
-export class ServiceInterface {
-  constructor(config) {
-    if (!config) throw new Error("config is required");
-    this.config = config;
-  }
-}
-
-class LlmService extends ServiceInterface {
+class LlmService {
   #copilotFactory;
+  #config;
 
   constructor(config, copilotFactory) {
-    super(config);
+    if (!config) throw new Error("config is required");
     if (typeof copilotFactory !== "function") {
       throw new Error("copilotFactory must be a function");
     }
+    this.#config = config;
     this.#copilotFactory = copilotFactory;
   }
 
   async processRequest(githubToken, request) {
-    const copilot = this.#copilotFactory(githubToken, this.config.model);
+    const copilot = this.#copilotFactory(githubToken, this.#config.model);
     return await copilot.createCompletions(request);
   }
 }
@@ -420,18 +394,15 @@ await new VectorService(config, index).start();
 echo "testing" | node scripts/search.js --limit 10 --threshold 0.25
 ```
 
-### Package with Interface and Factory
+### Package with Factory
 
 ```javascript
-import { FormatterInterface } from "./types.js";
-
-export class HtmlFormatter extends FormatterInterface {
+export class HtmlFormatter {
   #jsdom;
   #domPurify;
   #marked;
 
   constructor({ jsdom, domPurify, marked }) {
-    super();
     if (!jsdom) throw new Error("jsdom dependency is required");
     if (!domPurify) throw new Error("domPurify dependency is required");
     if (!marked) throw new Error("marked dependency is required");
@@ -460,6 +431,4 @@ export function createHtmlFormatter() {
     marked: import("marked"),
   });
 }
-
-export { FormatterInterface };
 ```

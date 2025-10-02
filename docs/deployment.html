@@ -105,12 +105,15 @@
       <h4>Deploy the Stack</h4>
 
       <p>
-        Building the containers requires a GitHub Personal Access Token (PAT)
-        with at minimum the <code>read:packages</code> scope. Put the token in
+        The platform uses a unified Docker build process with a single
+        <code>Dockerfile</code> that handles all components (services,
+        extensions, and tools). Building the containers requires a GitHub
+        Personal Access Token (PAT) with at minimum the
+        <code>read:packages</code> scope. Put the token in
         <code>config/.build_token</code> and deploy the stack like this:
       </p>
 
-      <pre><code># Build all container images
+      <pre><code># Build all container images using unified Dockerfile
 GITHUB_TOKEN=$(cat config/.build_token) docker compose build
 
 # Start the complete stack

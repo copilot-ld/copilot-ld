@@ -524,9 +524,10 @@ sequenceDiagram
         The platform uses a centralized code generation approach with all
         generated artifacts consolidated in a single
         <code>generated/</code> directory at the project root. The
-        <code>@copilot-ld/libutil</code>
-        codegen utility discovers protobuf schemas from both core services and
-        tools, generating type-safe JavaScript code and service infrastructure.
+        <code>@copilot-ld/libcodegen</code>
+        package provides the codegen utility that discovers protobuf schemas
+        from both core services and tools, generating type-safe JavaScript code
+        and service infrastructure.
       </p>
 
       <h4>Generation Process</h4>
@@ -589,8 +590,9 @@ npm run codegen:client      # Client classes only
 npm run codegen:definition  # Service definitions only</code></pre>
 
       <p>
-        The codegen utility uses <code>protobufjs</code> for schema processing
-        and <code>Mustache</code> templates for code generation, producing ES
+        The <code>@copilot-ld/libcodegen</code> package uses
+        <code>protobufjs</code> for schema processing and
+        <code>Mustache</code> templates for code generation, producing ES
         modules with full type safety. Package symlinks ensure generated code is
         accessible through <code>@copilot-ld/libtype</code> and
         <code>@copilot-ld/librpc</code> while maintaining clean package
@@ -658,6 +660,75 @@ npm run codegen:definition  # Service definitions only</code></pre>
         <li>
           <strong>Tool Extension</strong>: Supports additional schemas that
           extend core system functionality
+        </li>
+      </ul>
+
+      <h3>Docker Build Architecture</h3>
+
+      <p>
+        The platform uses a unified Docker build process that simplifies
+        container creation and reduces maintenance overhead.
+      </p>
+
+      <h4>Unified Dockerfile</h4>
+
+      <p>
+        A single root-level <code>Dockerfile</code> handles building for all
+        components (services, extensions, and tools) using a
+        <code>COMPONENT_PATH</code> build argument to specify which component to
+        build.
+      </p>
+
+      <h4>Build Process</h4>
+
+      <ol>
+        <li>
+          <strong>Multi-stage build</strong>: Separates build dependencies from
+          runtime image for smaller production containers
+        </li>
+        <li>
+          <strong>Code generation</strong>: Uses
+          <code>@copilot-ld/libcodegen</code>
+          to generate required artifacts during build
+        </li>
+        <li>
+          <strong>Component copying</strong>: Copies only the specified
+          component path to minimize image size
+        </li>
+        <li>
+          <strong>Production optimization</strong>: Final stage includes only
+          production dependencies and generated code
+        </li>
+      </ol>
+
+      <h4>Usage Examples</h4>
+
+      <pre><code># Build Agent service
+docker build --build-arg COMPONENT_PATH=services/agent -t agent .
+
+# Build Web extension
+docker build --build-arg COMPONENT_PATH=extensions/web -t web .
+
+# Build custom tool
+docker build --build-arg COMPONENT_PATH=tools/hash -t hash .</code></pre>
+
+      <h4>Benefits</h4>
+
+      <ul>
+        <li>
+          <strong>Consistency</strong>: All components use identical build
+          process
+        </li>
+        <li>
+          <strong>Maintenance</strong>: Single Dockerfile to update and maintain
+        </li>
+        <li>
+          <strong>Flexibility</strong>: Easy to add new components without
+          creating new Dockerfiles
+        </li>
+        <li>
+          <strong>Optimization</strong>: Shared layers between components
+          improve build efficiency
         </li>
       </ul>
 

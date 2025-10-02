@@ -71,7 +71,9 @@ services:
   web:
     build:
       context: .
-      dockerfile: ./extensions/web/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: extensions/web
       secrets:
         - github_token
     image: copilot-ld/web:latest
@@ -87,7 +89,9 @@ services:
   copilot:
     build:
       context: .
-      dockerfile: ./extensions/copilot/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: extensions/copilot
       secrets:
         - github_token
     image: copilot-ld/copilot:latest
@@ -107,7 +111,9 @@ services:
   agent:
     build:
       context: .
-      dockerfile: ./services/agent/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: services/agent
       secrets:
         - github_token
     image: copilot-ld/agent:latest
@@ -129,7 +135,9 @@ services:
   llm:
     build:
       context: .
-      dockerfile: ./services/llm/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: services/llm
       secrets:
         - github_token
     image: copilot-ld/llm:latest
@@ -143,7 +151,9 @@ services:
   vector:
     build:
       context: .
-      dockerfile: ./services/vector/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: services/vector
       secrets:
         - github_token
     image: copilot-ld/vector:latest
@@ -157,7 +167,9 @@ services:
   memory:
     build:
       context: .
-      dockerfile: ./services/memory/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: services/memory
       secrets:
         - github_token
     image: copilot-ld/memory:latest
@@ -174,7 +186,9 @@ services:
   tool:
     build:
       context: .
-      dockerfile: ./services/tool/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: services/tool
       secrets:
         - github_token
     image: copilot-ld/tool:latest
@@ -192,7 +206,9 @@ services:
   hash:
     build:
       context: .
-      dockerfile: ./tools/hash/Dockerfile
+      dockerfile: ./Dockerfile
+      args:
+        COMPONENT_PATH: tools/hash
       secrets:
         - github_token
     image: copilot-ld/hash:latest

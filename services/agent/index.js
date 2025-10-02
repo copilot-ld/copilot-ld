@@ -169,9 +169,7 @@ class AgentService extends AgentBase {
       ]);
 
       if (!assistant) {
-        throw new Error(
-          `Assistant not found: ${this.config.assistant?.name || "unknown"}`,
-        );
+        throw new Error(`Assistant not found: ${this.config.assistant}`);
       }
 
       // TODO: Load task tree

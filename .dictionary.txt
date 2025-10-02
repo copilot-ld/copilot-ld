@@ -45,8 +45,10 @@ dev
 DevOps
 DI
 Docker
-Dockerfile
 dockerfile
+dockerfiles
+Dockerfile
+Dockerfiles
 Dockerized
 ECR
 ECS

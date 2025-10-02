@@ -8,15 +8,14 @@ applyTo: "**/*.js"
 
 This file defines comprehensive JSDoc documentation standards for all JavaScript
 files in this project to ensure consistent, accurate, and linting-compliant
-documentation that provides excellent IDE support and maintains interface-based
-documentation contracts.
+documentation that provides excellent IDE support.
 
 ## Core Principles
 
-1. **Interface-Based Documentation**: All documentation must be written on
-   `*Interface` classes only, implementation classes use @inheritdoc exclusively
-2. **Single Source of Truth**: Documentation is maintained in interface classes
-   to prevent duplication and inconsistency
+1. **Complete Documentation**: All documentation must be written directly on
+   implementation classes with full JSDoc comments
+2. **Single Responsibility**: Each class and method has clear, focused documentation
+   describing its purpose and behavior
 3. **Accuracy Requirement**: JSDoc must match implementation exactly - no
    outdated or incorrect documentation allowed
 4. **Consistent Format**: Follow standardized patterns across all files for
@@ -26,16 +25,15 @@ documentation contracts.
 
 ## Implementation Requirements
 
-### Interface Class Requirements
+### Class Documentation Requirements
 
-All packages must provide an `*Interface` base class for their main
-functionality:
+All classes must have complete JSDoc documentation on their implementation:
 
 ```javascript
 /**
- * Base interface for storage implementations
+ * Storage class for managing data persistence
  */
-export class StorageInterface {
+export class Storage {
   /**
    * Store data with the given key
    * @param {string} key - Storage key identifier
@@ -44,38 +42,26 @@ export class StorageInterface {
    * @throws {Error} When storage operation fails
    */
   async put(key, data) {
-    throw new Error("Not implemented");
+    // Implementation
   }
 }
 ```
 
 ### Implementation Class Requirements
 
-Implementation classes extending interfaces must use @inheritdoc for all
-interface methods:
+Implementation classes must have full documentation directly on methods:
 
 ```javascript
 /**
- * Storage interface definition
+ * File system storage implementation
  */
-export class StorageInterface {
+export class FileStorage {
   /**
    * Store data with a key
    * @param {string} key - The storage key
-   * @param {*} data - The data to store
+   * @param {any} data - The data to store
    * @returns {Promise<void>}
    */
-  async put(key, data) {
-    throw new Error("Not implemented");
-  }
-}
-
-/**
- * File system storage implementation
- * @implements {StorageInterface}
- */
-export class FileStorage extends StorageInterface {
-  /** @inheritdoc */
   async put(key, data) {
     // implementation
   }
@@ -114,8 +100,8 @@ Place @typedef statements according to scope:
 
 ```javascript
 // Top of file - for types used throughout the file
-/** @typedef {import("@copilot-ld/libtype").ChunkInterface} ChunkInterface */
-/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+/** @typedef {object} - Object type
+/** @typedef {object} - Object type
 
 // Generic object shapes
 /** @typedef {Object} ProcessRequestParams
@@ -139,24 +125,15 @@ function createService(options) {
 
 ## Best Practices
 
-### @inheritdoc Usage Guidelines
+### Documentation Guidelines
 
-1. **Interface Classes**: Contain complete JSDoc documentation with
-   descriptions, @param, @returns, and @throws
-2. **Implementation Classes**: Use only `/** @inheritdoc */` for all methods
-   that implement interface methods
-3. **Constructor Exceptions**: Implementation class constructors may have their
-   own documentation if parameters differ from interface
-4. **Private Methods**: Implementation-specific private methods may have their
-   own documentation
-
-### Package Organization Recommendations
-
-1. **libtype package**: Contains only truly common types (Chunk, Message,
-   Embedding, Similarity, Usage, Choice)
-2. **Other packages**: Each contains their own `*Interface` classes at the top
-   of main files
-3. **Services**: Each contains their service-specific `*Interface` classes
+1. **Complete Documentation**: All public methods must have complete JSDoc with
+   descriptions, @param, @returns, and @throws annotations
+2. **Constructor Documentation**: Constructors must document all parameters with
+   types and descriptions
+3. **Private Methods**: Private methods should have documentation explaining their
+   purpose within the implementation
+4. **Consistency**: Use consistent terminology and patterns across similar methods
 
 ### Type Documentation Best Practices
 
@@ -172,21 +149,18 @@ function createService(options) {
 
 ### Forbidden Documentation Practices
 
-1. **DO NOT** duplicate documentation between interface and implementation
-   classes
-2. **DO NOT** use outdated or incorrect parameter types in JSDoc
-3. **DO NOT** omit @param annotations for any parameter
-4. **DO NOT** omit @returns annotations for non-void functions
-5. **DO NOT** use vague descriptions like "does something" or "handles stuff"
-6. **DO NOT** use generic Function types without detailed signatures
-7. **DO NOT** place @typedef at function level if used in multiple places
-8. **DO NOT** commit code with ESLint JSDoc warnings
+1. **DO NOT** use outdated or incorrect parameter types in JSDoc
+2. **DO NOT** omit @param annotations for any parameter
+3. **DO NOT** omit @returns annotations for non-void functions
+4. **DO NOT** use vague descriptions like "does something" or "handles stuff"
+5. **DO NOT** use generic Function types without detailed signatures
+6. **DO NOT** place @typedef at function level if used in multiple places
+7. **DO NOT** commit code with ESLint JSDoc warnings
 
 ### Alternative Approaches
 
-- Instead of duplicated docs → Use @inheritdoc in implementation classes
-- Instead of generic types → Use specific interface types from libtype or local
-  `*Interface` classes
+- Instead of missing docs → Write complete JSDoc for all public methods
+- Instead of generic types → Use specific types from libtype or define clear object shapes
 - Instead of missing annotations → Complete all required JSDoc elements
 - Instead of vague descriptions → Write clear, specific behavior descriptions
 - Instead of generic Function types → Use detailed function signatures with
@@ -194,30 +168,30 @@ function createService(options) {
 
 ## Comprehensive Examples
 
-### Complete Interface Documentation
+### Complete Class Documentation
 
 ```javascript
 /**
- * Interface for vector similarity search operations
+ * Vector index for similarity search operations
  */
-export class VectorInterface {
+export class VectorIndex {
   /**
    * Performs similarity search across vector embeddings
    * @param {number[]} embedding - Query vector embedding array
    * @param {number} threshold - Minimum similarity score (0-1)
    * @param {number} limit - Maximum number of results to return
-   * @returns {Promise<Similarity[]>} Array of similarity results ordered by score
+   * @returns {Promise<object[]>} Array of similarity results ordered by score
    * @throws {Error} When embedding is invalid or search fails
    */
   async queryItems(embedding, threshold, limit) {
-    throw new Error("Not implemented");
+    // Implementation
   }
 
   /**
    * Adds or updates a vector item in the index
    * @param {string} id - Unique identifier for the vector
    * @param {number[]} embedding - Vector embedding array
-   * @param {Object} metadata - Additional metadata for the vector
+   * @param {object} metadata - Additional metadata for the vector
    * @returns {Promise<void>}
    * @throws {Error} When vector data is invalid
    */
@@ -227,46 +201,35 @@ export class VectorInterface {
 }
 ```
 
-### Implementation with @inheritdoc
+### Complete Implementation Example
 
 ```javascript
 /**
- * Vector interface definition
- */
-export class VectorInterface {
-  /**
-   * Adds or updates a vector item in the index
-   * @param {string} id - Unique identifier for the vector
-   * @param {number[]} embedding - Vector embedding array
-   * @param {Object} metadata - Additional metadata for the vector
-   * @returns {Promise<void>}
-   * @throws {Error} When vector data is invalid
-   */
-  async addItem(id, embedding, metadata) {
-    throw new Error("Not implemented");
-  }
-}
-
-/**
  * In-memory vector index implementation
- * @implements {VectorInterface}
  */
-export class VectorIndex extends VectorInterface {
+export class VectorIndex {
+  #storage;
+  #vectors;
+
   /**
    * Creates a new vector index with optional storage backend
-   * @param {StorageInterface} storage - Storage backend for persistence
+   * @param {object} storage - Storage backend for persistence
    */
   constructor(storage) {
-    super();
-    this.storage = storage;
-    this.vectors = new Map();
+    this.#storage = storage;
+    this.#vectors = new Map();
   }
 
-  /** @inheritdoc */
+  /**
+   * Performs similarity search across vector embeddings
+   * @param {number[]} embedding - Query vector embedding array
+   * @param {number} threshold - Minimum similarity score (0-1)
+   * @param {number} limit - Maximum number of results to return
+   * @returns {Promise<object[]>} Array of similarity results ordered by score
+   */
   async queryItems(embedding, threshold, limit) {
-    // Implementation details...
     const results = [];
-    for (const [id, vector] of this.vectors) {
+    for (const [id, vector] of this.#vectors) {
       const similarity = this.#calculateSimilarity(embedding, vector.embedding);
       if (similarity >= threshold) {
         results.push({ id, similarity });
@@ -275,9 +238,15 @@ export class VectorIndex extends VectorInterface {
     return results.slice(0, limit);
   }
 
-  /** @inheritdoc */
+  /**
+   * Adds or updates a vector item in the index
+   * @param {string} id - Unique identifier for the vector
+   * @param {number[]} embedding - Vector embedding array
+   * @param {object} metadata - Additional metadata for the vector
+   * @returns {Promise<void>}
+   */
   async addItem(id, embedding, metadata) {
-    // Implementation details...
+    this.#vectors.set(id, { embedding, metadata });
   }
 
   /**
@@ -288,8 +257,8 @@ export class VectorIndex extends VectorInterface {
    * @private
    */
   #calculateSimilarity(a, b) {
-    // Private implementation...
-    return 0.5; // placeholder
+    // Calculate cosine similarity
+    return 0.5;
   }
 }
 ```
@@ -299,11 +268,11 @@ export class VectorIndex extends VectorInterface {
 ```javascript
 /**
  * Processes agent request with multiple service integrations
- * @param {Object} request - Complete request object
+ * @param {object} request - Complete request object
  * @param {string} request.query - User query text
  * @param {string} request.userId - Unique user identifier
  * @param {string} request.sessionId - Session identifier for context
- * @param {Message[]} request.messages - Conversation history
+ * @param {object[]} request.messages - Conversation history
  * @param {Object} request.options - Additional processing options
  * @param {number} request.options.limit - Maximum results to return
  * @param {number} request.options.threshold - Similarity threshold
@@ -354,8 +323,8 @@ async function createService(
 ### @typedef Complex Types
 
 ```javascript
-/** @typedef {import("@copilot-ld/libtype").ChunkInterface} ChunkInterface */
-/** @typedef {import("@copilot-ld/libtype").MessageInterface} MessageInterface */
+/** @typedef {object} - Object type
+/** @typedef {object} - Object type
 
 /**
  * Configuration for agent service initialization

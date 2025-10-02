@@ -8,8 +8,8 @@ applyTo: "**/*.js"
 
 This file defines comprehensive coding standards and patterns for all JavaScript
 files in this project to ensure consistent implementation across the
-microservices-based platform through radical simplicity, constructor-based
-dependency injection, and interface-first design patterns.
+microservices-based platform through radical simplicity and constructor-based
+dependency injection.
 
 ## Core Principles
 
@@ -19,13 +19,11 @@ dependency injection, and interface-first design patterns.
    exactly one clear, well-defined purpose with measurable boundaries
 3. **Constructor-Based Dependency Injection**: All dependencies must be injected
    through constructors with explicit validation, never created internally
-4. **Interface-First Design**: All packages must define TypeScript-style
-   interfaces in types.js before any implementation
-5. **Explicit Over Implicit**: All behavior, dependencies, and side effects must
+4. **Explicit Over Implicit**: All behavior, dependencies, and side effects must
    be explicitly declared and visible in method signatures
-6. **No Defensive Programming**: Never use defensive programming patterns - let
+5. **No Defensive Programming**: Never use defensive programming patterns - let
    errors bubble up naturally without try/catch blocks that add no value
-7. **No Backward Compatibility**: Never provide backward compatibility,
+6. **No Backward Compatibility**: Never provide backward compatibility,
    fallbacks, or legacy code handling - implement current requirements only
 
 ## Implementation Requirements
@@ -43,7 +41,7 @@ export class ServiceInterface {
   }
 }
 
-export class Service extends ServiceInterface {
+export class Service  {
   #dependency1;
   #dependency2;
 
@@ -109,21 +107,6 @@ class ReplService {
 ```
 
 ### Interface Definition Requirements
-
-All packages must define interfaces in types.js with complete method signatures:
-
-```javascript
-export class ServiceInterface {
-  constructor(config) {
-    throw new Error("Interface method not implemented");
-  }
-
-  async operation(params) {
-    throw new Error("Interface method not implemented");
-  }
-}
-```
-
 ### Factory Function Requirements
 
 Use factory functions for runtime dependency creation:
@@ -152,7 +135,7 @@ export class ServiceInterface {
   }
 }
 
-class LlmService extends ServiceInterface {
+class LlmService  {
   #copilotFactory;
 
   constructor(config, copilotFactory) {
@@ -425,7 +408,7 @@ echo "testing" | node scripts/search.js --limit 10 --threshold 0.25
 ```javascript
 import { FormatterInterface } from "./types.js";
 
-export class HtmlFormatter extends FormatterInterface {
+export class HtmlFormatter  {
   #jsdom;
   #domPurify;
   #marked;

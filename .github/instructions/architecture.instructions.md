@@ -124,10 +124,10 @@ import thirdPartyLibrary from "library";
 
 // Internal imports second (alphabetical)
 import { helperFunction } from "./helpers/index.js";
-import { PackageInterface } from "./types.js";
+
 
 // Implementation
-export class PackageImplementation extends PackageInterface {
+export class PackageImplementation  {
   method() {
     // Implementation
   }
@@ -246,7 +246,7 @@ import { Config } from "@copilot-ld/libconfig";
 import { Service } from "@copilot-ld/librpc";
 
 // 3. Local imports (relative paths, alphabetical)
-import { DatabaseInterface } from "./types.js";
+
 ```
 
 ### Network Isolation Requirements
@@ -341,7 +341,7 @@ export class CacheInterface {
   }
 }
 
-export class MemoryCache extends CacheInterface {
+export class MemoryCache  {
   constructor(options = {}) {
     super();
     this.cache = new Map();
@@ -373,7 +373,7 @@ export class MemoryCache extends CacheInterface {
   }
 }
 
-export class PersistentCache extends CacheInterface {
+export class PersistentCache  {
   constructor(storage, options = {}) {
     super();
     this.storage = storage;

@@ -34,29 +34,24 @@ Every class must use constructor dependency injection with private fields and
 validation:
 
 ```javascript
-export class ServiceInterface {
-  constructor(config) {
-    if (!config) throw new Error("config is required");
-    this.config = config;
-  }
-}
-
-export class Service  {
+export class Service {
   #dependency1;
   #dependency2;
+  #config;
 
   constructor(config, dependency1, dependency2) {
-    super(config);
+    if (!config) throw new Error("config is required");
     if (!dependency1) throw new Error("dependency1 is required");
     if (!dependency2) throw new Error("dependency2 is required");
 
+    this.#config = config;
     this.#dependency1 = dependency1;
     this.#dependency2 = dependency2;
   }
 
   async methodName(params) {
     const result = await this.#dependency1.operation(params);
-    return this.#dependency2.process(result);
+    return this.#dependency2.process(result, this.#config);
   }
 }
 ```
@@ -107,6 +102,7 @@ class ReplService {
 ```
 
 ### Interface Definition Requirements
+
 ### Factory Function Requirements
 
 Use factory functions for runtime dependency creation:
@@ -128,26 +124,21 @@ function createCopilotInstance(token, model) {
   return new Copilot(token, model);
 }
 
-export class ServiceInterface {
-  constructor(config) {
-    if (!config) throw new Error("config is required");
-    this.config = config;
-  }
-}
-
-class LlmService  {
+class LlmService {
   #copilotFactory;
+  #config;
 
   constructor(config, copilotFactory) {
-    super(config);
+    if (!config) throw new Error("config is required");
     if (typeof copilotFactory !== "function") {
       throw new Error("copilotFactory must be a function");
     }
+    this.#config = config;
     this.#copilotFactory = copilotFactory;
   }
 
   async processRequest(githubToken, request) {
-    const copilot = this.#copilotFactory(githubToken, this.config.model);
+    const copilot = this.#copilotFactory(githubToken, this.#config.model);
     return await copilot.createCompletions(request);
   }
 }
@@ -403,18 +394,15 @@ await new VectorService(config, index).start();
 echo "testing" | node scripts/search.js --limit 10 --threshold 0.25
 ```
 
-### Package with Interface and Factory
+### Package with Factory
 
 ```javascript
-import { FormatterInterface } from "./types.js";
-
-export class HtmlFormatter  {
+export class HtmlFormatter {
   #jsdom;
   #domPurify;
   #marked;
 
   constructor({ jsdom, domPurify, marked }) {
-    super();
     if (!jsdom) throw new Error("jsdom dependency is required");
     if (!domPurify) throw new Error("domPurify dependency is required");
     if (!marked) throw new Error("marked dependency is required");
@@ -443,6 +431,4 @@ export function createHtmlFormatter() {
     marked: import("marked"),
   });
 }
-
-export { FormatterInterface };
 ```

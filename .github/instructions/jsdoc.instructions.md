@@ -14,8 +14,8 @@ documentation that provides excellent IDE support.
 
 1. **Complete Documentation**: All documentation must be written directly on
    implementation classes with full JSDoc comments
-2. **Single Responsibility**: Each class and method has clear, focused documentation
-   describing its purpose and behavior
+2. **Single Responsibility**: Each class and method has clear, focused
+   documentation describing its purpose and behavior
 3. **Accuracy Requirement**: JSDoc must match implementation exactly - no
    outdated or incorrect documentation allowed
 4. **Consistent Format**: Follow standardized patterns across all files for
@@ -131,9 +131,10 @@ function createService(options) {
    descriptions, @param, @returns, and @throws annotations
 2. **Constructor Documentation**: Constructors must document all parameters with
    types and descriptions
-3. **Private Methods**: Private methods should have documentation explaining their
-   purpose within the implementation
-4. **Consistency**: Use consistent terminology and patterns across similar methods
+3. **Private Methods**: Private methods should have documentation explaining
+   their purpose within the implementation
+4. **Consistency**: Use consistent terminology and patterns across similar
+   methods
 
 ### Type Documentation Best Practices
 
@@ -160,7 +161,8 @@ function createService(options) {
 ### Alternative Approaches
 
 - Instead of missing docs → Write complete JSDoc for all public methods
-- Instead of generic types → Use specific types from libtype or define clear object shapes
+- Instead of generic types → Use specific types from libtype or define clear
+  object shapes
 - Instead of missing annotations → Complete all required JSDoc elements
 - Instead of vague descriptions → Write clear, specific behavior descriptions
 - Instead of generic Function types → Use detailed function signatures with
@@ -213,7 +215,7 @@ export class VectorIndex {
 
   /**
    * Creates a new vector index with optional storage backend
-   * @param {object} storage - Storage backend for persistence
+   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage backend for persistence
    */
   constructor(storage) {
     this.#storage = storage;
@@ -236,6 +238,15 @@ export class VectorIndex {
       }
     }
     return results.slice(0, limit);
+  }
+
+  /**
+   * Loads vector data from storage
+   * @returns {Promise<void>}
+   */
+  async loadData() {
+    const data = await this.#storage.get("vectors.json");
+    // Process loaded data
   }
 
   /**

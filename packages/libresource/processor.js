@@ -24,11 +24,11 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Creates a new ResourceProcessor instance
-   * @param {object} resourceIndex - ResourceIndex instance
-   * @param {object} configStorage - Storage for configuration files
-   * @param {object} knowledgeStorage - Storage for knowledge base data
-   * @param {object} llm - LLM client for descriptor generation
-   * @param {object} logger - Logger instance for debug output
+   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance
+   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} configStorage - Storage for configuration files
+   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} knowledgeStorage - Storage for knowledge base data
+   * @param {import("@copilot-ld/libcopilot").Copilot} llm - LLM client for descriptor generation
+   * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
    */
   constructor(resourceIndex, configStorage, knowledgeStorage, llm, logger) {
     super(logger, 5);

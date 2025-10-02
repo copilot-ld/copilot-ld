@@ -2,12 +2,6 @@
 
 import { ProcessorBase } from "@copilot-ld/libutil";
 
-/** @typedef {import("@copilot-ld/libresource").ResourceIndexInterface} ResourceIndexInterface */
-/** @typedef {import("@copilot-ld/libcopilot").LlmInterface} LlmInterface */
-/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
-/** @typedef {import("@copilot-ld/libvector").VectorIndexInterface} VectorIndexInterface */
-/** @typedef {import("@copilot-ld/libtype").resource.Descriptor} resource.Descriptor */
-
 /**
  * VectorProcessor class for processing resources into vector embeddings
  * @augments {ProcessorBase}
@@ -21,11 +15,11 @@ export class VectorProcessor extends ProcessorBase {
 
   /**
    * Creates a new VectorProcessor instance
-   * @param {VectorIndexInterface} contentIndex - The vector index to store content embeddings
-   * @param {VectorIndexInterface} descriptorIndex - The vector index to store descriptor embeddings
-   * @param {ResourceIndexInterface} resourceIndex - ResourceIndex instance to process resources from
-   * @param {LlmInterface} llm - LLM client instance for embedding generation
-   * @param {object} logger - Logger instance for debug output
+   * @param {import("@copilot-ld/libvector").VectorIndex} contentIndex - The vector index to store content embeddings
+   * @param {import("@copilot-ld/libvector").VectorIndex} descriptorIndex - The vector index to store descriptor embeddings
+   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance to process resources from
+   * @param {import("@copilot-ld/libcopilot").Copilot} llm - LLM client instance for embedding generation
+   * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
    */
   constructor(contentIndex, descriptorIndex, resourceIndex, llm, logger) {
     super(logger);

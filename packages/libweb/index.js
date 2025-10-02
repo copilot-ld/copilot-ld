@@ -132,7 +132,7 @@ export class SecurityMiddleware {
 
   /**
    * Creates security middleware instance
-   * @param {object} rateLimiter - Rate limiter implementation
+   * @param {MemoryRateLimiter} rateLimiter - Rate limiter implementation
    */
   constructor(rateLimiter) {
     this.#rateLimiter = rateLimiter;

@@ -2,8 +2,6 @@
 
 import { resource } from "@copilot-ld/libtype";
 
-/** @typedef {import("@copilot-ld/libconfig").ConfigInterface} ConfigInterface */
-
 /**
  * VectorIndex class for managing vector data with lazy loading
  */
@@ -15,7 +13,7 @@ export class VectorIndex {
 
   /**
    * Creates a new VectorIndex instance
-   * @param {object} storage - Storage interface for data operations
+   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage interface for data operations
    * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
    */
   constructor(storage, indexKey = "index.jsonl") {
@@ -25,7 +23,7 @@ export class VectorIndex {
 
   /**
    * Gets the storage instance
-   * @returns {object} Storage instance
+   * @returns {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} Storage instance
    */
   storage() {
     return this.#storage;
@@ -42,7 +40,7 @@ export class VectorIndex {
   /**
    * Adds a vector item to the index
    * @param {number[]} vector - The vector
-   * @param {object} identifier - Resource identifier
+   * @param {resource.Identifier} identifier - Resource identifier
    * @returns {Promise<void>}
    */
   async addItem(vector, identifier) {
@@ -64,7 +62,7 @@ export class VectorIndex {
   /**
    * Gets an item by its resource ID
    * @param {string} id - The resource ID to retrieve
-   * @returns {Promise<object|null>} The item identifier, or null if not found
+   * @returns {Promise<resource.Identifier|null>} The item identifier, or null if not found
    */
   async getItem(id) {
     if (!this.#loaded) await this.loadData();
@@ -115,7 +113,7 @@ export class VectorIndex {
    * @param {number} [filter.threshold] - Minimum score threshold
    * @param {number} [filter.max_tokens] - Maximum total tokens allowed in results
    * @param {string} [filter.prefix] - URI prefix filter
-   * @returns {Promise<object[]>} Array of resource identifiers sorted by score
+   * @returns {Promise<resource.Identifier[]>} Array of resource identifiers sorted by score
    */
   async queryItems(query, filter = {}) {
     if (!this.#loaded) await this.loadData();

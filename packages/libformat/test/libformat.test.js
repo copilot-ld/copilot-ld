@@ -7,26 +7,28 @@ import { HtmlFormatter, TerminalFormatter } from "../index.js";
 
 describe("libformat", () => {
   describe("HtmlFormatter", () => {
-    let mockJsdom, mockDomPurify, mockMarked, htmlFormatter;
+    let mockSanitizeHtml, mockMarked, htmlFormatter;
 
     beforeEach(() => {
-      // Mock JSDOM
-      mockJsdom = {
-        JSDOM: class {
-          constructor() {
-            this.window = { document: {} };
-          }
-        },
-      };
+      // Mock sanitize-html
+      mockSanitizeHtml = (html, options) => {
+        // Simple mock that removes script tags but keeps other allowed tags
+        let sanitized = html.replace(/<script[^>]*>.*?<\/script>/gi, "");
 
-      // Mock DOMPurify
-      const mockPurifyInstance = {
-        sanitize: (html, _options) => {
-          // Simple mock that removes script tags but keeps other allowed tags
-          return html.replace(/<script[^>]*>.*?<\/script>/gi, "");
-        },
+        // Filter allowed tags (basic implementation for testing)
+        if (options.allowedTags) {
+          const allowedTagsSet = new Set(options.allowedTags);
+          sanitized = sanitized.replace(
+            /<(\/?[^>]+)>/g,
+            (match, tagContent) => {
+              const tagName = tagContent.split(/\s/)[0].replace("/", "");
+              return allowedTagsSet.has(tagName) ? match : "";
+            },
+          );
+        }
+
+        return sanitized;
       };
-      mockDomPurify = () => mockPurifyInstance;
 
       // Mock Marked
       const mockMarkedInstance = {
@@ -48,7 +50,7 @@ describe("libformat", () => {
         },
       };
 
-      htmlFormatter = new HtmlFormatter(mockJsdom, mockDomPurify, mockMarked);
+      htmlFormatter = new HtmlFormatter(mockSanitizeHtml, mockMarked);
     });
 
     test("converts basic markdown to HTML", () => {

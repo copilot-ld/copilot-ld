@@ -189,7 +189,7 @@ class AgentService extends AgentBase {
       // Step 3: Search for similarities and append them to memor
       const embeddings = await this.#llmClient.CreateEmbeddings(
         new llm.EmbeddingsRequest({
-          chunks: [message.content],
+          chunks: [message.content.toString()],
           github_token: req.github_token,
         }),
       );
@@ -211,7 +211,7 @@ class AgentService extends AgentBase {
 
       this.#memoryClient.Append(
         new memory.AppendRequest({
-          for: conversation.id,
+          for: conversation.id.toString(),
           identifiers,
         }),
       );
@@ -219,7 +219,7 @@ class AgentService extends AgentBase {
       // Step 4: Get the memory window
       const window = await this.#memoryClient.GetWindow(
         new memory.WindowRequest({
-          for: conversation.id,
+          for: conversation.id.toString(),
           vector: vector_data,
           budget,
           allocation: allocation
@@ -350,7 +350,7 @@ class AgentService extends AgentBase {
 
     return {
       ...completions,
-      conversation_id: conversation.id,
+      conversation_id: conversation.id.toString(),
     };
   }
 }

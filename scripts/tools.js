@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import yaml from "js-yaml";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
@@ -10,8 +10,21 @@ import { access } from "node:fs/promises";
 
 const { Root } = pkg;
 
-// Use the config of the tools service
-const config = await ServiceConfig.create("tool");
+/**
+ * Load tool endpoints configuration from tools.yml
+ * @returns {Promise<object>} Tool endpoints configuration
+ */
+async function loadToolsConfig() {
+  const configStorage = storageFactory("config");
+
+  try {
+    const toolsContent = await configStorage.get("tools.yml");
+    return yaml.load(toolsContent.toString()) || {};
+  } catch {
+    // tools.yml is optional, so we just use an empty object if not found
+    return {};
+  }
+}
 
 /**
  * Generate OpenAI-compatible JSON schema from protobuf message type
@@ -223,7 +236,7 @@ async function main() {
 
   logger.debug("Generating tool schemas");
 
-  const endpoints = config.endpoints || {};
+  const endpoints = await loadToolsConfig();
 
   if (Object.keys(endpoints).length === 0) {
     logger.debug("No tool endpoints configured");

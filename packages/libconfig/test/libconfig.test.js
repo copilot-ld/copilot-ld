@@ -59,10 +59,10 @@ describe("libconfig", () => {
       );
 
       assert.strictEqual(config.host, "custom-host");
-      assert.strictEqual(config.port, 8080); // YAML parsing converts "8080" to number
+      assert.strictEqual(config.port, 8080); // JSON parsing converts "8080" to number
     });
 
-    test("parses YAML environment variables", async () => {
+    test("parses JSON environment variables", async () => {
       mockProcess.env = {
         TEST_MYSERVICE_NUMBERS: "[1, 2, 3]",
         TEST_MYSERVICE_BOOLEAN: "true",
@@ -81,9 +81,9 @@ describe("libconfig", () => {
       assert.strictEqual(config.boolean, true);
     });
 
-    test("falls back to string for invalid YAML", async () => {
+    test("falls back to string for invalid JSON", async () => {
       mockProcess.env = {
-        TEST_MYSERVICE_INVALID: "not-yaml-[",
+        TEST_MYSERVICE_INVALID: "not-json-[",
       };
 
       const mockStorageFn = () => mockStorage;
@@ -95,7 +95,7 @@ describe("libconfig", () => {
         mockStorageFn,
       );
 
-      assert.strictEqual(config.invalid, "not-yaml-[");
+      assert.strictEqual(config.invalid, "not-json-[");
     });
 
     test("loads environment variables from process.env", async () => {
@@ -108,7 +108,7 @@ describe("libconfig", () => {
         mockStorageFn,
       );
 
-      // Should not throw and should work without dotenv
+      // Should not throw and should work without external env loading
       assert.strictEqual(config.name, "myservice");
     });
 
@@ -192,7 +192,6 @@ describe("libconfig", () => {
         "myservice",
         {},
         mockProcess,
-        undefined, // Use default dotenv
         mockStorageFn,
       );
 
@@ -255,7 +254,6 @@ describe("libconfig", () => {
         "myservice",
         {},
         mockProcess,
-        config, // dotenv parameter
         mockStorageFn,
       );
 
@@ -280,7 +278,6 @@ describe("libconfig", () => {
         "myservice",
         {},
         mockProcess,
-        undefined, // dotenv parameter
         mockStorageFn,
       );
 

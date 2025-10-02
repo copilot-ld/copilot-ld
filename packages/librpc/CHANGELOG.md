@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-10-02
+
+- **BREAKING**: Migrated from runtime proto-loader to pre-compiled service
+  definitions for improved performance and reduced dependencies
+- **BREAKING**: Removed `@grpc/proto-loader` and `@bufbuild/protobuf`
+  dependencies in favor of compile-time definition generation
+- **NEW**: Added `getServiceDefinition()` method for accessing pre-compiled gRPC
+  service definitions
+- Enhanced gRPC client and server classes to use pre-compiled definitions
+  instead of dynamic proto loading
+
 ## 2025-09-27
 
 - **BREAKING**: Removed `@copilot-ld/libstorage` dependency - proto files now

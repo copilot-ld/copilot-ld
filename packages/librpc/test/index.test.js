@@ -40,7 +40,6 @@ describe("Server", () => {
 
   beforeEach(() => {
     mockService = {
-      getProtoName: () => "test.proto",
       getHandlers: () => ({
         TestMethod: async (_call) => ({ result: "test" }),
       }),
@@ -60,9 +59,6 @@ describe("Server", () => {
           tryShutdown: mock.fn((callback) => callback()),
         };
       },
-      loadPackageDefinition: mock.fn(() => ({
-        test: { Test: { service: {} } },
-      })),
       ServerCredentials: {
         createInsecure: mock.fn(),
       },
@@ -72,11 +68,7 @@ describe("Server", () => {
       },
     };
 
-    const mockProtoLoader = {
-      loadSync: mock.fn(() => ({})),
-    };
-
-    mockGrpcFn = () => ({ grpc: mockGrpc, protoLoader: mockProtoLoader });
+    mockGrpcFn = () => ({ grpc: mockGrpc });
     mockAuthFn = () => ({
       validateCall: () => ({ isValid: true, serviceId: "test" }),
     });
@@ -113,13 +105,11 @@ describe("Server", () => {
   });
 
   test("should call service methods during setup", async () => {
-    const getProtoNameSpy = mock.fn(() => "test.proto");
     const getHandlersSpy = mock.fn(() => ({
       TestMethod: async () => ({ result: "test" }),
     }));
 
     const spiedService = {
-      getProtoName: getProtoNameSpy,
       getHandlers: getHandlersSpy,
     };
 
@@ -135,12 +125,9 @@ describe("Server", () => {
     assert.ok(server);
 
     // Verify service methods can be called directly (which is what matters)
-    const protoName = spiedService.getProtoName();
     const handlers = spiedService.getHandlers();
 
-    assert.strictEqual(protoName, "test.proto");
     assert.ok(handlers.TestMethod);
-    assert.strictEqual(getProtoNameSpy.mock.callCount(), 1);
     assert.strictEqual(getHandlersSpy.mock.callCount(), 1);
   });
 });
@@ -165,19 +152,18 @@ describe("Client", () => {
     };
 
     const mockGrpc = {
-      loadPackageDefinition: mock.fn(() => ({
-        test: { Test: mockGrpcClient },
-      })),
+      makeGenericClientConstructor: mock.fn(
+        () =>
+          function () {
+            return mockGrpcClient;
+          },
+      ),
       credentials: {
         createInsecure: mock.fn(),
       },
     };
 
-    const mockProtoLoader = {
-      loadSync: mock.fn(() => ({})),
-    };
-
-    mockGrpcFn = () => ({ grpc: mockGrpc, protoLoader: mockProtoLoader });
+    mockGrpcFn = () => ({ grpc: mockGrpc });
     mockAuthFn = () => ({
       createClientInterceptor: () => () => {},
     });

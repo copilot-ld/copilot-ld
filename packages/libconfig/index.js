@@ -1,7 +1,4 @@
 /* eslint-env node */
-import { config } from "dotenv";
-import yaml from "js-yaml";
-
 import { storageFactory } from "@copilot-ld/libstorage";
 
 import {
@@ -23,7 +20,6 @@ export class Config extends ConfigInterface {
   #fileData = null;
   #storage = null;
   #process;
-  #dotenv;
   #storageFn;
 
   /**
@@ -32,7 +28,6 @@ export class Config extends ConfigInterface {
    * @param {string} name - Name of the configuration (used for environment variable prefix)
    * @param {object} defaults - Default configuration values
    * @param {object} process - Process environment access
-   * @param {(options?: object) => object} dotenv - Dotenv config function
    * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Optional storage factory function that takes basePath and returns storage instance
    * @private
    */
@@ -41,12 +36,10 @@ export class Config extends ConfigInterface {
     name,
     defaults = {},
     process = global.process,
-    dotenv = config,
     storageFn = storageFactory,
   ) {
     super(namespace, name, defaults);
     this.#process = process;
-    this.#dotenv = dotenv;
     this.#storageFn = storageFn;
 
     this.name = name;
@@ -59,7 +52,6 @@ export class Config extends ConfigInterface {
    * @param {string} name - Name of the configuration (used for environment variable prefix)
    * @param {object} defaults - Default configuration values
    * @param {object} process - Process environment access
-   * @param {(options?: object) => object} dotenv - Dotenv config function
    * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Optional storage factory function that takes basePath and returns storage instance
    * @returns {Promise<Config>} Initialized Config instance
    */
@@ -68,17 +60,9 @@ export class Config extends ConfigInterface {
     name,
     defaults = {},
     process = global.process,
-    dotenv = config,
     storageFn = storageFactory,
   ) {
-    const instance = new Config(
-      namespace,
-      name,
-      defaults,
-      process,
-      dotenv,
-      storageFn,
-    );
+    const instance = new Config(namespace, name, defaults, process, storageFn);
     await instance.load();
     return instance;
   }
@@ -109,7 +93,7 @@ export class Config extends ConfigInterface {
       const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
       if (this.#process.env[varName] !== undefined) {
         try {
-          data[param] = yaml.load(this.#process.env[varName]);
+          data[param] = JSON.parse(this.#process.env[varName]);
         } catch {
           data[param] = this.#process.env[varName];
         }
@@ -161,28 +145,22 @@ export class Config extends ConfigInterface {
   }
 
   /**
-   * Loads environment variables from .env files
+   * Loads environment variables (environment variables are now handled by Node.js --env-file)
    * @returns {void}
    * @private
    */
   #loadEnv() {
     if (this.#envLoaded) return;
 
-    // Only try to load .env file if storage is available
-    if (this.#storage && this.#storage.path) {
-      try {
-        this.#dotenv({ path: this.#storage.path(".env"), quiet: true });
-      } catch {
-        // Ignore errors when loading .env file (e.g., file not found)
-      }
-    }
+    // Environment variables are now loaded via Node.js --env-file flag
+    // No additional processing needed as process.env is already populated
 
     this.#envLoaded = true;
     return;
   }
 
   /**
-   * Loads configuration data from config.yml file using storage abstraction
+   * Loads configuration data from config.json file using storage abstraction
    * @returns {Promise<void>}
    * @private
    */
@@ -190,10 +168,11 @@ export class Config extends ConfigInterface {
     if (this.#fileData !== null) return;
 
     try {
-      const configContent = await this.#storage.get("config.yml");
-      this.#fileData = yaml.load(configContent.toString()) || {};
+      const configContent = await this.#storage.get("config.json");
+      // Storage automatically parses JSON files, so configContent is already an object
+      this.#fileData = configContent || {};
     } catch {
-      // config.yml is optional, so we just use an empty object if not found
+      // config.json is optional, so we just use an empty object if not found
       this.#fileData = {};
     }
   }

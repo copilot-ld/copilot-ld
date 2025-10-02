@@ -49,8 +49,9 @@
           Runtime configuration for services, networking, and authentication
         </li>
         <li>
-          <strong>YAML Configuration</strong> (<code>config/*.yml</code>):
-          Service behavior, tool definitions, and assistant configurations
+          <strong>JSON Configuration</strong> (<code>config/*.json</code> and
+          <code>config/*.yml</code>): Service behavior, tool definitions, and
+          assistant configurations
         </li>
       </ul>
 
@@ -59,8 +60,9 @@
       <h4>Initial Setup</h4>
       <p>Create your environment configuration:</p>
       <pre><code>cp config/.env{.example,}
-cp config/config{.example,}.yml
-cp config/assistants{.example,}.yml</code></pre>
+cp config/config{.example,}.json
+cp config/assistants{.example,}.yml
+cp config/tools{.example,}.yml</code></pre>
 
       <h4>Service Networking</h4>
       <p>
@@ -162,44 +164,49 @@ DEBUG=*
 # Or enable for specific components
 DEBUG=agent</code></pre>
 
-      <h3>YAML Configuration</h3>
+      <h3>JSON and YAML Configuration</h3>
 
-      <h4>Service Configuration (<code>config.yml</code>)</h4>
-      <p>
-        Defines service behavior, tool endpoints, and operational parameters.
-      </p>
+      <h4>Service Configuration (<code>config.json</code>)</h4>
+      <p>Defines service behavior and operational parameters in JSON format.</p>
 
-      <pre><code>service:
-  agent:
-    assistant: "cld:common.Assistant.software-dev-expert"
-    threshold: 0.25
-    limit: 100
-    temperature: 0.25
-    budget:
-      tokens: 90000
-      allocation:
-        tools: 0.1
-        history: 0.1
-        context: 0.6
+      <pre><code>{
+  "service": {
+    "agent": {
+      "assistant": "cld:common.Assistant.software-dev-expert",
+      "threshold": 0.25,
+      "limit": 100,
+      "temperature": 0.25,
+      "budget": {
+        "tokens": 90000,
+        "allocation": {
+          "tools": 0.1,
+          "history": 0.1,
+          "context": 0.6
+        }
+      }
+    },
+    "llm": {
+      "model": "gpt-4o"
+    }
+  }
+}</code></pre>
 
-  llm:
-    model: "gpt-4o"
+      <h4>Tool Configuration (<code>tools.yml</code>)</h4>
+      <p>Defines tool endpoints and their configurations.</p>
 
-  tool:
-    endpoints:
-      sha256_hash:
-        method: "hash.Hash.Sha256"
-        request: "hash.HashRequest"
-        purpose: |
-          Create deterministic SHA-256 hash of input text.
-        applicability: |
-          Use ONLY when user explicitly requests SHA-256 hashing. DO NOT use
-          for search or content analysis.
-        instructions: |
-          Input: Text string in 'input' field. Output: 64-character hexadecimal
-          SHA-256 hash.
-        evaluation: |
-          Returns exactly 64-character hexadecimal string.</code></pre>
+      <pre><code>sha256_hash:
+  method: "hash.Hash.Sha256"
+  request: "hash.HashRequest"
+  purpose: |
+    Create deterministic SHA-256 hash of input text.
+  applicability: |
+    Use ONLY when user explicitly requests SHA-256 hashing. DO NOT use
+    for search or content analysis.
+  instructions: |
+    Input: Text string in 'input' field. Output: 64-character hexadecimal
+    SHA-256 hash.
+  evaluation: |
+    Returns exactly 64-character hexadecimal string.</code></pre>
 
       <h5>Assistant Configuration (<code>assistants.yml</code>)</h5>
       <p>Defines AI assistant personas and their specialized behaviors.</p>

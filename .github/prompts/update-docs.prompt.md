@@ -16,6 +16,8 @@ synchronized.
 
 - Follow `.github/instructions/documentation.instructions.md` for all standard
   documentation requirements
+- **Write in present tense only**: Document the current state, never reference
+  previous states or what changed (except in changelog files)
 - Update documentation in the same commit as code changes
 
 ## 3. Changelog Consolidation Strategy

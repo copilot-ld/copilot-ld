@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-02
+
+- **BREAKING**: Replaced `js-tiktoken` dependency with built-in `Tokenizer`
+  class for reduced external dependencies
+- **NEW**: Added service definition generation (`runDefinitions()`) for
+  pre-compiled gRPC definitions that eliminate runtime proto-loader usage
+- Enhanced code generation with new template system for service definitions and
+  improved export management
+
 ## 2025-09-27
 
 - **NEW**: Added `DownloadInterface` and `Download` implementation for

@@ -1,22 +1,18 @@
 /* eslint-env node */
-import protoLoader from "@grpc/proto-loader";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import grpc from "@grpc/grpc-js";
 
 import { logFactory } from "@copilot-ld/libutil";
 
-import { grpcFactory, authFactory } from "./base.js";
+import { authFactory } from "./base.js";
 import * as exports from "./generated/services/exports.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import * as definitionsExports from "./generated/definitions/exports.js";
 
 export { grpcFactory, authFactory, Rpc, Client } from "./base.js";
 export { Interceptor, HmacAuth } from "./auth.js";
 export { RpcInterface, ClientInterface } from "./types.js";
 
 /**
- * gRPC Server class for hosting services
+ * gRPC Server class using pre-compiled service definitions
  * Takes a service instance and creates a gRPC server around it
  */
 export class Server {
@@ -30,14 +26,14 @@ export class Server {
    * Creates a gRPC server for a service
    * @param {object} service - Service instance with business logic
    * @param {object} config - Server configuration
-   * @param {() => {grpc: object, protoLoader: object}} grpcFn - gRPC factory
+   * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string) => object} authFn - Auth factory
    * @param {(namespace: string) => object} logFn - Log factory
    */
   constructor(
     service,
     config,
-    grpcFn = grpcFactory,
+    grpcFn = () => ({ grpc }),
     authFn = authFactory,
     logFn = logFactory,
   ) {
@@ -56,8 +52,8 @@ export class Server {
   async start() {
     this.#server = new this.#grpc.Server();
 
-    // Load proto and get service definition
-    const definition = await this.#loadServiceDefinition();
+    // Get pre-compiled service definition
+    const definition = await this.#getServiceDefinition();
 
     // Get handlers from the service instance
     const handlers = this.#service.getHandlers();
@@ -73,24 +69,17 @@ export class Server {
     this.#setupShutdown();
   }
 
-  async #loadServiceDefinition() {
-    const protoName = this.#service.getProtoName();
-    const protoPath = join(__dirname, "generated", "proto", protoName);
+  async #getServiceDefinition() {
+    // Get service name from config (e.g., "agent" -> "agent")
+    const serviceName = this.config.name.toLowerCase();
 
-    const packageDefinition = protoLoader.loadSync(protoPath, {
-      keepCase: true,
-      longs: String,
-      enums: String,
-    });
-
-    const proto = this.#grpc.loadPackageDefinition(packageDefinition);
-
-    // Extract service definition from proto
-    // This assumes service name matches proto name (e.g., llm.proto -> llm.Llm)
-    const serviceName = protoName.replace(".proto", "");
-    const serviceNameCapitalized =
-      serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
-    return proto[serviceName][serviceNameCapitalized].service;
+    const definition = definitionsExports.definitions[serviceName];
+    if (!definition) {
+      throw new Error(
+        `Service definition for ${serviceName} not found. Available: ${Object.keys(definitionsExports.definitions).join(", ")}`,
+      );
+    }
+    return definition;
   }
 
   #wrapHandlers(handlers) {

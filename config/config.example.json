@@ -1,0 +1,27 @@
+{
+  "tool": {
+    "download": {
+      "owner": "some-github-owner",
+      "repo": "some-github-repo"
+    }
+  },
+  "service": {
+    "agent": {
+      "assistant": "cld:common.Assistant.software-dev-expert",
+      "threshold": 0.25,
+      "limit": 100,
+      "temperature": 0.25,
+      "budget": {
+        "tokens": 90000,
+        "allocation": {
+          "tools": 0.1,
+          "history": 0.1,
+          "context": 0.6
+        }
+      }
+    },
+    "llm": {
+      "model": "gpt-4o"
+    }
+  }
+}

@@ -127,6 +127,7 @@ function printUsage() {
       `  npx codegen --type                             # Generate protobuf types only`,
       `  npx codegen --service                          # Generate service bases only`,
       `  npx codegen --client                           # Generate clients only`,
+      `  npx codegen --definition                       # Generate service definitions only`,
     ].join("\n") + "\n",
   );
 }
@@ -143,9 +144,10 @@ async function runCodegen(codegen, projectRoot, flags) {
   const doTypes = doAll || flagSet.has("--type");
   const doServices = doAll || flagSet.has("--service");
   const doClients = doAll || flagSet.has("--client");
+  const doDefinitions = doAll || flagSet.has("--definition");
   const sourcePath = parseSourcePath(flags);
-  const doExports = doServices || doClients || doAll;
-  const doGenerate = doTypes || doServices || doClients;
+  const doExports = doServices || doClients || doDefinitions || doAll;
+  const doGenerate = doTypes || doServices || doClients || doDefinitions;
 
   // Handle --source only case (no generation flags)
   if (!doGenerate) {
@@ -175,6 +177,7 @@ async function runCodegen(codegen, projectRoot, flags) {
       doTypes && codegen.runTypes(libtypeGeneratedPath),
       doServices && codegen.runForKind("service", librpcGeneratedPath),
       doClients && codegen.runForKind("client", librpcGeneratedPath),
+      doDefinitions && codegen.runDefinitions(librpcGeneratedPath),
     ].filter(Boolean),
   );
 

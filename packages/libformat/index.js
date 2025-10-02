@@ -1,9 +1,8 @@
 /* eslint-env node */
 // External libraries (alphabetical)
-import DOMPurify from "dompurify";
-import { JSDOM } from "jsdom";
 import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";
+import sanitizeHtml from "sanitize-html";
 
 // Local imports
 import { FormatterInterface } from "./types.js";
@@ -12,27 +11,21 @@ import { FormatterInterface } from "./types.js";
  * Formats markdown content to sanitized HTML
  */
 export class HtmlFormatter extends FormatterInterface {
-  #jsdom;
-  #domPurify;
+  #sanitizeHtml;
   #marked;
   #htmlMarked;
-  #window;
-  #purify;
 
   /**
    * Creates an HTML formatter with required dependencies
-   * @param {object} jsdom - JSDOM constructor for creating DOM window
-   * @param {object} domPurify - DOMPurify sanitizer
+   * @param {object} sanitizeHtml - sanitize-html sanitizer
    * @param {object} marked - Marked markdown parser
    */
-  constructor(jsdom, domPurify, marked) {
+  constructor(sanitizeHtml, marked) {
     super();
-    if (!jsdom) throw new Error("jsdom dependency is required");
-    if (!domPurify) throw new Error("domPurify dependency is required");
+    if (!sanitizeHtml) throw new Error("sanitizeHtml dependency is required");
     if (!marked) throw new Error("marked dependency is required");
 
-    this.#jsdom = jsdom;
-    this.#domPurify = domPurify;
+    this.#sanitizeHtml = sanitizeHtml;
     this.#marked = marked;
 
     // Initialize the HTML marked instance with configuration
@@ -40,10 +33,6 @@ export class HtmlFormatter extends FormatterInterface {
       breaks: true,
       gfm: true,
     });
-
-    // Set up DOM window and purify
-    this.#window = new this.#jsdom.JSDOM("").window;
-    this.#purify = this.#domPurify(this.#window);
   }
 
   /**
@@ -52,8 +41,8 @@ export class HtmlFormatter extends FormatterInterface {
    */
   format(markdown) {
     const rawHtml = this.#htmlMarked.parse(markdown);
-    return this.#purify.sanitize(rawHtml, {
-      ALLOWED_TAGS: [
+    return this.#sanitizeHtml(rawHtml, {
+      allowedTags: [
         "p",
         "br",
         "strong",
@@ -80,8 +69,11 @@ export class HtmlFormatter extends FormatterInterface {
         "th",
         "td",
       ],
-      ALLOWED_ATTR: ["href", "src", "alt", "title"],
-      ALLOW_DATA_ATTR: false,
+      allowedAttributes: {
+        a: ["href", "title"],
+        img: ["src", "alt", "title"],
+      },
+      allowedSchemes: ["http", "https", "mailto"],
     });
   }
 }
@@ -128,7 +120,7 @@ export class TerminalFormatter extends FormatterInterface {
  * @returns {HtmlFormatter} Configured HTML formatter instance
  */
 export function createHtmlFormatter() {
-  return new HtmlFormatter({ JSDOM: JSDOM }, DOMPurify, { Marked: Marked });
+  return new HtmlFormatter(sanitizeHtml, { Marked: Marked });
 }
 
 /**

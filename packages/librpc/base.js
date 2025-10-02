@@ -1,16 +1,10 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
-import protoLoader from "@grpc/proto-loader";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { RpcInterface, ClientInterface } from "./types.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 /**
  * Capitalize first letter of a string
@@ -23,10 +17,10 @@ function capitalizeFirstLetter(str) {
 
 /**
  * Default grpc factory that creates gRPC dependencies
- * @returns {object} Object containing grpc and protoLoader
+ * @returns {object} Object containing grpc
  */
 export function grpcFactory() {
-  return { grpc, protoLoader };
+  return { grpc };
 }
 
 /**
@@ -50,7 +44,6 @@ export function authFactory(serviceName) {
  */
 export class Rpc extends RpcInterface {
   #grpc;
-  #protoLoader;
   #auth;
   #logger;
 
@@ -74,9 +67,8 @@ export class Rpc extends RpcInterface {
     this.config = config;
 
     // Initialize gRPC dependencies
-    const { grpc, protoLoader } = grpcFn();
+    const { grpc } = grpcFn();
     this.#grpc = grpc;
-    this.#protoLoader = protoLoader;
 
     // Setup authentication
     this.#auth = authFn(this.config.name);
@@ -89,9 +81,6 @@ export class Rpc extends RpcInterface {
   grpc = () => this.#grpc;
 
   /** @inheritdoc */
-  protoLoader = () => this.#protoLoader;
-
-  /** @inheritdoc */
   auth = () => this.#auth;
 
   /** @inheritdoc */
@@ -100,25 +89,26 @@ export class Rpc extends RpcInterface {
   /** @inheritdoc */
   debug = (message, context) => this.#logger.debug(message, context);
 
-  /** @inheritdoc */
-  async loadProto(key) {
-    const filename = join(__dirname, "generated", "proto", key);
-
-    const serviceName = key.replace(".proto", "");
-    const packageDefinition = this.grpc().loadPackageDefinition(
-      this.protoLoader().loadSync(filename, {
-        keepCase: true,
-        longs: String,
-        enums: String,
-      }),
-    );
-
-    return packageDefinition[serviceName];
+  /**
+   * Get pre-compiled service definition
+   * @param {string} serviceName - Service name (e.g., "Agent", "Vector")
+   * @returns {object} Pre-compiled service definition
+   */
+  async getServiceDefinition(serviceName) {
+    // Import definitions dynamically to avoid circular dependency
+    const { definitions } = await import("./generated/definitions/exports.js");
+    const definition = definitions[serviceName.toLowerCase()];
+    if (!definition) {
+      throw new Error(
+        `Service definition for ${serviceName} not found. Available: ${Object.keys(definitions).join(", ")}`,
+      );
+    }
+    return definition;
   }
 }
 
 /**
- * Creates a gRPC client with consistent API
+ * Creates a gRPC client with consistent API using pre-compiled definitions
  * @implements {ClientInterface}
  */
 export class Client extends Rpc {
@@ -142,19 +132,13 @@ export class Client extends Rpc {
   }
 
   /**
-   * Sets up the gRPC client
+   * Sets up the gRPC client using pre-compiled definition
    * @private
    */
   async #setupClient() {
     try {
-      const proto = await this.loadProto(`${this.config.name}.proto`);
-      const ServiceClass = proto[capitalizeFirstLetter(this.config.name)];
-
-      if (!ServiceClass) {
-        throw new Error(
-          `Service ${capitalizeFirstLetter(this.config.name)} not found in proto/${this.config.name}.proto`,
-        );
-      }
+      const serviceName = capitalizeFirstLetter(this.config.name);
+      const serviceDefinition = await this.getServiceDefinition(serviceName);
 
       // In case default host is used, resort to a well-known service name
       const host =
@@ -167,7 +151,11 @@ export class Client extends Rpc {
         interceptors: [this.auth().createClientInterceptor()],
       };
       const clientCredentials = this.grpc().credentials.createInsecure();
-      this.#client = new ServiceClass(uri, clientCredentials, options);
+
+      // Create client using pre-compiled service definition
+      const ClientConstructor =
+        this.grpc().makeGenericClientConstructor(serviceDefinition);
+      this.#client = new ClientConstructor(uri, clientCredentials, options);
     } catch (error) {
       this.#setupPromise = null;
       throw error;

@@ -29,10 +29,13 @@ const messages = [];
  * @returns {Promise<string>} The assistant's response content
  */
 async function handlePrompt(prompt) {
-  // Create user message using MessageV2 structure
+  // Create user message using MessageV2 structure with proper Content object
   const userMessage = common.MessageV2.fromObject({
     role: "user",
-    content: prompt,
+    content: {
+      text: prompt,
+      tokens: 0, // Will be calculated by the service
+    },
   });
   messages.push(userMessage);
 

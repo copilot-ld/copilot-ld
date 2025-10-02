@@ -16,7 +16,6 @@ import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
 import { searchUpward, generateUUID } from "@copilot-ld/libutil";
 
-import { StorageInterface } from "./types.js";
 
 /**
  * Parse JSON Lines (JSONL) format into an array of objects
@@ -93,9 +92,8 @@ function isJson(key, data) {
 
 /**
  * Local filesystem storage implementation
- * @implements {StorageInterface}
  */
-export class LocalStorage extends StorageInterface {
+export class LocalStorage {
   #prefix;
   #fs;
 
@@ -105,14 +103,18 @@ export class LocalStorage extends StorageInterface {
    * @param {object} fs - File system operations object
    */
   constructor(prefix, fs) {
-    super();
+
     this.#prefix = prefix;
     this.#fs = fs;
   }
 
   // Core CRUD Operations
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   * @param data
+   */
   async put(key, data) {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
@@ -129,7 +131,10 @@ export class LocalStorage extends StorageInterface {
     await this.#fs.writeFile(fullPath, serializedData);
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async get(key) {
     const content = await this.#fs.readFile(this.path(key));
 
@@ -146,12 +151,18 @@ export class LocalStorage extends StorageInterface {
     return content;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async delete(key) {
     await this.#fs.unlink(this.path(key));
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async exists(key) {
     try {
       await this.#fs.access(this.path(key));
@@ -163,7 +174,11 @@ export class LocalStorage extends StorageInterface {
 
   // Advanced Operations
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   * @param data
+   */
   async append(key, data) {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
@@ -175,7 +190,10 @@ export class LocalStorage extends StorageInterface {
     await this.#fs.appendFile(fullPath, dataWithNewline);
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param keys
+   */
   async getMany(keys) {
     const results = {};
     await Promise.all(
@@ -196,24 +214,33 @@ export class LocalStorage extends StorageInterface {
 
   // Search and Listing Operations
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async list() {
     return await this.#traverse();
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param prefix
+   */
   async findByPrefix(prefix) {
     return await this.#traverse((filename) => filename.startsWith(prefix));
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param extension
+   */
   async findByExtension(extension) {
     return await this.#traverse((filename) => filename.endsWith(extension));
   }
 
   // Path Utilities
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   path(key) {
     if (key.startsWith("/")) {
       return key; // Use absolute path directly for local filesystem
@@ -223,7 +250,7 @@ export class LocalStorage extends StorageInterface {
 
   // Bucket/Directory Management
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async ensureBucket() {
     try {
       await this.#fs.access(this.#prefix);
@@ -234,7 +261,7 @@ export class LocalStorage extends StorageInterface {
     }
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async bucketExists() {
     try {
       await this.#fs.access(this.#prefix);
@@ -305,9 +332,8 @@ export class LocalStorage extends StorageInterface {
 
 /**
  * S3-compatible storage implementation
- * @implements {StorageInterface}
  */
-export class S3Storage extends StorageInterface {
+export class S3Storage {
   #bucket;
   #prefix;
   #client;
@@ -321,7 +347,7 @@ export class S3Storage extends StorageInterface {
    * @param {object} commands - S3 command classes
    */
   constructor(prefix, bucket, client, commands) {
-    super();
+
     this.#prefix = prefix;
     this.#bucket = bucket;
     this.#client = client;
@@ -330,7 +356,11 @@ export class S3Storage extends StorageInterface {
 
   // Core CRUD Operations
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   * @param data
+   */
   async put(key, data) {
     let bodyData = data;
 
@@ -350,7 +380,10 @@ export class S3Storage extends StorageInterface {
     );
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async get(key) {
     const command = new this.#commands.GetObjectCommand({
       Bucket: this.#bucket,
@@ -379,7 +412,10 @@ export class S3Storage extends StorageInterface {
     return content;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async delete(key) {
     await this.#client.send(
       new this.#commands.DeleteObjectCommand({
@@ -389,7 +425,10 @@ export class S3Storage extends StorageInterface {
     );
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async exists(key) {
     try {
       await this.#client.send(
@@ -412,7 +451,11 @@ export class S3Storage extends StorageInterface {
 
   // Advanced Operations
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   * @param data
+   */
   async append(key, data) {
     let existingData = Buffer.alloc(0);
 
@@ -435,7 +478,10 @@ export class S3Storage extends StorageInterface {
     await this.put(key, newData);
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param keys
+   */
   async getMany(keys) {
     const results = {};
     await Promise.all(
@@ -459,24 +505,33 @@ export class S3Storage extends StorageInterface {
 
   // Search and Listing Operations
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async list() {
     return await this.#traverse();
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param prefix
+   */
   async findByPrefix(prefix) {
     return await this.#traverse({ Prefix: `${this.#prefix}/${prefix}` });
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param extension
+   */
   async findByExtension(extension) {
     return await this.#traverse({}, (key) => key.endsWith(extension));
   }
 
   // Path Utilities
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   path(key) {
     let cleanKey = key;
     if (key.startsWith("/")) {
@@ -489,7 +544,7 @@ export class S3Storage extends StorageInterface {
 
   // Bucket Management
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async ensureBucket() {
     try {
       await this.#client.send(
@@ -515,7 +570,7 @@ export class S3Storage extends StorageInterface {
     }
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async bucketExists() {
     try {
       await this.#client.send(
@@ -619,7 +674,7 @@ export class S3Storage extends StorageInterface {
  * @param {string} prefix - Prefix for the storage operations (for S3) or bucket/directory name (for local)
  * @param {string} type - Storage type ("local" or "s3")
  * @param {object} process - Process environment access (for testing)
- * @returns {StorageInterface} Storage instance
+ * @returns {object} Storage instance
  * @throws {Error} When unsupported storage type is provided
  * @todo Clean this up with dedicated factories for each bucket type.
  */
@@ -706,4 +761,3 @@ export function storageFactory(prefix, type, process = global.process) {
   }
 }
 
-export { StorageInterface };

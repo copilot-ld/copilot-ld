@@ -3,14 +3,12 @@
 import { StorageInterface } from "@copilot-ld/libstorage";
 import * as types from "@copilot-ld/libtype";
 
-import { ResourceIndexInterface } from "./types.js";
 import { ResourceProcessor } from "./processor.js";
 
 /**
  * Resource index for typed resource management with access control
- * @implements {ResourceIndexInterface}
  */
-export class ResourceIndex extends ResourceIndexInterface {
+export class ResourceIndex {
   #storage;
   #policy;
 
@@ -20,7 +18,7 @@ export class ResourceIndex extends ResourceIndexInterface {
    * @param {object} policy - Policy engine for access control
    */
   constructor(storage, policy) {
-    super();
+
     if (!storage) throw new Error("storage is required");
     if (!policy) throw new Error("policy is required");
 
@@ -28,7 +26,10 @@ export class ResourceIndex extends ResourceIndexInterface {
     this.#policy = policy;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param resource
+   */
   async put(resource) {
     if (!resource) throw new Error("resource is required");
 
@@ -49,7 +50,11 @@ export class ResourceIndex extends ResourceIndexInterface {
     await this.#storage.put(`${id}.json`, data);
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param actor
+   * @param ids
+   */
   async get(actor, ids) {
     if (!actor) throw new Error("actor is required");
     if (!Array.isArray(ids)) throw new Error("ids must be an array");
@@ -67,7 +72,7 @@ export class ResourceIndex extends ResourceIndexInterface {
     return await Promise.all(promises);
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async findAll() {
     // Get all keys from storage
     const keys = await this.#storage.findByPrefix("");
@@ -81,7 +86,10 @@ export class ResourceIndex extends ResourceIndexInterface {
     return names.map((name) => toIdentifier(name));
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param prefix
+   */
   async findByPrefix(prefix) {
     if (!prefix) throw new Error("prefix is required");
 
@@ -147,4 +155,3 @@ function toIdentifier(uri) {
   });
 }
 
-export { toType, toIdentifier, ResourceProcessor, ResourceIndexInterface };

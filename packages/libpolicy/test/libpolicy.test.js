@@ -3,30 +3,9 @@ import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { Policy, PolicyInterface } from "../index.js";
-
-// Mock imports
-import { StorageInterface } from "@copilot-ld/libstorage";
+import { Policy } from "../index.js";
 
 describe("libpolicy", () => {
-  describe("PolicyInterface", () => {
-    test("throws error for load method", async () => {
-      const policyInterface = new PolicyInterface();
-
-      await assert.rejects(() => policyInterface.load(), {
-        message: "Not implemented",
-      });
-    });
-
-    test("throws error for evaluate method", async () => {
-      const policyInterface = new PolicyInterface();
-
-      await assert.rejects(() => policyInterface.evaluate({}), {
-        message: "Not implemented",
-      });
-    });
-  });
-
   describe("Policy", () => {
     let mockStorage;
     let policy;
@@ -47,15 +26,13 @@ describe("libpolicy", () => {
       };
 
       // Make mockStorage extend StorageInterface for instanceof check
-      Object.setPrototypeOf(mockStorage, StorageInterface.prototype);
+      Object.setPrototypeOf(mockStorage.prototype);
 
       policy = new Policy(mockStorage);
     });
 
     test("creates Policy with storage instance", () => {
-      assert.ok(policy instanceof Policy);
-      assert.ok(policy instanceof PolicyInterface);
-    });
+      assert.ok(policy instanceof Policy);    });
 
     test("throws error when storage is null", () => {
       assert.throws(() => new Policy(null), {
@@ -221,7 +198,7 @@ describe("libpolicy", () => {
         ensureBucket: mock.fn(() => Promise.resolve(false)),
         bucketExists: mock.fn(() => Promise.resolve(true)),
       };
-      Object.setPrototypeOf(mockStorage, StorageInterface.prototype);
+      Object.setPrototypeOf(mockStorage.prototype);
 
       // Mock storageFactory to return our mock storage
       const mockStorageFactory = mock.fn(() => mockStorage);

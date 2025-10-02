@@ -9,7 +9,6 @@ import * as definitionsExports from "./generated/definitions/exports.js";
 
 export { grpcFactory, authFactory, Rpc, Client } from "./base.js";
 export { Interceptor, HmacAuth } from "./auth.js";
-export { RpcInterface, ClientInterface } from "./types.js";
 
 /**
  * gRPC Server class using pre-compiled service definitions

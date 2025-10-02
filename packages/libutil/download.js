@@ -1,11 +1,10 @@
 /* eslint-env node */
-import { DownloadInterface } from "./types.js";
 
 /**
  * Download utility for retrieving and extracting bundle.tar.gz from remote storage
  * Implements object-oriented approach with dependency injection
  */
-export class Download extends DownloadInterface {
+export class Download {
   #storageFactory;
   #execFn;
   #logger;
@@ -19,7 +18,6 @@ export class Download extends DownloadInterface {
    * @param {object} logger - Logger instance
    */
   constructor(storageFn, execFn, logger) {
-    super();
     if (!storageFn) throw new Error("storageFn is required");
     if (!execFn) throw new Error("execFn is required");
     if (!logger) throw new Error("logger is required");

@@ -4,7 +4,6 @@ import grpc from "@grpc/grpc-js";
 import { logFactory } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
-import { RpcInterface, ClientInterface } from "./types.js";
 
 /**
  * Capitalize first letter of a string
@@ -40,21 +39,25 @@ export function authFactory(serviceName) {
 
 /**
  * Base class for both Server and Client with shared gRPC functionality
- * @implements {RpcInterface}
  */
-export class Rpc extends RpcInterface {
+export class Rpc {
   #grpc;
   #auth;
   #logger;
 
-  /** @inheritdoc */
+  /**
+   * Creates a new Rpc instance
+   * @param {object} config - Configuration object
+   * @param {() => {grpc: object}} grpcFn - gRPC factory
+   * @param {(serviceName: string) => object} authFn - Auth factory
+   * @param {(namespace: string) => object} logFn - Log factory
+   */
   constructor(
     config,
     grpcFn = grpcFactory,
     authFn = authFactory,
     logFn = logFactory,
   ) {
-    super(config, grpcFn, authFn, logFn);
 
     if (!config) throw new Error("config is required");
     if (grpcFn && typeof grpcFn !== "function")
@@ -77,16 +80,30 @@ export class Rpc extends RpcInterface {
     this.#logger = logFn(this.config.name);
   }
 
-  /** @inheritdoc */
+  /**
+   * Returns the gRPC instance
+   * @returns {object} gRPC instance
+   */
   grpc = () => this.#grpc;
 
-  /** @inheritdoc */
+  /**
+   * Returns the auth instance
+   * @returns {object} Auth instance
+   */
   auth = () => this.#auth;
 
-  /** @inheritdoc */
+  /**
+   * Returns the logger instance
+   * @returns {object} Logger instance
+   */
   logger = () => this.#logger;
 
-  /** @inheritdoc */
+  /**
+   * Logs a debug message
+   * @param {string} message - Message to log
+   * @param {object} context - Context to log
+   * @returns {void}
+   */
   debug = (message, context) => this.#logger.debug(message, context);
 
   /**
@@ -109,13 +126,18 @@ export class Rpc extends RpcInterface {
 
 /**
  * Creates a gRPC client with consistent API using pre-compiled definitions
- * @implements {ClientInterface}
  */
 export class Client extends Rpc {
   #client;
   #setupPromise;
 
-  /** @inheritdoc */
+  /**
+   * Creates a new Client instance
+   * @param {object} config - Configuration object
+   * @param {() => {grpc: object}} grpcFn - gRPC factory
+   * @param {(serviceName: string) => object} authFn - Auth factory
+   * @param {(namespace: string) => object} logFn - Log factory
+   */
   constructor(
     config,
     grpcFn = grpcFactory,
@@ -125,7 +147,10 @@ export class Client extends Rpc {
     super(config, grpcFn, authFn, logFn);
   }
 
-  /** @inheritdoc */
+  /**
+   * Ensures the client is ready for use
+   * @returns {Promise<void>}
+   */
   async ensureReady() {
     if (!this.#setupPromise) this.#setupPromise = this.#setupClient();
     return this.#setupPromise;

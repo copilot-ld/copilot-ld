@@ -1,11 +1,10 @@
 /* eslint-env node */
-import { UploadInterface } from "./types.js";
 
 /**
  * Upload utility for synchronizing local storage to remote storage
  * Implements object-oriented approach with dependency injection
  */
-export class Upload extends UploadInterface {
+export class Upload {
   #prefixes;
   #local;
   #remote;
@@ -19,7 +18,6 @@ export class Upload extends UploadInterface {
    * @param {string[]} prefixes - Storage area prefixes to synchronize
    */
   constructor(storageFn, logger, prefixes = null) {
-    super();
     if (!storageFn) throw new Error("storageFn is required");
     if (!logger) throw new Error("logger is required");
 

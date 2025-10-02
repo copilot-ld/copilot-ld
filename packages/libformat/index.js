@@ -4,13 +4,10 @@ import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";
 import sanitizeHtml from "sanitize-html";
 
-// Local imports
-import { FormatterInterface } from "./types.js";
-
 /**
  * Formats markdown content to sanitized HTML
  */
-export class HtmlFormatter extends FormatterInterface {
+export class HtmlFormatter {
   #sanitizeHtml;
   #marked;
   #htmlMarked;
@@ -21,7 +18,6 @@ export class HtmlFormatter extends FormatterInterface {
    * @param {object} marked - Marked markdown parser
    */
   constructor(sanitizeHtml, marked) {
-    super();
     if (!sanitizeHtml) throw new Error("sanitizeHtml dependency is required");
     if (!marked) throw new Error("marked dependency is required");
 
@@ -36,7 +32,8 @@ export class HtmlFormatter extends FormatterInterface {
   }
 
   /**
-   * @inheritdoc
+   * Formats markdown content to the target format
+   * @param {string} markdown - Markdown content to format
    * @returns {string} Sanitized HTML with allowed tags and attributes
    */
   format(markdown) {
@@ -81,7 +78,7 @@ export class HtmlFormatter extends FormatterInterface {
 /**
  * Formats markdown content to terminal output with ANSI escape codes
  */
-export class TerminalFormatter extends FormatterInterface {
+export class TerminalFormatter {
   #marked;
   #markedTerminal;
   #terminalMarked;
@@ -92,7 +89,6 @@ export class TerminalFormatter extends FormatterInterface {
    * @param {object} markedTerminal - marked-terminal plugin
    */
   constructor(marked, markedTerminal) {
-    super();
     if (!marked) throw new Error("marked dependency is required");
     if (!markedTerminal)
       throw new Error("markedTerminal dependency is required");
@@ -107,7 +103,8 @@ export class TerminalFormatter extends FormatterInterface {
   }
 
   /**
-   * @inheritdoc
+   * Formats markdown content to the target format
+   * @param {string} markdown - Markdown content to format
    * @returns {string} Terminal-formatted text with ANSI escape codes
    */
   format(markdown) {
@@ -130,5 +127,3 @@ export function createHtmlFormatter() {
 export function createTerminalFormatter() {
   return new TerminalFormatter({ Marked: Marked }, markedTerminal);
 }
-
-export { FormatterInterface };

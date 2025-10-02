@@ -2,28 +2,30 @@
 
 import { resource } from "@copilot-ld/libtype";
 
-import { VectorIndexInterface } from "./types.js";
 
 /** @typedef {import("@copilot-ld/libconfig").ConfigInterface} ConfigInterface */
 
 /**
  * VectorIndex class for managing vector data with lazy loading
- * @implements {VectorIndexInterface}
  */
-export class VectorIndex extends VectorIndexInterface {
+export class VectorIndex {
   #storage;
   #indexKey;
   #index = new Map(); // Map of resource id to index item
   #loaded = false;
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param storage
+   * @param indexKey
+   */
   constructor(storage, indexKey = "index.jsonl") {
-    super(storage);
+
     this.#storage = storage;
     this.#indexKey = indexKey;
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   storage() {
     return this.#storage;
   }
@@ -36,7 +38,11 @@ export class VectorIndex extends VectorIndexInterface {
     return this.#indexKey;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param vector
+   * @param identifier
+   */
   async addItem(vector, identifier) {
     if (!this.#loaded) await this.loadData();
 
@@ -53,20 +59,26 @@ export class VectorIndex extends VectorIndexInterface {
     await this.#storage.append(this.#indexKey, JSON.stringify(item));
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param id
+   */
   async getItem(id) {
     if (!this.#loaded) await this.loadData();
     const item = this.#index.get(id);
     return item ? item.identifier : null;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param id
+   */
   async hasItem(id) {
     if (!this.#loaded) await this.loadData();
     return this.#index.has(id);
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async loadData() {
     if (!(await this.#storage.exists(this.#indexKey))) {
       // Initialize empty index for new systems
@@ -88,7 +100,11 @@ export class VectorIndex extends VectorIndexInterface {
     this.#loaded = true;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param query
+   * @param filter
+   */
   async queryItems(query, filter = {}) {
     if (!this.#loaded) await this.loadData();
 
@@ -142,5 +158,5 @@ function calculateDotProduct(a, b, length) {
   return dotProduct;
 }
 
-export { VectorIndexInterface };
+
 export { VectorProcessor } from "./processor.js";

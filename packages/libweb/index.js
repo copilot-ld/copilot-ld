@@ -3,18 +3,15 @@ import { cors } from "hono/cors";
 import validator from "validator";
 
 import { ExtensionConfig } from "@copilot-ld/libconfig";
-import {
-  ValidationInterface,
-  RateLimiterInterface,
-  SecurityMiddlewareInterface,
-} from "./types.js";
 
 /**
  * Simple request validation implementation
- * @implements {ValidationInterface}
  */
-export class RequestValidator extends ValidationInterface {
-  /** @inheritdoc */
+export class RequestValidator {
+  /**
+   * TODO: Add documentation
+   * @param data
+   */
   validate(data) {
     const errors = [];
 
@@ -28,9 +25,8 @@ export class RequestValidator extends ValidationInterface {
 
 /**
  * Memory-based rate limiter implementation
- * @implements {RateLimiterInterface}
  */
-export class MemoryRateLimiter extends RateLimiterInterface {
+export class MemoryRateLimiter {
   #requests;
   #windowMs;
   #maxRequests;
@@ -43,7 +39,7 @@ export class MemoryRateLimiter extends RateLimiterInterface {
    * @param {number} options.maxRequests - Maximum requests per window
    */
   constructor(options = {}) {
-    super();
+
     this.#requests = new Map();
     this.#windowMs = options.windowMs || 60000; // 1 minute default
     this.#maxRequests = options.maxRequests || 100; // 100 requests default
@@ -53,7 +49,10 @@ export class MemoryRateLimiter extends RateLimiterInterface {
     this.#cleanupInterval.unref(); // Allow process to exit even with active interval
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async checkLimit(key) {
     const now = Date.now();
     const windowStart = now - this.#windowMs;
@@ -86,7 +85,10 @@ export class MemoryRateLimiter extends RateLimiterInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param key
+   */
   async reset(key) {
     this.#requests.delete(key);
   }
@@ -122,21 +124,23 @@ export class MemoryRateLimiter extends RateLimiterInterface {
 
 /**
  * Security middleware implementation for Hono
- * @implements {SecurityMiddlewareInterface}
  */
-export class SecurityMiddleware extends SecurityMiddlewareInterface {
+export class SecurityMiddleware {
   #rateLimiter;
 
   /**
    * Creates security middleware instance
-   * @param {RateLimiterInterface} rateLimiter - Rate limiter implementation
+   * @param {object} rateLimiter - Rate limiter implementation
    */
   constructor(rateLimiter) {
-    super();
+
     this.#rateLimiter = rateLimiter;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param schema
+   */
   createValidationMiddleware(schema) {
     return async (c, next) => {
       try {
@@ -212,7 +216,10 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param options
+   */
   createRateLimitMiddleware(options = {}) {
     return async (c, next) => {
       const key = this.#getRateLimitKey(c, options);
@@ -235,7 +242,10 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
     };
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param options
+   */
   createCorsMiddleware(options = {}) {
     const defaultOptions = {
       origin: ["http://localhost:3000"],
@@ -246,7 +256,7 @@ export class SecurityMiddleware extends SecurityMiddlewareInterface {
     return cors({ ...defaultOptions, ...options });
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   createErrorMiddleware() {
     return async (c, next) => {
       try {
@@ -331,8 +341,3 @@ export function createSecurityMiddleware(config) {
 }
 
 // Export all interfaces and implementations
-export {
-  ValidationInterface,
-  RateLimiterInterface,
-  SecurityMiddlewareInterface,
-};

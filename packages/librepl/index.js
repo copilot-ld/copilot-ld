@@ -1,11 +1,9 @@
 /* eslint-env node */
-import { ReplInterface } from "./types.js";
 
 /**
  * Object-oriented REPL with dependency injection
- * @implements {ReplInterface}
  */
-export class Repl extends ReplInterface {
+export class Repl {
   #readline;
   #process;
   #formatter;
@@ -20,9 +18,15 @@ export class Repl extends ReplInterface {
   #allCommands;
   #rl;
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param readline
+   * @param process
+   * @param formatter
+   * @param handlers
+   */
   constructor(readline, process, formatter, handlers = {}) {
-    super();
+
     if (!readline) throw new Error("readline dependency is required");
     if (!process) throw new Error("process dependency is required");
     if (!formatter) throw new Error("formatter dependency is required");
@@ -305,7 +309,7 @@ export class Repl extends ReplInterface {
     return this.#rl;
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   showHelp() {
     const help = ["The available commands are:"];
 
@@ -318,7 +322,7 @@ export class Repl extends ReplInterface {
     );
   }
 
-  /** @inheritdoc */
+  /** TODO: Add documentation */
   async start() {
     if (this.#setup) {
       await this.#setup();
@@ -334,4 +338,3 @@ export class Repl extends ReplInterface {
   }
 }
 
-export { ReplInterface };

@@ -7,12 +7,8 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-import { LlmInterface } from "@copilot-ld/libcopilot";
-import { StorageInterface } from "@copilot-ld/libstorage";
 import { common } from "@copilot-ld/libtype";
 import { ProcessorBase } from "@copilot-ld/libutil";
-
-import { ResourceIndexInterface } from "./types.js";
 
 /**
  * Resource processor for batch processing HTML files into MessageV2 objects
@@ -28,10 +24,10 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Creates a new ResourceProcessor instance
-   * @param {ResourceIndexInterface} resourceIndex - ResourceIndex instance
-   * @param {StorageInterface} configStorage - Storage for configuration files
-   * @param {StorageInterface} knowledgeStorage - Storage for knowledge base data
-   * @param {LlmInterface} llm - LLM client for descriptor generation
+   * @param {object} resourceIndex - ResourceIndex instance
+   * @param {object} configStorage - Storage for configuration files
+   * @param {object} knowledgeStorage - Storage for knowledge base data
+   * @param {object} llm - LLM client for descriptor generation
    * @param {object} logger - Logger instance for debug output
    */
   constructor(resourceIndex, configStorage, knowledgeStorage, llm, logger) {

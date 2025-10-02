@@ -3,7 +3,7 @@ import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { Copilot, LlmInterface } from "../index.js";
+import { Copilot } from "../index.js";
 
 describe("libcopilot", () => {
   describe("Copilot", () => {
@@ -17,7 +17,6 @@ describe("libcopilot", () => {
 
     test("creates copilot with token and model", () => {
       assert.ok(copilot instanceof Copilot);
-      assert.ok(copilot instanceof LlmInterface);
     });
 
     test("createCompletions makes correct API call", async () => {

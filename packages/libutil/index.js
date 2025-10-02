@@ -6,7 +6,6 @@ import { createRequire } from "node:module";
 
 import { Tokenizer, ranks } from "./tokenizer.js";
 
-import { LoggerInterface, ProcessorInterface } from "./types.js";
 
 /**
  * Searches upward from one or more roots for a target file or directory.
@@ -91,13 +90,12 @@ export function generateUUID() {
 /**
  * Logger class for centralized logging with namespace support
  */
-export class Logger extends LoggerInterface {
+export class Logger {
   /**
    * Creates a new Logger instance
    * @param {string} namespace - Namespace for this logger instance
    */
   constructor(namespace) {
-    super(namespace);
 
     if (!namespace || typeof namespace !== "string") {
       throw new Error("namespace must be a non-empty string");
@@ -178,9 +176,8 @@ export function logFactory(namespace) {
 
 /**
  * Base class for batch processor implementations with common batch management logic
- * @implements {ProcessorInterface}
  */
-export class ProcessorBase extends ProcessorInterface {
+export class ProcessorBase {
   #logger;
   #batchSize;
 
@@ -190,7 +187,7 @@ export class ProcessorBase extends ProcessorInterface {
    * @param {number} batchSize - Size of batches for processing (default: 10)
    */
   constructor(logger, batchSize = 20) {
-    super();
+
     if (!logger) throw new Error("logger is required");
     if (typeof batchSize !== "number" || batchSize < 1) {
       throw new Error("batchSize must be a positive number");
@@ -200,7 +197,11 @@ export class ProcessorBase extends ProcessorInterface {
     this.#batchSize = batchSize;
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param items
+   * @param context
+   */
   async process(items, context = "items") {
     if (!Array.isArray(items)) {
       throw new Error("items must be an array");
@@ -246,7 +247,13 @@ export class ProcessorBase extends ProcessorInterface {
     }
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param batch
+   * @param processed
+   * @param total
+   * @param context
+   */
   async processBatch(batch, processed, total, context) {
     const batchSize = batch.length;
 
@@ -276,7 +283,10 @@ export class ProcessorBase extends ProcessorInterface {
     await Promise.all(promises);
   }
 
-  /** @inheritdoc */
+  /**
+   * TODO: Add documentation
+   * @param _item
+   */
   async processItem(_item) {
     throw new Error("processItem must be implemented by subclass");
   }
@@ -319,14 +329,6 @@ export function tokenizerFactory() {
   return new Tokenizer(ranks);
 }
 
-// Re-export interfaces
-export {
-  LoggerInterface,
-  ProcessorInterface,
-  CodegenInterface,
-  UploadInterface,
-  DownloadInterface,
-} from "./types.js";
 export { Codegen } from "./codegen.js";
 export { Upload } from "./upload.js";
 export { Download } from "./download.js";

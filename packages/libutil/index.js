@@ -6,7 +6,6 @@ import { createRequire } from "node:module";
 
 import { Tokenizer, ranks } from "./tokenizer.js";
 
-
 /**
  * Searches upward from one or more roots for a target file or directory.
  * Uses synchronous existence checks for simplicity.
@@ -96,7 +95,6 @@ export class Logger {
    * @param {string} namespace - Namespace for this logger instance
    */
   constructor(namespace) {
-
     if (!namespace || typeof namespace !== "string") {
       throw new Error("namespace must be a non-empty string");
     }
@@ -187,7 +185,6 @@ export class ProcessorBase {
    * @param {number} batchSize - Size of batches for processing (default: 10)
    */
   constructor(logger, batchSize = 20) {
-
     if (!logger) throw new Error("logger is required");
     if (typeof batchSize !== "number" || batchSize < 1) {
       throw new Error("batchSize must be a positive number");
@@ -198,9 +195,10 @@ export class ProcessorBase {
   }
 
   /**
-   * TODO: Add documentation
-   * @param items
-   * @param context
+   * Processes items in batches
+   * @param {any[]} items - Items to process
+   * @param {string} context - Processing context label
+   * @returns {Promise<any[]>} Processed results
    */
   async process(items, context = "items") {
     if (!Array.isArray(items)) {
@@ -248,11 +246,12 @@ export class ProcessorBase {
   }
 
   /**
-   * TODO: Add documentation
-   * @param batch
-   * @param processed
-   * @param total
-   * @param context
+   * Processes a batch of items
+   * @param {any[]} batch - Batch to process
+   * @param {number} processed - Number already processed
+   * @param {number} total - Total number of items
+   * @param {object} context - Processing context
+   * @returns {Promise<any[]>} Batch results
    */
   async processBatch(batch, processed, total, context) {
     const batchSize = batch.length;
@@ -284,8 +283,9 @@ export class ProcessorBase {
   }
 
   /**
-   * TODO: Add documentation
-   * @param _item
+   * Processes a single item (must be implemented by subclass)
+   * @param {any} _item - Item to process
+   * @returns {Promise<any>} Processed result
    */
   async processItem(_item) {
     throw new Error("processItem must be implemented by subclass");

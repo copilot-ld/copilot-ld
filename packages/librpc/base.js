@@ -58,7 +58,6 @@ export class Rpc {
     authFn = authFactory,
     logFn = logFactory,
   ) {
-
     if (!config) throw new Error("config is required");
     if (grpcFn && typeof grpcFn !== "function")
       throw new Error("grpcFactory must be a function");

@@ -1,9 +1,6 @@
 /* eslint-env node */
 
-import { StorageInterface } from "@copilot-ld/libstorage";
 import * as types from "@copilot-ld/libtype";
-
-import { ResourceProcessor } from "./processor.js";
 
 /**
  * Resource index for typed resource management with access control
@@ -14,11 +11,10 @@ export class ResourceIndex {
 
   /**
    * Creates a new ResourceIndex
-   * @param {StorageInterface} storage - Storage backend for persistence
+   * @param {object} storage - Storage backend for persistence
    * @param {object} policy - Policy engine for access control
    */
   constructor(storage, policy) {
-
     if (!storage) throw new Error("storage is required");
     if (!policy) throw new Error("policy is required");
 
@@ -27,8 +23,9 @@ export class ResourceIndex {
   }
 
   /**
-   * TODO: Add documentation
-   * @param resource
+   * Stores a resource in the index
+   * @param {object} resource - Resource object to store
+   * @returns {Promise<void>}
    */
   async put(resource) {
     if (!resource) throw new Error("resource is required");
@@ -51,9 +48,10 @@ export class ResourceIndex {
   }
 
   /**
-   * TODO: Add documentation
-   * @param actor
-   * @param ids
+   * Gets resources by their identifiers with access control
+   * @param {string} actor - Actor identifier for access control
+   * @param {string[]} ids - Array of resource identifiers
+   * @returns {Promise<object[]>} Array of resources
    */
   async get(actor, ids) {
     if (!actor) throw new Error("actor is required");
@@ -72,7 +70,10 @@ export class ResourceIndex {
     return await Promise.all(promises);
   }
 
-  /** TODO: Add documentation */
+  /**
+   * Finds all resources in the index
+   * @returns {Promise<object[]>} Array of resource identifiers
+   */
   async findAll() {
     // Get all keys from storage
     const keys = await this.#storage.findByPrefix("");
@@ -87,8 +88,9 @@ export class ResourceIndex {
   }
 
   /**
-   * TODO: Add documentation
-   * @param prefix
+   * Finds resources by URI prefix
+   * @param {string} prefix - URI prefix to match
+   * @returns {Promise<object[]>} Array of matching resource identifiers
    */
   async findByPrefix(prefix) {
     if (!prefix) throw new Error("prefix is required");
@@ -154,4 +156,3 @@ function toIdentifier(uri) {
     parent: parent,
   });
 }
-

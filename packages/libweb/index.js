@@ -9,8 +9,9 @@ import { ExtensionConfig } from "@copilot-ld/libconfig";
  */
 export class RequestValidator {
   /**
-   * TODO: Add documentation
-   * @param data
+   * Validates request data against schema
+   * @param {object} data - Data to validate
+   * @returns {object} Validation result with isValid and errors
    */
   validate(data) {
     const errors = [];
@@ -39,7 +40,6 @@ export class MemoryRateLimiter {
    * @param {number} options.maxRequests - Maximum requests per window
    */
   constructor(options = {}) {
-
     this.#requests = new Map();
     this.#windowMs = options.windowMs || 60000; // 1 minute default
     this.#maxRequests = options.maxRequests || 100; // 100 requests default
@@ -50,8 +50,9 @@ export class MemoryRateLimiter {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Checks if request should be rate limited
+   * @param {string} key - Identifier for the request (IP, user ID, etc.)
+   * @returns {Promise<object>} Result with allowed, remaining, and resetTime
    */
   async checkLimit(key) {
     const now = Date.now();
@@ -86,8 +87,9 @@ export class MemoryRateLimiter {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Resets rate limit for a key
+   * @param {string} key - Identifier to reset
+   * @returns {Promise<void>}
    */
   async reset(key) {
     this.#requests.delete(key);
@@ -133,13 +135,13 @@ export class SecurityMiddleware {
    * @param {object} rateLimiter - Rate limiter implementation
    */
   constructor(rateLimiter) {
-
     this.#rateLimiter = rateLimiter;
   }
 
   /**
-   * TODO: Add documentation
-   * @param schema
+   * Creates input validation middleware
+   * @param {object} schema - Validation schema
+   * @returns {Function} Hono middleware function
    */
   createValidationMiddleware(schema) {
     return async (c, next) => {
@@ -217,8 +219,9 @@ export class SecurityMiddleware {
   }
 
   /**
-   * TODO: Add documentation
-   * @param options
+   * Creates rate limiting middleware
+   * @param {object} options - Rate limiting options
+   * @returns {Function} Hono middleware function
    */
   createRateLimitMiddleware(options = {}) {
     return async (c, next) => {
@@ -243,8 +246,9 @@ export class SecurityMiddleware {
   }
 
   /**
-   * TODO: Add documentation
-   * @param options
+   * Creates CORS middleware
+   * @param {object} options - CORS options
+   * @returns {Function} Hono middleware function
    */
   createCorsMiddleware(options = {}) {
     const defaultOptions = {
@@ -256,7 +260,10 @@ export class SecurityMiddleware {
     return cors({ ...defaultOptions, ...options });
   }
 
-  /** TODO: Add documentation */
+  /**
+   * Creates error handling middleware
+   * @returns {Function} Hono middleware function
+   */
   createErrorMiddleware() {
     return async (c, next) => {
       try {

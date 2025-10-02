@@ -16,7 +16,6 @@ import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
 import { searchUpward, generateUUID } from "@copilot-ld/libutil";
 
-
 /**
  * Parse JSON Lines (JSONL) format into an array of objects
  * @param {Buffer|string} content - Content to parse as JSON Lines
@@ -103,7 +102,6 @@ export class LocalStorage {
    * @param {object} fs - File system operations object
    */
   constructor(prefix, fs) {
-
     this.#prefix = prefix;
     this.#fs = fs;
   }
@@ -111,9 +109,10 @@ export class LocalStorage {
   // Core CRUD Operations
 
   /**
-   * TODO: Add documentation
-   * @param key
-   * @param data
+   * Store data with the given key
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer|object} data - Data to store
+   * @returns {Promise<void>}
    */
   async put(key, data) {
     const fullPath = this.path(key);
@@ -132,8 +131,9 @@ export class LocalStorage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Retrieve data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<any>} Retrieved data
    */
   async get(key) {
     const content = await this.#fs.readFile(this.path(key));
@@ -152,16 +152,18 @@ export class LocalStorage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Remove data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<void>}
    */
   async delete(key) {
     await this.#fs.unlink(this.path(key));
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Check if key exists
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<boolean>} True if key exists
    */
   async exists(key) {
     try {
@@ -175,9 +177,10 @@ export class LocalStorage {
   // Advanced Operations
 
   /**
-   * TODO: Add documentation
-   * @param key
-   * @param data
+   * Append data to an existing key with automatic newline
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer} data - Data to append
+   * @returns {Promise<void>}
    */
   async append(key, data) {
     const fullPath = this.path(key);
@@ -191,8 +194,9 @@ export class LocalStorage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param keys
+   * Retrieve multiple items by their keys
+   * @param {string[]} keys - Array of storage key identifiers
+   * @returns {Promise<object>} Object with key-value pairs
    */
   async getMany(keys) {
     const results = {};
@@ -214,22 +218,27 @@ export class LocalStorage {
 
   // Search and Listing Operations
 
-  /** TODO: Add documentation */
+  /**
+   * Lists all keys in storage
+   * @returns {Promise<string[]>} Array of keys
+   */
   async list() {
     return await this.#traverse();
   }
 
   /**
-   * TODO: Add documentation
-   * @param prefix
+   * Find keys with specified prefix
+   * @param {string} prefix - Key prefix to match
+   * @returns {Promise<string[]>} Array of matching keys
    */
   async findByPrefix(prefix) {
     return await this.#traverse((filename) => filename.startsWith(prefix));
   }
 
   /**
-   * TODO: Add documentation
-   * @param extension
+   * Find keys with specified extension
+   * @param {string} extension - File extension to search for
+   * @returns {Promise<string[]>} Array of keys with the extension
    */
   async findByExtension(extension) {
     return await this.#traverse((filename) => filename.endsWith(extension));
@@ -238,8 +247,9 @@ export class LocalStorage {
   // Path Utilities
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Gets the full file path for a storage key
+   * @param {string} key - Storage key identifier
+   * @returns {string} Full file path
    */
   path(key) {
     if (key.startsWith("/")) {
@@ -250,7 +260,10 @@ export class LocalStorage {
 
   // Bucket/Directory Management
 
-  /** TODO: Add documentation */
+  /**
+   * Ensures the storage bucket/directory exists
+   * @returns {Promise<boolean>} True if directory was created
+   */
   async ensureBucket() {
     try {
       await this.#fs.access(this.#prefix);
@@ -261,7 +274,10 @@ export class LocalStorage {
     }
   }
 
-  /** TODO: Add documentation */
+  /**
+   * Checks if the storage bucket/directory exists
+   * @returns {Promise<boolean>} True if directory exists
+   */
   async bucketExists() {
     try {
       await this.#fs.access(this.#prefix);
@@ -347,7 +363,6 @@ export class S3Storage {
    * @param {object} commands - S3 command classes
    */
   constructor(prefix, bucket, client, commands) {
-
     this.#prefix = prefix;
     this.#bucket = bucket;
     this.#client = client;
@@ -357,9 +372,10 @@ export class S3Storage {
   // Core CRUD Operations
 
   /**
-   * TODO: Add documentation
-   * @param key
-   * @param data
+   * Store data with the given key
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer|object} data - Data to store
+   * @returns {Promise<void>}
    */
   async put(key, data) {
     let bodyData = data;
@@ -381,8 +397,9 @@ export class S3Storage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Retrieve data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<any>} Retrieved data
    */
   async get(key) {
     const command = new this.#commands.GetObjectCommand({
@@ -413,8 +430,9 @@ export class S3Storage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Remove data by key
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<void>}
    */
   async delete(key) {
     await this.#client.send(
@@ -426,8 +444,9 @@ export class S3Storage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Check if key exists
+   * @param {string} key - Storage key identifier
+   * @returns {Promise<boolean>} True if key exists
    */
   async exists(key) {
     try {
@@ -452,9 +471,10 @@ export class S3Storage {
   // Advanced Operations
 
   /**
-   * TODO: Add documentation
-   * @param key
-   * @param data
+   * Append data to an existing key with automatic newline
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer} data - Data to append
+   * @returns {Promise<void>}
    */
   async append(key, data) {
     let existingData = Buffer.alloc(0);
@@ -479,8 +499,9 @@ export class S3Storage {
   }
 
   /**
-   * TODO: Add documentation
-   * @param keys
+   * Retrieve multiple items by their keys
+   * @param {string[]} keys - Array of storage key identifiers
+   * @returns {Promise<object>} Object with key-value pairs
    */
   async getMany(keys) {
     const results = {};
@@ -505,22 +526,27 @@ export class S3Storage {
 
   // Search and Listing Operations
 
-  /** TODO: Add documentation */
+  /**
+   * Lists all keys in storage
+   * @returns {Promise<string[]>} Array of keys
+   */
   async list() {
     return await this.#traverse();
   }
 
   /**
-   * TODO: Add documentation
-   * @param prefix
+   * Find keys with specified prefix
+   * @param {string} prefix - Key prefix to match
+   * @returns {Promise<string[]>} Array of matching keys
    */
   async findByPrefix(prefix) {
     return await this.#traverse({ Prefix: `${this.#prefix}/${prefix}` });
   }
 
   /**
-   * TODO: Add documentation
-   * @param extension
+   * Find keys with specified extension
+   * @param {string} extension - File extension to search for
+   * @returns {Promise<string[]>} Array of keys with the extension
    */
   async findByExtension(extension) {
     return await this.#traverse({}, (key) => key.endsWith(extension));
@@ -529,8 +555,9 @@ export class S3Storage {
   // Path Utilities
 
   /**
-   * TODO: Add documentation
-   * @param key
+   * Gets the path for a storage key
+   * @param {string} key - Storage key identifier
+   * @returns {string} Key path
    */
   path(key) {
     let cleanKey = key;
@@ -544,7 +571,10 @@ export class S3Storage {
 
   // Bucket Management
 
-  /** TODO: Add documentation */
+  /**
+   * Ensures the storage bucket exists
+   * @returns {Promise<boolean>} True if bucket was created
+   */
   async ensureBucket() {
     try {
       await this.#client.send(
@@ -570,7 +600,10 @@ export class S3Storage {
     }
   }
 
-  /** TODO: Add documentation */
+  /**
+   * Checks if the storage bucket exists
+   * @returns {Promise<boolean>} True if bucket exists
+   */
   async bucketExists() {
     try {
       await this.#client.send(
@@ -760,4 +793,3 @@ export function storageFactory(prefix, type, process = global.process) {
       throw new Error(`Unsupported storage type: ${type}`);
   }
 }
-

@@ -1,7 +1,6 @@
 /* eslint-env node */
 import { storageFactory } from "@copilot-ld/libstorage";
 
-
 /**
  * Simple policy engine that returns static "allow" for all requests
  * Future versions will integrate with @openpolicyagent/opa-wasm
@@ -14,7 +13,6 @@ export class Policy {
    * @param {object} storage - Storage backend for policy loading
    */
   constructor(storage) {
-
     if (!storage) {
       throw new Error("storage is required");
     }

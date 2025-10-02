@@ -32,7 +32,8 @@ describe("libpolicy", () => {
     });
 
     test("creates Policy with storage instance", () => {
-      assert.ok(policy instanceof Policy);    });
+      assert.ok(policy instanceof Policy);
+    });
 
     test("throws error when storage is null", () => {
       assert.throws(() => new Policy(null), {

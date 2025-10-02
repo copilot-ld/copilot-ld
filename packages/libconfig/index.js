@@ -1,7 +1,6 @@
 /* eslint-env node */
 import { storageFactory } from "@copilot-ld/libstorage";
 
-
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /**
@@ -271,4 +270,3 @@ export class ScriptConfig extends Config {
     return instance;
   }
 }
-

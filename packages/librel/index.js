@@ -1,7 +1,6 @@
 /* eslint-env node */
 import { join } from "path";
 
-
 /**
  * Release bumper implementation with dependency injection
  */
@@ -12,7 +11,6 @@ export class ReleaseBumper {
   #readdirSync;
 
   constructor(execSyncFn, readFileSyncFn, writeFileSyncFn, readdirSyncFn) {
-
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!readFileSyncFn) throw new Error("readFileSyncFn is required");
     if (!writeFileSyncFn) throw new Error("writeFileSyncFn is required");
@@ -24,10 +22,11 @@ export class ReleaseBumper {
   }
 
   /**
-   * TODO: Add documentation
-   * @param bumpType
-   * @param items
-   * @param options
+   * Bumps version for items
+   * @param {string} bumpType - Type of version bump (major, minor, patch)
+   * @param {string[]} items - Items to bump
+   * @param {object} options - Bump options
+   * @returns {Promise<object[]>} Bump results
    */
   async bump(bumpType, items, options = {}) {
     // Capture initial working directory (assuming tool starts at repo root)
@@ -178,7 +177,6 @@ export class ReleaseChanges {
   #existsSync;
 
   constructor(execSyncFn, existsSyncFn) {
-
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!existsSyncFn) throw new Error("existsSyncFn is required");
     this.#execSync = execSyncFn;
@@ -252,7 +250,6 @@ export class ReleaseLog {
   #existsSync;
 
   constructor(globSyncFn, readFileSyncFn, writeFileSyncFn, existsSyncFn) {
-
     if (!globSyncFn) throw new Error("globSyncFn is required");
     if (!readFileSyncFn) throw new Error("readFileSyncFn is required");
     if (!writeFileSyncFn) throw new Error("writeFileSyncFn is required");
@@ -264,10 +261,11 @@ export class ReleaseLog {
   }
 
   /**
-   * TODO: Add documentation
-   * @param path
-   * @param note
-   * @param date
+   * Adds a note to changelog
+   * @param {string} path - Path to changelog
+   * @param {string} note - Note to add
+   * @param {string} date - Date for the note
+   * @returns {Promise<string[]>} Updated changelog paths
    */
   async addNote(path, note, date) {
     if (!path) throw new Error("path is required");
@@ -428,4 +426,3 @@ export class ReleaseLog {
     this.#writeFileSync(filePath, updatedContent);
   }
 }
-

@@ -19,14 +19,13 @@ export class Repl {
   #rl;
 
   /**
-   * TODO: Add documentation
-   * @param readline
-   * @param process
-   * @param formatter
-   * @param handlers
+   * Creates a REPL instance with injected dependencies
+   * @param {object} readline - Readline module for creating interfaces
+   * @param {object} process - Process object for stdin/stdout and exit
+   * @param {object} formatter - Formatter instance for output formatting
+   * @param {object} handlers - REPL configuration and handlers
    */
   constructor(readline, process, formatter, handlers = {}) {
-
     if (!readline) throw new Error("readline dependency is required");
     if (!process) throw new Error("process dependency is required");
     if (!formatter) throw new Error("formatter dependency is required");
@@ -309,7 +308,10 @@ export class Repl {
     return this.#rl;
   }
 
-  /** TODO: Add documentation */
+  /**
+   * Shows help message with all available commands
+   * @returns {void}
+   */
   showHelp() {
     const help = ["The available commands are:"];
 
@@ -322,7 +324,10 @@ export class Repl {
     );
   }
 
-  /** TODO: Add documentation */
+  /**
+   * Starts the REPL in either interactive or non-interactive mode
+   * @returns {Promise<void>}
+   */
   async start() {
     if (this.#setup) {
       await this.#setup();
@@ -337,4 +342,3 @@ export class Repl {
     }
   }
 }
-

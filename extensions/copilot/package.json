@@ -17,11 +17,11 @@
   },
   "dependencies": {
     "@copilot-extensions/preview-sdk": "^5.0.1",
-    "@copilot-ld/libconfig": "^0.1.20",
+    "@copilot-ld/libconfig": "^0.1.21",
     "@copilot-ld/librpc": "^0.1.28",
     "@copilot-ld/libtype": "^0.1.17",
     "@copilot-ld/libutil": "^0.1.15",
-    "@copilot-ld/libweb": "^0.1.18",
+    "@copilot-ld/libweb": "^0.1.19",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"
   },

@@ -2,12 +2,13 @@
 
 ## 2025-10-02
 
+- **BREAKING**: Extracted code generation functionality to new
+  `@copilot-ld/libcodegen` package
+- **BREAKING**: Removed `codegen` binary from `@copilot-ld/libutil` package
 - **BREAKING**: Replaced `js-tiktoken` dependency with built-in `Tokenizer`
   class for reduced external dependencies
-- **NEW**: Added service definition generation (`runDefinitions()`) for
-  pre-compiled gRPC definitions that eliminate runtime proto-loader usage
-- Enhanced code generation with new template system for service definitions and
-  improved export management
+- Moved codegen dependencies (`@grpc/proto-loader`, `mustache`, `protobufjs`) to
+  `@copilot-ld/libcodegen`
 
 ## 2025-09-27
 

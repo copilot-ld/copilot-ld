@@ -182,17 +182,16 @@ jobs:
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
           VERSION="${{ matrix.item.version }}"
-          if [[ -f "$TYPE/$NAME/Dockerfile" ]]; then
-            IMAGE="ghcr.io/${{ github.repository }}/$NAME"
-            export DOCKER_BUILDKIT=1
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
-              --secret id=github_token,src=/dev/stdin \
-              -f "$TYPE/$NAME/Dockerfile" \
-              -t $IMAGE:$VERSION \
-              -t $IMAGE:latest .
-            docker push $IMAGE:$VERSION
-            docker push $IMAGE:latest
-          fi
+          IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          export DOCKER_BUILDKIT=1
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
+            --secret id=github_token,src=/dev/stdin \
+            --build-arg COMPONENT_PATH="$TYPE/$NAME" \
+            -f ./Dockerfile \
+            -t $IMAGE:$VERSION \
+            -t $IMAGE:latest .
+          docker push $IMAGE:$VERSION
+          docker push $IMAGE:latest
 
   create-releases:
     needs: [bump, publish-packages, publish-containers]

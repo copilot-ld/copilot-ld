@@ -1,31 +1,28 @@
-# Build stage - includes dev dependencies for code generation
+ARG COMPONENT_PATH
 FROM node:22-alpine AS builder
 
 WORKDIR /app/
-COPY services/memory ./
+COPY ${COMPONENT_PATH} ./
 
-# Install all dependencies (including dev dependencies) for code generation
 RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
     npm install
 
-# Generate code using dev dependencies
 RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
-    npx codegen --source=/app/generated
+    npm install @copilot-ld/libcodegen
 
-# Production stage - minimal runtime image
+RUN npx codegen --source=/app/generated
+
 FROM node:22-alpine AS production
 
 WORKDIR /app/
-COPY services/memory ./
+COPY ${COMPONENT_PATH} ./
 
-# Install only production dependencies
 RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
     npm install --omit=dev --omit=optional
 
-# Copy generated code from builder stage
 COPY --from=builder /app/generated ./generated
 
 EXPOSE 3000

@@ -1,6 +1,17 @@
 # Changelog
 
-## 2025-10-01
+## 2025-10-02
+
+- **UNIFIED**: Consolidated multiple component-specific `Dockerfile` files into
+  single unified `Dockerfile`
+- **ENHANCED**: Added `COMPONENT_PATH` build argument for flexible component
+  building
+- **SIMPLIFIED**: Updated `docker-compose.yml` to use unified `Dockerfile` with
+  component-specific build arguments
+- **SIMPLIFIED**: Updated `.github/workflows/release.yml` to use unified Docker
+  build process
+- **IMPROVED**: Eliminated duplicate Docker configuration across services,
+  extensions, and tools
 
 - **FIXED**: Added VPC endpoints to `network.yml` CloudFormation template to
   resolve ECS tasks' inability to access AWS Secrets Manager from private

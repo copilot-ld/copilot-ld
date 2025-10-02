@@ -1,14 +1,13 @@
 {
-  "name": "@copilot-ld/libutil",
-  "version": "0.1.16",
-  "description": "Utility functions and utilities for Copilot-LD",
+  "name": "@copilot-ld/libcodegen",
+  "version": "0.1.0",
+  "description": "Protocol Buffer code generation utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
   "bin": {
-    "upload": "./bin/upload.js",
-    "download": "./bin/download.js"
+    "codegen": "./bin/codegen.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -16,10 +15,15 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
+  "dependencies": {
+    "@grpc/proto-loader": "^0.8.0",
+    "mustache": "^4.2.0",
+    "protobufjs": "^7.4.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "packages/libutil"
+    "directory": "packages/libcodegen"
   },
   "publishConfig": {
     "access": "public",

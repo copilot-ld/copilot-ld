@@ -17,6 +17,106 @@ import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 import { searchUpward, generateUUID } from "@copilot-ld/libutil";
 
 /**
+ * Base interface for storage implementations
+ */
+export class StorageInterface {
+  /**
+   * Store data with the given key
+   * @param {string} _key - Storage key identifier
+   * @param {string|Buffer|object} _data - Data to store
+   * @returns {Promise<void>}
+   * @throws {Error} When storage operation fails
+   */
+  async put(_key, _data) {
+    throw new Error("StorageInterface.put() not implemented");
+  }
+
+  /**
+   * Retrieve data by key
+   * @param {string} _key - Storage key identifier
+   * @returns {Promise<any>} Retrieved data
+   * @throws {Error} When retrieval fails
+   */
+  async get(_key) {
+    throw new Error("StorageInterface.get() not implemented");
+  }
+
+  /**
+   * Remove data by key
+   * @param {string} _key - Storage key identifier
+   * @returns {Promise<void>}
+   * @throws {Error} When deletion fails
+   */
+  async delete(_key) {
+    throw new Error("StorageInterface.delete() not implemented");
+  }
+
+  /**
+   * Check if key exists
+   * @param {string} _key - Storage key identifier
+   * @returns {Promise<boolean>} True if key exists
+   */
+  async exists(_key) {
+    throw new Error("StorageInterface.exists() not implemented");
+  }
+
+  /**
+   * Append data to an existing key
+   * @param {string} _key - Storage key identifier
+   * @param {string|Buffer} _data - Data to append
+   * @returns {Promise<void>}
+   * @throws {Error} When append fails
+   */
+  async append(_key, _data) {
+    throw new Error("StorageInterface.append() not implemented");
+  }
+
+  /**
+   * Retrieve multiple items by their keys
+   * @param {string[]} _keys - Array of storage key identifiers
+   * @returns {Promise<object>} Object with key-value pairs
+   */
+  async getMany(_keys) {
+    throw new Error("StorageInterface.getMany() not implemented");
+  }
+
+  /**
+   * Lists all keys in storage
+   * @returns {Promise<string[]>} Array of keys
+   */
+  async list() {
+    throw new Error("StorageInterface.list() not implemented");
+  }
+
+  /**
+   * Find keys with specified prefix
+   * @param {string} _prefix - Key prefix to match
+   * @returns {Promise<string[]>} Array of matching keys
+   */
+  async findByPrefix(_prefix) {
+    throw new Error("StorageInterface.findByPrefix() not implemented");
+  }
+
+  /**
+   * Find keys with specified extension
+   * @param {string} _extension - File extension to search for
+   * @returns {Promise<string[]>} Array of keys with the extension
+   */
+  async findByExtension(_extension) {
+    throw new Error("StorageInterface.findByExtension() not implemented");
+  }
+
+  /**
+   * Gets the path for a storage key
+   * @param {string} _key - Storage key identifier
+   * @returns {string} Key path
+   */
+  path(_key) {
+    return "";
+  }
+}
+
+/**
  * Parse JSON Lines (JSONL) format into an array of objects
  * @param {Buffer|string} content - Content to parse as JSON Lines
  * @returns {object[]} Array of parsed JSON objects
@@ -92,7 +192,7 @@ function isJson(key, data) {
 /**
  * Local filesystem storage implementation
  */
-export class LocalStorage {
+export class LocalStorage extends StorageInterface {
   #prefix;
   #fs;
 
@@ -102,6 +202,7 @@ export class LocalStorage {
    * @param {object} fs - File system operations object
    */
   constructor(prefix, fs) {
+    super();
     this.#prefix = prefix;
     this.#fs = fs;
   }
@@ -349,7 +450,7 @@ export class LocalStorage {
 /**
  * S3-compatible storage implementation
  */
-export class S3Storage {
+export class S3Storage extends StorageInterface {
   #bucket;
   #prefix;
   #client;
@@ -363,6 +464,7 @@ export class S3Storage {
    * @param {object} commands - S3 command classes
    */
   constructor(prefix, bucket, client, commands) {
+    super();
     this.#prefix = prefix;
     this.#bucket = bucket;
     this.#client = client;

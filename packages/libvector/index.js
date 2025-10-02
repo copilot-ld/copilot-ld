@@ -13,7 +13,7 @@ export class VectorIndex {
 
   /**
    * Creates a new VectorIndex instance
-   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage interface for data operations
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage interface for data operations
    * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
    */
   constructor(storage, indexKey = "index.jsonl") {
@@ -23,7 +23,7 @@ export class VectorIndex {
 
   /**
    * Gets the storage instance
-   * @returns {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} Storage instance
+   * @returns {import("@copilot-ld/libstorage").StorageInterface} Storage instance
    */
   storage() {
     return this.#storage;

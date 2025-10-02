@@ -22,7 +22,7 @@ export class Repl {
    * Creates a REPL instance with injected dependencies
    * @param {object} readline - Readline module for creating interfaces
    * @param {object} process - Process object for stdin/stdout and exit
-   * @param {import("@copilot-ld/libformat").HtmlFormatter|import("@copilot-ld/libformat").TerminalFormatter} formatter - Formatter instance for output formatting
+   * @param {import("@copilot-ld/libformat").FormatterInterface} formatter - Formatter instance for output formatting
    * @param {object} handlers - REPL configuration and handlers
    */
   constructor(readline, process, formatter, handlers = {}) {

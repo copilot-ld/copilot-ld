@@ -10,7 +10,7 @@ export class Policy {
 
   /**
    * Creates a new Policy instance
-   * @param {object} storage - Storage backend for policy loading
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for policy loading
    */
   constructor(storage) {
     if (!storage) {
@@ -55,7 +55,7 @@ export class Policy {
 
 /**
  * Creates a new policy instance
- * @param {object} storage - Optional storage backend for policy loading
+ * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Optional storage backend for policy loading
  * @returns {Policy} New Policy instance
  */
 export function policyFactory(storage = null) {

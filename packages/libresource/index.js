@@ -11,7 +11,7 @@ export class ResourceIndex {
 
   /**
    * Creates a new ResourceIndex
-   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage backend for persistence
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for persistence
    * @param {import("@copilot-ld/libpolicy").Policy} policy - Policy engine for access control
    */
   constructor(storage, policy) {
@@ -156,3 +156,6 @@ function toIdentifier(uri) {
     parent: parent,
   });
 }
+
+export { toType, toIdentifier };
+export { ResourceProcessor } from "./processor.js";

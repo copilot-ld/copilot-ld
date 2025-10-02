@@ -5,9 +5,23 @@ import { markedTerminal } from "marked-terminal";
 import sanitizeHtml from "sanitize-html";
 
 /**
+ * Base interface for formatter implementations
+ */
+export class FormatterInterface {
+  /**
+   * Formats markdown content to the target format
+   * @param {string} _markdown - Markdown content to format
+   * @returns {string} Formatted output
+   */
+  format(_markdown) {
+    return "";
+  }
+}
+
+/**
  * Formats markdown content to sanitized HTML
  */
-export class HtmlFormatter {
+export class HtmlFormatter extends FormatterInterface {
   #sanitizeHtml;
   #marked;
   #htmlMarked;
@@ -18,6 +32,7 @@ export class HtmlFormatter {
    * @param {object} marked - Marked markdown parser
    */
   constructor(sanitizeHtml, marked) {
+    super();
     if (!sanitizeHtml) throw new Error("sanitizeHtml dependency is required");
     if (!marked) throw new Error("marked dependency is required");
 
@@ -78,7 +93,7 @@ export class HtmlFormatter {
 /**
  * Formats markdown content to terminal output with ANSI escape codes
  */
-export class TerminalFormatter {
+export class TerminalFormatter extends FormatterInterface {
   #marked;
   #markedTerminal;
   #terminalMarked;
@@ -89,6 +104,7 @@ export class TerminalFormatter {
    * @param {object} markedTerminal - marked-terminal plugin
    */
   constructor(marked, markedTerminal) {
+    super();
     if (!marked) throw new Error("marked dependency is required");
     if (!markedTerminal)
       throw new Error("markedTerminal dependency is required");

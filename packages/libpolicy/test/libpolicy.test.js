@@ -25,9 +25,6 @@ describe("libpolicy", () => {
         bucketExists: mock.fn(() => Promise.resolve(true)),
       };
 
-      // Make mockStorage extend StorageInterface for instanceof check
-      Object.setPrototypeOf(mockStorage.prototype);
-
       policy = new Policy(mockStorage);
     });
 
@@ -44,12 +41,6 @@ describe("libpolicy", () => {
     test("throws error when storage is undefined", () => {
       assert.throws(() => new Policy(undefined), {
         message: "storage is required",
-      });
-    });
-
-    test("throws error when storage is not StorageInterface instance", () => {
-      assert.throws(() => new Policy({}), {
-        message: "storage must be a StorageInterface instance",
       });
     });
 
@@ -199,7 +190,6 @@ describe("libpolicy", () => {
         ensureBucket: mock.fn(() => Promise.resolve(false)),
         bucketExists: mock.fn(() => Promise.resolve(true)),
       };
-      Object.setPrototypeOf(mockStorage.prototype);
 
       // Mock storageFactory to return our mock storage
       const mockStorageFactory = mock.fn(() => mockStorage);

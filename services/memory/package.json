@@ -15,7 +15,7 @@
     "@copilot-ld/libpolicy": "^0.1.17",
     "@copilot-ld/libresource": "^0.1.23",
     "@copilot-ld/librpc": "^0.1.30",
-    "@copilot-ld/libstorage": "^0.1.17",
+    "@copilot-ld/libstorage": "^0.1.18",
     "@copilot-ld/libtype": "^0.1.19",
     "@copilot-ld/libutil": "^0.1.17"
   },

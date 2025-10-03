@@ -101,6 +101,41 @@
         </li>
       </ul>
 
+      <h4>Generated Code Workflow</h4>
+
+      <p>
+        Both code generation and service startup follow a unified three-step
+        workflow to ensure generated code is available:
+      </p>
+
+      <ol>
+        <li>
+          <strong>Resolve Source Path</strong>: Use
+          <code>storageFactory("generated", "local")</code> to determine the
+          canonical storage location for generated artifacts
+        </li>
+        <li>
+          <strong>Ensure Storage Exists</strong>: Call
+          <code>ensureBucket()</code> to create the storage directory if it
+          doesn't exist
+        </li>
+        <li>
+          <strong>Create Package Symlinks</strong>: Use
+          <code>Finder.createPackageSymlinks()</code> to link package target
+          directories (<code>packages/libtype/generated/</code>,
+          <code>packages/librpc/generated/</code>) to the source location
+        </li>
+      </ol>
+
+      <p>
+        This workflow is used by both the code generation binary (<code
+          >npm run codegen</code
+        >) and the download utility that services use at startup. When
+        <code>STORAGE_TYPE=s3</code>, services automatically download and
+        extract the latest generated code bundle from remote storage before
+        creating symlinks.
+      </p>
+
       <h3>Directory Structure</h3>
 
       <pre>
@@ -534,6 +569,11 @@ sequenceDiagram
 
       <ol>
         <li>
+          <strong>Setup Workflow</strong>: Follows the unified three-step
+          workflow (resolve source path, ensure storage exists, create symlinks)
+          to prepare the <code>generated/</code> directory
+        </li>
+        <li>
           <strong>Schema Discovery</strong>: Scans <code>proto/</code> for core
           service definitions and <code>tools/</code> for
           <strong>extension schemas that extend the platform</strong>
@@ -554,8 +594,8 @@ sequenceDiagram
           <code>@copilot-ld/librpc</code>
         </li>
         <li>
-          <strong>Package Integration</strong>: Uses symlinks to make generated
-          code available through framework-agnostic packages
+          <strong>Package Integration</strong>: Symlinks created during setup
+          make generated code available through framework-agnostic packages
         </li>
       </ol>
 
@@ -593,10 +633,10 @@ npm run codegen:definition  # Service definitions only</code></pre>
         The <code>@copilot-ld/libcodegen</code> package uses
         <code>protobufjs</code> for schema processing and
         <code>Mustache</code> templates for code generation, producing ES
-        modules with full type safety. Package symlinks ensure generated code is
-        accessible through <code>@copilot-ld/libtype</code> and
-        <code>@copilot-ld/librpc</code> while maintaining clean package
-        separation.
+        modules with full type safety. Services automatically create package
+        symlinks at startup to ensure generated code is accessible through
+        <code>@copilot-ld/libtype</code> and <code>@copilot-ld/librpc</code>
+        while maintaining clean package separation.
       </p>
 
       <h4>Generated Artifact Structure</h4>
@@ -617,7 +657,7 @@ npm run codegen:definition  # Service definitions only</code></pre>
         ├── vector.js    # gRPC service definition for Vector
         └── exports.js   # Aggregated definitions exports
 
-# Package symlinks provide access through framework-agnostic packages
+# Package symlinks created automatically at service startup
 ./packages/libtype/generated/    → symlink to ./generated/
 ./packages/librpc/generated/     → symlink to ./generated/
       </pre>
@@ -654,8 +694,8 @@ npm run codegen:definition  # Service definitions only</code></pre>
           dependencies
         </li>
         <li>
-          <strong>Package Integration</strong>: Symlinks provide clean access
-          through framework-agnostic packages
+          <strong>Package Integration</strong>: Service startup automatically
+          creates symlinks for clean access through framework-agnostic packages
         </li>
         <li>
           <strong>Tool Extension</strong>: Supports additional schemas that

@@ -6,8 +6,13 @@ import { ServiceConfig } from "@copilot-ld/libconfig";
 import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
+import { downloadFactory } from "@copilot-ld/libutil";
 
 import { AgentService } from "./index.js";
+
+// Ensure generated code is available and symlinks are set up
+const downloader = downloadFactory(storageFactory);
+await downloader.download();
 
 const { MemoryClient, LlmClient, VectorClient, ToolClient } = clients;
 

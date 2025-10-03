@@ -2,6 +2,7 @@
 /* eslint-env node */
 
 import fs from "node:fs";
+import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
@@ -9,25 +10,12 @@ import { execSync } from "node:child_process";
 import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
-import {
-  Codegen,
-  resolveProjectRoot,
-  resolvePackagePath,
-} from "@copilot-ld/libutil";
+import { Finder, Logger } from "@copilot-ld/libutil";
+import { Codegen } from "@copilot-ld/libcodegen";
+import { storageFactory } from "@copilot-ld/libstorage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-/**
- * Resolve the generated directory path for a package
- * @param {string} projectRoot - Project root directory path
- * @param {"libtype"|"librpc"} packageName - Package name without scope
- * @returns {string} Absolute path to package's generated directory
- */
-function resolveGeneratedPath(projectRoot, packageName) {
-  const packagePath = resolvePackagePath(projectRoot, packageName);
-  return path.join(packagePath, "generated");
-}
 
 /**
  * Create tar.gz bundle of all directories inside sourcePath
@@ -58,72 +46,13 @@ async function createBundle(sourcePath) {
 }
 
 /**
- * Parse target path from --target=<path> argument
- * @param {string[]} args - Command line arguments
- * @returns {string|null} Target path or null if not specified
- */
-function parseSourcePath(args) {
-  const sourceArg = args.find((arg) => arg.startsWith("--source="));
-  if (!sourceArg) return null;
-
-  const sourcePath = sourceArg.substring("--source=".length);
-  if (!sourcePath) {
-    throw new Error("--source requires a path");
-  }
-
-  // Resolve relative paths based on original working directory.
-  // INIT_CWD contains the original working directory before npm/npx changed it.
-  const cwd = process.env.INIT_CWD || process.cwd();
-  return path.resolve(cwd, sourcePath);
-}
-
-/**
- * Create symlink from source to target directory
- * @param {string} sourcePath - Source directory path
- * @param {string} targetPath - Target directory path
- */
-async function createSymlink(sourcePath, targetPath) {
-  // Ensure the source directory exists
-  fs.mkdirSync(sourcePath, { recursive: true });
-
-  // Remove the existing target if it exists
-  if (fs.existsSync(targetPath)) {
-    const stats = fs.lstatSync(targetPath);
-    if (stats.isSymbolicLink()) {
-      fs.unlinkSync(targetPath);
-    } else {
-      fs.rmSync(targetPath, { recursive: true, force: true });
-    }
-  }
-
-  // Create the symlink
-  fs.symlinkSync(sourcePath, targetPath, "dir");
-}
-
-/**
- * Create symlinks for generated packages
- * @param {string} projectRoot - Project root directory path
- * @param {string} sourcePath - Source path for symlinks
- * @param {string[]} packageNames - Array of package names to create symlinks for
- */
-async function createPackageSymlinks(projectRoot, sourcePath, packageNames) {
-  const tasks = packageNames.map((packageName) =>
-    createSymlink(sourcePath, resolveGeneratedPath(projectRoot, packageName)),
-  );
-
-  await Promise.all(tasks);
-}
-
-/**
  * Print CLI usage help
  */
 function printUsage() {
   process.stdout.write(
     [
       "Usage:",
-      `  npx codegen --source=/path/to/generated        # Create symlinks only`,
-      `  npx codegen --all --source=/path/to/generated  # Generate all code **and** create symlinks`,
-      `  npx codegen --all                              # Generate all code only`,
+      `  npx codegen --all                              # Generate all code`,
       `  npx codegen --type                             # Generate protobuf types only`,
       `  npx codegen --service                          # Generate service bases only`,
       `  npx codegen --client                           # Generate clients only`,
@@ -137,67 +66,75 @@ function printUsage() {
  * @param {Codegen} codegen - Configured codegen instance
  * @param {string} projectRoot - Project root directory path
  * @param {string[]} flags - Command line flags
+ * @param {Finder} finder - Finder instance for path management
  */
-async function runCodegen(codegen, projectRoot, flags) {
+async function runCodegen(codegen, projectRoot, flags, finder) {
   const flagSet = new Set(flags);
   const doAll = flagSet.has("--all");
   const doTypes = doAll || flagSet.has("--type");
   const doServices = doAll || flagSet.has("--service");
   const doClients = doAll || flagSet.has("--client");
   const doDefinitions = doAll || flagSet.has("--definition");
-  const sourcePath = parseSourcePath(flags);
   const doExports = doServices || doClients || doDefinitions || doAll;
   const doGenerate = doTypes || doServices || doClients || doDefinitions;
 
-  // Handle --source only case (no generation flags)
+  // Show usage if no generation flags provided
   if (!doGenerate) {
-    if (sourcePath) {
-      await createPackageSymlinks(projectRoot, sourcePath, [
-        "libtype",
-        "librpc",
-      ]);
-      return;
-    }
     printUsage();
     process.exitCode = 1;
     return;
   }
 
-  // Determine output paths
-  const libtypeGeneratedPath = doTypes
-    ? sourcePath || resolveGeneratedPath(projectRoot, "libtype")
-    : null;
-  const librpcGeneratedPath = doExports
-    ? sourcePath || resolveGeneratedPath(projectRoot, "librpc")
-    : null;
+  // Step 1: Resolve generated SOURCE path using shared pattern
+  const generatedStorage = storageFactory("generated", "local");
+  const sourcePath = generatedStorage.path();
 
-  // Run generation tasks
+  // Step 2: Ensure storage bucket exists BEFORE generation
+  await generatedStorage.ensureBucket();
+
+  // Step 3: Generate code to SOURCE path
   await Promise.all(
     [
-      doTypes && codegen.runTypes(libtypeGeneratedPath),
-      doServices && codegen.runForKind("service", librpcGeneratedPath),
-      doClients && codegen.runForKind("client", librpcGeneratedPath),
-      doDefinitions && codegen.runDefinitions(librpcGeneratedPath),
+      doTypes && codegen.runTypes(sourcePath),
+      doServices && codegen.runForKind("service", sourcePath),
+      doClients && codegen.runForKind("client", sourcePath),
+      doDefinitions && codegen.runDefinitions(sourcePath),
     ].filter(Boolean),
   );
 
   // Generate librpc exports after services and clients
   if (doExports) {
-    await codegen.runServicesExports(librpcGeneratedPath);
+    await codegen.runServicesExports(sourcePath);
   }
 
-  // Create symlinks if using source path
-  if (sourcePath) {
-    const packageNames = [];
-    if (doTypes) packageNames.push("libtype");
-    if (doExports) packageNames.push("librpc");
-    await createPackageSymlinks(projectRoot, sourcePath, packageNames);
+  // Step 4: Create symlinks from TARGET packages to SOURCE
+  await finder.createPackageSymlinks(sourcePath);
 
-    // Create bundle of all directories in source path
-    if (doGenerate) {
-      await createBundle(sourcePath);
+  // Step 5: Create bundle of all generated directories
+  await createBundle(sourcePath);
+}
+
+/**
+ * Find the monorepo root directory (the one with workspaces)
+ * @param {string} startPath - Starting directory path
+ * @returns {string} Project root directory path
+ */
+function findMonorepoRoot(startPath) {
+  let current = startPath;
+  for (let depth = 0; depth < 10; depth++) {
+    const packageJsonPath = path.join(current, "package.json");
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+      // Check if this package.json has workspaces (indicates monorepo root)
+      if (packageJson.workspaces) {
+        return current;
+      }
     }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
   }
+  throw new Error("Could not find monorepo root");
 }
 
 /**
@@ -205,11 +142,13 @@ async function runCodegen(codegen, projectRoot, flags) {
  */
 async function main() {
   try {
-    const projectRoot = resolveProjectRoot(__dirname);
+    const logger = new Logger("codegen");
+    const finder = new Finder(fsAsync, logger, process);
+    const projectRoot = findMonorepoRoot(__dirname);
     const codegen = new Codegen(projectRoot, path, mustache, protoLoader, fs);
 
     const flags = process.argv.slice(2);
-    await runCodegen(codegen, projectRoot, flags);
+    await runCodegen(codegen, projectRoot, flags, finder);
   } catch (err) {
     process.stderr.write(`Error: ${err.message}\n`);
     process.exit(1);

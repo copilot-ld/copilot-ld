@@ -1,14 +1,14 @@
 # Changelog
 
-## 2025-10-02
+## 2025-10-03
 
-- **BREAKING**: Extracted code generation functionality to new
-  `@copilot-ld/libcodegen` package
-- **BREAKING**: Removed `codegen` binary from `@copilot-ld/libutil` package
-- **BREAKING**: Replaced `js-tiktoken` dependency with built-in `Tokenizer`
-  class for reduced external dependencies
-- Moved codegen dependencies (`@grpc/proto-loader`, `mustache`, `protobufjs`) to
-  `@copilot-ld/libcodegen`
+- **NEW**: Added `downloadFactory()` for automatic generated code management in
+  services
+- **BREAKING**: Extracted code generation to new `@copilot-ld/libcodegen`
+  package
+- Unified service startup with automatic package linking and S3 download support
+- Improved modular design with separate `Finder`, `Logger`, `Processor`, and
+  `Download` classes
 
 ## 2025-09-27
 

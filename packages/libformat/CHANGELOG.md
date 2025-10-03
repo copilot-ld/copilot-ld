@@ -1,22 +1,16 @@
 # Changelog
 
-## 2025-10-02
+## 2025-10-03
 
-- Replaced `jsdom` and `dompurify` dependencies with `sanitize-html` for
-  simplified HTML sanitization
-- Updated `HtmlFormatter` to use `sanitize-html` API with streamlined
-  configuration
+- Simplified type definitions by replacing `FormatterInterface` class with JSDoc
+  `@typedef`
+- Replaced `jsdom` and `dompurify` with lighter-weight `sanitize-html` for HTML
+  sanitization
 
 ## 2025-09-16
 
-- Bump version one last time, really
-- Bump version one last time
-- Bump version one more time
-- Bump version again
-- Bump version for public package publishing
 - Downgraded `marked` from `^16.1.2` to `^15.0.12` to resolve dependency
   conflict with `marked-terminal@^7.3.0`
-- Fixed npm install issues caused by incompatible peer dependency requirements
 
 ## 2025-08-12
 

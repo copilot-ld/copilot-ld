@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-03
+
+- Integrated `downloadFactory()` from `@copilot-ld/libutil` for automatic
+  generated code management
+- Simplified service startup by removing Docker-specific code paths
+
 ## 2025-09-26
 
 - Bump version

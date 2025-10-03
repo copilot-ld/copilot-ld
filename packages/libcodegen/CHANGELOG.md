@@ -1,10 +1,10 @@
 # Changelog
 
-## 2025-10-02
+## 2025-10-03
 
-- Created new `@copilot-ld/libcodegen` package extracted from
-  `@copilot-ld/libutil`
-- Added `codegen` binary for Protocol Buffer code generation functionality
-- Added dependencies for `@grpc/proto-loader`, `mustache`, and `protobufjs`
-- Provides dedicated package for Protocol Buffer compilation and type generation
-  processes
+- **NEW**: Created dedicated `@copilot-ld/libcodegen` package for Protocol
+  Buffer code generation
+- Extracted `Codegen` class and `codegen` binary from `@copilot-ld/libutil` for
+  better separation of concerns
+- Provides unified interface for generating types, services, clients, and
+  definitions from `.proto` schemas

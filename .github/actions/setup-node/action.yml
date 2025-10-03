@@ -15,4 +15,4 @@ runs:
 
     - name: Generate code
       shell: bash
-      run: npm run codegen
+      run: mkdir generated && npm run codegen

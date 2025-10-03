@@ -198,6 +198,8 @@ subnet
 subnets
 subtask
 subtasks
+symlink
+Symlink
 symlinks
 Symlinks
 tiktoken

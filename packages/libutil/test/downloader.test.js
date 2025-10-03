@@ -43,7 +43,7 @@ describe("Downloader", () => {
   test("constructor validates required dependencies", () => {
     assert.throws(
       () =>
-        new Downloader(null, mockExecFn, mockLogger, mockFinder, mockProcess),
+        new Downloader(null, mockFinder, mockLogger, mockExecFn, mockProcess),
       /storageFn is required/,
     );
 
@@ -53,31 +53,7 @@ describe("Downloader", () => {
           mockStorageFactory,
           null,
           mockLogger,
-          mockFinder,
-          mockProcess,
-        ),
-      /execFn is required/,
-    );
-
-    assert.throws(
-      () =>
-        new Downloader(
-          mockStorageFactory,
           mockExecFn,
-          null,
-          mockFinder,
-          mockProcess,
-        ),
-      /logger is required/,
-    );
-
-    assert.throws(
-      () =>
-        new Downloader(
-          mockStorageFactory,
-          mockExecFn,
-          mockLogger,
-          null,
           mockProcess,
         ),
       /finder is required/,
@@ -87,9 +63,33 @@ describe("Downloader", () => {
       () =>
         new Downloader(
           mockStorageFactory,
-          mockExecFn,
-          mockLogger,
           mockFinder,
+          null,
+          mockExecFn,
+          mockProcess,
+        ),
+      /logger is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Downloader(
+          mockStorageFactory,
+          mockFinder,
+          mockLogger,
+          null,
+          mockProcess,
+        ),
+      /execFn is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Downloader(
+          mockStorageFactory,
+          mockFinder,
+          mockLogger,
+          mockExecFn,
           null,
         ),
       /process is required/,
@@ -104,15 +104,15 @@ describe("Downloader", () => {
     mockLocalStorage.delete = async (key) => {
       operations.push({ op: "delete", key });
     };
-    mockExecFn = (command) => {
+    const execFn = (command) => {
       operations.push({ op: "extract", command });
     };
 
     const download = new Downloader(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      execFn,
       mockProcess,
     );
     await download.initialize();
@@ -137,9 +137,9 @@ describe("Downloader", () => {
 
     const download = new Downloader(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      mockExecFn,
       mockProcess,
     );
     await download.initialize();
@@ -157,9 +157,9 @@ describe("Downloader", () => {
 
     const download = new Downloader(
       mockStorageFactory,
+      mockFinder,
       mockExecFn,
       mockLogger,
-      mockFinder,
       mockProcess,
     );
     await download.initialize();
@@ -181,9 +181,9 @@ describe("Downloader", () => {
 
     const download = new Downloader(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      mockExecFn,
       mockProcess,
     );
     await download.initialize();
@@ -199,9 +199,9 @@ describe("Downloader", () => {
 
     const download = new Downloader(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      mockExecFn,
       mockProcess,
     );
     await download.initialize();

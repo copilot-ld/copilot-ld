@@ -11,7 +11,6 @@
   },
   "scripts": {
     "dev": "node --env-file=../../config/.env --watch server.js",
-    "docker": "npm start",
     "start": "node server.js",
     "test": "node --test test/*.test.js"
   },

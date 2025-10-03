@@ -1,4 +1,5 @@
 /* eslint-env node */
+import { execSync } from "node:child_process";
 
 /**
  * Download utility for retrieving and extracting bundle.tar.gz from remote storage
@@ -6,9 +7,9 @@
  */
 export class Download {
   #storageFactory;
-  #execFn;
-  #logger;
   #finder;
+  #logger;
+  #execFn;
   #process;
   #local;
   #remote;
@@ -16,22 +17,28 @@ export class Download {
   /**
    * Creates a new download instance with dependency injection
    * @param {Function} storageFn - Storage factory function
-   * @param {Function} execFn - Execution function for system commands
-   * @param {object} logger - Logger instance
    * @param {object} finder - Finder instance for symlink management
+   * @param {object} logger - Logger instance
+   * @param {Function} execFn - Execution function for system commands
    * @param {object} process - Process environment access (for testing)
    */
-  constructor(storageFn, execFn, logger, finder, process = global.process) {
+  constructor(
+    storageFn,
+    finder,
+    logger,
+    execFn = execSync,
+    process = global.process,
+  ) {
     if (!storageFn) throw new Error("storageFn is required");
-    if (!execFn) throw new Error("execFn is required");
-    if (!logger) throw new Error("logger is required");
     if (!finder) throw new Error("finder is required");
+    if (!logger) throw new Error("logger is required");
+    if (!execFn) throw new Error("execFn is required");
     if (!process) throw new Error("process is required");
 
     this.#storageFactory = storageFn;
-    this.#execFn = execFn;
-    this.#logger = logger;
     this.#finder = finder;
+    this.#logger = logger;
+    this.#execFn = execFn;
     this.#process = process;
     this.#local = null;
     this.#remote = null;

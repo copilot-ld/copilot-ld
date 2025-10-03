@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.23",
-    "@copilot-ld/libutil": "^0.1.18",
+    "@copilot-ld/libutil": "^0.1.19",
     "@grpc/grpc-js": "^1.12.2"
   },
   "devDependencies": {},

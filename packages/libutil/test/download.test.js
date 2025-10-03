@@ -42,7 +42,7 @@ describe("Download", () => {
 
   test("constructor validates required dependencies", () => {
     assert.throws(
-      () => new Download(null, mockExecFn, mockLogger, mockFinder, mockProcess),
+      () => new Download(null, mockFinder, mockLogger, mockExecFn, mockProcess),
       /storageFn is required/,
     );
 
@@ -52,31 +52,7 @@ describe("Download", () => {
           mockStorageFactory,
           null,
           mockLogger,
-          mockFinder,
-          mockProcess,
-        ),
-      /execFn is required/,
-    );
-
-    assert.throws(
-      () =>
-        new Download(
-          mockStorageFactory,
           mockExecFn,
-          null,
-          mockFinder,
-          mockProcess,
-        ),
-      /logger is required/,
-    );
-
-    assert.throws(
-      () =>
-        new Download(
-          mockStorageFactory,
-          mockExecFn,
-          mockLogger,
-          null,
           mockProcess,
         ),
       /finder is required/,
@@ -86,9 +62,33 @@ describe("Download", () => {
       () =>
         new Download(
           mockStorageFactory,
-          mockExecFn,
-          mockLogger,
           mockFinder,
+          null,
+          mockExecFn,
+          mockProcess,
+        ),
+      /logger is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Download(
+          mockStorageFactory,
+          mockFinder,
+          mockLogger,
+          null,
+          mockProcess,
+        ),
+      /execFn is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Download(
+          mockStorageFactory,
+          mockFinder,
+          mockLogger,
+          mockExecFn,
           null,
         ),
       /process is required/,
@@ -103,15 +103,15 @@ describe("Download", () => {
     mockLocalStorage.delete = async (key) => {
       operations.push({ op: "delete", key });
     };
-    mockExecFn = (command) => {
+    const execFn = (command) => {
       operations.push({ op: "extract", command });
     };
 
     const download = new Download(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      execFn,
       mockProcess,
     );
     await download.initialize();
@@ -136,9 +136,9 @@ describe("Download", () => {
 
     const download = new Download(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      mockExecFn,
       mockProcess,
     );
     await download.initialize();
@@ -156,9 +156,9 @@ describe("Download", () => {
 
     const download = new Download(
       mockStorageFactory,
+      mockFinder,
       mockExecFn,
       mockLogger,
-      mockFinder,
       mockProcess,
     );
     await download.initialize();
@@ -180,9 +180,9 @@ describe("Download", () => {
 
     const download = new Download(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      mockExecFn,
       mockProcess,
     );
     await download.initialize();
@@ -198,9 +198,9 @@ describe("Download", () => {
 
     const download = new Download(
       mockStorageFactory,
-      mockExecFn,
-      mockLogger,
       mockFinder,
+      mockLogger,
+      mockExecFn,
       mockProcess,
     );
     await download.initialize();

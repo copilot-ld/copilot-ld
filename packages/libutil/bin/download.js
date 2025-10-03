@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /* eslint-env node */
 
-import { execSync } from "node:child_process";
+import fs from "fs/promises";
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
-import { Logger, Download } from "@copilot-ld/libutil";
+import { Logger, Finder, Download } from "@copilot-ld/libutil";
 
 /**
  * Main execution function
@@ -14,7 +14,8 @@ async function main() {
   await ScriptConfig.create("download");
 
   const logger = new Logger("download");
-  const downloader = new Download(storageFactory, execSync, logger);
+  const finder = new Finder(fs, logger);
+  const downloader = new Download(storageFactory, finder, logger);
 
   await downloader.initialize();
   await downloader.download();

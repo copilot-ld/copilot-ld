@@ -1,6 +1,5 @@
 /* eslint-env node */
 import crypto from "crypto";
-import { execSync } from "node:child_process";
 import fs from "fs/promises";
 
 import { Tokenizer, ranks } from "./tokenizer.js";
@@ -80,16 +79,15 @@ export function logFactory(namespace) {
  * Creates a Download instance configured for generated code management
  * This is the new API that services should use instead of ensureGeneratedCode
  * @param {Function} storageFactory - Storage factory function from libstorage
- * @param {object} process - Process environment access (for testing)
  * @returns {Download} Configured Download instance
  */
-export function downloadFactory(storageFactory, process = global.process) {
+export function downloadFactory(storageFactory) {
   if (!storageFactory) throw new Error("storageFactory is required");
 
   const logger = new Logger("generated");
-  const finder = new Finder(fs, logger, process);
+  const finder = new Finder(fs, logger);
 
-  return new Download(storageFactory, execSync, logger, finder, process);
+  return new Download(storageFactory, finder, logger);
 }
 
 export { Logger } from "./logger.js";

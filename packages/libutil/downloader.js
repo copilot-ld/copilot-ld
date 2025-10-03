@@ -1,10 +1,10 @@
 /* eslint-env node */
 
 /**
- * Download utility for retrieving and extracting bundle.tar.gz from remote storage
+ * Downloader utility for retrieving and extracting bundle.tar.gz from remote storage
  * Implements object-oriented approach with dependency injection
  */
-export class Download {
+export class Downloader {
   #storageFactory;
   #execFn;
   #logger;
@@ -12,6 +12,7 @@ export class Download {
   #process;
   #local;
   #remote;
+  #initialized;
 
   /**
    * Creates a new download instance with dependency injection
@@ -35,6 +36,7 @@ export class Download {
     this.#process = process;
     this.#local = null;
     this.#remote = null;
+    this.#initialized = false;
   }
 
   /**
@@ -50,14 +52,20 @@ export class Download {
     await this.#local.ensureBucket();
     const generatedPath = this.#local.path();
     await this.#finder.createPackageSymlinks(generatedPath);
+
+    this.#initialized = true;
   }
 
   /**
    * Download bundle.tar.gz from remote storage and extract to local storage
    * Only downloads if STORAGE_TYPE is "s3"
+   * Automatically initializes storage instances if not already initialized
    * @returns {Promise<void>}
    */
   async download() {
+    // Auto-initialize if not already initialized
+    if (!this.#initialized) await this.initialize();
+
     const storageType = this.#process.env.STORAGE_TYPE || "local";
 
     if (storageType === "local") {

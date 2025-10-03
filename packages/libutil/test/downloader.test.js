@@ -2,9 +2,9 @@
 import { strict as assert } from "node:assert";
 import { test, describe, beforeEach, mock } from "node:test";
 
-import { Download } from "../download.js";
+import { Downloader } from "../downloader.js";
 
-describe("Download", () => {
+describe("Downloader", () => {
   let mockStorageFactory;
   let mockExecFn;
   let mockLogger;
@@ -42,13 +42,14 @@ describe("Download", () => {
 
   test("constructor validates required dependencies", () => {
     assert.throws(
-      () => new Download(null, mockExecFn, mockLogger, mockFinder, mockProcess),
+      () =>
+        new Downloader(null, mockExecFn, mockLogger, mockFinder, mockProcess),
       /storageFn is required/,
     );
 
     assert.throws(
       () =>
-        new Download(
+        new Downloader(
           mockStorageFactory,
           null,
           mockLogger,
@@ -60,7 +61,7 @@ describe("Download", () => {
 
     assert.throws(
       () =>
-        new Download(
+        new Downloader(
           mockStorageFactory,
           mockExecFn,
           null,
@@ -72,7 +73,7 @@ describe("Download", () => {
 
     assert.throws(
       () =>
-        new Download(
+        new Downloader(
           mockStorageFactory,
           mockExecFn,
           mockLogger,
@@ -84,7 +85,7 @@ describe("Download", () => {
 
     assert.throws(
       () =>
-        new Download(
+        new Downloader(
           mockStorageFactory,
           mockExecFn,
           mockLogger,
@@ -107,7 +108,7 @@ describe("Download", () => {
       operations.push({ op: "extract", command });
     };
 
-    const download = new Download(
+    const download = new Downloader(
       mockStorageFactory,
       mockExecFn,
       mockLogger,
@@ -134,7 +135,7 @@ describe("Download", () => {
   test("throws error when bundle does not exist", async () => {
     mockRemoteStorage.exists = async () => false;
 
-    const download = new Download(
+    const download = new Downloader(
       mockStorageFactory,
       mockExecFn,
       mockLogger,
@@ -154,7 +155,7 @@ describe("Download", () => {
       ensureBucketCalls.push("generated");
     };
 
-    const download = new Download(
+    const download = new Downloader(
       mockStorageFactory,
       mockExecFn,
       mockLogger,
@@ -178,7 +179,7 @@ describe("Download", () => {
     mockProcess.env.STORAGE_TYPE = "local";
     mockRemoteStorage.exists = mock.fn(async () => true);
 
-    const download = new Download(
+    const download = new Downloader(
       mockStorageFactory,
       mockExecFn,
       mockLogger,
@@ -196,7 +197,7 @@ describe("Download", () => {
     mockProcess.env.STORAGE_TYPE = "s3";
     mockRemoteStorage.exists = mock.fn(async () => true);
 
-    const download = new Download(
+    const download = new Downloader(
       mockStorageFactory,
       mockExecFn,
       mockLogger,

@@ -5,8 +5,13 @@ import { ServiceConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { Policy } from "@copilot-ld/libpolicy";
+import { downloadFactory } from "@copilot-ld/libutil";
 
 import { MemoryService } from "./index.js";
+
+// Ensure generated code is available and symlinks are set up
+const downloader = downloadFactory(storageFactory);
+await downloader.download();
 
 // Bootstrap the service
 const config = await ServiceConfig.create("memory");

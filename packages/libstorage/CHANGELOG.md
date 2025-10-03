@@ -1,18 +1,21 @@
 # Changelog
 
+## 2025-10-03
+
+- Simplified type definitions by replacing `StorageInterface` class with JSDoc
+  `@typedef`
+
 ## 2025-09-30
 
-- **CHANGED**: Updated to use standard `AWS_ACCESS_KEY_ID` and
-  `AWS_SECRET_ACCESS_KEY` environment variables instead of `S3_ACCESS_KEY_ID`
-  and `S3_SECRET_ACCESS_KEY`
-- **SIMPLIFIED**: Credential configuration now falls back to default AWS
-  credential chain when no explicit credentials are provided
+- Updated to use standard `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+  environment variables
+- Enhanced credential configuration with fallback to default AWS credential
+  chain
 
 ## 2025-09-29
 
-- **FIXED**: Added missing `roleSessionName` and `durationSeconds` parameters to
-  `fromTemporaryCredentials()` configuration for S3 storage to resolve GitHub
-  Actions OIDC authentication issues
+- Fixed GitHub Actions OIDC authentication by adding `roleSessionName` and
+  `durationSeconds` to S3 configuration
 
 ## 2025-09-27
 

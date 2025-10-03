@@ -44,6 +44,7 @@ npm install
 ### 3. Generate code from Protocol Buffers
 
 ```sh
+mkdir generated
 npm run codegen
 ```
 

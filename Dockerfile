@@ -12,7 +12,7 @@ RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
     npm install @copilot-ld/libcodegen
 
-RUN npx codegen --source=/app/generated
+RUN mkdir generated && npx codegen
 
 FROM node:22-alpine AS production
 

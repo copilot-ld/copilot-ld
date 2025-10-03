@@ -15,11 +15,11 @@
     "scripts"
   ],
   "scripts": {
-    "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all --source=generated",
-    "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type --source=generated",
-    "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client --source=generated",
-    "codegen:service": "npx --workspace=@copilot-ld/libcodegen codegen --service --source=generated",
-    "codegen:definition": "npx --workspace=@copilot-ld/libcodegen codegen --definition --source=generated",
+    "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
+    "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
+    "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",
+    "codegen:service": "npx --workspace=@copilot-ld/libcodegen codegen --service",
+    "codegen:definition": "npx --workspace=@copilot-ld/libcodegen codegen --definition",
     "upload": "npx --workspace=@copilot-ld/libutil upload",
     "dev": "npm run dev:start",
     "dev:start": "DEBUG=${DEBUG:-*} node --env-file=config/.env scripts/dev.js --start",

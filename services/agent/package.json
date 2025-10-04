@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "node --env-file=../../config/.env --watch server.js",
-    "start": "node server.js",
+    "start": "npx download && node server.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

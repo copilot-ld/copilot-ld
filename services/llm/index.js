@@ -1,4 +1,5 @@
 /* eslint-env node */
+import { llmFactory } from "@copilot-ld/libcopilot";
 import { common, llm } from "@copilot-ld/libtype";
 import { services } from "@copilot-ld/librpc";
 
@@ -13,12 +14,12 @@ export class LlmService extends LlmBase {
   /**
    * Creates a new LLM service instance
    * @param {object} config - Service configuration object
-   * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFactory - Factory function to create LLM instances
+   * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFn - Factory function to create LLM instances
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, llmFactory, logFn) {
+  constructor(config, llmFn = llmFactory, logFn) {
     super(config, logFn);
-    this.#llmFactory = llmFactory;
+    this.#llmFactory = llmFn;
   }
 
   /** @inheritdoc */

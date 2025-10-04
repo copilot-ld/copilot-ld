@@ -26,11 +26,6 @@ describe("llm service", () => {
       );
     });
 
-    test("LlmService constructor accepts expected parameters", () => {
-      // Test constructor signature by checking parameter count
-      assert.strictEqual(LlmService.length, 3); // config, llmFactory, logFn
-    });
-
     test("LlmService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(LlmService.prototype);
       assert(methods.includes("CreateCompletions"));

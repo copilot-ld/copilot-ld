@@ -6,17 +6,11 @@ import { ServiceConfig } from "@copilot-ld/libconfig";
 import { policyFactory } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { storageFactory } from "@copilot-ld/libstorage";
-import { downloadFactory } from "@copilot-ld/libutil";
 
 import { AgentService } from "./index.js";
 
-// Ensure generated code is available and symlinks are set up
-const downloader = downloadFactory(storageFactory);
-await downloader.download();
-
 const { MemoryClient, LlmClient, VectorClient, ToolClient } = clients;
 
-// Bootstrap the service
 const agentConfig = await ServiceConfig.create("agent", {
   threshold: 0.3,
   limit: 200,
@@ -36,7 +30,6 @@ const llmClient = new LlmClient(await ServiceConfig.create("llm"));
 const vectorClient = new VectorClient(await ServiceConfig.create("vector"));
 const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
-// Set up ResourceIndex for accessing resources
 const resourceStorage = storageFactory("resources");
 const policy = policyFactory();
 const resourceIndex = new ResourceIndex(resourceStorage, policy);
@@ -51,7 +44,6 @@ const service = new AgentService(
   (auth) => new Octokit({ auth }),
 );
 
-// Create and start the server
 const server = new Server(service, agentConfig);
 
 await server.start();

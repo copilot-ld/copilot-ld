@@ -2,12 +2,8 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import {
-  toType,
-  toIdentifier,
-  ResourceIndex,
-  ResourceProcessor,
-} from "../index.js";
+import { toType, toIdentifier, ResourceIndex } from "../index.js";
+import { ResourceProcessor } from "../processor.js";
 import { common, resource } from "@copilot-ld/libtype";
 
 /**

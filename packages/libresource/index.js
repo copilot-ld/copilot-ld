@@ -158,4 +158,3 @@ function toIdentifier(uri) {
 }
 
 export { toType, toIdentifier };
-export { ResourceProcessor } from "./processor.js";

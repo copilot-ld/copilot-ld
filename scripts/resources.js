@@ -2,7 +2,8 @@
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { llmFactory } from "@copilot-ld/libcopilot";
 import { policyFactory } from "@copilot-ld/libpolicy";
-import { ResourceIndex, ResourceProcessor } from "@copilot-ld/libresource";
+import { ResourceIndex } from "@copilot-ld/libresource";
+import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
 import { storageFactory } from "@copilot-ld/libstorage";
 import { logFactory } from "@copilot-ld/libutil";
 

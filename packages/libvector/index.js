@@ -167,5 +167,3 @@ function calculateDotProduct(a, b, length) {
 
   return dotProduct;
 }
-
-export { VectorProcessor } from "./processor.js";

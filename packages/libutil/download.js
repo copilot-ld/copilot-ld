@@ -13,6 +13,7 @@ export class Download {
   #process;
   #local;
   #remote;
+  #initialized;
 
   /**
    * Creates a new download instance with dependency injection
@@ -42,6 +43,7 @@ export class Download {
     this.#process = process;
     this.#local = null;
     this.#remote = null;
+    this.#initialized = false;
   }
 
   /**
@@ -57,14 +59,18 @@ export class Download {
     await this.#local.ensureBucket();
     const generatedPath = this.#local.path();
     await this.#finder.createPackageSymlinks(generatedPath);
+    this.#initialized = true;
   }
 
   /**
    * Download bundle.tar.gz from remote storage and extract to local storage
    * Only downloads if STORAGE_TYPE is "s3"
+   * Automatically initializes if not already initialized
    * @returns {Promise<void>}
    */
   async download() {
+    if (!this.#initialized) await this.initialize();
+
     const storageType = this.#process.env.STORAGE_TYPE || "local";
 
     if (storageType === "local") {

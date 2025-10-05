@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.23",
+    "@copilot-ld/libtype": "^0.1.24",
     "@copilot-ld/libutil": "^0.1.22"
   },
   "repository": {

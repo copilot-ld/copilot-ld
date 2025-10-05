@@ -31,7 +31,6 @@ services:
   alb:
     image: nginx:alpine
     container_name: alb.copilot-ld
-    env_file: ./config/.env
     ports:
       - "80:80"
       - "443:443"
@@ -52,7 +51,6 @@ services:
   minio:
     image: minio/minio:latest
     container_name: minio.copilot-ld
-    env_file: ./config/.env
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -70,15 +68,12 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: extensions/web
+      context: ./extensions/web
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/web:latest
     container_name: web.copilot-ld
-    env_file: ./config/.env
     networks:
       internal:
         aliases:
@@ -88,15 +83,12 @@ services:
 
   copilot:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: extensions/copilot
+      context: ./extensions/copilot
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/copilot:latest
     container_name: copilot.copilot-ld
-    env_file: ./config/.env
     networks:
       internal:
         aliases:
@@ -110,15 +102,12 @@ services:
 
   agent:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: services/agent
+      context: ./services/agent
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/agent:latest
     container_name: agent.copilot-ld
-    env_file: ./config/.env
     volumes:
       - ./data/policies:/app/data/policies
       - ./data/resources:/app/data/resources
@@ -134,15 +123,12 @@ services:
 
   llm:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: services/llm
+      context: ./services/llm
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/llm:latest
     container_name: llm.copilot-ld
-    env_file: ./config/.env
     networks:
       internal:
         aliases:
@@ -150,15 +136,12 @@ services:
 
   vector:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: services/vector
+      context: ./services/vector
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/vector:latest
     container_name: vector.copilot-ld
-    env_file: ./config/.env
     networks:
       internal:
         aliases:
@@ -166,15 +149,12 @@ services:
 
   memory:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: services/memory
+      context: ./services/memory
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/memory:latest
     container_name: memory.copilot-ld
-    env_file: ./config/.env
     volumes:
       - ./data/policies:/app/data/policies
       - ./data/resources:/app/data/resources
@@ -185,15 +165,12 @@ services:
 
   tool:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: services/tool
+      context: ./services/tool
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/tool:latest
     container_name: tool.copilot-ld
-    env_file: ./config/.env
     networks:
       internal:
         aliases:
@@ -205,15 +182,12 @@ services:
 
   hash:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-      args:
-        COMPONENT_PATH: tools/hash
+      context: ./tools/hash
+      dockerfile: ../../Dockerfile
       secrets:
         - github_token
     image: copilot-ld/hash:latest
     container_name: hash.copilot-ld
-    env_file: ./config/.env
     networks:
       internal:
         aliases:

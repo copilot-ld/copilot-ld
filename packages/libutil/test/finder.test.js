@@ -222,20 +222,6 @@ describe("Finder", () => {
       finder.findProjectRoot = originalFindProjectRoot;
     });
 
-    test("handles errors gracefully when project root not found", async () => {
-      const generatedPath = path.join(tempDir, "generated");
-
-      // Should not throw
-      await finder.createPackageSymlinks(generatedPath);
-
-      // Should log debug message about failure
-      assert.ok(
-        mockLogger.debug.mock.calls.some((call) =>
-          call.arguments[0].includes("Could not create package symlinks"),
-        ),
-      );
-    });
-
     test("creates symlinks for standard packages", async () => {
       // Create mock project structure
       const projectRoot = path.join(tempDir, "project");
@@ -248,6 +234,7 @@ describe("Finder", () => {
       finder.findProjectRoot = mock.fn(() => projectRoot);
 
       const generatedPath = path.join(tempDir, "generated");
+      fs.mkdirSync(generatedPath, { recursive: true });
 
       await finder.createPackageSymlinks(generatedPath);
 
@@ -262,7 +249,7 @@ describe("Finder", () => {
 
       assert.ok(
         mockLogger.debug.mock.calls.some((call) =>
-          call.arguments[0].includes("Created package symlinks"),
+          call.arguments[0].includes("Created symlink"),
         ),
       );
 

@@ -26,6 +26,7 @@ CLI
 config-yml
 codebase
 codegen
+compatibility
 config
 Config
 configs
@@ -44,6 +45,7 @@ destructuring
 dev
 DevOps
 DI
+distroless
 Docker
 dockerfile
 dockerfiles
@@ -61,6 +63,7 @@ ESM
 Fargate
 filesystem
 frontend
+forwarding
 GitHub
 grpc
 gRPC
@@ -110,6 +113,7 @@ LLMs
 localhost
 lookup
 lookups
+macOS
 MDN
 microdata
 Microdata
@@ -146,10 +150,12 @@ OpenAI
 OpenAI-compatible
 OpenID
 orchestrator
+PAX
 PGID
 pico
 PID
 plugins
+portability
 pre-compile
 pre-compiled
 Pre-compiled

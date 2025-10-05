@@ -1,5 +1,4 @@
 /* eslint-env node */
-import { execSync } from "node:child_process";
 
 /**
  * Downloader utility for retrieving and extracting bundle.tar.gz from remote storage
@@ -9,7 +8,7 @@ export class Downloader {
   #storageFactory;
   #finder;
   #logger;
-  #execFn;
+  #extractor;
   #process;
   #local;
   #remote;
@@ -20,26 +19,20 @@ export class Downloader {
    * @param {Function} storageFn - Storage factory function
    * @param {object} finder - Finder instance for symlink management
    * @param {object} logger - Logger instance
-   * @param {Function} execFn - Execution function for system commands
+   * @param {object} extractor - TarExtractor instance for archive extraction
    * @param {object} process - Process environment access (for testing)
    */
-  constructor(
-    storageFn,
-    finder,
-    logger,
-    execFn = execSync,
-    process = global.process,
-  ) {
+  constructor(storageFn, finder, logger, extractor, process = global.process) {
     if (!storageFn) throw new Error("storageFn is required");
     if (!finder) throw new Error("finder is required");
     if (!logger) throw new Error("logger is required");
-    if (!execFn) throw new Error("execFn is required");
+    if (!extractor) throw new Error("extractor is required");
     if (!process) throw new Error("process is required");
 
     this.#storageFactory = storageFn;
     this.#finder = finder;
     this.#logger = logger;
-    this.#execFn = execFn;
+    this.#extractor = extractor;
     this.#process = process;
     this.#local = null;
     this.#remote = null;
@@ -95,7 +88,7 @@ export class Downloader {
   }
 
   /**
-   * Extract bundle.tar.gz to local storage using system tar command
+   * Extract bundle.tar.gz to local storage using TarExtractor
    * @param {string} bundleKey - Bundle file key in local storage
    * @returns {Promise<void>}
    * @private
@@ -104,8 +97,6 @@ export class Downloader {
     const bundlePath = this.#local.path(bundleKey);
     const extractDir = this.#local.path();
 
-    this.#execFn(`tar -xzf "${bundlePath}" -C "${extractDir}"`, {
-      stdio: "pipe",
-    });
+    await this.#extractor.extract(bundlePath, extractDir);
   }
 }

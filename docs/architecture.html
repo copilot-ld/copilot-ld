@@ -714,9 +714,8 @@ npm run codegen:definition  # Service definitions only</code></pre>
 
       <p>
         A single root-level <code>Dockerfile</code> handles building for all
-        components (services, extensions, and tools) using a
-        <code>COMPONENT_PATH</code> build argument to specify which component to
-        build.
+        components (services, extensions, and tools) using component-specific
+        build contexts to automatically include only the required files.
       </p>
 
       <h4>Build Process</h4>
@@ -727,30 +726,28 @@ npm run codegen:definition  # Service definitions only</code></pre>
           runtime image for smaller production containers
         </li>
         <li>
-          <strong>Code generation</strong>: Uses
-          <code>@copilot-ld/libcodegen</code>
-          to generate required artifacts during build
+          <strong>Component context</strong>: Build context set to component
+          directory automatically includes only relevant files
         </li>
         <li>
-          <strong>Component copying</strong>: Copies only the specified
-          component path to minimize image size
+          <strong>Generated code download</strong>: Uses
+          <code>download</code> binary to retrieve generated code at startup
         </li>
         <li>
           <strong>Production optimization</strong>: Final stage includes only
-          production dependencies and generated code
+          production dependencies and component files
         </li>
       </ol>
 
       <h4>Usage Examples</h4>
 
-      <pre><code># Build Agent service
-docker build --build-arg COMPONENT_PATH=services/agent -t agent .
+      <pre><code># Build using Docker Compose (recommended)
+docker compose build agent
+docker compose build web
 
-# Build Web extension
-docker build --build-arg COMPONENT_PATH=extensions/web -t web .
-
-# Build custom tool
-docker build --build-arg COMPONENT_PATH=tools/hash -t hash .</code></pre>
+# Manual build with component context
+docker build -f ../../Dockerfile -t agent ./services/agent/
+docker build -f ../../Dockerfile -t web ./extensions/web/</code></pre>
 
       <h4>Benefits</h4>
 

@@ -134,26 +134,14 @@ export class Finder {
    * @returns {Promise<void>}
    */
   async createPackageSymlinks(generatedPath) {
-    try {
-      const projectRoot = this.findProjectRoot(this.#process.cwd());
-      const packageNames = ["libtype", "librpc"];
+    const projectRoot = this.findProjectRoot(this.#process.cwd());
+    const packageNames = ["libtype", "librpc"];
 
-      const promises = packageNames.map(async (packageName) => {
-        const targetPath = this.findGeneratedPath(projectRoot, packageName);
-        await this.createSymlink(generatedPath, targetPath);
-      });
+    const promises = packageNames.map(async (packageName) => {
+      const targetPath = this.findGeneratedPath(projectRoot, packageName);
+      await this.createSymlink(generatedPath, targetPath);
+    });
 
-      await Promise.all(promises);
-      this.#logger.debug("Created package symlinks", {
-        source: generatedPath,
-        packages: packageNames.length,
-      });
-    } catch (error) {
-      // Skip symlink creation if we can't resolve project root
-      // This can happen in test environments or when running from different directories
-      this.#logger.debug("Could not create package symlinks", {
-        error: error.message,
-      });
-    }
+    await Promise.all(promises);
   }
 }

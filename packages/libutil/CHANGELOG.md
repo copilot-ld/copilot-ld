@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-10-05
+
+- **NEW**: Added `TarExtractor` class for native Node.js TAR.gz extraction with
+  proper PAX header and macOS resource fork handling
+- **ENHANCED**: Replaced system `tar` dependency in `Downloader` with
+  `TarExtractor` for improved cross-platform compatibility
+- **NEW**: Added `execLine()` utility function enabling command execution after
+  process completion with signal forwarding
+- **ENHANCED**: Updated `download` binary to support command execution pattern
+  via `npx download && command`
+
 ## 2025-10-03
 
 - **NEW**: Added `downloadFactory()` for automatic generated code management in

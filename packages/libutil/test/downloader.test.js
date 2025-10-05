@@ -6,7 +6,7 @@ import { Downloader } from "../downloader.js";
 
 describe("Downloader", () => {
   let mockStorageFactory;
-  let mockExecFn;
+  let mockExtractor;
   let mockLogger;
   let mockFinder;
   let mockProcess;
@@ -30,7 +30,9 @@ describe("Downloader", () => {
       return type === "local" ? mockLocalStorage : mockRemoteStorage;
     };
 
-    mockExecFn = () => {};
+    mockExtractor = {
+      extract: mock.fn(async () => {}),
+    };
     mockLogger = { debug: () => {} };
     mockFinder = {
       createPackageSymlinks: mock.fn(async () => {}),
@@ -43,7 +45,13 @@ describe("Downloader", () => {
   test("constructor validates required dependencies", () => {
     assert.throws(
       () =>
-        new Downloader(null, mockFinder, mockLogger, mockExecFn, mockProcess),
+        new Downloader(
+          null,
+          mockFinder,
+          mockLogger,
+          mockExtractor,
+          mockProcess,
+        ),
       /storageFn is required/,
     );
 
@@ -53,7 +61,7 @@ describe("Downloader", () => {
           mockStorageFactory,
           null,
           mockLogger,
-          mockExecFn,
+          mockExtractor,
           mockProcess,
         ),
       /finder is required/,
@@ -65,7 +73,7 @@ describe("Downloader", () => {
           mockStorageFactory,
           mockFinder,
           null,
-          mockExecFn,
+          mockExtractor,
           mockProcess,
         ),
       /logger is required/,
@@ -80,7 +88,7 @@ describe("Downloader", () => {
           null,
           mockProcess,
         ),
-      /execFn is required/,
+      /extractor is required/,
     );
 
     assert.throws(
@@ -89,7 +97,7 @@ describe("Downloader", () => {
           mockStorageFactory,
           mockFinder,
           mockLogger,
-          mockExecFn,
+          mockExtractor,
           null,
         ),
       /process is required/,
@@ -104,15 +112,15 @@ describe("Downloader", () => {
     mockLocalStorage.delete = async (key) => {
       operations.push({ op: "delete", key });
     };
-    const execFn = (command) => {
-      operations.push({ op: "extract", command });
+    mockExtractor.extract = async (sourcePath, targetPath) => {
+      operations.push({ op: "extract", sourcePath, targetPath });
     };
 
     const download = new Downloader(
       mockStorageFactory,
       mockFinder,
       mockLogger,
-      execFn,
+      mockExtractor,
       mockProcess,
     );
     await download.initialize();
@@ -125,7 +133,8 @@ describe("Downloader", () => {
       hasData: true,
     });
     assert.strictEqual(operations[1].op, "extract");
-    assert.strictEqual(operations[1].command.includes("tar -xzf"), true);
+    assert.strictEqual(operations[1].sourcePath, "/local/path/bundle.tar.gz");
+    assert.strictEqual(operations[1].targetPath, "/local/path/.");
     assert.deepStrictEqual(operations[2], {
       op: "delete",
       key: "bundle.tar.gz",
@@ -139,7 +148,7 @@ describe("Downloader", () => {
       mockStorageFactory,
       mockFinder,
       mockLogger,
-      mockExecFn,
+      mockExtractor,
       mockProcess,
     );
     await download.initialize();
@@ -158,8 +167,8 @@ describe("Downloader", () => {
     const download = new Downloader(
       mockStorageFactory,
       mockFinder,
-      mockExecFn,
       mockLogger,
+      mockExtractor,
       mockProcess,
     );
     await download.initialize();
@@ -183,7 +192,7 @@ describe("Downloader", () => {
       mockStorageFactory,
       mockFinder,
       mockLogger,
-      mockExecFn,
+      mockExtractor,
       mockProcess,
     );
     await download.initialize();
@@ -201,7 +210,7 @@ describe("Downloader", () => {
       mockStorageFactory,
       mockFinder,
       mockLogger,
-      mockExecFn,
+      mockExtractor,
       mockProcess,
     );
     await download.initialize();

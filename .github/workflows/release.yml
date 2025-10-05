@@ -184,10 +184,10 @@ jobs:
           VERSION="${{ matrix.item.version }}"
           IMAGE="ghcr.io/${{ github.repository }}/$NAME"
           export DOCKER_BUILDKIT=1
+          cd "$TYPE/$NAME"
           echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
             --secret id=github_token,src=/dev/stdin \
-            --build-arg COMPONENT_PATH="$TYPE/$NAME" \
-            -f ./Dockerfile \
+            -f ../../Dockerfile \
             -t $IMAGE:$VERSION \
             -t $IMAGE:latest .
           docker push $IMAGE:$VERSION

@@ -1,11 +1,14 @@
 /* eslint-env node */
 import crypto from "crypto";
 import fs from "fs/promises";
+import path from "path";
+import { spawn } from "child_process";
 
 import { Tokenizer, ranks } from "./tokenizer.js";
 import { Logger } from "./logger.js";
 import { Finder } from "./finder.js";
-import { Download } from "./download.js";
+import { Downloader } from "./downloader.js";
+import { TarExtractor } from "./extractor.js";
 
 /**
  * Generates a deterministic hash from multiple input values
@@ -79,19 +82,57 @@ export function logFactory(namespace) {
  * Creates a Download instance configured for generated code management
  * This is the new API that services should use instead of ensureGeneratedCode
  * @param {Function} storageFactory - Storage factory function from libstorage
- * @returns {Download} Configured Download instance
+ * @returns {Downloader} Configured Downloader instance
  */
 export function downloadFactory(storageFactory) {
   if (!storageFactory) throw new Error("storageFactory is required");
 
   const logger = new Logger("generated");
   const finder = new Finder(fs, logger);
+  const extractor = new TarExtractor(fs, path);
 
-  return new Download(storageFactory, finder, logger);
+  return new Downloader(storageFactory, finder, logger, extractor);
+}
+
+/**
+ * Executes command line arguments as child process, similar to execv() in C
+ * @param {number} [shift] - Number of arguments to skip from process.argv before extracting command
+ * @returns {void} Function does not return - exits parent process
+ */
+export function execLine(shift = 0) {
+  const args = process.argv.slice(2 + shift);
+  if (args.length === 0) return;
+
+  // Look for '--' delimiter and use everything after it as the command
+  const index = args.indexOf("--");
+  const line = index !== -1 ? args.slice(index + 1) : args;
+
+  if (line.length === 0) return;
+
+  const [command, ...commandArgs] = line;
+  const child = spawn(command, commandArgs, {
+    stdio: "inherit",
+    env: process.env,
+  });
+
+  // Forward signals to child process
+  ["SIGTERM", "SIGINT", "SIGQUIT"].forEach((signal) => {
+    process.on(signal, () => child.kill(signal));
+  });
+
+  child.on("error", (error) => {
+    console.error("Error:", error);
+    process.exit(1);
+  });
+
+  child.on("exit", (code, signal) => {
+    process.exit(signal ? 1 : code || 0);
+  });
 }
 
 export { Logger } from "./logger.js";
 export { Finder } from "./finder.js";
-export { Upload } from "./upload.js";
-export { Download } from "./download.js";
+export { Uploader } from "./uploader.js";
+export { Downloader } from "./downloader.js";
+export { TarExtractor } from "./extractor.js";
 export { ProcessorBase } from "./processor.js";

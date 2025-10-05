@@ -3,7 +3,7 @@
 
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
-import { downloadFactory } from "@copilot-ld/libutil";
+import { downloadFactory, execLine } from "@copilot-ld/libutil";
 
 /**
  * Main execution function
@@ -13,6 +13,9 @@ async function main() {
   await ScriptConfig.create("download");
   const downloader = downloadFactory(storageFactory);
   await downloader.download();
+
+  // If additional arguments provided, execute them after download
+  execLine();
 }
 
 main().catch((error) => {

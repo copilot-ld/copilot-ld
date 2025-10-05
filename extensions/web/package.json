@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "node --env-file=../../config/.env --watch index.js",
-    "start": "node index.js",
+    "start": "npx download && node index.js",
     "test": "echo 'No tests specified for this extension'"
   },
   "dependencies": {

@@ -5,13 +5,13 @@
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
-  "main": "index.js",
+  "main": "server.js",
   "engines": {
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "node --env-file=../../config/.env --watch index.js",
-    "start": "npx download && node index.js",
+    "dev": "node --env-file=../../config/.env --watch server.js",
+    "start": "npx download && node server.js",
     "test": "echo 'No tests specified for this extension'"
   },
   "dependencies": {

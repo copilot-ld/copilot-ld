@@ -1,24 +1,18 @@
 /* eslint-env node */
 import { Hono } from "hono";
-import { serve } from "@hono/node-server";
 import { verifyAndParseRequest } from "@copilot-extensions/preview-sdk";
 
-import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
 import { createSecurityMiddleware } from "@copilot-ld/libweb";
 import { logFactory } from "@copilot-ld/libutil";
 
-import { clients } from "@copilot-ld/librpc";
-
-// Extract generated clients
-const { AgentClient } = clients;
-
 /**
  * Creates a GitHub Copilot compatible extension
- * @param {import("@copilot-ld/agent").AgentClient} client - Agent service gRPC client
+ * @param {import("@copilot-ld/librpc").clients.AgentClient} client - Agent service gRPC client
+ * @param {import("@copilot-ld/libconfig").ExtensionConfig} config - Extension configuration
  * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional logger factory
  * @returns {Hono} Configured Hono application
  */
-function createCopilotExtension(client, logFn = logFactory) {
+export function createCopilotExtension(client, config, logFn = logFactory) {
   const app = new Hono();
   const logger = logFn("extension.copilot");
 
@@ -112,20 +106,3 @@ function createCopilotExtension(client, logFn = logFactory) {
 
   return app;
 }
-
-const config = await ExtensionConfig.create("copilot");
-const client = new AgentClient(await ServiceConfig.create("agent"));
-const app = createCopilotExtension(client);
-
-// Start server
-serve(
-  {
-    fetch: app.fetch,
-    port: config.port,
-    hostname: config.host,
-  },
-  () => {
-    const logger = logFactory("extension.copilot");
-    logger.debug("Listening on", { host: config.host, port: config.port });
-  },
-);

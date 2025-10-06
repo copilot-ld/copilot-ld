@@ -48,9 +48,10 @@ services:
       - web
       - copilot
 
-  minio:
+  storage:
     image: minio/minio:latest
-    container_name: minio.copilot-ld
+    container_name: storage.copilot-ld
+    env_file: .env
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -59,7 +60,7 @@ services:
     networks:
       internal:
         aliases:
-          - minio.copilot-ld.local
+          - storage.copilot-ld.local
     command: server /data --console-address ":9001"
 
   #
@@ -74,12 +75,14 @@ services:
         - github_token
     image: copilot-ld/web:latest
     container_name: web.copilot-ld
+    env_file: .env
     networks:
       internal:
         aliases:
           - web.copilot-ld.local
     depends_on:
       - agent
+      - storage
 
   copilot:
     build:
@@ -89,12 +92,14 @@ services:
         - github_token
     image: copilot-ld/copilot:latest
     container_name: copilot.copilot-ld
+    env_file: .env
     networks:
       internal:
         aliases:
           - copilot.copilot-ld.local
     depends_on:
       - agent
+      - storage
 
   #
   # Core Services
@@ -108,6 +113,7 @@ services:
         - github_token
     image: copilot-ld/agent:latest
     container_name: agent.copilot-ld
+    env_file: .env
     volumes:
       - ./data/policies:/app/data/policies
       - ./data/resources:/app/data/resources
@@ -120,6 +126,7 @@ services:
       - llm
       - vector
       - tool
+      - storage
 
   llm:
     build:
@@ -129,10 +136,13 @@ services:
         - github_token
     image: copilot-ld/llm:latest
     container_name: llm.copilot-ld
+    env_file: .env
     networks:
       internal:
         aliases:
           - llm.copilot-ld.local
+    depends_on:
+      - storage
 
   vector:
     build:
@@ -142,10 +152,13 @@ services:
         - github_token
     image: copilot-ld/vector:latest
     container_name: vector.copilot-ld
+    env_file: .env
     networks:
       internal:
         aliases:
           - vector.copilot-ld.local
+    depends_on:
+      - storage
 
   memory:
     build:
@@ -155,6 +168,7 @@ services:
         - github_token
     image: copilot-ld/memory:latest
     container_name: memory.copilot-ld
+    env_file: .env
     volumes:
       - ./data/policies:/app/data/policies
       - ./data/resources:/app/data/resources
@@ -162,6 +176,8 @@ services:
       internal:
         aliases:
           - memory.copilot-ld.local
+    depends_on:
+      - storage
 
   tool:
     build:
@@ -171,10 +187,13 @@ services:
         - github_token
     image: copilot-ld/tool:latest
     container_name: tool.copilot-ld
+    env_file: .env
     networks:
       internal:
         aliases:
           - tool.copilot-ld.local
+    depends_on:
+      - storage
 
   #
   # Example Tool Services
@@ -188,7 +207,10 @@ services:
         - github_token
     image: copilot-ld/hash:latest
     container_name: hash.copilot-ld
+    env_file: .env
     networks:
       internal:
         aliases:
           - hash.copilot-ld.local
+    depends_on:
+      - storage

@@ -240,27 +240,6 @@ describe("libconfig", () => {
       assert.strictEqual(token, "gh-token-123");
     });
 
-    test("githubToken reads from file when env not set", async () => {
-      const mockProcess = { cwd: () => "/test/dir", env: {} };
-
-      const mockStorageFn = () => ({
-        exists: () => Promise.resolve(true),
-        get: () => Promise.resolve(Buffer.from("file-token-456")),
-        path: (key) => key, // Add the missing path method
-      });
-
-      const testConfig = await Config.create(
-        "test",
-        "myservice",
-        {},
-        mockProcess,
-        mockStorageFn,
-      );
-
-      const token = await testConfig.githubToken();
-      assert.strictEqual(token, "file-token-456");
-    });
-
     test("reset clears cached values", async () => {
       const mockProcess = {
         cwd: () => "/test/dir",

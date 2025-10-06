@@ -11,6 +11,48 @@ import { Downloader } from "./downloader.js";
 import { TarExtractor } from "./extractor.js";
 
 /**
+ * Updates or creates an environment variable in .env file
+ * @param {string} key - Environment variable name (e.g., "SERVICE_SECRET")
+ * @param {string} value - Environment variable value
+ * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ */
+export async function updateEnvFile(key, value, envPath = ".env") {
+  const fullPath = path.resolve(envPath);
+  let content = "";
+
+  try {
+    content = await fs.readFile(fullPath, "utf8");
+  } catch (error) {
+    // It's ok if the file doesn't exist
+    if (error.code !== "ENOENT") throw error;
+  }
+
+  const envLine = `${key}=${value}`;
+  const lines = content.split("\n");
+  let found = false;
+
+  // Look for existing key line (both active and commented)
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith(`${key}=`) || lines[i].startsWith(`# ${key}=`)) {
+      lines[i] = envLine;
+      found = true;
+      break;
+    }
+  }
+
+  // If not found, add it to the end
+  if (!found) {
+    if (content && !content.endsWith("\n")) {
+      lines.push("");
+    }
+    lines.push(envLine);
+  }
+
+  // Write back to file
+  await fs.writeFile(fullPath, lines.join("\n"));
+}
+
+/**
  * Generates a deterministic hash from multiple input values
  * @param {...string} values - Values to hash together
  * @returns {string} The first 16 characters of SHA256 hash

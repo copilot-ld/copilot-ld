@@ -1,7 +1,6 @@
 /* eslint-env node */
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
+import { updateEnvFile } from "@copilot-ld/libutil";
 
 /**
  * Generates a cryptographically secure random secret key
@@ -13,50 +12,9 @@ function generateSecret(length = 32) {
 }
 
 /**
- * Updates or creates SERVICE_SECRET in .env file
- * @param {string} secret - The secret to write
- * @param {string} envPath - Path to .env file
- */
-function updateEnvFile(secret, envPath) {
-  let envContent = "";
-
-  // Read existing .env file if it exists
-  if (fs.existsSync(envPath)) {
-    envContent = fs.readFileSync(envPath, "utf8");
-  }
-
-  const secretLine = `SERVICE_SECRET=${secret}`;
-  const lines = envContent.split("\n");
-  let found = false;
-
-  // Look for existing SERVICE_SECRET line
-  for (let i = 0; i < lines.length; i++) {
-    if (
-      lines[i].startsWith("SERVICE_SECRET=") ||
-      lines[i].startsWith("# SERVICE_SECRET=")
-    ) {
-      lines[i] = secretLine;
-      found = true;
-      break;
-    }
-  }
-
-  // If not found, add it to the end
-  if (!found) {
-    if (envContent && !envContent.endsWith("\n")) {
-      lines.push("");
-    }
-    lines.push(secretLine);
-  }
-
-  // Write back to file
-  fs.writeFileSync(envPath, lines.join("\n"));
-}
-
-/**
  * Main function to generate and update secret in .env file
  */
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const outputOnly = args.includes("--stdout");
 
@@ -68,11 +26,9 @@ function main() {
     return;
   }
 
-  const envPath = path.join(process.cwd(), "config/.env");
-
   try {
-    updateEnvFile(secret, envPath);
-    console.log("config/.env file updated with new authentication secret");
+    await updateEnvFile("SERVICE_SECRET", secret);
+    console.log("SERVICE_SECRET was updated in .env");
   } catch (error) {
     console.error("Error:", error.message);
     process.exit(1);

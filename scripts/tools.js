@@ -11,19 +11,23 @@ import { access } from "node:fs/promises";
 const { Root } = pkg;
 
 /**
- * Load tool endpoints configuration from tools.yml
+ * Load tool endpoints configuration from config.json
  * @returns {Promise<object>} Tool endpoints configuration
  */
-async function loadToolsConfig() {
-  const configStorage = storageFactory("config");
+async function loadToolEndpoints() {
+  const storage = storageFactory("config", "local");
+  const data = await storage.get("config.json");
+  return data?.service?.tool?.endpoints || {};
+}
 
-  try {
-    const toolsContent = await configStorage.get("tools.yml");
-    return yaml.load(toolsContent.toString()) || {};
-  } catch {
-    // tools.yml is optional, so we just use an empty object if not found
-    return {};
-  }
+/**
+ * Load tool descriptors configuration from tools.yml
+ * @returns {Promise<object>} Tool descriptors configuration
+ */
+async function loadToolDescriptors() {
+  const storage = storageFactory("config", "local");
+  const data = await storage.get("tools.yml");
+  return yaml.load(data.toString()) || {};
 }
 
 /**
@@ -126,9 +130,10 @@ async function loadMethodSchema(protoPath, serviceName, methodName) {
 /**
  * Generate tool schemas from endpoint configurations
  * @param {object} endpoints - Tool endpoint configurations
+ * @param {object} logger - Logger instance
  * @returns {Promise<Array<object>>} Array of tool schemas
  */
-async function generateToolSchemas(endpoints) {
+async function generateToolSchemas(endpoints, logger) {
   const tools = [];
 
   for (const [toolName, endpoint] of Object.entries(endpoints)) {
@@ -155,29 +160,23 @@ async function generateToolSchemas(endpoints) {
     // Try to load schema dynamically from protobuf
     const schema = await loadMethodSchema(protoPath, serviceName, methodName);
 
-    // Ensure schema.required exists (defensive) and if empty but properties has single key, mark it required
-    if (schema && schema.properties && !Array.isArray(schema.required)) {
-      schema.required = [];
-    }
-    if (schema && schema.properties && schema.required.length === 0) {
-      for (const key of Object.keys(schema.properties)) {
-        schema.required.push(key);
-      }
+    // Mark all properties as required if none specified
+    if (schema.required.length === 0) {
+      schema.required = Object.keys(schema.properties);
     }
 
     const tool = {
       type: "function",
       function: {
         name: toolName,
-        description: endpoint.description || `Execute ${toolName} tool`,
+        description: `Execute ${toolName} tool`,
         parameters: schema,
       },
     };
 
-    tools.push({
-      endpoint,
-      tool,
-    });
+    logger.debug("Generated tool schema", { name: toolName });
+
+    tools.push(tool);
   }
 
   return tools;
@@ -186,40 +185,23 @@ async function generateToolSchemas(endpoints) {
 /**
  * Store tool object as a resource
  * @param {ResourceIndex} resourceIndex - Resource index instance
- * @param {object} object - Tool object
- * @param {object} endpoint - Endpoint configuration
+ * @param {object} schema - Tool schema object
+ * @param {object} descriptor - Descriptor configuration
  * @param {object} logger - Logger instance
  * @returns {Promise<void>}
  */
-async function storeToolResource(resourceIndex, object, endpoint, logger) {
-  // Define the resource identifier
-  const id = resource.Identifier.fromObject({
-    name: object.function.name,
-    type: "common.ToolFunction",
-  });
-
-  // Define the descriptor
-  const descriptor = resource.Descriptor.fromObject({
-    purpose: endpoint.purpose,
-    instructions: endpoint.instructions,
-    applicability: endpoint.applicability,
-    evaluation: endpoint.evaluation,
-  });
-
-  // Create the resource
+async function storeToolResource(resourceIndex, schema, descriptor, logger) {
   const tool = common.ToolFunction.fromObject({
-    id,
-    descriptor,
-    parameters: object.function.parameters,
+    id: resource.Identifier.fromObject({
+      name: schema.function.name,
+      type: "common.ToolFunction",
+    }),
+    descriptor: resource.Descriptor.fromObject(descriptor),
+    parameters: schema.function.parameters,
   });
 
-  logger.debug("Putting tool resource", {
-    id: tool.id,
-    method: endpoint.method,
-  });
-
-  // Store the resource
   await resourceIndex.put(tool);
+  logger.debug("Saved tool resource", { id: tool.id });
 }
 
 /**
@@ -227,41 +209,35 @@ async function storeToolResource(resourceIndex, object, endpoint, logger) {
  * @returns {Promise<void>}
  */
 async function main() {
-  // No argument parsing required; all endpoints are always processed
-  const resourceStorage = storageFactory("resources");
+  const resourceIndex = new ResourceIndex(
+    storageFactory("resources", "local"),
+    policyFactory(),
+  );
   const logger = logFactory("script.tools");
-  const policy = policyFactory();
 
-  const resourceIndex = new ResourceIndex(resourceStorage, policy);
-
-  logger.debug("Generating tool schemas");
-
-  const endpoints = await loadToolsConfig();
+  const [endpoints, descriptors] = await Promise.all([
+    loadToolEndpoints(),
+    loadToolDescriptors(),
+  ]);
 
   if (Object.keys(endpoints).length === 0) {
     logger.debug("No tool endpoints configured");
     return;
   }
 
-  // Generate tool schemas
-  const tools = await generateToolSchemas(endpoints);
+  const tools = await generateToolSchemas(endpoints, logger);
 
-  logger.debug("Generated tool schemas", {
-    count: tools.length,
-    tools: tools.map((t) => t.tool.name),
-  });
-
-  // Store each tool schema as a resource
-  for (const { tool, endpoint } of tools) {
-    await storeToolResource(resourceIndex, tool, endpoint, logger);
+  // Store each tool schema as a resource, combining endpoint and descriptor data
+  for (const tool of tools) {
+    const name = tool.function.name;
+    if (!descriptors[name]) {
+      throw new Error("Missing descriptor for tool", { name });
+    }
+    const descriptor = descriptors[name];
+    await storeToolResource(resourceIndex, tool, descriptor, logger);
   }
 
-  logger.debug("Tool schemas stored successfully", {
-    count: tools.length,
-  });
+  logger.debug("Tool resources created successfully", { count: tools.length });
 }
 
-main().catch((error) => {
-  console.error("Error generating tool schemas:", error);
-  process.exit(1);
-});
+main();

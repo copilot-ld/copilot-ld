@@ -1,24 +1,18 @@
-name: Demo Deployment of Data
+name: Demo Data Generation
 
 on:
   workflow_dispatch:
-    inputs:
-      environment_name:
-        description: "Environment name prefix for resources"
-        required: true
-        default: "demo"
-        type: string
-      aws_region:
-        description: "AWS region for deployment"
-        required: true
-        default: "us-east-1"
-        type: string
+  push:
+    branches: [main]
+    paths:
+      - "examples/**"
+      - "scripts/**"
+      - "proto/**"
 
 jobs:
-  process-data:
+  generate-data:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
 
     steps:
@@ -28,54 +22,17 @@ jobs:
       - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ inputs.aws_region }}
-
-      - name: Deploy data infrastructure
-        run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
-          aws cloudformation deploy \
-            --template-file infrastructure/cloudformation/data.yml \
-            --stack-name $STACK_NAME \
-            --parameter-overrides \
-              EnvironmentName=${{ inputs.environment_name }} \
-            --capabilities CAPABILITY_IAM \
-            --region ${{ inputs.aws_region }}
-
-      - name: Get bucket name
-        id: bucket
-        run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
-          S3_BUCKET_NAME=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
-            --output text \
-            --region ${{ inputs.aws_region }})
-          S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
-            --output text \
-            --region ${{ inputs.aws_region }})
-
-          echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
-          echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
-
-      - name: Process knowledge data
+      - name: Generate demo data and create bundle
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
-          S3_BUCKET_NAME: ${{ steps.bucket.outputs.s3_bucket_name }}
-          S3_BUCKET_ROLE_ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}
-
+          DEBUG: "*"
         run: |
           set -e
 
           # Prepare configuration and data directories
-          cp ./config/config{.example,}.yml
+          cp ./config/config{.example,}.json
           cp ./config/assistants{.example,}.yml
+          cp ./config/tools{.example,}.yml
           mkdir -p ./data/{memories,policies,resources,vectors}
 
           # Copy the example knowledge base
@@ -85,26 +42,28 @@ jobs:
           cp -r ./examples/tools/* tools/
           npm run codegen
 
-          # Process resources, tools, and vectors
-          DEBUG=* node ./scripts/resources.js
-          DEBUG=* node ./scripts/tools.js
-          DEBUG=* node ./scripts/vectors.js
+          # Process resources, tools, and vectors (without upload)
+          npm run process:resources
+          npm run process:tools
+          npm run process:vectors
 
-          # Upload all data using the upload utility
-          npx --workspace=@copilot-ld/libutil upload
+          # Create bundle using the uploader's file list and tar
+          npx --workspace=@copilot-ld/libutil upload --stdout | tar -czf bundle.tar.gz -T -
 
-      - name: Display deployment summary
+      - name: Upload data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-data
+          path: bundle.tar.gz
+          retention-days: 30
+
+      - name: Display generation summary
         run: |
-          echo "✅ Copilot-LD Demo: Data Infrastructure & Knowledge Base Deployed (Step 3/5)"
+          echo "✅ Copilot-LD Demo: Data Generated and Archived"
           echo ""
-          echo "Stack: ${{ steps.bucket.outputs.stack_name }}"
-          echo "Region: ${{ inputs.aws_region }}"
+          echo "Demo Data Artifact: demo-data"
+          echo "Content: Configuration, Knowledge Base, Tools, and Vector Indices"
           echo ""
-          echo "Data Resources:"
-          echo "  S3 Bucket: ${{ steps.bucket.outputs.s3_bucket_name }}"
-          echo "  Bucket Role ARN: ${{ steps.bucket.outputs.s3_bucket_role_arn }}"
-          echo ""
-          echo "Knowledge Base: Example data uploaded and indexed"
-          echo ""
-          echo "Next Step: Deploy application services"
-          echo "Workflow: demo-services.yml"
+          echo "Next Steps:"
+          echo "  1. Deploy storage: demo-storage.yml"
+          echo "  2. Upload data: demo-upload.yml"

@@ -1,0 +1,98 @@
+name: Demo Data Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        description: "Environment name prefix for resources"
+        required: true
+        default: "demo"
+        type: string
+      aws_region:
+        description: "AWS region for deployment"
+        required: true
+        default: "us-east-1"
+        type: string
+      artifact_run_id:
+        description:
+          "GitHub Actions run ID containing the demo-data artifact (leave blank
+          for latest)"
+        required: false
+        type: string
+
+jobs:
+  upload-data:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Get storage stack outputs
+        id: storage
+        run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
+          S3_BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+            --output text \
+            --region ${{ inputs.aws_region }})
+          S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
+
+      - name: Download demo data artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: demo-data
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.artifact_run_id || '' }}
+
+      - name: Extract and upload demo data
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
+          S3_BUCKET_NAME: ${{ steps.storage.outputs.s3_bucket_name }}
+          S3_BUCKET_ROLE_ARN: ${{ steps.storage.outputs.s3_bucket_role_arn }}
+        run: |
+          set -e
+
+          # Extract the demo data bundle
+          tar -xzf bundle.tar.gz
+
+          # Upload all data using the upload utility
+          npx --workspace=@copilot-ld/libutil upload
+
+      - name: Display upload summary
+        run: |
+          echo "✅ Copilot-LD Demo: Data Uploaded to Storage"
+          echo ""
+          echo "Storage Stack: ${{ steps.storage.outputs.stack_name }}"
+          echo "Region: ${{ inputs.aws_region }}"
+          echo ""
+          echo "Upload Target:"
+          echo "  S3 Bucket: ${{ steps.storage.outputs.s3_bucket_name }}"
+          echo "  Bucket Role ARN: ${{ steps.storage.outputs.s3_bucket_role_arn }}"
+          echo ""
+          echo "Knowledge Base: Demo data uploaded and indexed"
+          echo ""
+          echo "Next Step: Deploy application services"
+          echo "Workflow: demo-services.yml"

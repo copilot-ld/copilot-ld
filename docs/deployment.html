@@ -357,8 +357,12 @@ aws iam attach-role-policy \
           for GitHub tokens and service authentication
         </li>
         <li>
-          <strong>demo-data.yml</strong>: Creates S3 data storage infrastructure
-          and processes knowledge base
+          <strong>demo-data.yml</strong>: Generates demo data artifacts
+          (configuration, knowledge base, tools) for deployment
+        </li>
+        <li>
+          <strong>demo-storage.yml</strong>: Creates S3 storage infrastructure
+          and IAM roles for data access
         </li>
         <li>
           <strong>demo-services.yml</strong>: Deploys the complete ECS service
@@ -410,9 +414,19 @@ aws iam attach-role-policy \
           resources for secure credential storage
         </li>
         <li>
-          <strong>Data Storage</strong>: Deploy
-          <code>demo-data.yml</code> workflow to create S3 bucket and IAM roles
-          for data access
+          <strong>Data Generation</strong>: Run
+          <code>demo-data.yml</code> workflow to generate demo data artifacts
+          including processed knowledge base, configuration, and tools
+        </li>
+        <li>
+          <strong>Storage Infrastructure</strong>: Deploy
+          <code>demo-storage.yml</code> workflow to create S3 bucket and IAM
+          roles for data access
+        </li>
+        <li>
+          <strong>Data Upload</strong>: Deploy
+          <code>demo-upload.yml</code> workflow to upload generated demo data to
+          the storage infrastructure
         </li>
         <li>
           <strong>Services</strong>: Deploy

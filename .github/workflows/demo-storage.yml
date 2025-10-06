@@ -1,0 +1,76 @@
+name: Demo Storage Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        description: "Environment name prefix for resources"
+        required: true
+        default: "demo"
+        type: string
+      aws_region:
+        description: "AWS region for deployment"
+        required: true
+        default: "us-east-1"
+        type: string
+
+jobs:
+  deploy-storage:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Deploy storage infrastructure
+        run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
+          aws cloudformation deploy \
+            --template-file infrastructure/cloudformation/storage.yml \
+            --stack-name $STACK_NAME \
+            --parameter-overrides \
+              EnvironmentName=${{ inputs.environment_name }} \
+            --capabilities CAPABILITY_IAM \
+            --region ${{ inputs.aws_region }}
+
+      - name: Get stack outputs
+        id: outputs
+        run: |
+          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
+          S3_BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+            --output text \
+            --region ${{ inputs.aws_region }})
+          S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
+            --output text \
+            --region ${{ inputs.aws_region }})
+
+          echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
+
+      - name: Display deployment summary
+        run: |
+          echo "✅ Copilot-LD Demo: Storage Infrastructure Deployed"
+          echo ""
+          echo "Stack: ${{ steps.outputs.outputs.stack_name }}"
+          echo "Region: ${{ inputs.aws_region }}"
+          echo ""
+          echo "Storage Resources:"
+          echo "  S3 Bucket: ${{ steps.outputs.outputs.s3_bucket_name }}"
+          echo "  Bucket Role ARN: ${{ steps.outputs.outputs.s3_bucket_role_arn }}"
+          echo ""
+          echo "Next Step: Upload demo data"
+          echo "Workflow: demo-upload.yml"

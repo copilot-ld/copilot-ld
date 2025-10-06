@@ -30,6 +30,7 @@ Set up environment variables and service configuration:
 cp .env{.example,}
 cp config/config{.example,}.json
 cp config/assistants{.example,}.yml
+cp config/tools{.example,}.yml
 ```
 
 For detailed configuration options, see the

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-06
+
+- Added `npm run process:resources`, `npm run process:tools`, and
+  `npm run process:vectors` scripts for simplified workflow
+- Added `npm run upload` and `npm run download` scripts for data management
+- Updated documentation to use new npm scripts instead of direct node script
+  calls
+
 ## 2025-10-02
 
 - Updated `tools.js` to read tool configurations from dedicated

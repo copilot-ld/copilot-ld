@@ -70,21 +70,21 @@ Create the necessary data directories with empty indices:
 mkdir -p data/{memories,policies,resources,vectors}
 ```
 
-### 6. Download knowledge data
+### 6. Prepare knowledge base
+
+A knowledge base with HTML microdata must be available at `./data/knowledge/`.
+See the [Processing Guide](docs/processing.html) for complete knowledge base
+setup instructions including HTML structure examples and processing workflows.
+
+### 7. Process resources and create vector embeddings
 
 ```sh
-node scripts/download.js
+npm run process:resources
+npm run process:tools
+npm run process:vectors
 ```
 
-### 8. Process resources and create vector embeddings
-
-```sh
-node scripts/resources.js
-node scripts/tools.js
-node scripts/vectors.js
-```
-
-### 9. Start services
+### 8. Start services
 
 #### Option A: Local Development Environment
 

@@ -181,12 +181,13 @@ cp -r examples/knowledge data/</code></pre>
         attributes and extracts them as individual knowledge items:
       </p>
 
-      <pre><code>node scripts/resources.js</code></pre>
+      <pre><code>npm run process:resources</code></pre>
 
       <h5>Custom CSS Selectors</h5>
       <p>
         By default, the processor looks for <code>[itemscope]</code> elements.
-        You can specify custom selectors:
+        For advanced usage, you can run the underlying script directly with
+        custom selectors:
       </p>
 
       <pre><code># Process only article elements
@@ -240,7 +241,7 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
       </p>
 
       <h4>Generate Tool Schemas</h4>
-      <pre><code>node scripts/tools.js</code></pre>
+      <pre><code>npm run process:tools</code></pre>
 
       <h4>Protocol Buffer Tool Definitions</h4>
       <p>
@@ -358,7 +359,7 @@ message HashResponse {
       </p>
 
       <h4>Generate Vector Embeddings</h4>
-      <pre><code>node scripts/vectors.js</code></pre>
+      <pre><code>npm run process:vectors</code></pre>
 
       <h4>Embedding Strategy</h4>
       <p>The vector processor creates two types of embeddings:</p>
@@ -423,7 +424,7 @@ message HashResponse {
         storage:
       </p>
 
-      <pre><code>npx @copilot-ld/libutil upload</code></pre>
+      <pre><code>npm run upload</code></pre>
 
       <h5>Upload Process</h5>
       <p>The upload utility synchronizes these storage areas:</p>
@@ -455,7 +456,7 @@ message HashResponse {
       <h4>Download Processed Data</h4>
       <p>Download pre-processed data bundle from remote storage:</p>
 
-      <pre><code>npx @copilot-ld/libutil download</code></pre>
+      <pre><code>npm run download</code></pre>
 
       <h5>Download Process</h5>
       <p>
@@ -490,16 +491,16 @@ message HashResponse {
 
       <h5>Development Environment</h5>
       <pre><code># Process knowledge base locally
-node scripts/resources.js
-node scripts/tools.js  
-node scripts/vectors.js
+npm run process:resources
+npm run process:tools
+npm run process:vectors
 
 # Upload processed data to S3
-npx @copilot-ld/libutil upload</code></pre>
+npm run upload</code></pre>
 
       <h5>Production Environment</h5>
       <pre><code># Download pre-processed data bundle
-npx @copilot-ld/libutil download
+npm run download
 
 # Or synchronize from S3 if using upload/download pattern
 # Deploy with processed data available</code></pre>

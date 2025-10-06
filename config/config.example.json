@@ -1,10 +1,4 @@
 {
-  "tool": {
-    "download": {
-      "owner": "some-github-owner",
-      "repo": "some-github-repo"
-    }
-  },
   "service": {
     "agent": {
       "assistant": "cld:common.Assistant.software-dev-expert",
@@ -22,6 +16,18 @@
     },
     "llm": {
       "model": "gpt-4o"
+    },
+    "tool": {
+      "endpoints": {
+        "sha256_hash": {
+          "method": "hash.Hash.Sha256",
+          "request": "hash.HashRequest"
+        },
+        "md5_hash": {
+          "method": "hash.Hash.Md5",
+          "request": "hash.HashRequest"
+        }
+      }
     }
   }
 }

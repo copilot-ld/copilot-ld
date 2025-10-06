@@ -406,20 +406,14 @@ sequenceDiagram
       <pre class="mermaid">
 sequenceDiagram
     participant Dev as Developer
-    participant Download as scripts/download.js
-    participant GitHub as GitHub API
-    participant Chunk as scripts/chunk.js
-    participant Index as scripts/index.js
+    participant Resources as npm run process:resources
+    participant Vectors as npm run process:vectors
     participant LLM as LLM API
     participant Storage as Local Storage
 
-    Dev->>Download: npm run download
-    Download->>GitHub: Fetch latest release artifacts
-    GitHub-->>Download: Release assets (.tar.gz)
-    Download->>Storage: Extract to data/knowledge/
-    Note right of Download: HTML files with microdata
+    Note over Dev,Storage: HTML knowledge base with microdata available at data/knowledge/
 
-    Dev->>Resources: node scripts/resources.js
+    Dev->>Resources: npm run process:resources
     Resources->>Storage: Read HTML files from data/knowledge/
     Storage-->>Resources: HTML content with microdata
     loop For each HTML file
@@ -430,35 +424,33 @@ sequenceDiagram
     end
     Resources->>Storage: Persist resource index
 
-    Dev->>Index: node scripts/index.js
-    Index->>Storage: Load resource index
-    Storage-->>Index: All resource metadata
+    Dev->>Vectors: npm run process:vectors
+    Vectors->>Storage: Load resource index
+    Storage-->>Vectors: All resource metadata
 
     loop Process resources in batches (content & descriptor)
-        Index->>Storage: Load resource content
-        Storage-->>Index: Resource content/descriptors
-        Index->>LLM: Create embeddings for resource batch
-        LLM-->>Index: Resource embeddings
-        Index->>Storage: Add to dual vector indexes
+        Vectors->>Storage: Load resource content
+        Storage-->>Vectors: Resource content/descriptors
+        Vectors->>LLM: Create embeddings for resource batch
+        LLM-->>Vectors: Resource embeddings
+        Vectors->>Storage: Add to dual vector indexes
     end
 
-    Index->>Storage: Persist content & descriptor vector indexes
+    Vectors->>Storage: Persist content & descriptor vector indexes
     Note right of Storage: Ready for runtime vector search with dual indexes
       </pre>
 
       <h4>Offline Processing Workflow</h4>
 
-      <h5>1. Knowledge Download (<code>scripts/download.js</code>)</h5>
+      <p>
+        The offline processing workflow requires a knowledge base with HTML
+        microdata to be available at <code>data/knowledge/</code>. See the
+        <a href="processing.html">Processing Guide</a> for complete knowledge
+        base setup instructions including HTML structure examples and microdata
+        patterns.
+      </p>
 
-      <ul>
-        <li>Downloads latest release artifacts from GitHub repository</li>
-        <li>
-          Extracts compressed archives to <code>data/knowledge/</code> directory
-        </li>
-        <li>Provides HTML files with structured microdata for processing</li>
-      </ul>
-
-      <h5>2. Resource Processing (<code>scripts/resources.js</code>)</h5>
+      <h5>1. Resource Processing (<code>npm run process:resources</code>)</h5>
 
       <ul>
         <li>
@@ -475,7 +467,7 @@ sequenceDiagram
         <li>Creates searchable resource index with type-based organization</li>
       </ul>
 
-      <h5>3. Vector Indexing (<code>scripts/index.js</code>)</h5>
+      <h5>2. Vector Processing (<code>npm run process:vectors</code>)</h5>
 
       <ul>
         <li>
@@ -532,7 +524,10 @@ sequenceDiagram
       <h5>Data Flow</h5>
 
       <ol>
-        <li><strong>Raw Knowledge</strong> → HTML files with microdata</li>
+        <li>
+          <strong>Raw Knowledge</strong> → HTML files with microdata (provided
+          in <code>data/knowledge/</code>)
+        </li>
         <li>
           <strong>Structured Resources</strong> → Individual JSON files with
           metadata and URI identifiers

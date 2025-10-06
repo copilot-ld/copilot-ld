@@ -10,21 +10,28 @@ The Tool service supports two approaches for defining tools:
 ### 1. Mapping to Existing Services (Recommended)
 
 Tools can be mapped to existing gRPC service methods through configuration in
-`config.yml`. This approach requires no additional proto files and leverages
+`config/config.json`. This approach requires no additional proto files and leverages
 existing service implementations.
 
-**Example**: A vector search tool can map to the existing `vector.QueryItems`
-method:
+**Example**: A SHA-256 hash tool can map to the existing `hash.Hash.Sha256`
+method in `config/config.json`:
 
-```yaml
-service:
-  tool:
-    endpoints:
-      vector_search:
-        call: "vector.Vector.QueryItems"
-        name: "search_similar_content"
-        description: "Search for similar content using vector embeddings"
+```json
+{
+  "service": {
+    "tool": {
+      "endpoints": {
+        "sha256_hash": {
+          "method": "hash.Hash.Sha256",
+          "request": "hash.HashRequest"
+        }
+      }
+    }
+  }
+}
 ```
+
+Tool descriptions and documentation are managed separately in `config/tools.yml`.
 
 ### 2. Custom Tool Services (Optional)
 
@@ -54,36 +61,22 @@ message HashResponse {
 }
 ```
 
-## Type Generation
-
-Proto files in this directory are automatically included in the type generation
-process when running:
-
-```bash
-npm run codegen:type
-```
-
-This generates TypeScript definitions in `@copilot-ld/libtype` for use
-throughout the platform.
-
 ## Tool Registration
 
 Tools are registered and made available to LLMs through:
 
-1. Configuration mapping in `config.yml`
-2. Schema generation via `scripts/tools.js`
-3. Resource storage in the ResourceIndex
+1. Endpoint mapping configuration in `config/config.json`
+2. Tool descriptions and documentation in `config/tools.yml`
+3. Schema and resource generation (see [Processing Guide](../docs/processing.html))
 4. Dynamic discovery through the Tool service
+
+For complete details on tool processing workflows, including schema generation and resource storage, see the [Processing Guide](../docs/processing.html).
 
 ## Getting Started
 
-1. **For existing service mapping**: Add configuration to `config.yml` under
-   `service.tool.endpoints`
-2. **For custom tools**: Create a `.proto` file in this directory and implement
-   the corresponding service
-3. Run `npm run codegen` to generate types and service bases
-4. Run `scripts/tools.js` to generate and store tool schemas
-5. Configure the tool mapping in `config.yml`
+1. **For existing service mapping**: Add endpoint configuration to `config/config.json` under `service.tool.endpoints`
+2. **For custom tools**: Create a `.proto` file in this directory and implement the corresponding service
+3. Add tool descriptions to `config/tools.yml`
+4. Follow the tool processing workflow in the [Processing Guide](../docs/processing.html)
 
-Both approaches support the same proxy architecture and tool execution patterns
-through the Tool service.
+Both approaches support the same proxy architecture and tool execution patterns through the Tool service.

@@ -1,43 +1,5 @@
-# SEMANTIC SEARCH WORKFLOW: Always use create_embeddings → vector_search together
-create_embeddings:
-  method: "llm.Llm.CreateEmbeddings"
-  request: "llm.EmbeddingsRequest"
-  purpose: |
-    STEP 1 of semantic search: Convert text into vector embeddings.
-    ALWAYS follow with vector_search.
-  applicability: |
-    Use this tool ONLY when you need to search for similar content. This
-    is step 1 of a 2-step process that MUST be followed by vector_search.
-  instructions: |
-    Input: Array of text strings in 'chunks' field (e.g., chunks:
-    ['search term']). Output: Vector embeddings. IMMEDIATELY follow this
-    call with vector_search using the returned embeddings.
-  evaluation: |
-    Success: Returns embeddings array. CRITICAL: You MUST call
-    vector_search next with these embeddings to complete the search.
-
-vector_search:
-  method: "vector.Vector.QueryItems"
-  request: "vector.QueryItemsRequest"
-  purpose: |
-    STEP 2 of semantic search: Find similar content using embeddings from
-    create_embeddings.
-  applicability: |
-    Use this tool IMMEDIATELY after create_embeddings. This completes the
-    semantic search workflow.
-  instructions: |
-    Input: Vector embeddings from create_embeddings call in 'vector'
-    field, plus optional filter. Output: List of similar content with
-    relevance scores.
-  evaluation: |
-    Returns identifiers of similar content. Scores above 0.5
-    indicate high relevance. If no results, the search term may not exist
-    in the knowledge base.
-
 # EXAMPLE TOOLS: Use only when specifically requested by user
 sha256_hash:
-  method: "hash.Hash.Sha256"
-  request: "hash.HashRequest"
   purpose: |
     Create deterministic SHA-256 hash of input text.
   applicability: |
@@ -50,8 +12,6 @@ sha256_hash:
     Returns exactly 64-character hexadecimal string.
 
 md5_hash:
-  method: "hash.Hash.Md5"
-  request: "hash.HashRequest"
   purpose: |
     Create MD5 hash of input text.
   applicability: |

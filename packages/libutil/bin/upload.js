@@ -31,8 +31,8 @@ async function main() {
   await uploader.initialize(outputOnly);
 
   if (outputOnly) {
-    // List files to stdout for use with tar
-    await uploader.listFiles();
+    // Output files to stdout for use with tar
+    await uploader.output();
   } else {
     console.log("Uploading data to remote storage");
     await uploader.upload();

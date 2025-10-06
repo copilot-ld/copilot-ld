@@ -58,6 +58,16 @@ export class Uploader {
   }
 
   /**
+   * Output all files that would be uploaded, printing each file path to stdout
+   * @returns {Promise<void>}
+   */
+  async output() {
+    for (const prefix of this.#prefixes) {
+      await this.#outputPrefix(prefix);
+    }
+  }
+
+  /**
    * Upload all items from local storage to S3
    * @returns {Promise<void>}
    */
@@ -68,39 +78,35 @@ export class Uploader {
   }
 
   /**
-   * List all files that would be uploaded, printing each file path to stdout
-   * @returns {Promise<void>}
+   * Get and filter keys from a storage area, skipping hidden files for security
+   * @param {string} prefix - Storage area prefix
+   * @returns {Promise<string[]>} Filtered keys
+   * @private
    */
-  async listFiles() {
-    for (const prefix of this.#prefixes) {
-      await this.#listFilesForPrefix(prefix);
-    }
+  async #getKeys(prefix) {
+    const local = this.#local[prefix];
+    const keys = await local.list();
+    // Filter out hidden files (starting with .) for security reasons
+    return keys.filter((key) => !key.startsWith("."));
   }
 
   /**
-   * List all files from a storage area that would be uploaded, skipping hidden files
+   * Output all files from a storage area that would be uploaded, skipping hidden files
    * @param {string} prefix - Storage area prefix
    * @returns {Promise<void>}
    * @private
    */
-  async #listFilesForPrefix(prefix) {
+  async #outputPrefix(prefix) {
     const local = this.#local[prefix];
-    const keys = await local.list();
-    const filteredKeys = keys.filter((key) => !key.startsWith("."));
+    const keys = await this.#getKeys(prefix);
 
-    for (const key of filteredKeys) {
+    for (const key of keys) {
       // Get absolute path from storage and make it relative to the initial working directory
       const absolutePath = local.path(key);
       const initialCwd = process.env.INIT_CWD || process.cwd();
       const relativePath = path.relative(initialCwd, absolutePath);
       console.log(relativePath);
     }
-
-    this.#logger.debug("Listed files for prefix", {
-      prefix,
-      listed: filteredKeys.length,
-      filtered: keys.length - filteredKeys.length,
-    });
   }
 
   /**
@@ -112,19 +118,16 @@ export class Uploader {
   async #uploadPrefix(prefix) {
     const local = this.#local[prefix];
     const remote = this.#remote[prefix];
+    const keys = await this.#getKeys(prefix);
 
-    const keys = await local.list();
-    const filteredKeys = keys.filter((key) => !key.startsWith("."));
-
-    for (const key of filteredKeys) {
+    for (const key of keys) {
       const data = await local.get(key);
       await remote.put(key, data);
     }
 
     this.#logger.debug("Upload completed", {
       prefix,
-      uploaded: filteredKeys.length,
-      filtered: keys.length - filteredKeys.length,
+      uploaded: keys.length,
     });
   }
 }

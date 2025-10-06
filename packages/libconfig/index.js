@@ -7,7 +7,6 @@ import { storageFactory } from "@copilot-ld/libstorage";
  * Centralized configuration management class
  */
 export class Config {
-  #envLoaded = false;
   #githubToken = null;
   #fileData = null;
   #storage = null;
@@ -66,7 +65,6 @@ export class Config {
   async load() {
     this.#storage = this.#storageFn("config");
 
-    this.#loadEnv();
     await this.#loadFileData();
 
     const namespaceUpper = this.namespace.toUpperCase();
@@ -100,18 +98,15 @@ export class Config {
    * @returns {string} GitHub client ID
    */
   githubClientId() {
-    this.#loadEnv();
     return this.#process.env.GITHUB_CLIENT_ID;
   }
 
   /**
-   * Gets the GitHub token from environment variable or .github_token file
+   * Gets the GitHub token from environment variable
    * @returns {Promise<string>} GitHub token
    */
   async githubToken() {
     if (this.#githubToken) return this.#githubToken;
-
-    this.#loadEnv();
 
     const processEnv = this.#process.env;
     if (processEnv.GITHUB_TOKEN) {
@@ -119,19 +114,7 @@ export class Config {
       return this.#githubToken;
     }
 
-    try {
-      if (await this.#storage.exists(".github_token")) {
-        const tokenContent = await this.#storage.get(".github_token");
-        this.#githubToken = tokenContent.toString().trim();
-        return this.#githubToken;
-      }
-    } catch {
-      // Continue to error
-    }
-
-    throw new Error(
-      "GitHub token not found in environment or .github_token file",
-    );
+    throw new Error("GitHub token not found in environment");
   }
 
   /**
@@ -139,25 +122,9 @@ export class Config {
    * @returns {void}
    */
   reset() {
-    this.#envLoaded = false;
     this.#githubToken = null;
     this.#fileData = null;
     this.#storage = null;
-  }
-
-  /**
-   * Loads environment variables (environment variables are now handled by Node.js --env-file)
-   * @returns {void}
-   * @private
-   */
-  #loadEnv() {
-    if (this.#envLoaded) return;
-
-    // Environment variables are now loaded via Node.js --env-file flag
-    // No additional processing needed as process.env is already populated
-
-    this.#envLoaded = true;
-    return;
   }
 
   /**

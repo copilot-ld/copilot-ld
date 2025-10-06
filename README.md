@@ -27,8 +27,8 @@ retrieval-augmented generation.
 Set up environment variables and service configuration:
 
 ```sh
-cp config/.env{.example,}
-cp config/config{.example,}.yml
+cp .env{.example,}
+cp config/config{.example,}.json
 cp config/assistants{.example,}.yml
 ```
 
@@ -55,7 +55,7 @@ for more information.
 ### 4. Authentication and secrets
 
 ```sh
-# Set GITHUB_CLIENT_ID in config/.env, then generate token
+# Set GITHUB_CLIENT_ID in .env, then generate token
 node scripts/token.js
 
 # Generate service authentication secret
@@ -106,8 +106,8 @@ S3-compatible storage:
 # Generate SSL certificates for localhost
 node scripts/cert.js
 
-# Comment out host and port variables in config/.env (GNU sed)
-sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
+# Comment out host and port variables in .env (GNU sed)
+sed -i -E '/(HOST|PORT)=/s/^/# /' .env
 
 # Start all services including ALB and MinIO
 docker compose up

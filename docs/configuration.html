@@ -59,7 +59,7 @@
 
       <h4>Initial Setup</h4>
       <p>Create your environment configuration:</p>
-      <pre><code>cp config/.env{.example,}
+      <pre><code>cp .env{.example,}
 cp config/config{.example,}.json
 cp config/assistants{.example,}.yml
 cp config/tools{.example,}.yml</code></pre>
@@ -107,15 +107,11 @@ SERVICE_HASH_HOST=localhost
 SERVICE_HASH_PORT=3007</code></pre>
 
       <h4>GitHub Authentication</h4>
-      <p>
-        Configure GitHub integration for Copilot API access and repository
-        operations:
-      </p>
+      <p>Configure GitHub integration for Copilot API access:</p>
       <pre><code># GitHub Client ID (20-character string)
 GITHUB_CLIENT_ID=your_client_id_here
 
 # GitHub Token (40-character string)
-# Alternative: Use scripts/token.js to store in config/.ghtoken
 GITHUB_TOKEN=your_github_token_here</code></pre>
 
       <h5>Token Generation</h5>
@@ -123,9 +119,8 @@ GITHUB_TOKEN=your_github_token_here</code></pre>
       <pre><code># Set GITHUB_CLIENT_ID first, then run:
 node scripts/token.js</code></pre>
       <p>
-        This saves the token to <code>config/.ghtoken</code> which services read
-        automatically. Alternatively, set <code>GITHUB_TOKEN</code> directly in
-        <code>config/.env</code>.
+        This command authenticates with GitHub and saves the token directly to
+        <code>GITHUB_TOKEN</code> in your <code>.env</code> file.
       </p>
 
       <h4>Service Secret</h4>
@@ -299,7 +294,7 @@ docker compose up</code></pre>
           <tr>
             <td><code>GITHUB_TOKEN</code></td>
             <td>GitHub personal access token</td>
-            <td>Read from <code>.ghtoken</code></td>
+            <td>-</td>
             <td>Yes</td>
           </tr>
           <tr>

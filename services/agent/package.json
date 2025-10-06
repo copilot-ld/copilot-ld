@@ -20,8 +20,8 @@
     "@copilot-ld/libresource": "^0.1.30",
     "@copilot-ld/librpc": "^0.1.36",
     "@copilot-ld/libstorage": "^0.1.19",
-    "@copilot-ld/libtype": "^0.1.25",
-    "@copilot-ld/libutil": "^0.1.23",
+    "@copilot-ld/libtype": "^0.1.26",
+    "@copilot-ld/libutil": "^0.1.24",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

@@ -3,7 +3,7 @@
 
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { storageFactory } from "@copilot-ld/libstorage";
-import { Logger, Upload } from "@copilot-ld/libutil";
+import { Logger, Uploader } from "@copilot-ld/libutil";
 
 /**
  * Main execution function
@@ -13,7 +13,7 @@ async function main() {
   await ScriptConfig.create("upload");
 
   const logger = new Logger("upload");
-  const uploader = new Upload(storageFactory, logger);
+  const uploader = new Uploader(storageFactory, logger);
 
   await uploader.initialize();
   await uploader.upload();

@@ -1,4 +1,5 @@
 /* eslint-env node */
+import path from "path";
 
 /**
  * Uploader utility for synchronizing local storage to remote storage
@@ -37,18 +38,22 @@ export class Uploader {
 
   /**
    * Initialize storage instances for all storage areas (prefixes)
+   * @param {boolean} localOnly - If true, only initialize local storage
    * @returns {Promise<void>}
    */
-  async initialize() {
+  async initialize(localOnly = false) {
     for (const prefix of this.#prefixes) {
       this.#local[prefix] = this.#storageFactory(prefix, "local");
-      this.#remote[prefix] = this.#storageFactory(prefix, "s3");
 
-      // Ensure S3 bucket exists (single bucket with prefixes)
-      await this.#remote[prefix].ensureBucket();
+      if (!localOnly) {
+        this.#remote[prefix] = this.#storageFactory(prefix, "s3");
+        // Ensure S3 bucket exists (single bucket with prefixes)
+        await this.#remote[prefix].ensureBucket();
+      }
     }
     this.#logger.debug("Upload storage initialized", {
       prefixes: this.#prefixes,
+      localOnly,
     });
   }
 
@@ -60,6 +65,42 @@ export class Uploader {
     for (const prefix of this.#prefixes) {
       await this.#uploadPrefix(prefix);
     }
+  }
+
+  /**
+   * List all files that would be uploaded, printing each file path to stdout
+   * @returns {Promise<void>}
+   */
+  async listFiles() {
+    for (const prefix of this.#prefixes) {
+      await this.#listFilesForPrefix(prefix);
+    }
+  }
+
+  /**
+   * List all files from a storage area that would be uploaded, skipping hidden files
+   * @param {string} prefix - Storage area prefix
+   * @returns {Promise<void>}
+   * @private
+   */
+  async #listFilesForPrefix(prefix) {
+    const local = this.#local[prefix];
+    const keys = await local.list();
+    const filteredKeys = keys.filter((key) => !key.startsWith("."));
+
+    for (const key of filteredKeys) {
+      // Get absolute path from storage and make it relative to the initial working directory
+      const absolutePath = local.path(key);
+      const initialCwd = process.env.INIT_CWD || process.cwd();
+      const relativePath = path.relative(initialCwd, absolutePath);
+      console.log(relativePath);
+    }
+
+    this.#logger.debug("Listed files for prefix", {
+      prefix,
+      listed: filteredKeys.length,
+      filtered: keys.length - filteredKeys.length,
+    });
   }
 
   /**

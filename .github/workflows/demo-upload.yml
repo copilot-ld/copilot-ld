@@ -72,6 +72,9 @@ jobs:
           S3_BUCKET_NAME: ${{ steps.storage.outputs.s3_bucket_name }}
           S3_BUCKET_ROLE_ARN: ${{ steps.storage.outputs.s3_bucket_role_arn }}
         run: |
+          # Ensure all data directories exist before upload
+          npm run init
+          # Final upload command
           npx --workspace=@copilot-ld/libutil upload
 
       - name: Display upload summary

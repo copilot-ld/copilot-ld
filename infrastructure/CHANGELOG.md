@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-07
+
+- **FIXED**: Added `Ensure data directories exist` step to `demo-upload.yml`
+  workflow to resolve "Could not find bucket: memories" error
+- **ENHANCED**: The upload step now runs `npm run init` after downloading the
+  demo data artifact to ensure all required directories exist
+- **IMPROVED**: Data upload workflow is now more robust against directory
+  structure variations in artifacts
+
 ## 2025-10-02
 
 - **UNIFIED**: Consolidated multiple component-specific `Dockerfile` files into

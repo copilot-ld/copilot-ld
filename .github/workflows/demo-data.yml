@@ -34,7 +34,9 @@ jobs:
           cp ./config/config{.example,}.json
           cp ./config/assistants{.example,}.yml
           cp ./config/tools{.example,}.yml
-          mkdir -p ./data/{memories,policies,resources,vectors}
+
+          # Initialize data directories
+          npm run init
 
           # Copy the example knowledge base
           cp -r ./examples/knowledge data/

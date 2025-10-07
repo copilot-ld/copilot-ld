@@ -15,11 +15,11 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.24",
+    "@copilot-ld/libconfig": "^0.1.25",
     "@copilot-ld/libpolicy": "^0.1.19",
     "@copilot-ld/libresource": "^0.1.33",
     "@copilot-ld/librpc": "^0.1.39",
-    "@copilot-ld/libstorage": "^0.1.19",
+    "@copilot-ld/libstorage": "^0.1.20",
     "@copilot-ld/libtype": "^0.1.28",
     "@copilot-ld/libutil": "^0.1.26",
     "@octokit/core": "^7.0.3"

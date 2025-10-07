@@ -22,7 +22,8 @@ jobs:
       - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
-      - name: Generate demo data and create bundle
+      - name: Generate demo data
+        id: data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
           DEBUG: "*"
@@ -47,14 +48,17 @@ jobs:
           npm run process:tools
           npm run process:vectors
 
-          # Create bundle using the uploader's file list and tar
-          npx --workspace=@copilot-ld/libutil upload --stdout | tar -czf bundle.tar.gz -T -
+          # Write all files to the workflow output
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          npx --workspace=@copilot-ld/libutil upload --stdout >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Upload data artifact
         uses: actions/upload-artifact@v4
         with:
           name: demo-data
-          path: bundle.tar.gz
+          path: |
+            ${{ steps.data.outputs.files }}
           retention-days: 30
 
       - name: Display generation summary

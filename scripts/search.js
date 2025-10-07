@@ -41,10 +41,7 @@ async function performSearch(prompt, state) {
     limit: limit() > 0 ? limit() : 0,
   });
 
-  const resources = await resourceIndex.get(
-    "cld:common.System.root",
-    identifiers,
-  );
+  const resources = await resourceIndex.get("common.System.root", identifiers);
 
   let output = ``;
   output += `Searching: ${index()} index\n\n`;

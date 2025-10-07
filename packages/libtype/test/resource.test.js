@@ -44,7 +44,7 @@ describe("Universal Resource Identifier", () => {
   test("withIdentifier sets a single parent", () => {
     const message = common.MessageV2.fromObject({
       id: {
-        parent: "cld:common.Conversation.hash0001",
+        parent: "common.Conversation.hash0001",
       },
       content: {
         text: "Hello, world!",
@@ -55,13 +55,13 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.MessageV2");
     assert.strictEqual(message.id.name, "5afdd107");
-    assert.strictEqual(message.id.parent, "cld:common.Conversation.hash0001");
+    assert.strictEqual(message.id.parent, "common.Conversation.hash0001");
   });
 
   test("withIdentifier sets multiple parents", () => {
     const message = common.MessageV2.fromObject({
       id: {
-        parent: "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
+        parent: "common.Conversation.hash0001/common.MessageV2.hash0002",
       },
       content: {
         text: "Hello, world!",
@@ -74,7 +74,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.name, "5afdd107");
     assert.strictEqual(
       message.id.parent,
-      "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
+      "common.Conversation.hash0001/common.MessageV2.hash0002",
     );
   });
 
@@ -82,7 +82,7 @@ describe("Universal Resource Identifier", () => {
     const message = common.MessageV2.fromObject({
       id: {
         name: "hash0003",
-        parent: "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
+        parent: "common.Conversation.hash0001/common.MessageV2.hash0002",
       },
       content: {
         text: "Hello, world!",
@@ -95,7 +95,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.name, "hash0003");
     assert.strictEqual(
       message.id.parent,
-      "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
+      "common.Conversation.hash0001/common.MessageV2.hash0002",
     );
   });
 
@@ -131,7 +131,7 @@ describe("Universal Resource Identifier", () => {
       },
     });
     message.withIdentifier();
-    assert.strictEqual(String(message.id), "cld:common.MessageV2.5afdd107");
+    assert.strictEqual(String(message.id), "common.MessageV2.5afdd107");
   });
 
   test("Identifier generates a URI with name", () => {
@@ -144,7 +144,7 @@ describe("Universal Resource Identifier", () => {
       },
     });
     message.withIdentifier();
-    assert.strictEqual(String(message.id), "cld:common.MessageV2.hash0001");
+    assert.strictEqual(String(message.id), "common.MessageV2.hash0001");
   });
 
   test("Identifier generates a URI with normalized name", () => {
@@ -157,14 +157,14 @@ describe("Universal Resource Identifier", () => {
       },
     });
     message.withIdentifier();
-    assert.strictEqual(String(message.id), "cld:common.MessageV2.hash0001");
+    assert.strictEqual(String(message.id), "common.MessageV2.hash0001");
   });
 
   test("Identifier generates a URI with name and parent", () => {
     const message = common.MessageV2.fromObject({
       id: {
         name: "common.MessageV2.hash0002",
-        parent: "cld:common.Conversation.hash0001",
+        parent: "common.Conversation.hash0001",
       },
       content: {
         text: "Hello, world!",
@@ -173,7 +173,7 @@ describe("Universal Resource Identifier", () => {
     message.withIdentifier();
     assert.strictEqual(
       String(message.id),
-      "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
+      "common.Conversation.hash0001/common.MessageV2.hash0002",
     );
   });
 });

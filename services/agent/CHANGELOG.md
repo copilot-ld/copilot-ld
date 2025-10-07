@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-07
+
+- Simplified development workflow by removing `--env-file` flag from `dev`
+  script
+- Updated service to use simplified resource URI format without `cld:` prefix
+
 ## 2025-10-03
 
 - Integrated `downloadFactory()` from `@copilot-ld/libutil` for automatic

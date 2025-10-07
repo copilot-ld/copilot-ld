@@ -173,9 +173,7 @@ describe("ResourceIndex", () => {
     await resourceIndex.put(message1);
 
     // Use a full URI prefix that should match
-    const identifiers = await resourceIndex.findByPrefix(
-      "cld:common.MessageV2",
-    );
+    const identifiers = await resourceIndex.findByPrefix("common.MessageV2");
 
     assert.ok(identifiers.length >= 1);
     assert.ok(identifiers[0] instanceof resource.Identifier);
@@ -336,7 +334,7 @@ describe("ResourceProcessor", () => {
 
 describe("toIdentifier helper function", () => {
   test("toIdentifier correctly creates Identifier from resource URI", () => {
-    const uri = "cld:common.MessageV2.abc123";
+    const uri = "common.MessageV2.abc123";
     const identifier = toIdentifier(uri);
 
     assert.ok(identifier instanceof resource.Identifier);
@@ -346,23 +344,13 @@ describe("toIdentifier helper function", () => {
   });
 
   test("toIdentifier correctly handles URI with parent path", () => {
-    const uri = "cld:parent/child/common.MessageV2.abc123";
+    const uri = "parent/child/common.MessageV2.abc123";
     const identifier = toIdentifier(uri);
 
     assert.ok(identifier instanceof resource.Identifier);
     assert.strictEqual(identifier.type, "common.MessageV2");
     assert.strictEqual(identifier.name, "abc123");
-    assert.strictEqual(identifier.parent, "cld:parent/child");
-  });
-
-  test("toIdentifier handles invalid URI scheme by creating malformed identifier", () => {
-    // With simplified function, this doesn't throw an error but creates a malformed identifier
-    const uri = "invalid:common.MessageV2.abc123";
-    const identifier = toIdentifier(uri);
-
-    assert.strictEqual(identifier.type, "lid:common.MessageV2");
-    assert.strictEqual(identifier.name, "abc123");
-    assert.strictEqual(identifier.parent, "");
+    assert.strictEqual(identifier.parent, "parent/child");
   });
 
   test("toIdentifier is reverse of Identifier.toString() - simple case", () => {
@@ -384,7 +372,7 @@ describe("toIdentifier helper function", () => {
     const original = new resource.Identifier({
       type: "common.MessageV2",
       name: "abc123",
-      parent: "cld:parent.Resource.def456",
+      parent: "parent.Resource.def456",
     });
 
     const uri = original.toString();

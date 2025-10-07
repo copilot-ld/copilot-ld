@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-07
+
+- Updated test cases to use simplified resource URI format without `cld:` prefix
+- Enhanced test coverage for resource identifier validation with direct path
+  format
+
 ## 2025-09-16
 
 - Bump version one last time, really

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-07
+
+- **BREAKING**: Updated `VectorProcessor` to filter conversations using
+  simplified URI format without `cld:` prefix
+- Enhanced vector indexing to work with direct identifier format for improved
+  performance
+
 ## 2025-09-19
 
 - Added dependency on `@copilot-ld/libtype` for proper type imports and enhanced

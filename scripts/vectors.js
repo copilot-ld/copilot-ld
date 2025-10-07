@@ -34,7 +34,7 @@ async function main() {
     logger,
   );
 
-  const actor = "cld:common.System.root";
+  const actor = "common.System.root";
 
   // Process both content and descriptor representations
   await processor.process(actor, "content");

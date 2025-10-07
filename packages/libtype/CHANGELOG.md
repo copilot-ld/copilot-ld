@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-07
+
+- **BREAKING**: Simplified Resource URI format by removing `cld:` namespace
+  prefix from `Identifier.toString()` method
+- Enhanced `toIdentifier()` helper function to work with simplified URI format
+- Updated all URI generation and parsing to use direct path format without
+  namespace prefix
+
 ## 2025-09-26
 
 - Bump version

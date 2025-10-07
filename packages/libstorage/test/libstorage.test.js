@@ -229,12 +229,12 @@ describe("libstorage", () => {
         if (path === "/test/base") {
           return Promise.resolve([
             {
-              name: "cld:common.File.hash001.txt",
+              name: "common.File.hash001.txt",
               isDirectory: () => false,
               isFile: () => true,
             },
             {
-              name: "cld:common.File.hash002.txt",
+              name: "common.File.hash002.txt",
               isDirectory: () => false,
               isFile: () => true,
             },
@@ -250,10 +250,10 @@ describe("libstorage", () => {
 
       mockFs.stat = mock.fn((path) => {
         const timestamps = {
-          "/test/base/cld:common.File.hash001.txt": new Date(
+          "/test/base/common.File.hash001.txt": new Date(
             "2024-01-01T00:00:00Z",
           ),
-          "/test/base/cld:common.File.hash002.txt": new Date(
+          "/test/base/common.File.hash002.txt": new Date(
             "2024-01-02T00:00:00Z",
           ),
           "/test/base/other:prefix.txt": new Date("2024-01-03T00:00:00Z"),
@@ -264,11 +264,11 @@ describe("libstorage", () => {
         });
       });
 
-      const keys = await localStorage.findByPrefix("cld:common.File");
+      const keys = await localStorage.findByPrefix("common.File");
 
       assert.deepStrictEqual(keys, [
-        "cld:common.File.hash001.txt",
-        "cld:common.File.hash002.txt",
+        "common.File.hash001.txt",
+        "common.File.hash002.txt",
       ]);
     });
 
@@ -757,24 +757,24 @@ describe("libstorage", () => {
       mockClient.send = mock.fn(() =>
         Promise.resolve({
           Contents: [
-            { Key: "test-prefix/cld:common.File.hash001.txt" },
-            { Key: "test-prefix/cld:common.File.hash002.txt" },
+            { Key: "test-prefix/common.File.hash001.txt" },
+            { Key: "test-prefix/common.File.hash002.txt" },
             { Key: "test-prefix/other:prefix.txt" },
           ],
         }),
       );
 
-      const keys = await s3Storage.findByPrefix("cld:common.File");
+      const keys = await s3Storage.findByPrefix("common.File");
 
       assert.deepStrictEqual(keys, [
-        "cld:common.File.hash001.txt",
-        "cld:common.File.hash002.txt",
+        "common.File.hash001.txt",
+        "common.File.hash002.txt",
         "other:prefix.txt",
       ]);
       assert.strictEqual(mockCommands.ListObjectsV2Command.mock.callCount(), 1);
       assert.deepStrictEqual(
         mockCommands.ListObjectsV2Command.mock.calls[0].arguments[0].Prefix,
-        "test-prefix/cld:common.File",
+        "test-prefix/common.File",
       );
     });
 

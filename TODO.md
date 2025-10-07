@@ -67,9 +67,8 @@ That is, the `Graph` service manages Linked Data in a directed graph.
 ### Resources and Policies
 
 Resources are identified by a simple Universal Resource Identifier (URI)
-formatted as `uri_namespace:path` where:
+formatted as:
 
-- `uri_namespace` is the URI assignment and always set to "cld"
 - `path` is parents' path plus the resource's own path element, joined by "/"
 - Each path element consist of a resource type and ID joined by "."
 
@@ -78,10 +77,10 @@ looking at the raw local file system:
 
 ```bash
 developer@localhost$ ls -1 resources/
-cld:common.Conversation.hash0001.json
-cld:common.Conversation.hash0001/common.MessageV2.hash0002.json
-cld:common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003.json
-cld:common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004.json
+common.Conversation.hash0001.json
+common.Conversation.hash0001/common.MessageV2.hash0002.json
+common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003.json
+common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004.json
 ```
 
 It is now fast and efficient for the Resource service to fetch all tasks within
@@ -176,7 +175,7 @@ requested.
 
 The URI structure enables easy fetching of all parent resources. For example, a
 sub Task URI like
-`cld:common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004`
+`common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004`
 allows the Assistant to fetch the Conversation, Message, and parent Task
 contexts.
 

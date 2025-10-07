@@ -44,7 +44,7 @@ export class VectorProcessor extends ProcessorBase {
 
     // Don't index conversations, and their child resources (e.g. messages)
     const filteredIdentifiers = identifiers.filter(
-      (id) => !String(id).startsWith("cld:common.Conversation"),
+      (id) => !String(id).startsWith("common.Conversation"),
     );
 
     // Load the full resources using the identifiers

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-07
+
+- Updated test cases to use simplified resource URI format without `cld:` prefix
+- Enhanced test coverage for prefix-based storage operations with direct
+  identifier format
+
 ## 2025-10-03
 
 - Simplified type definitions by replacing `StorageInterface` class with JSDoc

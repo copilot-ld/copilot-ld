@@ -143,14 +143,14 @@ using available scripts.
 Interactive mode:
 
 ```sh
-node scripts/chat.js
+npx env-cmd -- node scripts/chat.js
 > Hello
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "Hello" | node scripts/chat.js
+echo "Hello" | npx env-cmd -- node scripts/chat.js
 ```
 
 ### Search Script
@@ -158,14 +158,14 @@ echo "Hello" | node scripts/chat.js
 Interactive mode:
 
 ```sh
-node scripts/search.js
+npx env-cmd -- node scripts/search.js
 > What is Kanban?
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "What is Kanban?" | node scripts/search.js
+echo "What is Kanban?" | npx env-cmd -- node scripts/search.js
 ```
 
 Command-line flags for non-interactive runs (handled by the internal `Repl`
@@ -173,10 +173,10 @@ state):
 
 ```sh
 # Limit results and set a minimum similarity threshold
-echo "testing" | node scripts/search.js --limit 10 --threshold 0.25
+echo "testing" | npx env-cmd -- node scripts/search.js --limit 10 --threshold 0.25
 
 # Target the descriptor index instead of content
-echo "find pipeline tasks" | node scripts/search.js --index descriptor --limit 5
+echo "find pipeline tasks" | npx env-cmd -- node scripts/search.js --index descriptor --limit 5
 ```
 
 ## 👨‍💻 Development
@@ -199,8 +199,8 @@ npm test
 Manual integration testing by using scripts:
 
 ```sh
-echo "test prompt" | node scripts/chat.js
-echo "search query" | node scripts/search.js --limit 3 --threshold 0.2
+echo "test prompt" | npx env-cmd -- node scripts/chat.js
+echo "search query" | npx env-cmd -- node scripts/search.js --limit 3 --threshold 0.2
 ```
 
 ### Adding New Features

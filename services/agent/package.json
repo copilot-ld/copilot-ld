@@ -10,7 +10,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "node --env-file=../../config/.env --watch server.js",
+    "dev": "node --watch server.js",
     "start": "npx download && node server.js",
     "test": "node --test test/*.test.js"
   },

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-07
+
+- Simplified development workflow by removing `--env-file` flag from `dev`
+  script
+
 ## 2025-09-26
 
 - **BREAKING**: Updated client imports to use `@copilot-ld/librpc` aggregated

@@ -53,10 +53,8 @@ describe("libpolicy", () => {
 
     test("evaluate returns true for valid input", async () => {
       const input = {
-        actor: "cld:common.Assistant.hash0000",
-        resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-        ],
+        actor: "common.Assistant.hash0000",
+        resources: ["common.Conversation.hash0001/common.MessageV2.hash0002"],
       };
 
       const result = await policy.evaluate(input);
@@ -66,10 +64,8 @@ describe("libpolicy", () => {
 
     test("evaluate processes actor information correctly", async () => {
       const input = {
-        actor: "cld:common.Assistant.hash0000",
-        resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-        ],
+        actor: "common.Assistant.hash0000",
+        resources: ["common.Conversation.hash0001/common.MessageV2.hash0002"],
       };
 
       const result = await policy.evaluate(input);
@@ -91,9 +87,7 @@ describe("libpolicy", () => {
 
     test("evaluate throws error when actor is missing", async () => {
       const input = {
-        resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-        ],
+        resources: ["common.Conversation.hash0001/common.MessageV2.hash0002"],
       };
 
       await assert.rejects(() => policy.evaluate(input), {
@@ -104,9 +98,7 @@ describe("libpolicy", () => {
     test("evaluate throws error when actor is empty string", async () => {
       const input = {
         actor: "",
-        resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-        ],
+        resources: ["common.Conversation.hash0001/common.MessageV2.hash0002"],
       };
 
       await assert.rejects(() => policy.evaluate(input), {
@@ -117,9 +109,7 @@ describe("libpolicy", () => {
     test("evaluate throws error when actor is not string", async () => {
       const input = {
         actor: 123,
-        resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-        ],
+        resources: ["common.Conversation.hash0001/common.MessageV2.hash0002"],
       };
 
       await assert.rejects(() => policy.evaluate(input), {
@@ -129,7 +119,7 @@ describe("libpolicy", () => {
 
     test("evaluate throws error when resources is missing", async () => {
       const input = {
-        actor: "cld:common.Assistant.hash0000",
+        actor: "common.Assistant.hash0000",
       };
 
       await assert.rejects(() => policy.evaluate(input), {
@@ -139,7 +129,7 @@ describe("libpolicy", () => {
 
     test("evaluate throws error when resources is not array", async () => {
       const input = {
-        actor: "cld:common.Assistant.hash0000",
+        actor: "common.Assistant.hash0000",
         resources: "not-an-array",
       };
 
@@ -150,7 +140,7 @@ describe("libpolicy", () => {
 
     test("evaluate handles empty resources array", async () => {
       const input = {
-        actor: "cld:common.Assistant.hash0000",
+        actor: "common.Assistant.hash0000",
         resources: [],
       };
 
@@ -161,10 +151,10 @@ describe("libpolicy", () => {
 
     test("evaluate handles multiple resources", async () => {
       const input = {
-        actor: "cld:common.Assistant.hash0000",
+        actor: "common.Assistant.hash0000",
         resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0003",
+          "common.Conversation.hash0001/common.MessageV2.hash0002",
+          "common.Conversation.hash0001/common.MessageV2.hash0003",
         ],
       };
 
@@ -203,16 +193,14 @@ describe("libpolicy", () => {
       const assistant = {
         meta: {
           name: "data-expert",
-          uri: "cld:common.Assistant.hash0000",
+          uri: "common.Assistant.hash0000",
         },
       };
 
       // Example evaluation
       const allowed = await policy.evaluate({
         actor: assistant.meta.uri,
-        resources: [
-          "cld:common.Conversation.hash0001/common.MessageV2.hash0002",
-        ],
+        resources: ["common.Conversation.hash0001/common.MessageV2.hash0002"],
       });
 
       // Verify the expected behavior

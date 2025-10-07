@@ -105,7 +105,7 @@ resource.Identifier.prototype.toString = function () {
     tree.push(`${this.type}.${this.name}`);
   }
 
-  return `cld:${tree.join("/")}`;
+  return tree.join("/");
 };
 
 // Compiles a resource descriptor description

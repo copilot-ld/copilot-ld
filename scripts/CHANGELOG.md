@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-07
+
+- **BREAKING**: Updated all script execution examples to use `npx env-cmd --`
+  for proper environment variable loading
+- Enhanced `search.js` to use simplified resource URI format without `cld:`
+  prefix
+- Updated `vectors.js` to work with direct identifier format for improved
+  consistency
+
 ## 2025-10-06
 
 - Added `npm run process:resources`, `npm run process:tools`, and

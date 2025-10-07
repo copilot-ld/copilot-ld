@@ -35,7 +35,7 @@ describe("libvector", () => {
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
       // Verify item was added by checking internal state using URI
-      assert(await vectorIndex.hasItem("cld:MessageV2.test-1"));
+      assert(await vectorIndex.hasItem("MessageV2.test-1"));
     });
 
     test("addItem updates existing vector", async () => {
@@ -52,7 +52,7 @@ describe("libvector", () => {
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
       await vectorIndex.addItem([0.4, 0.5, 0.6], identifier2);
 
-      assert(await vectorIndex.hasItem("cld:MessageV2.test-1"));
+      assert(await vectorIndex.hasItem("MessageV2.test-1"));
     });
 
     test("hasItem returns true for existing item", async () => {
@@ -62,20 +62,20 @@ describe("libvector", () => {
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
-      const exists = await vectorIndex.hasItem("cld:MessageV2.test-1");
+      const exists = await vectorIndex.hasItem("MessageV2.test-1");
 
       assert.strictEqual(exists, true);
     });
 
     test("hasItem returns false for non-existing item", async () => {
-      const exists = await vectorIndex.hasItem("cld:MessageV2.non-existent");
+      const exists = await vectorIndex.hasItem("MessageV2.non-existent");
 
       assert.strictEqual(exists, false);
     });
 
     test("loadData loads from storage", async () => {
       const testData = JSON.stringify({
-        uri: "cld:MessageV2.test-1",
+        uri: "MessageV2.test-1",
         identifier: {
           type: "MessageV2",
           name: "test-1",
@@ -101,10 +101,7 @@ describe("libvector", () => {
 
       // Should not throw and should initialize empty index
       assert.strictEqual(mockStorage.exists.mock.callCount(), 1);
-      assert.strictEqual(
-        await vectorIndex.hasItem("cld:MessageV2.any-id"),
-        false,
-      );
+      assert.strictEqual(await vectorIndex.hasItem("MessageV2.any-id"), false);
     });
 
     test("queryItems returns similar vectors", async () => {
@@ -328,7 +325,7 @@ describe("libvector", () => {
       });
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier);
 
-      const result = await vectorIndex.getItem("cld:MessageV2.test-1");
+      const result = await vectorIndex.getItem("MessageV2.test-1");
 
       assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.type, "MessageV2");
@@ -336,14 +333,14 @@ describe("libvector", () => {
     });
 
     test("getItem returns null for non-existing item", async () => {
-      const result = await vectorIndex.getItem("cld:MessageV2.non-existent");
+      const result = await vectorIndex.getItem("MessageV2.non-existent");
 
       assert.strictEqual(result, null);
     });
 
     test("getItem works after loadData", async () => {
       const testData = {
-        uri: "cld:MessageV2.test-1",
+        uri: "MessageV2.test-1",
         identifier: {
           type: "MessageV2",
           name: "test-1",
@@ -356,7 +353,7 @@ describe("libvector", () => {
       mockStorage.get = mock.fn(() => Promise.resolve([testData]));
 
       await vectorIndex.loadData();
-      const result = await vectorIndex.getItem("cld:MessageV2.test-1");
+      const result = await vectorIndex.getItem("MessageV2.test-1");
 
       assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.type, "MessageV2");
@@ -379,7 +376,7 @@ describe("libvector", () => {
       await vectorIndex.addItem([0.1, 0.2, 0.3], identifier1);
       await vectorIndex.addItem([0.4, 0.5, 0.6], identifier2);
 
-      const result = await vectorIndex.getItem("cld:MessageV2.test-1");
+      const result = await vectorIndex.getItem("MessageV2.test-1");
 
       assert.strictEqual(result.name, "test-1");
       assert.strictEqual(result.tokens, 20); // Should have updated value

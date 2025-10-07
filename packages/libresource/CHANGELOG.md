@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-07
+
+- **BREAKING**: Updated `ResourceIndex` methods to work with simplified URI
+  format without `cld:` prefix
+- Enhanced `toIdentifier()` helper function to parse simplified URI format
+  correctly
+- Updated resource indexing and prefix search to use direct identifier format
+
 ## 2025-09-26
 
 - Bump version

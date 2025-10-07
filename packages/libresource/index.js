@@ -83,7 +83,7 @@ export class ResourceIndex {
       .filter((key) => key.endsWith(".json"))
       .map((key) => key.slice(0, -5)); // Remove .json extension
 
-    // Names already include "cld:" prefix, so use them directly
+    // Names are identifiers, so use them directly
     return names.map((name) => toIdentifier(name));
   }
 
@@ -95,7 +95,7 @@ export class ResourceIndex {
   async findByPrefix(prefix) {
     if (!prefix) throw new Error("prefix is required");
 
-    // Use the prefix directly as it should already include "cld:"
+    // Use the prefix directly
     const searchPrefix = prefix;
 
     // Get keys with the specified prefix from storage
@@ -106,7 +106,7 @@ export class ResourceIndex {
       .filter((key) => key.endsWith(".json"))
       .map((key) => key.slice(0, -5)); // Remove .json extension
 
-    // Names already include "cld:" prefix, so use them directly
+    // Names are identifiers, so use them directly
     return names.map((name) => toIdentifier(name));
   }
 }
@@ -132,23 +132,22 @@ function toType(object) {
 
 /**
  * Helper function creating Identifier instance from resource URI - reverse of resource.Identifier.toString()
- * @param {string} uri - Resource URI starting with "cld:" (e.g., "cld:common.MessageV2.abc123" or "cld:parent/child/common.MessageV2.abc123")
+ * @param {string} uri - Resource URI (e.g., "common.MessageV2.abc123" or "parent/child/common.MessageV2.abc123")
  * @returns {types.resource.Identifier} Identifier instance
  */
 function toIdentifier(uri) {
-  const path = uri.slice(4); // Remove "cld:" prefix
-  const pathParts = path.split("/");
+  const tree = uri.split("/");
 
   // The last part is the name, everything before is the parent path
-  const nameParts = pathParts[pathParts.length - 1].split(".");
-  const parentParts = pathParts.slice(0, -1);
+  const nameParts = tree[tree.length - 1].split(".");
+  const parentParts = tree.slice(0, -1);
 
   // Extract type from name (format: "namespace.Type.hash")
   const name = nameParts.pop();
   const type = `${nameParts[0]}.${nameParts[1]}`;
 
   // Build parent URI if there are parent parts
-  const parent = parentParts.length > 0 ? `cld:${parentParts.join("/")}` : "";
+  const parent = parentParts.length > 0 ? parentParts.join("/") : "";
 
   return new types.resource.Identifier({
     type: type,

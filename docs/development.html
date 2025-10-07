@@ -119,13 +119,13 @@ node scripts/search.js
       <h4>Scripted Testing</h4>
 
       <pre><code># Pipe input for automated testing
-echo "Tell me about container security" | node scripts/chat.js
+echo "Tell me about container security" | npx env-cmd -- node scripts/chat.js
 
 # Search with CLI flags for precise testing
-echo "docker" | node scripts/search.js --limit 10 --threshold 0.25
+echo "docker" | npx env-cmd -- node scripts/search.js --limit 10 --threshold 0.25
 
 # Test descriptor-based search
-echo "kubernetes deployment" | node scripts/search.js --index descriptor --limit 5</code></pre>
+echo "kubernetes deployment" | npx env-cmd -- node scripts/search.js --index descriptor --limit 5</code></pre>
 
       <h4>System Validation Scripts</h4>
 
@@ -133,10 +133,10 @@ echo "kubernetes deployment" | node scripts/search.js --index descriptor --limit
 node scripts/cosine.js "first text" "second text"
 
 # Validate model configurations
-node scripts/models.js
+npx env-cmd -- node scripts/models.js
 
 # Test embedding generation
-echo "sample text" | node scripts/embed.js</code></pre>
+echo "sample text" | npx env-cmd -- node scripts/embed.js</code></pre>
 
       <h4>Development Utilities</h4>
 
@@ -147,7 +147,7 @@ node scripts/cert.js
 node scripts/secret.js
 
 # GitHub token setup and validation
-node scripts/token.js</code></pre>
+npx env-cmd -- node scripts/token.js</code></pre>
 
       <h3>Code Generation Workflow</h3>
 
@@ -228,7 +228,7 @@ npm run codegen:service   # Service bases only</code></pre>
       <p>Quick validation of your development environment:</p>
 
       <pre><code># Test basic system functionality
-echo "hello" | node scripts/chat.js
+echo "hello" | npx env-cmd -- node scripts/chat.js
 
 # Verify code generation
 ls generated/types/

@@ -15,7 +15,7 @@ const { AgentBase } = services;
  */
 async function toMessages(assistant, tasks, window, resourceIndex) {
   const messages = [];
-  const actor = "cld:common.System.root";
+  const actor = "common.System.root";
 
   // Add assistant
   messages.push(assistant);
@@ -54,7 +54,7 @@ async function toMessages(assistant, tasks, window, resourceIndex) {
  */
 async function toTools(identifiers, resourceIndex) {
   if (!identifiers || identifiers.length === 0) return [];
-  const actor = "cld:common.System.root";
+  const actor = "common.System.root";
   const functions = await resourceIndex.get(actor, identifiers);
 
   return functions.map((func) => {
@@ -136,7 +136,7 @@ class AgentService extends AgentBase {
     const octokit = this.#octokitFactory(req.github_token);
     await octokit.request("GET /user");
 
-    const actor = "cld:common.System.root";
+    const actor = "common.System.root";
     let conversation;
     let completions = {};
 

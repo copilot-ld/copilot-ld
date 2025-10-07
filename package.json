@@ -15,6 +15,7 @@
     "scripts"
   ],
   "scripts": {
+    "init": "mkdir -p generated; mkdir -p data/{memories,policies,resources,triples,vectors}",
     "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
     "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",

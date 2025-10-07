@@ -42,10 +42,17 @@ For detailed configuration options, see the
 npm install
 ```
 
-### 3. Generate code from Protocol Buffers
+### 3. Initialize data directories
+
+Initialize the necessary data directories with empty indices:
 
 ```sh
-mkdir generated
+npm run init
+```
+
+### 4. Generate code from Protocol Buffers
+
+```sh
 npm run codegen
 ```
 
@@ -53,22 +60,14 @@ This generates service interfaces and type definitions from the Protocol Buffer
 schemas. See [Code Generation Details](docs/architecture.html#code-generation)
 for more information.
 
-### 4. Authentication and secrets
+### 5. Authentication and secrets
 
 ```sh
 # Set GITHUB_CLIENT_ID in .env, then generate token
-node scripts/token.js
+npx env-cmd -- node scripts/token.js
 
 # Generate service authentication secret
 node scripts/secret.js
-```
-
-### 5. Prepare data directory
-
-Create the necessary data directories with empty indices:
-
-```sh
-mkdir -p data/{memories,policies,resources,vectors}
 ```
 
 ### 6. Prepare knowledge base

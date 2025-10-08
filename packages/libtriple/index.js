@@ -106,6 +106,14 @@ export class TripleIndex {
    * @returns {Promise<void>}
    */
   async loadData() {
+    // Check if the index file exists before trying to read it
+    if (!(await this.#storage.exists(this.#indexKey))) {
+      this.#index.clear();
+      this.#store.removeMatches();
+      this.#loaded = true;
+      return;
+    }
+
     const items = await this.#storage.get(this.#indexKey);
     const parsedItems = Array.isArray(items) ? items : [];
 

@@ -27,12 +27,10 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy
-        run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
-          aws cloudformation deploy \
-            --template-file infrastructure/cloudformation/network.yml \
-            --stack-name $STACK_NAME \
-            --parameter-overrides \
-              EnvironmentName=${{ inputs.environment_name }} \
-            --capabilities CAPABILITY_IAM \
-            --region us-east-1
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: "${{ inputs.environment_name }}-cld-network-stack-cf"
+          template: infrastructure/cloudformation/network.yml
+          parameter-overrides: |
+            EnvironmentName=${{ inputs.environment_name }}
+          capabilities: CAPABILITY_IAM

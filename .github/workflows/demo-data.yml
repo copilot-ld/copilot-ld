@@ -1,4 +1,4 @@
-name: Demo Data Generation
+name: Demo Data Processing
 
 on:
   workflow_dispatch:
@@ -7,10 +7,9 @@ on:
     paths:
       - "examples/**"
       - "scripts/**"
-      - "proto/**"
 
 jobs:
-  generate-data:
+  process-data:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,7 +21,7 @@ jobs:
       - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
-      - name: Generate demo data
+      - name: Process demo data
         id: data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
@@ -38,16 +37,14 @@ jobs:
           # Initialize data directories
           npm run init
 
-          # Copy the example knowledge base
+          # Copy the example knowledge base and tools
           cp -r ./examples/knowledge data/
-
-          # Copy the example tools and re-generate code
           cp -r ./examples/tools/* tools/
           npm run codegen
 
-          # Process resources, tools, and vectors (without upload)
           npm run process:resources
           npm run process:tools
+          npm run process:triples
           npm run process:vectors
 
           # Write all files to the workflow output
@@ -62,14 +59,3 @@ jobs:
           path: |
             ${{ steps.data.outputs.files }}
           retention-days: 30
-
-      - name: Display generation summary
-        run: |
-          echo "✅ Copilot-LD Demo: Data Generated and Archived"
-          echo ""
-          echo "Demo Data Artifact: demo-data"
-          echo "Content: Configuration, Knowledge Base, Tools, and Vector Indices"
-          echo ""
-          echo "Next Steps:"
-          echo "  1. Deploy storage: demo-storage.yml"
-          echo "  2. Upload data: demo-upload.yml"

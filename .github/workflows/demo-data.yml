@@ -29,15 +29,12 @@ jobs:
         run: |
           set -e
 
-          # Prepare configuration and data directories
           cp ./config/config{.example,}.json
           cp ./config/assistants{.example,}.yml
           cp ./config/tools{.example,}.yml
 
-          # Initialize data directories
           npm run init
 
-          # Copy the example knowledge base and tools
           cp -r ./examples/knowledge data/
           cp -r ./examples/tools/* tools/
           npm run codegen
@@ -47,7 +44,6 @@ jobs:
           npm run process:triples
           npm run process:vectors
 
-          # Write all files to the workflow output
           echo "files<<EOF" >> $GITHUB_OUTPUT
           npx --workspace=@copilot-ld/libutil upload --stdout >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

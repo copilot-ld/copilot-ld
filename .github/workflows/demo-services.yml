@@ -29,95 +29,79 @@ jobs:
       - name: Outputs
         id: stack-outputs
         run: |
-          # Build stack names from environment name
           NETWORK_STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
           SECRETS_STACK_NAME="${{ inputs.environment_name }}-cld-secrets-stack-cf"
           DATA_STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
 
-          # Get outputs from network stack
-          VPC_ID=$(aws cloudformation describe-stacks \
+          echo "vpc_id=$(aws cloudformation describe-stacks \
             --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`VpcId`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          PRIVATE_SUBNET_IDS=$(aws cloudformation describe-stacks \
+          echo "private_subnet_ids=$(aws cloudformation describe-stacks \
             --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`PrivateSubnetIds`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          SERVICE_SECURITY_GROUP_ID=$(aws cloudformation describe-stacks \
+          echo "service_security_group_id=$(aws cloudformation describe-stacks \
             --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecurityGroupId`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          SERVICE_DISCOVERY_NAMESPACE_ID=$(aws cloudformation describe-stacks \
+          echo "service_discovery_namespace_id=$(aws cloudformation describe-stacks \
             --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceDiscoveryNamespaceId`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          # Get outputs from secrets stack
-          GITHUB_TOKEN_ARN=$(aws cloudformation describe-stacks \
+          echo "github_token_arn=$(aws cloudformation describe-stacks \
             --stack-name $SECRETS_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`GitHubTokenArn`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          SERVICE_SECRET_ARN=$(aws cloudformation describe-stacks \
+          echo "service_secret_arn=$(aws cloudformation describe-stacks \
             --stack-name $SECRETS_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecretArn`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          SECRETS_ROLE_ARN=$(aws cloudformation describe-stacks \
+          echo "secrets_role_arn=$(aws cloudformation describe-stacks \
             --stack-name $SECRETS_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`SecretsRoleArn`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          # Get outputs from data stack
-          BUCKET_NAME=$(aws cloudformation describe-stacks \
+          echo "bucket_name=$(aws cloudformation describe-stacks \
             --stack-name $DATA_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' \
             --output text \
-            --region us-east-1)
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
-          BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
+          echo "bucket_role_arn=$(aws cloudformation describe-stacks \
             --stack-name $DATA_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`BucketRoleArn`].OutputValue' \
             --output text \
-            --region us-east-1)
-
-          echo "vpc_id=$VPC_ID" >> $GITHUB_OUTPUT
-          echo "private_subnet_ids=$PRIVATE_SUBNET_IDS" >> $GITHUB_OUTPUT
-          echo "service_security_group_id=$SERVICE_SECURITY_GROUP_ID" >> $GITHUB_OUTPUT
-          echo "service_discovery_namespace_id=$SERVICE_DISCOVERY_NAMESPACE_ID" >> $GITHUB_OUTPUT
-          echo "github_token_arn=$GITHUB_TOKEN_ARN" >> $GITHUB_OUTPUT
-          echo "service_secret_arn=$SERVICE_SECRET_ARN" >> $GITHUB_OUTPUT
-          echo "secrets_role_arn=$SECRETS_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
-          echo "bucket_role_arn=$BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+            --region us-east-1)" >> $GITHUB_OUTPUT
 
       - name: Deploy
-        run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-services-stack-cf"
-          aws cloudformation deploy \
-            --template-file infrastructure/cloudformation/services.yml \
-            --stack-name $STACK_NAME \
-            --parameter-overrides \
-              EnvironmentName="${{ inputs.environment_name }}" \
-              VpcId="${{ steps.stack-outputs.outputs.vpc_id }}" \
-              PrivateSubnetIds="${{ steps.stack-outputs.outputs.private_subnet_ids }}" \
-              ServiceSecurityGroupId="${{ steps.stack-outputs.outputs.service_security_group_id }}" \
-              ServiceDiscoveryNamespaceId="${{ steps.stack-outputs.outputs.service_discovery_namespace_id }}" \
-              ContainerTag="latest" \
-              GitHubTokenArn="${{ steps.stack-outputs.outputs.github_token_arn }}" \
-              ServiceSecretArn="${{ steps.stack-outputs.outputs.service_secret_arn }}" \
-              BucketName="${{ steps.stack-outputs.outputs.bucket_name }}" \
-              BucketRoleArn="${{ steps.stack-outputs.outputs.bucket_role_arn }}" \
-              SecretsRoleArn="${{ steps.stack-outputs.outputs.secrets_role_arn }}" \
-            --capabilities CAPABILITY_IAM \
-            --region us-east-1
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: "${{ inputs.environment_name }}-cld-services-stack-cf"
+          template: infrastructure/cloudformation/services.yml
+          parameter-overrides: |
+            EnvironmentName=${{ inputs.environment_name }}
+            VpcId=${{ steps.stack-outputs.outputs.vpc_id }}
+            PrivateSubnetIds=${{ steps.stack-outputs.outputs.private_subnet_ids }}
+            ServiceSecurityGroupId=${{ steps.stack-outputs.outputs.service_security_group_id }}
+            ServiceDiscoveryNamespaceId=${{ steps.stack-outputs.outputs.service_discovery_namespace_id }}
+            ContainerTag=latest
+            GitHubTokenArn=${{ steps.stack-outputs.outputs.github_token_arn }}
+            ServiceSecretArn=${{ steps.stack-outputs.outputs.service_secret_arn }}
+            BucketName=${{ steps.stack-outputs.outputs.bucket_name }}
+            BucketRoleArn=${{ steps.stack-outputs.outputs.bucket_role_arn }}
+            SecretsRoleArn=${{ steps.stack-outputs.outputs.secrets_role_arn }}
+          capabilities: CAPABILITY_IAM

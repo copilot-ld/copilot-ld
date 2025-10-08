@@ -31,6 +31,6 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-network-stack-cf"
           template: infrastructure/cloudformation/network.yml
-          parameter-overrides: |
+          parameter-overrides: >-
             EnvironmentName=${{ inputs.environment_name }}
           capabilities: CAPABILITY_IAM

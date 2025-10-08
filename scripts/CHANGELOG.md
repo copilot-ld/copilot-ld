@@ -2,6 +2,7 @@
 
 ## 2025-10-07
 
+- Added `query.js` script for interactive triple querying using REPL interface
 - **BREAKING**: Updated all script execution examples to use `npx env-cmd --`
   for proper environment variable loading
 - Enhanced `search.js` to use simplified resource URI format without `cld:`

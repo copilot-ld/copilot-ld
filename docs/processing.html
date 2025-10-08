@@ -519,6 +519,43 @@ ls data/resources/ | grep "MessageV2" | wc -l
 ls data/resources/ | grep "ToolFunction" | wc -l
 ls data/resources/ | grep "Assistant" | wc -l</code></pre>
 
+      <h3>7. Querying Processed Data</h3>
+      <p>
+        Query the extracted triple data using the query script. Queries use the
+        format
+        <code>&lt;subject&gt; &lt;predicate&gt; &lt;object&gt;</code> where any
+        field can be replaced with <code>?</code> as a wildcard:
+      </p>
+
+      <pre><code># Interactive mode
+node scripts/query.js
+
+# Pipe queries
+echo "? headline ?" | node scripts/query.js
+echo '? name "Agile Values"' | node scripts/query.js
+echo "#agile-manifesto ? ?" | node scripts/query.js</code></pre>
+
+      <h4>Common Query Patterns</h4>
+      <p>Find resources of a certain type:</p>
+      <pre><code>echo "? http://www.w3.org/1999/02/22-rdf-syntax-ns#type TechArticle" | node scripts/query.js</code></pre>
+
+      <p>Find resources using the type shorthand:</p>
+      <pre><code>echo "? type DefinedTerm" | node scripts/query.js</code></pre>
+
+      <p>Find all resources with any title:</p>
+      <pre><code>echo "? http://purl.org/dc/terms/title ?" | node scripts/query.js</code></pre>
+
+      <h4>Query Tips</h4>
+      <ul>
+        <li>
+          Use quotes for multi-word strings: <code>"Working software"</code>
+        </li>
+        <li>Use <code>/limit 10</code> to control result count</li>
+        <li>
+          Reference HTML element IDs directly: <code>#agile-manifesto</code>
+        </li>
+      </ul>
+
       <h3>Next Steps</h3>
       <p>Once processing is complete, proceed to:</p>
       <ul>

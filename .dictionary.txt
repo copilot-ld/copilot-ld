@@ -86,6 +86,7 @@ Integrations
 iteratively
 JavaScript
 JSON
+JSON-LD
 JSON-ND
 JSDoc
 JSONL
@@ -135,6 +136,7 @@ namespace
 namespaces
 natively
 nav
+N3
 nginx
 nginx-based
 Node.js
@@ -195,6 +197,7 @@ sanitization
 schemas
 Schemas
 SHA-256
+SPARQL-like
 src
 ssl
 SSL

@@ -8,11 +8,6 @@ on:
         required: true
         default: "demo"
         type: string
-      aws_region:
-        description: "AWS region for deployment"
-        required: true
-        default: "us-east-1"
-        type: string
       artifact_run_id:
         description: "GitHub Actions run ID containing the demo-data artifact"
         required: true
@@ -27,7 +22,7 @@ jobs:
       actions: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js and install dependencies
@@ -37,9 +32,9 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: us-east-1
 
-      - name: Get storage stack outputs
+      - name: Outputs
         id: storage
         run: |
           STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
@@ -47,17 +42,17 @@ jobs:
             --stack-name $STACK_NAME \
             --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
           S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
             --stack-name $STACK_NAME \
             --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
           echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
 
-      - name: Download demo data artifact
+      - name: Download artifact
         uses: actions/download-artifact@v5
         with:
           name: demo-data
@@ -65,7 +60,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
 
-      - name: Upload demo data
+      - name: Upload data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
           S3_BUCKET_NAME: ${{ steps.storage.outputs.s3_bucket_name }}

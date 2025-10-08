@@ -4,42 +4,49 @@ import { Store } from "n3";
 
 import { TripleIndex, parseTripleQuery } from "@copilot-ld/libtriple";
 import { Repl } from "@copilot-ld/librepl";
+import { ResourceIndex } from "@copilot-ld/libresource";
+import { Policy } from "@copilot-ld/libpolicy";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { storageFactory } from "@copilot-ld/libstorage";
 
 // Global state
 /** @type {TripleIndex} */
 let tripleIndex;
+/** @type {ResourceIndex} */
+let resourceIndex;
 
 /**
  * Performs a triple query using the parsed pattern
  * @param {string} prompt - The triple query string (e.g., "person:john ? ?")
- * @param {object} state - REPL state containing limit setting
  * @returns {Promise<string>} Formatted query results as markdown
  */
-async function performQuery(prompt, state) {
-  const { limit } = state;
-
+async function performQuery(prompt) {
   try {
-    // Parse the triple query line
+    // Parse and execute the query
     const pattern = parseTripleQuery(prompt);
-
-    // Execute the query
     const identifiers = await tripleIndex.queryItems(pattern);
+    const resources = await resourceIndex.get(
+      "common.System.root",
+      identifiers,
+    );
 
-    // Apply limit if specified
-    const limitedResults =
-      limit() > 0 ? identifiers.slice(0, limit()) : identifiers;
-
-    // Format output identical to search script
     let output = ``;
 
-    if (limitedResults.length === 0) {
+    if (identifiers.length === 0) {
       output += `No matching triples found.\n`;
     } else {
-      limitedResults.forEach((identifier, i) => {
+      identifiers.forEach((identifier, i) => {
+        const resource = resources.find((r) => r.id.name === identifier.name);
+        if (!resource) return;
+
+        // Not all resources have content, fallback to descriptor
+        const text = resource.content
+          ? String(resource.content)
+          : String(resource.descriptor);
+
         output += `# ${i + 1}\n\n`;
-        output += `${identifier}\n\n`;
+        output += `${identifier}\n`;
+        output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;
       });
     }
 
@@ -49,7 +56,7 @@ async function performQuery(prompt, state) {
       `Error: ${error.message}\n\nExample queries:\n` +
       `  person:john ? ?           # Find all triples about person:john\n` +
       `  ? foaf:name "John Doe"    # Find all people with name "John Doe"\n` +
-      `  ? ? ?                     # Find all triples (use limit to avoid overwhelming output)\n`
+      `  ? ? ?                     # Find all triples\n`
     );
   }
 }
@@ -60,12 +67,11 @@ const repl = new Repl(readline, process, createTerminalFormatter(), {
     const triplesStorage = storageFactory("triples");
     const store = new Store();
     tripleIndex = new TripleIndex(triplesStorage, store, "triples.jsonl");
-  },
-  state: {
-    limit: {
-      initial: 10,
-      description: "Maximum number of results to display (0 for no limit)",
-    },
+
+    const resourceStorage = storageFactory("resources");
+    const policyStorage = storageFactory("policies");
+    const policy = new Policy(policyStorage);
+    resourceIndex = new ResourceIndex(resourceStorage, policy);
   },
   commands: {
     help: {
@@ -83,9 +89,6 @@ Rules:
   ? foaf:name "John Doe"    # Find entities named "John Doe"
   ? rdf:type Person         # Find all Person instances
   ? ? ?                     # Find all triples
-
-State Commands:
-- /limit <number>           # Set result limit (0 = no limit)
 
 Other Commands:
 - /help                     # Show this help

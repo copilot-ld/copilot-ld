@@ -12,7 +12,7 @@ export class TripleIndex {
   #storage;
   #store;
   #indexKey;
-  #index = new Map(); // Map of resource URI to identifier mapping
+  #index = new Map();
   #loaded = false;
 
   /**
@@ -37,14 +37,6 @@ export class TripleIndex {
    */
   storage() {
     return this.#storage;
-  }
-
-  /**
-   * Gets the N3 store instance
-   * @returns {Store} N3 Store instance
-   */
-  store() {
-    return this.#store;
   }
 
   /**
@@ -114,25 +106,13 @@ export class TripleIndex {
    * @returns {Promise<void>}
    */
   async loadData() {
-    if (!(await this.#storage.exists(this.#indexKey))) {
-      // Initialize empty index for new systems
-      this.#index.clear();
-      this.#loaded = true;
-      return;
-    }
-
-    // Storage automatically parses .jsonl files into arrays
     const items = await this.#storage.get(this.#indexKey);
     const parsedItems = Array.isArray(items) ? items : [];
-
-    // Populate the index map and N3 store
-    this.#index.clear();
-    this.#store.removeMatches(); // Clear existing triples
 
     for (const item of parsedItems) {
       this.#index.set(item.uri, item);
 
-      // Re-add quads to N3 store if they exist
+      // Add quads to N3 store if they exist
       if (item.quads && Array.isArray(item.quads)) {
         for (const quad of item.quads) {
           this.#store.addQuad(
@@ -205,60 +185,39 @@ export function parseTripleQuery(line) {
     throw new Error("line cannot be empty");
   }
 
-  const parts = [];
-  let current = "";
-  let inQuotes = false;
-  let i = 0;
-
-  while (i < trimmed.length) {
-    const char = trimmed[i];
-
-    if (char === '"' && (i === 0 || trimmed[i - 1] !== "\\")) {
-      inQuotes = !inQuotes;
-      current += char;
-    } else if (char === " " && !inQuotes) {
-      if (current.trim()) {
-        parts.push(current.trim());
-        current = "";
-      }
-    } else {
-      current += char;
-    }
-    i++;
-  }
-
-  if (current.trim()) {
-    parts.push(current.trim());
-  }
-
-  if (inQuotes) {
+  // Check for unterminated quotes
+  const quoteCount = (trimmed.match(/"/g) || []).length;
+  if (quoteCount % 2 !== 0) {
     throw new Error("Unterminated quoted string");
   }
 
-  if (parts.length !== 3) {
+  // Use regex to split on spaces but preserve quoted strings
+  const terms = trimmed.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+
+  if (terms.length !== 3) {
     throw new Error(
-      `Expected 3 parts (subject predicate object), got ${parts.length}`,
+      `Expected 3 parts (subject predicate object), got ${terms.length}`,
     );
   }
 
-  // Process each part: convert '?' to null, remove quotes from strings
-  const [subjectPart, predicatePart, objectPart] = parts;
+  const [subject, predicate, object] = terms;
 
-  const subject = subjectPart === "?" ? null : subjectPart;
+  // Helper function to parse RDF terms
+  const parseTerm = (value) => (value === "?" ? null : value);
 
-  // Handle predicate shorthand "type"
-  let predicate = predicatePart === "?" ? null : predicatePart;
-  if (predicate === "type") {
-    predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-  }
-
-  let object = objectPart === "?" ? null : objectPart;
-  // Remove quotes from object if it's a quoted string
-  if (object && object.startsWith('"') && object.endsWith('"')) {
-    object = object.slice(1, -1);
-  }
-
-  return { subject, predicate, object };
+  return {
+    subject: parseTerm(subject),
+    predicate: parseTerm(
+      predicate === "type"
+        ? "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        : predicate,
+    ),
+    object: parseTerm(
+      object?.startsWith('"') && object.endsWith('"')
+        ? object.slice(1, -1)
+        : object,
+    ),
+  };
 }
 
 export { TripleProcessor } from "./processor.js";

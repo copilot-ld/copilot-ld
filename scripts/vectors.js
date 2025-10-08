@@ -15,12 +15,12 @@ const config = await ScriptConfig.create("vectors");
  * Processes resources into vector embeddings
  */
 async function main() {
-  const resourcesStorage = storageFactory("resources");
+  const resourceStorage = storageFactory("resources");
   const vectorStorage = storageFactory("vectors");
-  const policiesStorage = storageFactory("policies");
+  const policyStorage = storageFactory("policies");
 
-  const policy = new Policy(policiesStorage);
-  const resourceIndex = new ResourceIndex(resourcesStorage, policy);
+  const policy = new Policy(policyStorage);
+  const resourceIndex = new ResourceIndex(resourceStorage, policy);
   const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
   const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
   const llm = llmFactory(await config.githubToken());

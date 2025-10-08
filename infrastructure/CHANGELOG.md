@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-08
+
+- **FIXED**: Service discovery namespace in `network.yml` now uses simple
+  `copilot-ld.local` name instead of `${EnvironmentName}.copilot-ld.local` to
+  match client hostname resolution expectations
+- **IMPROVED**: Services are now discoverable at expected addresses like
+  `agent.copilot-ld.local`, `memory.copilot-ld.local`, etc.
+
 ## 2025-10-07
 
 - **FIXED**: Added `Ensure data directories exist` step to `demo-upload.yml`

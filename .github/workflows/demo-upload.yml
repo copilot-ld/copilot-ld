@@ -56,13 +56,12 @@ jobs:
 
           echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
           echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
 
       - name: Download demo data artifact
         uses: actions/download-artifact@v5
         with:
           name: demo-data
-          run-id: ${{ inputs.artifact_run_id || '' }}
+          run-id: ${{ inputs.artifact_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
 
@@ -72,23 +71,4 @@ jobs:
           S3_BUCKET_NAME: ${{ steps.storage.outputs.s3_bucket_name }}
           S3_BUCKET_ROLE_ARN: ${{ steps.storage.outputs.s3_bucket_role_arn }}
         run: |
-          # Ensure all data directories exist before upload
-          npm run init
-          # Final upload command
           npx --workspace=@copilot-ld/libutil upload
-
-      - name: Display upload summary
-        run: |
-          echo "✅ Copilot-LD Demo: Data Uploaded to Storage"
-          echo ""
-          echo "Storage Stack: ${{ steps.storage.outputs.stack_name }}"
-          echo "Region: ${{ inputs.aws_region }}"
-          echo ""
-          echo "Upload Target:"
-          echo "  S3 Bucket: ${{ steps.storage.outputs.s3_bucket_name }}"
-          echo "  Bucket Role ARN: ${{ steps.storage.outputs.s3_bucket_role_arn }}"
-          echo ""
-          echo "Knowledge Base: Demo data uploaded and indexed"
-          echo ""
-          echo "Next Step: Deploy application services"
-          echo "Workflow: demo-services.yml"

@@ -38,19 +38,16 @@ jobs:
         id: storage
         run: |
           STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
-          S3_BUCKET_NAME=$(aws cloudformation describe-stacks \
+          echo "s3_bucket_name=$(aws cloudformation describe-stacks \
             --stack-name $STACK_NAME \
             --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
             --output text \
             --region us-east-1)
-          S3_BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
+          echo "s3_bucket_role_arn=$(aws cloudformation describe-stacks \
             --stack-name $STACK_NAME \
             --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
             --output text \
-            --region us-east-1)
-
-          echo "s3_bucket_name=$S3_BUCKET_NAME" >> $GITHUB_OUTPUT
-          echo "s3_bucket_role_arn=$S3_BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+            --region us-east-1)" >> $GITHUB_OUTPUT"
 
       - name: Download artifact
         uses: actions/download-artifact@v5

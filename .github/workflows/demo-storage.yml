@@ -31,6 +31,6 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-data-stack-cf"
           template: infrastructure/cloudformation/storage.yml
-          parameter-overrides: |
+          parameter-overrides: >-
             EnvironmentName=${{ inputs.environment_name }}
           capabilities: CAPABILITY_IAM

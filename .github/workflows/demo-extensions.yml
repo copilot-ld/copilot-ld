@@ -105,18 +105,20 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-extensions-stack-cf"
           template: infrastructure/cloudformation/extensions.yml
-          parameter-overrides: |
-            EnvironmentName=${{ inputs.environment_name }}
-            VpcId=${{ steps.stack-outputs.outputs.vpc_id }}
-            PrivateSubnetIds=${{ steps.stack-outputs.outputs.private_subnet_ids }}
-            ServiceSecurityGroupId=${{ steps.stack-outputs.outputs.service_security_group_id }}
-            ALBListenerArn=${{ steps.stack-outputs.outputs.alb_listener_arn }}
-            ServiceDiscoveryNamespaceId=${{ steps.stack-outputs.outputs.service_discovery_namespace_id }}
-            ContainerTag=latest
-            GitHubTokenArn=${{ steps.stack-outputs.outputs.github_token_arn }}
-            ServiceSecretArn=${{ steps.stack-outputs.outputs.service_secret_arn }}
-            BucketName=${{ steps.stack-outputs.outputs.bucket_name }}
-            BucketRoleArn=${{ steps.stack-outputs.outputs.bucket_role_arn }}
+          parameter-overrides: >-
+            EnvironmentName=${{ inputs.environment_name }}, VpcId=${{
+            steps.stack-outputs.outputs.vpc_id }}, PrivateSubnetIds=${{
+            steps.stack-outputs.outputs.private_subnet_ids }},
+            ServiceSecurityGroupId=${{
+            steps.stack-outputs.outputs.service_security_group_id }},
+            ALBListenerArn=${{ steps.stack-outputs.outputs.alb_listener_arn }},
+            ServiceDiscoveryNamespaceId=${{
+            steps.stack-outputs.outputs.service_discovery_namespace_id }},
+            ContainerTag=latest, GitHubTokenArn=${{
+            steps.stack-outputs.outputs.github_token_arn }},
+            ServiceSecretArn=${{ steps.stack-outputs.outputs.service_secret_arn
+            }}, BucketName=${{ steps.stack-outputs.outputs.bucket_name }},
+            BucketRoleArn=${{ steps.stack-outputs.outputs.bucket_role_arn }},
             SecretsRoleArn=${{ steps.stack-outputs.outputs.secrets_role_arn }}
           capabilities: CAPABILITY_IAM
 

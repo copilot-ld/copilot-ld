@@ -45,6 +45,7 @@ destructuring
 dev
 DevOps
 DI
+discoverable
 distroless
 Docker
 dockerfile
@@ -75,6 +76,7 @@ hgroup
 HMAC
 HMAC-based
 HMAC-SHA256
+hostname
 href
 HTML
 HTML5

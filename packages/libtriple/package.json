@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libtriple",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RDF triple index and processing utilities",
   "type": "module",
   "main": "index.js",

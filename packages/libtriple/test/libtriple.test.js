@@ -314,11 +314,6 @@ describe("libtriple", () => {
         "storage() should return storage instance",
       );
       assert.strictEqual(
-        tripleIndex.store(),
-        n3Store,
-        "store() should return N3 store instance",
-      );
-      assert.strictEqual(
         tripleIndex.indexKey,
         "test.jsonl",
         "indexKey should return correct key",

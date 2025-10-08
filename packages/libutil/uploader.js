@@ -30,6 +30,7 @@ export class Uploader {
       "memories",
       "policies",
       "resources",
+      "triples",
       "vectors",
     ];
     this.#local = {};

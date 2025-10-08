@@ -8,41 +8,6 @@ on:
         required: true
         default: "demo"
         type: string
-      vpc_id:
-        description: "VPC ID for deployment"
-        required: true
-        type: string
-      private_subnet_ids:
-        description:
-          "Private subnet IDs for web extension (comma-separated list, minimum
-          two)"
-        required: true
-        type: string
-      network_stack_name:
-        description: "Name of the network CloudFormation stack"
-        required: true
-        default: "demo-cld-network-stack-cf"
-        type: string
-      secrets_stack_name:
-        description: "Name of the secrets CloudFormation stack"
-        required: true
-        default: "demo-cld-secrets-stack-cf"
-        type: string
-      data_stack_name:
-        description: "Name of the data CloudFormation stack"
-        required: true
-        default: "demo-cld-data-stack-cf"
-        type: string
-      container_tag:
-        description: "Container image tag to deploy"
-        required: false
-        default: "latest"
-        type: string
-      aws_region:
-        description: "AWS region for deployment"
-        required: true
-        default: "us-east-1"
-        type: string
 
 jobs:
   deploy-extensions:
@@ -52,75 +17,94 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: us-east-1
 
-      - name: Get stack outputs
+      - name: Outputs
         id: stack-outputs
         run: |
+          # Build stack names from environment name
+          NETWORK_STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
+          SECRETS_STACK_NAME="${{ inputs.environment_name }}-cld-secrets-stack-cf"
+          DATA_STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
+
           # Get outputs from network stack
+          VPC_ID=$(aws cloudformation describe-stacks \
+            --stack-name $NETWORK_STACK_NAME \
+            --query 'Stacks[0].Outputs[?OutputKey==`VpcId`].OutputValue' \
+            --output text \
+            --region us-east-1)
+
+          PRIVATE_SUBNET_IDS=$(aws cloudformation describe-stacks \
+            --stack-name $NETWORK_STACK_NAME \
+            --query 'Stacks[0].Outputs[?OutputKey==`PrivateSubnetIds`].OutputValue' \
+            --output text \
+            --region us-east-1)
+
           SERVICE_SECURITY_GROUP_ID=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.network_stack_name }} \
+            --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecurityGroupId`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           ALB_LISTENER_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.network_stack_name }} \
+            --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ALBListenerArn`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           SERVICE_DISCOVERY_NAMESPACE_ID=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.network_stack_name }} \
+            --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceDiscoveryNamespaceId`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           ALB_DNS_NAME=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.network_stack_name }} \
+            --stack-name $NETWORK_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ApplicationLoadBalancerDNSName`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           # Get outputs from secrets stack
           GITHUB_TOKEN_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.secrets_stack_name }} \
+            --stack-name $SECRETS_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`GitHubTokenArn`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           SERVICE_SECRET_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.secrets_stack_name }} \
+            --stack-name $SECRETS_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecretArn`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           SECRETS_ROLE_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.secrets_stack_name }} \
+            --stack-name $SECRETS_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`SecretsRoleArn`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           # Get outputs from data stack
           BUCKET_NAME=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.data_stack_name }} \
+            --stack-name $DATA_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
           BUCKET_ROLE_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${{ inputs.data_stack_name }} \
+            --stack-name $DATA_STACK_NAME \
             --query 'Stacks[0].Outputs[?OutputKey==`BucketRoleArn`].OutputValue' \
             --output text \
-            --region ${{ inputs.aws_region }})
+            --region us-east-1)
 
+          echo "vpc_id=$VPC_ID" >> $GITHUB_OUTPUT
+          echo "private_subnet_ids=$PRIVATE_SUBNET_IDS" >> $GITHUB_OUTPUT
           echo "service_security_group_id=$SERVICE_SECURITY_GROUP_ID" >> $GITHUB_OUTPUT
           echo "alb_listener_arn=$ALB_LISTENER_ARN" >> $GITHUB_OUTPUT
           echo "service_discovery_namespace_id=$SERVICE_DISCOVERY_NAMESPACE_ID" >> $GITHUB_OUTPUT
@@ -131,7 +115,7 @@ jobs:
           echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
           echo "bucket_role_arn=$BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
 
-      - name: Deploy extensions
+      - name: Deploy
         id: deploy
         run: |
           STACK_NAME="${{ inputs.environment_name }}-cld-extensions-stack-cf"
@@ -140,28 +124,21 @@ jobs:
             --stack-name $STACK_NAME \
             --parameter-overrides \
               EnvironmentName="${{ inputs.environment_name }}" \
-              VpcId="${{ inputs.vpc_id }}" \
-              PrivateSubnetIds="${{ inputs.private_subnet_ids }}" \
+              VpcId="${{ steps.stack-outputs.outputs.vpc_id }}" \
+              PrivateSubnetIds="${{ steps.stack-outputs.outputs.private_subnet_ids }}" \
               ServiceSecurityGroupId="${{ steps.stack-outputs.outputs.service_security_group_id }}" \
               ALBListenerArn="${{ steps.stack-outputs.outputs.alb_listener_arn }}" \
               ServiceDiscoveryNamespaceId="${{ steps.stack-outputs.outputs.service_discovery_namespace_id }}" \
-              ContainerTag="${{ inputs.container_tag }}" \
+              ContainerTag="latest" \
               GitHubTokenArn="${{ steps.stack-outputs.outputs.github_token_arn }}" \
               ServiceSecretArn="${{ steps.stack-outputs.outputs.service_secret_arn }}" \
               BucketName="${{ steps.stack-outputs.outputs.bucket_name }}" \
               BucketRoleArn="${{ steps.stack-outputs.outputs.bucket_role_arn }}" \
               SecretsRoleArn="${{ steps.stack-outputs.outputs.secrets_role_arn }}" \
             --capabilities CAPABILITY_IAM \
-            --region ${{ inputs.aws_region }}
+            --region us-east-1
           echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
 
-      - name: Display deployment summary
+      - name: Display ALB URL
         run: |
-          echo "✅ Copilot-LD Demo: Extensions Deployed (Step 5/5)"
-          echo ""
-          echo "Stack: ${{ steps.deploy.outputs.stack_name }}"
-          echo "Region: ${{ inputs.aws_region }}"
-          echo ""
-          echo "Web Extension URL: http://${{ steps.stack-outputs.outputs.alb_dns_name }}/web"
-          echo ""
-          echo "✅ Deployment Complete! All services are ready for use."
+          echo "ALB URL: http://${{ steps.stack-outputs.outputs.alb_dns_name }}"

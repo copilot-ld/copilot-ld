@@ -8,11 +8,6 @@ on:
         required: true
         default: "demo"
         type: string
-      aws_region:
-        description: "AWS region for deployment"
-        required: true
-        default: "us-east-1"
-        type: string
 
 jobs:
   deploy-network:
@@ -22,16 +17,16 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: us-east-1
 
-      - name: Deploy network infrastructure
+      - name: Deploy
         run: |
           STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
           aws cloudformation deploy \
@@ -40,39 +35,4 @@ jobs:
             --parameter-overrides \
               EnvironmentName=${{ inputs.environment_name }} \
             --capabilities CAPABILITY_IAM \
-            --region ${{ inputs.aws_region }}
-
-      - name: Get network stack outputs
-        id: network-outputs
-        run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
-          # Get outputs from network stack
-          VPC_ID=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`VpcId`].OutputValue' \
-            --output text \
-            --region ${{ inputs.aws_region }})
-
-          PRIVATE_SUBNET_IDS=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`PrivateSubnetIds`].OutputValue' \
-            --output text \
-            --region ${{ inputs.aws_region }})
-
-          echo "vpc_id=$VPC_ID" >> $GITHUB_OUTPUT
-          echo "private_subnet_ids=$PRIVATE_SUBNET_IDS" >> $GITHUB_OUTPUT
-          echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
-
-      - name: Display deployment summary
-        run: |
-          echo "✅ Copilot-LD Demo: Network Infrastructure Deployed (Step 1/5)"
-          echo ""
-          echo "Stack: ${{ steps.network-outputs.outputs.stack_name }}"
-          echo "Region: ${{ inputs.aws_region }}"
-          echo ""
-          echo "Network Resources:"
-          echo "  VPC ID: ${{ steps.network-outputs.outputs.vpc_id }}"
-          echo "  Private Subnets: ${{ steps.network-outputs.outputs.private_subnet_ids }}"
-          echo ""
-          echo "Next Step: Deploy secrets infrastructure"
-          echo "Workflow: demo-secrets.yml"
+            --region us-east-1

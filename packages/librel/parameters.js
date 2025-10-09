@@ -1,5 +1,5 @@
 /**
- * @file Release outputs management utilities for CloudFormation stacks
+ * @file Release parameters management utilities for CloudFormation stacks
  */
 
 import {
@@ -9,17 +9,19 @@ import {
 
 /**
  * Retrieves CloudFormation stack outputs and formats them for parameter files
- * @class StackOutputs
+ * @class StackParameters
  */
-export class StackOutputs {
+export class StackParameters {
   #client;
 
   /**
-   * Creates a new StackOutputs instance
+   * Creates a new StackParameters instance
    * @param {CloudFormationClient} client - CloudFormation client dependency
    */
   constructor(client) {
-    if (!client) throw new Error("CloudFormation client is required");
+    if (!client) {
+      throw new Error("CloudFormation client is required");
+    }
     this.#client = client;
   }
 
@@ -28,7 +30,7 @@ export class StackOutputs {
    * @param {Record<string, string[]>} map - Map of stack names to output keys
    * @returns {Promise<object[]>} Array of parameter objects compatible with AWS CLI
    * @example
-   * const outputs = await stackOutputs.retrieve({
+   * const outputs = await stackParameters.retrieve({
    *   'network-stack': ['VpcId', 'SubnetIds'],
    *   'secrets-stack': ['TokenArn']
    * });
@@ -53,6 +55,33 @@ export class StackOutputs {
           });
         }
       }
+    }
+
+    return parameters;
+  }
+
+  /**
+   * Converts a simple key-value map to CloudFormation parameters format
+   * @param {Record<string, string>} map - Simple key-value map
+   * @returns {object[]} Array of parameter objects compatible with AWS CLI
+   * @example
+   * const parameters = stackParameters.amend({
+   *   'VpcId': 'vpc-123',
+   *   'SubnetIds': 'subnet-1,subnet-2'
+   * });
+   * // Returns: [
+   * //   { ParameterKey: 'VpcId', ParameterValue: 'vpc-123' },
+   * //   { ParameterKey: 'SubnetIds', ParameterValue: 'subnet-1,subnet-2' }
+   * // ]
+   */
+  amend(map) {
+    const parameters = [];
+
+    for (const [key, value] of Object.entries(map)) {
+      parameters.push({
+        ParameterKey: key,
+        ParameterValue: value,
+      });
     }
 
     return parameters;

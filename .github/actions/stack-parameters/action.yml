@@ -1,0 +1,62 @@
+name: "Stack Parameters"
+description:
+  "Retrieve CloudFormation stack outputs and amend parameters for deployment"
+author: "copilot-ld"
+
+inputs:
+  retrieve:
+    description: "JSON object mapping stack names to output keys to retrieve"
+    required: false
+    default: ""
+  amend:
+    description: "JSON object with key-value pairs to amend to parameters"
+    required: false
+    default: ""
+  output-file:
+    description: "Output file path for parameters (default: parameters.json)"
+    required: false
+    default: "parameters.json"
+  aws-region:
+    description: "AWS region for CloudFormation operations"
+    required: false
+    default: "us-east-1"
+
+outputs:
+  parameters-file:
+    description: "Path to the generated parameters file"
+    value: ${{ steps.process.outputs.parameters-file }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+        cache: "npm"
+        cache-dependency-path:
+          "${{ github.action_path }}/../../package-lock.json"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}/../..
+        npm ci
+
+    - name: Process stack parameters
+      id: process
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+      run: |
+        cd ${{ github.action_path }}/../..
+
+        if [ -n "${{ inputs.retrieve }}" ] && [ "${{ inputs.retrieve }}" != "" ]; then
+          echo '${{ inputs.retrieve }}' | node scripts/stack-parameters.js --retrieve --file="${{ inputs.output-file }}"
+        fi
+
+        if [ -n "${{ inputs.amend }}" ] && [ "${{ inputs.amend }}" != "" ]; then
+          echo '${{ inputs.amend }}' | node scripts/stack-parameters.js --amend --file="${{ inputs.output-file }}"
+        fi
+
+        echo "parameters-file=$(pwd)/${{ inputs.output-file }}" >> $GITHUB_OUTPUT

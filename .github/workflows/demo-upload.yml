@@ -34,22 +34,15 @@ jobs:
           role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Outputs
-        id: storage
+      - name: Parameters
+        id: parameters
         run: |
-          STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
+          echo '{
+            "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
+          }' | node scripts/release-outputs.js > parameters.json
 
-          echo "s3_bucket_name=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "s3_bucket_role_arn=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --query "Stacks[0].Outputs[?OutputKey=='BucketRoleArn'].OutputValue" \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
+          echo "s3_bucket_name=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' parameters.json)" >> $GITHUB_OUTPUT
+          echo "s3_bucket_role_arn=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' parameters.json)" >> $GITHUB_OUTPUT
 
       - name: Download artifact
         uses: actions/download-artifact@v5
@@ -62,7 +55,7 @@ jobs:
       - name: Upload data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
-          S3_BUCKET_NAME: ${{ steps.storage.outputs.s3_bucket_name }}
-          S3_BUCKET_ROLE_ARN: ${{ steps.storage.outputs.s3_bucket_role_arn }}
+          S3_BUCKET_NAME: ${{ steps.parameters.outputs.s3_bucket_name }}
+          S3_BUCKET_ROLE_ARN: ${{ steps.parameters.outputs.s3_bucket_role_arn }}
         run: |
           npx --workspace=@copilot-ld/libutil upload

@@ -30,13 +30,16 @@ jobs:
           aws-region: us-east-1
 
       - name: Parameters
-        run: |
-          echo '[{"ParameterKey": "EnvironmentName", "ParameterValue": "${{ inputs.environment_name }}"}]' > parameters.json
+        id: parameters
+        uses: ./.github/actions/stack-parameters
+        with:
+          amend: '{"EnvironmentName": "${{ inputs.environment_name }}"}'
 
       - name: Deploy
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: "${{ inputs.environment_name }}-cld-network-stack-cf"
           template: infrastructure/cloudformation/network.yml
-          parameter-overrides: "file:///${{ github.workspace }}/parameters.json"
+          parameter-overrides:
+            "file://${{ steps.parameters.outputs.parameters-file }}"
           capabilities: CAPABILITY_IAM

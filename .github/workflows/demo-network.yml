@@ -38,5 +38,5 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-network-stack-cf"
           template: infrastructure/cloudformation/network.yml
-          parameter-overrides: file://parameters.json
+          parameter-overrides: "file:///${{ github.workspace }}/parameters.json"
           capabilities: CAPABILITY_IAM

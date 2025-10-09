@@ -38,5 +38,5 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-data-stack-cf"
           template: infrastructure/cloudformation/storage.yml
-          parameter-overrides: file://parameters.json
+          parameter-overrides: "file:///${{ github.workspace }}/parameters.json"
           capabilities: CAPABILITY_IAM

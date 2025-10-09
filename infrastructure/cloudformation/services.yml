@@ -56,38 +56,31 @@ Resources:
   # ECS cluster for hosting Copilot-LD services
   ECSCluster:
     Type: AWS::ECS::Cluster
-    Properties:
-      ClusterName: !Sub "${EnvironmentName}-cld-services-cluster-cf"
 
   # CloudWatch log groups for service logging
   AgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-agent-loggroup-cf"
       RetentionInDays: 7
 
   MemoryLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-memory-loggroup-cf"
       RetentionInDays: 7
 
   LLMLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-llm-loggroup-cf"
       RetentionInDays: 7
 
   VectorLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-vector-loggroup-cf"
       RetentionInDays: 7
 
   ToolLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-tool-loggroup-cf"
       RetentionInDays: 7
 
   # ==========================================
@@ -98,7 +91,6 @@ Resources:
   AgentTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Sub "${EnvironmentName}-cld-agent-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -136,7 +128,6 @@ Resources:
   MemoryTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Sub "${EnvironmentName}-cld-memory-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -174,7 +165,6 @@ Resources:
   LLMTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Sub "${EnvironmentName}-cld-llm-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -212,7 +202,6 @@ Resources:
   VectorTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Sub "${EnvironmentName}-cld-vector-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -250,7 +239,6 @@ Resources:
   ToolTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Sub "${EnvironmentName}-cld-tool-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -348,7 +336,6 @@ Resources:
   AgentService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub "${EnvironmentName}-cld-agent-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref AgentTaskDefinition
       DesiredCount: 1
@@ -365,7 +352,6 @@ Resources:
   MemoryService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub "${EnvironmentName}-cld-memory-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref MemoryTaskDefinition
       DesiredCount: 1
@@ -382,7 +368,6 @@ Resources:
   LLMService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub "${EnvironmentName}-cld-llm-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref LLMTaskDefinition
       DesiredCount: 1
@@ -399,7 +384,6 @@ Resources:
   VectorService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub "${EnvironmentName}-cld-vector-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref VectorTaskDefinition
       DesiredCount: 1
@@ -416,7 +400,6 @@ Resources:
   ToolService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub "${EnvironmentName}-cld-tool-service-cf"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref ToolTaskDefinition
       DesiredCount: 1

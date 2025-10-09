@@ -15,17 +15,10 @@ Resources:
       CidrBlock: 10.0.0.0/16
       EnableDnsHostnames: true
       EnableDnsSupport: true
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-network-vpc-cf"
 
   # Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-network-igw-cf"
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -41,9 +34,6 @@ Resources:
       AvailabilityZone: !Select [0, !GetAZs ""]
       CidrBlock: 10.0.1.0/24
       MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-public1-subnet-cf"
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -52,9 +42,6 @@ Resources:
       AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: 10.0.2.0/24
       MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-public2-subnet-cf"
 
   # Private Subnets
   PrivateSubnet1:
@@ -63,9 +50,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs ""]
       CidrBlock: 10.0.3.0/24
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-private1-subnet-cf"
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -73,9 +57,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: 10.0.4.0/24
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-private2-subnet-cf"
 
   # NAT Gateway (single instance for cost efficiency)
   NatGatewayEIP:
@@ -95,9 +76,6 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-publicroutes-rtable-cf"
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -123,9 +101,6 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-privateroutes-rtable-cf"
 
   DefaultPrivateRoute:
     Type: AWS::EC2::Route
@@ -154,7 +129,6 @@ Resources:
   ServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub "${EnvironmentName}-cld-services-secgroup-cf"
       GroupDescription: Security group for all Copilot-LD services
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -162,9 +136,6 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-services-secgroup-cf"
 
   # Add self-referencing ingress rules separately to avoid circular dependency
   ServiceSecurityGroupIngressInternal:
@@ -189,7 +160,6 @@ Resources:
   VPCEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub "${EnvironmentName}-cld-endpoints-secgroup-cf"
       GroupDescription: Security group for VPC endpoints
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -197,9 +167,6 @@ Resources:
           FromPort: 443
           ToPort: 443
           SourceSecurityGroupId: !Ref ServiceSecurityGroup
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-endpoints-secgroup-cf"
 
   # ==========================================
   # VPC ENDPOINTS FOR AWS SERVICES
@@ -284,7 +251,6 @@ Resources:
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Sub "${EnvironmentName}-cld-web-alb-cf"
       Type: application
       Scheme: internet-facing
       Subnets:
@@ -292,9 +258,6 @@ Resources:
         - !Ref PublicSubnet2
       SecurityGroups:
         - !Ref ServiceSecurityGroup
-      Tags:
-        - Key: Name
-          Value: !Sub "${EnvironmentName}-cld-web-alb-cf"
 
   # HTTP listener with default 404 response for unmatched paths
   ALBListener:

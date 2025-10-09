@@ -20,84 +20,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Outputs
-        id: stack-outputs
+      - name: Parameters
+        id: parameters
         run: |
-          NETWORK_STACK_NAME="${{ inputs.environment_name }}-cld-network-stack-cf"
-          SECRETS_STACK_NAME="${{ inputs.environment_name }}-cld-secrets-stack-cf"
-          DATA_STACK_NAME="${{ inputs.environment_name }}-cld-data-stack-cf"
+          echo '{
+            "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ALBListenerArn", "ServiceDiscoveryNamespaceId", "ApplicationLoadBalancerDNSName"],
+            "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
+            "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
+          }' | node scripts/release-outputs.js > temp-parameters.json
 
-          echo "vpc_id=$(aws cloudformation describe-stacks \
-            --stack-name $NETWORK_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`VpcId`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
+          jq '. + [
+            {"ParameterKey": "EnvironmentName", "ParameterValue": "${{ inputs.environment_name }}"},
+            {"ParameterKey": "ContainerTag", "ParameterValue": "latest"}
+          ]' temp-parameters.json > parameters.json
 
-          echo "private_subnet_ids=$(aws cloudformation describe-stacks \
-            --stack-name $NETWORK_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`PrivateSubnetIds`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "service_security_group_id=$(aws cloudformation describe-stacks \
-            --stack-name $NETWORK_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecurityGroupId`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "alb_listener_arn=$(aws cloudformation describe-stacks \
-            --stack-name $NETWORK_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`ALBListenerArn`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "service_discovery_namespace_id=$(aws cloudformation describe-stacks \
-            --stack-name $NETWORK_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`ServiceDiscoveryNamespaceId`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "alb_dns_name=$(aws cloudformation describe-stacks \
-            --stack-name $NETWORK_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`ApplicationLoadBalancerDNSName`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "github_token_arn=$(aws cloudformation describe-stacks \
-            --stack-name $SECRETS_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`GitHubTokenArn`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "service_secret_arn=$(aws cloudformation describe-stacks \
-            --stack-name $SECRETS_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`ServiceSecretArn`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "secrets_role_arn=$(aws cloudformation describe-stacks \
-            --stack-name $SECRETS_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`SecretsRoleArn`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "bucket_name=$(aws cloudformation describe-stacks \
-            --stack-name $DATA_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
-
-          echo "bucket_role_arn=$(aws cloudformation describe-stacks \
-            --stack-name $DATA_STACK_NAME \
-            --query 'Stacks[0].Outputs[?OutputKey==`BucketRoleArn`].OutputValue' \
-            --output text \
-            --region us-east-1)" >> $GITHUB_OUTPUT
+          echo "alb_dns_name=$(jq -r '.[] | select(.ParameterKey == "ApplicationLoadBalancerDNSName") | .ParameterValue' parameters.json)" >> $GITHUB_OUTPUT
 
       - name: Deploy
         id: deploy
@@ -105,27 +51,9 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-extensions-stack-cf"
           template: infrastructure/cloudformation/extensions.yml
-          parameter-overrides: >-
-            EnvironmentName=${{ inputs.environment_name }}, VpcId=${{
-            steps.stack-outputs.outputs.vpc_id }}, PrivateSubnetIds=${{
-            steps.stack-outputs.outputs.private_subnet_ids }},
-            ServiceSecurityGroupId=${{
-            steps.stack-outputs.outputs.service_security_group_id }},
-            ALBListenerArn=${{ steps.stack-outputs.outputs.alb_listener_arn }},
-            ServiceDiscoveryNamespaceId=${{
-            steps.stack-outputs.outputs.service_discovery_namespace_id }},
-            ContainerTag=latest, GitHubTokenArn=${{
-            steps.stack-outputs.outputs.github_token_arn }},
-            ServiceSecretArn=${{ steps.stack-outputs.outputs.service_secret_arn
-            }}, BucketName=${{ steps.stack-outputs.outputs.bucket_name }},
-            BucketRoleArn=${{ steps.stack-outputs.outputs.bucket_role_arn }},
-            SecretsRoleArn=${{ steps.stack-outputs.outputs.secrets_role_arn }}
+          parameter-overrides: file://parameters.json
           capabilities: CAPABILITY_IAM
-
-      - name: Set stack name output
-        run: |
-          echo "stack_name=${{ inputs.environment_name }}-cld-extensions-stack-cf" >> $GITHUB_OUTPUT
 
       - name: Display ALB URL
         run: |
-          echo "ALB URL: http://${{ steps.stack-outputs.outputs.alb_dns_name }}"
+          echo "ALB URL: http://${{ steps.parameters.outputs.alb_dns_name }}"

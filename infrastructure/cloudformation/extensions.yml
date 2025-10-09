@@ -61,8 +61,6 @@ Resources:
   # ECS cluster for hosting extension services
   ExtensionsCluster:
     Type: AWS::ECS::Cluster
-    Properties:
-      ClusterName: !Sub "${EnvironmentName}-cld-extensions-cluster-cf"
 
   # ==========================================
   # ALB TARGET GROUP AND ROUTING
@@ -72,7 +70,6 @@ Resources:
   WebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub "${EnvironmentName}-cld-web-tgroup-cf"
       Port: 3000
       Protocol: HTTP
       VpcId: !Ref VpcId
@@ -106,7 +103,6 @@ Resources:
   WebLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/ecs/${EnvironmentName}-cld-web-loggroup-cf"
       RetentionInDays: 7
 
   # ==========================================
@@ -117,7 +113,6 @@ Resources:
   WebTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Sub "${EnvironmentName}-cld-web-taskdef-cf"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -161,7 +156,6 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn: WebListenerRule
     Properties:
-      ServiceName: !Sub "${EnvironmentName}-cld-web-service-cf"
       Cluster: !Ref ExtensionsCluster
       TaskDefinition: !Ref WebTaskDefinition
       DesiredCount: 1

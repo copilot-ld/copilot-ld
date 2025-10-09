@@ -51,7 +51,7 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-extensions-stack-cf"
           template: infrastructure/cloudformation/extensions.yml
-          parameter-overrides: file://parameters.json
+          parameter-overrides: "file:///${{ github.workspace }}/parameters.json"
           capabilities: CAPABILITY_IAM
 
       - name: Display ALB URL

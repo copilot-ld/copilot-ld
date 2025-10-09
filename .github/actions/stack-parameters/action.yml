@@ -38,7 +38,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        cd ${{ github.action_path }}/../..
+        cd $GITHUB_WORKSPACE
         npm ci
 
     - name: Process stack parameters
@@ -47,7 +47,7 @@ runs:
       env:
         AWS_REGION: ${{ inputs.aws-region }}
       run: |
-        cd ${{ github.action_path }}/../..
+        cd $GITHUB_WORKSPACE
 
         if [ -n "${{ inputs.retrieve }}" ] && [ "${{ inputs.retrieve }}" != "" ]; then
           echo '${{ inputs.retrieve }}' | node scripts/stack-parameters.js --retrieve --file="${{ inputs.output-file }}"

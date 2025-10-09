@@ -30,22 +30,26 @@ jobs:
           aws-region: us-east-1
 
       - name: Parameters
-        run: |
-          echo '{
-            "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ServiceDiscoveryNamespaceId"],
-            "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
-            "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
-          }' | node scripts/release-outputs.js > temp-parameters.json
-
-          jq '. + [
-            {"ParameterKey": "EnvironmentName", "ParameterValue": "${{ inputs.environment_name }}"},
-            {"ParameterKey": "ContainerTag", "ParameterValue": "latest"}
-          ]' temp-parameters.json > parameters.json
+        id: parameters
+        uses: ./.github/actions/stack-parameters
+        with:
+          retrieve: |
+            {
+              "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ServiceDiscoveryNamespaceId"],
+              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
+              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
+            }
+          amend: |
+            {
+              "EnvironmentName": "${{ inputs.environment_name }}",
+              "ContainerTag": "latest"
+            }
 
       - name: Deploy
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: "${{ inputs.environment_name }}-cld-services-stack-cf"
           template: infrastructure/cloudformation/services.yml
-          parameter-overrides: "file:///${{ github.workspace }}/parameters.json"
+          parameter-overrides:
+            "file://${{ steps.parameters.outputs.parameters-file }}"
           capabilities: CAPABILITY_IAM

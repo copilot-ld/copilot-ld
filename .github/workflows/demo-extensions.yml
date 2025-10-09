@@ -31,19 +31,19 @@ jobs:
 
       - name: Parameters
         id: parameters
-        run: |
-          echo '{
-            "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ALBListenerArn", "ServiceDiscoveryNamespaceId", "ApplicationLoadBalancerDNSName"],
-            "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
-            "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
-          }' | node scripts/release-outputs.js > temp-parameters.json
-
-          jq '. + [
-            {"ParameterKey": "EnvironmentName", "ParameterValue": "${{ inputs.environment_name }}"},
-            {"ParameterKey": "ContainerTag", "ParameterValue": "latest"}
-          ]' temp-parameters.json > parameters.json
-
-          echo "alb_dns_name=$(jq -r '.[] | select(.ParameterKey == "ApplicationLoadBalancerDNSName") | .ParameterValue' parameters.json)" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/stack-parameters
+        with:
+          retrieve: |
+            {
+              "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ALBListenerArn", "ServiceDiscoveryNamespaceId"],
+              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
+              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
+            }
+          amend: |
+            {
+              "EnvironmentName": "${{ inputs.environment_name }}",
+              "ContainerTag": "latest"
+            }
 
       - name: Deploy
         id: deploy
@@ -51,9 +51,10 @@ jobs:
         with:
           name: "${{ inputs.environment_name }}-cld-extensions-stack-cf"
           template: infrastructure/cloudformation/extensions.yml
-          parameter-overrides: "file:///${{ github.workspace }}/parameters.json"
+          parameter-overrides:
+            "file://${{ steps.parameters.outputs.parameters-file }}"
           capabilities: CAPABILITY_IAM
 
       - name: Display ALB URL
         run: |
-          echo "ALB URL: http://${{ steps.parameters.outputs.alb_dns_name }}"
+          echo '{"${{ inputs.environment_name }}-cld-network-stack-cf": ["ApplicationLoadBalancerDNSName"]}' | node scripts/stack-parameters.js --retrieve | jq -r '.[] | select(.ParameterKey == "ApplicationLoadBalancerDNSName") | .ParameterValue')

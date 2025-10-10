@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - **BREAKING**: Updated imports to use `@copilot-ld/librpc` services pattern
 - Integrated automatic generated code management and simplified service startup
 

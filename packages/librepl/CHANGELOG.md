@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - **BREAKING**: Simplified REPL implementation with improved constructor
   parameter order (`formatter` first, `config` second)
 - Enhanced command handling with unified function-based interface and state

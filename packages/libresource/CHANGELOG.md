@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - **BREAKING**: Updated `ResourceIndex` to work with simplified URI format
   without `cld:` prefix
 - Enhanced `ResourceIndex.get()` method to handle `null` or `undefined`

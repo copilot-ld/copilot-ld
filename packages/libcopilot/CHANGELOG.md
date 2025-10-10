@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - **BREAKING**: Updated `createCompletions()` to use explicit parameters instead
   of object parameter
 - Enhanced OpenAI API compatibility with improved message and tool formatting

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-10
+
+- Bump version
+
 ## 2025-10-07
 
 - **BREAKING**: Updated `VectorProcessor` to filter conversations using

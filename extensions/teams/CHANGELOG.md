@@ -1,6 +1,10 @@
 # Changelog
 
-## 2025-09-16
+## 2025-10-10
+
+- Bump version
+
+## 2025-10-08
 
 - Bump version one last time, really
 - Bump version one last time

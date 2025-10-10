@@ -26,13 +26,8 @@ async function main() {
     return;
   }
 
-  try {
-    await updateEnvFile("SERVICE_SECRET", secret);
-    console.log("SERVICE_SECRET was updated in .env");
-  } catch (error) {
-    console.error("Error:", error.message);
-    process.exit(1);
-  }
+  await updateEnvFile("SERVICE_SECRET", secret);
+  console.log("SERVICE_SECRET was updated in .env");
 }
 
 main();

@@ -1,7 +1,4 @@
 /* eslint-env node */
-import fs from "fs";
-import path from "path";
-
 import { createOAuthDeviceAuth } from "@octokit/auth-oauth-device";
 import { Octokit } from "@octokit/core";
 
@@ -28,22 +25,8 @@ async function main() {
   });
 
   const { token } = await octokit.auth({ type: "oauth-device" });
-
-  // Save token to config/.github_token (existing behavior)
-  const configDir = "config";
-  const tokenPath = path.join(configDir, ".github_token");
-  fs.mkdirSync(configDir, { recursive: true });
-  fs.writeFileSync(tokenPath, token);
-  console.log("Token saved to config/.github_token");
-
-  // Also save token to .env file
-  try {
-    await updateEnvFile("GITHUB_TOKEN", token);
-    console.log("GITHUB_TOKEN was updated in .env");
-  } catch (error) {
-    console.error("Error:", error.message);
-    process.exit(1);
-  }
+  await updateEnvFile("GITHUB_TOKEN", token);
+  console.log("GITHUB_TOKEN was updated in .env");
 }
 
 main();

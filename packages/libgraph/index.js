@@ -6,9 +6,19 @@ import { resource } from "@copilot-ld/libtype";
 const { namedNode, literal } = DataFactory;
 
 /**
- * TripleIndex class for managing RDF triple data with lazy loading
+ * Checks if a value should be treated as a wildcard in graph queries
+ * @param {any} value - The value to check
+ * @returns {boolean} True if the value represents a wildcard
  */
-export class TripleIndex {
+function isWildcard(value) {
+  const wildcards = ["?", "*", "_", "null", "NULL"];
+  return !value || wildcards.includes(value);
+}
+
+/**
+ * GraphIndex class for managing RDF graph data with lazy loading
+ */
+export class GraphIndex {
   #storage;
   #store;
   #indexKey;
@@ -16,9 +26,9 @@ export class TripleIndex {
   #loaded = false;
 
   /**
-   * Creates a new TripleIndex instance
+   * Creates a new GraphIndex instance
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage interface for data operations
-   * @param {Store} store - N3 Store instance for triple operations
+   * @param {Store} store - N3 Store instance for graph operations
    * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
    */
   constructor(storage, store, indexKey = "index.jsonl") {
@@ -102,7 +112,7 @@ export class TripleIndex {
   }
 
   /**
-   * Loads triple data from disk
+   * Loads graph data from disk
    * @returns {Promise<void>}
    */
   async loadData() {
@@ -136,7 +146,7 @@ export class TripleIndex {
   }
 
   /**
-   * Queries items from this triple index using SPARQL-like patterns
+   * Queries items from this graph index using SPARQL-like patterns
    * @param {object} pattern - Query pattern with subject, predicate, object (null for wildcards)
    * @returns {Promise<resource.Identifier[]>} Array of resource identifiers
    */
@@ -147,9 +157,9 @@ export class TripleIndex {
 
     // Query the N3 store for matching triples
     const quads = this.#store.getQuads(
-      pattern.subject ? namedNode(pattern.subject) : null,
-      pattern.predicate ? namedNode(pattern.predicate) : null,
-      pattern.object ? literal(pattern.object) : null,
+      isWildcard(pattern.subject) ? null : namedNode(pattern.subject),
+      isWildcard(pattern.predicate) ? null : namedNode(pattern.predicate),
+      isWildcard(pattern.object) ? null : literal(pattern.object),
     );
 
     // If we have matching quads, find the corresponding items by subject
@@ -175,15 +185,15 @@ export class TripleIndex {
 }
 
 /**
- * Parses a space-delimited triple query line into a pattern object
+ * Parses a space-delimited graph query line into a pattern object
  * @param {string} line - Query line in format: <subject> <predicate> <object>
  * @returns {object} Pattern object with subject, predicate, object (null for wildcards)
  * @example
- * parseTripleQuery('person:john ? ?') // { subject: 'person:john', predicate: null, object: null }
- * parseTripleQuery('? foaf:name "John Doe"') // { subject: null, predicate: 'foaf:name', object: 'John Doe' }
- * parseTripleQuery('person:john type "Person"') // { subject: 'person:john', predicate: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', object: 'Person' }
+ * parseGraphQuery('person:john ? ?') // { subject: 'person:john', predicate: null, object: null }
+ * parseGraphQuery('? foaf:name "John Doe"') // { subject: null, predicate: 'foaf:name', object: 'John Doe' }
+ * parseGraphQuery('person:john type "Person"') // { subject: 'person:john', predicate: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', object: 'Person' }
  */
-export function parseTripleQuery(line) {
+export function parseGraphQuery(line) {
   if (typeof line !== "string") {
     throw new Error("line must be a string");
   }
@@ -210,8 +220,10 @@ export function parseTripleQuery(line) {
 
   const [subject, predicate, object] = terms;
 
-  // Helper function to parse RDF terms
-  const parseTerm = (value) => (value === "?" ? null : value);
+  // Helper function to parse RDF terms using shared wildcard logic
+  const parseTerm = (value) => {
+    return isWildcard(value) ? null : value;
+  };
 
   return {
     subject: parseTerm(subject),
@@ -228,4 +240,4 @@ export function parseTripleQuery(line) {
   };
 }
 
-export { TripleProcessor } from "./processor.js";
+export { GraphProcessor } from "./processor.js";

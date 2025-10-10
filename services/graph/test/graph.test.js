@@ -22,7 +22,7 @@ describe("graph service", () => {
 
     test("GraphService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(GraphService.length, 3); // config, tripleIndex, logFn
+      assert.strictEqual(GraphService.length, 3); // config, graphIndex, logFn
     });
 
     test("GraphService has proper method signatures", () => {
@@ -35,14 +35,14 @@ describe("graph service", () => {
 
   describe("GraphService business logic", () => {
     let mockConfig;
-    let mockTripleIndex;
+    let mockGraphIndex;
 
     beforeEach(() => {
       mockConfig = {
         name: "graph",
       };
 
-      mockTripleIndex = {
+      mockGraphIndex = {
         queryItems: async () => [
           { type: "common.Message", name: "msg1" },
           { type: "common.ToolFunction", name: "tool1" },
@@ -51,15 +51,15 @@ describe("graph service", () => {
       };
     });
 
-    test("creates service instance with triple index", () => {
-      const service = new GraphService(mockConfig, mockTripleIndex);
+    test("creates service instance with graph index", () => {
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
     });
 
-    test("QueryItems queries the triple index", async () => {
-      const service = new GraphService(mockConfig, mockTripleIndex);
+    test("QueryItems queries the graph index", async () => {
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       const result = await service.QueryItems({
         pattern: {
@@ -75,7 +75,7 @@ describe("graph service", () => {
     });
 
     test("QueryItems handles empty pattern", async () => {
-      const service = new GraphService(mockConfig, mockTripleIndex);
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       const result = await service.QueryItems({
         pattern: {},
@@ -87,12 +87,12 @@ describe("graph service", () => {
 
     test("QueryItems converts empty strings to null in pattern", async () => {
       let capturedPattern = null;
-      mockTripleIndex.queryItems = async (pattern) => {
+      mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
         return [];
       };
 
-      const service = new GraphService(mockConfig, mockTripleIndex);
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       await service.QueryItems({
         pattern: {
@@ -107,8 +107,8 @@ describe("graph service", () => {
       assert.strictEqual(capturedPattern.object, null);
     });
 
-    test("GetItem retrieves item from triple index", async () => {
-      const service = new GraphService(mockConfig, mockTripleIndex);
+    test("GetItem retrieves item from graph index", async () => {
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       const result = await service.GetItem({
         id: "common.Message.test",
@@ -120,9 +120,9 @@ describe("graph service", () => {
     });
 
     test("GetItem returns null identifier when not found", async () => {
-      mockTripleIndex.getItem = async () => null;
+      mockGraphIndex.getItem = async () => null;
 
-      const service = new GraphService(mockConfig, mockTripleIndex);
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       const result = await service.GetItem({
         id: "nonexistent",
@@ -134,12 +134,12 @@ describe("graph service", () => {
 
     test("QueryItems with specific subject pattern", async () => {
       let capturedPattern = null;
-      mockTripleIndex.queryItems = async (pattern) => {
+      mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
         return [{ type: "common.Message", name: "msg1" }];
       };
 
-      const service = new GraphService(mockConfig, mockTripleIndex);
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       await service.QueryItems({
         pattern: {
@@ -159,12 +159,12 @@ describe("graph service", () => {
 
     test("QueryItems with predicate and object pattern", async () => {
       let capturedPattern = null;
-      mockTripleIndex.queryItems = async (pattern) => {
+      mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
         return [{ type: "common.ToolFunction", name: "tool1" }];
       };
 
-      const service = new GraphService(mockConfig, mockTripleIndex);
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       await service.QueryItems({
         pattern: {

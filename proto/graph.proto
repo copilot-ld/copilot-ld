@@ -5,18 +5,15 @@ import "resource.proto";
 package graph;
 
 service Graph {
-  rpc QueryItems(QueryItemsRequest) returns (QueryItemsResponse);
+  rpc QueryItems(Pattern) returns (QueryItemsResponse);
   rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc GetOntology(GetOntologyRequest) returns (GetOntologyResponse);
 }
 
 message Pattern {
   optional string subject = 1;
   optional string predicate = 2;
   optional string object = 3;
-}
-
-message QueryItemsRequest {
-  Pattern pattern = 1;
 }
 
 message QueryItemsResponse {
@@ -29,4 +26,13 @@ message GetItemRequest {
 
 message GetItemResponse {
   optional resource.Identifier identifier = 1;
+}
+
+message GetOntologyRequest {
+  // Optional comment field to ensure valid OpenAI function schema
+  optional string comment = 1;
+}
+
+message GetOntologyResponse {
+  string ontology_json = 1; // JSON string containing the ontology data
 }

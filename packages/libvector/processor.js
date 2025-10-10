@@ -60,8 +60,8 @@ export class VectorProcessor extends ProcessorBase {
     const existing = new Set();
     const checks = await Promise.all(
       resources.map(async (resource) => ({
-        id: resource.id,
-        exists: await this.#targetIndex.hasItem(resource.id),
+        id: String(resource.id),
+        exists: await this.#targetIndex.hasItem(String(resource.id)),
       })),
     );
     checks
@@ -90,7 +90,7 @@ export class VectorProcessor extends ProcessorBase {
       }
 
       // Skip if already exists
-      if (existing.has(resource.id)) {
+      if (existing.has(String(resource.id))) {
         continue; // Skip existing resources
       }
 

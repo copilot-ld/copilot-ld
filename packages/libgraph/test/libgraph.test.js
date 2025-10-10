@@ -3,7 +3,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import { Store } from "n3";
 
-import { TripleIndex, parseTripleQuery } from "../index.js";
+import { GraphIndex, parseGraphQuery } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
 
 /**
@@ -46,9 +46,9 @@ function jsonldToQuads(jsonld) {
   return quads;
 }
 
-describe("libtriple", () => {
-  describe("TripleIndex - Essential Functionality", () => {
-    let tripleIndex;
+describe("libgraph", () => {
+  describe("GraphIndex - Essential Functionality", () => {
+    let graphIndex;
     let mockStorage;
     let n3Store;
 
@@ -61,7 +61,7 @@ describe("libtriple", () => {
       };
 
       n3Store = new Store();
-      tripleIndex = new TripleIndex(mockStorage, n3Store, "test.jsonl");
+      graphIndex = new GraphIndex(mockStorage, n3Store, "test.jsonl");
     });
 
     test("multiple resources can be added and queried selectively", async () => {
@@ -123,7 +123,7 @@ describe("libtriple", () => {
       // Add all resources to the index
       for (const { identifier, jsonld } of resources) {
         const quads = jsonldToQuads(jsonld);
-        await tripleIndex.addItem(quads, identifier, jsonld["@id"]);
+        await graphIndex.addItem(quads, identifier, jsonld["@id"]);
       }
 
       // Test 1: Query by type - should find only Message resources
@@ -132,7 +132,7 @@ describe("libtriple", () => {
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
         object: "Message",
       };
-      const messageResults = await tripleIndex.queryItems(messagePattern);
+      const messageResults = await graphIndex.queryItems(messagePattern);
       assert.strictEqual(
         messageResults.length,
         2,
@@ -155,7 +155,7 @@ describe("libtriple", () => {
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
         object: "ToolFunction",
       };
-      const toolResults = await tripleIndex.queryItems(toolPattern);
+      const toolResults = await graphIndex.queryItems(toolPattern);
       assert.strictEqual(
         toolResults.length,
         1,
@@ -173,7 +173,7 @@ describe("libtriple", () => {
         predicate: "http://purl.org/dc/terms/creator",
         object: "system",
       };
-      const systemResults = await tripleIndex.queryItems(systemPattern);
+      const systemResults = await graphIndex.queryItems(systemPattern);
       assert.strictEqual(
         systemResults.length,
         1,
@@ -191,7 +191,7 @@ describe("libtriple", () => {
         predicate: "http://purl.org/dc/terms/subject",
         object: "javascript",
       };
-      const jsResults = await tripleIndex.queryItems(jsPattern);
+      const jsResults = await graphIndex.queryItems(jsPattern);
       assert.strictEqual(
         jsResults.length,
         1,
@@ -209,7 +209,7 @@ describe("libtriple", () => {
         predicate: null,
         object: null,
       };
-      const specificResults = await tripleIndex.queryItems(specificPattern);
+      const specificResults = await graphIndex.queryItems(specificPattern);
       assert.strictEqual(
         specificResults.length,
         1,
@@ -228,7 +228,7 @@ describe("libtriple", () => {
         object: null,
       };
       const nonExistentResults =
-        await tripleIndex.queryItems(nonExistentPattern);
+        await graphIndex.queryItems(nonExistentPattern);
       assert.strictEqual(
         nonExistentResults.length,
         0,
@@ -250,7 +250,7 @@ describe("libtriple", () => {
       };
 
       // Test hasItem returns false before adding
-      const hasBeforeAdd = await tripleIndex.hasItem(String(identifier));
+      const hasBeforeAdd = await graphIndex.hasItem(String(identifier));
       assert.strictEqual(
         hasBeforeAdd,
         false,
@@ -258,7 +258,7 @@ describe("libtriple", () => {
       );
 
       // Test getItem returns null before adding
-      const getBeforeAdd = await tripleIndex.getItem(String(identifier));
+      const getBeforeAdd = await graphIndex.getItem(String(identifier));
       assert.strictEqual(
         getBeforeAdd,
         null,
@@ -267,14 +267,14 @@ describe("libtriple", () => {
 
       // Add the item
       const quads = jsonldToQuads(jsonld);
-      await tripleIndex.addItem(quads, identifier, jsonld["@id"]);
+      await graphIndex.addItem(quads, identifier, jsonld["@id"]);
 
       // Test hasItem returns true after adding
-      const hasAfterAdd = await tripleIndex.hasItem(String(identifier));
+      const hasAfterAdd = await graphIndex.hasItem(String(identifier));
       assert.strictEqual(hasAfterAdd, true, "Should have item after adding");
 
       // Test getItem returns identifier after adding
-      const getAfterAdd = await tripleIndex.getItem(String(identifier));
+      const getAfterAdd = await graphIndex.getItem(String(identifier));
       assert.strictEqual(
         String(getAfterAdd),
         String(identifier),
@@ -285,21 +285,21 @@ describe("libtriple", () => {
     test("constructor validation works correctly", () => {
       // Test missing storage
       assert.throws(
-        () => new TripleIndex(null, new Store()),
+        () => new GraphIndex(null, new Store()),
         /storage is required/,
         "Should throw for missing storage",
       );
 
       // Test missing store
       assert.throws(
-        () => new TripleIndex(mockStorage, null),
+        () => new GraphIndex(mockStorage, null),
         /store must be an N3 Store instance/,
         "Should throw for missing store",
       );
 
       // Test invalid store
       assert.throws(
-        () => new TripleIndex(mockStorage, {}),
+        () => new GraphIndex(mockStorage, {}),
         /store must be an N3 Store instance/,
         "Should throw for invalid store",
       );
@@ -307,21 +307,21 @@ describe("libtriple", () => {
 
     test("accessor methods return correct instances", () => {
       assert.strictEqual(
-        tripleIndex.storage(),
+        graphIndex.storage(),
         mockStorage,
         "storage() should return storage instance",
       );
       assert.strictEqual(
-        tripleIndex.indexKey,
+        graphIndex.indexKey,
         "test.jsonl",
         "indexKey should return correct key",
       );
     });
   });
 
-  describe("parseTripleQuery", () => {
+  describe("parseGraphQuery", () => {
     test("parses simple triple query with wildcards", () => {
-      const result = parseTripleQuery("person:john ? ?");
+      const result = parseGraphQuery("person:john ? ?");
       assert.deepStrictEqual(result, {
         subject: "person:john",
         predicate: null,
@@ -330,7 +330,7 @@ describe("libtriple", () => {
     });
 
     test("parses triple query with quoted object", () => {
-      const result = parseTripleQuery('? foaf:name "John Doe"');
+      const result = parseGraphQuery('? foaf:name "John Doe"');
       assert.deepStrictEqual(result, {
         subject: null,
         predicate: "foaf:name",
@@ -339,7 +339,7 @@ describe("libtriple", () => {
     });
 
     test("parses triple query with all fields specified", () => {
-      const result = parseTripleQuery("person:john foaf:name person:john");
+      const result = parseGraphQuery("person:john foaf:name person:john");
       assert.deepStrictEqual(result, {
         subject: "person:john",
         predicate: "foaf:name",
@@ -348,7 +348,7 @@ describe("libtriple", () => {
     });
 
     test("parses triple query with all wildcards", () => {
-      const result = parseTripleQuery("? ? ?");
+      const result = parseGraphQuery("? ? ?");
       assert.deepStrictEqual(result, {
         subject: null,
         predicate: null,
@@ -357,7 +357,7 @@ describe("libtriple", () => {
     });
 
     test("handles quoted strings with spaces", () => {
-      const result = parseTripleQuery(
+      const result = parseGraphQuery(
         'person:john foaf:name "John Q. Doe Jr."',
       );
       assert.deepStrictEqual(result, {
@@ -368,23 +368,23 @@ describe("libtriple", () => {
     });
 
     test("throws error for empty line", () => {
-      assert.throws(() => parseTripleQuery(""), /line cannot be empty/);
+      assert.throws(() => parseGraphQuery(""), /line cannot be empty/);
     });
 
     test("throws error for non-string input", () => {
-      assert.throws(() => parseTripleQuery(null), /line must be a string/);
+      assert.throws(() => parseGraphQuery(null), /line must be a string/);
     });
 
     test("throws error for wrong number of parts", () => {
       assert.throws(
-        () => parseTripleQuery("person:john foaf:name"),
+        () => parseGraphQuery("person:john foaf:name"),
         /Expected 3 parts/,
       );
     });
 
     test("throws error for unterminated quotes", () => {
       assert.throws(
-        () => parseTripleQuery('person:john foaf:name "unterminated'),
+        () => parseGraphQuery('person:john foaf:name "unterminated'),
         /Unterminated quoted string/,
       );
     });

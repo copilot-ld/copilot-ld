@@ -2,8 +2,16 @@
   "name": "@copilot-ld/libtriple",
   "version": "0.1.4",
   "description": "RDF triple index and processing utilities",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
   "keywords": [
     "rdf",
     "triple",
@@ -12,7 +20,13 @@
   "dependencies": {
     "n3": "^1.21.0"
   },
-  "engines": {
-    "node": ">=22.0.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/libtriple"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   }
 }

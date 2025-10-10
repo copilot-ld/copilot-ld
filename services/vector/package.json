@@ -19,7 +19,7 @@
     "@copilot-ld/librpc": "^0.1.42",
     "@copilot-ld/libstorage": "^0.1.22",
     "@copilot-ld/libtype": "^0.1.32",
-    "@copilot-ld/libutil": "^0.1.28",
+    "@copilot-ld/libutil": "^0.1.29",
     "@copilot-ld/libvector": "^0.1.32"
   },
   "repository": {

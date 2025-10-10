@@ -19,7 +19,7 @@
     "@copilot-ld/libcopilot": "^0.1.32",
     "@copilot-ld/librpc": "^0.1.42",
     "@copilot-ld/libtype": "^0.1.32",
-    "@copilot-ld/libutil": "^0.1.28"
+    "@copilot-ld/libutil": "^0.1.29"
   },
   "repository": {
     "type": "git",

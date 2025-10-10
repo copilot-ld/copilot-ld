@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+import "resource.proto";
+
+package graph;
+
+service Graph {
+  rpc QueryItems(QueryItemsRequest) returns (QueryItemsResponse);
+  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+}
+
+message Pattern {
+  optional string subject = 1;
+  optional string predicate = 2;
+  optional string object = 3;
+}
+
+message QueryItemsRequest {
+  Pattern pattern = 1;
+}
+
+message QueryItemsResponse {
+  repeated resource.Identifier identifiers = 1;
+}
+
+message GetItemRequest {
+  string id = 1; // Resource ID
+}
+
+message GetItemResponse {
+  optional resource.Identifier identifier = 1;
+}

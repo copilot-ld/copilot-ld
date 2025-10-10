@@ -1,0 +1,35 @@
+{
+  "name": "@copilot-ld/graph",
+  "version": "0.1.0",
+  "description": "Graph service for RDF triple queries in Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "npx download && node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libconfig": "^0.1.27",
+    "@copilot-ld/librpc": "^0.1.42",
+    "@copilot-ld/libstorage": "^0.1.22",
+    "@copilot-ld/libtriple": "^0.1.13",
+    "@copilot-ld/libtype": "^0.1.32",
+    "@copilot-ld/libutil": "^0.1.29",
+    "n3": "^1.26.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "services/graph"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  }
+}

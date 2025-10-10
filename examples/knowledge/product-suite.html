@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TechNova Product Suite</title>
+  </head>
+  <body>
+    <article
+      itemscope
+      itemtype="https://schema.org/Product"
+      itemid="#product-dataflow"
+    >
+      <h1 itemprop="name">DataFlow Engine</h1>
+      <p itemprop="description">
+        Core data processing platform providing real-time and batch data
+        transformation capabilities. Handles ingestion from multiple sources,
+        applies complex transformations, and routes data to various
+        destinations. Built for scale with horizontal partitioning and
+        distributed processing.
+      </p>
+      <meta itemprop="category" content="Data Processing" />
+
+      <div
+        itemprop="manufacturer"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-cloud" />
+        <span itemprop="name">TechNova Cloud Division</span>
+      </div>
+
+      <section>
+        <h2>Key Features</h2>
+        <ul>
+          <li>Distributed stream processing with exactly-once semantics</li>
+          <li>Schema evolution and data validation</li>
+          <li>Built-in connectors for databases, message queues, and APIs</li>
+          <li>Automatic scaling based on data volume</li>
+          <li>Fault tolerance with automatic recovery</li>
+        </ul>
+      </section>
+
+      <div itemprop="review" itemscope itemtype="https://schema.org/Review">
+        <div itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <span itemprop="name">Triton</span>
+        </div>
+        <meta itemprop="datePublished" content="2024-09-10" />
+        <div
+          itemprop="reviewRating"
+          itemscope
+          itemtype="https://schema.org/Rating"
+        >
+          <meta itemprop="ratingValue" content="5" />
+          <meta itemprop="bestRating" content="5" />
+        </div>
+        <div itemprop="reviewBody">
+          DataFlow Engine has transformed our data infrastructure. The ability
+          to process billions of events per day with millisecond latency is
+          impressive. The connector ecosystem saves significant development
+          time, and the fault tolerance features provide peace of mind for
+          production workloads.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/Product"
+      itemid="#product-streamanalyzer"
+    >
+      <h1 itemprop="name">StreamAnalyzer</h1>
+      <p itemprop="description">
+        Real-time analytics engine for streaming data with support for complex
+        event processing, windowing, and aggregations. Processes data as it
+        arrives to provide instant insights and enable immediate action on
+        business events.
+      </p>
+      <meta itemprop="category" content="Analytics" />
+
+      <div
+        itemprop="manufacturer"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-cloud" />
+        <span itemprop="name">TechNova Cloud Division</span>
+      </div>
+
+      <div
+        itemprop="isRelatedTo"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-dataflow" />
+        <span itemprop="name">DataFlow Engine</span>
+        <meta
+          itemprop="description"
+          content="Requires DataFlow Engine for data ingestion"
+        />
+      </div>
+
+      <section>
+        <h2>Analytics Capabilities</h2>
+        <ul>
+          <li>Time-based and count-based windows</li>
+          <li>Complex pattern detection across event streams</li>
+          <li>Real-time dashboards and alerting</li>
+          <li>SQL-like query language for stream processing</li>
+          <li>Integration with machine learning models</li>
+        </ul>
+      </section>
+
+      <div itemprop="review" itemscope itemtype="https://schema.org/Review">
+        <div itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <span itemprop="name">Nereus</span>
+        </div>
+        <meta itemprop="datePublished" content="2024-09-12" />
+        <div
+          itemprop="reviewRating"
+          itemscope
+          itemtype="https://schema.org/Rating"
+        >
+          <meta itemprop="ratingValue" content="4" />
+          <meta itemprop="bestRating" content="5" />
+        </div>
+        <div itemprop="reviewBody">
+          StreamAnalyzer provides powerful real-time analytics on our DataFlow
+          streams. The pattern detection features caught several security
+          anomalies that would have been missed with batch processing. The
+          learning curve is moderate but documentation is comprehensive.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/Product"
+      itemid="#product-mltoolkit"
+    >
+      <h1 itemprop="name">MLToolkit</h1>
+      <p itemprop="description">
+        Comprehensive machine learning library providing pre-built models,
+        training pipelines, and deployment tools. Supports supervised and
+        unsupervised learning, deep learning, and reinforcement learning with
+        GPU acceleration.
+      </p>
+      <meta itemprop="category" content="Machine Learning" />
+
+      <div
+        itemprop="manufacturer"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-ai" />
+        <span itemprop="name">TechNova AI Labs</span>
+      </div>
+
+      <section>
+        <h2>ML Features</h2>
+        <ul>
+          <li>AutoML for model selection and hyperparameter tuning</li>
+          <li>Pre-trained models for common use cases</li>
+          <li>Distributed training across GPU clusters</li>
+          <li>Model versioning and experiment tracking</li>
+          <li>Production-ready model serving infrastructure</li>
+        </ul>
+      </section>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/Product"
+      itemid="#product-predictive"
+    >
+      <h1 itemprop="name">PredictiveInsights</h1>
+      <p itemprop="description">
+        Advanced machine learning platform for predictive analytics combining
+        real-time data streams with trained ML models. Provides forecasting,
+        anomaly detection, and recommendation capabilities for business
+        intelligence and operational optimization.
+      </p>
+      <meta itemprop="category" content="Predictive Analytics" />
+
+      <div
+        itemprop="manufacturer"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-ai" />
+        <span itemprop="name">TechNova AI Labs</span>
+      </div>
+
+      <div
+        itemprop="isRelatedTo"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-streamanalyzer" />
+        <span itemprop="name">StreamAnalyzer</span>
+        <meta
+          itemprop="description"
+          content="Requires StreamAnalyzer for real-time data"
+        />
+      </div>
+
+      <div
+        itemprop="isRelatedTo"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-mltoolkit" />
+        <span itemprop="name">MLToolkit</span>
+        <meta
+          itemprop="description"
+          content="Uses MLToolkit for model training and serving"
+        />
+      </div>
+
+      <section>
+        <h2>Predictive Capabilities</h2>
+        <ul>
+          <li>Time series forecasting with uncertainty quantification</li>
+          <li>Multi-variate anomaly detection</li>
+          <li>Personalized recommendation engines</li>
+          <li>Automated feature engineering from raw data</li>
+          <li>Continuous model retraining and updates</li>
+        </ul>
+      </section>
+
+      <div itemprop="review" itemscope itemtype="https://schema.org/Review">
+        <div itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <span itemprop="name">Proteus</span>
+        </div>
+        <meta itemprop="datePublished" content="2024-09-15" />
+        <div
+          itemprop="reviewRating"
+          itemscope
+          itemtype="https://schema.org/Rating"
+        >
+          <meta itemprop="ratingValue" content="5" />
+          <meta itemprop="bestRating" content="5" />
+        </div>
+        <div itemprop="reviewBody">
+          PredictiveInsights has dramatically improved our capacity planning
+          accuracy. The anomaly detection caught performance issues before they
+          impacted users. Integration with StreamAnalyzer and MLToolkit is
+          seamless, and the automated retraining keeps models current without
+          manual intervention.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/Product"
+      itemid="#product-cloudsync"
+    >
+      <h1 itemprop="name">CloudSync</h1>
+      <p itemprop="description">
+        Universal data synchronization platform enabling bidirectional data flow
+        between cloud services, on-premises systems, and SaaS applications.
+        Provides conflict resolution, data transformation, and consistency
+        guarantees across distributed systems.
+      </p>
+      <meta itemprop="category" content="Data Integration" />
+
+      <div
+        itemprop="manufacturer"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-cloud" />
+        <span itemprop="name">TechNova Cloud Division</span>
+      </div>
+
+      <div
+        itemprop="isRelatedTo"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-dataflow" />
+        <span itemprop="name">DataFlow Engine</span>
+        <meta
+          itemprop="description"
+          content="Integrates with DataFlow for ETL pipelines"
+        />
+      </div>
+
+      <div
+        itemprop="isRelatedTo"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-streamanalyzer" />
+        <span itemprop="name">StreamAnalyzer</span>
+        <meta
+          itemprop="description"
+          content="Can stream sync events to StreamAnalyzer"
+        />
+      </div>
+
+      <div
+        itemprop="isRelatedTo"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-predictive" />
+        <span itemprop="name">PredictiveInsights</span>
+        <meta
+          itemprop="description"
+          content="Syncs data for ML model training"
+        />
+      </div>
+
+      <section>
+        <h2>Synchronization Features</h2>
+        <ul>
+          <li>Real-time and scheduled sync operations</li>
+          <li>Conflict detection and resolution strategies</li>
+          <li>Data validation and transformation rules</li>
+          <li>Comprehensive audit logs and lineage tracking</li>
+          <li>Encryption in transit and at rest</li>
+        </ul>
+      </section>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/Service"
+      itemid="#service-managed-dataflow"
+    >
+      <h2 itemprop="name">Managed DataFlow Service</h2>
+      <p itemprop="description">
+        Fully managed DataFlow Engine deployment with automatic scaling,
+        monitoring, and maintenance. Eliminates operational overhead while
+        providing enterprise-grade SLAs and 24/7 support.
+      </p>
+      <meta itemprop="serviceType" content="Managed Platform" />
+
+      <div
+        itemprop="provider"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-enterprise" />
+        <span itemprop="name">TechNova Enterprise Services</span>
+      </div>
+
+      <div
+        itemprop="serviceOutput"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-dataflow" />
+        <span itemprop="name">DataFlow Engine</span>
+      </div>
+
+      <section>
+        <h3>Service Benefits</h3>
+        <ul>
+          <li>Zero infrastructure management required</li>
+          <li>Automatic version upgrades and security patches</li>
+          <li>Built-in monitoring and alerting</li>
+          <li>99.95% uptime SLA</li>
+          <li>Dedicated technical account manager</li>
+        </ul>
+      </section>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/Service"
+      itemid="#service-ml-consulting"
+    >
+      <h2 itemprop="name">ML Implementation Consulting</h2>
+      <p itemprop="description">
+        Expert consulting services for implementing machine learning solutions
+        using TechNova AI products. Includes use case discovery, model
+        development, deployment planning, and team training.
+      </p>
+      <meta itemprop="serviceType" content="Professional Services" />
+
+      <div
+        itemprop="provider"
+        itemscope
+        itemtype="https://schema.org/Organization"
+      >
+        <link itemprop="url" href="#technova-enterprise" />
+        <span itemprop="name">TechNova Enterprise Services</span>
+      </div>
+
+      <div
+        itemprop="serviceOutput"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-mltoolkit" />
+        <span itemprop="name">MLToolkit</span>
+      </div>
+
+      <div
+        itemprop="serviceOutput"
+        itemscope
+        itemtype="https://schema.org/Product"
+      >
+        <link itemprop="url" href="#product-predictive" />
+        <span itemprop="name">PredictiveInsights</span>
+      </div>
+    </article>
+  </body>
+</html>

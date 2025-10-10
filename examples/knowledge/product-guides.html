@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Integration and Implementation Guides</title>
+  </head>
+  <body>
+    <article
+      itemscope
+      itemtype="https://schema.org/HowTo"
+      itemid="#howto-dataflow-setup"
+    >
+      <h1 itemprop="name">Setting Up DataFlow Engine for Production</h1>
+      <p itemprop="description">
+        Step-by-step guide for deploying and configuring DataFlow Engine in a
+        production environment with high availability and monitoring.
+      </p>
+      <meta itemprop="totalTime" content="PT4H" />
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-dataflow" />
+        <span itemprop="name">DataFlow Engine</span>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="1" />
+        <h3 itemprop="name">Configure Infrastructure</h3>
+        <div itemprop="text">
+          Provision compute resources with sufficient CPU, memory, and network
+          bandwidth. For production deployments, allocate at least 3 nodes with
+          16 cores and 64GB RAM each. Configure persistent storage for state
+          management and configure network policies for service isolation.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="2" />
+        <h3 itemprop="name">Install and Configure DataFlow</h3>
+        <div itemprop="text">
+          Download the DataFlow Engine installation package and extract it to
+          your deployment directory. Edit the configuration file to specify
+          cluster settings, including node addresses, replication factor, and
+          checkpoint intervals. Set up authentication credentials and SSL
+          certificates for secure communication.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="3" />
+        <h3 itemprop="name">Deploy Processing Jobs</h3>
+        <div itemprop="text">
+          Create data processing pipelines using the DataFlow API or visual
+          designer. Configure source connectors to ingest data from your
+          systems. Define transformation logic including filtering, enrichment,
+          and aggregation. Set up sink connectors to write processed data to
+          target systems. Test pipelines in a staging environment before
+          production deployment.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="4" />
+        <h3 itemprop="name">Configure Monitoring</h3>
+        <div itemprop="text">
+          Enable metrics collection and configure dashboards to monitor
+          throughput, latency, and error rates. Set up alerts for critical
+          conditions like high backpressure, processing delays, or node
+          failures. Integrate with your logging infrastructure to collect and
+          analyze application logs.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/HowTo"
+      itemid="#howto-stream-analytics"
+    >
+      <h1 itemprop="name">Building Real-Time Analytics with StreamAnalyzer</h1>
+      <p itemprop="description">
+        Complete guide for implementing real-time analytics pipelines using
+        StreamAnalyzer on top of DataFlow Engine streams.
+      </p>
+      <meta itemprop="totalTime" content="PT3H" />
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-dataflow" />
+        <span itemprop="name">DataFlow Engine</span>
+      </div>
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-streamanalyzer" />
+        <span itemprop="name">StreamAnalyzer</span>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="1" />
+        <h3 itemprop="name">Connect to DataFlow Streams</h3>
+        <div itemprop="text">
+          Configure StreamAnalyzer to consume data from your DataFlow Engine
+          streams. Specify the stream names, consumer group settings, and
+          serialization format. Ensure network connectivity between
+          StreamAnalyzer and DataFlow Engine clusters.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="2" />
+        <h3 itemprop="name">Define Analytics Queries</h3>
+        <div itemprop="text">
+          Write SQL-like queries to perform real-time analytics on streaming
+          data. Use window functions for time-based aggregations, pattern
+          matching for event sequence detection, and joins to correlate data
+          across multiple streams. Test queries with sample data to verify
+          correctness.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="3" />
+        <h3 itemprop="name">Set Up Alerts and Dashboards</h3>
+        <div itemprop="text">
+          Configure alerting rules based on query results to notify teams of
+          important events. Create real-time dashboards displaying key metrics
+          and trends. Set up alert routing to appropriate channels like email,
+          Slack, or paging systems.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/HowTo"
+      itemid="#howto-ml-deployment"
+    >
+      <h1 itemprop="name">Deploying ML Models with PredictiveInsights</h1>
+      <p itemprop="description">
+        End-to-end guide for training, deploying, and serving machine learning
+        models using MLToolkit and PredictiveInsights platform.
+      </p>
+      <meta itemprop="totalTime" content="PT6H" />
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-mltoolkit" />
+        <span itemprop="name">MLToolkit</span>
+      </div>
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-predictive" />
+        <span itemprop="name">PredictiveInsights</span>
+      </div>
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-streamanalyzer" />
+        <span itemprop="name">StreamAnalyzer</span>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="1" />
+        <h3 itemprop="name">Prepare Training Data</h3>
+        <div itemprop="text">
+          Extract historical data from your DataFlow streams or databases. Clean
+          and preprocess the data to handle missing values, outliers, and
+          inconsistencies. Split data into training, validation, and test sets
+          using appropriate strategies for time series or stratified sampling.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="2" />
+        <h3 itemprop="name">Train Models with MLToolkit</h3>
+        <div itemprop="text">
+          Use MLToolkit's AutoML capabilities to automatically select and tune
+          models for your use case. Alternatively, manually configure model
+          architectures and hyperparameters. Train models using distributed
+          training across GPU clusters for faster iteration. Track experiments
+          and model performance metrics.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="3" />
+        <h3 itemprop="name">Deploy to PredictiveInsights</h3>
+        <div itemprop="text">
+          Export trained models in the PredictiveInsights-compatible format.
+          Upload models to the model registry with versioning information.
+          Configure model serving endpoints with resource allocation and scaling
+          policies. Set up A/B testing to gradually roll out new model versions.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="4" />
+        <h3 itemprop="name">Integrate with Real-Time Data</h3>
+        <div itemprop="text">
+          Connect PredictiveInsights to StreamAnalyzer to receive real-time
+          feature data. Configure feature preprocessing pipelines to match
+          training data format. Set up prediction batching and caching
+          strategies to optimize throughput and latency. Monitor model
+          performance and prediction distribution in production.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/HowTo"
+      itemid="#howto-cloudsync-integration"
+    >
+      <h1 itemprop="name">Synchronizing Data Across Systems with CloudSync</h1>
+      <p itemprop="description">
+        Comprehensive guide for setting up bidirectional data synchronization
+        between cloud services and on-premises systems using CloudSync.
+      </p>
+      <meta itemprop="totalTime" content="PT3H" />
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-cloudsync" />
+        <span itemprop="name">CloudSync</span>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="1" />
+        <h3 itemprop="name">Configure Source and Target Systems</h3>
+        <div itemprop="text">
+          Set up authentication credentials for both source and target systems.
+          Define connection parameters including endpoints, ports, and security
+          settings. Test connectivity to ensure CloudSync can access both
+          systems. Configure firewall rules and network policies as needed.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="2" />
+        <h3 itemprop="name">Define Synchronization Rules</h3>
+        <div itemprop="text">
+          Specify which data objects to synchronize between systems. Configure
+          field mappings to handle schema differences. Set up data
+          transformation rules for format conversions. Define conflict
+          resolution strategies for handling concurrent updates. Configure sync
+          frequency based on business requirements.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="3" />
+        <h3 itemprop="name">Enable Monitoring and Logging</h3>
+        <div itemprop="text">
+          Activate detailed logging to track synchronization operations.
+          Configure alerts for sync failures, conflicts, or performance
+          degradation. Set up dashboards to visualize sync status, data volumes,
+          and error rates. Review audit logs regularly to ensure data integrity
+          and compliance.
+        </div>
+      </div>
+    </article>
+
+    <article
+      itemscope
+      itemtype="https://schema.org/HowTo"
+      itemid="#howto-performance-optimization"
+    >
+      <h1 itemprop="name">Optimizing Data Pipeline Performance</h1>
+      <p itemprop="description">
+        Best practices and techniques for optimizing the performance of data
+        processing pipelines built with TechNova products.
+      </p>
+      <meta itemprop="totalTime" content="PT2H" />
+
+      <div itemprop="tool" itemscope itemtype="https://schema.org/HowToTool">
+        <link itemprop="url" href="#product-dataflow" />
+        <span itemprop="name">DataFlow Engine</span>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="1" />
+        <h3 itemprop="name">Analyze Current Performance</h3>
+        <div itemprop="text">
+          Use built-in monitoring tools to identify bottlenecks in your data
+          pipeline. Look for high backpressure, uneven data distribution across
+          partitions, or resource saturation on specific nodes. Analyze query
+          execution plans in StreamAnalyzer to identify inefficient operations.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="2" />
+        <h3 itemprop="name">Optimize Data Partitioning</h3>
+        <div itemprop="text">
+          Adjust partition keys to ensure even distribution of data across
+          processing nodes. Increase the number of partitions for high-volume
+          streams to improve parallelism. Use co-partitioning for related
+          streams to minimize data shuffling during joins. Configure partition
+          replication for fault tolerance without impacting throughput.
+        </div>
+      </div>
+
+      <div itemscope itemprop="step" itemtype="https://schema.org/HowToStep">
+        <meta itemprop="position" content="3" />
+        <h3 itemprop="name">Tune Resource Allocation</h3>
+        <div itemprop="text">
+          Scale compute resources based on workload characteristics. Add more
+          CPU cores for computation-intensive transformations. Increase memory
+          allocation for stateful operations with large windows. Configure
+          appropriate checkpoint intervals to balance fault tolerance with
+          processing overhead. Use autoscaling to adapt to varying workload
+          demands.
+        </div>
+      </div>
+    </article>
+  </body>
+</html>

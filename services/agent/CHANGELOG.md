@@ -2,6 +2,7 @@
 
 ## 2025-10-10
 
+- Bump version
 - Refactored `ProcessRequest()` method to reduce complexity with extracted
   helper methods (`#setupConversation()`, `#getMemory()`, `#executeToolLoop()`)
 - Enhanced JSDoc typing with specific types from `@copilot-ld/libtype`

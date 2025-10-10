@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-10
+
+- Bump version
+
 ## 2025-10-03
 
 - Simplified type definitions by replacing `FormatterInterface` class with JSDoc

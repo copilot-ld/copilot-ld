@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - **BREAKING**: Migrated from runtime proto-loader to pre-compiled service
   definitions for improved performance
 - Enhanced aggregated exports system with convenient `services` and `clients`

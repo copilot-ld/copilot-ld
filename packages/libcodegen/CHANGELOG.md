@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-10
+
+- Bump version
+
 ## 2025-10-03
 
 - **NEW**: Created dedicated `@copilot-ld/libcodegen` package for Protocol

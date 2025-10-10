@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-10
+
+- Bump version
+
 ## 2025-10-07
 
 - Simplified development workflow by removing `--env-file` flag from `dev`

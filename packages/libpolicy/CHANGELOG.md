@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-10
+
+- Bump version
+
 ## 2025-10-07
 
 - Updated test cases to use simplified resource URI format without `cld:` prefix

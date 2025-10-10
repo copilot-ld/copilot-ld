@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-10
+
+- Bump version
+
 ## 2025-10-02
 
 - **BREAKING**: Migrated configuration format from YAML (`config.yml`) to JSON

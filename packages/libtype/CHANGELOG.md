@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - **BREAKING**: Simplified Resource URI format by removing `cld:` namespace
   prefix from identifier methods
 - Enhanced package architecture with clean separation of protobuf types from

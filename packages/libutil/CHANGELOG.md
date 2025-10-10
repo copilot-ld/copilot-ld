@@ -2,6 +2,7 @@
 
 ## 2025-10-10
 
+- Bump version
 - **BREAKING**: Extracted code generation functionality to new
   `@copilot-ld/libcodegen` package
 - Enhanced download/upload utilities with native TAR.gz extraction and improved

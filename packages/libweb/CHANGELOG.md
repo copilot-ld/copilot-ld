@@ -2,6 +2,8 @@
 
 ## 2025-10-10
 
+- Bump version
+
 - Simplified security middleware architecture by removing unused
   `RequestValidator` and rate limiting functionality
 - Refactored middleware into focused `ValidationMiddleware` and `CorsMiddleware`

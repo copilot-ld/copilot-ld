@@ -146,52 +146,85 @@ export class GraphIndex {
   }
 
   /**
+   * Normalizes a query pattern by applying fallback logic
+   * @param {object} pattern - Raw query pattern
+   * @returns {object} Normalized pattern with wildcards and shorthand expanded
+   * @private
+   */
+  #normalizePattern(pattern) {
+    const typeShorthands = ["type", "@type"];
+    return {
+      subject: isWildcard(pattern.subject) ? null : pattern.subject,
+      predicate: isWildcard(pattern.predicate)
+        ? null
+        : typeShorthands.includes(pattern.predicate)
+          ? "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+          : pattern.predicate,
+      object: isWildcard(pattern.object)
+        ? null
+        : pattern.object?.startsWith('"') && pattern.object.endsWith('"')
+          ? pattern.object.slice(1, -1)
+          : pattern.object,
+    };
+  }
+
+  /**
+   * Finds resource identifiers that match the given subjects
+   * @param {Set<string>} matchingSubjects - Set of subject URIs that matched the query
+   * @returns {resource.Identifier[]} Array of resource identifiers
+   * @private
+   */
+  #findMatchingIdentifiers(matchingSubjects) {
+    const identifiers = [];
+    for (const item of this.#index.values()) {
+      if (item.subjectUri && matchingSubjects.has(item.subjectUri)) {
+        identifiers.push(resource.Identifier.fromObject(item.identifier));
+      }
+    }
+    return identifiers;
+  }
+
+  /**
    * Queries items from this graph index using SPARQL-like patterns
-   * @param {object} pattern - Query pattern with subject, predicate, object (null for wildcards)
+   * @param {object} pattern - Query pattern with subject, predicate, object (wildcards converted to null)
    * @returns {Promise<resource.Identifier[]>} Array of resource identifiers
    */
   async queryItems(pattern) {
     if (!this.#loaded) await this.loadData();
 
-    const identifiers = [];
+    const normalizedPattern = this.#normalizePattern(pattern);
 
     // Query the N3 store for matching triples
     const quads = this.#store.getQuads(
-      isWildcard(pattern.subject) ? null : namedNode(pattern.subject),
-      isWildcard(pattern.predicate) ? null : namedNode(pattern.predicate),
-      isWildcard(pattern.object) ? null : literal(pattern.object),
+      normalizedPattern.subject ? namedNode(normalizedPattern.subject) : null,
+      normalizedPattern.predicate
+        ? namedNode(normalizedPattern.predicate)
+        : null,
+      normalizedPattern.object ? literal(normalizedPattern.object) : null,
     );
 
-    // If we have matching quads, find the corresponding items by subject
-    if (quads.length > 0) {
-      const matchingSubjects = new Set();
-
-      // Collect all subjects that match the pattern
-      for (const quad of quads) {
-        matchingSubjects.add(quad.subject.value);
-      }
-
-      // Find items whose subjectUri matches the matching subjects
-      for (const item of this.#index.values()) {
-        // Check if this item's subjectUri is one of our matching subjects
-        if (item.subjectUri && matchingSubjects.has(item.subjectUri)) {
-          identifiers.push(resource.Identifier.fromObject(item.identifier));
-        }
-      }
+    if (quads.length === 0) {
+      return [];
     }
 
-    return identifiers;
+    // Collect all subjects that match the pattern
+    const matchingSubjects = new Set();
+    for (const quad of quads) {
+      matchingSubjects.add(quad.subject.value);
+    }
+
+    return this.#findMatchingIdentifiers(matchingSubjects);
   }
 }
 
 /**
- * Parses a space-delimited graph query line into a pattern object
+ * Parses a space-delimited graph query line into a triple object
  * @param {string} line - Query line in format: <subject> <predicate> <object>
- * @returns {object} Pattern object with subject, predicate, object (null for wildcards)
+ * @returns {object} Triple object with subject, predicate, object as strings
  * @example
- * parseGraphQuery('person:john ? ?') // { subject: 'person:john', predicate: null, object: null }
- * parseGraphQuery('? foaf:name "John Doe"') // { subject: null, predicate: 'foaf:name', object: 'John Doe' }
- * parseGraphQuery('person:john type "Person"') // { subject: 'person:john', predicate: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', object: 'Person' }
+ * parseGraphQuery('person:john ? ?') // { subject: 'person:john', predicate: '?', object: '?' }
+ * parseGraphQuery('? foaf:name "John Doe"') // { subject: '?', predicate: 'foaf:name', object: '"John Doe"' }
+ * parseGraphQuery('person:john type "Person"') // { subject: 'person:john', predicate: 'type', object: '"Person"' }
  */
 export function parseGraphQuery(line) {
   if (typeof line !== "string") {
@@ -219,25 +252,7 @@ export function parseGraphQuery(line) {
   }
 
   const [subject, predicate, object] = terms;
-
-  // Helper function to parse RDF terms using shared wildcard logic
-  const parseTerm = (value) => {
-    return isWildcard(value) ? null : value;
-  };
-
-  return {
-    subject: parseTerm(subject),
-    predicate: parseTerm(
-      predicate === "type"
-        ? "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-        : predicate,
-    ),
-    object: parseTerm(
-      object?.startsWith('"') && object.endsWith('"')
-        ? object.slice(1, -1)
-        : object,
-    ),
-  };
+  return { subject, predicate, object };
 }
 
 export { GraphProcessor } from "./processor.js";

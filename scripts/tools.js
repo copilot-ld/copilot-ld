@@ -173,7 +173,10 @@ async function generateToolSchemas(endpoints, logger) {
 
     // Mark all properties as required if none specified
     // Exception: if all fields are optional, keep required array empty
-    if (schema.required.length === 0 && Object.keys(schema.properties).length > 0) {
+    if (
+      schema.required.length === 0 &&
+      Object.keys(schema.properties).length > 0
+    ) {
       // For tools with only optional parameters, leave required array empty
       // This is valid for OpenAI function calling
     } else if (schema.required.length === 0) {
@@ -225,7 +228,10 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
 
   // Ensure empty schemas are valid for OpenAI by adding required fields explicitly
   // For tools with no parameters, we still need valid JSON schema structure
-  if (Object.keys(toolParam.properties).length === 0 && toolParam.required.length === 0) {
+  if (
+    Object.keys(toolParam.properties).length === 0 &&
+    toolParam.required.length === 0
+  ) {
     // OpenAI requires properties and required fields to be present, even if empty
     // We ensure they're included by adding them explicitly to the protobuf structure
     toolParam.properties = {};
@@ -233,7 +239,7 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
   }
 
   // Force required field to be included even if empty for OpenAI compatibility
-  if (!toolParam.hasOwnProperty('required')) {
+  if (!Object.prototype.hasOwnProperty.call(toolParam, "required")) {
     toolParam.required = [];
   }
 

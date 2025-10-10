@@ -17,7 +17,7 @@ message Pattern {
 }
 
 message QueryItemsResponse {
-  repeated resource.Identifier identifiers = 1;
+  repeated string contents = 1;
 }
 
 message GetItemRequest {

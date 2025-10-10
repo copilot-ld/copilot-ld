@@ -236,6 +236,108 @@ describe("libgraph", () => {
       );
     });
 
+    test("pattern normalization handles type fallbacks correctly", async () => {
+      // Add a test resource
+      const identifier = resource.Identifier.fromObject({
+        type: "common.Message",
+        name: "test-message",
+      });
+
+      const jsonld = {
+        "@context": { "@vocab": "http://schema.org/" },
+        "@id": "http://example.org/test",
+        "@type": "Message",
+        description: "Test content",
+      };
+
+      const quads = jsonldToQuads(jsonld);
+      await graphIndex.addItem(quads, identifier, jsonld["@id"]);
+
+      // Test 1: Query using "type" shorthand should work
+      const typePattern = {
+        subject: null,
+        predicate: "type",
+        object: "Message",
+      };
+      const typeResults = await graphIndex.queryItems(typePattern);
+      assert.strictEqual(
+        typeResults.length,
+        1,
+        "Should find resource using 'type' shorthand",
+      );
+      assert.strictEqual(
+        String(typeResults[0]),
+        "common.Message.test-message",
+        "Should find correct resource using 'type'",
+      );
+
+      // Test 2: Query using "@type" shorthand should work
+      const atTypePattern = {
+        subject: null,
+        predicate: "@type",
+        object: "Message",
+      };
+      const atTypeResults = await graphIndex.queryItems(atTypePattern);
+      assert.strictEqual(
+        atTypeResults.length,
+        1,
+        "Should find resource using '@type' shorthand",
+      );
+      assert.strictEqual(
+        String(atTypeResults[0]),
+        "common.Message.test-message",
+        "Should find correct resource using '@type'",
+      );
+
+      // Test 3: Query using full RDF type predicate should work
+      const fullTypePattern = {
+        subject: null,
+        predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        object: "Message",
+      };
+      const fullTypeResults = await graphIndex.queryItems(fullTypePattern);
+      assert.strictEqual(
+        fullTypeResults.length,
+        1,
+        "Should find resource using full RDF type predicate",
+      );
+      assert.strictEqual(
+        String(fullTypeResults[0]),
+        "common.Message.test-message",
+        "Should find correct resource using full predicate",
+      );
+
+      // Test 4: All three approaches should return the same results
+      assert.deepStrictEqual(
+        typeResults,
+        atTypeResults,
+        "Results should be identical for 'type' and '@type'",
+      );
+      assert.deepStrictEqual(
+        typeResults,
+        fullTypeResults,
+        "Results should be identical for shorthand and full predicate",
+      );
+
+      // Test 5: Non-type predicates should not be affected by normalization
+      const descPattern = {
+        subject: null,
+        predicate: "description",
+        object: "Test content",
+      };
+      const descResults = await graphIndex.queryItems(descPattern);
+      assert.strictEqual(
+        descResults.length,
+        1,
+        "Should find resource by description predicate",
+      );
+      assert.strictEqual(
+        String(descResults[0]),
+        "common.Message.test-message",
+        "Should find correct resource by description",
+      );
+    });
+
     test("individual resource operations work correctly", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "common.Message",
@@ -324,17 +426,17 @@ describe("libgraph", () => {
       const result = parseGraphQuery("person:john ? ?");
       assert.deepStrictEqual(result, {
         subject: "person:john",
-        predicate: null,
-        object: null,
+        predicate: "?",
+        object: "?",
       });
     });
 
     test("parses triple query with quoted object", () => {
       const result = parseGraphQuery('? foaf:name "John Doe"');
       assert.deepStrictEqual(result, {
-        subject: null,
+        subject: "?",
         predicate: "foaf:name",
-        object: "John Doe",
+        object: '"John Doe"',
       });
     });
 
@@ -350,20 +452,36 @@ describe("libgraph", () => {
     test("parses triple query with all wildcards", () => {
       const result = parseGraphQuery("? ? ?");
       assert.deepStrictEqual(result, {
-        subject: null,
-        predicate: null,
-        object: null,
+        subject: "?",
+        predicate: "?",
+        object: "?",
+      });
+    });
+
+    test("parses triple query with type shorthand", () => {
+      const result = parseGraphQuery("person:john type Person");
+      assert.deepStrictEqual(result, {
+        subject: "person:john",
+        predicate: "type",
+        object: "Person",
+      });
+    });
+
+    test("parses triple query with @type shorthand", () => {
+      const result = parseGraphQuery('person:john @type "Person"');
+      assert.deepStrictEqual(result, {
+        subject: "person:john",
+        predicate: "@type",
+        object: '"Person"',
       });
     });
 
     test("handles quoted strings with spaces", () => {
-      const result = parseGraphQuery(
-        'person:john foaf:name "John Q. Doe Jr."',
-      );
+      const result = parseGraphQuery('person:john foaf:name "John Q. Doe Jr."');
       assert.deepStrictEqual(result, {
         subject: "person:john",
         predicate: "foaf:name",
-        object: "John Q. Doe Jr.",
+        object: '"John Q. Doe Jr."',
       });
     });
 

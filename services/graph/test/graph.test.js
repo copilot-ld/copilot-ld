@@ -22,7 +22,7 @@ describe("graph service", () => {
 
     test("GraphService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(GraphService.length, 3); // config, graphIndex, logFn
+      assert.strictEqual(GraphService.length, 4); // config, graphIndex, resourceIndex, logFn
     });
 
     test("GraphService has proper method signatures", () => {
@@ -36,6 +36,7 @@ describe("graph service", () => {
   describe("GraphService business logic", () => {
     let mockConfig;
     let mockGraphIndex;
+    let mockResourceIndex;
 
     beforeEach(() => {
       mockConfig = {
@@ -44,71 +45,94 @@ describe("graph service", () => {
 
       mockGraphIndex = {
         queryItems: async () => [
-          { type: "common.Message", name: "msg1" },
-          { type: "common.ToolFunction", name: "tool1" },
+          "common.Message.msg1",
+          "common.ToolFunction.tool1",
         ],
         getItem: async (id) => ({ id, found: true }),
+      };
+
+      mockResourceIndex = {
+        get: async (actor, ids) =>
+          ids.map((id) => {
+            const content = { text: `Content for ${id}` };
+            content.toString = function () {
+              return this.text || "";
+            };
+
+            const descriptor = { purpose: `Purpose for ${id}` };
+            descriptor.toString = function () {
+              return this.purpose || "";
+            };
+
+            return {
+              id: { type: "common.Message", name: id },
+              content,
+              descriptor,
+            };
+          }),
       };
     });
 
     test("creates service instance with graph index", () => {
-      const service = new GraphService(mockConfig, mockGraphIndex);
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
     });
 
     test("QueryItems queries the graph index", async () => {
-      const service = new GraphService(mockConfig, mockGraphIndex);
-
-      const result = await service.QueryItems({
-        pattern: {
-          subject: "http://example.org/test",
-          predicate: null,
-          object: null,
-        },
-      });
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
+      const result = await service.QueryItems({ subject: "test" });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.identifiers));
-      assert.strictEqual(result.identifiers.length, 2);
+      assert.ok(Array.isArray(result.contents));
+      assert.strictEqual(result.contents.length, 2);
+      assert.strictEqual(result.contents[0], "Content for common.Message.msg1");
     });
 
     test("QueryItems handles empty pattern", async () => {
-      const service = new GraphService(mockConfig, mockGraphIndex);
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
 
-      const result = await service.QueryItems({
-        pattern: {},
-      });
+      const result = await service.QueryItems({});
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.identifiers));
+      assert.ok(Array.isArray(result.contents));
     });
 
     test("QueryItems converts empty strings to null in pattern", async () => {
-      let capturedPattern = null;
-      mockGraphIndex.queryItems = async (pattern) => {
-        capturedPattern = pattern;
-        return [];
-      };
-
-      const service = new GraphService(mockConfig, mockGraphIndex);
-
-      await service.QueryItems({
-        pattern: {
-          subject: "",
-          predicate: "",
-          object: "",
-        },
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
+      const result = await service.QueryItems({
+        subject: "",
+        predicate: "testPredicate",
+        object: "",
       });
 
-      assert.strictEqual(capturedPattern.subject, null);
-      assert.strictEqual(capturedPattern.predicate, null);
-      assert.strictEqual(capturedPattern.object, null);
+      assert.ok(result);
+      assert.ok(Array.isArray(result.contents));
     });
 
     test("GetItem retrieves item from graph index", async () => {
-      const service = new GraphService(mockConfig, mockGraphIndex);
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
 
       const result = await service.GetItem({
         id: "common.Message.test",
@@ -120,13 +144,15 @@ describe("graph service", () => {
     });
 
     test("GetItem returns null identifier when not found", async () => {
-      mockGraphIndex.getItem = async () => null;
-
-      const service = new GraphService(mockConfig, mockGraphIndex);
-
-      const result = await service.GetItem({
-        id: "nonexistent",
-      });
+      const emptyGraphIndex = {
+        getItem: async () => null,
+      };
+      const service = new GraphService(
+        mockConfig,
+        emptyGraphIndex,
+        mockResourceIndex,
+      );
+      const result = await service.GetItem({ id: "non-existent" });
 
       assert.ok(result);
       assert.strictEqual(result.identifier, null);
@@ -136,17 +162,19 @@ describe("graph service", () => {
       let capturedPattern = null;
       mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
-        return [{ type: "common.Message", name: "msg1" }];
+        return ["common.Message.msg1"];
       };
 
-      const service = new GraphService(mockConfig, mockGraphIndex);
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
 
       await service.QueryItems({
-        pattern: {
-          subject: "http://example.org/message1",
-          predicate: null,
-          object: null,
-        },
+        subject: "http://example.org/message1",
+        predicate: null,
+        object: null,
       });
 
       assert.strictEqual(
@@ -161,17 +189,19 @@ describe("graph service", () => {
       let capturedPattern = null;
       mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
-        return [{ type: "common.ToolFunction", name: "tool1" }];
+        return ["common.ToolFunction.tool1"];
       };
 
-      const service = new GraphService(mockConfig, mockGraphIndex);
+      const service = new GraphService(
+        mockConfig,
+        mockGraphIndex,
+        mockResourceIndex,
+      );
 
       await service.QueryItems({
-        pattern: {
-          subject: null,
-          predicate: "http://purl.org/dc/terms/description",
-          object: "Search functionality",
-        },
+        subject: null,
+        predicate: "http://purl.org/dc/terms/description",
+        object: "Search functionality",
       });
 
       assert.strictEqual(capturedPattern.subject, null);

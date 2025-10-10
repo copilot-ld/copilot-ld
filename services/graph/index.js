@@ -8,16 +8,19 @@ const { GraphBase } = services;
  */
 export class GraphService extends GraphBase {
   #graphIndex;
+  #resourceIndex;
 
   /**
    * Creates a new Graph service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libgraph").GraphIndex} graphIndex - Pre-initialized graph index
+   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Pre-initialized resource index
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, graphIndex, logFn) {
+  constructor(config, graphIndex, resourceIndex, logFn) {
     super(config, logFn);
     this.#graphIndex = graphIndex;
+    this.#resourceIndex = resourceIndex;
   }
 
   /** @inheritdoc */
@@ -36,11 +39,28 @@ export class GraphService extends GraphBase {
 
     const identifiers = await this.#graphIndex.queryItems(pattern);
 
-    this.debug("Query complete", {
+    this.debug("Loading resources", {
       count: identifiers.length,
     });
 
-    return { identifiers };
+    // Load full resources using the identifiers
+    const actor = "common.System.root";
+    const resources = await this.#resourceIndex.get(
+      actor,
+      identifiers.map((id) => String(id)),
+    );
+
+    // Extract content strings from resources
+    const contents = resources.map((resource) => {
+      // Not all resources have content, fallback to descriptor
+      return resource.content
+        ? String(resource.content)
+        : String(resource.descriptor);
+    });
+
+    this.debug("Query complete", {});
+
+    return { contents };
   }
 
   /** @inheritdoc */
@@ -59,17 +79,17 @@ export class GraphService extends GraphBase {
   }
 
   /** @inheritdoc */
-  async GetOntology(req) {
+  async GetOntology(_req) {
     this.debug("Getting ontology from graph storage");
 
     const storage = this.#graphIndex.storage();
-    
+
     try {
       // Check if ontology exists
       const exists = await storage.exists("ontology.json");
       if (!exists) {
         this.debug("Ontology file not found");
-        return { 
+        return {
           ontology_json: JSON.stringify({
             predicates: {},
             types: {},
@@ -80,19 +100,20 @@ export class GraphService extends GraphBase {
               totalTypes: 0,
               totalSubjects: 0,
               lastUpdated: new Date().toISOString(),
-            }
-          }) 
+            },
+          }),
         };
       }
 
       // Get the ontology file content
       const ontologyContent = await storage.get("ontology.json");
-      
+
       // Handle both object and string formats
-      const ontologyJson = typeof ontologyContent === "object" 
-        ? JSON.stringify(ontologyContent)
-        : ontologyContent;
-      
+      const ontologyJson =
+        typeof ontologyContent === "object"
+          ? JSON.stringify(ontologyContent)
+          : ontologyContent;
+
       return { ontology_json: ontologyJson };
     } catch (error) {
       this.error("Failed to get ontology", { error: error.message });

@@ -127,7 +127,7 @@ export class GraphProcessor extends ProcessorBase {
     const quads = jsonldToQuads(jsonld);
 
     // Update ontology with new quad information
-    this.#updateOntology(quads, resourceUri);
+    this.#updateOntology(quads);
 
     // Add quads to the index (not the JSON-LD)
     await this.#targetIndex.addItem(quads, item.identifier, jsonld["@id"]);
@@ -138,20 +138,21 @@ export class GraphProcessor extends ProcessorBase {
   /**
    * Updates the ontology with information from new quads
    * @param {object[]} quads - Array of quad objects
-   * @param {string} resourceUri - The resource URI
    * @private
    */
-  #updateOntology(quads, resourceUri) {
+  #updateOntology(quads) {
     for (const quad of quads) {
       // Track predicates
       const predCount = this.#ontology.predicates.get(quad.predicate) || 0;
       this.#ontology.predicates.set(quad.predicate, predCount + 1);
 
       // Track types when predicate is rdf:type
-      if (quad.predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+      if (
+        quad.predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+      ) {
         const typeCount = this.#ontology.types.get(quad.object) || 0;
         this.#ontology.types.set(quad.object, typeCount + 1);
-        
+
         // Track subjects by type
         if (!this.#ontology.subjects.has(quad.object)) {
           this.#ontology.subjects.set(quad.object, new Set());
@@ -162,7 +163,9 @@ export class GraphProcessor extends ProcessorBase {
       // Track common query patterns
       this.#ontology.patterns.add(`? ${quad.predicate} ?`);
       this.#ontology.patterns.add(`${quad.subject} ? ?`);
-      if (quad.predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+      if (
+        quad.predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+      ) {
         this.#ontology.patterns.add(`? type ${quad.object}`);
       }
     }
@@ -174,31 +177,35 @@ export class GraphProcessor extends ProcessorBase {
    */
   async saveOntology() {
     const storage = this.#targetIndex.storage();
-    
+
     // Convert Maps and Sets to serializable format
     const ontologyData = {
       predicates: Object.fromEntries(
-        Array.from(this.#ontology.predicates.entries())
-          .sort((a, b) => b[1] - a[1]) // Sort by frequency
+        Array.from(this.#ontology.predicates.entries()).sort(
+          (a, b) => b[1] - a[1],
+        ), // Sort by frequency
       ),
       types: Object.fromEntries(
-        Array.from(this.#ontology.types.entries())
-          .sort((a, b) => b[1] - a[1]) // Sort by frequency
+        Array.from(this.#ontology.types.entries()).sort((a, b) => b[1] - a[1]), // Sort by frequency
       ),
       subjectsByType: Object.fromEntries(
-        Array.from(this.#ontology.subjects.entries()).map(([type, subjects]) => [
-          type,
-          Array.from(subjects).slice(0, 5) // Limit to 5 examples per type
-        ])
+        Array.from(this.#ontology.subjects.entries()).map(
+          ([type, subjects]) => [
+            type,
+            Array.from(subjects).slice(0, 5), // Limit to 5 examples per type
+          ],
+        ),
       ),
       commonPatterns: Array.from(this.#ontology.patterns).slice(0, 20), // Limit to 20 most common patterns
       statistics: {
         totalPredicates: this.#ontology.predicates.size,
         totalTypes: this.#ontology.types.size,
-        totalSubjects: Array.from(this.#ontology.subjects.values())
-          .reduce((total, subjects) => total + subjects.size, 0),
+        totalSubjects: Array.from(this.#ontology.subjects.values()).reduce(
+          (total, subjects) => total + subjects.size,
+          0,
+        ),
         lastUpdated: new Date().toISOString(),
-      }
+      },
     };
 
     await storage.put("ontology.json", JSON.stringify(ontologyData, null, 2));

@@ -62,6 +62,8 @@ enum
 env
 ESLint
 ESM
+fallback
+fallbacks
 Fargate
 filesystem
 frontend

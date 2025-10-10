@@ -14,6 +14,7 @@ const {
   agent = {},
   llm = {},
   vector = {},
+  graph = {},
   memory = {},
   tool = {},
 } = types;
@@ -203,6 +204,7 @@ export {
   agent,
   llm,
   vector,
+  graph,
   memory,
   tool,
 };

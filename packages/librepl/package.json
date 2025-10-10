@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libformat": "^0.1.30"
+    "@copilot-ld/libformat": "^0.1.31"
   },
   "repository": {
     "type": "git",

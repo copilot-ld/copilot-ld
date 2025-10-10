@@ -1,16 +1,12 @@
 /* eslint-env node */
 import crypto from "node:crypto";
 
-import { services, clients } from "@copilot-ld/librpc";
-import { hash } from "@copilot-ld/libtype";
-
-const { HashBase } = services;
-const { HashClient } = clients;
+import { HashBase } from "../../generated/services/hash/service.js";
 
 /**
  * Simple Hash service implementing SHA-256 and MD5 hashing
  */
-class HashService extends HashBase {
+export class HashService extends HashBase {
   /**
    * Creates a new Hash service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
@@ -36,7 +32,7 @@ class HashService extends HashBase {
    * Creates a hash of the input using the specified algorithm.
    * @param {string} input – The input string to hash
    * @param {string} algorithm - The algorithm to use (e.g., 'sha256', 'md5')
-   * @returns {hash.HashResponse} The resulting hash in hexadecimal format
+   * @returns {import("../../generated/types/types.js").hash.HashResponse} The resulting hash in hexadecimal format
    */
   #createHash(input, algorithm) {
     this.debug("Hashing", { algorithm, input });
@@ -45,5 +41,5 @@ class HashService extends HashBase {
   }
 }
 
-// Export the service class and client
-export { HashService, HashClient };
+// Export the service class (no bootstrap code here)
+export { HashClient } from "../../generated/services/hash/client.js";

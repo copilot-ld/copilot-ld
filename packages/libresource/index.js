@@ -50,12 +50,14 @@ export class ResourceIndex {
   /**
    * Gets resources by their identifiers with access control
    * @param {string} actor - Actor identifier for access control
-   * @param {string[]} ids - Array of resource identifiers
+   * @param {string[]|null} ids - Array of resource identifiers, or null
    * @returns {Promise<import("@copilot-ld/libtype").resource.Resource[]>} Array of resources
    */
   async get(actor, ids) {
     if (!actor) throw new Error("actor is required");
-    if (!Array.isArray(ids)) throw new Error("ids must be an array");
+    if (ids === null || ids === undefined) return [];
+    if (!Array.isArray(ids)) throw new Error("ids must be an array or null");
+    if (ids.length === 0) return [];
 
     // Evaluate access policy
     if (!(await this.#policy.evaluate({ actor, resources: ids }))) {
@@ -132,7 +134,7 @@ function toType(object) {
 
 /**
  * Helper function creating Identifier instance from resource URI - reverse of resource.Identifier.toString()
- * @param {string} uri - Resource URI (e.g., "common.MessageV2.abc123" or "parent/child/common.MessageV2.abc123")
+ * @param {string} uri - Resource URI (e.g., "common.Message.abc123" or "parent/child/common.Message.abc123")
  * @returns {types.resource.Identifier} Identifier instance
  */
 function toIdentifier(uri) {

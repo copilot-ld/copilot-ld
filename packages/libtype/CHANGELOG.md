@@ -1,31 +1,11 @@
 # Changelog
 
-## 2025-10-07
+## 2025-10-10
 
 - **BREAKING**: Simplified Resource URI format by removing `cld:` namespace
-  prefix from `Identifier.toString()` method
-- Enhanced `toIdentifier()` helper function to work with simplified URI format
-- Updated all URI generation and parsing to use direct path format without
-  namespace prefix
-
-## 2025-09-26
-
-- Bump version
-- **UPDATED**: Enhanced package exports to support new code generation system
-- **IMPROVED**: Compatibility with `@copilot-ld/librpc` aggregated
-  service/client imports
-- **DEPENDENCIES**: Updated `package.json` for better integration with monorepo
-  package resolution
-
-## 2025-09-25
-
-- **BREAKING**: Removed service and client exports from `@copilot-ld/libtype`
-- Now exclusively contains protobuf type definitions and message structures
-- Service bases and clients moved to `@copilot-ld/librpc` to prevent circular
-  dependencies
-- Generated code now located in `packages/libtype/generated/` instead of project
-  root `generated/`
-- Simplified package architecture with clean separation of concerns
+  prefix from identifier methods
+- Enhanced package architecture with clean separation of protobuf types from
+  service/client code
 
 ## 2025-09-19
 
@@ -48,7 +28,7 @@
 - Consolidated all generated protobuf types into unified `generated/types/`
   directory structure
 - **BREAKING**: Modified `llm.CompletionsRequest` to use
-  `repeated common.MessageV2 messages` instead of `common.Prompt prompt`
+  `repeated common.Message messages` instead of `common.Prompt prompt`
 - Enhanced `withIdentifier()` method to properly handle `null`/`undefined`
   parent values
 - Restored direct monkey patching approach for imported types from

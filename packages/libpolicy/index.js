@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { storageFactory } from "@copilot-ld/libstorage";
+import { createStorage } from "@copilot-ld/libstorage";
 
 /**
  * Simple policy engine that returns static "allow" for all requests
@@ -58,7 +58,7 @@ export class Policy {
  * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Optional storage backend for policy loading
  * @returns {Policy} New Policy instance
  */
-export function policyFactory(storage = null) {
-  const storageBackend = storage || storageFactory("policies");
+export function createPolicy(storage = null) {
+  const storageBackend = storage || createStorage("policies");
   return new Policy(storageBackend);
 }

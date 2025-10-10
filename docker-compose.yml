@@ -46,7 +46,6 @@ services:
           - alb.copilot-ld.local
     depends_on:
       - web
-      - copilot
 
   storage:
     image: minio/minio:latest
@@ -80,23 +79,6 @@ services:
       internal:
         aliases:
           - web.copilot-ld.local
-    depends_on:
-      - agent
-      - storage
-
-  copilot:
-    build:
-      context: ./extensions/copilot
-      dockerfile: ../../Dockerfile
-      secrets:
-        - github_token
-    image: copilot-ld/copilot:latest
-    container_name: copilot.copilot-ld
-    env_file: .env
-    networks:
-      internal:
-        aliases:
-          - copilot.copilot-ld.local
     depends_on:
       - agent
       - storage

@@ -2,8 +2,8 @@
 /* eslint-env node */
 
 import { ScriptConfig } from "@copilot-ld/libconfig";
-import { storageFactory } from "@copilot-ld/libstorage";
-import { downloadFactory, execLine } from "@copilot-ld/libutil";
+import { createStorage } from "@copilot-ld/libstorage";
+import { createDownloader, execLine } from "@copilot-ld/libutil";
 
 /**
  * Main execution function
@@ -11,7 +11,7 @@ import { downloadFactory, execLine } from "@copilot-ld/libutil";
  */
 async function main() {
   await ScriptConfig.create("download");
-  const downloader = downloadFactory(storageFactory);
+  const downloader = createDownloader(createStorage);
   await downloader.download();
 
   // If additional arguments provided, execute them after download

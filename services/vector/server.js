@@ -2,7 +2,7 @@
 import { Server } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector";
-import { storageFactory } from "@copilot-ld/libstorage";
+import { createStorage } from "@copilot-ld/libstorage";
 
 import { VectorService } from "./index.js";
 
@@ -11,7 +11,7 @@ const config = await ServiceConfig.create("vector", {
   limit: 0,
 });
 
-const vectorStorage = storageFactory("vectors");
+const vectorStorage = createStorage("vectors");
 const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
 const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
 

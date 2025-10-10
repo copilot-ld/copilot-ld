@@ -121,7 +121,7 @@ export class MemoryService extends MemoryBase {
 
     // Extract message identifiers
     let history = identifiers.filter((identifier) =>
-      identifier.type?.startsWith("common.MessageV2"),
+      identifier.type?.startsWith("common.Message"),
     );
 
     // Apply budget filtering if allocation is provided

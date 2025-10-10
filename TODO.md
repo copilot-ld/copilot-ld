@@ -28,6 +28,7 @@ and policies for robust workflow controls.
 - [ ] **Step 13**: New Assistant service
 - [ ] **Step 14**: Update extensions to use Plan service
 - [ ] **Step 15**: Remove deprecated items and rename `MessageV2` to `Message`
+      (COMPLETED)
 - [ ] **Step 16**: New Graph tool
 
 **🚨 CRITICAL**: Each step must be completed and tested before proceeding to the
@@ -78,9 +79,9 @@ looking at the raw local file system:
 ```bash
 developer@localhost$ ls -1 resources/
 common.Conversation.hash0001.json
-common.Conversation.hash0001/common.MessageV2.hash0002.json
-common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003.json
-common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004.json
+common.Conversation.hash0001/common.Message.hash0002.json
+common.Conversation.hash0001/common.Message.hash0002/plan.Task.hash0003.json
+common.Conversation.hash0001/common.Message.hash0002/plan.Task.hash0003/plan.Task.hash0004.json
 ```
 
 It is now fast and efficient for the Resource service to fetch all tasks within
@@ -165,7 +166,7 @@ When a Task has no subtasks, the assigned Assistant executes directly:
 
 1. Fetches related resources and performs similarity search for context
 2. Executes "The Inner Loop" (defined below)
-3. Persists a `MessageV2` resource with the task output
+3. Persists a `Message` resource with the task output
 
 #### The Inner Loop
 
@@ -175,7 +176,7 @@ requested.
 
 The URI structure enables easy fetching of all parent resources. For example, a
 sub Task URI like
-`common.Conversation.hash0001/common.MessageV2.hash0002/plan.Task.hash0003/plan.Task.hash0004`
+`common.Conversation.hash0001/common.Message.hash0002/plan.Task.hash0003/plan.Task.hash0004`
 allows the Assistant to fetch the Conversation, Message, and parent Task
 contexts.
 
@@ -238,7 +239,7 @@ sequenceDiagram
                     Asst->>Plan: Request Assistant assignment for new subtasks
                 else Task successful
                     Note over Asst: Task complete
-                    Asst->>Resource: Persist final MessageV2 output
+                    Asst->>Resource: Persist final Message output
                 end
 
             else Task has no subtasks (Direct Mode)
@@ -269,7 +270,7 @@ sequenceDiagram
                 end
 
                 Note over Asst: Persist task output
-                Asst->>Resource: Persist MessageV2 with results
+                Asst->>Resource: Persist Message with results
             end
         end
     end
@@ -350,6 +351,7 @@ transition.
 - **Step 13**: New Assistant service
 - **Step 14**: Update extensions to use Plan service
 - **Step 15**: Remove deprecated items and rename `MessageV2` to `Message`
+  (COMPLETED)
 - **Step 16**: New Graph tool
 
 **⚠️ Implementation Notes**:
@@ -372,7 +374,7 @@ import "common.proto";
 package plan;
 
 service Plan {
-  rpc Process(common.MessageV2) returns (stream common.MessageV2);
+  rpc Process(common.Message) returns (stream common.Message);
 }
 
 message Task {

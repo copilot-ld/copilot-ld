@@ -1,25 +1,9 @@
 # Changelog
 
-## 2025-10-07
+## 2025-10-10
 
-- Simplified development workflow by removing `--env-file` flag from `dev`
-  script
-
-## 2025-10-03
-
-- Integrated `downloadFactory()` from `@copilot-ld/libutil` for automatic
-  generated code management
-- Simplified service startup by removing Docker-specific code paths
-
-## 2025-09-26
-
-- Bump version
-- **BREAKING**: Updated imports to use `@copilot-ld/librpc` services instead of
-  local `generated/` files
-- **CONTAINERIZATION**: Simplified `Dockerfile` to use standalone
-  `node:22-alpine` base with private `@copilot-ld` packages via `.npmrc`
-- **IMPORTS**: Enhanced service implementation to use destructured imports:
-  `const { VectorBase } = services;`
+- **BREAKING**: Updated imports to use `@copilot-ld/librpc` services pattern
+- Integrated automatic generated code management and simplified service startup
 
 ## 2025-09-19
 

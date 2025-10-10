@@ -2,7 +2,7 @@
 /* eslint-env node */
 
 import { ScriptConfig } from "@copilot-ld/libconfig";
-import { storageFactory } from "@copilot-ld/libstorage";
+import { createStorage } from "@copilot-ld/libstorage";
 import { Logger, Uploader } from "@copilot-ld/libutil";
 
 /**
@@ -26,7 +26,7 @@ async function main() {
   await ScriptConfig.create("upload");
 
   const logger = new Logger("upload");
-  const uploader = new Uploader(storageFactory, logger);
+  const uploader = new Uploader(createStorage, logger);
 
   await uploader.initialize(outputOnly);
 

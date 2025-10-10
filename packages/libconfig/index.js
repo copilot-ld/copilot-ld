@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { storageFactory } from "@copilot-ld/libstorage";
+import { createStorage } from "@copilot-ld/libstorage";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
@@ -27,7 +27,7 @@ export class Config {
     name,
     defaults = {},
     process = global.process,
-    storageFn = storageFactory,
+    storageFn = createStorage,
   ) {
     this.#process = process;
     this.#storageFn = storageFn;
@@ -51,7 +51,7 @@ export class Config {
     name,
     defaults = {},
     process = global.process,
-    storageFn = storageFactory,
+    storageFn = createStorage,
   ) {
     const instance = new Config(namespace, name, defaults, process, storageFn);
     await instance.load();

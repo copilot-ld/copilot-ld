@@ -69,7 +69,7 @@ describe("libtriple", () => {
       const resources = [
         {
           identifier: resource.Identifier.fromObject({
-            type: "common.MessageV2",
+            type: "common.Message",
             name: "user-message",
           }),
           jsonld: {
@@ -78,7 +78,7 @@ describe("libtriple", () => {
               dcterms: "http://purl.org/dc/terms/",
             },
             "@id": "http://example.org/message1",
-            "@type": "MessageV2",
+            "@type": "Message",
             "dcterms:description": "User message about JavaScript",
             "dcterms:creator": "user123",
             "dcterms:subject": "javascript",
@@ -103,7 +103,7 @@ describe("libtriple", () => {
         },
         {
           identifier: resource.Identifier.fromObject({
-            type: "common.MessageV2",
+            type: "common.Message",
             name: "assistant-message",
           }),
           jsonld: {
@@ -112,7 +112,7 @@ describe("libtriple", () => {
               dcterms: "http://purl.org/dc/terms/",
             },
             "@id": "http://example.org/message2",
-            "@type": "MessageV2",
+            "@type": "Message",
             "dcterms:description": "Assistant response about Python",
             "dcterms:creator": "assistant",
             "dcterms:subject": "python",
@@ -126,27 +126,25 @@ describe("libtriple", () => {
         await tripleIndex.addItem(quads, identifier, jsonld["@id"]);
       }
 
-      // Test 1: Query by type - should find only MessageV2 resources
+      // Test 1: Query by type - should find only Message resources
       const messagePattern = {
         subject: null,
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        object: "MessageV2",
+        object: "Message",
       };
       const messageResults = await tripleIndex.queryItems(messagePattern);
       assert.strictEqual(
         messageResults.length,
         2,
-        "Should find 2 MessageV2 resources",
+        "Should find 2 Message resources",
       );
       assert(
-        messageResults.some(
-          (r) => String(r) === "common.MessageV2.user-message",
-        ),
+        messageResults.some((r) => String(r) === "common.Message.user-message"),
         "Should include user message",
       );
       assert(
         messageResults.some(
-          (r) => String(r) === "common.MessageV2.assistant-message",
+          (r) => String(r) === "common.Message.assistant-message",
         ),
         "Should include assistant message",
       );
@@ -201,7 +199,7 @@ describe("libtriple", () => {
       );
       assert.strictEqual(
         String(jsResults[0]),
-        "common.MessageV2.user-message",
+        "common.Message.user-message",
         "Should find user message about JavaScript",
       );
 
@@ -219,7 +217,7 @@ describe("libtriple", () => {
       );
       assert.strictEqual(
         String(specificResults[0]),
-        "common.MessageV2.user-message",
+        "common.Message.user-message",
         "Should find user message by ID",
       );
 
@@ -240,14 +238,14 @@ describe("libtriple", () => {
 
     test("individual resource operations work correctly", async () => {
       const identifier = resource.Identifier.fromObject({
-        type: "common.MessageV2",
+        type: "common.Message",
         name: "test-message",
       });
 
       const jsonld = {
         "@context": { "@vocab": "http://schema.org/" },
         "@id": "http://example.org/test",
-        "@type": "MessageV2",
+        "@type": "Message",
         description: "Test content",
       };
 

@@ -1,52 +1,13 @@
 # Changelog
 
-## 2025-10-07
+## 2025-10-10
 
-- Added `query.js` script for interactive triple querying using REPL interface
-- **BREAKING**: Updated all script execution examples to use `npx env-cmd --`
-  for proper environment variable loading
-- Enhanced `search.js` to use simplified resource URI format without `cld:`
-  prefix
-- Updated `vectors.js` to work with direct identifier format for improved
-  consistency
-
-## 2025-10-06
-
-- Added `npm run process:resources`, `npm run process:tools`, and
-  `npm run process:vectors` scripts for simplified workflow
-- Added `npm run upload` and `npm run download` scripts for data management
-- Updated documentation to use new npm scripts instead of direct node script
-  calls
-
-## 2025-10-02
-
-- Updated `tools.js` to read tool configurations from dedicated
-  `config/tools.yml` instead of service configuration
-- Simplified tool configuration management by removing `ScriptConfig` dependency
-
-## 2025-09-27
-
-- **BREAKING**: Migrated `upload.js` functionality to `@copilot-ld/libutil`
-  package with `Upload` class implementation
-- **REMOVED**: Deleted `upload.js` - functionality now available via
-  `npx upload` from `libutil` package
-- **ENHANCED**: Updated upload functionality to work with new single-bucket S3
-  storage architecture using prefixes (now in `libutil`)
-- **IMPROVED**: Simplified upload logic by replacing bucket-specific handling
-  with prefix-based approach (now in `libutil`)
-- **NEW**: Added support for `generated` storage area in upload operations (now
-  in `libutil`)
-
-## 2025-09-26
-
-- **BREAKING**: Migrated `codegen.js` functionality to `@copilot-ld/libutil`
-  package with `Codegen` class implementation
-- **REMOVED**: Deleted `codegen.js`, `client.js.mustache`, and
-  `service.js.mustache` as they moved to `packages/libutil`
-- **ENHANCED**: Updated `chat.js` to use `@copilot-ld/librpc` aggregated
-  exports: `const { AgentClient } = clients;`
-- **CLI**: Code generation now available via `npx codegen` from
-  `@copilot-ld/libutil` package
+- Enhanced script utilities with simplified state management and improved
+  `@copilot-ld/librepl` integration
+- **BREAKING**: Migrated code generation and upload functionality to dedicated
+  packages (`@copilot-ld/libutil`, `@copilot-ld/libcodegen`)
+- Added new processing scripts and interactive REPL tools (`query.js`,
+  simplified `search.js`, enhanced `chat.js`)
 
 ## 2025-09-19
 
@@ -94,7 +55,7 @@
 - Updated `chat.js` tool to use the new `AgentClient` class instead of generic
   `Client`
 - Enhanced `chat.js` to use proper typed requests with `agent.AgentRequest` and
-  `common.MessageV2`
+  `common.Message`
 - Improved message content handling in `chat.js` to support both string and
   object content structures
 - Modified `codegen-services.js` to generate `service.js` and `service.d.ts`
@@ -193,7 +154,7 @@
 
 ## 2025-08-15
 
-- Completely rewrote `upload.js` tool to use `storageFactory()` pattern
+- Completely rewrote `upload.js` tool to use `createStorage()` pattern
 - Upload tool now initializes local and S3 storage objects for each bucket
 - Added special handling for config bucket (uploads only `config.yml` file)
 - Standard buckets (`chunks`, `vectors`, `history`) upload all items using new

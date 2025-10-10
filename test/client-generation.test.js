@@ -18,7 +18,7 @@ describe("Generated client locations", () => {
    * - Exists at new path under generated/services
    * - Extends base librpc Client (prototype chain)
    * - Exposes expected RPC wrapper methods (defined in proto)
-   * NOTE: We intentionally do NOT call ensureReady()/RPCs here to avoid needing
+   * NOTE: We intentionally do NOT call RPCs here to avoid needing
    * running gRPC servers; we are validating code generation & placement only.
    */
   test("LLM client class shape", () => {

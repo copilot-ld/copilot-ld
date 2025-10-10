@@ -1,5 +1,4 @@
 /* eslint-env node */
-import readline from "readline";
 import { Store } from "n3";
 
 import { TripleIndex, parseTripleQuery } from "@copilot-ld/libtriple";
@@ -7,7 +6,7 @@ import { Repl } from "@copilot-ld/librepl";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { Policy } from "@copilot-ld/libpolicy";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
-import { storageFactory } from "@copilot-ld/libstorage";
+import { createStorage } from "@copilot-ld/libstorage";
 
 // Global state
 /** @type {TripleIndex} */
@@ -62,40 +61,29 @@ async function performQuery(prompt) {
 }
 
 // Create REPL with dependency injection
-const repl = new Repl(readline, process, createTerminalFormatter(), {
+const repl = new Repl(createTerminalFormatter(), {
+  help: `Usage: <subject> <predicate> <object>
+
+Use ? as wildcard for any field and quote strings with spaces.
+
+Examples:
+
+person:john ? ?         # Find all about person:john
+? foaf:name "John Doe"  # Find entities named "John Doe"
+? type Person           # Find all Person instances
+? ? ?                   # Find all triples`,
+
   setup: async () => {
-    const triplesStorage = storageFactory("triples");
+    const triplesStorage = createStorage("triples");
     const store = new Store();
     tripleIndex = new TripleIndex(triplesStorage, store, "triples.jsonl");
 
-    const resourceStorage = storageFactory("resources");
-    const policyStorage = storageFactory("policies");
+    const resourceStorage = createStorage("resources");
+    const policyStorage = createStorage("policies");
     const policy = new Policy(policyStorage);
     resourceIndex = new ResourceIndex(resourceStorage, policy);
   },
-  commands: {
-    help: {
-      help: "Show query syntax help",
-      handler: () => {
-        return `Triple Query Syntax:
 
-Format: <subject> <predicate> <object>
-
-Rules:
-- Use ? as wildcard for any field
-- Quote strings with spaces: "John Doe"
-- Examples:
-  person:john ? ?           # Find all about person:john
-  ? foaf:name "John Doe"    # Find entities named "John Doe"
-  ? rdf:type Person         # Find all Person instances
-  ? ? ?                     # Find all triples
-
-Other Commands:
-- /help                     # Show this help
-- exit                      # Exit the program`;
-      },
-    },
-  },
   onLine: performQuery,
 });
 

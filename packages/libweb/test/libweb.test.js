@@ -3,123 +3,74 @@ import assert from "node:assert";
 
 import { ExtensionConfig } from "@copilot-ld/libconfig";
 import {
-  RequestValidator,
-  MemoryRateLimiter,
-  SecurityMiddleware,
-  createRateLimiter,
-  createSecurityMiddleware,
+  ValidationMiddleware,
+  CorsMiddleware,
+  createValidationMiddleware,
+  createCorsMiddleware,
 } from "../index.js";
 
-describe("RequestValidator", () => {
-  let validator;
+describe("ValidationMiddleware", () => {
+  let validationMiddleware;
+  let config;
 
   beforeEach(() => {
-    validator = new RequestValidator();
-  });
-
-  test("validates valid object", () => {
-    const result = validator.validate({ message: "test" });
-    assert.strictEqual(result.isValid, true);
-    assert.strictEqual(result.errors.length, 0);
-  });
-
-  test("rejects null data", () => {
-    const result = validator.validate(null);
-    assert.strictEqual(result.isValid, false);
-    assert(result.errors.length > 0);
-  });
-
-  test("rejects non-object data", () => {
-    const result = validator.validate("string");
-    assert.strictEqual(result.isValid, false);
-    assert(result.errors.length > 0);
-  });
-});
-
-describe("MemoryRateLimiter", () => {
-  let rateLimiter;
-
-  beforeEach(() => {
-    rateLimiter = new MemoryRateLimiter({ windowMs: 1000, maxRequests: 2 });
-  });
-
-  test("allows requests within limit", async () => {
-    const result = await rateLimiter.checkLimit("test-key");
-    assert.strictEqual(result.allowed, true);
-    assert.strictEqual(result.remaining, 1);
-  });
-
-  test("blocks requests exceeding limit", async () => {
-    await rateLimiter.checkLimit("test-key");
-    await rateLimiter.checkLimit("test-key");
-
-    const result = await rateLimiter.checkLimit("test-key");
-    assert.strictEqual(result.allowed, false);
-    assert.strictEqual(result.remaining, 0);
-  });
-
-  test("resets limit for key", async () => {
-    await rateLimiter.checkLimit("test-key");
-    await rateLimiter.checkLimit("test-key");
-
-    await rateLimiter.reset("test-key");
-
-    const result = await rateLimiter.checkLimit("test-key");
-    assert.strictEqual(result.allowed, true);
-  });
-
-  test("disposes cleanup interval", () => {
-    // Should not throw
-    rateLimiter.dispose();
-
-    // Multiple disposes should be safe
-    rateLimiter.dispose();
-  });
-});
-
-describe("SecurityMiddleware", () => {
-  let securityMiddleware;
-  let rateLimiter;
-
-  beforeEach(() => {
-    rateLimiter = new MemoryRateLimiter({ windowMs: 1000, maxRequests: 10 });
-    securityMiddleware = new SecurityMiddleware(rateLimiter);
+    config = new ExtensionConfig("test");
+    validationMiddleware = new ValidationMiddleware(config);
   });
 
   test("creates validation middleware", () => {
-    const middleware = securityMiddleware.createValidationMiddleware({
+    const middleware = validationMiddleware.create({
       required: ["message"],
       types: { message: "string" },
     });
 
     assert.strictEqual(typeof middleware, "function");
   });
+});
 
-  test("creates rate limit middleware", () => {
-    const middleware = securityMiddleware.createRateLimitMiddleware();
-    assert.strictEqual(typeof middleware, "function");
+describe("CorsMiddleware", () => {
+  let corsMiddleware;
+  let config;
+
+  beforeEach(() => {
+    config = new ExtensionConfig("test");
+    corsMiddleware = new CorsMiddleware(config);
   });
 
   test("creates CORS middleware", () => {
-    const middleware = securityMiddleware.createCorsMiddleware();
+    const middleware = corsMiddleware.create();
     assert.strictEqual(typeof middleware, "function");
   });
 
-  test("creates error middleware", () => {
-    const middleware = securityMiddleware.createErrorMiddleware();
+  test("creates CORS middleware with custom options", () => {
+    const middleware = corsMiddleware.create({
+      origin: ["https://example.com"],
+      allowMethods: ["GET", "POST", "PUT"],
+    });
     assert.strictEqual(typeof middleware, "function");
   });
 });
 
 describe("Factory functions", () => {
-  test("createRateLimiter creates rate limiter", () => {
-    const rateLimiter = createRateLimiter();
-    assert(rateLimiter instanceof MemoryRateLimiter);
+  test("createValidationMiddleware creates validation middleware", () => {
+    const middleware = createValidationMiddleware();
+    assert(middleware instanceof ValidationMiddleware);
   });
 
-  test("createSecurityMiddleware creates security middleware", () => {
+  test("createValidationMiddleware works with config", () => {
     const config = new ExtensionConfig("test");
-    const middleware = createSecurityMiddleware(config);
-    assert(middleware instanceof SecurityMiddleware);
+    const middleware = createValidationMiddleware(config);
+    assert(middleware instanceof ValidationMiddleware);
+  });
+
+  test("createCorsMiddleware creates CORS middleware", () => {
+    const middleware = createCorsMiddleware();
+    assert(middleware instanceof CorsMiddleware);
+  });
+
+  test("createCorsMiddleware works with config", () => {
+    const config = new ExtensionConfig("test");
+    const middleware = createCorsMiddleware(config);
+    assert(middleware instanceof CorsMiddleware);
   });
 });

@@ -4,14 +4,6 @@ import "resource.proto";
 
 package common;
 
-/**
- * @deprecated
- */
-message Message {
-  string role = 1;
-  string content = 2;
-}
-
 message Usage {
   int32 prompt_tokens = 1;
   int32 completion_tokens = 2;
@@ -20,42 +12,13 @@ message Usage {
 
 message Choice {
   int32 index = 1;
-  MessageV2 message = 2;
+  Message message = 2;
   optional string finish_reason = 3;
 }
 
 message Embedding {
   int32 index = 1;
   repeated float embedding = 2;
-}
-
-/**
- * @deprecated
- */
-message Chunk {
-  string id = 1;
-  string text = 2;
-  int32 tokens = 3;
-}
-
-/**
- * @deprecated
- */
-message Similarity {
-  string id = 1;
-  double score = 2;
-  int32 tokens = 3;
-  string text = 4;
-}
-
-/**
- * @deprecated
- */
-message Prompt {
-  repeated string system_instructions = 1;
-  repeated Similarity previous_similarities = 2;
-  repeated Similarity current_similarities = 3;
-  repeated Message messages = 4;
 }
 
 message Conversation {
@@ -96,7 +59,7 @@ message ToolCallResult {
   string content = 3;
 }
 
-message MessageV2 {
+message Message {
   resource.Identifier id = 1;
   resource.Descriptor descriptor = 2;
   resource.Content content = 3;

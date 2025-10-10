@@ -231,16 +231,9 @@ sequenceDiagram
     Client->>Extension: REST request
     Extension->>Agent: RPC request (ProcessRequest)
 
-    Note right of Agent: Ensure clients ready in parallel (LLM/Vector/Memory/Tool)
-    par Parallel Readiness & Validation
-        Agent->>Memory: ensureReady()
-        Agent->>LLM: ensureReady()
-        Agent->>Vector: ensureReady()
-        Agent->>Tool: ensureReady()
-    and
-        Agent->>GitHub: GET /user (validate token)
-        GitHub-->>Agent: 200 OK (user)
-    end
+    Note right of Agent: GitHub validation
+    Agent->>GitHub: GET /user (validate token)
+    GitHub-->>Agent: 200 OK (user)
 
     Agent->>ResourceIndex: Get/Create conversation
     Agent->>ResourceIndex: Put user message (scoped to conversation)
@@ -964,7 +957,7 @@ sequenceDiagram
 
       <h4>Service Security Responsibilities</h4>
 
-      <h5>Extensions (Web, Copilot)</h5>
+      <h5>Extensions (Web)</h5>
 
       <ul>
         <li>Input validation and sanitization</li>

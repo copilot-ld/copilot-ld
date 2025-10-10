@@ -1,13 +1,13 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 
-import { logFactory } from "@copilot-ld/libutil";
+import { createLogger } from "@copilot-ld/libutil";
 
-import { authFactory } from "./base.js";
+import { createAuth } from "./base.js";
 import * as exports from "./generated/services/exports.js";
 import * as definitionsExports from "./generated/definitions/exports.js";
 
-export { grpcFactory, authFactory, Rpc, Client } from "./base.js";
+export { createGrpc, createAuth, Rpc, Client } from "./base.js";
 export { Interceptor, HmacAuth } from "./auth.js";
 
 /**
@@ -33,8 +33,8 @@ export class Server {
     service,
     config,
     grpcFn = () => ({ grpc }),
-    authFn = authFactory,
-    logFn = logFactory,
+    authFn = createAuth,
+    logFn = createLogger,
   ) {
     if (!service) throw new Error("service is required");
     if (!config) throw new Error("config is required");
@@ -52,7 +52,7 @@ export class Server {
     this.#server = new this.#grpc.Server();
 
     // Get pre-compiled service definition
-    const definition = await this.#getServiceDefinition();
+    const definition = this.#getServiceDefinition();
 
     // Get handlers from the service instance
     const handlers = this.#service.getHandlers();
@@ -68,7 +68,7 @@ export class Server {
     this.#setupShutdown();
   }
 
-  async #getServiceDefinition() {
+  #getServiceDefinition() {
     // Get service name from config (e.g., "agent" -> "agent")
     const serviceName = this.config.name.toLowerCase();
 

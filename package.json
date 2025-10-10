@@ -43,8 +43,8 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write --list-different .",
     "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' --dictionaries .dictionary.txt --no-suggestions",
-    "check": "npm run spellcheck && npm run lint && npm run format",
-    "check:fix": "npm run spellcheck && npm run lint:fix && npm run format:fix",
+    "check": "npm run spellcheck && npm run format && npm run lint",
+    "check:fix": "npm run spellcheck && npm run format:fix && npm run lint:fix",
     "security": "npm audit --audit-level=low --workspaces"
   },
   "devDependencies": {

@@ -1,27 +1,10 @@
 # Changelog
 
-## 2025-09-16
+## 2025-10-10
 
-- Bump version one last time, really
-- Bump version one last time
-- Bump version one more time
-- Bump version again
-- Bump version for public package publishing
-
-## 2025-09-09
-
-- **BREAKING CHANGE**: Updated `createCompletions()` method to use explicit
-  parameters `(messages, tools, temperature, max_tokens)` instead of object
-  parameter
-- Implemented OpenAI-compatible API format conversions using clean object
-  creation instead of `.toObject()` for better compatibility
-- Enhanced message formatting to extract `content.text` and create clean OpenAI
-  message objects with proper role/content structure
-- Improved tool formatting to create clean OpenAI tool objects with proper
-  type/function structure
-- Added safety checks for null/undefined messages and proper content extraction
-- Removed protobuf dependencies in favor of direct object mapping for more
-  reliable conversion
+- **BREAKING**: Updated `createCompletions()` to use explicit parameters instead
+  of object parameter
+- Enhanced OpenAI API compatibility with improved message and tool formatting
 
 ## 2025-09-08
 
@@ -29,7 +12,7 @@
   with HTTP 429 errors would fall through without proper error handling
 - Enhanced type safety with `llm.CompletionsResponse` objects and proper
   `common.Tool.fromObject()` conversions
-- Improved message normalization converting `MessageV2` to standard format with
+- Improved message normalization converting `Message` to standard format with
   `withIdentifier()` support
 - Streamlined retry logic with reusable `#withRetry()` method applied to both
   completions and embeddings

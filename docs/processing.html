@@ -203,7 +203,7 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
       </p>
 
       <pre><code>data/resources/
-├── common.MessageV2.{hash}.json        # Individual message resources
+├── common.Message.{hash}.json        # Individual message resources
 ├── common.Assistant.{name}.json        # Assistant configurations
 ├── common.ToolFunction.{name}.json     # Tool definitions
 └── common.Conversation.{uuid}.json     # Conversation metadata</code></pre>
@@ -515,7 +515,7 @@ du -sh data/*/
 aws s3 ls s3://your-copilot-ld-bucket --recursive --human-readable --summarize
 
 # Check resource count by type
-ls data/resources/ | grep "MessageV2" | wc -l
+ls data/resources/ | grep "Message" | wc -l
 ls data/resources/ | grep "ToolFunction" | wc -l
 ls data/resources/ | grep "Assistant" | wc -l</code></pre>
 

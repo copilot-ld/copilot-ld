@@ -3,7 +3,7 @@ import { describe, test, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { downloadFactory } from "../index.js";
+import { createDownloader } from "../index.js";
 
 describe("libutil", () => {
   describe("downloadFactory", () => {
@@ -11,7 +11,7 @@ describe("libutil", () => {
       const mockStorageFactory = mock.fn();
       const mockProcess = { env: { STORAGE_TYPE: "local" } };
 
-      const downloader = downloadFactory(mockStorageFactory, mockProcess);
+      const downloader = createDownloader(mockStorageFactory, mockProcess);
 
       assert.ok(downloader);
       // Check that it's a Download instance by checking if it has the expected methods
@@ -20,15 +20,15 @@ describe("libutil", () => {
     });
 
     test("validates storageFactory parameter", () => {
-      assert.throws(() => downloadFactory(null), {
-        message: /storageFactory is required/,
+      assert.throws(() => createDownloader(null), {
+        message: /createStorage is required/,
       });
     });
 
     test("uses global process when not provided", () => {
       const mockStorageFactory = mock.fn();
 
-      const downloader = downloadFactory(mockStorageFactory);
+      const downloader = createDownloader(mockStorageFactory);
 
       assert.ok(downloader);
     });

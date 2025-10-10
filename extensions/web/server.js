@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { serve } from "@hono/node-server";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
-import { logFactory } from "@copilot-ld/libutil";
+import { createLogger } from "@copilot-ld/libutil";
 import { clients } from "@copilot-ld/librpc";
 import { createWebExtension } from "./index.js";
 
@@ -18,7 +18,7 @@ serve(
     hostname: config.host,
   },
   () => {
-    const logger = logFactory("web");
+    const logger = createLogger("web");
     logger.debug("Listening on", { host: config.host, port: config.port });
   },
 );

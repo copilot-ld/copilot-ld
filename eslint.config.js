@@ -70,6 +70,29 @@ export default [
           varsIgnorePattern: "^_",
         },
       ],
+      complexity: [
+        "error",
+        {
+          max: 11,
+          variant: "modified",
+        },
+      ],
+      "max-lines": [
+        "error",
+        {
+          max: 230,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+    },
+  },
+
+  {
+    // Disable max-lines for test files
+    files: ["**/*.test.js"],
+    rules: {
+      "max-lines": "off",
     },
   },
 
@@ -78,14 +101,6 @@ export default [
     files: ["**/public/**/*.js"],
     languageOptions: {
       globals: { ...globals.browser },
-    },
-  },
-
-  {
-    // Special rules for Interface classes - disable unused vars check
-    files: ["**/types.js"],
-    rules: {
-      "no-unused-vars": "off",
     },
   },
 

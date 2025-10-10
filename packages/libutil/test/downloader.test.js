@@ -52,7 +52,7 @@ describe("Downloader", () => {
           mockExtractor,
           mockProcess,
         ),
-      /storageFn is required/,
+      /createStorageFn is required/,
     );
 
     assert.throws(

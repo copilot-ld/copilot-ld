@@ -362,7 +362,7 @@ export class ConfigLoader {
 /* eslint-env node */
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector";
-import { storageFactory } from "@copilot-ld/libstorage";
+import { createStorage } from "@copilot-ld/libstorage";
 import { VectorBase } from "./service.js";
 
 class VectorService extends VectorBase {
@@ -381,7 +381,7 @@ class VectorService extends VectorBase {
 }
 
 const config = await ServiceConfig.create("vector");
-const index = new VectorIndex(storageFactory("vectors"), "content.jsonl");
+const index = new VectorIndex(createStorage("vectors"), "content.jsonl");
 await new VectorService(config, index).start();
 ```
 

@@ -1,45 +1,13 @@
 # Changelog
 
-## 2025-10-05
+## 2025-10-10
 
-- **NEW**: Added `TarExtractor` class for native Node.js TAR.gz extraction with
-  proper PAX header and macOS resource fork handling
-- **ENHANCED**: Replaced system `tar` dependency in `Downloader` with
-  `TarExtractor` for improved cross-platform compatibility
-- **NEW**: Added `execLine()` utility function enabling command execution after
-  process completion with signal forwarding
-- **ENHANCED**: Updated `download` binary to support command execution pattern
-  via `npx download && command`
-
-## 2025-10-03
-
-- **NEW**: Added `downloadFactory()` for automatic generated code management in
-  services
-- **BREAKING**: Extracted code generation to new `@copilot-ld/libcodegen`
-  package
-- Unified service startup with automatic package linking and S3 download support
-- Improved modular design with separate `Finder`, `Logger`, `Processor`, and
-  `Download` classes
-
-## 2025-09-27
-
-- **NEW**: Added `DownloadInterface` and `Download` implementation for
-  downloading and extracting `bundle.tar.gz` from remote storage
-- **NEW**: Download utility specifically targets "generated" prefix in remote
-  storage and extracts to local "generated" storage area
-- **ENHANCED**: Extended `libutil` package with download capabilities using same
-  dependency injection pattern as `Upload` class
-- **NEW**: Added tar.gz extraction functionality using system `tar` command for
-  portable bundle handling
-- **NEW**: Added `download` CLI utility available via `npx download` for
-  remote-to-local bundle synchronization
-
-## 2025-09-27
-
-- **NEW**: Added `UploadInterface` and `Upload` implementation for storage
-  synchronization utilities with dependency injection pattern
-- **NEW**: Added `upload` CLI utility available via `npx upload` for
-  local-to-remote storage synchronization
+- **BREAKING**: Extracted code generation functionality to new
+  `@copilot-ld/libcodegen` package
+- Enhanced download/upload utilities with native TAR.gz extraction and improved
+  cross-platform compatibility
+- Added agent utility functions (`toMessages()`, `toTools()`) for LLM
+  integration patterns local-to-remote storage synchronization
 - **MIGRATION**: Moved upload functionality from `scripts/upload.js` to reusable
   `@copilot-ld/libutil` package following established patterns
 - **NEW**: Added bundle creation feature to codegen CLI - generates
@@ -65,7 +33,7 @@
 
 ## 2025-09-19
 
-- **NEW**: Added `countTokens()` and `tokenizerFactory()` functions with
+- **NEW**: Added `countTokens()` and `createTokenizer()` functions with
   `js-tiktoken` dependency for consistent token counting
 - Consolidated token counting functionality from `@copilot-ld/libcopilot` to
   provide centralized token management

@@ -14,15 +14,15 @@ export class Uploader {
 
   /**
    * Creates a new upload instance with dependency injection
-   * @param {Function} storageFn - Storage factory function
+   * @param {Function} createStorageFn - Storage creation function
    * @param {object} logger - Logger instance
    * @param {string[]} prefixes - Storage area prefixes to synchronize
    */
-  constructor(storageFn, logger, prefixes = null) {
-    if (!storageFn) throw new Error("storageFn is required");
+  constructor(createStorageFn, logger, prefixes = null) {
+    if (!createStorageFn) throw new Error("createStorageFn is required");
     if (!logger) throw new Error("logger is required");
 
-    this.#storageFactory = storageFn;
+    this.#storageFactory = createStorageFn;
     this.#logger = logger;
     this.#prefixes = prefixes || [
       "config",

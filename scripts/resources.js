@@ -1,11 +1,11 @@
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
-import { llmFactory } from "@copilot-ld/libcopilot";
-import { policyFactory } from "@copilot-ld/libpolicy";
+import { createLlm } from "@copilot-ld/libcopilot";
+import { createPolicy } from "@copilot-ld/libpolicy";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
-import { storageFactory } from "@copilot-ld/libstorage";
-import { logFactory } from "@copilot-ld/libutil";
+import { createStorage } from "@copilot-ld/libstorage";
+import { createLogger } from "@copilot-ld/libutil";
 
 const config = await ScriptConfig.create("resources");
 
@@ -34,12 +34,12 @@ function parseArgs() {
  */
 async function main() {
   const args = parseArgs();
-  const configStorage = storageFactory("config");
-  const knowledgeStorage = storageFactory("knowledge");
-  const resourceStorage = storageFactory("resources");
-  const llm = llmFactory(await config.githubToken());
-  const logger = logFactory("script.resources");
-  const policy = policyFactory();
+  const configStorage = createStorage("config");
+  const knowledgeStorage = createStorage("knowledge");
+  const resourceStorage = createStorage("resources");
+  const llm = createLlm(await config.githubToken());
+  const logger = createLogger("script.resources");
+  const policy = createPolicy();
 
   const resourceIndex = new ResourceIndex(resourceStorage, policy);
   const processor = new ResourceProcessor(

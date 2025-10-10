@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libutil",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "Utility functions and utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

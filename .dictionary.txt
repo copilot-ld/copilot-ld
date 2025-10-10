@@ -109,6 +109,7 @@ librepl
 librpc
 libstorage
 libtext
+libtriple
 libtype
 libvector
 lifecycle

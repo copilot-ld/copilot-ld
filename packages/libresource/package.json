@@ -16,7 +16,7 @@
     "@copilot-ld/libcopilot": "^0.1.32",
     "@copilot-ld/libpolicy": "^0.1.21",
     "@copilot-ld/libstorage": "^0.1.22",
-    "@copilot-ld/libtype": "^0.1.31"
+    "@copilot-ld/libtype": "^0.1.32"
   },
   "devDependencies": {
     "js-yaml": "^4.1.0",

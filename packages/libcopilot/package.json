@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libcopilot",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "GitHub Copilot API client and integration utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

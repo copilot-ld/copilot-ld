@@ -1,25 +1,9 @@
 # Changelog
 
-## 2025-10-07
+## 2025-10-10
 
-- Simplified development workflow by removing `--env-file` flag from `dev`
-  script
-
-## 2025-10-03
-
-- Integrated `downloadFactory()` from `@copilot-ld/libutil` for automatic
-  generated code management
-- Simplified service startup by removing Docker-specific code paths
-
-## 2025-09-26
-
-- Bump version
-- **BREAKING**: Updated imports to use `@copilot-ld/librpc` services instead of
-  local `generated/` files
-- **CONTAINERIZATION**: Simplified `Dockerfile` to use standalone
-  `node:22-alpine` base with private `@copilot-ld` packages via `.npmrc`
-- **IMPORTS**: Enhanced service implementation to use destructured imports:
-  `const { LlmBase } = services;`
+- **BREAKING**: Updated imports to use `@copilot-ld/librpc` services pattern
+- Integrated automatic generated code management and simplified service startup
 
 ## 2025-09-19
 
@@ -43,7 +27,7 @@
 
 ## 2025-09-08
 
-- **BREAKING**: Switched to `repeated common.MessageV2 messages` in
+- **BREAKING**: Switched to `repeated common.Message messages` in
   `CompletionsRequest` for improved message handling
 - Updated default model configuration from `claude-3.5-sonnet` to `gpt-4o`
   across all configuration files

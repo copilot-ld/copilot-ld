@@ -3,7 +3,7 @@ import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { LocalStorage, S3Storage, storageFactory } from "../index.js";
+import { LocalStorage, S3Storage, createStorage } from "../index.js";
 
 describe("libstorage", () => {
   describe("LocalStorage", () => {
@@ -814,7 +814,7 @@ describe("libstorage", () => {
       mockProcess.env.STORAGE_TYPE = "local";
 
       // Use a known bucket name that has a defined searchItem path
-      const storage = storageFactory("config", "local", mockProcess);
+      const storage = createStorage("config", "local", mockProcess);
 
       assert(storage instanceof LocalStorage);
     });
@@ -829,7 +829,7 @@ describe("libstorage", () => {
         S3_DATA_BUCKET: "test-bucket",
       };
 
-      const storage = storageFactory("/test/path", "s3", mockProcess);
+      const storage = createStorage("/test/path", "s3", mockProcess);
 
       assert(storage instanceof S3Storage);
     });
@@ -838,7 +838,7 @@ describe("libstorage", () => {
       mockProcess.env.STORAGE_TYPE = "unsupported";
 
       assert.throws(
-        () => storageFactory("/test/path", "unsupported", mockProcess),
+        () => createStorage("/test/path", "unsupported", mockProcess),
         {
           message: /Unsupported storage type: unsupported/,
         },

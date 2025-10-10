@@ -3,8 +3,11 @@ import { Hono } from "hono";
 import { serveStatic } from "@hono/node-server/serve-static";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
-import { createSecurityMiddleware } from "@copilot-ld/libweb";
-import { logFactory } from "@copilot-ld/libutil";
+import {
+  createValidationMiddleware,
+  createCorsMiddleware,
+} from "@copilot-ld/libweb";
+import { createLogger } from "@copilot-ld/libutil";
 import { agent, common } from "@copilot-ld/libtype";
 
 // Create HTML formatter with factory function
@@ -17,19 +20,18 @@ const htmlFormatter = createHtmlFormatter();
  * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional logger factory
  * @returns {Promise<Hono>} Configured Hono application
  */
-export async function createWebExtension(client, config, logFn = logFactory) {
+export async function createWebExtension(client, config, logFn = createLogger) {
   const app = new Hono();
-  const logger = logFn("extension.web");
+  const logger = logFn("web");
 
-  // Create security middleware with config
-  const security = createSecurityMiddleware(config);
+  // Create middleware instances
+  const validationMiddleware = createValidationMiddleware(config);
+  const corsMiddleware = createCorsMiddleware(config);
 
-  // Add security middleware
-  app.use("/web/*", security.createErrorMiddleware());
-  app.use("/web/api/*", security.createRateLimitMiddleware());
+  // Add CORS middleware
   app.use(
     "/web/api/*",
-    security.createCorsMiddleware({
+    corsMiddleware.create({
       origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
       allowMethods: ["GET", "POST"],
       allowHeaders: ["Content-Type"],
@@ -48,7 +50,7 @@ export async function createWebExtension(client, config, logFn = logFactory) {
   // Route handlers with input validation
   app.post(
     "/web/api/chat",
-    security.createValidationMiddleware({
+    validationMiddleware.create({
       required: ["message"],
       types: {
         message: "string",
@@ -66,14 +68,11 @@ export async function createWebExtension(client, config, logFn = logFactory) {
 
         const requestParams = agent.AgentRequest.fromObject({
           messages: [
-            common.MessageV2.fromObject({ role: "user", content: message }),
+            common.Message.fromObject({ role: "user", content: message }),
           ],
           github_token: await config.githubToken(),
           conversation_id: conversation_id,
         });
-
-        // Ensure client is ready before making requests
-        await client.ensureReady();
 
         const response = await client.ProcessRequest(requestParams);
         let reply = { role: "assistant", content: null };

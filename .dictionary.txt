@@ -37,6 +37,7 @@ cryptographic
 Cryptographic
 CSS
 css
+cyclomatic
 DDoS
 debuggable
 destructure
@@ -76,6 +77,7 @@ hgroup
 HMAC
 HMAC-based
 HMAC-SHA256
+Hono
 hostname
 href
 HTML
@@ -213,9 +215,11 @@ symlink
 Symlink
 symlinks
 Symlinks
+testability
 tiktoken
 TLS
 TODO
+typedef
 typeof
 TypeScript
 ul

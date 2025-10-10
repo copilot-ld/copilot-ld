@@ -1,7 +1,7 @@
 /* eslint-env node */
-import { Server, grpcFactory, authFactory } from "@copilot-ld/librpc";
+import { Server, createGrpc, createAuth } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { logFactory } from "@copilot-ld/libutil";
+import { createLogger } from "@copilot-ld/libutil";
 
 import { HashService } from "./index.js";
 
@@ -11,9 +11,9 @@ const service = new HashService(config);
 const server = new Server(
   service,
   config,
-  grpcFactory,
-  authFactory,
-  logFactory,
+  createGrpc,
+  createAuth,
+  createLogger,
 );
 
 await server.start();

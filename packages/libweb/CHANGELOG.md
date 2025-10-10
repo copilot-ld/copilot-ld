@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-10-10
+
+- Simplified security middleware architecture by removing unused
+  `RequestValidator` and rate limiting functionality
+- Refactored middleware into focused `ValidationMiddleware` and `CorsMiddleware`
+  classes with dependency injection
+- Reduced complexity of validation logic through focused helper methods
+- Let services handle their own errors naturally using Hono built-in error
+  handling
+- Reduced total file size from 352 to 193 lines
+
 ## 2025-09-19
 
 - Added dependency on `@copilot-ld/libconfig` for enhanced configuration

@@ -54,7 +54,6 @@ describe("agent service", () => {
       };
 
       mockMemoryClient = {
-        ensureReady: async () => {},
         Append: async () => ({ accepted: "test-conversation" }),
         GetWindow: async () => ({
           tools: [],
@@ -64,7 +63,6 @@ describe("agent service", () => {
       };
 
       mockLlmClient = {
-        ensureReady: async () => {},
         CreateEmbeddings: async () => ({
           data: [{ embedding: [0.1, 0.2, 0.3] }],
         }),
@@ -77,12 +75,11 @@ describe("agent service", () => {
       };
 
       mockVectorClient = {
-        ensureReady: async () => {},
         QueryItems: async () => ({ identifiers: [] }),
       };
 
       mockToolClient = {
-        ensureReady: async () => {},
+        QueryItems: async () => ({ items: [] }),
       };
 
       mockResourceIndex = {

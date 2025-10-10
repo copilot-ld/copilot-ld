@@ -33,7 +33,7 @@ describe("Uploader", () => {
   test("constructor validates required dependencies", () => {
     assert.throws(
       () => new Uploader(null, mockLogger),
-      /storageFn is required/,
+      /createStorageFn is required/,
     );
 
     assert.throws(

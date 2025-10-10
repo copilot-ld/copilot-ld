@@ -10,7 +10,7 @@ export const gitDiffOutputs = {
   singlePackage: "packages/libconfig/index.js\npackages/libconfig/types.js",
   noPackages: "README.md\ndocs/architecture.html",
   empty: "",
-  extensionsOnly: "extensions/web/index.js\nextensions/copilot/types.js",
+  extensionsOnly: "extensions/web/index.js\nextensions/teams/types.js",
   toolsOnly: "scripts/search.js\nscripts/embed.js",
 };
 

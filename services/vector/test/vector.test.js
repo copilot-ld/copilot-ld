@@ -47,7 +47,7 @@ describe("vector service", () => {
 
       mockContentIndex = {
         queryItems: async () => [
-          { type: "common.MessageV2", name: "msg1", score: 0.8 },
+          { type: "common.Message", name: "msg1", score: 0.8 },
         ],
         getItem: async (id) => ({ id, found: true }),
       };
@@ -86,7 +86,7 @@ describe("vector service", () => {
       assert.ok(result);
       assert.ok(Array.isArray(result.identifiers));
       assert.strictEqual(result.identifiers.length, 1);
-      assert.strictEqual(result.identifiers[0].type, "common.MessageV2");
+      assert.strictEqual(result.identifiers[0].type, "common.Message");
     });
 
     test("QueryItems uses descriptor index when specified", async () => {

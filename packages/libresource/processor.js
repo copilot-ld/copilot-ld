@@ -11,7 +11,7 @@ import { common } from "@copilot-ld/libtype";
 import { ProcessorBase } from "@copilot-ld/libutil";
 
 /**
- * Resource processor for batch processing HTML files into MessageV2 objects
+ * Resource processor for batch processing HTML files into Message objects
  * @augments {ProcessorBase}
  */
 export class ResourceProcessor extends ProcessorBase {
@@ -149,11 +149,11 @@ export class ResourceProcessor extends ProcessorBase {
    * Creates a resource object from microdata item and pre-generated descriptor
    * @param {object} item - The microdata item
    * @param {object} descriptor - The pre-generated descriptor
-   * @returns {common.MessageV2} The created Message resource
+   * @returns {common.Message} The created Message resource
    */
   #createResourceFromData(item, descriptor) {
     const jsonld = JSON.stringify(item);
-    return common.MessageV2.fromObject({
+    return common.Message.fromObject({
       role: "system",
       content: { jsonld },
       descriptor,

@@ -23,7 +23,11 @@ describe("Service Integration", () => {
       loadPackageDefinition: mock.fn(() => ({
         test: { Test: { service: {} } },
       })),
+      makeGenericClientConstructor: mock.fn(() => function () {}),
       ServerCredentials: {
+        createInsecure: mock.fn(),
+      },
+      credentials: {
         createInsecure: mock.fn(),
       },
       status: {
@@ -51,20 +55,20 @@ describe("Service Integration", () => {
   });
 
   test("ServiceConfig integrates with Client", () => {
-    const config = new ServiceConfig("test-service");
+    const config = new ServiceConfig("agent");
     const client = new Client(config, mockGrpcFn, mockAuthFn, mockLogFn);
 
     assert.ok(client);
-    assert.strictEqual(config.name, "test-service");
+    assert.strictEqual(config.name, "agent");
     assert.strictEqual(client.config, config);
   });
 
   test("ExtensionConfig integrates with Client", () => {
-    const config = new ExtensionConfig("test-extension");
+    const config = new ExtensionConfig("vector");
     const client = new Client(config, mockGrpcFn, mockAuthFn, mockLogFn);
 
     assert.ok(client);
-    assert.strictEqual(config.name, "test-extension");
+    assert.strictEqual(config.name, "vector");
     assert.strictEqual(client.config, config);
   });
 
@@ -115,7 +119,7 @@ describe("Service Integration", () => {
   });
 
   test("Extension and Service configs work together", () => {
-    const extensionConfig = new ExtensionConfig("web");
+    const extensionConfig = new ExtensionConfig("llm");
     const serviceConfig = new ServiceConfig("agent");
 
     const extensionClient = new Client(
@@ -134,7 +138,7 @@ describe("Service Integration", () => {
     assert.ok(extensionClient);
     assert.ok(serviceClient);
     assert.notStrictEqual(extensionConfig.name, serviceConfig.name);
-    assert.strictEqual(extensionClient.config.name, "web");
+    assert.strictEqual(extensionClient.config.name, "llm");
     assert.strictEqual(serviceClient.config.name, "agent");
   });
 
@@ -169,7 +173,7 @@ describe("Service Integration", () => {
   });
 
   test("Client and Server can use same config", () => {
-    const config = new ServiceConfig("shared-service");
+    const config = new ServiceConfig("memory");
 
     const client = new Client(config, mockGrpcFn, mockAuthFn, mockLogFn);
 
@@ -191,8 +195,8 @@ describe("Service Integration", () => {
     assert.ok(client);
     assert.ok(server);
     assert.strictEqual(client.config, server.config);
-    assert.strictEqual(client.config.name, "shared-service");
-    assert.strictEqual(server.config.name, "shared-service");
+    assert.strictEqual(client.config.name, "memory");
+    assert.strictEqual(server.config.name, "memory");
   });
 
   describe("Service Interface Compliance", () => {

@@ -76,8 +76,8 @@ export function generateUUID() {
 
 /**
  * Finds the most recent user message in a conversation
- * @param {object[]} messages - Array of conversation messages
- * @returns {object|null} Latest user message or null if none found
+ * @param {import("@copilot-ld/libtype").common.Message[]} messages - Array of conversation messages
+ * @returns {import("@copilot-ld/libtype").common.Message|null} Latest user message or null if none found
  */
 export function getLatestUserMessage(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -99,7 +99,7 @@ export function getLatestUserMessage(messages) {
  * @returns {number} Approximate token count
  */
 export function countTokens(text, tokenizer) {
-  if (!tokenizer) tokenizer = tokenizerFactory();
+  if (!tokenizer) tokenizer = createTokenizer();
   return tokenizer.encode(text).length;
 }
 
@@ -107,7 +107,7 @@ export function countTokens(text, tokenizer) {
  * Creates a new tokenizer instance
  * @returns {Tokenizer} New tokenizer instance
  */
-export function tokenizerFactory() {
+export function createTokenizer() {
   return new Tokenizer(ranks);
 }
 
@@ -116,24 +116,24 @@ export function tokenizerFactory() {
  * @param {string} namespace - Namespace for the logger
  * @returns {Logger} New Logger instance
  */
-export function logFactory(namespace) {
+export function createLogger(namespace) {
   return new Logger(namespace);
 }
 
 /**
  * Creates a Download instance configured for generated code management
  * This is the new API that services should use instead of ensureGeneratedCode
- * @param {Function} storageFactory - Storage factory function from libstorage
+ * @param {Function} createStorage - Storage factory function from libstorage
  * @returns {Downloader} Configured Downloader instance
  */
-export function downloadFactory(storageFactory) {
-  if (!storageFactory) throw new Error("storageFactory is required");
+export function createDownloader(createStorage) {
+  if (!createStorage) throw new Error("createStorage is required");
 
   const logger = new Logger("generated");
   const finder = new Finder(fs, logger);
   const extractor = new TarExtractor(fs, path);
 
-  return new Downloader(storageFactory, finder, logger, extractor);
+  return new Downloader(createStorage, finder, logger, extractor);
 }
 
 /**
@@ -169,6 +169,65 @@ export function execLine(shift = 0) {
 
   child.on("exit", (code, signal) => {
     process.exit(signal ? 1 : code || 0);
+  });
+}
+
+/**
+ * Converts a memory window to a simple messages array for LLM completion
+ * @param {import("@copilot-ld/libtype").common.Assistant} assistant - The assistant
+ * @param {import("@copilot-ld/libtype").task.Task[]} tasks - Array of tasks
+ * @param {import("@copilot-ld/libtype").memory.Window} window - Memory window from memory service
+ * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for retrieving actual messages
+ * @returns {Promise<import("@copilot-ld/libtype").common.Message[]>} Array of Message objects for LLM
+ */
+export async function toMessages(assistant, tasks, window, resourceIndex) {
+  if (!assistant) throw new Error("assistant is required");
+  if (!resourceIndex) throw new Error("resourceIndex is required");
+
+  const messages = [];
+  const actor = "common.System.root";
+
+  // Add assistant
+  messages.push(assistant);
+
+  // Add tasks if available
+  if (tasks && tasks.length > 0) {
+    messages.push(...tasks);
+  }
+
+  // Add tools if available
+  const tools = await resourceIndex.get(actor, window?.tools);
+  messages.push(...tools);
+
+  // Add context if available
+  const context = await resourceIndex.get(actor, window?.context);
+  messages.push(...context);
+
+  // Add conversation history in chronological order
+  const history = await resourceIndex.get(actor, window?.history);
+  messages.push(...history);
+
+  return messages;
+}
+
+/**
+ * Converts an array of ToolFunction resources to common.Tool objects for LLM
+ * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Array of ToolFunction resources
+ * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for retrieving actual tool resources
+ * @returns {Promise<import("@copilot-ld/libtype").common.Tool[]>} Array of Tool objects for LLM
+ */
+export async function toTools(identifiers, resourceIndex) {
+  if (!resourceIndex) throw new Error("resourceIndex is required");
+
+  const { common } = await import("@copilot-ld/libtype");
+  const actor = "common.System.root";
+  const functions = await resourceIndex.get(actor, identifiers);
+
+  return functions.map((func) => {
+    return common.Tool.fromObject({
+      type: "function",
+      function: func,
+    });
   });
 }
 

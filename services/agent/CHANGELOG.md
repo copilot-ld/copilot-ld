@@ -1,26 +1,12 @@
 # Changelog
 
-## 2025-10-07
+## 2025-10-10
 
-- Simplified development workflow by removing `--env-file` flag from `dev`
-  script
-- Updated service to use simplified resource URI format without `cld:` prefix
-
-## 2025-10-03
-
-- Integrated `downloadFactory()` from `@copilot-ld/libutil` for automatic
-  generated code management
-- Simplified service startup by removing Docker-specific code paths
-
-## 2025-09-26
-
-- Bump version
+- Refactored `ProcessRequest()` method to reduce complexity with extracted
+  helper methods (`#setupConversation()`, `#getMemory()`, `#executeToolLoop()`)
+- Enhanced JSDoc typing with specific types from `@copilot-ld/libtype`
 - **BREAKING**: Updated imports to use `@copilot-ld/librpc` services and clients
-  instead of local `generated/` files
-- **CONTAINERIZATION**: Simplified `Dockerfile` to use standalone
-  `node:22-alpine` base with private `@copilot-ld` packages via `.npmrc`
-- **IMPORTS**: Enhanced service implementation to use destructured imports:
-  `const { AgentBase } = services;`
+  pattern
 
 ## 2025-09-19
 
@@ -41,7 +27,7 @@
 
 ## 2025-09-11
 
-- Added `tool_call_id` field to `MessageV2` protobuf definition for proper tool
+- Added `tool_call_id` field to `Message` protobuf definition for proper tool
   result handling
 - Updated `CompletionsRequest` creation to use `fromObject()` instead of
   constructor for proper deep initialization

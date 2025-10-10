@@ -3,7 +3,7 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { Logger, logFactory } from "../index.js";
+import { Logger, createLogger } from "../index.js";
 
 describe("Logger", () => {
   let originalDebug;
@@ -130,14 +130,14 @@ describe("Logger", () => {
 
 describe("logFactory", () => {
   test("creates Logger instance", () => {
-    const logger = logFactory("test");
+    const logger = createLogger("test");
 
     assert.ok(logger instanceof Logger);
     assert.strictEqual(logger.namespace, "test");
   });
 
   test("passes through namespace validation", () => {
-    assert.throws(() => logFactory(""), {
+    assert.throws(() => createLogger(""), {
       message: /namespace must be a non-empty string/,
     });
   });

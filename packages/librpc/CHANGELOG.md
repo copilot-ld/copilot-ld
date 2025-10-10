@@ -1,33 +1,11 @@
 # Changelog
 
-## 2025-10-02
+## 2025-10-10
 
 - **BREAKING**: Migrated from runtime proto-loader to pre-compiled service
-  definitions for improved performance and reduced dependencies
-- **BREAKING**: Removed `@grpc/proto-loader` and `@bufbuild/protobuf`
-  dependencies in favor of compile-time definition generation
-- **NEW**: Added `getServiceDefinition()` method for accessing pre-compiled gRPC
-  service definitions
-- Enhanced gRPC client and server classes to use pre-compiled definitions
-  instead of dynamic proto loading
-
-## 2025-09-27
-
-- **BREAKING**: Removed `@copilot-ld/libstorage` dependency - proto files now
-  loaded directly from `./generated/proto`
-- **IMPROVED**: Simplified proto loading logic in `Server` and `Client` classes
-  to use direct file paths
-- **ENHANCED**: Better performance by eliminating storage abstraction layer for
-  proto file access
-
-## 2025-09-26
-
-- **BREAKING**: Services now import base classes and clients from
-  `@copilot-ld/librpc` instead of local `generated/` files
-- **ENHANCED**: New aggregated exports system with `services` and `clients`
-  objects for convenient destructuring
-- **IMPROVED**: All service implementations updated to use
-  `const { AgentBase } = services;` pattern for cleaner imports
+  definitions for improved performance
+- Enhanced aggregated exports system with convenient `services` and `clients`
+  objects for cleaner imports
 - **TEMPLATE**: Enhanced `exports.js` generation with proper service/client
   aggregation using `exports.js.mustache`
 
@@ -93,7 +71,7 @@
 - Added `logFn` parameter to `ActorInterface`, `ClientInterface`, and
   `ServiceInterface` constructors
 - Added `logger()` method to `ActorInterface` and `Actor` class implementation
-- Updated `createClient` function to accept `logFactoryFn` parameter
+- Updated `createClient` function to accept `createLoggerFn` parameter
 - Integrated with `@copilot-ld/libutil` for centralized logging
 
 ## 2025-08-12

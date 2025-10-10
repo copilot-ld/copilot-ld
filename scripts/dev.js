@@ -9,7 +9,6 @@ const MATCH_PATTERNS = ["npm run dev", "node --watch"];
 
 const SERVICES = [
   "@copilot-ld/web",
-  "@copilot-ld/copilot",
   "@copilot-ld/agent",
   "@copilot-ld/memory",
   "@copilot-ld/llm",

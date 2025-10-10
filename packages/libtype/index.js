@@ -23,34 +23,34 @@ const {
  * @param {string} [parent] - Parent URI
  */
 function withIdentifier(parent) {
-  if (!this?.id) {
-    this.id = new resource.Identifier();
-  }
+  // Initialize id if missing
+  this.id = this.id || new resource.Identifier();
 
   const type = this.constructor.getTypeUrl("copilot-ld.dev").split("/").pop();
   if (!type)
     throw new Error("resource.withIdentifier: Resource type must not be null");
 
-  let name;
-  if (this.id?.name) {
-    // Ensure normalization on just the last part of a dotted name
-    name = this.id.name.split(".").pop();
-  } else if (this?.name && typeof this.name === "string") {
-    // Some resources have a .name property, use that if no id.name is set
-    name = this.name;
-  } else {
-    name = this?.content
-      ? generateHash(type, String(this.content))
-      : generateUUID();
-  }
+  // Get name with fallback chain
+  let name = this.id.name;
+  name = name
+    ? // Normalize dotted names to just the last part
+      name.split(".").pop()
+    : // Fallback to .name property if available
+      this.name && typeof this.name === "string"
+      ? this.name
+      : // Fallback to content hash if available
+        this.content
+        ? generateHash(type, String(this.content))
+        : // Fallback to UUID
+          generateUUID();
+
   this.id.type = type;
   this.id.name = name;
 
-  if (!this.id.parent || parent) {
-    // Parent can be passed as resource.Identifier, ensure string conversion.
-    // Handle undefined/null parent values properly to avoid literal "undefined"
-    this.id.parent =
-      (parent != null ? String(parent) : "") || this.id?.parent || "";
+  // Handle parent assignment
+  const hasParentParam = parent != null;
+  if (hasParentParam || !this.id.parent) {
+    this.id.parent = hasParentParam ? String(parent) : this.id.parent || "";
   }
 }
 
@@ -68,12 +68,12 @@ function withTokens() {
 
 common.Assistant.prototype.withIdentifier = withIdentifier;
 common.Conversation.prototype.withIdentifier = withIdentifier;
-common.MessageV2.prototype.withIdentifier = withIdentifier;
+common.Message.prototype.withIdentifier = withIdentifier;
 common.ToolFunction.prototype.withIdentifier = withIdentifier;
 
 common.Assistant.prototype.withTokens = withTokens;
 common.Conversation.prototype.withTokens = withTokens;
-common.MessageV2.prototype.withTokens = withTokens;
+common.Message.prototype.withTokens = withTokens;
 common.ToolFunction.prototype.withTokens = withTokens;
 
 resource.Identifier.prototype.toString = function () {
@@ -93,15 +93,11 @@ resource.Identifier.prototype.toString = function () {
 
   // Extract the tree from parent
   let tree = [];
-  if (this.parent !== undefined && this.parent !== null && this.parent !== "") {
+  if (this.parent && this.parent !== "undefined" && this.parent !== "") {
     const path = String(this.parent).split(":").pop() || "";
     if (path) tree = path.split("/");
-    // Push this resource onto the tree
     tree.push(`${this.type}.${this.name}`);
-  }
-
-  // If there is no tree, create a new one
-  if (tree.length == 0) {
+  } else {
     tree.push(`${this.type}.${this.name}`);
   }
 
@@ -135,30 +131,30 @@ resource.Content.prototype.toString = function () {
 };
 
 /**
- * Monkey-patches for common.MessageV2
+ * Monkey-patches for common.Message
  */
-const MessageV2Ctor = common.MessageV2;
-const MessageV2fromObject = MessageV2Ctor.fromObject;
+const MessageCtor = common.Message;
+const MessagefromObject = MessageCtor.fromObject;
 
-// Monkey-patch MessageV2.fromObject to gracefully convert content to an object
-common.MessageV2.fromObject = function (object) {
+// Monkey-patch Message.fromObject to gracefully convert content to an object
+common.Message.fromObject = function (object) {
   if (typeof object.content === "string") {
     const content = { text: object.content };
     object = { ...object, content };
   }
-  const typed = MessageV2fromObject(object);
+  const typed = MessagefromObject(object);
   typed.withIdentifier();
   return typed;
 };
 
 // Patch .verify to handle convert string content to object
-const MessageV2verify = MessageV2Ctor.verify;
-common.MessageV2.verify = function (message) {
+const Messageverify = MessageCtor.verify;
+common.Message.verify = function (message) {
   if (message && typeof message.content === "string") {
     const content = { text: message.content };
     message = { ...message, content };
   }
-  return MessageV2verify(message);
+  return Messageverify(message);
 };
 
 /**

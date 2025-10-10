@@ -11,8 +11,13 @@ import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
 import { Finder, Logger } from "@copilot-ld/libutil";
-import { Codegen } from "@copilot-ld/libcodegen";
-import { storageFactory } from "@copilot-ld/libstorage";
+import {
+  CodegenBase,
+  CodegenTypes,
+  CodegenServices,
+  CodegenDefinitions,
+} from "@copilot-ld/libcodegen";
+import { createStorage } from "@copilot-ld/libstorage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,55 +67,108 @@ function printUsage() {
 }
 
 /**
- * Main CLI execution function
- * @param {Codegen} codegen - Configured codegen instance
- * @param {string} projectRoot - Project root directory path
+ * Parse command line flags
  * @param {string[]} flags - Command line flags
- * @param {Finder} finder - Finder instance for path management
+ * @returns {object} Parsed flags with convenience methods
  */
-async function runCodegen(codegen, projectRoot, flags, finder) {
+function parseFlags(flags) {
   const flagSet = new Set(flags);
   const doAll = flagSet.has("--all");
-  const doTypes = doAll || flagSet.has("--type");
-  const doServices = doAll || flagSet.has("--service");
-  const doClients = doAll || flagSet.has("--client");
-  const doDefinitions = doAll || flagSet.has("--definition");
-  const doExports = doServices || doClients || doDefinitions || doAll;
-  const doGenerate = doTypes || doServices || doClients || doDefinitions;
+  return {
+    doTypes: doAll || flagSet.has("--type"),
+    doServices: doAll || flagSet.has("--service"),
+    doClients: doAll || flagSet.has("--client"),
+    doDefinitions: doAll || flagSet.has("--definition"),
+    hasGenerationFlags() {
+      return (
+        this.doTypes || this.doServices || this.doClients || this.doDefinitions
+      );
+    },
+  };
+}
 
-  // Show usage if no generation flags provided
-  if (!doGenerate) {
+/**
+ * Create codegen instances
+ * @param {string} projectRoot - Project root directory path
+ * @param {object} path - Path module
+ * @param {object} mustache - Mustache module
+ * @param {object} protoLoader - Proto loader module
+ * @param {object} fs - File system module
+ * @returns {object} Codegen instances
+ */
+function createCodegen(projectRoot, path, mustache, protoLoader, fs) {
+  const base = new CodegenBase(projectRoot, path, mustache, protoLoader, fs);
+  return {
+    types: new CodegenTypes(base),
+    services: new CodegenServices(base),
+    definitions: new CodegenDefinitions(base),
+  };
+}
+
+/**
+ * Execute code generation tasks
+ * @param {object} codegens - Codegen instances
+ * @param {string} sourcePath - Generated source path
+ * @param {object} flags - Parsed flags
+ * @returns {Promise<void>}
+ */
+async function executeGeneration(codegens, sourcePath, flags) {
+  const tasks = [];
+
+  if (flags.doTypes) {
+    tasks.push(codegens.types.run(sourcePath));
+  }
+  if (flags.doServices) {
+    tasks.push(codegens.services.runForKind("service", sourcePath));
+  }
+  if (flags.doClients) {
+    tasks.push(codegens.services.runForKind("client", sourcePath));
+  }
+  if (flags.doDefinitions) {
+    tasks.push(codegens.definitions.run(sourcePath));
+  }
+
+  await Promise.all(tasks);
+
+  // Generate exports if needed
+  const needsServicesExports = flags.doServices || flags.doClients;
+  const needsDefinitionsExports = flags.doDefinitions;
+
+  const exportTasks = [];
+  if (needsServicesExports) {
+    exportTasks.push(codegens.services.runExports(sourcePath));
+  }
+  if (needsDefinitionsExports) {
+    exportTasks.push(codegens.definitions.runExports(sourcePath));
+  }
+
+  await Promise.all(exportTasks);
+}
+
+/**
+ * Simplified main function
+ * @param {string} projectRoot - Project root directory path
+ * @param {string[]} flags - Command line flags
+ * @param {object} finder - Finder instance for path management
+ */
+async function runCodegen(projectRoot, flags, finder) {
+  const parsedFlags = parseFlags(flags);
+
+  if (!parsedFlags.hasGenerationFlags()) {
     printUsage();
     process.exitCode = 1;
     return;
   }
 
-  // Step 1: Resolve generated SOURCE path using shared pattern
-  const generatedStorage = storageFactory("generated", "local");
+  const generatedStorage = createStorage("generated", "local");
   const sourcePath = generatedStorage.path();
 
-  // Step 2: Ensure storage bucket exists BEFORE generation
   await generatedStorage.ensureBucket();
 
-  // Step 3: Generate code to SOURCE path
-  await Promise.all(
-    [
-      doTypes && codegen.runTypes(sourcePath),
-      doServices && codegen.runForKind("service", sourcePath),
-      doClients && codegen.runForKind("client", sourcePath),
-      doDefinitions && codegen.runDefinitions(sourcePath),
-    ].filter(Boolean),
-  );
+  const codegens = createCodegen(projectRoot, path, mustache, protoLoader, fs);
+  await executeGeneration(codegens, sourcePath, parsedFlags);
 
-  // Generate librpc exports after services and clients
-  if (doExports) {
-    await codegen.runServicesExports(sourcePath);
-  }
-
-  // Step 4: Create symlinks from TARGET packages to SOURCE
   await finder.createPackageSymlinks(sourcePath);
-
-  // Step 5: Create bundle of all generated directories
   await createBundle(sourcePath);
 }
 
@@ -145,10 +203,9 @@ async function main() {
     const logger = new Logger("codegen");
     const finder = new Finder(fsAsync, logger, process);
     const projectRoot = findMonorepoRoot(__dirname);
-    const codegen = new Codegen(projectRoot, path, mustache, protoLoader, fs);
 
     const flags = process.argv.slice(2);
-    await runCodegen(codegen, projectRoot, flags, finder);
+    await runCodegen(projectRoot, flags, finder);
   } catch (err) {
     process.stderr.write(`Error: ${err.message}\n`);
     process.exit(1);

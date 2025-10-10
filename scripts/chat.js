@@ -1,6 +1,4 @@
 /* eslint-env node */
-import readline from "readline";
-
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { ServiceConfig } from "@copilot-ld/libconfig";
@@ -11,7 +9,7 @@ import { clients } from "@copilot-ld/librpc";
 // Extract generated clients
 const { AgentClient } = clients;
 
-/** @typedef {import("@copilot-ld/libtype").common.MessageV2} MessageV2 */
+/** @typedef {import("@copilot-ld/libtype").common.Message} Message */
 
 const config = await ServiceConfig.create("agent");
 const agentClient = new AgentClient(config);
@@ -19,7 +17,7 @@ const agentClient = new AgentClient(config);
 // Global state
 /** @type {string|null} */
 let conversationId = null;
-/** @type {MessageV2[]} */
+/** @type {Message[]} */
 const messages = [];
 
 /**
@@ -29,8 +27,8 @@ const messages = [];
  * @returns {Promise<string>} The assistant's response content
  */
 async function handlePrompt(prompt) {
-  // Create user message using MessageV2 structure with proper Content object
-  const userMessage = common.MessageV2.fromObject({
+  // Create user message using Message structure with proper Content object
+  const userMessage = common.Message.fromObject({
     role: "user",
     content: {
       text: prompt,
@@ -38,9 +36,6 @@ async function handlePrompt(prompt) {
     },
   });
   messages.push(userMessage);
-
-  // Ensure client is ready before making requests
-  await agentClient.ensureReady();
 
   // Create typed request using agent.AgentRequest
   const request = new agent.AgentRequest({
@@ -64,17 +59,16 @@ async function handlePrompt(prompt) {
 }
 
 // Create REPL with dependency injection
-const repl = new Repl(readline, process, createTerminalFormatter(), {
+const repl = new Repl(createTerminalFormatter(), {
+  help: `Usage: <message>`,
+
   commands: {
-    clear: {
-      help: "Clear conversation history",
-      handler: () => {
-        messages.length = 0;
-        conversationId = null;
-        console.log("Conversation history and session cleared.");
-      },
+    clear: (_args, _state) => {
+      messages.length = 0;
+      conversationId = null;
     },
   },
+
   onLine: handlePrompt,
 });
 

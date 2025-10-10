@@ -1,9 +1,10 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 
-import { logFactory } from "@copilot-ld/libutil";
+import { createLogger } from "@copilot-ld/libutil";
 
 import { Interceptor, HmacAuth } from "./auth.js";
+import { definitions } from "./generated/definitions/exports.js";
 
 /**
  * Capitalize first letter of a string
@@ -18,7 +19,7 @@ function capitalizeFirstLetter(str) {
  * Default grpc factory that creates gRPC dependencies
  * @returns {object} Object containing grpc
  */
-export function grpcFactory() {
+export function createGrpc() {
   return { grpc };
 }
 
@@ -27,7 +28,7 @@ export function grpcFactory() {
  * @param {string} serviceName - Name of the service for the interceptor
  * @returns {Interceptor} Configured interceptor instance
  */
-export function authFactory(serviceName) {
+export function createAuth(serviceName) {
   const secret = process.env.SERVICE_SECRET;
   if (!secret) {
     throw new Error(
@@ -54,17 +55,17 @@ export class Rpc {
    */
   constructor(
     config,
-    grpcFn = grpcFactory,
-    authFn = authFactory,
-    logFn = logFactory,
+    grpcFn = createGrpc,
+    authFn = createAuth,
+    logFn = createLogger,
   ) {
     if (!config) throw new Error("config is required");
     if (grpcFn && typeof grpcFn !== "function")
-      throw new Error("grpcFactory must be a function");
+      throw new Error("createGrpc must be a function");
     if (authFn && typeof authFn !== "function")
-      throw new Error("authFactory must be a function");
+      throw new Error("createAuth must be a function");
     if (logFn && typeof logFn !== "function")
-      throw new Error("logFactory must be a function");
+      throw new Error("createLogger must be a function");
 
     this.config = config;
 
@@ -110,9 +111,7 @@ export class Rpc {
    * @param {string} serviceName - Service name (e.g., "Agent", "Vector")
    * @returns {object} Pre-compiled service definition
    */
-  async getServiceDefinition(serviceName) {
-    // Import definitions dynamically to avoid circular dependency
-    const { definitions } = await import("./generated/definitions/exports.js");
+  getServiceDefinition(serviceName) {
     const definition = definitions[serviceName.toLowerCase()];
     if (!definition) {
       throw new Error(
@@ -128,7 +127,6 @@ export class Rpc {
  */
 export class Client extends Rpc {
   #client;
-  #setupPromise;
 
   /**
    * Creates a new Client instance
@@ -139,51 +137,38 @@ export class Client extends Rpc {
    */
   constructor(
     config,
-    grpcFn = grpcFactory,
-    authFn = authFactory,
-    logFn = logFactory,
+    grpcFn = createGrpc,
+    authFn = createAuth,
+    logFn = createLogger,
   ) {
     super(config, grpcFn, authFn, logFn);
-  }
-
-  /**
-   * Ensures the client is ready for use
-   * @returns {Promise<void>}
-   */
-  async ensureReady() {
-    if (!this.#setupPromise) this.#setupPromise = this.#setupClient();
-    return this.#setupPromise;
+    this.#setupClient();
   }
 
   /**
    * Sets up the gRPC client using pre-compiled definition
    * @private
    */
-  async #setupClient() {
-    try {
-      const serviceName = capitalizeFirstLetter(this.config.name);
-      const serviceDefinition = await this.getServiceDefinition(serviceName);
+  #setupClient() {
+    const serviceName = capitalizeFirstLetter(this.config.name);
+    const serviceDefinition = this.getServiceDefinition(serviceName);
 
-      // In case default host is used, resort to a well-known service name
-      const host =
-        this.config.host === "0.0.0.0"
-          ? `${this.config.name}.copilot-ld.local`
-          : this.config.host;
+    // In case default host is used, resort to a well-known service name
+    const host =
+      this.config.host === "0.0.0.0"
+        ? `${this.config.name}.copilot-ld.local`
+        : this.config.host;
 
-      const uri = `${host}:${this.config.port}`;
-      const options = {
-        interceptors: [this.auth().createClientInterceptor()],
-      };
-      const clientCredentials = this.grpc().credentials.createInsecure();
+    const uri = `${host}:${this.config.port}`;
+    const options = {
+      interceptors: [this.auth().createClientInterceptor()],
+    };
+    const clientCredentials = this.grpc().credentials.createInsecure();
 
-      // Create client using pre-compiled service definition
-      const ClientConstructor =
-        this.grpc().makeGenericClientConstructor(serviceDefinition);
-      this.#client = new ClientConstructor(uri, clientCredentials, options);
-    } catch (error) {
-      this.#setupPromise = null;
-      throw error;
-    }
+    // Create client using pre-compiled service definition
+    const ClientConstructor =
+      this.grpc().makeGenericClientConstructor(serviceDefinition);
+    this.#client = new ClientConstructor(uri, clientCredentials, options);
   }
 
   /**
@@ -193,8 +178,6 @@ export class Client extends Rpc {
    * @returns {Promise<object>} The response from the gRPC call
    */
   async callMethod(methodName, request) {
-    await this.ensureReady();
-
     if (!this.#client[methodName]) {
       throw new Error(`Method ${methodName} not found on gRPC client`);
     }

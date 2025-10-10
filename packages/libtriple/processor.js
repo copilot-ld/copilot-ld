@@ -118,24 +118,28 @@ export class TripleProcessor extends ProcessorBase {
     await super.process(resourcesToProcess);
   }
 
+  /**
+   * Parse existing JSON-LD content
+   * @param {*} jsonldContent - JSON-LD content to parse
+   * @returns {object|null} Parsed JSON-LD or null
+   */
+  #parseExistingJsonld(jsonldContent) {
+    if (!jsonldContent) return null;
+    try {
+      return typeof jsonldContent === "string"
+        ? JSON.parse(jsonldContent)
+        : jsonldContent;
+    } catch {
+      return null;
+    }
+  }
+
   /** @inheritdoc */
   async processItem(item) {
     const resourceUri = String(item.identifier);
 
     // Create or use existing JSON-LD document
-    let jsonld;
-    if (item.resource.content && item.resource.content.jsonld) {
-      // Parse existing JSON-LD from resource (it's stored as a string)
-      try {
-        jsonld =
-          typeof item.resource.content.jsonld === "string"
-            ? JSON.parse(item.resource.content.jsonld)
-            : item.resource.content.jsonld;
-      } catch {
-        // If parsing fails, fall back to generating JSON-LD
-        jsonld = null;
-      }
-    }
+    let jsonld = this.#parseExistingJsonld(item.resource.content?.jsonld);
 
     if (!jsonld) {
       // Create JSON-LD document from resource data

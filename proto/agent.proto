@@ -9,7 +9,7 @@ service Agent {
 }
 
 message AgentRequest {
-  repeated common.MessageV2 messages = 1;
+  repeated common.Message messages = 1;
   optional string conversation_id = 2;
   optional string github_token = 3;
 }

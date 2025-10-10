@@ -16,20 +16,26 @@ export class Downloader {
 
   /**
    * Creates a new download instance with dependency injection
-   * @param {Function} storageFn - Storage factory function
+   * @param {Function} createStorageFn - Storage creation function
    * @param {object} finder - Finder instance for symlink management
    * @param {object} logger - Logger instance
    * @param {object} extractor - TarExtractor instance for archive extraction
    * @param {object} process - Process environment access (for testing)
    */
-  constructor(storageFn, finder, logger, extractor, process = global.process) {
-    if (!storageFn) throw new Error("storageFn is required");
+  constructor(
+    createStorageFn,
+    finder,
+    logger,
+    extractor,
+    process = global.process,
+  ) {
+    if (!createStorageFn) throw new Error("createStorageFn is required");
     if (!finder) throw new Error("finder is required");
     if (!logger) throw new Error("logger is required");
     if (!extractor) throw new Error("extractor is required");
     if (!process) throw new Error("process is required");
 
-    this.#storageFactory = storageFn;
+    this.#storageFactory = createStorageFn;
     this.#finder = finder;
     this.#logger = logger;
     this.#extractor = extractor;

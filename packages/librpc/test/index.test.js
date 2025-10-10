@@ -140,7 +140,7 @@ describe("Client", () => {
 
   beforeEach(() => {
     mockConfig = {
-      name: "test-client",
+      name: "agent",
       host: "localhost",
       port: 5000,
     };
@@ -184,11 +184,5 @@ describe("Client", () => {
 
     assert.ok(client);
     assert.strictEqual(client.config, mockConfig);
-  });
-
-  test("should provide ensureReady method", () => {
-    const client = new Client(mockConfig, mockGrpcFn, mockAuthFn, mockLogFn);
-
-    assert.ok(typeof client.ensureReady === "function");
   });
 });

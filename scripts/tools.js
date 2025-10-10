@@ -1,9 +1,9 @@
 /* eslint-env node */
 import yaml from "js-yaml";
 import { ResourceIndex } from "@copilot-ld/libresource";
-import { storageFactory } from "@copilot-ld/libstorage";
-import { logFactory } from "@copilot-ld/libutil";
-import { policyFactory } from "@copilot-ld/libpolicy";
+import { createStorage } from "@copilot-ld/libstorage";
+import { createLogger } from "@copilot-ld/libutil";
+import { createPolicy } from "@copilot-ld/libpolicy";
 import { common, resource } from "@copilot-ld/libtype";
 import pkg from "protobufjs";
 import { access } from "node:fs/promises";
@@ -15,7 +15,7 @@ const { Root } = pkg;
  * @returns {Promise<object>} Tool endpoints configuration
  */
 async function loadToolEndpoints() {
-  const storage = storageFactory("config", "local");
+  const storage = createStorage("config", "local");
   const data = await storage.get("config.json");
   return data?.service?.tool?.endpoints || {};
 }
@@ -25,9 +25,57 @@ async function loadToolEndpoints() {
  * @returns {Promise<object>} Tool descriptors configuration
  */
 async function loadToolDescriptors() {
-  const storage = storageFactory("config", "local");
+  const storage = createStorage("config", "local");
   const data = await storage.get("tools.yml");
   return yaml.load(data.toString()) || {};
+}
+
+/**
+ * Map protobuf field type to JSON schema property type
+ * @param {object} field - Protobuf field definition
+ * @returns {object} JSON schema property object
+ * @private
+ */
+function mapFieldToSchema(field) {
+  const property = {
+    description: field.comment || `${field.name || "field"} field`,
+  };
+
+  // Map protobuf types to JSON schema types
+  switch (field.type) {
+    case "string":
+      property.type = "string";
+      break;
+    case "int32":
+    case "int64":
+    case "uint32":
+    case "uint64":
+      property.type = "integer";
+      break;
+    case "float":
+    case "double":
+      property.type = "number";
+      break;
+    case "bool":
+      property.type = "boolean";
+      break;
+    default:
+      // Handle repeated fields (arrays)
+      if (field.rule === "repeated") {
+        property.type = "array";
+        if (field.type === "float" || field.type === "double") {
+          property.items = { type: "number" };
+        } else if (field.type === "string") {
+          property.items = { type: "string" };
+        } else {
+          property.items = { type: "object" };
+        }
+      } else {
+        property.type = "object";
+      }
+  }
+
+  return property;
 }
 
 /**
@@ -56,44 +104,7 @@ function generateSchemaFromProtobuf(messageType) {
       continue;
     }
 
-    const property = {
-      description: field.comment || `${fieldName} field`,
-    };
-
-    // Map protobuf types to JSON schema types
-    switch (field.type) {
-      case "string":
-        property.type = "string";
-        break;
-      case "int32":
-      case "int64":
-      case "uint32":
-      case "uint64":
-        property.type = "integer";
-        break;
-      case "float":
-      case "double":
-        property.type = "number";
-        break;
-      case "bool":
-        property.type = "boolean";
-        break;
-      default:
-        // Handle repeated fields (arrays)
-        if (field.rule === "repeated") {
-          property.type = "array";
-          if (field.type === "float" || field.type === "double") {
-            property.items = { type: "number" };
-          } else if (field.type === "string") {
-            property.items = { type: "string" };
-          } else {
-            property.items = { type: "object" };
-          }
-        } else {
-          property.type = "object";
-        }
-    }
-
+    const property = mapFieldToSchema(field);
     schema.properties[fieldName] = property;
 
     // Add to required fields if not optional. Protobufjs sets 'optional' flag only for proto2.
@@ -210,10 +221,10 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
  */
 async function main() {
   const resourceIndex = new ResourceIndex(
-    storageFactory("resources", "local"),
-    policyFactory(),
+    createStorage("resources", "local"),
+    createPolicy(),
   );
-  const logger = logFactory("script.tools");
+  const logger = createLogger("script.tools");
 
   const [endpoints, descriptors] = await Promise.all([
     loadToolEndpoints(),

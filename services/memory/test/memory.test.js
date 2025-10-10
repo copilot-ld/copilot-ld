@@ -50,8 +50,8 @@ describe("memory service", () => {
 
       mockResourceIndex = {
         findByPrefix: async () => [
-          { type: "common.MessageV2", name: "message1" },
-          { type: "common.MessageV2", name: "message2" },
+          { type: "common.Message", name: "message1" },
+          { type: "common.Message", name: "message2" },
         ],
       };
     });
@@ -101,7 +101,7 @@ describe("memory service", () => {
 
       const result = await service.Append({
         for: "test-conversation",
-        identifiers: [{ type: "common.MessageV2", name: "message1" }],
+        identifiers: [{ type: "common.Message", name: "message1" }],
       });
 
       assert.ok(result);
@@ -152,9 +152,7 @@ describe("memory service", () => {
       // Should find messages in history
       assert.strictEqual(result.history.length, 2);
       assert.ok(
-        result.history.every((item) =>
-          item.type.startsWith("common.MessageV2"),
-        ),
+        result.history.every((item) => item.type.startsWith("common.Message")),
       );
     });
   });

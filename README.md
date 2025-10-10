@@ -11,7 +11,7 @@ retrieval-augmented generation.
 ## 🏗️ Repository Structure
 
 - **/services/**: gRPC microservices (`agent`, `llm`, `memory`, `vector`)
-- **/extensions/**: Application adapters (copilot, teams, web)
+- **/extensions/**: Application adapters (teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/scripts/**: Development and operational utilities
 - **/proto/**: Authoritative Protocol Buffer source schemas (copied into
@@ -94,8 +94,7 @@ npm run dev
 
 Access the services:
 
-- **Web Extension**: `http://localhost:3000/web`
-- **Copilot Extension**: `http://localhost:3001/copilot`
+- **Web Extension**: `http://localhost:3001/web`
 
 #### Option B: Production-Like Environment
 
@@ -120,7 +119,6 @@ options.
 Access the services:
 
 - **Web Extension**: `https://localhost/web`
-- **Copilot Extension**: `https://localhost/copilot`
 - **MinIO Console**: `http://localhost:9001`
 
 ## 📖 Detailed Guides

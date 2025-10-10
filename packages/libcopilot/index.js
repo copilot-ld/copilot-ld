@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { common } from "@copilot-ld/libtype";
-import { countTokens, tokenizerFactory } from "@copilot-ld/libutil";
+import { countTokens, createTokenizer } from "@copilot-ld/libutil";
 
 /**
  * @typedef {object} CompletionParams
@@ -30,7 +30,7 @@ export class Copilot {
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
    */
-  constructor(token, model, fetchFn = fetch, tokenizerFn = tokenizerFactory) {
+  constructor(token, model, fetchFn = fetch, tokenizerFn = createTokenizer) {
     if (typeof fetchFn !== "function")
       throw new Error("Invalid fetch function");
     if (typeof tokenizerFn !== "function")
@@ -102,14 +102,14 @@ export class Copilot {
 
   /**
    * Creates chat completions using the LLM API
-   * @param {import("copilot-ld/libtype").MessageV2[]} messages - Array of message objects with roles and content
+   * @param {import("copilot-ld/libtype").Message[]} messages - Array of message objects with roles and content
    * @param {import("copilot-ld/libtype").Tool[]} [tools] - Optional array of tool definitions
    * @param {number} [temperature] - Optional sampling temperature
    * @param {number} [max_tokens] - Optional maximum tokens to generate
    * @returns {Promise<object>} Completion response from Copilot
    */
   async createCompletions(messages, tools, temperature, max_tokens) {
-    // Convert messages from internal MessageV2 format to OpenAI format
+    // Convert messages from internal Message format to OpenAI format
     const formattedMessages = messages
       ?.map((m) => {
         if (!m) return null; // Skip null/undefined messages
@@ -152,7 +152,7 @@ export class Copilot {
 
     const data = await response.json();
 
-    // Convert response back to expected format with proper MessageV2 instances
+    // Convert response back to expected format with proper Message instances
     // The monkey patch in libtype automatically converts string content to Content objects
     // BUT preserve original tool_calls structure - don't convert through protobuf
     return {
@@ -161,7 +161,7 @@ export class Copilot {
         data.choices?.map((choice) => ({
           ...choice,
           message: {
-            ...common.MessageV2.fromObject({
+            ...common.Message.fromObject({
               ...choice.message,
               tool_calls: [], // Remove tool_calls from protobuf conversion
             }),
@@ -244,11 +244,11 @@ function normalizeVector(vector) {
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
  * @returns {Copilot} Configured Copilot instance
  */
-export function llmFactory(
+export function createLlm(
   token,
   model = "gpt-4o",
   fetchFn = fetch,
-  tokenizerFn = tokenizerFactory,
+  tokenizerFn = createTokenizer,
 ) {
   return new Copilot(token, model, fetchFn, tokenizerFn);
 }

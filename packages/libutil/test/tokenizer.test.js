@@ -4,7 +4,7 @@ import assert from "node:assert";
 
 // Module under test
 import { Tokenizer, ranks } from "../tokenizer.js";
-import { countTokens, tokenizerFactory } from "../index.js";
+import { countTokens, createTokenizer } from "../index.js";
 
 describe("Tokenizer", () => {
   describe("constructor", () => {
@@ -91,7 +91,7 @@ describe("Tokenizer", () => {
 describe("Integration with libutil functions", () => {
   describe("tokenizerFactory", () => {
     test("creates Tokenizer instance", () => {
-      const tokenizer = tokenizerFactory();
+      const tokenizer = createTokenizer();
       assert.ok(tokenizer instanceof Tokenizer);
     });
   });

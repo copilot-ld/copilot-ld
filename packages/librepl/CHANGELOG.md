@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-10-10
+
+- **BREAKING**: Simplified REPL implementation with improved constructor
+  parameter order (`formatter` first, `config` second)
+- Enhanced command handling with unified function-based interface and state
+  management
+- Improved test reliability and reduced complexity to meet coding standards
+  handlers
+- Removed case-insensitive command handling and alphabetical sorting
+- Improved error handling consistency between interactive and non-interactive
+  modes
+
 ## 2025-09-16
 
 - Bump version one last time, really

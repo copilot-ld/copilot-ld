@@ -109,7 +109,7 @@ describe("ResourceIndex", () => {
   });
 
   test("puts resource content with identifier generation", async () => {
-    const message = new common.MessageV2({
+    const message = new common.Message({
       role: "system",
       content: { text: "Test message content" },
     });
@@ -118,13 +118,13 @@ describe("ResourceIndex", () => {
 
     // Verify descriptor was generated
     assert.ok(message.id instanceof resource.Identifier);
-    assert.strictEqual(message.id.type, "common.MessageV2");
-    assert.strictEqual(message.id.name, "3d775ea3");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.name, "a50a3807");
   });
 
   test("gets resource contents by IDs with access control", async () => {
     // First, put a resource
-    const message = new common.MessageV2({
+    const message = new common.Message({
       role: "system",
       content: { text: "Test message for retrieval" },
     });
@@ -142,13 +142,25 @@ describe("ResourceIndex", () => {
       "Test message for retrieval",
     );
     assert.ok(retrieved[0].id instanceof resource.Identifier);
-    assert.strictEqual(retrieved[0].id.type, "common.MessageV2");
-    assert.strictEqual(retrieved[0].id.name, "3d775ea3");
+    assert.strictEqual(retrieved[0].id.type, "common.Message");
+    assert.strictEqual(retrieved[0].id.name, "a50a3807");
+  });
+
+  test("returns empty array when passed null identifiers", async () => {
+    const retrieved = await resourceIndex.get("test-actor", null);
+    assert.strictEqual(retrieved.length, 0);
+    assert.ok(Array.isArray(retrieved));
+  });
+
+  test("returns empty array when passed undefined identifiers", async () => {
+    const retrieved = await resourceIndex.get("test-actor", undefined);
+    assert.strictEqual(retrieved.length, 0);
+    assert.ok(Array.isArray(retrieved));
   });
 
   test("finds all resource identifiers", async () => {
     // Put some test resources
-    const message1 = new common.MessageV2({
+    const message1 = new common.Message({
       role: "system",
       content: { text: "First test message" },
     });
@@ -160,12 +172,12 @@ describe("ResourceIndex", () => {
 
     assert.strictEqual(identifiers.length, 1);
     assert.ok(identifiers[0] instanceof resource.Identifier);
-    assert.strictEqual(identifiers[0].type, "common.MessageV2");
+    assert.strictEqual(identifiers[0].type, "common.Message");
   });
 
   test("finds resource identifiers by prefix", async () => {
     // Put some test resources
-    const message1 = new common.MessageV2({
+    const message1 = new common.Message({
       role: "system",
       content: { text: "First test message" },
     });
@@ -173,11 +185,11 @@ describe("ResourceIndex", () => {
     await resourceIndex.put(message1);
 
     // Use a full URI prefix that should match
-    const identifiers = await resourceIndex.findByPrefix("common.MessageV2");
+    const identifiers = await resourceIndex.findByPrefix("common.Message");
 
     assert.ok(identifiers.length >= 1);
     assert.ok(identifiers[0] instanceof resource.Identifier);
-    assert.strictEqual(identifiers[0].type, "common.MessageV2");
+    assert.strictEqual(identifiers[0].type, "common.Message");
   });
 });
 
@@ -273,10 +285,10 @@ describe("ResourceProcessor", () => {
       1,
       "put() should have been called exactly once",
     );
-    assert.ok(capturedMessage instanceof common.MessageV2);
+    assert.ok(capturedMessage instanceof common.Message);
     assert.ok(capturedMessage.id instanceof resource.Identifier);
     assert.ok(capturedMessage.content instanceof resource.Content);
-    assert.strictEqual(capturedMessage.id.type, "common.MessageV2");
+    assert.strictEqual(capturedMessage.id.type, "common.Message");
     assert.strictEqual(capturedMessage.role, "system");
     assert.ok(capturedMessage.content.jsonld);
 
@@ -334,28 +346,28 @@ describe("ResourceProcessor", () => {
 
 describe("toIdentifier helper function", () => {
   test("toIdentifier correctly creates Identifier from resource URI", () => {
-    const uri = "common.MessageV2.abc123";
+    const uri = "common.Message.abc123";
     const identifier = toIdentifier(uri);
 
     assert.ok(identifier instanceof resource.Identifier);
-    assert.strictEqual(identifier.type, "common.MessageV2");
+    assert.strictEqual(identifier.type, "common.Message");
     assert.strictEqual(identifier.name, "abc123");
     assert.strictEqual(identifier.parent, "");
   });
 
   test("toIdentifier correctly handles URI with parent path", () => {
-    const uri = "parent/child/common.MessageV2.abc123";
+    const uri = "parent/child/common.Message.abc123";
     const identifier = toIdentifier(uri);
 
     assert.ok(identifier instanceof resource.Identifier);
-    assert.strictEqual(identifier.type, "common.MessageV2");
+    assert.strictEqual(identifier.type, "common.Message");
     assert.strictEqual(identifier.name, "abc123");
     assert.strictEqual(identifier.parent, "parent/child");
   });
 
   test("toIdentifier is reverse of Identifier.toString() - simple case", () => {
     const original = new resource.Identifier({
-      type: "common.MessageV2",
+      type: "common.Message",
       name: "abc123",
       parent: "",
     });
@@ -370,7 +382,7 @@ describe("toIdentifier helper function", () => {
 
   test("toIdentifier is reverse of Identifier.toString() - with parent", () => {
     const original = new resource.Identifier({
-      type: "common.MessageV2",
+      type: "common.Message",
       name: "abc123",
       parent: "parent.Resource.def456",
     });
@@ -388,14 +400,14 @@ describe("toType helper function", () => {
   test("toType correctly creates type based on identifier", () => {
     const object = {
       id: {
-        type: "common.MessageV2",
+        type: "common.Message",
       },
       role: "user",
       content: { text: "Hello, world!" },
     };
 
     const message = toType(object);
-    assert.ok(message instanceof common.MessageV2);
+    assert.ok(message instanceof common.Message);
     assert.ok(message.id instanceof resource.Identifier);
   });
 

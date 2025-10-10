@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/vector",
-  "version": "0.1.53",
+  "version": "0.1.54",
   "description": "Vector similarity search service for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.25",
-    "@copilot-ld/librpc": "^0.1.40",
+    "@copilot-ld/librpc": "^0.1.41",
     "@copilot-ld/libstorage": "^0.1.20",
     "@copilot-ld/libtype": "^0.1.30",
     "@copilot-ld/libutil": "^0.1.27",

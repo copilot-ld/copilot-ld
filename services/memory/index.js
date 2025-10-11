@@ -81,9 +81,15 @@ export class MemoryService extends MemoryBase {
     const history = await this.#loadHistoryForWindow(req.for);
 
     // Apply budget filtering if allocation is provided
-    const filteredTools = req.allocation ? this.#filterByBudget(tools, req.allocation.tools) : tools;
-    const filteredContext = req.allocation ? this.#filterByBudget(context, req.allocation.context) : context;
-    const filteredHistory = req.allocation ? this.#filterByBudget(history, req.allocation.history) : history;
+    const filteredTools = req.allocation
+      ? this.#filterByBudget(tools, req.allocation.tools)
+      : tools;
+    const filteredContext = req.allocation
+      ? this.#filterByBudget(context, req.allocation.context)
+      : context;
+    const filteredHistory = req.allocation
+      ? this.#filterByBudget(history, req.allocation.history)
+      : history;
 
     if (req.allocation) {
       this.debug("Memory window allocation", {
@@ -167,10 +173,10 @@ export class MemoryService extends MemoryBase {
       for (const toolName of alwaysLoadTools) {
         const toolPrefix = `common.ToolFunction.${toolName}`;
         const foundTools = await this.#resourceIndex.findByPrefix(toolPrefix);
-        
+
         // Add tools that aren't already in the context
         for (const toolIdentifier of foundTools) {
-          if (!tools.some(t => t.name === toolIdentifier.name)) {
+          if (!tools.some((t) => t.name === toolIdentifier.name)) {
             tools.push(toolIdentifier);
           }
         }

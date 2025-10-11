@@ -15,10 +15,34 @@
       }
     },
     "llm": {
-      "model": "gpt-4o"
+      "model": "gpt-5"
+    },
+    "memory": {
+      "alwaysLoadTools": [
+        "get_ontology",
+        "query_by_descriptor",
+        "query_by_content",
+        "query_by_pattern"
+      ]
     },
     "tool": {
       "endpoints": {
+        "get_ontology": {
+          "method": "graph.Graph.GetOntology",
+          "request": "graph.GetOntologyRequest"
+        },
+        "query_by_pattern": {
+          "method": "graph.Graph.QueryByPattern",
+          "request": "graph.Pattern"
+        },
+        "query_by_content": {
+          "method": "vector.Vector.QueryByContent",
+          "request": "vector.QueryByTextRequest"
+        },
+        "query_by_descriptor": {
+          "method": "vector.Vector.QueryByDescriptor",
+          "request": "vector.QueryByTextRequest"
+        },
         "sha256_hash": {
           "method": "hash.Hash.Sha256",
           "request": "hash.HashRequest"

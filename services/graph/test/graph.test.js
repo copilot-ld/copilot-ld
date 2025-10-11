@@ -13,10 +13,11 @@ describe("graph service", () => {
     });
 
     test("GraphService has QueryByPattern method", () => {
-      assert.strictEqual(typeof GraphService.prototype.QueryByPattern, "function");
+      assert.strictEqual(
+        typeof GraphService.prototype.QueryByPattern,
+        "function",
+      );
     });
-
-
 
     test("GraphService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
@@ -122,8 +123,6 @@ describe("graph service", () => {
       assert.ok(result);
       assert.ok(Array.isArray(result.contents));
     });
-
-
 
     test("QueryByPattern with specific subject pattern", async () => {
       let capturedPattern = null;

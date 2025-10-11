@@ -3,7 +3,8 @@
 ## 2025-10-11
 
 - **BREAKING**: Removed `GetItem` RPC method and related message types
-- Simplified service interface to focus on pattern-based queries and ontology access
+- Simplified service interface to focus on pattern-based queries and ontology
+  access
 
 ## 2025-10-10
 

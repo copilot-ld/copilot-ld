@@ -13,11 +13,17 @@ describe("vector service", () => {
     });
 
     test("VectorService has QueryByContent method", () => {
-      assert.strictEqual(typeof VectorService.prototype.QueryByContent, "function");
+      assert.strictEqual(
+        typeof VectorService.prototype.QueryByContent,
+        "function",
+      );
     });
 
     test("VectorService has QueryByDescriptor method", () => {
-      assert.strictEqual(typeof VectorService.prototype.QueryByDescriptor, "function");
+      assert.strictEqual(
+        typeof VectorService.prototype.QueryByDescriptor,
+        "function",
+      );
     });
 
     test("VectorService constructor accepts expected parameters", () => {
@@ -48,15 +54,11 @@ describe("vector service", () => {
       };
 
       mockContentIndex = {
-        queryItems: async () => [
-          { toString: () => "msg1" },
-        ],
+        queryItems: async () => [{ toString: () => "msg1" }],
       };
 
       mockDescriptorIndex = {
-        queryItems: async () => [
-          { toString: () => "desc1" },
-        ],
+        queryItems: async () => [{ toString: () => "desc1" }],
       };
 
       mockLlmClient = {

@@ -16,9 +16,7 @@ describe("graph service", () => {
       assert.strictEqual(typeof GraphService.prototype.QueryByPattern, "function");
     });
 
-    test("GraphService has GetItem method", () => {
-      assert.strictEqual(typeof GraphService.prototype.GetItem, "function");
-    });
+
 
     test("GraphService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
@@ -28,7 +26,6 @@ describe("graph service", () => {
     test("GraphService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(GraphService.prototype);
       assert(methods.includes("QueryByPattern"));
-      assert(methods.includes("GetItem"));
       assert(methods.includes("constructor"));
     });
   });
@@ -48,7 +45,6 @@ describe("graph service", () => {
           "common.Message.msg1",
           "common.ToolFunction.tool1",
         ],
-        getItem: async (id) => ({ id, found: true }),
       };
 
       mockResourceIndex = {
@@ -127,36 +123,7 @@ describe("graph service", () => {
       assert.ok(Array.isArray(result.contents));
     });
 
-    test("GetItem retrieves item from graph index", async () => {
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
 
-      const result = await service.GetItem({
-        id: "common.Message.test",
-      });
-
-      assert.ok(result);
-      assert.ok(result.identifier);
-      assert.strictEqual(result.identifier.id, "common.Message.test");
-    });
-
-    test("GetItem returns null identifier when not found", async () => {
-      const emptyGraphIndex = {
-        getItem: async () => null,
-      };
-      const service = new GraphService(
-        mockConfig,
-        emptyGraphIndex,
-        mockResourceIndex,
-      );
-      const result = await service.GetItem({ id: "non-existent" });
-
-      assert.ok(result);
-      assert.strictEqual(result.identifier, null);
-    });
 
     test("QueryByPattern with specific subject pattern", async () => {
       let capturedPattern = null;

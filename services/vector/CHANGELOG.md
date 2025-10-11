@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-11
+
+- **BREAKING**: Removed `GetItem` RPC method and simplified service interface
+- Focused service on text-based vector queries only
+
 ## 2025-10-10
 
 - Bump version

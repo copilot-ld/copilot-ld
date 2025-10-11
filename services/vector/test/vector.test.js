@@ -51,14 +51,12 @@ describe("vector service", () => {
         queryItems: async () => [
           { toString: () => "msg1" },
         ],
-        getItem: async (id) => ({ id, found: true }),
       };
 
       mockDescriptorIndex = {
         queryItems: async () => [
           { toString: () => "desc1" },
         ],
-        getItem: async (id) => ({ id, found: true }),
       };
 
       mockLlmClient = {

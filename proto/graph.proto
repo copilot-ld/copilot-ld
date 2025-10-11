@@ -6,7 +6,6 @@ package graph;
 
 service Graph {
   rpc QueryByPattern(Pattern) returns (QueryByTextResponse);
-  rpc GetItem(GetItemRequest) returns (GetItemResponse);
   rpc GetOntology(GetOntologyRequest) returns (GetOntologyResponse);
 }
 
@@ -18,14 +17,6 @@ message Pattern {
 
 message QueryByTextResponse {
   repeated string contents = 1;
-}
-
-message GetItemRequest {
-  string id = 1; // Resource ID
-}
-
-message GetItemResponse {
-  optional resource.Identifier identifier = 1;
 }
 
 message GetOntologyRequest {

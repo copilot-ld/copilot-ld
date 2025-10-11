@@ -76,12 +76,49 @@ export class MemoryService extends MemoryBase {
       budget: req.budget || "unlimited",
     });
 
-    // Load context from memory using JSONL format
+    const context = await this.#loadMemoryContext(req.for);
+    const tools = await this.#loadToolsForWindow(context);
+    const history = await this.#loadHistoryForWindow(req.for);
+
+    // Apply budget filtering if allocation is provided
+    const filteredTools = req.allocation ? this.#filterByBudget(tools, req.allocation.tools) : tools;
+    const filteredContext = req.allocation ? this.#filterByBudget(context, req.allocation.context) : context;
+    const filteredHistory = req.allocation ? this.#filterByBudget(history, req.allocation.history) : history;
+
+    if (req.allocation) {
+      this.debug("Memory window allocation", {
+        tools: req.allocation.tools,
+        context: req.allocation.context,
+        history: req.allocation.history,
+      });
+    }
+
+    this.debug("Memory window lengths", {
+      tools: filteredTools.length,
+      context: filteredContext.length,
+      history: filteredHistory.length,
+    });
+
+    return {
+      for: req.for,
+      tools: filteredTools,
+      context: filteredContext,
+      history: filteredHistory,
+    };
+  }
+
+  /**
+   * Loads memory context for a given resource
+   * @param {string} forResource - Resource identifier
+   * @returns {Promise<Array>} Deduplicated context identifiers
+   * @private
+   */
+  async #loadMemoryContext(forResource) {
     let context = [];
-    const key = `${req.for}.jsonl`;
+    const key = `${forResource}.jsonl`;
 
     // Wait for lock to be released if another append is in progress
-    while (this.#lock[req.for]) {
+    while (this.#lock[forResource]) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
@@ -93,62 +130,75 @@ export class MemoryService extends MemoryBase {
       }
     } catch {
       // No memory found, return empty context
-      this.debug("No memory found", { for: req.for });
+      this.debug("No memory found", { for: forResource });
     }
 
     // De-duplicate by identifier
     const seen = new Set();
-    context = context.filter((identifier) => {
+    return context.filter((identifier) => {
       if (identifier.name && !seen.has(identifier.name)) {
         seen.add(identifier.name);
         return true;
       }
       return false;
     });
+  }
 
+  /**
+   * Loads tools for the memory window including always-loaded tools
+   * @param {Array} context - Context identifiers
+   * @returns {Promise<Array>} Tool identifiers
+   * @private
+   */
+  async #loadToolsForWindow(context) {
     // Filter out tools from context
     let tools = context.filter((identifier) =>
       identifier.type?.startsWith("common.Tool"),
     );
 
+    // Load always-loaded tools from configuration
+    const alwaysLoadTools = this.config.alwaysLoadTools || [];
+    if (alwaysLoadTools.length > 0) {
+      this.debug("Loading always-load tools", {
+        tools: alwaysLoadTools,
+      });
+
+      // Find tool identifiers by name using prefix search
+      for (const toolName of alwaysLoadTools) {
+        const toolPrefix = `common.ToolFunction.${toolName}`;
+        const foundTools = await this.#resourceIndex.findByPrefix(toolPrefix);
+        
+        // Add tools that aren't already in the context
+        for (const toolIdentifier of foundTools) {
+          if (!tools.some(t => t.name === toolIdentifier.name)) {
+            tools.push(toolIdentifier);
+          }
+        }
+      }
+    }
+
+    return tools;
+  }
+
+  /**
+   * Loads history for the memory window
+   * @param {string} forResource - Resource identifier
+   * @returns {Promise<Array>} History message identifiers
+   * @private
+   */
+  async #loadHistoryForWindow(forResource) {
     // Load all messages under the given resource using prefix search
-    const identifiers = await this.#resourceIndex.findByPrefix(req.for);
+    const identifiers = await this.#resourceIndex.findByPrefix(forResource);
 
     this.debug("Identifiers by prefix", {
-      for: req.for,
+      for: forResource,
       count: identifiers.length,
     });
 
     // Extract message identifiers
-    let history = identifiers.filter((identifier) =>
+    return identifiers.filter((identifier) =>
       identifier.type?.startsWith("common.Message"),
     );
-
-    // Apply budget filtering if allocation is provided
-    if (req.allocation) {
-      tools = this.#filterByBudget(tools, req.allocation.tools);
-      context = this.#filterByBudget(context, req.allocation.context);
-      history = this.#filterByBudget(history, req.allocation.history);
-
-      this.debug("Memory window allocation", {
-        tools: req.allocation.tools,
-        context: req.allocation.context,
-        history: req.allocation.history,
-      });
-    }
-
-    this.debug("Memory window lengths", {
-      tools: tools.length,
-      context: context.length,
-      history: history.length,
-    });
-
-    return {
-      for: req.for,
-      tools,
-      context,
-      history,
-    };
   }
 
   /**

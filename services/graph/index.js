@@ -64,21 +64,6 @@ export class GraphService extends GraphBase {
   }
 
   /** @inheritdoc */
-  async GetItem(req) {
-    this.debug("Getting item from graph index", {
-      id: req.id,
-    });
-
-    const identifier = await this.#graphIndex.getItem(req.id);
-
-    this.debug("Get item complete", {
-      found: identifier !== null,
-    });
-
-    return { identifier };
-  }
-
-  /** @inheritdoc */
   async GetOntology(_req) {
     this.debug("Getting ontology from graph storage");
 

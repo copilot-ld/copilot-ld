@@ -24,7 +24,7 @@ export class GraphService extends GraphBase {
   }
 
   /** @inheritdoc */
-  async QueryItems(req) {
+  async QueryByPattern(req) {
     this.debug("Querying graph index", {
       subject: req.subject,
       predicate: req.predicate,

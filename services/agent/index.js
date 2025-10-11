@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { common, llm, memory, vector } from "@copilot-ld/libtype";
+import { common, llm, memory } from "@copilot-ld/libtype";
 import {
   getLatestUserMessage,
   generateUUID,
@@ -17,7 +17,6 @@ const { AgentBase } = services;
 class AgentService extends AgentBase {
   #memoryClient;
   #llmClient;
-  #vectorClient;
   #toolClient;
   #resourceIndex;
   #octokitFactory;
@@ -27,7 +26,6 @@ class AgentService extends AgentBase {
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {object} memoryClient - Memory service client
    * @param {object} llmClient - LLM service client
-   * @param {object} vectorClient - Vector service client
    * @param {object} toolClient - Tool service client
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance for data access
    * @param {(token: string) => import("@octokit/rest").Octokit} octokitFactory - Factory function to create Octokit instances
@@ -37,7 +35,6 @@ class AgentService extends AgentBase {
     config,
     memoryClient,
     llmClient,
-    vectorClient,
     toolClient,
     resourceIndex,
     octokitFactory,
@@ -46,14 +43,12 @@ class AgentService extends AgentBase {
     super(config, logFn);
     if (!memoryClient) throw new Error("memoryClient is required");
     if (!llmClient) throw new Error("llmClient is required");
-    if (!vectorClient) throw new Error("vectorClient is required");
     if (!toolClient) throw new Error("toolClient is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
     if (!octokitFactory) throw new Error("octokitFactory is required");
 
     this.#memoryClient = memoryClient;
     this.#llmClient = llmClient;
-    this.#vectorClient = vectorClient;
     this.#toolClient = toolClient;
     this.#resourceIndex = resourceIndex;
     this.#octokitFactory = octokitFactory;
@@ -115,7 +110,7 @@ class AgentService extends AgentBase {
   }
 
   /**
-   * Handles vector search and memory window creation
+   * Creates memory window without performing vector search
    * @param {import("@copilot-ld/libtype").common.Conversation} conversation - Conversation object
    * @param {import("@copilot-ld/libtype").common.Message} message - User message
    * @param {import("@copilot-ld/libtype").common.Assistant} assistant - Assistant configuration
@@ -125,43 +120,12 @@ class AgentService extends AgentBase {
    * @returns {Promise<{messages: import("@copilot-ld/libtype").common.Message[], tools: import("@copilot-ld/libtype").common.Tool[]}>} Memory results
    * @private
    */
-  async #getMemory(conversation, message, assistant, tasks, budget, req) {
-    // Step 3: Search for similarities and append them to memory
-    const embeddings = await this.#llmClient.CreateEmbeddings(
-      new llm.EmbeddingsRequest({
-        chunks: [message.content.toString()],
-        github_token: req.github_token,
-      }),
-    );
-
-    const vector_data = embeddings.data[0].embedding;
-
-    const { identifiers } = await this.#vectorClient.QueryItems(
-      new vector.QueryItemsRequest({
-        index: "content",
-        vector: vector_data,
-        filters: {
-          threshold: this.config.threshold?.toString(),
-          limit: this.config.limit?.toString(),
-        },
-      }),
-    );
-
-    this.debug("Similar resources", { identifiers: identifiers.length });
-
-    this.#memoryClient.Append(
-      new memory.AppendRequest({
-        for: conversation.id.toString(),
-        identifiers,
-      }),
-    );
-
-    // Step 4: Get the memory window
+  async #getMemoryWindow(conversation, message, assistant, tasks, budget, req) {
+    // Get the memory window without vector search
     const allocation = this.config.budget?.allocation;
     const window = await this.#memoryClient.GetWindow(
       new memory.WindowRequest({
         for: conversation.id.toString(),
-        vector: vector_data,
         budget,
         allocation: allocation
           ? new memory.WindowRequest.Allocation({
@@ -319,7 +283,7 @@ class AgentService extends AgentBase {
       await this.#setupConversation(req);
 
     if (message?.content) {
-      const { messages, tools } = await this.#getMemory(
+      const { messages, tools } = await this.#getMemoryWindow(
         conversation,
         message,
         assistant,

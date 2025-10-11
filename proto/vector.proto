@@ -1,12 +1,10 @@
 syntax = "proto3";
 
-import "resource.proto";
-
 package vector;
 
 service Vector {
-  rpc QueryItems(QueryItemsRequest) returns (QueryItemsResponse);
-  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc QueryByContent(QueryByTextRequest) returns (QueryByTextResponse);
+  rpc QueryByDescriptor(QueryByTextRequest) returns (QueryByTextResponse);
 }
 
 message Filter {
@@ -17,21 +15,12 @@ message Filter {
   optional string type = 5; // Resource identifier type
 }
 
-message QueryItemsRequest {
-  string index = 1; // "content" or "descriptor"
-  repeated double vector = 2;
-  optional Filter filters = 3;
+message QueryByTextRequest {
+  string text = 1;
+  optional Filter filters = 2;
+  optional string github_token = 3;
 }
 
-message QueryItemsResponse {
-  repeated resource.Identifier identifiers = 1;
-}
-
-message GetItemRequest {
-  string index = 1; // "content" or "descriptor"
-  string id = 2; // Resource ID
-}
-
-message GetItemResponse {
-  optional resource.Identifier identifier = 1;
+message QueryByTextResponse {
+  repeated string contents = 1;
 }

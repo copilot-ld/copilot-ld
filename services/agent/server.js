@@ -9,7 +9,7 @@ import { createStorage } from "@copilot-ld/libstorage";
 
 import { AgentService } from "./index.js";
 
-const { MemoryClient, LlmClient, VectorClient, ToolClient } = clients;
+const { MemoryClient, LlmClient, ToolClient } = clients;
 
 const agentConfig = await ServiceConfig.create("agent", {
   threshold: 0.3,
@@ -27,7 +27,6 @@ const agentConfig = await ServiceConfig.create("agent", {
 
 const memoryClient = new MemoryClient(await ServiceConfig.create("memory"));
 const llmClient = new LlmClient(await ServiceConfig.create("llm"));
-const vectorClient = new VectorClient(await ServiceConfig.create("vector"));
 const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
 const resourceStorage = createStorage("resources");
@@ -38,7 +37,6 @@ const service = new AgentService(
   agentConfig,
   memoryClient,
   llmClient,
-  vectorClient,
   toolClient,
   resourceIndex,
   (auth) => new Octokit({ auth }),

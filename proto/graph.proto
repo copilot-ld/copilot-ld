@@ -5,7 +5,7 @@ import "resource.proto";
 package graph;
 
 service Graph {
-  rpc QueryItems(Pattern) returns (QueryItemsResponse);
+  rpc QueryByPattern(Pattern) returns (QueryByTextResponse);
   rpc GetItem(GetItemRequest) returns (GetItemResponse);
   rpc GetOntology(GetOntologyRequest) returns (GetOntologyResponse);
 }
@@ -16,7 +16,7 @@ message Pattern {
   optional string object = 3;
 }
 
-message QueryItemsResponse {
+message QueryByTextResponse {
   repeated string contents = 1;
 }
 

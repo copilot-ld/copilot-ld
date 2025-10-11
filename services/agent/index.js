@@ -116,11 +116,10 @@ class AgentService extends AgentBase {
    * @param {import("@copilot-ld/libtype").common.Assistant} assistant - Assistant configuration
    * @param {object[]} tasks - Tasks array
    * @param {number} budget - Token budget
-   * @param {import("@copilot-ld/libtype").agent.AgentRequest} req - Request message
    * @returns {Promise<{messages: import("@copilot-ld/libtype").common.Message[], tools: import("@copilot-ld/libtype").common.Tool[]}>} Memory results
    * @private
    */
-  async #getMemoryWindow(conversation, message, assistant, tasks, budget, req) {
+  async #getMemoryWindow(conversation, message, assistant, tasks, budget) {
     // Get the memory window without vector search
     const allocation = this.config.budget?.allocation;
     const window = await this.#memoryClient.GetWindow(
@@ -289,7 +288,6 @@ class AgentService extends AgentBase {
         assistant,
         tasks,
         budget,
-        req,
       );
       const completions = await this.#executeToolLoop(messages, tools, req);
 

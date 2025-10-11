@@ -12,8 +12,8 @@ describe("graph service", () => {
       assert.ok(GraphService.prototype);
     });
 
-    test("GraphService has QueryItems method", () => {
-      assert.strictEqual(typeof GraphService.prototype.QueryItems, "function");
+    test("GraphService has QueryByPattern method", () => {
+      assert.strictEqual(typeof GraphService.prototype.QueryByPattern, "function");
     });
 
     test("GraphService has GetItem method", () => {
@@ -27,7 +27,7 @@ describe("graph service", () => {
 
     test("GraphService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(GraphService.prototype);
-      assert(methods.includes("QueryItems"));
+      assert(methods.includes("QueryByPattern"));
       assert(methods.includes("GetItem"));
       assert(methods.includes("constructor"));
     });
@@ -84,13 +84,13 @@ describe("graph service", () => {
       assert.strictEqual(service.config, mockConfig);
     });
 
-    test("QueryItems queries the graph index", async () => {
+    test("QueryByPattern queries the graph index", async () => {
       const service = new GraphService(
         mockConfig,
         mockGraphIndex,
         mockResourceIndex,
       );
-      const result = await service.QueryItems({ subject: "test" });
+      const result = await service.QueryByPattern({ subject: "test" });
 
       assert.ok(result);
       assert.ok(Array.isArray(result.contents));
@@ -98,26 +98,26 @@ describe("graph service", () => {
       assert.strictEqual(result.contents[0], "Content for common.Message.msg1");
     });
 
-    test("QueryItems handles empty pattern", async () => {
+    test("QueryByPattern handles empty pattern", async () => {
       const service = new GraphService(
         mockConfig,
         mockGraphIndex,
         mockResourceIndex,
       );
 
-      const result = await service.QueryItems({});
+      const result = await service.QueryByPattern({});
 
       assert.ok(result);
       assert.ok(Array.isArray(result.contents));
     });
 
-    test("QueryItems converts empty strings to null in pattern", async () => {
+    test("QueryByPattern converts empty strings to null in pattern", async () => {
       const service = new GraphService(
         mockConfig,
         mockGraphIndex,
         mockResourceIndex,
       );
-      const result = await service.QueryItems({
+      const result = await service.QueryByPattern({
         subject: "",
         predicate: "testPredicate",
         object: "",
@@ -158,7 +158,7 @@ describe("graph service", () => {
       assert.strictEqual(result.identifier, null);
     });
 
-    test("QueryItems with specific subject pattern", async () => {
+    test("QueryByPattern with specific subject pattern", async () => {
       let capturedPattern = null;
       mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
@@ -171,7 +171,7 @@ describe("graph service", () => {
         mockResourceIndex,
       );
 
-      await service.QueryItems({
+      await service.QueryByPattern({
         subject: "http://example.org/message1",
         predicate: null,
         object: null,
@@ -185,7 +185,7 @@ describe("graph service", () => {
       assert.strictEqual(capturedPattern.object, null);
     });
 
-    test("QueryItems with predicate and object pattern", async () => {
+    test("QueryByPattern with predicate and object pattern", async () => {
       let capturedPattern = null;
       mockGraphIndex.queryItems = async (pattern) => {
         capturedPattern = pattern;
@@ -198,7 +198,7 @@ describe("graph service", () => {
         mockResourceIndex,
       );
 
-      await service.QueryItems({
+      await service.QueryByPattern({
         subject: null,
         predicate: "http://purl.org/dc/terms/description",
         object: "Search functionality",

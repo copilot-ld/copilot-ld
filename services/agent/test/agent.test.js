@@ -21,7 +21,7 @@ describe("agent service", () => {
 
     test("AgentService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(AgentService.length, 8); // config, memoryClient, llmClient, vectorClient, toolClient, resourceIndex, octokitFactory, logFn
+      assert.strictEqual(AgentService.length, 7); // config, memoryClient, llmClient, toolClient, resourceIndex, octokitFactory, logFn
     });
 
     test("AgentService has proper method signatures", () => {
@@ -35,7 +35,6 @@ describe("agent service", () => {
     let mockConfig;
     let mockMemoryClient;
     let mockLlmClient;
-    let mockVectorClient;
     let mockToolClient;
     let mockResourceIndex;
     let mockOctokitFactory;
@@ -43,7 +42,7 @@ describe("agent service", () => {
     beforeEach(() => {
       mockConfig = {
         name: "agent", // Required for logging
-        assistant: { name: "test-assistant" },
+        assistant: "common.Assistant.test-assistant",
         budget: {
           tokens: 1000,
           allocation: { tools: 0.2, history: 0.5, context: 0.3 },
@@ -74,12 +73,8 @@ describe("agent service", () => {
         }),
       };
 
-      mockVectorClient = {
-        QueryItems: async () => ({ identifiers: [] }),
-      };
-
       mockToolClient = {
-        QueryItems: async () => ({ items: [] }),
+        ExecuteTool: async () => ({ result: "test result" }),
       };
 
       mockResourceIndex = {
@@ -99,7 +94,6 @@ describe("agent service", () => {
             mockConfig,
             null,
             mockLlmClient,
-            mockVectorClient,
             mockToolClient,
             mockResourceIndex,
             mockOctokitFactory,
@@ -113,7 +107,6 @@ describe("agent service", () => {
             mockConfig,
             mockMemoryClient,
             null,
-            mockVectorClient,
             mockToolClient,
             mockResourceIndex,
             mockOctokitFactory,
@@ -128,11 +121,10 @@ describe("agent service", () => {
             mockMemoryClient,
             mockLlmClient,
             null,
-            mockToolClient,
             mockResourceIndex,
             mockOctokitFactory,
           ),
-        /vectorClient is required/,
+        /toolClient is required/,
       );
     });
 
@@ -141,10 +133,10 @@ describe("agent service", () => {
         mockConfig,
         mockMemoryClient,
         mockLlmClient,
-        mockVectorClient,
         mockToolClient,
         mockResourceIndex,
         mockOctokitFactory,
+        () => ({ debug: () => {}, info: () => {}, error: () => {} }), // Mock logger
       );
 
       await assert.rejects(
@@ -159,7 +151,6 @@ describe("agent service", () => {
         mockConfig,
         mockMemoryClient,
         mockLlmClient,
-        mockVectorClient,
         mockToolClient,
         mockResourceIndex,
         mockOctokitFactory,

@@ -20,7 +20,8 @@ const llmClient = new LlmClient(llmConfig);
 
 // Initialize resource index
 const resourceStorage = createStorage("resources");
-const policy = new Policy();
+const policyStorage = createStorage("policies");
+const policy = new Policy(policyStorage);
 const resourceIndex = new ResourceIndex(resourceStorage, policy);
 
 // Initialize vector indices
@@ -29,11 +30,11 @@ const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
 const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
 
 const service = new VectorService(
-  config, 
-  contentIndex, 
-  descriptorIndex, 
-  llmClient, 
-  resourceIndex
+  config,
+  contentIndex,
+  descriptorIndex,
+  llmClient,
+  resourceIndex,
 );
 const server = new Server(service, config);
 

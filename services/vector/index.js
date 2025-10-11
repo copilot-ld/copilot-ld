@@ -22,11 +22,18 @@ export class VectorService extends VectorBase {
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for content retrieval
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, contentIndex, descriptorIndex, llmClient, resourceIndex, logFn) {
+  constructor(
+    config,
+    contentIndex,
+    descriptorIndex,
+    llmClient,
+    resourceIndex,
+    logFn,
+  ) {
     super(config, logFn);
     if (!llmClient) throw new Error("llmClient is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
-    
+
     this.#contentIndex = contentIndex;
     this.#descriptorIndex = descriptorIndex;
     this.#llmClient = llmClient;
@@ -71,17 +78,18 @@ export class VectorService extends VectorBase {
       chunks: [req.text],
       github_token: req.github_token,
     });
-    
+
     const embeddings = await this.#llmClient.CreateEmbeddings(embeddingRequest);
-    
+
     if (!embeddings.data?.length) {
       throw new Error("No embeddings returned from LLM service");
     }
 
     // 2. Query appropriate vector index
-    const index = indexType === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
+    const index =
+      indexType === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
     const vector = embeddings.data[0].embedding;
-    
+
     const identifiers = await index.queryItems(vector, req.filters || {});
 
     this.debug("Vector query complete", {
@@ -90,7 +98,10 @@ export class VectorService extends VectorBase {
     });
 
     // 3. Get content strings from resource identifiers
-    const contents = await this.#getContentsFromIdentifiers(identifiers, indexType);
+    const contents = await this.#getContentsFromIdentifiers(
+      identifiers,
+      indexType,
+    );
 
     this.debug("Content retrieval complete", {
       indexType,
@@ -113,33 +124,39 @@ export class VectorService extends VectorBase {
     }
 
     // Convert identifiers to strings for resource lookup
-    const identifierStrings = identifiers.map(id => id.toString());
-    
+    const identifierStrings = identifiers.map((id) => id.toString());
+
     // Use system actor for resource access
     const actor = "common.System.root";
-    
+
     try {
       // Get resources from the index
       const resources = await this.#resourceIndex.get(actor, identifierStrings);
-      
+
       // Extract content based on index type
-      const contents = resources.map(resource => {
-        if (indexType === "descriptor") {
-          // For descriptors, return the descriptor content if available
-          return resource.descriptor?.content?.toString() || resource.content?.toString() || "";
-        } else {
-          // For content, return the main content
-          return resource.content?.toString() || "";
-        }
-      }).filter(content => content.length > 0);
-      
+      const contents = resources
+        .map((resource) => {
+          if (indexType === "descriptor") {
+            // For descriptors, return the descriptor content if available
+            return (
+              resource.descriptor?.content?.toString() ||
+              resource.content?.toString() ||
+              ""
+            );
+          } else {
+            // For content, return the main content
+            return resource.content?.toString() || "";
+          }
+        })
+        .filter((content) => content.length > 0);
+
       return contents;
     } catch (error) {
       this.debug("Error retrieving content from identifiers", {
         error: error.message,
         identifierCount: identifiers.length,
       });
-      
+
       // Return empty array on error to avoid breaking the service
       return [];
     }

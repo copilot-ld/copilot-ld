@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { Store } from "n3";
 
-import { TripleIndex, parseTripleQuery } from "@copilot-ld/libtriple";
+import { GraphIndex, parseGraphQuery } from "@copilot-ld/libgraph";
 import { Repl } from "@copilot-ld/librepl";
 import { ResourceIndex } from "@copilot-ld/libresource";
 import { Policy } from "@copilot-ld/libpolicy";
@@ -9,21 +9,21 @@ import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { createStorage } from "@copilot-ld/libstorage";
 
 // Global state
-/** @type {TripleIndex} */
-let tripleIndex;
+/** @type {GraphIndex} */
+let graphIndex;
 /** @type {ResourceIndex} */
 let resourceIndex;
 
 /**
- * Performs a triple query using the parsed pattern
- * @param {string} prompt - The triple query string (e.g., "person:john ? ?")
+ * Performs a graph query using the parsed pattern
+ * @param {string} prompt - The graph query string (e.g., "person:john ? ?")
  * @returns {Promise<string>} Formatted query results as markdown
  */
 async function performQuery(prompt) {
   try {
     // Parse and execute the query
-    const pattern = parseTripleQuery(prompt);
-    const identifiers = await tripleIndex.queryItems(pattern);
+    const pattern = parseGraphQuery(prompt);
+    const identifiers = await graphIndex.queryItems(pattern);
     const resources = await resourceIndex.get(
       "common.System.root",
       identifiers,
@@ -32,7 +32,7 @@ async function performQuery(prompt) {
     let output = ``;
 
     if (identifiers.length === 0) {
-      output += `No matching triples found.\n`;
+      output += `No matching graphs found.\n`;
     } else {
       identifiers.forEach((identifier, i) => {
         const resource = resources.find((r) => r.id.name === identifier.name);
@@ -53,9 +53,9 @@ async function performQuery(prompt) {
   } catch (error) {
     return (
       `Error: ${error.message}\n\nExample queries:\n` +
-      `  person:john ? ?           # Find all triples about person:john\n` +
+      `  person:john ? ?           # Find all graphs about person:john\n` +
       `  ? foaf:name "John Doe"    # Find all people with name "John Doe"\n` +
-      `  ? ? ?                     # Find all triples\n`
+      `  ? ? ?                     # Find all graphs\n`
     );
   }
 }
@@ -71,12 +71,12 @@ Examples:
 person:john ? ?         # Find all about person:john
 ? foaf:name "John Doe"  # Find entities named "John Doe"
 ? type Person           # Find all Person instances
-? ? ?                   # Find all triples`,
+? ? ?                   # Find all graphs`,
 
   setup: async () => {
-    const triplesStorage = createStorage("triples");
+    const graphsStorage = createStorage("graphs");
     const store = new Store();
-    tripleIndex = new TripleIndex(triplesStorage, store, "triples.jsonl");
+    graphIndex = new GraphIndex(graphsStorage, store, "graphs.jsonl");
 
     const resourceStorage = createStorage("resources");
     const policyStorage = createStorage("policies");

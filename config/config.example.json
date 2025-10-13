@@ -1,31 +1,44 @@
 {
   "service": {
     "agent": {
-      "assistant": "common.Assistant.software-dev-expert",
+      "assistant": "software_dev_expert",
+      "permanent_tools": [
+        "get_ontology",
+        "query_by_descriptor",
+        "query_by_content",
+        "query_by_pattern"
+      ],
       "threshold": 0.25,
-      "limit": 100,
       "temperature": 0.25,
       "budget": {
         "tokens": 90000,
         "allocation": {
           "tools": 0.1,
           "history": 0.1,
-          "context": 0.6
+          "results": 0.8
         }
       }
     },
     "llm": {
-      "model": "gpt-4o"
+      "model": "gpt-5"
     },
     "tool": {
       "endpoints": {
-        "sha256_hash": {
-          "method": "hash.Hash.Sha256",
-          "request": "hash.HashRequest"
+        "get_ontology": {
+          "method": "graph.Graph.GetOntology",
+          "request": "graph.OntologyRequest"
         },
-        "md5_hash": {
-          "method": "hash.Hash.Md5",
-          "request": "hash.HashRequest"
+        "query_by_pattern": {
+          "method": "graph.Graph.QueryByPattern",
+          "request": "graph.PatternQuery"
+        },
+        "query_by_content": {
+          "method": "vector.Vector.QueryByContent",
+          "request": "vector.TextQuery"
+        },
+        "query_by_descriptor": {
+          "method": "vector.Vector.QueryByDescriptor",
+          "request": "vector.TextQuery"
         }
       }
     }

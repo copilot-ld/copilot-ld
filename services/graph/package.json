@@ -1,9 +1,14 @@
 {
-  "name": "@copilot-ld/memory",
-  "version": "0.1.44",
-  "description": "Memory service for managing transient resources and memory windows",
+  "name": "@copilot-ld/graph",
+  "version": "0.1.0",
+  "description": "Graph query service for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "node --watch server.js",
     "start": "npx download && node server.js",
@@ -13,13 +18,15 @@
     "@copilot-ld/libconfig": "^0.1.27",
     "@copilot-ld/librpc": "^0.1.42",
     "@copilot-ld/libstorage": "^0.1.22",
+    "@copilot-ld/libgraph": "^0.1.6",
     "@copilot-ld/libtype": "^0.1.32",
-    "@copilot-ld/libutil": "^0.1.29"
+    "@copilot-ld/libutil": "^0.1.29",
+    "n3": "^1.26.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "services/memory"
+    "directory": "services/graph"
   },
   "publishConfig": {
     "access": "public",

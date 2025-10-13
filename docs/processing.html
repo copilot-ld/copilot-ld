@@ -203,10 +203,10 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
       </p>
 
       <pre><code>data/resources/
-├── common.Message.{hash}.json        # Individual message resources
+├── common.Message.{hash}.json          # Individual message resources
 ├── common.Assistant.{name}.json        # Assistant configurations
-├── common.ToolFunction.{name}.json     # Tool definitions
-└── common.Conversation.{uuid}.json     # Conversation metadata</code></pre>
+└── common.Conversation.{uuid}.json     # Conversation metadata
+├── tool.ToolFunction.{name}.json       # Tool definitions</code></pre>
 
       <h5>Resource Format</h5>
       <p>Each extracted resource contains:</p>
@@ -293,9 +293,8 @@ message HashResponse {
       <p>
         Generated tool schemas are stored as individual JSON files in
         <code>data/resources/</code> with the pattern
-        <code>common.ToolFunction.{name}.json</code> and automatically
-        registered with the Tool service during startup. Each tool entry
-        includes:
+        <code>tool.ToolFunction.{name}.json</code> and automatically registered
+        with the Tool service during startup. Each tool entry includes:
       </p>
       <ul>
         <li>
@@ -329,7 +328,7 @@ message HashResponse {
 
       <pre><code>{
   "id": {
-    "type": "common.ToolFunction",
+    "type": "tool.ToolFunction",
     "name": "sha256_hash"
   },
   "descriptor": {

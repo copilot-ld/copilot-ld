@@ -1,48 +1,15 @@
 # Changelog
 
-## 2025-10-10
+## 2025-10-13
 
-- Bump version
+- Refactored `VectorIndex` to extend `IndexBase` from `@copilot-ld/libutil` with
+  shared filtering methods for prefix, limit, and token constraints
 
-## 2025-10-07
-
-- **BREAKING**: Updated `VectorProcessor` to filter conversations using
-  simplified URI format without `cld:` prefix
-- Enhanced vector indexing to work with direct identifier format for improved
-  performance
-
-## 2025-09-19
-
-- Added dependency on `@copilot-ld/libtype` for proper type imports and enhanced
-  integration
-
-## 2025-09-16
-
-- Bump version one last time, really
-- Bump version one last time
-- Bump version one more time
-- Bump version again
-- Bump version for public package publishing
-
-## 2025-09-11
-
-- **SIMPLIFIED**: Updated `VectorProcessor.processItem()` to remove unused
-  `itemIndex` and `globalIndex` parameters
-- **REFACTOR**: `VectorProcessor` now extends `ProcessorBase` from
-  `@copilot-ld/libutil` for unified batch processing
 - **BREAKING**: Redesigned `VectorIndex` with Map-based storage for O(1)
-  resource ID lookups and improved performance
-- Enhanced dual-index architecture with separate `contentIndex` and
-  `descriptorIndex` support
-- Added `getItem()` method for direct resource ID retrieval with optimized
-  performance characteristics
-
-## 2025-08-15
-
-- Simplified error handling with improved text-based error messages
-- Removed deprecated `getIndexPath()` method and associated tests for cleaner
-  interface
-
-## 2025-08-08
-
-- Version bump
+  resource lookups and enhanced performance
+- Enhanced `VectorProcessor` with unified batch processing and simplified URI
+  format handling
+- Improved dual-index architecture supporting separate content and descriptor
+  vector indexes
+- Streamlined interface by removing deprecated methods and improving error
+  handling

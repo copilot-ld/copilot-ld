@@ -173,62 +173,185 @@ export function execLine(shift = 0) {
 }
 
 /**
- * Converts a memory window to a simple messages array for LLM completion
- * @param {import("@copilot-ld/libtype").common.Assistant} assistant - The assistant
- * @param {import("@copilot-ld/libtype").task.Task[]} tasks - Array of tasks
- * @param {import("@copilot-ld/libtype").memory.Window} window - Memory window from memory service
- * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for retrieving actual messages
- * @returns {Promise<import("@copilot-ld/libtype").common.Message[]>} Array of Message objects for LLM
+ * Base class for index implementations providing shared filtering logic
  */
-export async function toMessages(assistant, tasks, window, resourceIndex) {
-  if (!assistant) throw new Error("assistant is required");
-  if (!resourceIndex) throw new Error("resourceIndex is required");
+export class IndexBase {
+  #storage;
+  #indexKey;
+  #index = new Map();
+  #loaded = false;
 
-  const messages = [];
-  const actor = "common.System.root";
+  /**
+   * Creates a new IndexBase instance
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage interface for data operations
+   * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
+   */
+  constructor(storage, indexKey = "index.jsonl") {
+    if (!storage) throw new Error("storage is required");
 
-  // Add assistant
-  messages.push(assistant);
-
-  // Add tasks if available
-  if (tasks && tasks.length > 0) {
-    messages.push(...tasks);
+    this.#storage = storage;
+    this.#indexKey = indexKey;
   }
 
-  // Add tools if available
-  const tools = await resourceIndex.get(actor, window?.tools);
-  messages.push(...tools);
+  /**
+   * Gets the storage instance
+   * @returns {import("@copilot-ld/libstorage").StorageInterface} Storage instance
+   */
+  storage() {
+    return this.#storage;
+  }
 
-  // Add context if available
-  const context = await resourceIndex.get(actor, window?.context);
-  messages.push(...context);
+  /**
+   * Gets the index key (filename)
+   * @returns {string} The index key
+   */
+  get indexKey() {
+    return this.#indexKey;
+  }
 
-  // Add conversation history in chronological order
-  const history = await resourceIndex.get(actor, window?.history);
-  messages.push(...history);
+  /**
+   * Gets the internal index map
+   * @returns {Map} The index map
+   * @protected
+   */
+  get index() {
+    return this.#index;
+  }
 
-  return messages;
-}
+  /**
+   * Gets the loaded state
+   * @returns {boolean} True if index is loaded
+   * @protected
+   */
+  get loaded() {
+    return this.#loaded;
+  }
 
-/**
- * Converts an array of ToolFunction resources to common.Tool objects for LLM
- * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Array of ToolFunction resources
- * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for retrieving actual tool resources
- * @returns {Promise<import("@copilot-ld/libtype").common.Tool[]>} Array of Tool objects for LLM
- */
-export async function toTools(identifiers, resourceIndex) {
-  if (!resourceIndex) throw new Error("resourceIndex is required");
+  /**
+   * Sets the loaded state
+   * @param {boolean} value - Loaded state to set
+   * @protected
+   */
+  set loaded(value) {
+    this.#loaded = value;
+  }
 
-  const { common } = await import("@copilot-ld/libtype");
-  const actor = "common.System.root";
-  const functions = await resourceIndex.get(actor, identifiers);
+  /**
+   * Applies prefix filter to items during query iteration
+   * @param {string} itemUri - The URI to check
+   * @param {string} prefix - The prefix to match
+   * @returns {boolean} True if item should be included
+   * @protected
+   */
+  _applyPrefixFilter(itemUri, prefix) {
+    if (!prefix) return true;
+    return itemUri.startsWith(prefix);
+  }
 
-  return functions.map((func) => {
-    return common.Tool.fromObject({
-      type: "function",
-      function: func,
-    });
-  });
+  /**
+   * Applies limit filter to results
+   * @param {import("@copilot-ld/libtype").resource.Identifier[]} results - Array of results to filter
+   * @param {number} limit - Maximum number of results
+   * @returns {import("@copilot-ld/libtype").resource.Identifier[]} Filtered results
+   * @protected
+   */
+  _applyLimitFilter(results, limit) {
+    if (!limit || limit <= 0) return results;
+    return results.slice(0, limit);
+  }
+
+  /**
+   * Applies max_tokens filter to results
+   * @param {import("@copilot-ld/libtype").resource.Identifier[]} results - Array of results to filter
+   * @param {number} max_tokens - Maximum total tokens allowed
+   * @returns {import("@copilot-ld/libtype").resource.Identifier[]} Filtered results
+   * @protected
+   */
+  _applyTokensFilter(results, max_tokens) {
+    if (!max_tokens || max_tokens <= 0) return results;
+
+    const filtered = [];
+    let total = 0;
+
+    for (const identifier of results) {
+      if (total + identifier.tokens > max_tokens) break;
+
+      total += identifier.tokens;
+      filtered.push(identifier);
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Gets an item by its resource ID
+   * @param {string} id - The resource ID to retrieve
+   * @returns {Promise<import("@copilot-ld/libtype").resource.Identifier|null>} The item identifier, or null if not found
+   */
+  async getItem(id) {
+    if (!this.#loaded) await this.loadData();
+    const item = this.#index.get(id);
+    return item ? item.identifier : null;
+  }
+
+  /**
+   * Checks if an item with the given ID exists in the index
+   * @param {string} id - The ID to check for
+   * @returns {Promise<boolean>} True if item exists, false otherwise
+   */
+  async hasItem(id) {
+    if (!this.#loaded) await this.loadData();
+    return this.#index.has(id);
+  }
+
+  /**
+   * Loads data from storage with common logic for all index types
+   * Subclasses can override this method to add type-specific processing
+   * @returns {Promise<void>}
+   */
+  async loadData() {
+    // Check if already loaded to make this method idempotent
+    if (this.#loaded) return;
+
+    if (!(await this.#storage.exists(this.#indexKey))) {
+      // Initialize empty index for new systems
+      this.#index.clear();
+      this.#loaded = true;
+      return;
+    }
+
+    // Storage automatically parses .jsonl files into arrays
+    const items = await this.#storage.get(this.#indexKey);
+    const parsedItems = Array.isArray(items) ? items : [];
+
+    // Populate the index map with URI as key
+    this.#index.clear();
+    for (const item of parsedItems) {
+      this.#index.set(item.uri, item);
+    }
+
+    this.#loaded = true;
+  }
+
+  /**
+   * Adds an item to the index - must be implemented by subclasses
+   * @param {...any} _args - Arguments specific to the index type
+   * @returns {Promise<void>}
+   * @abstract
+   */
+  async addItem(..._args) {
+    throw new Error("addItem() must be implemented by subclasses");
+  }
+
+  /**
+   * Queries items from the index - must be implemented by subclasses
+   * @param {...any} _args - Arguments specific to the index type
+   * @returns {Promise<import("@copilot-ld/libtype").resource.Identifier[]>} Array of resource identifiers
+   * @abstract
+   */
+  async queryItems(..._args) {
+    throw new Error("queryItems() must be implemented by subclasses");
+  }
 }
 
 export { Logger } from "./logger.js";

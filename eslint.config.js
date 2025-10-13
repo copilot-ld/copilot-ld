@@ -43,7 +43,7 @@ export default [
       "**/.env*",
       "**/data/**",
       "**/package-lock.json",
-      "SCRATCHPAD.md",
+      "SCRATCHPAD*.md",
       // Ignore protobuf generated types file (contains invalid JSDoc from protobufjs)
       "**/generated/types/types.js",
     ],
@@ -80,7 +80,7 @@ export default [
       "max-lines": [
         "error",
         {
-          max: 230,
+          max: 300,
           skipBlankLines: true,
           skipComments: true,
         },

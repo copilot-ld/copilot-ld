@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "tool.proto";
+
+package graph;
+
+service Graph {
+  rpc QueryByPattern(PatternQuery) returns (tool.QueryResult);
+  rpc GetOntology(OntologyRequest) returns (OntologyResponse);
+}
+
+message PatternQuery {
+  string subject = 1;
+  string predicate = 2;
+  string object = 3;
+  optional tool.QueryFilter filter = 4;
+}
+
+message OntologyRequest {
+  // Optional comment field to ensure valid OpenAI function schema
+  // TODO: Is there a way to just provide an empty request?
+  optional string comment = 1;
+}
+
+// TODO: Provide a proper type for a structured ontolofy, not just a JSON dump
+message OntologyResponse {
+  string ontology_json = 1; // JSON string containing the ontology data
+}

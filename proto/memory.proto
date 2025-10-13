@@ -20,20 +20,17 @@ message AppendResponse {
 
 message WindowRequest {
   string for = 1;
-  repeated double vector = 2;
-  int32 budget = 3;
-  Allocation allocation = 4;
+  int32 budget = 2;
+  Allocation allocation = 3;
 
   message Allocation {
     int32 tools = 1;
-    int32 context = 2;
-    int32 history = 3;
+    int32 history = 2;
   }
 }
 
 message Window {
   string for = 1;
   repeated resource.Identifier tools = 2;
-  repeated resource.Identifier context = 3;
-  repeated resource.Identifier history = 4;
+  repeated resource.Identifier history = 3;
 }

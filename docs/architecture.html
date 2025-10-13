@@ -89,7 +89,8 @@
         </li>
         <li>
           <strong>Specialized Services</strong>: Domain-specific services
-          (<code>LLM</code>, <code>Memory</code>, <code>Vector</code>)
+          (<code>LLM</code>, <code>Memory</code>, <code>Vector</code>,
+          <code>Graph</code>)
         </li>
         <li>
           <strong>Parallelism</strong>: Readiness checks run in parallel; the
@@ -161,11 +162,13 @@ flowchart TD
     E[LLM service]
     F[Tool service]
     G[Vector service]
-    H[GitHub API]
-    I[LLM backend]
-    J[Memory store]
+    H[Graph service]
+    I[GitHub API]
+    J[LLM backend]
+    K[Memory store]
     L[Content Vector Index]
-    N[Descriptor Vector Index]
+    M[Descriptor Vector Index]
+    N[Graph Index]
     O[Resource Storage]
 
     %% Clients communicate with Extensions over REST
@@ -179,15 +182,17 @@ flowchart TD
     C -- gRPC --> E
     C -- gRPC --> F
     C -- gRPC --> G
-    C -- REST --> H
+    C -- gRPC --> H
+    C -- REST --> I
 
     %% Interaction with the foundation model
-    E -- REST --> I
+    E -- REST --> J
 
     %% Services that interact with storage
-    D -- Local I/O --> J
+    D -- Local I/O --> K
     G -- Local I/O --> L
-    G -- Local I/O --> N
+    G -- Local I/O --> M
+    H -- Local I/O --> N
     C -- Local I/O --> O
       </pre>
 
@@ -197,15 +202,15 @@ flowchart TD
         The online sequence diagram reflects the current implementation in the
         codebase. The Agent performs operations sequentially: it validates the
         GitHub token, ensures service readiness in parallel (including Tool
-        service), creates an embedding for the latest user message, queries the
-        <code>content</code> vector index, appends similar identifiers to memory
-        (fire-and-forget), computes a token budget (subtracting
+        service), computes a token budget (subtracting
         <code>assistant.content.tokens</code> and applying configured
-        allocation), assembles a memory window using the query vector and
-        budget, and then enters a tool calling loop that iteratively requests
-        completions and executes tools until no more tool calls are needed. Only
-        readiness checks are executed in parallel; the main request flow is
-        sequential.
+        allocation), assembles a memory window using the budget, and then enters
+        a tool calling loop that iteratively requests completions and
+        autonomously executes tools based on LLM decisions until no more tool
+        calls are needed. The Agent makes intelligent decisions about which
+        tools to call and when, without hard-wired dependencies on specific
+        services. Only readiness checks are executed in parallel; the main
+        request flow is sequential.
       </p>
       <p>
         Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
@@ -240,30 +245,19 @@ sequenceDiagram
     Agent->>ResourceIndex: Get assistant by id (from config)
     Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
 
-    Agent->>LLM: CreateEmbeddings (latest user message)
-    LLM-->>Agent: Embedding
+    Agent->>Memory: GetWindow (for conversation, with budget/allocation)
+    Memory-->>Agent: Window (tools, history)
 
-    Agent->>Vector: QueryItems (index: content)
-    Vector->>ContentIndex: QueryIndex (similarity search)
-    ContentIndex-->>Vector: Matches
-    Vector-->>Agent: Identifiers (scored)
-
-    Agent--)Memory: Append (identifiers)
-    Note right of Agent: Fire-and-forget append (no await)
-
-    Agent->>Memory: GetWindow (for conversation, with vector/budget/allocation)
-    Memory-->>Agent: Window (tools, context, history)
-
-    Agent->>ResourceIndex: Resolve window identifiers (tools/context/history)
+    Agent->>ResourceIndex: Resolve window identifiers (tools/history)
     ResourceIndex-->>Agent: Resources (policy-filtered)
 
-    Note over Agent: Tool Calling Loop (max 10 iterations)
+    Note over Agent: Autonomous Tool Calling Loop (max 10 iterations)
     loop Until no tool calls or max iterations
-        Agent->>LLM: CreateCompletions (assistant + tasks + tools + context + history)
-        LLM-->>Agent: Completion with potential tool calls
+        Agent->>LLM: CreateCompletions (assistant + tasks + tools + history)
+        LLM-->>Agent: Completion with autonomous tool call decisions
         
         alt Tool calls present
-            loop For each tool call
+            loop For each autonomous tool call
                 Agent->>Tool: ExecuteTool (tool call + github_token)
                 Tool-->>Agent: Tool result message
                 Note right of Agent: Add tool result to messages
@@ -286,11 +280,12 @@ sequenceDiagram
       <h5>Agent Service</h5>
 
       <p>
-        Central orchestrator that coordinates all other services. Requests are
-        processed sequentially as shown in the sequence diagram (readiness
-        checks run in parallel). The service integrates a
+        Central orchestrator that autonomously decides what tool calls to make
+        and when. Requests are processed sequentially as shown in the sequence
+        diagram (readiness checks run in parallel). The service integrates a
         <code>ResourceIndex</code> for direct resource access with policy-based
-        access control.
+        access control and makes intelligent tool calling decisions based on
+        conversation context.
       </p>
 
       <details>
@@ -299,7 +294,7 @@ sequenceDiagram
           <li>
             <strong>Assembly order</strong> (passed to completions):
             <code>assistant</code> → <code>tasks</code> → <code>tools</code> →
-            <code>context</code> → <code>history</code>
+            <code>history</code>
           </li>
 
           <li>
@@ -310,12 +305,13 @@ sequenceDiagram
           <li>
             <strong>Budgeting</strong>: Effective token budget is computed as
             <code>max(0, config.budget.tokens - assistant.content.tokens)</code
-            >, with optional allocation shaping for <code>tools</code>,
-            <code>history</code>, and <code>context</code>
+            >, with optional allocation shaping for <code>tools</code> and
+            <code>history</code>
           </li>
           <li>
-            <strong>Window inputs</strong>: Memory window selection is driven by
-            the query vector, effective budget, and optional allocation ratios
+            <strong>Autonomous tool calling</strong>: Agent makes intelligent
+            decisions about which tools to call and when, without hard-wired
+            dependencies on specific services
           </li>
         </ul>
       </details>
@@ -323,10 +319,42 @@ sequenceDiagram
       <h5>Memory Service</h5>
 
       <p>
-        Manages transient conversation context as resource identifiers with
-        JSONL (newline-delimited JSON) storage for efficient appends. Provides
-        memory windows used by the Agent to assemble context.
+        Manages conversation memory using JSONL (newline-delimited JSON) storage
+        for efficient appends. Provides memory windows with tools and history
+        allocation for context assembly.
       </p>
+
+      <p><strong>Key Operations</strong>:</p>
+      <ul>
+        <li>
+          <code>Append</code>: Adds resource identifiers to conversation memory
+          with de-duplication
+        </li>
+        <li>
+          <code>GetWindow</code>: Returns memory window with tools and history
+          items, applying budget filtering when allocation is specified
+        </li>
+      </ul>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Simplified interface</strong>: Focuses on memory management
+          without external resource dependencies
+        </li>
+        <li>
+          <strong>Memory allocation</strong>: Supports budget-based filtering
+          for tools and history separately
+        </li>
+        <li>
+          <strong>JSONL storage</strong>: Uses append-only storage for efficient
+          memory operations
+        </li>
+        <li>
+          <strong>De-duplication</strong>: Automatically removes duplicate
+          identifiers from memory storage
+        </li>
+      </ul>
 
       <h5>LLM Service</h5>
 
@@ -338,12 +366,83 @@ sequenceDiagram
       <h5>Vector Service</h5>
 
       <p>
-        Performs similarity search operations against dual vector indexes
-        (content and descriptor). Returns resource identifiers and similarity
-        scores ordered by relevance, with support for index type selection and
-        token-based filtering. The current Agent runtime path queries the
-        <code>content</code> index by default.
+        Performs text-based similarity search operations against dual vector
+        indexes (content and descriptor). Integrates with the LLM service for
+        embedding generation and returns content strings directly for immediate
+        use.
       </p>
+
+      <p><strong>Key Operations</strong>:</p>
+      <ul>
+        <li>
+          <code>QueryByContent</code>: Queries content vector index using text
+          input, returns matching content strings
+        </li>
+        <li>
+          <code>QueryByDescriptor</code>: Queries descriptor vector index using
+          text input, returns matching descriptor strings
+        </li>
+      </ul>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Text-based interface</strong>: Accepts text queries and
+          handles embedding generation internally via LLM service
+        </li>
+        <li>
+          <strong>Dual-index architecture</strong>: Maintains separate content
+          and descriptor vector indexes for targeted search capabilities
+        </li>
+        <li>
+          <strong>Direct content return</strong>: Returns ready-to-use content
+          strings rather than resource identifiers
+        </li>
+        <li>
+          <strong>Resource integration</strong>: Uses ResourceIndex internally
+          to retrieve full content from vector matches
+        </li>
+      </ul>
+
+      <h5>Graph Service</h5>
+
+      <p>
+        Performs pattern-based queries against knowledge graphs using RDF triple
+        patterns. Enables semantic search and ontology exploration for knowledge
+        base navigation.
+      </p>
+
+      <p><strong>Key Operations</strong>:</p>
+      <ul>
+        <li>
+          <code>QueryByPattern</code>: Queries graph data using subject,
+          predicate, object patterns with wildcard support
+        </li>
+        <li>
+          <code>GetOntology</code>: Returns dataset ontology with predicates,
+          types, and common patterns for query planning
+        </li>
+      </ul>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Graph-based queries</strong>: Uses N3 store for RDF triple
+          pattern matching with SPARQL-like semantics
+        </li>
+        <li>
+          <strong>Resource integration</strong>: Returns resource identifiers
+          that integrate with the ResourceIndex for content retrieval
+        </li>
+        <li>
+          <strong>Ontology support</strong>: Provides dataset structure
+          information for intelligent query construction
+        </li>
+        <li>
+          <strong>Pattern matching</strong>: Supports wildcard queries (null
+          values) and exact term matching
+        </li>
+      </ul>
 
       <h5>Tool Service</h5>
 

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "common.proto";
+import "tool.proto";
 
 package llm;
 
@@ -20,7 +21,7 @@ message EmbeddingsResponse {
 
 message CompletionsRequest {
   repeated common.Message messages = 1;
-  repeated common.Tool tools = 2;
+  repeated tool.ToolDefinition tools = 2;
   optional float temperature = 3;
   string github_token = 4;
 }

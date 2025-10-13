@@ -1,24 +1,108 @@
-# EXAMPLE TOOLS: Use only when specifically requested by user
+# GRAPH SEARCH TOOLS: Use to explore knowledge graph relationships
+get_ontology:
+  purpose: |
+    Retrieve the complete ontology structure from the knowledge graph to understand
+    available entities, relationships, and schema before performing graph queries.
+  applicability: |
+    SEQUENCING: Use as the FIRST STEP in any graph exploration workflow.
+    Call this tool before query_by_pattern to discover what subjects, predicates,
+    and objects are available for querying. Essential for understanding the
+    knowledge graph structure and building effective queries.
+  instructions: |
+    Input: Optional 'comment' field (can be left empty for discovery).
+    Output: JSON string containing the complete ontology with all available
+    subjects, predicates, and objects that can be used in subsequent graph queries.
+    Use this data to construct effective query_by_pattern calls.
+  evaluation: |
+    Returns comprehensive JSON ontology showing the complete schema of queryable
+    entities and relationships in the knowledge graph.
+
+query_by_pattern:
+  purpose: |
+    Query the knowledge graph using subject-predicate-object patterns to find
+    specific relationships and structured content based on graph connections.
+  applicability: |
+    SEQUENCING: Use as the SECOND STEP after get_ontology.
+    Perfect for finding specific relationships, exploring entity connections,
+    and retrieving structured data. Use when you need precise graph-based
+    queries rather than semantic similarity searches.
+  instructions: |
+    PREREQUISITE: MUST call get_ontology first to discover valid entities.
+    Input: Optional 'subject', 'predicate', and 'object' fields from ontology data.
+    Use exact values from the ontology or leave fields empty to match any value.
+    Output: Array of matching content strings that satisfy the pattern.
+  evaluation: |
+    Returns array of content strings that match the specified subject-predicate-object
+    pattern from the knowledge graph structure.
+
+# VECTOR SEARCH TOOLS: Use for semantic content discovery (recommended workflow: descriptor → content)
+query_by_descriptor:
+  purpose: |
+    Search for high-level summaries, overviews, and descriptive metadata using
+    semantic similarity to get a broad understanding of available resources.
+  applicability: |
+    SEQUENCING: Use as the FIRST STEP in content discovery workflows.
+    Perfect for initial exploration to understand what resources are available
+    before diving into detailed content. Provides summaries and abstracts that
+    help you identify the most relevant resources for detailed investigation.
+  instructions: |
+    Input: Text query in 'text' field describing what you're looking for.
+    Optional filters: 'limit' (default: reasonable subset), 'threshold' (similarity).
+    Output: Array of descriptive summaries and metadata strings.
+    Use results to guide subsequent query_by_content calls for detailed information.
+  evaluation: |
+    Returns array of high-level descriptor strings that provide overviews and
+    summaries semantically related to your query.
+
+query_by_content:
+  purpose: |
+    Search for detailed content in the knowledge base using semantic similarity
+    to retrieve comprehensive information on specific topics.
+  applicability: |
+    SEQUENCING: Use as the SECOND STEP after query_by_descriptor.
+    Best for finding detailed documents, articles, and comprehensive content
+    when you know what specific topics or resources you want to explore in depth.
+    Use descriptor results to refine your content queries.
+  instructions: |
+    Input: Text query in 'text' field (often refined based on descriptor results).
+    Optional filters: 'limit' (default: reasonable subset), 'threshold' (similarity).
+    Output: Array of detailed content strings from the knowledge base.
+    Combine with descriptor insights for comprehensive understanding.
+  evaluation: |
+    Returns array of detailed content strings that are semantically similar
+    to your query, providing comprehensive information on the topic.
+
+# HASH TOOLS: Cryptographic utilities (use only when explicitly requested)
 sha256_hash:
   purpose: |
-    Create deterministic SHA-256 hash of input text.
+    Generate a deterministic SHA-256 cryptographic hash of input text for
+    security, verification, or identification purposes.
   applicability: |
-    Use ONLY when user explicitly requests SHA-256 hashing. DO NOT use
-    for search or content analysis.
+    SEQUENCING: Independent utility - no sequencing requirements.
+    Use ONLY when user explicitly requests SHA-256 hashing functionality.
+    DO NOT use for search, content analysis, or similarity detection.
+    Reserved for security, verification, and identification use cases.
   instructions: |
-    Input: Text string in 'input' field. Output: 64-character hexadecimal
-    SHA-256 hash.
+    Input: Text string in 'input' field to be hashed.
+    Output: Deterministic 64-character hexadecimal SHA-256 hash string.
+    Hash is cryptographically secure and suitable for verification purposes.
   evaluation: |
-    Returns exactly 64-character hexadecimal string.
+    Returns exactly 64-character hexadecimal string representing the SHA-256
+    hash of the input text.
 
 md5_hash:
   purpose: |
-    Create MD5 hash of input text.
+    Generate an MD5 hash of input text for legacy compatibility or quick
+    checksums (note: MD5 is not cryptographically secure).
   applicability: |
-    Use ONLY when user explicitly requests MD5 hashing. DO NOT use for
-    search or content analysis.
+    SEQUENCING: Independent utility - no sequencing requirements.
+    Use ONLY when user explicitly requests MD5 hashing functionality.
+    DO NOT use for search, content analysis, or security purposes.
+    Reserved for legacy compatibility and non-security checksums.
   instructions: |
-    Input: Text string in 'input' field. Output: 32-character hexadecimal
-    MD5 hash.
+    Input: Text string in 'input' field to be hashed.
+    Output: 32-character hexadecimal MD5 hash string.
+    Note: MD5 is not cryptographically secure - use SHA-256 for security.
   evaluation: |
-    Returns exactly 32-character hexadecimal string.
+    Returns exactly 32-character hexadecimal string representing the MD5
+    hash of the input text.

@@ -15,7 +15,7 @@
     "scripts"
   ],
   "scripts": {
-    "init": "mkdir -p generated; for d in memories policies resources triples vectors; do mkdir -p data/$d; done",
+    "init": "mkdir -p generated; for d in memories policies resources graphs vectors; do mkdir -p data/$d; done",
     "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
     "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",
@@ -24,7 +24,7 @@
     "process:resources": "npx env-cmd --silent -- node ./scripts/resources.js",
     "process:tools": "npx env-cmd --silent -- node ./scripts/tools.js",
     "process:vectors": "npx env-cmd --silent -- node ./scripts/vectors.js",
-    "process:triples": "npx env-cmd --silent -- node ./scripts/triples.js",
+    "process:graphs": "npx env-cmd --silent -- node ./scripts/graphs.js",
     "upload": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libutil upload",
     "download": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libutil download",
     "dev": "npm run dev:start",

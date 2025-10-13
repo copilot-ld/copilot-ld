@@ -1,18 +1,59 @@
 syntax = "proto3";
 
-import "common.proto";
+import "resource.proto";
 
 package tool;
 
 service Tool {
-  rpc ExecuteTool(common.Tool) returns (common.ToolCallResult);
-  rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
+  rpc ExecuteTool(ToolDefinition) returns (ToolCallResult);
 }
 
-message ListToolsRequest {
-  optional string namespace = 1;
+// Generic query types
+
+message QueryFilter {
+  optional string prefix = 1;
+  optional string threshold = 2;
+  optional string limit = 3;
+  optional string max_tokens = 4;
 }
 
-message ListToolsResponse {
-  repeated common.Tool tools = 1;
+message QueryResult {
+  repeated string contents = 1;
+}
+
+// Tool types
+
+message ToolProp {
+  string type = 1;
+  string description = 2;
+}
+
+message ToolParam {
+  string type = 1;
+  map<string, ToolProp> properties = 2;
+  repeated string required = 3;
+}
+
+message ToolFunction {
+  resource.Identifier id = 1;
+  resource.Descriptor descriptor = 2;
+  optional string name = 3; // Passed by tool call requests
+  oneof call {
+    ToolParam parameters = 4; // When declaring
+    string arguments = 5; // When calling
+  }
+}
+
+message ToolDefinition {
+  string type = 1;
+  ToolFunction function = 2;
+  optional string id = 3; // When calling
+  optional QueryFilter filter = 4; // Filter to pass-on when calling
+  optional string github_token = 5; // Github token to pass-on when calling
+}
+
+message ToolCallResult {
+  string role = 1;
+  string tool_call_id = 2;
+  string content = 3;
 }

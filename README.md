@@ -10,7 +10,8 @@ retrieval-augmented generation.
 
 ## 🏗️ Repository Structure
 
-- **/services/**: gRPC microservices (`agent`, `llm`, `memory`, `vector`)
+- **/services/**: gRPC microservices (`agent`, `graph`, `llm`, `memory`, `tool`,
+  `vector`)
 - **/extensions/**: Application adapters (teams, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/scripts/**: Development and operational utilities

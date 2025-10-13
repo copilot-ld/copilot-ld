@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-13
+
+- Added `IndexBase` abstract class for shared index functionality across
+  `VectorIndex` and `GraphIndex`
+- Implemented shared filtering methods for prefix, limit, and token constraints
+- Enhanced tokenizer with file extension suffix support and fixed length
+  handling for empty/short inputs
+
 ## 2025-10-10
 
 - Bump version

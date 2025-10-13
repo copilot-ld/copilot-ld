@@ -8,23 +8,19 @@ const { MemoryBase } = services;
  */
 export class MemoryService extends MemoryBase {
   #storage;
-  #resourceIndex;
   #lock = {};
 
   /**
    * Creates a new Memory service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage instance for memories
-   * @param {import("@copilot-ld/libresource").ResourceIndexInterface} resourceIndex - ResourceIndex instance for accessing resources
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
+   * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional log factory
    */
-  constructor(config, storage, resourceIndex, logFn) {
+  constructor(config, storage, logFn) {
     super(config, logFn);
     if (!storage) throw new Error("storage is required");
-    if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#storage = storage;
-    this.#resourceIndex = resourceIndex;
   }
 
   /** @inheritdoc */
@@ -53,11 +49,6 @@ export class MemoryService extends MemoryBase {
 
         // Use StorageInterface.append() for efficient appending (newline added automatically)
         await this.#storage.append(key, lines);
-
-        this.debug("Memory appended successfully", {
-          for: req.for,
-          identifiers: req.identifiers.length,
-        });
       }
     } finally {
       delete this.#lock[req.for];
@@ -72,83 +63,90 @@ export class MemoryService extends MemoryBase {
 
     this.debug("Getting memory window", {
       for: req.for,
-      dimensions: req.vector?.length || 0,
       budget: req.budget || "unlimited",
     });
 
-    // Load context from memory using JSONL format
-    let context = [];
-    const key = `${req.for}.jsonl`;
+    const memory = await this.#loadMemory(req.for);
+    const { tools, history } = await this.#splitToolsAndHistory(memory);
+
+    // Apply budget filtering if allocation is provided
+    const filteredTools = req.allocation
+      ? this.#filterByBudget(tools, req.allocation.tools)
+      : tools;
+    const filteredHistory = req.allocation
+      ? this.#filterByBudget(history, req.allocation.history)
+      : history;
+
+    if (req.allocation) {
+      this.debug("Memory window allocation", {
+        tools: req.allocation.tools,
+        history: req.allocation.history,
+      });
+    }
+
+    this.debug("Memory window contents", {
+      tools: filteredTools.length,
+      history: filteredHistory.length,
+    });
+
+    return {
+      for: req.for,
+      tools: filteredTools,
+      history: filteredHistory,
+    };
+  }
+
+  /**
+   * Loads memory context for a given resource
+   * @param {string} id - Resource identifier
+   * @returns {Promise<Array>} Deduplicated context identifiers
+   * @private
+   */
+  async #loadMemory(id) {
+    let memory = [];
+    const key = `${id}.jsonl`;
 
     // Wait for lock to be released if another append is in progress
-    while (this.#lock[req.for]) {
+    while (this.#lock[id]) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     try {
       // Storage automatically parses .jsonl files into arrays
-      context = await this.#storage.get(key);
-      if (!Array.isArray(context)) {
-        context = [];
+      memory = await this.#storage.get(key);
+      if (!Array.isArray(memory)) {
+        memory = [];
       }
     } catch {
-      // No memory found, return empty context
-      this.debug("No memory found", { for: req.for });
+      // No memory found, return empty memory
+      this.debug("No memory found", { for: id });
     }
 
     // De-duplicate by identifier
     const seen = new Set();
-    context = context.filter((identifier) => {
+    return memory.filter((identifier) => {
       if (identifier.name && !seen.has(identifier.name)) {
         seen.add(identifier.name);
         return true;
       }
       return false;
     });
+  }
 
-    // Filter out tools from context
-    let tools = context.filter((identifier) =>
-      identifier.type?.startsWith("common.Tool"),
+  /**
+   * Split tools and history from memory identifiers
+   * @param {Array} memory - Memory identifiers
+   * @returns {Promise<{tools: Array, history: Array}>} Object containing tools and history items
+   * @private
+   */
+  async #splitToolsAndHistory(memory) {
+    let tools = memory.filter((identifier) =>
+      identifier.type?.startsWith("tool.ToolFunction"),
     );
-
-    // Load all messages under the given resource using prefix search
-    const identifiers = await this.#resourceIndex.findByPrefix(req.for);
-
-    this.debug("Identifiers by prefix", {
-      for: req.for,
-      count: identifiers.length,
-    });
-
-    // Extract message identifiers
-    let history = identifiers.filter((identifier) =>
-      identifier.type?.startsWith("common.Message"),
+    const history = memory.filter(
+      (identifier) => !identifier.type?.startsWith("tool.ToolFunction"),
     );
-
-    // Apply budget filtering if allocation is provided
-    if (req.allocation) {
-      tools = this.#filterByBudget(tools, req.allocation.tools);
-      context = this.#filterByBudget(context, req.allocation.context);
-      history = this.#filterByBudget(history, req.allocation.history);
-
-      this.debug("Memory window allocation", {
-        tools: req.allocation.tools,
-        context: req.allocation.context,
-        history: req.allocation.history,
-      });
-    }
-
-    this.debug("Memory window lengths", {
-      tools: tools.length,
-      context: context.length,
-      history: history.length,
-    });
-
-    return {
-      for: req.for,
-      tools,
-      context,
-      history,
-    };
+    return { tools, history };
   }
 
   /**
@@ -188,5 +186,3 @@ export class MemoryService extends MemoryBase {
     return filtered;
   }
 }
-
-// Export the service class (no bootstrap code here)

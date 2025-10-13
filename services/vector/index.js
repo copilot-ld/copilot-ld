@@ -1,5 +1,6 @@
 /* eslint-env node */
 import { services } from "@copilot-ld/librpc";
+import { llm } from "@copilot-ld/libtype";
 
 const { VectorBase } = services;
 
@@ -9,60 +10,124 @@ const { VectorBase } = services;
 export class VectorService extends VectorBase {
   #contentIndex;
   #descriptorIndex;
+  #llmClient;
+  #resourceIndex;
 
   /**
    * Creates a new Vector service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libvector").VectorIndexInterface} contentIndex - Pre-initialized content vector index
    * @param {import("@copilot-ld/libvector").VectorIndexInterface} descriptorIndex - Pre-initialized descriptor vector index
+   * @param {object} llmClient - LLM service client for embeddings
+   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for content retrieval
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, contentIndex, descriptorIndex, logFn) {
+  constructor(
+    config,
+    contentIndex,
+    descriptorIndex,
+    llmClient,
+    resourceIndex,
+    logFn,
+  ) {
     super(config, logFn);
+    if (!llmClient) throw new Error("llmClient is required");
+    if (!resourceIndex) throw new Error("resourceIndex is required");
+
     this.#contentIndex = contentIndex;
     this.#descriptorIndex = descriptorIndex;
+    this.#llmClient = llmClient;
+    this.#resourceIndex = resourceIndex;
   }
 
-  /** @inheritdoc */
-  async QueryItems(req) {
-    const index =
-      req.index === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
+  /**
+   * Query content index using text input
+   * @param {import("@copilot-ld/libtype").vector.TextQuery} req - Text query request
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   */
+  async QueryByContent(req) {
+    return await this.#queryByText(req, "content");
+  }
 
-    this.debug("Querying index", {
-      index: req.index,
-      threshold: req.filters?.threshold,
-      limit: req.filters?.limit,
+  /**
+   * Query descriptor index using text input
+   * @param {import("@copilot-ld/libtype").vector.TextQuery} req - Text query request
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   */
+  async QueryByDescriptor(req) {
+    return await this.#queryByText(req, "descriptor");
+  }
+
+  /**
+   * Shared implementation for text-based vector queries
+   * @param {import("@copilot-ld/libtype").vector.TextQuery} req - Text query request
+   * @param {string} type - Either "content" or "descriptor"
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   * @private
+   */
+  async #queryByText(req, type) {
+    this.debug("Vector query", {
+      type,
+      text: req.text?.substring(0, 100) + "...",
+      threshold: req.filter?.threshold,
+      limit: req.filter?.limit,
+      max_tokens: req.filter?.max_tokens,
     });
 
-    const identifiers = await index.queryItems(req.vector, req.filters || {});
+    // 1. Get embeddings from LLM service
+    const embeddingRequest = llm.EmbeddingsRequest.fromObject({
+      chunks: [req.text],
+      github_token: req.github_token,
+    });
 
-    this.debug("Query complete", {
-      index: req.index,
+    const embeddings = await this.#llmClient.CreateEmbeddings(embeddingRequest);
+
+    if (!embeddings.data?.length) {
+      throw new Error("No embeddings returned from LLM service");
+    }
+
+    // 2. Query appropriate vector index
+    const index =
+      type === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
+    const vector = embeddings.data[0].embedding;
+
+    const identifiers = await index.queryItems(vector, req.filter);
+
+    this.debug("Vector query results", {
+      type,
       count: identifiers.length,
     });
 
-    return { identifiers };
+    // 3. Get content strings from resource identifiers
+    const contents = await this.#getContentAsStrings(identifiers, type);
+
+    return { contents };
   }
 
-  /** @inheritdoc */
-  async GetItem(req) {
-    const index =
-      req.index === "descriptor" ? this.#descriptorIndex : this.#contentIndex;
+  /**
+   * Retrieves content strings from resource identifiers
+   * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Resource identifiers
+   * @param {string} type - Representation type, either "content" or "descriptor"
+   * @returns {Promise<string[]>} Array of content strings
+   * @private
+   */
+  async #getContentAsStrings(identifiers, type) {
+    if (!identifiers?.length) {
+      return [];
+    }
 
-    this.debug("Getting item from vector index", {
-      id: req.id,
-      index: req.index,
-    });
+    // Get resources from the index
+    const actor = "common.System.root";
+    const resources = await this.#resourceIndex.get(actor, identifiers);
 
-    const identifier = await index.getItem(req.id);
+    const contents = resources
+      .map((resource) => {
+        const representation =
+          type === "descriptor" ? resource.descriptor : resource.content;
+        return String(representation);
+      })
+      .filter((content) => content.length > 0);
 
-    this.debug("Get item complete", {
-      index: req.index,
-      found: identifier !== null,
-    });
-
-    return { identifier };
+    return contents;
   }
 }
-
-// Export the service class (no bootstrap code here)

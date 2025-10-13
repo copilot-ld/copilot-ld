@@ -78,6 +78,11 @@ Resources:
     Properties:
       RetentionInDays: 7
 
+  GraphLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
   ToolLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -236,6 +241,43 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: vector
 
+  GraphTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !Ref SecretsRoleArn
+      TaskRoleArn: !Ref BucketRoleArn
+      ContainerDefinitions:
+        - Name: graph
+          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/graph:${ContainerTag}"
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: STORAGE_TYPE
+              Value: s3
+            - Name: S3_BUCKET_NAME
+              Value: !Ref BucketName
+            - Name: DEBUG
+              Value: "*"
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref GraphLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: graph
+
   ToolTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -312,6 +354,16 @@ Resources:
     Type: AWS::ServiceDiscovery::Service
     Properties:
       Name: vector
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: 300
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
+
+  GraphServiceDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: graph
       DnsConfig:
         DnsRecords:
           - Type: A
@@ -397,6 +449,22 @@ Resources:
       ServiceRegistries:
         - RegistryArn: !GetAtt VectorServiceDiscovery.Arn
 
+  GraphService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref GraphTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ServiceSecurityGroupId
+          Subnets: !Ref PrivateSubnetIds
+      ServiceRegistries:
+        - RegistryArn: !GetAtt GraphServiceDiscovery.Arn
+
   ToolService:
     Type: AWS::ECS::Service
     Properties:
@@ -437,6 +505,10 @@ Outputs:
   VectorServiceArn:
     Description: ARN of the vector service
     Value: !Ref VectorService
+
+  GraphServiceArn:
+    Description: ARN of the graph service
+    Value: !Ref GraphService
 
   ToolServiceArn:
     Description: ARN of the tool service

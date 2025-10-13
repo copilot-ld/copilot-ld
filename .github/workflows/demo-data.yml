@@ -37,12 +37,9 @@ jobs:
 
           cp -r ./examples/knowledge data/
           cp -r ./examples/tools/* tools/
-          npm run codegen
 
-          npm run process:resources
-          npm run process:tools
-          npm run process:triples
-          npm run process:vectors
+          npm run codegen
+          npm run process
 
           echo "files<<EOF" >> $GITHUB_OUTPUT
           npx --workspace=@copilot-ld/libutil upload --stdout >> $GITHUB_OUTPUT

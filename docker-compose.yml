@@ -107,7 +107,27 @@ services:
       - memory
       - llm
       - vector
+      - graph
       - tool
+      - storage
+
+  memory:
+    build:
+      context: ./services/memory
+      dockerfile: ../../Dockerfile
+      secrets:
+        - github_token
+    image: copilot-ld/memory:latest
+    container_name: memory.copilot-ld
+    env_file: .env
+    volumes:
+      - ./data/policies:/app/data/policies
+      - ./data/resources:/app/data/resources
+    networks:
+      internal:
+        aliases:
+          - memory.copilot-ld.local
+    depends_on:
       - storage
 
   llm:
@@ -142,22 +162,19 @@ services:
     depends_on:
       - storage
 
-  memory:
+  graph:
     build:
-      context: ./services/memory
+      context: ./services/graph
       dockerfile: ../../Dockerfile
       secrets:
         - github_token
-    image: copilot-ld/memory:latest
-    container_name: memory.copilot-ld
+    image: copilot-ld/graph:latest
+    container_name: graph.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/policies:/app/data/policies
-      - ./data/resources:/app/data/resources
     networks:
       internal:
         aliases:
-          - memory.copilot-ld.local
+          - graph.copilot-ld.local
     depends_on:
       - storage
 

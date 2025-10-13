@@ -21,6 +21,7 @@
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",
     "codegen:service": "npx --workspace=@copilot-ld/libcodegen codegen --service",
     "codegen:definition": "npx --workspace=@copilot-ld/libcodegen codegen --definition",
+    "process": "npm run process:resources && npm run process:tools && npm run process:vectors && npm run process:graphs",
     "process:resources": "npx env-cmd --silent -- node ./scripts/resources.js",
     "process:tools": "npx env-cmd --silent -- node ./scripts/tools.js",
     "process:vectors": "npx env-cmd --silent -- node ./scripts/vectors.js",

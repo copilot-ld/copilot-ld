@@ -3,10 +3,9 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 // Generated client/base classes now live in @copilot-ld/librpc
-import { services, clients } from "@copilot-ld/librpc";
+import { clients } from "@copilot-ld/librpc";
 
 // Extract individual classes from the objects
-const { _LlmBase, _AgentBase, _MemoryBase, _VectorBase, _ToolBase } = services;
 const { LlmClient, AgentClient, MemoryClient, VectorClient, ToolClient } =
   clients;
 
@@ -48,7 +47,7 @@ describe("Generated client locations", () => {
   test("Vector client class shape", () => {
     assert.ok(VectorClient);
     assert.ok(VectorClient.prototype instanceof Client);
-    ["QueryItems", "GetItem"].forEach((m) =>
+    ["QueryByContent", "QueryByDescriptor"].forEach((m) =>
       assert.strictEqual(typeof VectorClient.prototype[m], "function"),
     );
   });
@@ -56,7 +55,7 @@ describe("Generated client locations", () => {
   test("Tool client class shape", () => {
     assert.ok(ToolClient);
     assert.ok(ToolClient.prototype instanceof Client);
-    ["ExecuteTool", "ListTools"].forEach((m) =>
+    ["ExecuteTool"].forEach((m) =>
       assert.strictEqual(typeof ToolClient.prototype[m], "function"),
     );
   });

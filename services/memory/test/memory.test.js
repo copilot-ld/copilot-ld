@@ -22,7 +22,7 @@ describe("memory service", () => {
 
     test("MemoryService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(MemoryService.length, 4); // config, storage, resourceIndex, logFn
+      assert.strictEqual(MemoryService.length, 3); // config, storage, logFn
     });
 
     test("MemoryService has proper method signatures", () => {
@@ -36,7 +36,7 @@ describe("memory service", () => {
   describe("MemoryService business logic", () => {
     let mockConfig;
     let mockStorage;
-    let mockResourceIndex;
+    let mockLogFn;
 
     beforeEach(() => {
       mockConfig = {
@@ -48,43 +48,28 @@ describe("memory service", () => {
         get: async () => [],
       };
 
-      mockResourceIndex = {
-        findByPrefix: async () => [
-          { type: "common.Message", name: "message1" },
-          { type: "common.Message", name: "message2" },
-        ],
-      };
+      mockLogFn = () => ({
+        debug: () => {},
+        error: () => {},
+      });
     });
 
     test("constructor validates required dependencies", () => {
       assert.throws(
-        () => new MemoryService(mockConfig, null, mockResourceIndex),
+        () => new MemoryService(mockConfig, null, mockLogFn),
         /storage is required/,
-      );
-
-      assert.throws(
-        () => new MemoryService(mockConfig, mockStorage, null),
-        /resourceIndex is required/,
       );
     });
 
     test("creates service instance with valid parameters", () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
+      const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
     });
 
     test("Append validates required for parameter", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
+      const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
       await assert.rejects(
         () => service.Append({ identifiers: [] }),
@@ -93,11 +78,7 @@ describe("memory service", () => {
     });
 
     test("Append processes identifiers correctly", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
+      const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
       const result = await service.Append({
         for: "test-conversation",
@@ -109,47 +90,41 @@ describe("memory service", () => {
     });
 
     test("GetWindow validates required for parameter", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
+      const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
       await assert.rejects(() => service.GetWindow({}), /for is required/);
     });
 
     test("GetWindow returns memory window structure", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
+      const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
       const result = await service.GetWindow({
         for: "test-conversation",
-        vector: [0.1, 0.2, 0.3],
         budget: 1000,
       });
 
       assert.ok(result);
       assert.strictEqual(result.for, "test-conversation");
       assert.ok(Array.isArray(result.tools));
-      assert.ok(Array.isArray(result.context));
       assert.ok(Array.isArray(result.history));
     });
 
     test("GetWindow filters message types correctly", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
+      // Mock storage with some test data
+      mockStorage.get = async () => [
+        { type: "tool.ToolFunction", name: "tool1" },
+        { type: "common.Message", name: "message1" },
+        { type: "common.Message", name: "message2" },
+      ];
+
+      const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
       const result = await service.GetWindow({
         for: "test-conversation",
       });
 
-      // Should find messages in history
+      // Should have tools and history separated
+      assert.strictEqual(result.tools.length, 1);
       assert.strictEqual(result.history.length, 2);
       assert.ok(
         result.history.every((item) => item.type.startsWith("common.Message")),

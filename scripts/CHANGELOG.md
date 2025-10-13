@@ -2,6 +2,13 @@
 
 ## 2025-10-10
 
+- Renamed `scripts/triples.js` to `scripts/graphs.js` to align with updated
+  graph terminology
+- Updated `scripts/graphs.js` to use `GraphIndex` and `GraphProcessor` instead
+  of `TripleIndex` and `TripleProcessor`
+- Updated `scripts/query.js` to use `GraphIndex` and `parseGraphQuery` instead
+  of `TripleIndex` and `parseTripleQuery`
+- Changed storage prefix from "triples" to "graphs" in graph processing scripts
 - Enhanced script utilities with simplified state management and improved
   `@copilot-ld/librepl` integration
 - **BREAKING**: Migrated code generation and upload functionality to dedicated

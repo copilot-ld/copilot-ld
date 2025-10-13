@@ -13,7 +13,7 @@
 - Fixed critical bug in `#withRetry()` method where exhausted retry attempts
   with HTTP 429 errors would fall through without proper error handling
 - Enhanced type safety with `llm.CompletionsResponse` objects and proper
-  `common.Tool.fromObject()` conversions
+  `tool.ToolDefinition.fromObject()` conversions
 - Improved message normalization converting `Message` to standard format with
   `withIdentifier()` support
 - Streamlined retry logic with reusable `#withRetry()` method applied to both

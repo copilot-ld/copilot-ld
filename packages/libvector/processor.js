@@ -27,6 +27,7 @@ export class VectorProcessor extends ProcessorBase {
     if (!descriptorIndex) throw new Error("descriptorIndex is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
     if (!llm) throw new Error("llm is required");
+
     this.#contentIndex = contentIndex;
     this.#descriptorIndex = descriptorIndex;
     this.#resourceIndex = resourceIndex;
@@ -40,28 +41,29 @@ export class VectorProcessor extends ProcessorBase {
    * @returns {Promise<void>}
    */
   async process(actor, representation = "content") {
+    // 1. Get all resource identifiers
     const identifiers = await this.#resourceIndex.findAll();
 
-    // Don't index conversations, and their child resources (e.g. messages)
+    // 2. Filter out conversations and their child resources
     const filteredIdentifiers = identifiers.filter(
       (id) => !String(id).startsWith("common.Conversation"),
     );
 
-    // Load the full resources using the identifiers
+    // 3. Load the full resources using the identifiers
     const resources = await this.#resourceIndex.get(actor, filteredIdentifiers);
 
-    // Select the appropriate vector index based on representation
+    // 4. Select the appropriate vector index based on representation
     this.#targetIndex =
       representation === "descriptor"
         ? this.#descriptorIndex
         : this.#contentIndex;
 
-    // Pre-filter resource contents that already exist in the target vector index
+    // 5. Pre-filter resource contents that already exist in the target vector index
     const existing = new Set();
     const checks = await Promise.all(
       resources.map(async (resource) => ({
-        id: resource.id,
-        exists: await this.#targetIndex.hasItem(resource.id),
+        id: String(resource.id),
+        exists: await this.#targetIndex.hasItem(String(resource.id)),
       })),
     );
     checks
@@ -90,7 +92,7 @@ export class VectorProcessor extends ProcessorBase {
       }
 
       // Skip if already exists
-      if (existing.has(resource.id)) {
+      if (existing.has(String(resource.id))) {
         continue; // Skip existing resources
       }
 
@@ -100,7 +102,7 @@ export class VectorProcessor extends ProcessorBase {
       });
     }
 
-    // Use ProcessorBase to handle the batch processing
+    // 6. Use ProcessorBase to handle the batch processing
     await super.process(resourcesToProcess, representation);
   }
 

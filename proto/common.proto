@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "resource.proto";
+import "tool.proto";
 
 package common;
 
@@ -25,46 +26,12 @@ message Conversation {
   resource.Identifier id = 1;
 }
 
-message ToolProp {
-  string type = 1;
-  string description = 2;
-}
-
-message ToolParam {
-  string type = 1;
-  map<string, ToolProp> properties = 2;
-  repeated string required = 3;
-}
-
-message ToolFunction {
-  resource.Identifier id = 1;
-  resource.Descriptor descriptor = 2;
-  optional string name = 3; // Passed by tool call requests
-  oneof call {
-    ToolParam parameters = 4; // When declaring
-    string arguments = 5; // When calling
-  }
-}
-
-message Tool {
-  string type = 1;
-  ToolFunction function = 2;
-  optional string id = 3; // When calling
-  optional string github_token = 4; // Github token to pass-on
-}
-
-message ToolCallResult {
-  string role = 1;
-  string tool_call_id = 2;
-  string content = 3;
-}
-
 message Message {
   resource.Identifier id = 1;
   resource.Descriptor descriptor = 2;
   resource.Content content = 3;
   string role = 4;
-  repeated Tool tool_calls = 5;
+  repeated tool.ToolDefinition tool_calls = 5;
   optional string tool_call_id = 6;
 }
 

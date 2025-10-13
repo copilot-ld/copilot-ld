@@ -1,37 +1,16 @@
 syntax = "proto3";
 
-import "resource.proto";
+import "tool.proto";
 
 package vector;
 
 service Vector {
-  rpc QueryItems(QueryItemsRequest) returns (QueryItemsResponse);
-  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc QueryByContent(TextQuery) returns (tool.QueryResult);
+  rpc QueryByDescriptor(TextQuery) returns (tool.QueryResult);
 }
 
-message Filter {
-  optional string limit = 1;
-  optional string threshold = 2;
-  optional string max_tokens = 3;
-  optional string prefix = 4; // Resource URI prefix
-  optional string type = 5; // Resource identifier type
-}
-
-message QueryItemsRequest {
-  string index = 1; // "content" or "descriptor"
-  repeated double vector = 2;
-  optional Filter filters = 3;
-}
-
-message QueryItemsResponse {
-  repeated resource.Identifier identifiers = 1;
-}
-
-message GetItemRequest {
-  string index = 1; // "content" or "descriptor"
-  string id = 2; // Resource ID
-}
-
-message GetItemResponse {
-  optional resource.Identifier identifier = 1;
+message TextQuery {
+  string text = 1;
+  optional tool.QueryFilter filter = 2;
+  optional string github_token = 3;
 }

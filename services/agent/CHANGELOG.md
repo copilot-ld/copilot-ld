@@ -1,11 +1,17 @@
 # Changelog
 
+## 2025-10-13
+
+- **BREAKING**: Added `toMessages()` and `toTools()` helper functions for memory
+  window processing with `ResourceIndex` integration
+- Updated service to work with new `GraphService` and `ToolService` clients
+- Enhanced tool invocation with structured function definitions and improved
+  error handling
+
 ## 2025-10-10
 
-- Bump version
 - Refactored `ProcessRequest()` method to reduce complexity with extracted
   helper methods (`#setupConversation()`, `#getMemory()`, `#executeToolLoop()`)
-- Enhanced JSDoc typing with specific types from `@copilot-ld/libtype`
 - **BREAKING**: Updated imports to use `@copilot-ld/librpc` services and clients
   pattern
 
@@ -34,8 +40,8 @@
   constructor for proper deep initialization
 - Enhanced tool message creation to include `tool_call_id` in `fromObject()`
   call rather than post-assignment
-- Enhanced tool handling with typed `common.Tool[]` objects and improved type
-  safety throughout pipeline
+- Enhanced tool handling with typed `tool.ToolDefinition[]` objects and improved
+  type safety throughout pipeline
 - Improved tool discovery with fallback strategy when no tools found in memory
   window
 - **BREAKING**: Replaced `Text` service dependency with `ResourceIndex` for

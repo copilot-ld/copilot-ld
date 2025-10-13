@@ -23,7 +23,7 @@
 # Editor files
 .vscode/
 .idea/
-SCRATCHPAD.md
+SCRATCHPAD*.md
 
 # Other files
 **/.DS_Store

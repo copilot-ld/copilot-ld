@@ -14,6 +14,7 @@ const {
   agent = {},
   llm = {},
   vector = {},
+  graph = {},
   memory = {},
   tool = {},
 } = types;
@@ -69,12 +70,12 @@ function withTokens() {
 common.Assistant.prototype.withIdentifier = withIdentifier;
 common.Conversation.prototype.withIdentifier = withIdentifier;
 common.Message.prototype.withIdentifier = withIdentifier;
-common.ToolFunction.prototype.withIdentifier = withIdentifier;
+tool.ToolFunction.prototype.withIdentifier = withIdentifier;
 
 common.Assistant.prototype.withTokens = withTokens;
 common.Conversation.prototype.withTokens = withTokens;
 common.Message.prototype.withTokens = withTokens;
-common.ToolFunction.prototype.withTokens = withTokens;
+tool.ToolFunction.prototype.withTokens = withTokens;
 
 resource.Identifier.prototype.toString = function () {
   if (!this?.type)
@@ -173,13 +174,13 @@ common.Assistant.fromObject = function (object) {
 };
 
 /**
- * Monkey-patches for common.ToolFunction
+ * Monkey-patches for tool.ToolFunction
  */
-const ToolFunctionCtor = common.ToolFunction;
+const ToolFunctionCtor = tool.ToolFunction;
 const ToolFunctionfromObject = ToolFunctionCtor.fromObject;
 
 // Monkey-patch ToolFunction.fromObject to gracefully convert .name to .id.name
-common.ToolFunction.fromObject = function (object) {
+tool.ToolFunction.fromObject = function (object) {
   // If the object has a name property, construct the identifier from it
   if (object?.name) {
     if (object?.id) {
@@ -203,6 +204,7 @@ export {
   agent,
   llm,
   vector,
+  graph,
   memory,
   tool,
 };

@@ -1,8 +1,15 @@
 # Changelog
 
-## 2025-10-10
+## 2025-10-13
 
-- Bump version
+- **BREAKING**: Simplified `MemoryService` constructor by removing
+  `ResourceIndex` dependency
+- **BREAKING**: Modified `GetWindow()` to return tools and history arrays
+  instead of tools, context, and history
+- Streamlined memory retrieval to focus on stored identifiers only, removing
+  live resource prefix searches
+
+## 2025-10-10
 
 - **BREAKING**: Updated imports to use `@copilot-ld/librpc` services pattern
 - Integrated automatic generated code management and simplified service startup

@@ -169,7 +169,7 @@ All protobuf types must be created using `Type.fromObject()` instead of
 
 ```javascript
 /* eslint-env node */
-import { common, resource } from "@copilot-ld/libtype";
+import { common, resource, tool } from "@copilot-ld/libtype";
 
 // ✅ CORRECT - Use fromObject for deep initialization
 const message = common.Message.fromObject({
@@ -179,7 +179,7 @@ const message = common.Message.fromObject({
 
 const identifier = resource.Identifier.fromObject({
   name: "example",
-  type: "common.ToolFunction",
+  type: "tool.ToolFunction",
 });
 
 // ❌ INCORRECT - Constructor only does flat initialization

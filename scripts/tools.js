@@ -4,7 +4,7 @@ import { ResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 import { createPolicy } from "@copilot-ld/libpolicy";
-import { common, resource } from "@copilot-ld/libtype";
+import { resource, tool } from "@copilot-ld/libtype";
 import pkg from "protobufjs";
 import { access } from "node:fs/promises";
 
@@ -98,9 +98,9 @@ function generateSchemaFromProtobuf(messageType) {
 
   // Iterate through protobuf fields to build JSON schema
   for (const [fieldName, field] of Object.entries(messageType.fields)) {
-    // Skip github_token fields. GitHub tokens will be passed automatically
-    // to the tools by the system.
-    if (fieldName === "github_token") {
+    // Skip the filter and github_token fields. These will be automatically
+    // passed by the system.
+    if (fieldName === "github_token" || fieldName === "filter") {
       continue;
     }
 
@@ -109,7 +109,7 @@ function generateSchemaFromProtobuf(messageType) {
 
     // Add to required fields if not optional. Protobufjs sets 'optional' flag only for proto2.
     // For our usage we treat absence of 'optional' AND not repeated as required.
-    if (field.rule !== "repeated" && field.optional !== true) {
+    if (field.rule !== "repeated" && !field.optional) {
       schema.required.push(fieldName);
     }
   }
@@ -172,8 +172,24 @@ async function generateToolSchemas(endpoints, logger) {
     const schema = await loadMethodSchema(protoPath, serviceName, methodName);
 
     // Mark all properties as required if none specified
-    if (schema.required.length === 0) {
+    // Exception: if all fields are optional, keep required array empty
+    if (
+      schema.required.length === 0 &&
+      Object.keys(schema.properties).length > 0
+    ) {
+      // For tools with only optional parameters, leave required array empty
+      // This is valid for OpenAI function calling
+    } else if (schema.required.length === 0) {
       schema.required = Object.keys(schema.properties);
+    }
+
+    // Ensure parameters object is valid for OpenAI function calling
+    // OpenAI requires at least properties and required fields, even if empty
+    if (!schema.properties) {
+      schema.properties = {};
+    }
+    if (!schema.required) {
+      schema.required = [];
     }
 
     const tool = {
@@ -202,17 +218,42 @@ async function generateToolSchemas(endpoints, logger) {
  * @returns {Promise<void>}
  */
 async function storeToolResource(resourceIndex, schema, descriptor, logger) {
-  const tool = common.ToolFunction.fromObject({
+  // Convert OpenAI function parameters to ToolParam protobuf format
+  const parameters = schema.function.parameters;
+  const toolParam = {
+    type: parameters.type || "object",
+    properties: parameters.properties || {},
+    required: parameters.required || [],
+  };
+
+  // Ensure empty schemas are valid for OpenAI by adding required fields explicitly
+  // For tools with no parameters, we still need valid JSON schema structure
+  if (
+    Object.keys(toolParam.properties).length === 0 &&
+    toolParam.required.length === 0
+  ) {
+    // OpenAI requires properties and required fields to be present, even if empty
+    // We ensure they're included by adding them explicitly to the protobuf structure
+    toolParam.properties = {};
+    toolParam.required = [];
+  }
+
+  // Force required field to be included even if empty for OpenAI compatibility
+  if (!Object.prototype.hasOwnProperty.call(toolParam, "required")) {
+    toolParam.required = [];
+  }
+
+  const func = tool.ToolFunction.fromObject({
     id: resource.Identifier.fromObject({
       name: schema.function.name,
-      type: "common.ToolFunction",
+      type: "tool.ToolFunction",
     }),
     descriptor: resource.Descriptor.fromObject(descriptor),
-    parameters: schema.function.parameters,
+    parameters: toolParam,
   });
 
-  await resourceIndex.put(tool);
-  logger.debug("Saved tool resource", { id: tool.id });
+  await resourceIndex.put(func);
+  logger.debug("Saved tool resource", { id: func.id });
 }
 
 /**

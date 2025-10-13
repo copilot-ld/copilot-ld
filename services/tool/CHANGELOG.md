@@ -1,8 +1,13 @@
 # Changelog
 
-## 2025-10-10
+## 2025-10-13
 
-- Bump version
+- Enhanced `ExecuteTool()` method to pass through `filter` parameter for query
+  constraints
+- Improved GitHub token handling in tool argument forwarding
+- Streamlined service initialization by removing default endpoint configuration
+
+## 2025-10-10
 
 - **BREAKING**: Updated imports to use `@copilot-ld/librpc` services pattern
 - Integrated automatic generated code management and simplified service startup
@@ -25,8 +30,8 @@
 ## 2025-09-11
 
 - **NEW**: Initial implementation of Tool service as part of Phase 3, Step 10
-- **BREAKING**: Implemented strict type validation expecting `common.Tool` input
-  objects with enhanced error handling
+- **BREAKING**: Implemented strict type validation expecting
+  `tool.ToolDefinition` input objects with enhanced error handling
 - Added gRPC proxy functionality with `ExecuteTool` and `ListTools` methods for
   dynamic tool routing
 - Integrated configuration-driven endpoint mapping supporting both existing

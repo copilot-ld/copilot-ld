@@ -16,7 +16,7 @@ class ToolService extends ToolBase {
 
   /**
    * Creates a new Tool service instance
-   * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
+   * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
   constructor(config, logFn) {
@@ -34,9 +34,8 @@ class ToolService extends ToolBase {
   }
 
   /**
-   * Implement the `ExecuteTool` RPC.
-   * @param {object} req - Tool execution request (raw object due to generation gap)
-   * @returns {Promise<import("@copilot-ld/libtype").common.ToolCallResult>} Tool execution result
+   * @inheritdoc
+   * @param {import("@copilot-ld/libtype").tool.ToolDefinition} req - Tool execution request
    */
   async ExecuteTool(req) {
     try {
@@ -85,7 +84,7 @@ class ToolService extends ToolBase {
       };
     } catch (error) {
       this.debug("Tool execution failed", {
-        toolName: req.function?.name,
+        name: req.function?.name,
         error: error.message,
       });
 
@@ -168,10 +167,9 @@ class ToolService extends ToolBase {
 
     const args = JSON.parse(toolRequest.function.arguments);
 
-    // Pass-on github_token if present
-    if (toolRequest.github_token) {
-      args.github_token = toolRequest.github_token;
-    }
+    // Pass-on filter and GitHub token if present
+    if (toolRequest.filter) args.filter = toolRequest.filter;
+    if (toolRequest.github_token) args.github_token = toolRequest.github_token;
 
     // Get the request type from the types object
     const RequestType = types[requestPackage]?.[requestType];

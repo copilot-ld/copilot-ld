@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-14
+
+- Updated test coverage with enhanced resource processing validation and
+  protobuf object handling
+
 ## 2025-10-10
 
 - Bump version

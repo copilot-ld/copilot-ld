@@ -21,9 +21,10 @@ const {
 
 /**
  * Ensure that the identifier has values assigned. Call before persisting.
- * @param {string} [parent] - Parent URI
+ * @param {string} [parent] - Parent ID
+ * @param {string} [subject] - Subject URI
  */
-function withIdentifier(parent) {
+function withIdentifier(parent, subject) {
   // Initialize id if missing
   this.id = this.id || new resource.Identifier();
 
@@ -48,11 +49,9 @@ function withIdentifier(parent) {
   this.id.type = type;
   this.id.name = name;
 
-  // Handle parent assignment
-  const hasParentParam = parent != null;
-  if (hasParentParam || !this.id.parent) {
-    this.id.parent = hasParentParam ? String(parent) : this.id.parent || "";
-  }
+  this.id.subject = subject ? String(subject) : this.id.subject || "";
+
+  this.id.parent = parent ? String(parent) : this.id.parent || "";
 }
 
 /**

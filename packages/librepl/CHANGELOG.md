@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-14
+
+- Enhanced output handling with asynchronous prompt rendering that waits for
+  response completion
+- Fixed timing issues in interactive mode with proper Promise-based output
+  completion
+
 ## 2025-10-10
 
 - Bump version

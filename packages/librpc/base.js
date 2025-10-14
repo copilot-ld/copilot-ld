@@ -60,11 +60,11 @@ export class Rpc {
     logFn = createLogger,
   ) {
     if (!config) throw new Error("config is required");
-    if (grpcFn && typeof grpcFn !== "function")
+    if (typeof grpcFn !== "function")
       throw new Error("createGrpc must be a function");
-    if (authFn && typeof authFn !== "function")
+    if (typeof authFn !== "function")
       throw new Error("createAuth must be a function");
-    if (logFn && typeof logFn !== "function")
+    if (typeof logFn !== "function")
       throw new Error("createLogger must be a function");
 
     this.config = config;

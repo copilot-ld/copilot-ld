@@ -9,24 +9,19 @@ import { IndexBase } from "@copilot-ld/libutil";
 export class VectorIndex extends IndexBase {
   /**
    * Adds a vector item to the index
-   * @param {number[]} vector - The vector
    * @param {resource.Identifier} identifier - Resource identifier
+   * @param {number[]} vector - The vector
    * @returns {Promise<void>}
    */
-  async addItem(vector, identifier) {
-    if (!this.loaded) await this.loadData();
-
+  async addItem(identifier, vector) {
     const item = {
-      uri: String(identifier),
+      id: String(identifier),
       identifier,
       vector,
     };
 
-    // Store item in the map using URI as key
-    this.index.set(item.uri, item);
-
-    // Append item to storage as JSON-ND line
-    await this.storage().append(this.indexKey, JSON.stringify(item));
+    // Use parent class to update index in memory and on disk
+    await super.addItem(item);
   }
 
   /**
@@ -42,7 +37,7 @@ export class VectorIndex extends IndexBase {
     const identifiers = [];
 
     for (const item of this.index.values()) {
-      if (!this._applyPrefixFilter(item.uri, prefix)) continue;
+      if (!this._applyPrefixFilter(item.id, prefix)) continue;
       const score = calculateDotProduct(query, item.vector, query.length);
       if (score >= threshold) {
         item.identifier.score = score;

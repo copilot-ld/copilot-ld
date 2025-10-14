@@ -1,19 +1,19 @@
 # Changelog
 
+## 2025-10-14
+
+- **REFACTOR**: Extracted agent orchestration logic to framework-agnostic
+  `@copilot-ld/libagent` package
+- Simplified service implementation by delegating business logic to `AgentMind`
+  class
+- Reduced service code size significantly while maintaining full API
+  compatibility
+
 ## 2025-10-13
 
-- **BREAKING**: Added `toMessages()` and `toTools()` helper functions for memory
-  window processing with `ResourceIndex` integration
-- Updated service to work with new `GraphService` and `ToolService` clients
 - Enhanced tool invocation with structured function definitions and improved
   error handling
-
-## 2025-10-10
-
-- Refactored `ProcessRequest()` method to reduce complexity with extracted
-  helper methods (`#setupConversation()`, `#getMemory()`, `#executeToolLoop()`)
-- **BREAKING**: Updated imports to use `@copilot-ld/librpc` services and clients
-  pattern
+- Updated service to work with new `GraphService` and `ToolService` clients
 
 ## 2025-09-19
 

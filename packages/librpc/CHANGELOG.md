@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-14
+
+- Enhanced service base class with improved error handling and debugging
+  capabilities
+
 ## 2025-10-10
 
 - Bump version

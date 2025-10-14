@@ -84,11 +84,17 @@ export class Repl {
   /**
    * Formats and writes output to stdout
    * @param {string} text - Text to output
+   * @returns {Promise<void>} Promise that resolves when output is complete
    */
-  #output(text) {
+  async #output(text) {
     if (text !== undefined && text !== null) {
       const formatted = "\n" + this.#formatter.format(text).trim() + "\n";
-      this.#process.stdout.write(formatted);
+      return new Promise((resolve) => {
+        this.#process.stdout.write(formatted, () => {
+          // Add a small delay to ensure the output is visually complete
+          setTimeout(resolve, 10);
+        });
+      });
     }
   }
 
@@ -109,7 +115,7 @@ export class Repl {
 
       // Built-in commands
       if (command === "help") {
-        this.#showHelp();
+        await this.#showHelp();
         return;
       }
       if (command === "exit") {
@@ -121,12 +127,12 @@ export class Repl {
       if (handler) {
         try {
           const result = await handler(args, this.state);
-          this.#output(result);
+          await this.#output(result);
         } catch (error) {
           this.#process.stderr.write(`Error: ${error.message}\n`);
         }
       } else {
-        this.#showHelp();
+        await this.#showHelp();
       }
       return;
     }
@@ -135,7 +141,7 @@ export class Repl {
     if (this.#config.onLine) {
       try {
         const result = await this.#config.onLine(trimmed, this.state);
-        this.#output(result);
+        await this.#output(result);
       } catch (error) {
         this.#process.stderr.write(`Error: ${error.message}\n`);
       }
@@ -144,8 +150,9 @@ export class Repl {
 
   /**
    * Shows help message with available commands
+   * @returns {Promise<void>}
    */
-  #showHelp() {
+  async #showHelp() {
     let output = "";
 
     // Add custom help message if provided
@@ -163,7 +170,7 @@ export class Repl {
     }
 
     output += "Available commands:\n\n" + commands.join("\n");
-    this.#output(output);
+    await this.#output(output);
   }
 
   /**

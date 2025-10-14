@@ -48,8 +48,8 @@
           applications
         </li>
         <li>
-          <strong>Modularity</strong>: Framework-agnostic packages for maximum
-          reusability
+          <strong>Modularity</strong>: Reusable business logic packages for
+          maximum reusability
         </li>
         <li>
           <strong>Performance</strong>: Parallel processing and optimized vector
@@ -142,7 +142,7 @@
       <pre>
 ./services/          # gRPC service implementations (custom logic only)
 ./extensions/        # Extensions that adapt core system to applications
-./packages/          # Reusable, domain-focused logic (framework agnostic)
+./packages/          # Reusable, domain-focused logic (pure business logic)
 ./scripts/           # Utility scripts & code generation
 ./proto/             # Authoritative protobuf source schemas (never edited in generated/)
 ./tools/             # Custom tools that extend the core system
@@ -245,7 +245,7 @@ sequenceDiagram
     Agent->>ResourceIndex: Get assistant by id (from config)
     Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
 
-    Agent->>Memory: GetWindow (for conversation, with budget/allocation)
+    Agent->>Memory: Get (for conversation, with budget/allocation)
     Memory-->>Agent: Window (tools, history)
 
     Agent->>ResourceIndex: Resolve window identifiers (tools/history)
@@ -258,7 +258,7 @@ sequenceDiagram
         
         alt Tool calls present
             loop For each autonomous tool call
-                Agent->>Tool: ExecuteTool (tool call + github_token)
+                Agent->>Tool: Call (tool call + github_token)
                 Tool-->>Agent: Tool result message
                 Note right of Agent: Add tool result to messages
             end
@@ -282,11 +282,36 @@ sequenceDiagram
       <p>
         Central orchestrator that autonomously decides what tool calls to make
         and when. Requests are processed sequentially as shown in the sequence
-        diagram (readiness checks run in parallel). The service integrates a
-        <code>ResourceIndex</code> for direct resource access with policy-based
-        access control and makes intelligent tool calling decisions based on
-        conversation context.
+        diagram (readiness checks run in parallel). The service is built as a
+        thin gRPC wrapper around business logic in the
+        <code>@copilot-ld/libagent</code> package, which provides
+        framework-agnostic agent orchestration with <code>AgentMind</code> for
+        planning and <code>AgentHands</code> for tool execution.
       </p>
+
+      <p><strong>Architecture</strong>:</p>
+      <ul>
+        <li>
+          <strong>Business logic library</strong>: Agent orchestration logic
+          implemented in <code>@copilot-ld/libagent</code> with
+          <code>AgentMind</code> for conversation setup and planning, and
+          <code>AgentHands</code> for focused tool execution
+        </li>
+        <li>
+          <strong>Service adapter pattern</strong>: Agent service acts as a gRPC
+          adapter that delegates to <code>AgentMind</code> for business logic
+          while handling authentication and service communication
+        </li>
+        <li>
+          <strong>Improved testability</strong>: Business logic can be unit
+          tested independently of gRPC service infrastructure
+        </li>
+        <li>
+          <strong>Resource integration</strong>: Integrates with
+          <code>ResourceIndex</code> for direct resource access with
+          policy-based access control
+        </li>
+      </ul>
 
       <details>
         <summary>Message assembly order and budgeting</summary>
@@ -321,26 +346,48 @@ sequenceDiagram
       <p>
         Manages conversation memory using JSONL (newline-delimited JSON) storage
         for efficient appends. Provides memory windows with tools and history
-        allocation for context assembly.
+        allocation for context assembly. The service is built as a thin gRPC
+        wrapper around the business logic in
+        <code>@copilot-ld/libmemory</code> package.
       </p>
 
       <p><strong>Key Operations</strong>:</p>
       <ul>
         <li>
           <code>Append</code>: Adds resource identifiers to conversation memory
-          with de-duplication
+          with deduplication
         </li>
         <li>
-          <code>GetWindow</code>: Returns memory window with tools and history
-          items, applying budget filtering when allocation is specified
+          <code>Get</code>: Returns memory window with tools and history items,
+          applying budget filtering when allocation is specified
         </li>
       </ul>
 
       <p><strong>Architecture</strong>:</p>
       <ul>
         <li>
-          <strong>Simplified interface</strong>: Focuses on memory management
-          without external resource dependencies
+          <strong>Business logic library</strong>: Core memory logic implemented
+          in <code>@copilot-ld/libmemory</code> with <code>MemoryWindow</code>,
+          <code>MemoryIndex</code>, and <code>MemoryFilter</code> classes
+        </li>
+        <li>
+          <strong>Per-resource isolation</strong>: Each conversation has its own
+          <code>MemoryIndex</code> and <code>MemoryWindow</code> instance for
+          optimal performance and data isolation
+        </li>
+        <li>
+          <strong>On-demand initialization</strong>: Memory windows are created
+          as needed and cached at the service level for efficiency
+        </li>
+        <li>
+          <strong>Network-level coordination</strong>: Service manages request
+          locks to ensure consistency during concurrent operations
+        </li>
+        <li>
+          <strong><code>IndexBase</code> compliance</strong>:
+          <code>MemoryIndex</code> properly extends
+          <code>IndexBase</code> patterns with <code>addItem()</code> and
+          <code>queryItems()</code>
         </li>
         <li>
           <strong>Memory allocation</strong>: Supports budget-based filtering
@@ -353,6 +400,10 @@ sequenceDiagram
         <li>
           <strong>De-duplication</strong>: Automatically removes duplicate
           identifiers from memory storage
+        </li>
+        <li>
+          <strong>Enhanced testability</strong>: Business logic can be unit
+          tested independently of gRPC service infrastructure
         </li>
       </ul>
 
@@ -457,8 +508,8 @@ sequenceDiagram
       <p><strong>Key Operations</strong>:</p>
       <ul>
         <li>
-          <code>ExecuteTool</code>: Proxies tool calls to appropriate services
-          based on configuration mapping
+          <code>Call</code>: Proxies tool calls to appropriate services based on
+          configuration mapping
         </li>
         <li>
           <code>ListTools</code>: Returns available tools with OpenAI-compatible
@@ -682,7 +733,7 @@ sequenceDiagram
         </li>
         <li>
           <strong>Package Integration</strong>: Symlinks created during setup
-          make generated code available through framework-agnostic packages
+          make generated code available through reusable business logic packages
         </li>
       </ol>
 
@@ -782,7 +833,8 @@ npm run codegen:definition  # Service definitions only</code></pre>
         </li>
         <li>
           <strong>Package Integration</strong>: Service startup automatically
-          creates symlinks for clean access through framework-agnostic packages
+          creates symlinks for clean access through reusable business logic
+          packages
         </li>
         <li>
           <strong>Tool Extension</strong>: Supports additional schemas that

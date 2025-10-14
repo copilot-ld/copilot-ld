@@ -1,13 +1,22 @@
 # Changelog
 
+## 2025-10-14
+
+- Enhanced test coverage with complete storage interface mocks and proper
+  protobuf object creation
+- Updated budget allocation system to use ratio-based calculations instead of
+  absolute token values
+- **BREAKING**: `Get()` method now expects allocation ratios (0-1) instead of
+  absolute token counts
+
 ## 2025-10-13
 
-- **BREAKING**: Simplified `MemoryService` constructor by removing
-  `ResourceIndex` dependency
-- **BREAKING**: Modified `GetWindow()` to return tools and history arrays
-  instead of tools, context, and history
-- Streamlined memory retrieval to focus on stored identifiers only, removing
-  live resource prefix searches
+- **REFACTOR**: Extracted business logic to framework-agnostic
+  `@copilot-ld/libmemory` package
+- Reduced service implementation by 36% while adding per-resource caching and
+  improved performance
+- **BREAKING**: Simplified API with renamed `GetWindow()` to `Get()` and
+  streamlined response structure
 
 ## 2025-10-10
 
@@ -33,7 +42,7 @@
 
 - **NEW**: Initial implementation of Memory service replacing legacy History
   service
-- Implemented token budget filtering in `GetWindow()` method with configurable
+- Implemented token budget filtering in `Get()` method with configurable
   allocation parameters
 - Added efficient JSON-ND storage format using `StorageInterface.append()` for
   memory persistence

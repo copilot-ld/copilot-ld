@@ -12,8 +12,8 @@ describe("tool service", () => {
       assert.ok(ToolService.prototype);
     });
 
-    test("ToolService has ExecuteTool method", () => {
-      assert.strictEqual(typeof ToolService.prototype.ExecuteTool, "function");
+    test("ToolService has Call method", () => {
+      assert.strictEqual(typeof ToolService.prototype.Call, "function");
     });
 
     test("ToolService constructor accepts expected parameters", () => {
@@ -23,7 +23,7 @@ describe("tool service", () => {
 
     test("ToolService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(ToolService.prototype);
-      assert(methods.includes("ExecuteTool"));
+      assert(methods.includes("Call"));
       assert(methods.includes("constructor"));
     });
   });
@@ -58,20 +58,20 @@ describe("tool service", () => {
       assert.deepStrictEqual(service.endpoints, mockConfig.endpoints);
     });
 
-    test("ExecuteTool validates request structure", async () => {
+    test("Call validates request structure", async () => {
       const service = new ToolService(mockConfig);
 
-      const result = await service.ExecuteTool({});
+      const result = await service.Call({});
 
       assert.ok(result);
       assert.strictEqual(result.role, "tool");
       assert.ok(result.content.includes("error"));
     });
 
-    test("ExecuteTool handles missing endpoint", async () => {
+    test("Call handles missing endpoint", async () => {
       const service = new ToolService(mockConfig);
 
-      const result = await service.ExecuteTool({
+      const result = await service.Call({
         id: "test-call",
         function: {
           id: { name: "unknown.tool" },
@@ -84,7 +84,7 @@ describe("tool service", () => {
       assert.ok(result.content.includes("not found"));
     });
 
-    test("ExecuteTool handles invalid endpoint method format", async () => {
+    test("Call handles invalid endpoint method format", async () => {
       const invalidConfig = {
         name: "tool", // Required for logging
         endpoints: {
@@ -96,7 +96,7 @@ describe("tool service", () => {
 
       const service = new ToolService(invalidConfig);
 
-      const result = await service.ExecuteTool({
+      const result = await service.Call({
         id: "test-call",
         function: {
           id: { name: "invalid.tool" },
@@ -111,7 +111,7 @@ describe("tool service", () => {
     test("returns proper tool result structure", async () => {
       const service = new ToolService(mockConfig);
 
-      const result = await service.ExecuteTool({
+      const result = await service.Call({
         id: "test-call-123",
         function: {
           id: { name: "nonexistent.tool" },

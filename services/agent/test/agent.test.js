@@ -54,7 +54,7 @@ describe("agent service", () => {
 
       mockMemoryClient = {
         Append: async () => ({ accepted: "test-conversation" }),
-        GetWindow: async () => ({
+        Get: async () => ({
           tools: [],
           context: [],
           history: [],
@@ -74,7 +74,7 @@ describe("agent service", () => {
       };
 
       mockToolClient = {
-        ExecuteTool: async () => ({ result: "test result" }),
+        Call: async () => ({ result: "test result" }),
       };
 
       mockResourceIndex = {

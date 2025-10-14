@@ -75,24 +75,6 @@ export function generateUUID() {
 }
 
 /**
- * Finds the most recent user message in a conversation
- * @param {import("@copilot-ld/libtype").common.Message[]} messages - Array of conversation messages
- * @returns {import("@copilot-ld/libtype").common.Message|null} Latest user message or null if none found
- */
-export function getLatestUserMessage(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return null;
-  }
-
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role === "user") {
-      return messages[i];
-    }
-  }
-  return null;
-}
-
-/**
  * Helper function to count tokens
  * @param {string} text - Text to count tokens for
  * @param {Tokenizer} tokenizer - Tokenizer instance
@@ -238,14 +220,14 @@ export class IndexBase {
 
   /**
    * Applies prefix filter to items during query iteration
-   * @param {string} itemUri - The URI to check
+   * @param {string} id - The id to check
    * @param {string} prefix - The prefix to match
    * @returns {boolean} True if item should be included
    * @protected
    */
-  _applyPrefixFilter(itemUri, prefix) {
+  _applyPrefixFilter(id, prefix) {
     if (!prefix) return true;
-    return itemUri.startsWith(prefix);
+    return id.startsWith(prefix);
   }
 
   /**
@@ -322,35 +304,64 @@ export class IndexBase {
 
     // Storage automatically parses .jsonl files into arrays
     const items = await this.#storage.get(this.#indexKey);
-    const parsedItems = Array.isArray(items) ? items : [];
 
-    // Populate the index map with URI as key
+    // Populate the memory index
     this.#index.clear();
-    for (const item of parsedItems) {
-      this.#index.set(item.uri, item);
+    for (const item of items) {
+      this.#index.set(item.id, item);
     }
 
     this.#loaded = true;
   }
 
   /**
-   * Adds an item to the index - must be implemented by subclasses
-   * @param {...any} _args - Arguments specific to the index type
+   * Adds an item to the index with generic storage operations
+   * Subclasses should override this to create their specific item structure,
+   * then call super.addItem(item) to handle storage
+   * @param {object} item - The item object with required and optional properties
+   * @param {string} item.id - Unique string identifier for the item (used as Map key)
+   * @param {import("@copilot-ld/libtype").resource.Identifier} item.identifier - Resource identifier object
    * @returns {Promise<void>}
-   * @abstract
    */
-  async addItem(..._args) {
-    throw new Error("addItem() must be implemented by subclasses");
+  async addItem(item) {
+    if (!this.#loaded) await this.loadData();
+
+    // Store item in memory
+    this.#index.set(item.id, item);
+
+    // Append item to storage on disk
+    await this.#storage.append(this.#indexKey, JSON.stringify(item));
   }
 
   /**
-   * Queries items from the index - must be implemented by subclasses
-   * @param {...any} _args - Arguments specific to the index type
+   * Queries items from the index using basic filtering
+   * Provides a default implementation that applies shared filters to all items
+   * Subclasses can override this for more sophisticated query logic
+   * @param {import("@copilot-ld/libtype").tool.QueryFilter} filter - Filter object for query constraints
    * @returns {Promise<import("@copilot-ld/libtype").resource.Identifier[]>} Array of resource identifiers
-   * @abstract
    */
-  async queryItems(..._args) {
-    throw new Error("queryItems() must be implemented by subclasses");
+  async queryItems(filter = {}) {
+    if (!this.#loaded) await this.loadData();
+
+    const { prefix, limit, max_tokens } = filter;
+    const identifiers = [];
+
+    // Loop through all index values and collect identifiers
+    for (const item of this.#index.values()) {
+      if (!this._applyPrefixFilter(item.id, prefix)) continue;
+
+      // Add the identifier to results
+      const identifier = item.identifier;
+      if (identifier) {
+        identifiers.push(identifier);
+      }
+    }
+
+    // Apply shared filters
+    let results = this._applyLimitFilter(identifiers, limit);
+    results = this._applyTokensFilter(results, max_tokens);
+
+    return results;
   }
 }
 

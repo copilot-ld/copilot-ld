@@ -90,9 +90,9 @@ describe("graph service", () => {
       const result = await service.QueryByPattern({ subject: "test" });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.contents));
-      assert.strictEqual(result.contents.length, 2);
-      assert.strictEqual(result.contents[0], "Content for common.Message.msg1");
+      assert.ok(Array.isArray(result.results));
+      assert.strictEqual(result.results.length, 2);
+      assert.strictEqual(result.results[0], "Content for common.Message.msg1");
     });
 
     test("QueryByPattern handles empty pattern", async () => {
@@ -105,7 +105,7 @@ describe("graph service", () => {
       const result = await service.QueryByPattern({});
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.contents));
+      assert.ok(Array.isArray(result.results));
     });
 
     test("QueryByPattern converts empty strings to null in pattern", async () => {
@@ -121,7 +121,7 @@ describe("graph service", () => {
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.contents));
+      assert.ok(Array.isArray(result.results));
     });
 
     test("QueryByPattern with specific subject pattern", async () => {

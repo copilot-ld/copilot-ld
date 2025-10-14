@@ -195,7 +195,6 @@ describe("ResourceIndex", () => {
 
 describe("ResourceProcessor", () => {
   let resourceIndex;
-  let configStorage;
   let knowledgeStorage;
   let llm;
   let logger;
@@ -204,13 +203,6 @@ describe("ResourceProcessor", () => {
   beforeEach(() => {
     resourceIndex = {
       put: async (_resource) => {},
-    };
-
-    configStorage = {
-      get: async (_key) => {
-        // Mock config storage
-        return "";
-      },
     };
 
     knowledgeStorage = {
@@ -256,7 +248,6 @@ describe("ResourceProcessor", () => {
 
     processor = new ResourceProcessor(
       resourceIndex,
-      configStorage,
       knowledgeStorage,
       llm,
       logger,
@@ -278,7 +269,7 @@ describe("ResourceProcessor", () => {
       capturedMessage = resource;
     };
 
-    await processor.processKnowledge(".html", []);
+    await processor.process(".html", []);
 
     assert.strictEqual(
       putCallCount,
@@ -298,11 +289,52 @@ describe("ResourceProcessor", () => {
     assert.strictEqual(jsonld.headline, "Test Article");
   });
 
+  test("sets subject from JSON-LD @id when present", async () => {
+    // Update mock to return HTML with @id
+    knowledgeStorage.get = async (key) => {
+      if (key === "test.html") {
+        return '<div itemscope itemtype="http://schema.org/Person" itemid="#alice"><h1 itemprop="name">Alice Smith</h1></div>';
+      }
+      return "";
+    };
+
+    let capturedMessage;
+    resourceIndex.put = async (resource) => {
+      capturedMessage = resource;
+    };
+
+    await processor.process(".html", []);
+
+    assert.ok(capturedMessage instanceof common.Message);
+    assert.ok(capturedMessage.id instanceof resource.Identifier);
+
+    const jsonld = JSON.parse(String(capturedMessage.content));
+    assert.strictEqual(jsonld["@id"], "#alice");
+    assert.strictEqual(capturedMessage.id.subject, "#alice");
+  });
+
+  test("leaves subject empty when JSON-LD has no @id", async () => {
+    // Default mock returns HTML without @id
+    let capturedMessage;
+    resourceIndex.put = async (resource) => {
+      capturedMessage = resource;
+    };
+
+    await processor.process(".html", []);
+
+    assert.ok(capturedMessage instanceof common.Message);
+    assert.ok(capturedMessage.id instanceof resource.Identifier);
+
+    const jsonld = JSON.parse(String(capturedMessage.content));
+    assert.strictEqual(jsonld["@id"], undefined);
+    assert.strictEqual(capturedMessage.id.subject, "");
+  });
+
   test("handles empty HTML file list", async () => {
     knowledgeStorage.findByExtension = async () => [];
 
     // Should not throw any errors
-    await processor.processKnowledge(".html", []);
+    await processor.process(".html", []);
   });
 
   test("handles LLM response parsing errors gracefully", async () => {
@@ -325,7 +357,6 @@ describe("ResourceProcessor", () => {
     // Create processor with broken LLM
     const processorWithBrokenLlm = new ResourceProcessor(
       resourceIndex,
-      configStorage,
       knowledgeStorage,
       llmWithInvalidResponse,
       logger,
@@ -337,7 +368,7 @@ describe("ResourceProcessor", () => {
     };
 
     // Should not throw an error, but should skip the problematic items
-    await processorWithBrokenLlm.processKnowledge(".html", []);
+    await processorWithBrokenLlm.process(".html", []);
 
     // Verify that no resources were put because of parsing failures
     assert.strictEqual(putCallCount, 0);

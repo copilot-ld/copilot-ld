@@ -111,7 +111,7 @@ export class VectorProcessor extends ProcessorBase {
     const texts = [item.text];
     const embeddings = await this.#llm.createEmbeddings(texts);
     const vector = embeddings[0].embedding;
-    await this.#targetIndex.addItem(vector, item.identifier);
+    await this.#targetIndex.addItem(item.identifier, vector);
     return vector;
   }
 }

@@ -105,9 +105,9 @@ describe("vector service", () => {
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.contents));
-      assert.strictEqual(result.contents.length, 1);
-      assert.strictEqual(result.contents[0], "Content for msg1");
+      assert.ok(Array.isArray(result.results));
+      assert.strictEqual(result.results.length, 1);
+      assert.strictEqual(result.results[0], "Content for msg1");
     });
 
     test("QueryByDescriptor queries descriptor index", async () => {
@@ -125,9 +125,9 @@ describe("vector service", () => {
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.contents));
-      assert.strictEqual(result.contents.length, 1);
-      assert.strictEqual(result.contents[0], "Descriptor for desc1");
+      assert.ok(Array.isArray(result.results));
+      assert.strictEqual(result.results.length, 1);
+      assert.strictEqual(result.results[0], "Descriptor for desc1");
     });
 
     test("QueryByContent handles empty filters", async () => {
@@ -144,7 +144,7 @@ describe("vector service", () => {
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.contents));
+      assert.ok(Array.isArray(result.results));
     });
   });
 });

@@ -5,8 +5,8 @@ import "tool.proto";
 package vector;
 
 service Vector {
-  rpc QueryByContent(TextQuery) returns (tool.QueryResult);
-  rpc QueryByDescriptor(TextQuery) returns (tool.QueryResult);
+  rpc QueryByContent(TextQuery) returns (tool.QueryResults);
+  rpc QueryByDescriptor(TextQuery) returns (tool.QueryResults);
 }
 
 message TextQuery {

@@ -37,7 +37,7 @@ class ToolService extends ToolBase {
    * @inheritdoc
    * @param {import("@copilot-ld/libtype").tool.ToolDefinition} req - Tool execution request
    */
-  async ExecuteTool(req) {
+  async Call(req) {
     try {
       // Validate request structure early
       if (!req?.id || !req?.function) {

@@ -1,6 +1,7 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { resource } from "@copilot-ld/libtype";
 
 // Module under test
 import { MemoryService } from "../index.js";
@@ -16,8 +17,8 @@ describe("memory service", () => {
       assert.strictEqual(typeof MemoryService.prototype.Append, "function");
     });
 
-    test("MemoryService has GetWindow method", () => {
-      assert.strictEqual(typeof MemoryService.prototype.GetWindow, "function");
+    test("MemoryService has Get method", () => {
+      assert.strictEqual(typeof MemoryService.prototype.Get, "function");
     });
 
     test("MemoryService constructor accepts expected parameters", () => {
@@ -28,7 +29,7 @@ describe("memory service", () => {
     test("MemoryService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(MemoryService.prototype);
       assert(methods.includes("Append"));
-      assert(methods.includes("GetWindow"));
+      assert(methods.includes("Get"));
       assert(methods.includes("constructor"));
     });
   });
@@ -44,8 +45,26 @@ describe("memory service", () => {
       };
 
       mockStorage = {
-        append: async () => {},
-        get: async () => [],
+        async append(key, value) {
+          this.data = this.data || new Map();
+          const existing = this.data.get(key) || "";
+          const newValue = existing ? `${existing}\n${value}` : value;
+          this.data.set(key, newValue);
+        },
+        async get(key) {
+          this.data = this.data || new Map();
+          const value = this.data.get(key);
+          if (!value) throw new Error("Not found");
+          // Simulate JSONL parsing for .jsonl files
+          if (key.endsWith(".jsonl")) {
+            return value.split("\n").map((line) => JSON.parse(line));
+          }
+          return value;
+        },
+        async exists(key) {
+          this.data = this.data || new Map();
+          return this.data.has(key);
+        },
       };
 
       mockLogFn = () => ({
@@ -82,25 +101,35 @@ describe("memory service", () => {
 
       const result = await service.Append({
         for: "test-conversation",
-        identifiers: [{ type: "common.Message", name: "message1" }],
+        identifiers: [
+          resource.Identifier.fromObject({
+            type: "common.Message",
+            name: "message1",
+            tokens: 10,
+          }),
+        ],
       });
 
       assert.ok(result);
       assert.strictEqual(result.accepted, "test-conversation");
     });
 
-    test("GetWindow validates required for parameter", async () => {
+    test("Get validates required for parameter", async () => {
       const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
-      await assert.rejects(() => service.GetWindow({}), /for is required/);
+      await assert.rejects(() => service.Get({}), /for is required/);
     });
 
-    test("GetWindow returns memory window structure", async () => {
+    test("Get returns memory window structure", async () => {
       const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
-      const result = await service.GetWindow({
+      const result = await service.Get({
         for: "test-conversation",
         budget: 1000,
+        allocation: {
+          tools: 0.5,
+          history: 0.5,
+        },
       });
 
       assert.ok(result);
@@ -109,18 +138,51 @@ describe("memory service", () => {
       assert.ok(Array.isArray(result.history));
     });
 
-    test("GetWindow filters message types correctly", async () => {
-      // Mock storage with some test data
-      mockStorage.get = async () => [
-        { type: "tool.ToolFunction", name: "tool1" },
-        { type: "common.Message", name: "message1" },
-        { type: "common.Message", name: "message2" },
-      ];
+    test("Get filters message types correctly", async () => {
+      // Add some test data first
+      await mockStorage.append(
+        "test-conversation.jsonl",
+        JSON.stringify({
+          id: "tool.ToolFunction.tool1",
+          identifier: resource.Identifier.fromObject({
+            type: "tool.ToolFunction",
+            name: "tool1",
+            tokens: 10,
+          }),
+        }),
+      );
+      await mockStorage.append(
+        "test-conversation.jsonl",
+        JSON.stringify({
+          id: "common.Message.message1",
+          identifier: resource.Identifier.fromObject({
+            type: "common.Message",
+            name: "message1",
+            tokens: 15,
+          }),
+        }),
+      );
+      await mockStorage.append(
+        "test-conversation.jsonl",
+        JSON.stringify({
+          id: "common.Message.message2",
+          identifier: resource.Identifier.fromObject({
+            type: "common.Message",
+            name: "message2",
+            tokens: 20,
+          }),
+        }),
+      );
 
       const service = new MemoryService(mockConfig, mockStorage, mockLogFn);
 
-      const result = await service.GetWindow({
+      const result = await service.Get({
         for: "test-conversation",
+        budget: 1000,
+        allocation: {
+          tools: 0.5,
+          history: 0.5,
+        },
       });
 
       // Should have tools and history separated

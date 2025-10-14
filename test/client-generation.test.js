@@ -39,7 +39,7 @@ describe("Generated client locations", () => {
   test("Memory client class shape", () => {
     assert.ok(MemoryClient);
     assert.ok(MemoryClient.prototype instanceof Client);
-    ["Append", "GetWindow"].forEach((m) =>
+    ["Append", "Get"].forEach((m) =>
       assert.strictEqual(typeof MemoryClient.prototype[m], "function"),
     );
   });
@@ -55,7 +55,7 @@ describe("Generated client locations", () => {
   test("Tool client class shape", () => {
     assert.ok(ToolClient);
     assert.ok(ToolClient.prototype instanceof Client);
-    ["ExecuteTool"].forEach((m) =>
+    ["Call"].forEach((m) =>
       assert.strictEqual(typeof ToolClient.prototype[m], "function"),
     );
   });

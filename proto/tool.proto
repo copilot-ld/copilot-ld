@@ -5,7 +5,7 @@ import "resource.proto";
 package tool;
 
 service Tool {
-  rpc ExecuteTool(ToolDefinition) returns (ToolCallResult);
+  rpc Call(ToolDefinition) returns (ToolCallResult);
 }
 
 // Generic query types
@@ -17,8 +17,8 @@ message QueryFilter {
   optional string max_tokens = 4;
 }
 
-message QueryResult {
-  repeated string contents = 1;
+message QueryResults {
+  repeated string results = 1;
 }
 
 // Tool types

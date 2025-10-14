@@ -15,13 +15,15 @@
     "scripts"
   ],
   "scripts": {
-    "init": "mkdir -p generated; for d in memories policies resources graphs vectors; do mkdir -p data/$d; done",
+    "data:init": "mkdir -p generated data/memories data/policies data/resources data/graphs data/vectors",
+    "data:clean": "rm -rf generated/* data/memories/* data/policies/* data/resources/* data/graphs/* data/vectors/*",
     "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
     "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",
     "codegen:service": "npx --workspace=@copilot-ld/libcodegen codegen --service",
     "codegen:definition": "npx --workspace=@copilot-ld/libcodegen codegen --definition",
-    "process": "npm run process:resources && npm run process:tools && npm run process:vectors && npm run process:graphs",
+    "process": "npm run process:assistants && npm run process:resources && npm run process:tools && npm run process:vectors && npm run process:graphs",
+    "process:assistants": "npx env-cmd --silent -- node ./scripts/assistants.js",
     "process:resources": "npx env-cmd --silent -- node ./scripts/resources.js",
     "process:tools": "npx env-cmd --silent -- node ./scripts/tools.js",
     "process:vectors": "npx env-cmd --silent -- node ./scripts/vectors.js",

@@ -20,7 +20,7 @@ function isWildcard(value) {
  * GraphIndex class for managing RDF graph data with lazy loading
  */
 export class GraphIndex extends IndexBase {
-  #store;
+  #graph;
 
   /**
    * Creates a new GraphIndex instance
@@ -33,22 +33,21 @@ export class GraphIndex extends IndexBase {
     if (!store || !(store instanceof Store))
       throw new Error("store must be an N3 Store instance");
 
-    this.#store = store;
+    this.#graph = store;
   }
 
   /**
    * Adds quads to the index with identifier mapping
-   * @param {object[]} quads - Array of quad objects with subject, predicate, object
    * @param {resource.Identifier} identifier - Resource identifier
-   * @param {string} subjectUri - The JSON-LD @id URI for this resource
+   * @param {object[]} quads - Array of quad objects with subject, predicate, object
    * @returns {Promise<void>}
    */
-  async addItem(quads, identifier, subjectUri) {
+  async addItem(identifier, quads) {
     if (!this.loaded) await this.loadData();
 
     // Add quads to N3 store
     for (const quad of quads) {
-      this.#store.addQuad(
+      this.#graph.addQuad(
         namedNode(quad.subject),
         namedNode(quad.predicate),
         literal(quad.object),
@@ -56,17 +55,13 @@ export class GraphIndex extends IndexBase {
     }
 
     const item = {
-      uri: String(identifier),
+      id: String(identifier),
       identifier,
-      subjectUri, // JSON-LD @id for query matching
-      quads, // Persist the quads so they can be restored during loadData()
+      quads,
     };
 
-    // Store item in the index map
-    this.index.set(item.uri, item);
-
-    // Append item to storage as JSON-ND line
-    await this.storage().append(this.indexKey, JSON.stringify(item));
+    // Use parent class to update index in memory and on disk
+    await super.addItem(item);
   }
 
   /**
@@ -75,7 +70,7 @@ export class GraphIndex extends IndexBase {
    */
   async loadData() {
     // Clear the N3 store before loading
-    this.#store.removeMatches();
+    this.#graph.removeMatches();
 
     // Use the common loading logic from IndexBase
     await super.loadData();
@@ -84,7 +79,7 @@ export class GraphIndex extends IndexBase {
     for (const item of this.index.values()) {
       if (item.quads && Array.isArray(item.quads)) {
         for (const quad of item.quads) {
-          this.#store.addQuad(
+          this.#graph.addQuad(
             namedNode(quad.subject),
             namedNode(quad.predicate),
             literal(quad.object),
@@ -119,15 +114,19 @@ export class GraphIndex extends IndexBase {
 
   /**
    * Finds resource identifiers that match the given subjects
-   * @param {Set<string>} matchingSubjects - Set of subject URIs that matched the query
+   * @param {Set<string>} subjects - Set of subject URIs that matched the query
    * @returns {resource.Identifier[]} Array of resource identifiers
    * @private
    */
-  #findMatchingIdentifiers(matchingSubjects) {
+  #findMatchingIdentifiers(subjects) {
     const identifiers = [];
     for (const item of this.index.values()) {
-      if (item.subjectUri && matchingSubjects.has(item.subjectUri)) {
-        identifiers.push(resource.Identifier.fromObject(item.identifier));
+      // Check if any of the item's quads have subjects that match our query
+      if (item.quads && Array.isArray(item.quads)) {
+        const hasMatch = item.quads.some((quad) => subjects.has(quad.subject));
+        if (hasMatch) {
+          identifiers.push(resource.Identifier.fromObject(item.identifier));
+        }
       }
     }
     return identifiers;
@@ -146,7 +145,7 @@ export class GraphIndex extends IndexBase {
     const normalizedPattern = this.#normalizePattern(pattern);
 
     // 2. Query the N3 store for matching triples
-    const quads = this.#store.getQuads(
+    const quads = this.#graph.getQuads(
       normalizedPattern.subject ? namedNode(normalizedPattern.subject) : null,
       normalizedPattern.predicate
         ? namedNode(normalizedPattern.predicate)

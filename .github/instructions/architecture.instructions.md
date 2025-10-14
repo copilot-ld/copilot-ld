@@ -218,7 +218,7 @@ class AgentService {
   async processRequest(request) {
     // Parallel operations
     const [memoryWindow, embeddings] = await Promise.all([
-      this.memoryService.getWindow(request),
+      this.memoryService.get(request),
       this.llmService.createEmbeddings(request.query),
     ]);
 

@@ -40,7 +40,10 @@ css
 cyclomatic
 DDoS
 debuggable
-de-duplication
+deduplicate
+deduplication
+deserialize
+deserialization
 destructure
 destructured
 destructuring
@@ -165,6 +168,8 @@ pico
 PID
 plugins
 portability
+pre-calculate
+pre-calculated
 pre-compile
 pre-compiled
 Pre-compiled

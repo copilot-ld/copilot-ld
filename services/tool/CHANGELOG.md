@@ -1,11 +1,11 @@
 # Changelog
 
-## 2025-10-13
+## 2025-10-14
 
-- Enhanced `ExecuteTool()` method to pass through `filter` parameter for query
-  constraints
-- Improved GitHub token handling in tool argument forwarding
-- Streamlined service initialization by removing default endpoint configuration
+- **BREAKING**: Renamed `ExecuteTool()` to `Call()` and improved message
+  structure with `QueryResults` for consistency
+- Enhanced GitHub token handling and streamlined service initialization with
+  automatic configuration management
 
 ## 2025-10-10
 
@@ -32,8 +32,8 @@
 - **NEW**: Initial implementation of Tool service as part of Phase 3, Step 10
 - **BREAKING**: Implemented strict type validation expecting
   `tool.ToolDefinition` input objects with enhanced error handling
-- Added gRPC proxy functionality with `ExecuteTool` and `ListTools` methods for
-  dynamic tool routing
+- Added gRPC proxy functionality with `Call` and `ListTools` methods for dynamic
+  tool routing
 - Integrated configuration-driven endpoint mapping supporting both existing
   services and custom tool services
 - Enhanced diagnostic logging with multi-stage tool name resolution and

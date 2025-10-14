@@ -1,6 +1,5 @@
 /* eslint-env node */
 
-import yaml from "js-yaml";
 import { microdata } from "microdata-minimal";
 import mustache from "mustache";
 import { readFileSync } from "fs";
@@ -16,7 +15,6 @@ import { ProcessorBase } from "@copilot-ld/libutil";
  */
 export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
-  #configStorage;
   #knowledgeStorage;
   #llm;
   #descriptorTemplate;
@@ -25,16 +23,14 @@ export class ResourceProcessor extends ProcessorBase {
   /**
    * Creates a new ResourceProcessor instance
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance
-   * @param {import("@copilot-ld/libstorage").StorageInterface} configStorage - Storage for configuration files
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage for knowledge base data
    * @param {import("@copilot-ld/libcopilot").Copilot} llm - LLM client for descriptor generation
    * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
    */
-  constructor(resourceIndex, configStorage, knowledgeStorage, llm, logger) {
+  constructor(resourceIndex, knowledgeStorage, llm, logger) {
     super(logger, 5);
     if (!llm) throw new Error("llm is required");
     this.#resourceIndex = resourceIndex;
-    this.#configStorage = configStorage;
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
     this.#logger = logger;
@@ -48,28 +44,13 @@ export class ResourceProcessor extends ProcessorBase {
     this.#descriptorTemplate = readFileSync(templatePath, "utf8");
   }
 
-  async processAssistants() {
-    const data = await this.#configStorage.get("assistants.yml");
-    const objects = yaml.load(data);
-
-    for (const [name, object] of Object.entries(objects)) {
-      object.id = {
-        type: "common.Assistant",
-        name: `common.Assistant.${name}`,
-      };
-      object.descriptor = object.descriptor || {};
-      const assistant = common.Assistant.fromObject(object);
-      this.#resourceIndex.put(assistant);
-    }
-  }
-
   /**
    * Processes HTML files from a knowledge base
    * @param {string} extension - File extension to search for (default: ".html")
    * @param {string[]} selectors - Array of CSS selectors to filter microdata items (default: [])
    * @returns {Promise<void>}
    */
-  async processKnowledge(extension = ".html", selectors = []) {
+  async process(extension = ".html", selectors = []) {
     const keys = await this.#knowledgeStorage.findByExtension(extension);
 
     for (const key of keys) {
@@ -154,6 +135,7 @@ export class ResourceProcessor extends ProcessorBase {
   #createResourceFromData(item, descriptor) {
     const jsonld = JSON.stringify(item);
     return common.Message.fromObject({
+      id: { subject: item["@id"] || "" },
       role: "system",
       content: { jsonld },
       descriptor,

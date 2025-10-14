@@ -48,7 +48,7 @@ npm install
 Initialize the necessary data directories with empty indices:
 
 ```sh
-npm run init
+npm run data:init
 ```
 
 ### 4. Generate code from Protocol Buffers
@@ -77,12 +77,10 @@ A knowledge base with HTML microdata must be available at `./data/knowledge/`.
 See the [Processing Guide](docs/processing.html) for complete knowledge base
 setup instructions including HTML structure examples and processing workflows.
 
-### 7. Process resources and create vector embeddings
+### 7. Process all resources and create indices
 
 ```sh
-npm run process:resources
-npm run process:tools
-npm run process:vectors
+npm run process
 ```
 
 ### 8. Start services

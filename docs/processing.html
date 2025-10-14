@@ -51,43 +51,19 @@
 
       <h3>Overview</h3>
       <p>
-        The Copilot-LD processing pipeline transforms your knowledge base
-        through several stages in sequence:
+        The Copilot-LD processing pipeline transforms your knowledge base into
+        searchable resources, tool definitions, and vector embeddings. The
+        system processes assistants, HTML content, tools, and vectors
+        automatically in the correct sequence.
       </p>
-      <ol>
-        <li>
-          <strong>Storage Setup</strong>: Prepare local storage directories for
-          data processing
-        </li>
-        <li>
-          <strong>Knowledge Base Setup</strong>: Organize HTML content with
-          structured microdata
-        </li>
-        <li>
-          <strong>Resource Processing</strong>: Extract and index content from
-          HTML files
-        </li>
-        <li>
-          <strong>Tool Processing</strong>: Generate tool schemas and
-          documentation
-        </li>
-        <li>
-          <strong>Vector Processing</strong>: Create embeddings for semantic
-          search
-        </li>
-        <li>
-          <strong>Data Management</strong>: Upload/download processed data for
-          deployment
-        </li>
-      </ol>
 
-      <h3>1. Storage Setup</h3>
+      <h3>1. Processing All Data</h3>
       <p>
-        Prepare local storage directories for data processing. This ensures a
-        consistent workspace for all pipeline stages.
+        Process assistants, knowledge base content, tools, and vectors with a
+        single command. The system handles all stages automatically:
       </p>
 
-      <pre><code>npm run init</code></pre>
+      <pre><code>npm run process</code></pre>
 
       <h3>2. Knowledge Base Structure</h3>
       <p>
@@ -170,20 +146,13 @@ cp -r examples/knowledge data/</code></pre>
 
       <h3>3. Resource Processing</h3>
       <p>
-        Resource processing extracts structured content from HTML files and
+        The resource processor extracts structured content from HTML files and
         creates searchable resources stored in the
-        <code>data/resources/</code> directory.
+        <code>data/resources/</code> directory. This happens automatically when
+        you run <code>npm run process</code>.
       </p>
 
-      <h4>Processing HTML Content</h4>
-      <p>
-        The resource processor scans HTML files for elements with microdata
-        attributes and extracts them as individual knowledge items:
-      </p>
-
-      <pre><code>npm run process:resources</code></pre>
-
-      <h5>Custom CSS Selectors</h5>
+      <h4>Custom CSS Selectors</h4>
       <p>
         By default, the processor looks for <code>[itemscope]</code> elements.
         For advanced usage, you can run the underlying script directly with
@@ -238,10 +207,8 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
       <p>
         Tool processing generates OpenAI-compatible JSON schemas from Protocol
         Buffer definitions, enabling dynamic tool registration and validation.
+        This happens automatically when you run <code>npm run process</code>.
       </p>
-
-      <h4>Generate Tool Schemas</h4>
-      <pre><code>npm run process:tools</code></pre>
 
       <h4>Protocol Buffer Tool Definitions</h4>
       <p>
@@ -354,11 +321,9 @@ message HashResponse {
       <h3>5. Vector Processing</h3>
       <p>
         Vector processing creates embeddings of resource content and descriptors
-        for efficient similarity search and retrieval-augmented generation.
+        for efficient similarity search and retrieval-augmented generation. This
+        happens automatically when you run <code>npm run process</code>.
       </p>
-
-      <h4>Generate Vector Embeddings</h4>
-      <pre><code>npm run process:vectors</code></pre>
 
       <h4>Embedding Strategy</h4>
       <p>The vector processor creates two types of embeddings:</p>
@@ -490,9 +455,7 @@ message HashResponse {
 
       <h5>Development Environment</h5>
       <pre><code># Process knowledge base locally
-npm run process:resources
-npm run process:tools
-npm run process:vectors
+npm run process
 
 # Upload processed data to S3
 npm run upload</code></pre>

@@ -29,7 +29,7 @@ export class GraphService extends GraphBase {
   /**
    * Query graph index using pattern matching
    * @param {import("@copilot-ld/libtype").graph.PatternQuery} req - Pattern query request
-   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResults>} Query results with resource strings
    */
   async QueryByPattern(req) {
     this.debug("Graph query", {
@@ -55,9 +55,9 @@ export class GraphService extends GraphBase {
     });
 
     // 3. Get content strings from resource identifiers
-    const contents = await this.#getContentAsStrings(identifiers);
+    const results = await this.#getResources(identifiers);
 
-    return { contents };
+    return { results };
   }
 
   /** @inheritdoc */
@@ -104,12 +104,12 @@ export class GraphService extends GraphBase {
   }
 
   /**
-   * Retrieves content strings from resource identifiers
+   * Retrieves resource strings from resource identifiers
    * @param {string[]} identifiers - Resource identifiers
-   * @returns {Promise<string[]>} Array of content strings
+   * @returns {Promise<string[]>} Array of resource strings
    * @private
    */
-  async #getContentAsStrings(identifiers) {
+  async #getResources(identifiers) {
     if (!identifiers?.length) {
       return [];
     }

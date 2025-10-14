@@ -43,7 +43,7 @@ export class VectorService extends VectorBase {
   /**
    * Query content index using text input
    * @param {import("@copilot-ld/libtype").vector.TextQuery} req - Text query request
-   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResults>} Query results with resource strings
    */
   async QueryByContent(req) {
     return await this.#queryByText(req, "content");
@@ -52,7 +52,7 @@ export class VectorService extends VectorBase {
   /**
    * Query descriptor index using text input
    * @param {import("@copilot-ld/libtype").vector.TextQuery} req - Text query request
-   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResults>} Query results with resource strings
    */
   async QueryByDescriptor(req) {
     return await this.#queryByText(req, "descriptor");
@@ -62,7 +62,7 @@ export class VectorService extends VectorBase {
    * Shared implementation for text-based vector queries
    * @param {import("@copilot-ld/libtype").vector.TextQuery} req - Text query request
    * @param {string} type - Either "content" or "descriptor"
-   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResult>} Query results with content strings
+   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResults>} Query results with resource strings
    * @private
    */
   async #queryByText(req, type) {
@@ -99,19 +99,19 @@ export class VectorService extends VectorBase {
     });
 
     // 3. Get content strings from resource identifiers
-    const contents = await this.#getContentAsStrings(identifiers, type);
+    const results = await this.#getResources(identifiers, type);
 
-    return { contents };
+    return { results };
   }
 
   /**
-   * Retrieves content strings from resource identifiers
+   * Retrieves resource strings from resource identifiers
    * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Resource identifiers
    * @param {string} type - Representation type, either "content" or "descriptor"
-   * @returns {Promise<string[]>} Array of content strings
+   * @returns {Promise<string[]>} Array of resource strings
    * @private
    */
-  async #getContentAsStrings(identifiers, type) {
+  async #getResources(identifiers, type) {
     if (!identifiers?.length) {
       return [];
     }

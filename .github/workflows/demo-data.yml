@@ -33,7 +33,7 @@ jobs:
           cp ./config/assistants{.example,}.yml
           cp ./config/tools{.example,}.yml
 
-          npm run init
+          npm run data:init
 
           cp -r ./examples/knowledge data/
           cp -r ./examples/tools/* tools/

@@ -131,7 +131,7 @@ export class GraphProcessor extends ProcessorBase {
     this.#updateOntology(quads);
 
     // Add quads to the index (not the JSON-LD)
-    await this.#targetIndex.addItem(quads, item.identifier, jsonld["@id"]);
+    await this.#targetIndex.addItem(item.identifier, quads);
 
     return jsonld;
   }

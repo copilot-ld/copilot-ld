@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-14
+
+- Enhanced `withIdentifier()` method to support additional subject parameter for
+  improved resource identification
+
 ## 2025-10-10
 
 - Bump version

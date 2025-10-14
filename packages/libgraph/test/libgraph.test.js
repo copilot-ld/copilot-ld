@@ -123,7 +123,7 @@ describe("libgraph", () => {
       // Add all resources to the index
       for (const { identifier, jsonld } of resources) {
         const quads = jsonldToQuads(jsonld);
-        await graphIndex.addItem(quads, identifier, jsonld["@id"]);
+        await graphIndex.addItem(identifier, quads);
       }
 
       // Test 1: Query by type - should find only Message resources
@@ -251,7 +251,7 @@ describe("libgraph", () => {
       };
 
       const quads = jsonldToQuads(jsonld);
-      await graphIndex.addItem(quads, identifier, jsonld["@id"]);
+      await graphIndex.addItem(identifier, quads);
 
       // Test 1: Query using "type" shorthand should work
       const typePattern = {
@@ -369,7 +369,7 @@ describe("libgraph", () => {
 
       // Add the item
       const quads = jsonldToQuads(jsonld);
-      await graphIndex.addItem(quads, identifier, jsonld["@id"]);
+      await graphIndex.addItem(identifier, quads);
 
       // Test hasItem returns true after adding
       const hasAfterAdd = await graphIndex.hasItem(String(identifier));
@@ -480,7 +480,7 @@ describe("libgraph", () => {
       // Add all resources
       for (const { identifier, jsonld } of resources) {
         const quads = jsonldToQuads(jsonld);
-        await graphIndex.addItem(quads, identifier, jsonld["@id"]);
+        await graphIndex.addItem(identifier, quads);
       }
 
       // Test prefix filter

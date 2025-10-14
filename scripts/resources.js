@@ -34,7 +34,6 @@ function parseArgs() {
  */
 async function main() {
   const args = parseArgs();
-  const configStorage = createStorage("config");
   const knowledgeStorage = createStorage("knowledge");
   const resourceStorage = createStorage("resources");
   const llm = createLlm(await config.githubToken());
@@ -42,15 +41,15 @@ async function main() {
   const policy = createPolicy();
 
   const resourceIndex = new ResourceIndex(resourceStorage, policy);
-  const processor = new ResourceProcessor(
+
+  // Process knowledge using ResourceProcessor
+  const resourceProcessor = new ResourceProcessor(
     resourceIndex,
-    configStorage,
     knowledgeStorage,
     llm,
     logger,
   );
-  await processor.processAssistants();
-  await processor.processKnowledge(".html", [args.selector]);
+  await resourceProcessor.process(".html", [args.selector]);
 }
 
 main();

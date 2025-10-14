@@ -5,7 +5,7 @@ import "tool.proto";
 package graph;
 
 service Graph {
-  rpc QueryByPattern(PatternQuery) returns (tool.QueryResult);
+  rpc QueryByPattern(PatternQuery) returns (tool.QueryResults);
   rpc GetOntology(OntologyRequest) returns (OntologyResponse);
 }
 

@@ -14,44 +14,16 @@ class TestIndex extends IndexBase {
     super(storage, indexKey);
   }
 
-  // Implement abstract methods for testing
-  async addItem(data, identifier) {
-    if (!this.loaded) await this.loadData();
-
+  // Override addItem to test inheritance of base functionality
+  async addItem(identifier, data) {
     const item = {
-      uri: String(identifier),
+      id: String(identifier),
       identifier,
       data,
     };
 
-    this.index.set(item.uri, item);
-    await this.storage().append(this.indexKey, JSON.stringify(item));
-  }
-
-  async queryItems(query, filter = {}) {
-    if (!this.loaded) await this.loadData();
-
-    // Simple query implementation for testing - return all items that match the query
-    let identifiers = [];
-    for (const item of this.index.values()) {
-      if (!query || item.data === query) {
-        identifiers.push(resource.Identifier.fromObject(item.identifier));
-      }
-    }
-
-    // Apply shared filters
-    const { prefix, limit, max_tokens } = filter;
-
-    if (prefix) {
-      identifiers = identifiers.filter((identifier) =>
-        this._applyPrefixFilter(String(identifier), prefix),
-      );
-    }
-
-    let results = this._applyLimitFilter(identifiers, limit);
-    results = this._applyTokensFilter(results, max_tokens);
-
-    return results;
+    // Use parent class for generic index operations
+    await super.addItem(item);
   }
 }
 
@@ -121,12 +93,12 @@ describe("IndexBase - Shared Functionality", () => {
     test("loadData loads existing data from storage", async () => {
       const testData = [
         {
-          uri: "test.Item.item1",
+          id: "test.Item.item1",
           identifier: { type: "test.Item", name: "item1", tokens: 10 },
           data: "test-data-1",
         },
         {
-          uri: "test.Item.item2",
+          id: "test.Item.item2",
           identifier: { type: "test.Item", name: "item2", tokens: 20 },
           data: "test-data-2",
         },
@@ -197,7 +169,7 @@ describe("IndexBase - Shared Functionality", () => {
         tokens: 10,
       });
 
-      await testIndex.addItem("test-data", identifier);
+      await testIndex.addItem(identifier, "test-data");
       const exists = await testIndex.hasItem(String(identifier));
 
       assert.strictEqual(exists, true, "Should return true for existing item");
@@ -219,7 +191,7 @@ describe("IndexBase - Shared Functionality", () => {
         tokens: 10,
       });
 
-      await testIndex.addItem("test-data", identifier);
+      await testIndex.addItem(identifier, "test-data");
       const result = await testIndex.getItem(String(identifier));
 
       assert.strictEqual(
@@ -264,23 +236,23 @@ describe("IndexBase - Shared Functionality", () => {
 
       for (const item of items) {
         const identifier = resource.Identifier.fromObject(item);
-        await testIndex.addItem(item.data, identifier);
+        await testIndex.addItem(identifier, item.data);
       }
     });
 
     test("_applyPrefixFilter works correctly", async () => {
       // Test prefix filtering through queryItems
-      const allResults = await testIndex.queryItems(null, {});
-      const messageResults = await testIndex.queryItems(null, {
+      const allResults = await testIndex.queryItems({});
+      const messageResults = await testIndex.queryItems({
         prefix: "common.Message",
       });
-      const toolResults = await testIndex.queryItems(null, {
+      const toolResults = await testIndex.queryItems({
         prefix: "tool.Function",
       });
-      const resourceResults = await testIndex.queryItems(null, {
+      const resourceResults = await testIndex.queryItems({
         prefix: "resource.Document",
       });
-      const noMatchResults = await testIndex.queryItems(null, {
+      const noMatchResults = await testIndex.queryItems({
         prefix: "nonexistent",
       });
 
@@ -312,9 +284,9 @@ describe("IndexBase - Shared Functionality", () => {
     });
 
     test("_applyLimitFilter works correctly", async () => {
-      const unlimitedResults = await testIndex.queryItems(null, {});
-      const limitedResults = await testIndex.queryItems(null, { limit: 3 });
-      const zeroLimitResults = await testIndex.queryItems(null, { limit: 0 });
+      const unlimitedResults = await testIndex.queryItems({});
+      const limitedResults = await testIndex.queryItems({ limit: 3 });
+      const zeroLimitResults = await testIndex.queryItems({ limit: 0 });
 
       assert.strictEqual(
         unlimitedResults.length,
@@ -334,14 +306,14 @@ describe("IndexBase - Shared Functionality", () => {
     });
 
     test("_applyTokensFilter works correctly", async () => {
-      const unlimitedResults = await testIndex.queryItems(null, {});
-      const tokenLimitedResults = await testIndex.queryItems(null, {
+      const unlimitedResults = await testIndex.queryItems({});
+      const tokenLimitedResults = await testIndex.queryItems({
         max_tokens: 35,
       });
-      const strictTokenResults = await testIndex.queryItems(null, {
+      const strictTokenResults = await testIndex.queryItems({
         max_tokens: 20,
       });
-      const veryStrictResults = await testIndex.queryItems(null, {
+      const veryStrictResults = await testIndex.queryItems({
         max_tokens: 5,
       });
 
@@ -372,7 +344,7 @@ describe("IndexBase - Shared Functionality", () => {
     });
 
     test("combined filters work correctly", async () => {
-      const combinedResults = await testIndex.queryItems(null, {
+      const combinedResults = await testIndex.queryItems({
         prefix: "common.Message",
         limit: 1,
         max_tokens: 50,
@@ -390,47 +362,104 @@ describe("IndexBase - Shared Functionality", () => {
     });
   });
 
-  describe("Abstract Method Enforcement", () => {
-    test("IndexBase can be extended and provides base functionality", () => {
-      // This test verifies the inheritance pattern works correctly
-      class IncompleteIndex extends IndexBase {
-        constructor(storage) {
-          super(storage);
-        }
-        // Missing addItem and queryItems implementations
+  describe("New IndexBase Implementation", () => {
+    test("addItem uses parent class storage logic", async () => {
+      const identifier = resource.Identifier.fromObject({
+        type: "test.Item",
+        name: "test1",
+        tokens: 10,
+      });
+
+      await testIndex.addItem(identifier, "test-data");
+
+      // Verify storage methods were called
+      assert.strictEqual(
+        mockStorage.append.mock.callCount(),
+        1,
+        "Should call storage append",
+      );
+
+      // Verify item was stored in memory
+      assert.strictEqual(
+        await testIndex.hasItem(String(identifier)),
+        true,
+        "Should store item in memory index",
+      );
+    });
+
+    test("queryItems provides default filtering implementation", async () => {
+      // Add test items
+      const items = [
+        { type: "common.Message", name: "msg1", tokens: 10 },
+        { type: "common.Message", name: "msg2", tokens: 20 },
+        { type: "tool.Function", name: "func1", tokens: 15 },
+      ];
+
+      for (const item of items) {
+        const identifier = resource.Identifier.fromObject(item);
+        await testIndex.addItem(identifier, `data-${item.name}`);
       }
 
-      const incompleteIndex = new IncompleteIndex(mockStorage);
-
-      // The index should be created and inherit base functionality
-      assert.ok(incompleteIndex, "Should create instance");
+      // Test basic query
+      const allResults = await testIndex.queryItems({});
       assert.strictEqual(
-        typeof incompleteIndex.hasItem,
-        "function",
-        "Should inherit hasItem method",
-      );
-      assert.strictEqual(
-        typeof incompleteIndex.getItem,
-        "function",
-        "Should inherit getItem method",
-      );
-      assert.strictEqual(
-        typeof incompleteIndex.loadData,
-        "function",
-        "Should inherit loadData method",
+        allResults.length,
+        3,
+        "Should return all items with empty filter",
       );
 
-      // Abstract methods throw errors when called without implementation
-      assert.rejects(
-        () => incompleteIndex.addItem("test"),
-        /addItem\(\) must be implemented by subclasses/,
-        "Should throw error for unimplemented addItem",
-      );
+      // Test prefix filter
+      const messageResults = await testIndex.queryItems({
+        prefix: "common.Message",
+      });
+      assert.strictEqual(messageResults.length, 2, "Should filter by prefix");
 
-      assert.rejects(
-        () => incompleteIndex.queryItems("test"),
-        /queryItems\(\) must be implemented by subclasses/,
-        "Should throw error for unimplemented queryItems",
+      // Test limit filter
+      const limitedResults = await testIndex.queryItems({ limit: 2 });
+      assert.strictEqual(limitedResults.length, 2, "Should limit results");
+
+      // Test token filter
+      const tokenResults = await testIndex.queryItems({ max_tokens: 25 });
+      assert(tokenResults.length <= 3, "Should apply token filter");
+    });
+  });
+
+  describe("Abstract Method Enforcement", () => {
+    test("IndexBase provides concrete implementations", () => {
+      // IndexBase now provides concrete addItem and queryItems
+      const index = new IndexBase(mockStorage);
+
+      assert.strictEqual(
+        typeof index.addItem,
+        "function",
+        "Should provide addItem method",
+      );
+      assert.strictEqual(
+        typeof index.queryItems,
+        "function",
+        "Should provide queryItems method",
+      );
+    });
+
+    test("IndexBase addItem handles basic storage operations", async () => {
+      const index = new IndexBase(mockStorage);
+      const item = {
+        id: "test.Item.basic",
+        identifier: { type: "test.Item", name: "basic", tokens: 5 },
+        data: "basic-data",
+      };
+
+      await index.addItem(item);
+
+      assert.strictEqual(
+        mockStorage.append.mock.callCount(),
+        1,
+        "Should call storage append",
+      );
+      assert.strictEqual(
+        await index.hasItem("test.Item.basic"),
+        true,
+        "Should store item in index",
       );
     });
   });

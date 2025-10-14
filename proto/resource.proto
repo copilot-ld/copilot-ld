@@ -6,10 +6,11 @@ message Identifier {
   string type = 1;
   string name = 2;
   string parent = 3;
+  string subject = 4;
 
   // In vector searches, values will be populated from the representation (Descriptor or Content).
-  optional int32 tokens = 4;
-  optional double score = 5;
+  optional int32 tokens = 5;
+  optional double score = 6;
 }
 
 /**

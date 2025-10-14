@@ -176,4 +176,109 @@ describe("Universal Resource Identifier", () => {
       "common.Conversation.hash0001/common.Message.hash0002",
     );
   });
+
+  test("withIdentifier sets subject parameter", () => {
+    const message = common.Message.fromObject({
+      content: {
+        text: "Hello, world!",
+      },
+    });
+    message.withIdentifier(null, "#bob");
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.name, "499e2b89");
+    assert.strictEqual(message.id.parent, "");
+    assert.strictEqual(message.id.subject, "#bob");
+  });
+
+  test("withIdentifier sets both parent and subject parameters", () => {
+    const message = common.Message.fromObject({
+      content: {
+        text: "Hello, world!",
+      },
+    });
+    message.withIdentifier("common.Conversation.hash0001", "#alice");
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.name, "499e2b89");
+    assert.strictEqual(message.id.parent, "common.Conversation.hash0001");
+    assert.strictEqual(message.id.subject, "#alice");
+  });
+
+  test("withIdentifier preserves existing subject when no subject parameter", () => {
+    const message = common.Message.fromObject({
+      id: {
+        subject: "#existing",
+      },
+      content: {
+        text: "Hello, world!",
+      },
+    });
+    message.withIdentifier();
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.name, "499e2b89");
+    assert.strictEqual(message.id.parent, "");
+    assert.strictEqual(message.id.subject, "#existing");
+  });
+
+  test("withIdentifier overwrites existing subject when subject parameter provided", () => {
+    const message = common.Message.fromObject({
+      id: {
+        subject: "#old",
+      },
+      content: {
+        text: "Hello, world!",
+      },
+    });
+    message.withIdentifier(null, "#new");
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.name, "499e2b89");
+    assert.strictEqual(message.id.parent, "");
+    assert.strictEqual(message.id.subject, "#new");
+  });
+
+  test("withIdentifier handles complex JSON-LD subject URIs", () => {
+    const message = common.Message.fromObject({
+      content: {
+        text: "Complex URI example",
+      },
+    });
+    message.withIdentifier(null, "http://example.org/people#person1");
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.subject, "http://example.org/people#person1");
+  });
+
+  test("withIdentifier converts non-string subject to string", () => {
+    const message = common.Message.fromObject({
+      content: {
+        text: "Number subject example",
+      },
+    });
+    message.withIdentifier(null, 12345);
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.subject, "12345");
+  });
+
+  test("withIdentifier sets empty string when subject is falsy", () => {
+    const message = common.Message.fromObject({
+      content: {
+        text: "Falsy subject example",
+      },
+    });
+    message.withIdentifier(null, null);
+
+    assert.strictEqual(typeof message.id, "object");
+    assert.strictEqual(message.id.type, "common.Message");
+    assert.strictEqual(message.id.subject, "");
+  });
 });

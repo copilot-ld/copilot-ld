@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-14
+
+- **REFACTOR**: Moved `getLatestUserMessage()` function to
+  `@copilot-ld/libagent` as part of agent orchestration consolidation
+
 ## 2025-10-13
 
 - Added `IndexBase` abstract class for shared index functionality across

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-14
+
+- Enhanced CORS middleware with improved origin validation and security headers
+
 ## 2025-10-10
 
 - Bump version

@@ -1,8 +1,22 @@
 /* eslint-env node */
 import { cors } from "hono/cors";
-import validator from "validator";
 
 import { ExtensionConfig } from "@copilot-ld/libconfig";
+
+/**
+ * Simple HTML escape function to prevent XSS attacks
+ * @param {string} str - String to escape
+ * @returns {string} Escaped string
+ */
+function escapeHtml(str) {
+  if (typeof str !== "string") return str;
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
 
 /**
  * @typedef {object} Middleware
@@ -95,8 +109,7 @@ export class ValidationMiddleware {
   #sanitizeData(data) {
     const sanitized = {};
     for (const [key, value] of Object.entries(data)) {
-      sanitized[key] =
-        typeof value === "string" ? validator.escape(value) : value;
+      sanitized[key] = typeof value === "string" ? escapeHtml(value) : value;
     }
     return sanitized;
   }

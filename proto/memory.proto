@@ -6,7 +6,7 @@ package memory;
 
 service Memory {
   rpc Append(AppendRequest) returns (AppendResponse);
-  rpc GetWindow(WindowRequest) returns (Window);
+  rpc Get(GetRequest) returns (Window);
 }
 
 message AppendRequest {
@@ -18,14 +18,14 @@ message AppendResponse {
   string accepted = 1;
 }
 
-message WindowRequest {
+message GetRequest {
   string for = 1;
   int32 budget = 2;
   Allocation allocation = 3;
 
   message Allocation {
-    int32 tools = 1;
-    int32 history = 2;
+    float tools = 1;
+    float history = 2;
   }
 }
 

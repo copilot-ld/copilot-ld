@@ -3,7 +3,7 @@
 import { Parser } from "n3";
 import { ProcessorBase } from "@copilot-ld/libutil";
 
-import { OntologyManager } from "./ontology.js";
+import { OntologyProcessor } from "./ontology.js";
 
 /**
  * GraphProcessor class for processing resources with N-Quads into graph index
@@ -12,7 +12,7 @@ import { OntologyManager } from "./ontology.js";
 export class GraphProcessor extends ProcessorBase {
   #resourceIndex;
   #targetIndex;
-  #ontology;
+  #ontologyProcessor;
 
   /**
    * Creates a new GraphProcessor instance
@@ -27,7 +27,7 @@ export class GraphProcessor extends ProcessorBase {
 
     this.#resourceIndex = resourceIndex;
     this.#targetIndex = graphIndex;
-    this.#ontology = new OntologyManager();
+    this.#ontologyProcessor = new OntologyProcessor();
   }
 
   /** @inheritdoc */
@@ -51,7 +51,7 @@ export class GraphProcessor extends ProcessorBase {
 
     // Update ontology with quad information
     for (const quad of quads) {
-      this.#ontology.processQuad(quad);
+      this.#ontologyProcessor.process(quad);
     }
   }
 
@@ -62,13 +62,8 @@ export class GraphProcessor extends ProcessorBase {
    * @private
    */
   #rdfToQuads(rdf) {
-    try {
-      const parser = new Parser({ format: "N-Quads" });
-      return parser.parse(rdf);
-    } catch (error) {
-      this.logger.debug("Failed to parse N-Quads", { error: error.message });
-      return [];
-    }
+    const parser = new Parser({ format: "N-Quads" });
+    return parser.parse(rdf);
   }
 
   /**
@@ -77,7 +72,7 @@ export class GraphProcessor extends ProcessorBase {
    */
   async saveOntology() {
     const storage = this.#targetIndex.storage();
-    const ontologyData = this.#ontology.getOntologyData();
+    const ontologyData = this.#ontologyProcessor.getOntologyData();
     await storage.put("ontology.json", JSON.stringify(ontologyData, null, 2));
   }
 

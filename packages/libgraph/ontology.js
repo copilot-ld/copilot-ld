@@ -3,7 +3,7 @@
 /**
  * Ontology management helper for tracking RDF patterns
  */
-export class OntologyManager {
+export class OntologyProcessor {
   #ontology;
 
   constructor() {
@@ -19,7 +19,7 @@ export class OntologyManager {
    * Process a single quad for ontology updates
    * @param {object} quad - Single quad object
    */
-  processQuad(quad) {
+  process(quad) {
     const { subject, predicate, object } = this.#extractQuadValues(quad);
 
     if (!predicate) return;

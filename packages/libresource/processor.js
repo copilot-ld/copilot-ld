@@ -78,10 +78,8 @@ export class ResourceProcessor extends ProcessorBase {
       if (baseElement) {
         return baseElement.getAttribute("href");
       }
-    } catch (error) {
-      this.#logger.debug("Failed to extract base from DOM, using fallback", {
-        error: error.message,
-      });
+    } catch {
+      // Fall through to default
     }
 
     // Use provided base IRI or construct from document key
@@ -95,27 +93,19 @@ export class ResourceProcessor extends ProcessorBase {
    * @private
    */
   async #minifyHTML(html) {
-    try {
-      return await minify(html, {
-        collapseWhitespace: true,
-        removeComments: true,
-        removeRedundantAttributes: true,
-        removeScriptTypeAttributes: true,
-        removeStyleLinkTypeAttributes: true,
-        removeEmptyAttributes: true,
-        minifyCSS: true,
-        minifyJS: true,
-        removeAttributeQuotes: false, // Keep quotes to preserve microdata
-        removeOptionalTags: false, // Keep all tags for microdata parsing
-        preserveLineBreaks: false,
-      });
-    } catch (error) {
-      // If minification fails, return original HTML
-      this.#logger.debug("HTML minification failed, using original", {
-        error: error.message,
-      });
-      return html;
-    }
+    return await minify(html, {
+      collapseWhitespace: true,
+      removeComments: true,
+      removeRedundantAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      removeEmptyAttributes: true,
+      minifyCSS: true,
+      minifyJS: true,
+      removeAttributeQuotes: false, // Keep quotes to preserve microdata
+      removeOptionalTags: false, // Keep all tags for microdata parsing
+      preserveLineBreaks: false,
+    });
   }
 
   /**

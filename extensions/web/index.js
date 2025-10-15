@@ -89,6 +89,7 @@ export async function createWebExtension(client, config, logFn = createLogger) {
 
         return c.json({
           message: reply,
+          conversation_id: response.conversation_id,
           status: "success",
         });
       } catch (error) {

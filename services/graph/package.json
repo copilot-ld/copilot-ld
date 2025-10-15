@@ -18,7 +18,7 @@
     "@copilot-ld/libconfig": "^0.1.28",
     "@copilot-ld/librpc": "^0.1.45",
     "@copilot-ld/libstorage": "^0.1.22",
-    "@copilot-ld/libgraph": "^0.1.11",
+    "@copilot-ld/libgraph": "^0.1.12",
     "@copilot-ld/libtype": "^0.1.34",
     "@copilot-ld/libutil": "^0.1.31",
     "n3": "^1.26.0"

@@ -3,8 +3,20 @@
 import { Store, DataFactory } from "n3";
 import { resource } from "@copilot-ld/libtype";
 import { IndexBase } from "@copilot-ld/libutil";
+import { createStorage } from "@copilot-ld/libstorage";
 
 const { namedNode, literal } = DataFactory;
+
+/**
+ * Standard RDF namespace prefixes used throughout the graph system
+ */
+export const RDF_PREFIXES = {
+  schema: "https://schema.org/",
+  rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+  rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+  foaf: "http://xmlns.com/foaf/0.1/",
+  ex: "https://example.invalid/",
+};
 
 /**
  * Checks if a value should be treated as a wildcard in graph queries
@@ -45,13 +57,9 @@ export class GraphIndex extends IndexBase {
   async addItem(identifier, quads) {
     if (!this.loaded) await this.loadData();
 
-    // Add quads to N3 store
+    // Add N3 quads to store - each quad should have subject, predicate, object N3 terms
     for (const quad of quads) {
-      this.#graph.addQuad(
-        namedNode(quad.subject),
-        namedNode(quad.predicate),
-        literal(quad.object),
-      );
+      this.#graph.addQuad(quad.subject, quad.predicate, quad.object);
     }
 
     const item = {
@@ -75,40 +83,27 @@ export class GraphIndex extends IndexBase {
     // Use the common loading logic from IndexBase
     await super.loadData();
 
-    // Add all quads to N3 store after loading
+    // Add all N3 quads to store after loading
     for (const item of this.index.values()) {
       if (item.quads && Array.isArray(item.quads)) {
         for (const quad of item.quads) {
-          this.#graph.addQuad(
-            namedNode(quad.subject),
-            namedNode(quad.predicate),
-            literal(quad.object),
-          );
+          this.#graph.addQuad(quad.subject, quad.predicate, quad.object);
         }
       }
     }
   }
 
   /**
-   * Normalizes a query pattern by applying fallback logic
+   * Normalizes a query pattern by converting wildcards to null
    * @param {object} pattern - Raw query pattern
-   * @returns {object} Normalized pattern with wildcards and shorthand expanded
+   * @returns {object} Normalized pattern with wildcards converted to null
    * @private
    */
   #normalizePattern(pattern) {
-    const typeShorthands = ["type", "@type"];
     return {
       subject: isWildcard(pattern.subject) ? null : pattern.subject,
-      predicate: isWildcard(pattern.predicate)
-        ? null
-        : typeShorthands.includes(pattern.predicate)
-          ? "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-          : pattern.predicate,
-      object: isWildcard(pattern.object)
-        ? null
-        : pattern.object?.startsWith('"') && pattern.object.endsWith('"')
-          ? pattern.object.slice(1, -1)
-          : pattern.object,
+      predicate: isWildcard(pattern.predicate) ? null : pattern.predicate,
+      object: isWildcard(pattern.object) ? null : pattern.object,
     };
   }
 
@@ -123,13 +118,47 @@ export class GraphIndex extends IndexBase {
     for (const item of this.index.values()) {
       // Check if any of the item's quads have subjects that match our query
       if (item.quads && Array.isArray(item.quads)) {
-        const hasMatch = item.quads.some((quad) => subjects.has(quad.subject));
+        const hasMatch = item.quads.some((quad) => {
+          return subjects.has(quad.subject.value);
+        });
         if (hasMatch) {
           identifiers.push(resource.Identifier.fromObject(item.identifier));
         }
       }
     }
     return identifiers;
+  }
+
+  /**
+   * Converts a pattern term to the appropriate N3 term type
+   * @param {string|null} term - The term to convert
+   * @returns {import("n3").Term|null} N3 term or null for wildcards
+   * @private
+   */
+  #patternTermToN3Term(term) {
+    if (!term) return null;
+
+    // Handle quoted literals
+    if (term.startsWith('"') && term.endsWith('"')) {
+      return literal(term.slice(1, -1));
+    }
+
+    // For prefixed terms, resolve them manually using known prefixes
+    if (term.includes(":")) {
+      const [prefix, localName] = term.split(":", 2);
+
+      if (RDF_PREFIXES[prefix]) {
+        return namedNode(RDF_PREFIXES[prefix] + localName);
+      }
+    }
+
+    // For full URIs
+    if (term.startsWith("http://") || term.startsWith("https://")) {
+      return namedNode(term);
+    }
+
+    // For simple terms that don't look like URIs, treat as literals
+    return literal(term);
   }
 
   /**
@@ -142,16 +171,21 @@ export class GraphIndex extends IndexBase {
     if (!this.loaded) await this.loadData();
 
     // 1. Normalize query pattern
-    const normalizedPattern = this.#normalizePattern(pattern);
+    const normalized = this.#normalizePattern(pattern);
 
-    // 2. Query the N3 store for matching triples
-    const quads = this.#graph.getQuads(
-      normalizedPattern.subject ? namedNode(normalizedPattern.subject) : null,
-      normalizedPattern.predicate
-        ? namedNode(normalizedPattern.predicate)
-        : null,
-      normalizedPattern.object ? literal(normalizedPattern.object) : null,
-    );
+    // 2. Convert pattern terms to N3 terms, letting N3 handle prefix expansion
+    const subjectTerm = normalized.subject
+      ? this.#patternTermToN3Term(normalized.subject)
+      : null;
+    const predicateTerm = normalized.predicate
+      ? this.#patternTermToN3Term(normalized.predicate)
+      : null;
+    const objectTerm = normalized.object
+      ? this.#patternTermToN3Term(normalized.object)
+      : null;
+
+    // 3. Query the N3 store for matching triples
+    const quads = this.#graph.getQuads(subjectTerm, predicateTerm, objectTerm);
 
     if (quads.length === 0) {
       return [];
@@ -188,7 +222,7 @@ export class GraphIndex extends IndexBase {
  * @example
  * parseGraphQuery('person:john ? ?') // { subject: 'person:john', predicate: '?', object: '?' }
  * parseGraphQuery('? foaf:name "John Doe"') // { subject: '?', predicate: 'foaf:name', object: '"John Doe"' }
- * parseGraphQuery('person:john type "Person"') // { subject: 'person:john', predicate: 'type', object: '"Person"' }
+ * parseGraphQuery('person:john rdf:type schema:Person') // { subject: 'person:john', predicate: 'rdf:type', object: 'schema:Person' }
  */
 export function parseGraphQuery(line) {
   if (typeof line !== "string") {
@@ -217,6 +251,20 @@ export function parseGraphQuery(line) {
 
   const [subject, predicate, object] = terms;
   return { subject, predicate, object };
+}
+
+/**
+ * Creates a GraphIndex instance with default configuration
+ * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
+ * @returns {GraphIndex} Configured GraphIndex instance
+ */
+export function createGraphIndex(indexKey = "index.jsonl") {
+  const storage = createStorage("graphs");
+  const n3Store = new Store({
+    prefixes: RDF_PREFIXES,
+  });
+
+  return new GraphIndex(storage, n3Store, indexKey);
 }
 
 export { GraphProcessor } from "./processor.js";

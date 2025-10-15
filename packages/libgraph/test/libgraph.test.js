@@ -1,25 +1,28 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { Store } from "n3";
+import { Store, DataFactory } from "n3";
 
 import { GraphIndex, parseGraphQuery } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
 
+const { namedNode, literal } = DataFactory;
+
 /**
- * Helper function to convert JSON-LD to quads for testing
+ * Helper function to convert JSON-LD to N3 quads for testing
  * @param {object} jsonld - JSON-LD document
- * @returns {object[]} Array of quad-like objects
+ * @returns {object[]} Array of N3 quad objects
  */
 function jsonldToQuads(jsonld) {
   const quads = [];
+  const subjectNode = namedNode(jsonld["@id"] || "http://example.org/blank");
 
   // Add type if present
   if (jsonld["@type"]) {
     quads.push({
-      subject: jsonld["@id"] || "",
-      predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-      object: jsonld["@type"],
+      subject: subjectNode,
+      predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+      object: namedNode(`http://schema.org/${jsonld["@type"]}`),
     });
   }
 
@@ -27,19 +30,23 @@ function jsonldToQuads(jsonld) {
   for (const [key, value] of Object.entries(jsonld)) {
     if (key.startsWith("@")) continue; // Skip JSON-LD keywords
 
-    // Expand prefixed properties if needed
-    let predicate = key;
+    // Expand predicate URI
+    let predicateUri = key;
     if (key.includes(":") && jsonld["@context"]) {
+      // Handle prefixed properties like dcterms:description
       const [prefix, localPart] = key.split(":");
       if (jsonld["@context"][prefix]) {
-        predicate = jsonld["@context"][prefix] + localPart;
+        predicateUri = jsonld["@context"][prefix] + localPart;
       }
+    } else if (jsonld["@context"] && jsonld["@context"]["@vocab"]) {
+      // Handle @vocab expansion for simple properties like "description"
+      predicateUri = jsonld["@context"]["@vocab"] + key;
     }
 
     quads.push({
-      subject: jsonld["@id"] || "",
-      predicate: predicate,
-      object: String(value),
+      subject: subjectNode,
+      predicate: namedNode(predicateUri),
+      object: literal(String(value)),
     });
   }
 
@@ -130,7 +137,7 @@ describe("libgraph", () => {
       const messagePattern = {
         subject: null,
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        object: "Message",
+        object: "http://schema.org/Message",
       };
       const messageResults = await graphIndex.queryItems(messagePattern);
       assert.strictEqual(
@@ -153,7 +160,7 @@ describe("libgraph", () => {
       const toolPattern = {
         subject: null,
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        object: "ToolFunction",
+        object: "http://schema.org/ToolFunction",
       };
       const toolResults = await graphIndex.queryItems(toolPattern);
       assert.strictEqual(
@@ -236,7 +243,7 @@ describe("libgraph", () => {
       );
     });
 
-    test("pattern normalization handles type fallbacks correctly", async () => {
+    test("pattern normalization handles RDF queries correctly", async () => {
       // Add a test resource
       const identifier = resource.Identifier.fromObject({
         type: "common.Message",
@@ -253,47 +260,11 @@ describe("libgraph", () => {
       const quads = jsonldToQuads(jsonld);
       await graphIndex.addItem(identifier, quads);
 
-      // Test 1: Query using "type" shorthand should work
-      const typePattern = {
-        subject: null,
-        predicate: "type",
-        object: "Message",
-      };
-      const typeResults = await graphIndex.queryItems(typePattern);
-      assert.strictEqual(
-        typeResults.length,
-        1,
-        "Should find resource using 'type' shorthand",
-      );
-      assert.strictEqual(
-        String(typeResults[0]),
-        "common.Message.test-message",
-        "Should find correct resource using 'type'",
-      );
-
-      // Test 2: Query using "@type" shorthand should work
-      const atTypePattern = {
-        subject: null,
-        predicate: "@type",
-        object: "Message",
-      };
-      const atTypeResults = await graphIndex.queryItems(atTypePattern);
-      assert.strictEqual(
-        atTypeResults.length,
-        1,
-        "Should find resource using '@type' shorthand",
-      );
-      assert.strictEqual(
-        String(atTypeResults[0]),
-        "common.Message.test-message",
-        "Should find correct resource using '@type'",
-      );
-
-      // Test 3: Query using full RDF type predicate should work
+      // Test: Query using full RDF type predicate should work
       const fullTypePattern = {
         subject: null,
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        object: "Message",
+        object: "http://schema.org/Message",
       };
       const fullTypeResults = await graphIndex.queryItems(fullTypePattern);
       assert.strictEqual(
@@ -307,22 +278,10 @@ describe("libgraph", () => {
         "Should find correct resource using full predicate",
       );
 
-      // Test 4: All three approaches should return the same results
-      assert.deepStrictEqual(
-        typeResults,
-        atTypeResults,
-        "Results should be identical for 'type' and '@type'",
-      );
-      assert.deepStrictEqual(
-        typeResults,
-        fullTypeResults,
-        "Results should be identical for shorthand and full predicate",
-      );
-
-      // Test 5: Non-type predicates should not be affected by normalization
+      // Test: Non-type predicates should work with full URIs
       const descPattern = {
         subject: null,
-        predicate: "description",
+        predicate: "http://schema.org/description",
         object: "Test content",
       };
       const descResults = await graphIndex.queryItems(descPattern);
@@ -487,7 +446,7 @@ describe("libgraph", () => {
       const messagePattern = {
         subject: null,
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        object: "Message",
+        object: "http://schema.org/Message",
       };
 
       const allMessageResults = await graphIndex.queryItems(messagePattern);
@@ -616,21 +575,12 @@ describe("libgraph", () => {
       });
     });
 
-    test("parses triple query with type shorthand", () => {
-      const result = parseGraphQuery("person:john type Person");
+    test("parses triple query with rdf:type predicate", () => {
+      const result = parseGraphQuery("person:john rdf:type schema:Person");
       assert.deepStrictEqual(result, {
         subject: "person:john",
-        predicate: "type",
-        object: "Person",
-      });
-    });
-
-    test("parses triple query with @type shorthand", () => {
-      const result = parseGraphQuery('person:john @type "Person"');
-      assert.deepStrictEqual(result, {
-        subject: "person:john",
-        predicate: "@type",
-        object: '"Person"',
+        predicate: "rdf:type",
+        object: "schema:Person",
       });
     });
 

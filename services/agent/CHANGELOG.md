@@ -6,14 +6,10 @@
   `@copilot-ld/libagent` package
 - Simplified service implementation by delegating business logic to `AgentMind`
   class
-- Reduced service code size significantly while maintaining full API
-  compatibility
-
-## 2025-10-13
-
 - Enhanced tool invocation with structured function definitions and improved
   error handling
-- Updated service to work with new `GraphService` and `ToolService` clients
+- Reduced service code size significantly while maintaining full API
+  compatibility
 
 ## 2025-09-19
 

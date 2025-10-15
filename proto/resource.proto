@@ -29,9 +29,7 @@ message Descriptor {
  */
 message Content {
   int32 tokens = 1;
-
-  oneof type {
-    string text = 2;
-    string jsonld = 3;
-  }
+  optional string text = 2;
+  optional string nquads = 3;
+  optional string jsonld = 4;
 }

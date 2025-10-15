@@ -1,6 +1,5 @@
 /* eslint-env node */
-import { createPolicy } from "@copilot-ld/libpolicy";
-import { ResourceIndex } from "@copilot-ld/libresource";
+import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 
@@ -13,11 +12,9 @@ import { AssistantProcessor } from "../packages/libagent/processor.js";
  */
 async function main() {
   const configStorage = createStorage("config");
-  const resourceStorage = createStorage("resources");
-  const logger = createLogger("script.assistants");
-  const policy = createPolicy();
+  const logger = createLogger("assistants");
 
-  const resourceIndex = new ResourceIndex(resourceStorage, policy);
+  const resourceIndex = createResourceIndex();
 
   // Process assistants using AssistantProcessor
   const assistantProcessor = new AssistantProcessor(

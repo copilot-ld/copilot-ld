@@ -1,6 +1,8 @@
 /* eslint-env node */
 
 import * as types from "@copilot-ld/libtype";
+import { createStorage } from "@copilot-ld/libstorage";
+import { createPolicy } from "@copilot-ld/libpolicy";
 
 /**
  * Resource index for typed resource management with access control
@@ -158,4 +160,20 @@ function toIdentifier(uri) {
   });
 }
 
+/**
+ * Creates a ResourceIndex instance with default configuration
+ * @param {string} [storageType] - Storage type for createStorage (default: undefined)
+ * @param {import("@copilot-ld/libpolicy").Policy} [policy] - Policy instance (default: createPolicy())
+ * @returns {ResourceIndex} Configured ResourceIndex instance
+ */
+export function createResourceIndex(storageType = undefined, policy = null) {
+  const storage = createStorage("resources", storageType);
+  const policyInstance = policy || createPolicy();
+
+  return new ResourceIndex(storage, policyInstance);
+}
+
 export { toType, toIdentifier };
+
+export { DescriptorProcessor } from "./descriptor.js";
+export { ResourceProcessor } from "./processor.js";

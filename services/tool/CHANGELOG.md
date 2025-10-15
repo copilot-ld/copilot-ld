@@ -3,9 +3,10 @@
 ## 2025-10-14
 
 - **BREAKING**: Renamed `ExecuteTool()` to `Call()` and improved message
-  structure with `QueryResults` for consistency
-- Enhanced GitHub token handling and streamlined service initialization with
-  automatic configuration management
+  structure with `QueryResults`
+- Enhanced GitHub token handling and streamlined service initialization
+- Simplified service initialization using `createResourceIndex()` factory
+  function
 
 ## 2025-10-10
 

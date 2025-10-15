@@ -1,18 +1,17 @@
 /* eslint-env node */
-import { Store } from "n3";
+import { Store, Writer } from "n3";
 
-import { GraphIndex, parseGraphQuery } from "@copilot-ld/libgraph";
+import {
+  createGraphIndex,
+  parseGraphQuery,
+  RDF_PREFIXES,
+} from "@copilot-ld/libgraph";
 import { Repl } from "@copilot-ld/librepl";
-import { ResourceIndex } from "@copilot-ld/libresource";
-import { Policy } from "@copilot-ld/libpolicy";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
-import { createStorage } from "@copilot-ld/libstorage";
 
 // Global state
-/** @type {GraphIndex} */
+/** @type {import("@copilot-ld/libgraph").GraphIndex} */
 let graphIndex;
-/** @type {ResourceIndex} */
-let resourceIndex;
 
 /**
  * Performs a graph query using the parsed pattern
@@ -24,28 +23,38 @@ async function performQuery(prompt) {
     // Parse and execute the query
     const pattern = parseGraphQuery(prompt);
     const identifiers = await graphIndex.queryItems(pattern);
-    const resources = await resourceIndex.get(
-      "common.System.root",
-      identifiers,
-    );
 
     let output = ``;
 
     if (identifiers.length === 0) {
-      output += `No matching graphs found.\n`;
+      output += `No results\n`;
     } else {
       identifiers.forEach((identifier, i) => {
-        const resource = resources.find((r) => r.id.name === identifier.name);
-        if (!resource) return;
+        // Get the graph item directly from the GraphIndex internal index
+        const item = graphIndex.index.get(String(identifier));
 
-        // Not all resources have content, fallback to descriptor
-        const text = resource.content
-          ? String(resource.content)
-          : String(resource.descriptor);
+        if (!item || !item.quads) {
+          output += `# ${i + 1}\n\n`;
+          output += `${identifier}\n`;
+          output += `\n\nNo graph data available.\n\n`;
+          return;
+        }
 
-        output += `# ${i + 1}\n\n`;
-        output += `${identifier}\n`;
-        output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;
+        // Convert quads to a readable format using N3 Writer
+        const tempStore = new Store();
+        item.quads.slice(0, 10).forEach((quad) => tempStore.addQuad(quad));
+
+        const writer = new Writer({
+          format: "turtle",
+          prefixes: RDF_PREFIXES,
+        });
+
+        const quadsText = writer.quadsToString(tempStore.getQuads());
+
+        const hasMore = item.quads.length > 10;
+
+        output += `# ${i + 1}: ${identifier}\n\n`;
+        output += `\n\`\`\`\n${quadsText}${hasMore ? "\n  # ... and " + (item.quads.length - 10) + " more triples" : ""}\n\`\`\`\n\n`;
       });
     }
 
@@ -74,14 +83,7 @@ person:john ? ?         # Find all about person:john
 ? ? ?                   # Find all graphs`,
 
   setup: async () => {
-    const graphsStorage = createStorage("graphs");
-    const store = new Store();
-    graphIndex = new GraphIndex(graphsStorage, store, "graphs.jsonl");
-
-    const resourceStorage = createStorage("resources");
-    const policyStorage = createStorage("policies");
-    const policy = new Policy(policyStorage);
-    resourceIndex = new ResourceIndex(resourceStorage, policy);
+    graphIndex = createGraphIndex();
   },
 
   onLine: performQuery,

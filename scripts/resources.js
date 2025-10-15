@@ -1,9 +1,9 @@
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
-import { createPolicy } from "@copilot-ld/libpolicy";
-import { ResourceIndex } from "@copilot-ld/libresource";
+import { createResourceIndex } from "@copilot-ld/libresource";
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
+import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 
@@ -15,11 +15,11 @@ const config = await ScriptConfig.create("resources");
  */
 function parseArgs() {
   const args = process.argv.slice(2);
-  const parsed = { selector: "[itemscope]" }; // default selector
+  const parsed = { base: null }; // default selector and no base IRI
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--selector" && i + 1 < args.length) {
-      parsed.selector = args[i + 1];
+    if (args[i] === "--base" && i + 1 < args.length) {
+      parsed.base = args[i + 1];
       i++; // skip the next argument as it's the value
     }
   }
@@ -35,21 +35,23 @@ function parseArgs() {
 async function main() {
   const args = parseArgs();
   const knowledgeStorage = createStorage("knowledge");
-  const resourceStorage = createStorage("resources");
-  const llm = createLlm(await config.githubToken());
-  const logger = createLogger("script.resources");
-  const policy = createPolicy();
 
-  const resourceIndex = new ResourceIndex(resourceStorage, policy);
+  // Use o3-mini for faster processing of descriptors
+  const llm = createLlm(await config.githubToken(), "gpt-5-mini");
+  const logger = createLogger("resources");
+
+  const resourceIndex = createResourceIndex();
+  const descriptorProcessor = new DescriptorProcessor(llm);
 
   // Process knowledge using ResourceProcessor
   const resourceProcessor = new ResourceProcessor(
     resourceIndex,
     knowledgeStorage,
-    llm,
+    descriptorProcessor,
     logger,
+    args.base,
   );
-  await resourceProcessor.process(".html", [args.selector]);
+  await resourceProcessor.process(".html");
 }
 
 main();

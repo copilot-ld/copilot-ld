@@ -7,7 +7,6 @@ import { createStorage } from "@copilot-ld/libstorage";
 import { MemoryService } from "./index.js";
 
 const config = await ServiceConfig.create("memory");
-
 const memoryStorage = createStorage("memories");
 
 const service = new MemoryService(config, memoryStorage);

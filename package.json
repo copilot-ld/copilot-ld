@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "data:init": "mkdir -p generated data/memories data/policies data/resources data/graphs data/vectors",
-    "data:clean": "rm -rf generated/* data/memories/* data/policies/* data/resources/* data/graphs/* data/vectors/*",
+    "data:clean": "rm -rf generated data/memories data/policies data/resources data/graphs data/vectors",
+    "data:reset": "npm run data:clean && npm run data:init && npm run codegen",
     "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
     "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",
@@ -59,6 +60,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^52.0.4",
     "globals": "^16.3.0",
+    "html-minifier-terser": "^7.2.0",
     "mustache": "^4.2.0",
     "prettier": "^3.6.2",
     "protobufjs": "^7.4.0",

@@ -4,10 +4,7 @@ import { ServiceConfig } from "@copilot-ld/libconfig";
 
 import { LlmService } from "./index.js";
 
-const config = await ServiceConfig.create("llm", {
-  model: "gpt-4o",
-});
-
+const config = await ServiceConfig.create("llm");
 const service = new LlmService(config);
 const server = new Server(service, config);
 

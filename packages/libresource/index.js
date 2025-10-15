@@ -174,6 +174,3 @@ export function createResourceIndex(storageType = undefined, policy = null) {
 }
 
 export { toType, toIdentifier };
-
-export { DescriptorProcessor } from "./descriptor.js";
-export { ResourceProcessor } from "./processor.js";

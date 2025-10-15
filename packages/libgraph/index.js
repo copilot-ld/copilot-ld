@@ -266,5 +266,3 @@ export function createGraphIndex(indexKey = "index.jsonl") {
 
   return new GraphIndex(storage, n3Store, indexKey);
 }
-
-export { GraphProcessor } from "./processor.js";

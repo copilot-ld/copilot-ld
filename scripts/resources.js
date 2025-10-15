@@ -2,10 +2,11 @@
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
 import { createResourceIndex } from "@copilot-ld/libresource";
-import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
-import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
+
+import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
+import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
 
 const config = await ScriptConfig.create("resources");
 

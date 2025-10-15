@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-15
+
+- Bump version
+
 ## 2025-10-14
 
 - **BREAKING**: Updated `Get()` method to use allocation ratios (0-1) instead of

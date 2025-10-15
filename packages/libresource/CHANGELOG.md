@@ -2,6 +2,10 @@
 
 ## 2025-10-15
 
+- Bump version
+
+## 2025-10-14
+
 - Enhanced `ResourceProcessor` with HTML minification and extracted
   `DescriptorCreator` class for improved resource processing
 - **BREAKING**: Updated `ResourceIndex` to use simplified URI format without

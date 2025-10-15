@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-15
+
+- Bump version
+
 ## 2025-10-14
 
 - Minor configuration simplification for improved consistency

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-15
+
+- Bump version
+
 ## 2025-10-14
 
 - Enhanced `withIdentifier()` method to support additional subject parameter for

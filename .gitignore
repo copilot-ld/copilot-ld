@@ -27,3 +27,7 @@ SCRATCHPAD*.md
 
 # Other files
 **/.DS_Store
+**/*.tar
+**/*.tar.gz
+**/*.zip
+**/*.log

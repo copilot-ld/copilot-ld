@@ -37,8 +37,7 @@ async function main() {
   const args = parseArgs();
   const knowledgeStorage = createStorage("knowledge");
 
-  // Use o3-mini for faster processing of descriptors
-  const llm = createLlm(await config.githubToken(), "gpt-5-mini");
+  const llm = createLlm(await config.githubToken(), "gpt-4o-mini");
   const logger = createLogger("resources");
 
   const resourceIndex = createResourceIndex();

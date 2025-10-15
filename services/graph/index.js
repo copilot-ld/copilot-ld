@@ -62,7 +62,7 @@ export class GraphService extends GraphBase {
 
   /** @inheritdoc */
   async GetOntology(_req) {
-    this.debug("Getting ontology from graph storage");
+    this.debug("Getting ontology");
 
     const storage = this.#graphIndex.storage();
 

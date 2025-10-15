@@ -93,6 +93,7 @@ HTTP
 HTTPS
 IAM
 Integrations
+IRI
 iteratively
 JavaScript
 JSON
@@ -135,6 +136,7 @@ Microservices
 Microservices-based
 middleware
 min
+minification
 MinIO
 minioadmin
 minio
@@ -248,6 +250,8 @@ VPC
 warmup
 WASM
 webpack
+whitespace
 workspaces
 XML
 YAML
+instantiation

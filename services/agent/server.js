@@ -3,9 +3,7 @@ import { Octokit } from "@octokit/core";
 
 import { Server, clients } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
-import { createPolicy } from "@copilot-ld/libpolicy";
-import { ResourceIndex } from "@copilot-ld/libresource";
-import { createStorage } from "@copilot-ld/libstorage";
+import { createResourceIndex } from "@copilot-ld/libresource";
 
 import { AgentService } from "./index.js";
 
@@ -17,9 +15,7 @@ const memoryClient = new MemoryClient(await ServiceConfig.create("memory"));
 const llmClient = new LlmClient(await ServiceConfig.create("llm"));
 const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
-const resourceStorage = createStorage("resources");
-const policy = createPolicy();
-const resourceIndex = new ResourceIndex(resourceStorage, policy);
+const resourceIndex = createResourceIndex();
 
 const service = new AgentService(
   agentConfig,

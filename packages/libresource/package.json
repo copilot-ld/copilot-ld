@@ -19,8 +19,12 @@
     "@copilot-ld/libtype": "^0.1.34"
   },
   "devDependencies": {
-    "microdata-minimal": "1.0.2",
-    "mustache": "^4.2.0"
+    "jsdom": "^27.0.0",
+    "jsonld": "^8.3.2",
+    "microdata-rdf-streaming-parser": "^3.0.0",
+    "n3": "^1.21.0",
+    "mustache": "^4.2.0",
+    "rdf-canonize": "^4.0.1"
   },
   "repository": {
     "type": "git",

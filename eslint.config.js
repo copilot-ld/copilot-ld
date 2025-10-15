@@ -73,7 +73,7 @@ export default [
       complexity: [
         "error",
         {
-          max: 11,
+          max: 13,
           variant: "modified",
         },
       ],

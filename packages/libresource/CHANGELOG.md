@@ -1,22 +1,11 @@
 # Changelog
 
-## 2025-10-14
+## 2025-10-15
 
-- Updated test coverage with enhanced resource processing validation and
-  protobuf object handling
-
-## 2025-10-10
-
-- Bump version
-
-- **BREAKING**: Updated `ResourceIndex` to work with simplified URI format
-  without `cld:` prefix
-- Enhanced `ResourceIndex.get()` method to handle `null` or `undefined`
-  identifiers gracefully
-- Simplified `ResourceProcessor` by extending unified `ProcessorBase` and
-  removing unused parameters LLM for improved AI agent understanding
-- Streamlined API with method renames (`getAll()` → `findAll()`, `getByPrefix()`
-  → `findByPrefix()`) and simplified JSON handling
-- Integrated policy-based access control for secure resource management
-- Fixed Protocol Buffer serialization issues with proper `.finish()` calls on
-  encoded data
+- Enhanced `ResourceProcessor` with HTML minification and extracted
+  `DescriptorCreator` class for improved resource processing
+- **BREAKING**: Updated `ResourceIndex` to use simplified URI format without
+  `cld:` prefix
+- Added `createResourceIndex()` factory function for simplified index creation
+- Improved Protocol Buffer handling and test coverage with `ProcessorBase`
+  extension

@@ -1,8 +1,7 @@
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
-import { Policy } from "@copilot-ld/libpolicy";
-import { ResourceIndex } from "@copilot-ld/libresource";
+import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 import { VectorIndex } from "@copilot-ld/libvector";
@@ -15,16 +14,13 @@ const config = await ScriptConfig.create("vectors");
  * Processes resources into vector embeddings
  */
 async function main() {
-  const resourceStorage = createStorage("resources");
   const vectorStorage = createStorage("vectors");
-  const policyStorage = createStorage("policies");
 
-  const policy = new Policy(policyStorage);
-  const resourceIndex = new ResourceIndex(resourceStorage, policy);
+  const resourceIndex = createResourceIndex();
   const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
   const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
   const llm = createLlm(await config.githubToken());
-  const logger = createLogger("script.vectors");
+  const logger = createLogger("vectors");
 
   const processor = new VectorProcessor(
     contentIndex,

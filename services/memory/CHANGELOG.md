@@ -2,12 +2,13 @@
 
 ## 2025-10-14
 
+- **BREAKING**: Updated `Get()` method to use allocation ratios (0-1) instead of
+  absolute token counts
 - Enhanced test coverage with complete storage interface mocks and proper
   protobuf object creation
-- Updated budget allocation system to use ratio-based calculations instead of
-  absolute token values
-- **BREAKING**: `Get()` method now expects allocation ratios (0-1) instead of
-  absolute token counts
+- Updated budget allocation system to use ratio-based calculations
+- Simplified service initialization using `createResourceIndex()` factory
+  function
 
 ## 2025-10-13
 

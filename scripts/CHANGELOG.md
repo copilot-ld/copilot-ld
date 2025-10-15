@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-14
+
+- Simplified index creation across all processing scripts using
+  `createGraphIndex()` and `createResourceIndex()` factory functions
+- Enhanced descriptor prompt template with improved content guidance for AI
+  agent understanding
+
 ## 2025-10-10
 
 - Renamed `scripts/triples.js` to `scripts/graphs.js` to align with updated

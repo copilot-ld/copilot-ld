@@ -1,9 +1,8 @@
 /* eslint-env node */
 import yaml from "js-yaml";
-import { ResourceIndex } from "@copilot-ld/libresource";
+import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
-import { createPolicy } from "@copilot-ld/libpolicy";
 import { resource, tool } from "@copilot-ld/libtype";
 import pkg from "protobufjs";
 import { access } from "node:fs/promises";
@@ -211,7 +210,7 @@ async function generateToolSchemas(endpoints, logger) {
 
 /**
  * Store tool object as a resource
- * @param {ResourceIndex} resourceIndex - Resource index instance
+ * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index instance
  * @param {object} schema - Tool schema object
  * @param {object} descriptor - Descriptor configuration
  * @param {object} logger - Logger instance
@@ -261,11 +260,8 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
  * @returns {Promise<void>}
  */
 async function main() {
-  const resourceIndex = new ResourceIndex(
-    createStorage("resources", "local"),
-    createPolicy(),
-  );
-  const logger = createLogger("script.tools");
+  const resourceIndex = createResourceIndex("local");
+  const logger = createLogger("tools");
 
   const [endpoints, descriptors] = await Promise.all([
     loadToolEndpoints(),

@@ -458,7 +458,7 @@ sequenceDiagram
       <h5>Graph Service</h5>
 
       <p>
-        Performs pattern-based queries against knowledge graphs using RDF triple
+        Performs pattern-based queries against knowledge graphs using RDF graph
         patterns. Enables semantic search and ontology exploration for knowledge
         base navigation.
       </p>
@@ -478,7 +478,7 @@ sequenceDiagram
       <p><strong>Architecture</strong>:</p>
       <ul>
         <li>
-          <strong>Graph-based queries</strong>: Uses N3 store for RDF triple
+          <strong>Graph-based queries</strong>: Uses N3 store for RDF graph
           pattern matching with SPARQL-like semantics
         </li>
         <li>
@@ -751,6 +751,30 @@ sequenceDiagram
         └── client.js   # Generated typed client
       </pre>
 
+      <h4>Factory Function Pattern</h4>
+
+      <p>
+        The platform provides factory functions for simplified creation of key
+        components with default configurations:
+      </p>
+
+      <pre><code>import { createGraphIndex } from "@copilot-ld/libgraph";
+import { createResourceIndex } from "@copilot-ld/libresource";
+
+// Create indexes with default storage and configuration
+const graphIndex = createGraphIndex();
+const resourceIndex = createResourceIndex();
+
+// Optional parameters for advanced use cases
+const customResourceIndex = createResourceIndex("persistent", customPolicy);</code></pre>
+
+      <p>
+        Factory functions encapsulate the complexity of storage initialization,
+        policy configuration, and component wiring, making the platform more
+        accessible while maintaining full customization capabilities for
+        advanced scenarios.
+      </p>
+
       <h4>Code Generation Commands</h4>
 
       <p>
@@ -775,6 +799,29 @@ npm run codegen:definition  # Service definitions only</code></pre>
         symlinks at startup to ensure generated code is accessible through
         <code>@copilot-ld/libtype</code> and <code>@copilot-ld/librpc</code>
         while maintaining clean package separation.
+      </p>
+
+      <h4>Enhanced Content Representation</h4>
+
+      <p>
+        The <code>resource.Content</code> message supports multiple content
+        representations to accommodate different processing needs:
+      </p>
+
+      <pre><code>message Content {
+  int32 tokens = 1;
+  optional string text = 2;     // Plain text content
+  optional string nquads = 3;   // RDF N-Quads representation
+  optional string jsonld = 4;   // JSON-LD structured data
+}</code></pre>
+
+      <p>
+        This flexible structure allows resources to store multiple content
+        formats simultaneously, enabling both semantic graph processing and
+        traditional text-based operations. The
+        <code>ResourceProcessor</code> populates both <code>nquads</code> and
+        <code>jsonld</code> fields during HTML processing, while maintaining
+        token counts for all representations.
       </p>
 
       <h4>Generated Artifact Structure</h4>

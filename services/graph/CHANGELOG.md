@@ -6,3 +6,5 @@
   `GetOntology` RPC methods
 - Enhanced graph query capabilities with pattern-based search and comprehensive
   ontology support for agent query planning
+- Simplified service initialization using `createGraphIndex()` and
+  `createResourceIndex()` factory functions

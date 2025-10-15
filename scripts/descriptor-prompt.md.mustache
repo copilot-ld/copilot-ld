@@ -1,13 +1,12 @@
-You are analyzing multiple structured content items for an AI agent knowledge base.
-Generate descriptors that help AI agents understand when and how to use each resource effectively.
+You are analyzing a single content item for an AI agent knowledge base.
+Generate a descriptor that help AI agents understand when and how to use this item effectively.
 
 **CRITICAL:**
-- Your response must be RAW JSON starting with [ and ending with ]
+- Your response must be RAW JSON starting with { and ending with }
 - Do not use markdown code blocks, backticks, or any formatting
-- Return an array with one descriptor object per input resource, in the same order
 
 **YOUR RESPONSE:**
-Reply with a JSON array containing descriptor objects, each with these keys:
+Reply with a single JSON object containing these keys:
 
 1. **purpose**
    - What this resource accomplishes for software development teams
@@ -31,13 +30,12 @@ Reply with a JSON array containing descriptor objects, each with these keys:
 - Consider both explicit questions and implicit needs in conversations
 
 **FORMATTING REQUIREMENTS:**
-- Start your response immediately with [ (no backticks, no markdown)
-- End your response with ]
-- Each descriptor object value must be under 280 characters
+- Start your response immediately with { (no backticks, no markdown)
+- End your response with }
+- Each key value must be under 280 characters
 - Use clear, specific language that guides decision-making
 - NO explanations, NO code blocks, NO markdown formatting
 - Focus on actionable guidance rather than content summary
-- Return exactly one descriptor per input resource in the same order
 
-**THE CONTENT ITEMS TO ANALYZE:**
-{{{batchContent}}}
+**THE CONTENT ITEM:**
+{{{json}}}

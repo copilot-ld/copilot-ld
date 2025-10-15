@@ -1,9 +1,8 @@
 /* eslint-env node */
 import { createLlm } from "@copilot-ld/libcopilot";
 import { ScriptConfig } from "@copilot-ld/libconfig";
-import { Policy } from "@copilot-ld/libpolicy";
 import { Repl } from "@copilot-ld/librepl";
-import { ResourceIndex } from "@copilot-ld/libresource";
+import { createResourceIndex } from "@copilot-ld/libresource";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { createStorage } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
@@ -16,7 +15,7 @@ const config = await ScriptConfig.create("search");
 let contentIndex;
 /** @type {VectorIndex} */
 let descriptorIndex;
-/** @type {ResourceIndex} */
+/** @type {import("@copilot-ld/libresource").ResourceIndex} */
 let resourceIndex;
 
 /**
@@ -52,8 +51,7 @@ async function performSearch(prompt, state) {
       ? String(resource[index])
       : String(resource.descriptor);
 
-    output += `# ${i + 1} Score: ${identifier.score.toFixed(4)}\n\n`;
-    output += `${identifier}\n`;
+    output += `# ${i + 1}: ${identifier} (${identifier.score.toFixed(4)})\n\n`;
     output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;
   });
 
@@ -69,10 +67,7 @@ const repl = new Repl(createTerminalFormatter(), {
     contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
     descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
 
-    const resourceStorage = createStorage("resources");
-    const policyStorage = createStorage("policies");
-    const policy = new Policy(policyStorage);
-    resourceIndex = new ResourceIndex(resourceStorage, policy);
+    resourceIndex = createResourceIndex();
   },
 
   state: {

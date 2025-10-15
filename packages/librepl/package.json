@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/librepl",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "description": "Interactive REPL utilities and command-line interfaces for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libformat": "^0.1.34"
+    "@copilot-ld/libformat": "^0.1.35"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-env node */
 /**
  * @file Retrieves CloudFormation stack outputs and formats as parameters.json
  * @example

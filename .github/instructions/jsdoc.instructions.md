@@ -99,12 +99,11 @@ async function getChunks(ids) {
 Place @typedef statements according to scope:
 
 ```javascript
-// Top of file - for types used throughout the file
-/** @typedef {object} - Object type
-/** @typedef {object} - Object type
+// Top of file - for imported interfaces used throughout the file
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
-// Generic object shapes
-/** @typedef {Object} ProcessRequestParams
+// Top of file - for complex object types used throughout the file
+/** @typedef {object} ProcessRequestParams
  * @property {Array} messages - Array of conversation messages
  * @property {string} session_id - Optional session ID
  * @property {string} github_token - GitHub authentication token
@@ -139,12 +138,80 @@ function createService(options) {
 ### Type Documentation Best Practices
 
 - Use specific types rather than generic Object when possible
+- Import interfaces from packages using `import("@package").InterfaceName`
+  syntax
+- Prefer interface types over concrete class unions (e.g., `StorageInterface`
+  not `LocalStorage|S3Storage`)
 - Include property descriptions for complex object types
 - Specify array element types: `string[]` not `Array`
-- Use union types when appropriate: `string|number`
+- Use union types sparingly and only when necessary: `string|number`
+- Use @typedef at file level for frequently used imported interfaces
 - **Function Parameter Signatures**: Always declare complete function signatures
   for function parameters including input parameters, return types, and optional
   parameters using TypeScript-style syntax
+
+### Interface Import Patterns
+
+When documenting parameters that accept interfaces from shared packages:
+
+**✅ CORRECT - Use interface types:**
+
+```javascript
+/* eslint-disable no-unused-private-class-members */
+/**
+ * Creates a new ResourceIndex
+ * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for persistence
+ * @param {import("@copilot-ld/libpolicy").Policy} policy - Policy engine for access control
+ */
+class ResourceIndex {
+  #storage;
+  #policy;
+
+  constructor(storage, policy) {
+    if (!storage) throw new Error("storage is required");
+    if (!policy) throw new Error("policy is required");
+    this.#storage = storage;
+    this.#policy = policy;
+  }
+}
+```
+
+**❌ INCORRECT - Concrete class unions:**
+
+```javascript
+/**
+ * Creates a new ResourceIndex
+ * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage backend
+ */
+class ResourceIndex {
+  constructor(storage) {
+    // This is outdated - use interface type instead
+  }
+}
+```
+
+For frequently used interfaces, use @typedef at file level:
+
+```javascript
+/* eslint-disable no-unused-private-class-members */
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
+
+class Cache {
+  #storage;
+  constructor(storage) {
+    this.#storage = storage;
+  }
+}
+
+/**
+ * Creates a cache instance
+ * @param {StorageInterface} storage - Storage backend
+ * @returns {Cache} Cache instance
+ */
+function createCache(storage) {
+  return new Cache(storage);
+}
+```
 
 ## Explicit Prohibitions
 
@@ -157,12 +224,15 @@ function createService(options) {
 5. **DO NOT** use generic Function types without detailed signatures
 6. **DO NOT** place @typedef at function level if used in multiple places
 7. **DO NOT** commit code with ESLint JSDoc warnings
+8. **DO NOT** use concrete class unions (like `LocalStorage|S3Storage`) when an
+   interface is available (use `StorageInterface` instead)
 
 ### Alternative Approaches
 
 - Instead of missing docs → Write complete JSDoc for all public methods
-- Instead of generic types → Use specific types from libtype or define clear
-  object shapes
+- Instead of generic types → Use specific interface types from libtype or
+  libstorage
+- Instead of concrete class unions → Use interface types like `StorageInterface`
 - Instead of missing annotations → Complete all required JSDoc elements
 - Instead of vague descriptions → Write clear, specific behavior descriptions
 - Instead of generic Function types → Use detailed function signatures with
@@ -214,10 +284,11 @@ export class VectorIndex {
   #vectors;
 
   /**
-   * Creates a new vector index with optional storage backend
-   * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage backend for persistence
+   * Creates a new vector index with storage backend
+   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for persistence
    */
   constructor(storage) {
+    if (!storage) throw new Error("storage is required");
     this.#storage = storage;
     this.#vectors = new Map();
   }
@@ -334,8 +405,8 @@ async function createService(
 ### @typedef Complex Types
 
 ```javascript
-/** @typedef {object} - Object type
-/** @typedef {object} - Object type
+// Imported interface typedef for reuse throughout file
+/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /**
  * Configuration for agent service initialization
@@ -353,10 +424,11 @@ async function createService(
 /**
  * Creates configured agent service instance
  * @param {AgentConfig} config - Service configuration
+ * @param {StorageInterface} storage - Storage backend for persistence
  * @returns {Promise<AgentService>} Configured agent service
  * @throws {Error} When configuration is invalid
  */
-async function createAgentService(config) {
+async function createAgentService(config, storage) {
   // Implementation...
 }
 ```

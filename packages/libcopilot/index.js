@@ -1,4 +1,5 @@
 /* eslint-env node */
+import { readFile } from "node:fs/promises";
 import { common } from "@copilot-ld/libtype";
 import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
 
@@ -58,12 +59,21 @@ export class Copilot {
   /**
    * Throws an Error with HTTP status and a snippet of the response body when response is not OK
    * @param {Response} response - Fetch API response
-   * @returns {void}
+   * @returns {Promise<void>}
    * @throws {Error} With enriched message including body snippet
    */
-  #throwIfNotOk(response) {
+  async #throwIfNotOk(response) {
     if (response.ok) return;
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    let errorDetails = "";
+    try {
+      const text = await response.text();
+      errorDetails = text ? `: ${text.substring(0, 200)}` : "";
+    } catch {
+      // Ignore error reading body
+    }
+    throw new Error(
+      `HTTP ${response.status}: ${response.statusText}${errorDetails}`,
+    );
   }
 
   /**
@@ -116,7 +126,7 @@ export class Copilot {
       }),
     );
 
-    this.#throwIfNotOk(response);
+    await this.#throwIfNotOk(response);
 
     const json = await response.json();
 
@@ -158,7 +168,7 @@ export class Copilot {
       }),
     );
 
-    this.#throwIfNotOk(response);
+    await this.#throwIfNotOk(response);
 
     const json = await response.json();
     return json.data.map((item) => {
@@ -180,7 +190,7 @@ export class Copilot {
       headers: this.#headers,
     });
 
-    this.#throwIfNotOk(response);
+    await this.#throwIfNotOk(response);
     const json = await response.json();
     return json.data;
   }
@@ -192,6 +202,57 @@ export class Copilot {
    */
   countTokens(text) {
     return countTokens(text, this.#tokenizer);
+  }
+
+  /**
+   * Converts an image to text description using vision capabilities
+   * @param {string} filePath - Path to the image file
+   * @param {string} [prompt] - Optional text prompt to guide the description
+   * @returns {Promise<string>} Text description of the image
+   */
+  async imageToText(filePath, prompt = "Describe this image in detail.") {
+    const buffer = await readFile(filePath);
+    const base64 = buffer.toString("base64");
+    const extension = filePath.split(".").pop().toLowerCase();
+    const mimeType = `image/${extension === "jpg" ? "jpeg" : extension}`;
+
+    const body = {
+      model: this.#model,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: prompt,
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:${mimeType};base64,${base64}`,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 1000,
+    };
+
+    const response = await this.#retry.execute(() =>
+      this.#fetch(`${this.#baseURL}/chat/completions`, {
+        method: "POST",
+        headers: {
+          ...this.#headers,
+          "Copilot-Vision-Request": "true",
+        },
+        body: JSON.stringify(body),
+      }),
+    );
+
+    await this.#throwIfNotOk(response);
+
+    const json = await response.json();
+    return json.choices[0]?.message?.content || "";
   }
 }
 

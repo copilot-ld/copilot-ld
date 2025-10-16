@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 

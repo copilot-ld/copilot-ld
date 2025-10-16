@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { common } from "@copilot-ld/libtype";
-import { countTokens, createTokenizer } from "@copilot-ld/libutil";
+import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
 
 /**
  * @typedef {object} CompletionParams
@@ -18,19 +18,26 @@ export class Copilot {
   #model;
   #baseURL;
   #headers;
-  #retries;
-  #delay;
   #fetch;
   #tokenizer;
+  #retry;
 
   /**
    * Creates a new LLM instance
    * @param {string} token - LLM token
    * @param {string} model - Default model to use for completions
+   * @param {import("@copilot-ld/libutil").Retry} retry - Retry instance for handling transient errors
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
    */
-  constructor(token, model, fetchFn = fetch, tokenizerFn = createTokenizer) {
+  constructor(
+    token,
+    model,
+    retry,
+    fetchFn = fetch,
+    tokenizerFn = createTokenizer,
+  ) {
+    if (!retry) throw new Error("retry is required");
     if (typeof fetchFn !== "function")
       throw new Error("Invalid fetch function");
     if (typeof tokenizerFn !== "function")
@@ -43,61 +50,20 @@ export class Copilot {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-    this.#retries = 5;
-    this.#delay = 1000;
     this.#fetch = fetchFn;
     this.#tokenizer = tokenizerFn();
-  }
-
-  /**
-   * Set retry delay for testing purposes
-   * @param {number} delay - Delay in milliseconds
-   */
-  _setTestDelay(delay) {
-    this.#delay = delay;
+    this.#retry = retry;
   }
 
   /**
    * Throws an Error with HTTP status and a snippet of the response body when response is not OK
    * @param {Response} response - Fetch API response
-   * @returns {Promise<void>}
+   * @returns {void}
    * @throws {Error} With enriched message including body snippet
    */
-  async #throwIfNotOk(response) {
+  #throwIfNotOk(response) {
     if (response.ok) return;
-    const body = await response.text().catch(() => "");
-    const snippet = body ? ` - ${body.slice(0, 2000)}` : "";
-    throw new Error(
-      `HTTP ${response.status}: ${response.statusText}${snippet}`,
-    );
-  }
-
-  /**
-   * Executes API request with exponential backoff retry logic for rate limiting
-   * @param {() => Promise<Response>} requestFn - Function that returns a fetch promise
-   * @returns {Promise<Response>} Response from successful request
-   * @throws {Error} When all retry attempts are exhausted
-   */
-  async #withRetry(requestFn) {
-    let lastResponse;
-
-    for (let attempt = 0; attempt <= this.#retries; attempt++) {
-      const response = await requestFn();
-      lastResponse = response;
-
-      if (response.status === 429 && attempt < this.#retries) {
-        const wait = this.#delay * Math.pow(2, attempt);
-        await new Promise((resolve) => setTimeout(resolve, wait));
-        continue;
-      }
-
-      await this.#throwIfNotOk(response);
-      return response;
-    }
-
-    // This should never be reached, but if it is, throw an error for the last response
-    await this.#throwIfNotOk(lastResponse);
-    throw new Error("Retries exhausted without a valid response");
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
 
   /**
@@ -142,7 +108,7 @@ export class Copilot {
       model: this.#model,
     };
 
-    const response = await this.#withRetry(() =>
+    const response = await this.#retry.execute(() =>
       this.#fetch(`${this.#baseURL}/chat/completions`, {
         method: "POST",
         headers: this.#headers,
@@ -150,15 +116,17 @@ export class Copilot {
       }),
     );
 
-    const data = await response.json();
+    this.#throwIfNotOk(response);
+
+    const json = await response.json();
 
     // Convert response back to expected format with proper Message instances
     // The monkey patch in libtype automatically converts string content to Content objects
     // BUT preserve original tool_calls structure - don't convert through protobuf
     return {
-      ...data,
+      ...json,
       choices:
-        data.choices?.map((choice) => ({
+        json.choices?.map((choice) => ({
           ...choice,
           message: {
             ...common.Message.fromObject({
@@ -177,7 +145,7 @@ export class Copilot {
    * @returns {Promise<common.Embedding[]>} Array of Embedding instances
    */
   async createEmbeddings(texts) {
-    const response = await this.#withRetry(() =>
+    const response = await this.#retry.execute(() =>
       this.#fetch(`${this.#baseURL}/embeddings`, {
         method: "POST",
         headers: this.#headers,
@@ -190,8 +158,10 @@ export class Copilot {
       }),
     );
 
-    const data = await response.json();
-    return data.data.map((item) => {
+    this.#throwIfNotOk(response);
+
+    const json = await response.json();
+    return json.data.map((item) => {
       const normalizedEmbedding = normalizeVector(item.embedding);
       return new common.Embedding({
         ...item,
@@ -210,9 +180,9 @@ export class Copilot {
       headers: this.#headers,
     });
 
-    await this.#throwIfNotOk(response);
-    const responseData = await response.json();
-    return responseData.data;
+    this.#throwIfNotOk(response);
+    const json = await response.json();
+    return json.data;
   }
 
   /**
@@ -250,5 +220,6 @@ export function createLlm(
   fetchFn = fetch,
   tokenizerFn = createTokenizer,
 ) {
-  return new Copilot(token, model, fetchFn, tokenizerFn);
+  const retry = createRetry();
+  return new Copilot(token, model, retry, fetchFn, tokenizerFn);
 }

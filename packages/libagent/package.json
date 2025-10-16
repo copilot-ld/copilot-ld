@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libagent",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Agent orchestration library for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@copilot-ld/libtype": "^0.1.35",
-    "@copilot-ld/libutil": "^0.1.32",
+    "@copilot-ld/libutil": "^0.1.33",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {},

@@ -1,6 +1,6 @@
 /* eslint-env node */
-import { strict as assert } from "assert";
 import { test, describe, beforeEach } from "node:test";
+import assert from "node:assert";
 
 import { AgentMind } from "../mind.js";
 

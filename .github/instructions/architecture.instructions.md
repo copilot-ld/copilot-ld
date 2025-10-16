@@ -209,21 +209,29 @@ Agent service must coordinate all operations through parallel execution:
 
 ```javascript
 class AgentService {
+  #memoryService;
+  #llmService;
+  #vectorService;
+
   constructor(memoryService, llmService, vectorService) {
-    this.memoryService = memoryService;
-    this.llmService = llmService;
-    this.vectorService = vectorService;
+    if (!memoryService) throw new Error("memoryService is required");
+    if (!llmService) throw new Error("llmService is required");
+    if (!vectorService) throw new Error("vectorService is required");
+
+    this.#memoryService = memoryService;
+    this.#llmService = llmService;
+    this.#vectorService = vectorService;
   }
 
   async processRequest(request) {
     // Parallel operations
     const [memoryWindow, embeddings] = await Promise.all([
-      this.memoryService.get(request),
-      this.llmService.createEmbeddings(request.query),
+      this.#memoryService.get(request),
+      this.#llmService.createEmbeddings(request.query),
     ]);
 
-    // Direct vector query (no scope resolution needed)
-    const vectorResults = await this.vectorService.queryItems(embeddings);
+    // Direct vector query
+    const vectorResults = await this.#vectorService.queryItems(embeddings);
 
     return { chunks: vectorResults.chunks, usage: vectorResults.usage };
   }

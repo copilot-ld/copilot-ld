@@ -177,21 +177,21 @@ class SecureServiceImplementation {
     } catch (error) {
       console.error("Service error:", {
         error: error.message,
-        request: this.sanitizeForLogging(request),
+        request: this.#sanitizeForLogging(request),
       });
 
-      callback(this.sanitizeError(error));
+      callback(this.#sanitizeError(error));
     }
   }
 
-  sanitizeError(error) {
+  #sanitizeError(error) {
     const message = error.message
       .replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, "[IP]")
       .replace(/[a-zA-Z0-9]{32,}/g, "[TOKEN]");
     return new Error(message);
   }
 
-  sanitizeForLogging(request) {
+  #sanitizeForLogging(request) {
     const sanitized = { ...request };
     delete sanitized.authToken;
     delete sanitized.apiKey;
@@ -204,26 +204,33 @@ class SecureServiceImplementation {
 
 ```javascript
 class ResourceLimitedService {
+  #activeRequests;
+  #maxConcurrentRequests;
+
   constructor() {
-    this.activeRequests = new Map();
-    this.maxConcurrentRequests = 100;
+    this.#activeRequests = new Map();
+    this.#maxConcurrentRequests = 100;
   }
 
   async processRequest(request, callback) {
-    const requestId = this.generateRequestId();
+    const requestId = this.#generateRequestId();
 
-    if (this.activeRequests.size >= this.maxConcurrentRequests) {
+    if (this.#activeRequests.size >= this.#maxConcurrentRequests) {
       return callback(new Error("Server overloaded"));
     }
 
-    this.activeRequests.set(requestId, Date.now());
+    this.#activeRequests.set(requestId, Date.now());
 
     try {
       const result = await this.businessLogic(request);
       callback(null, result);
     } finally {
-      this.activeRequests.delete(requestId);
+      this.#activeRequests.delete(requestId);
     }
+  }
+
+  #generateRequestId() {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 ```
@@ -269,9 +276,11 @@ const VectorServiceDefinition = {
 };
 
 class SecureVectorService {
+  #server;
+
   constructor(config) {
-    this.config = config;
-    this.server = new grpc.Server();
+    if (!config) throw new Error("config is required");
+    this.#server = new grpc.Server();
   }
 
   async queryItems(call, callback) {
@@ -282,7 +291,7 @@ class SecureVectorService {
         throw new Error("Invalid embedding");
       }
 
-      const result = await this.performQuery(embedding, threshold, limit);
+      const result = await this.#performQuery(embedding, threshold, limit);
       callback(null, result);
     } catch (error) {
       console.error("Query error:", error.message);
@@ -290,17 +299,17 @@ class SecureVectorService {
     }
   }
 
-  async performQuery(embedding, threshold, limit) {
+  async #performQuery(embedding, threshold, limit) {
     // Mock implementation
     return { items: [], total: 0 };
   }
 
   async start() {
-    this.server.addService(VectorServiceDefinition, {
+    this.#server.addService(VectorServiceDefinition, {
       QueryItems: this.queryItems.bind(this),
     });
 
-    this.server.bindAsync(
+    this.#server.bindAsync(
       "0.0.0.0:3000",
       grpc.ServerCredentials.createInsecure(),
       (error, port) => {
@@ -309,7 +318,7 @@ class SecureVectorService {
           process.exit(1);
         }
         console.log(`Service listening on internal port ${port}`);
-        this.server.start();
+        this.#server.start();
       },
     );
   }

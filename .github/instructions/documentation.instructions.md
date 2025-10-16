@@ -200,94 +200,47 @@ When changing existing functionality:
 
 ### JavaScript Code Block Standards
 
-All JavaScript code blocks in documentation must meet strict quality standards:
-
-#### Completeness Requirements
+All JavaScript code blocks must be complete, valid, and pass ES linting:
 
 - **Complete Functions**: Include full function definitions with proper imports
-- **Executable Examples**: Code must run without modification when dependencies
-  are available
-- **Context Inclusion**: Provide sufficient context for understanding the code's
-  purpose
+- **Executable Examples**: Code must run without modification
 - **No Placeholders**: Avoid `...`, `// TODO`, or incomplete implementations
+- **ES Linting**: Use `const`/`let` appropriately, include proper imports,
+  handle errors
 
-#### ES Linting Compliance
-
-All JavaScript code blocks must pass ES linting with strict configuration:
-
-- **Strict Mode**: Use `"use strict"` or ES modules
-- **Proper Imports**: Include all necessary import statements
-- **Variable Declarations**: Use `const`/`let` appropriately, avoid `var`
-- **Function Definitions**: Use proper function syntax (arrow functions or
-  function declarations)
-- **Error Handling**: Include appropriate error handling for async operations
-
-#### Example Standards
-
-**✅ CORRECT - Complete and Valid:**
+**✅ CORRECT Example:**
 
 ```javascript
 /* eslint-env node */
-import { Service } from "@copilot-ld/librpc";
-import { Config } from "@copilot-ld/libconfig";
-
-const config = new Config();
-const service = new Service("example");
+import { ServiceConfig } from "@copilot-ld/libconfig";
 
 class ExampleService {
   constructor(config) {
+    if (!config) throw new Error("config is required");
     this.config = config;
   }
 
   async processRequest(request) {
-    try {
-      const result = await this.performOperation(request);
-      return { success: true, data: result };
-    } catch (error) {
-      console.error("Processing error:", error);
-      throw error;
-    }
+    const result = await this.performOperation(request);
+    return { success: true, data: result };
   }
 
   async performOperation(request) {
     return `Processed: ${request.input}`;
   }
 }
-
-export default ExampleService;
 ```
 
-**❌ INCORRECT - Incomplete and Invalid:**
+**❌ INCORRECT Example:**
 
 ```javascript
 /* eslint-disable no-undef */
-// Missing imports and context
 class ExampleService {
-  // Incomplete method
   processRequest(request) {
     // TODO: implement
     return result; // undefined variable
   }
 }
-```
-
-**✅ CORRECT - Configuration Example:**
-
-```yaml
-services:
-  example:
-    enabled: true
-    port: 3000
-    timeout: 30000
-```
-
-**❌ INCORRECT - Invalid Configuration:**
-
-```yaml
-services:
-  example: # missing required fields
-    enabled: yes # should be boolean
-    port: "3000" # should be number
 ```
 
 ## Best Practices
@@ -351,71 +304,6 @@ Before committing, verify:
 11. All external links are functional and relevant
 12. Code examples compile and execute successfully
 13. All JavaScript code blocks pass ES linting with strict configuration
-
-### Content Organization Guidelines
-
-#### README.md Structure Requirements
-
-- **Quick Start Section**: Essential commands for immediate setup
-- **Prerequisites**: System requirements and dependencies
-- **Installation**: Step-by-step setup instructions
-- **Configuration**: Basic environment setup with link to configuration.html
-- **Usage Examples**: Common workflows and API usage
-- **Development**: Contribution guidelines and local development setup
-- **Troubleshooting**: Common issues and solutions
-
-#### docs/configuration.html Structure Requirements
-
-- **Configuration Overview**: Introduction to the configuration system
-- **Environment Variables**: Complete reference table with descriptions,
-  defaults, and examples
-- **YAML Configuration Files**: Structure and options for config.yml and
-  assistants.yml
-- **Deployment Scenarios**: Configuration differences for local, Docker, and AWS
-  environments
-- **Security Guidelines**: Best practices for handling API keys and sensitive
-  values
-- **Troubleshooting**: Common configuration issues and solutions
-
-#### docs/architecture.html Structure Requirements
-
-- **System Architecture**: High-level component diagram and overview
-- **Service Definitions**: Each service with purpose, dependencies, and
-  operations
-- **Data Flow Diagrams**: Request/response patterns and information flow
-- **Network Architecture**: Container networking and port configurations
-- **Security Model**: Authentication, authorization, and data protection
-- **Code Generation**: Complete documentation of Protocol Buffer compilation
-- **Deployment Considerations**: Scaling, monitoring, and operational concerns
-
-#### docs/processing.html Structure Requirements
-
-- **Knowledge Base Structure**: HTML microdata patterns and Schema.org usage
-- **Processing Pipeline Workflow**: Complete step-by-step processing guide
-- **Resource Processing**: HTML extraction and resource creation
-- **Tool Processing**: Protocol Buffer tool schema generation
-- **Vector Processing**: Embedding creation and index building
-- **Data Management**: Upload/download utilities and storage workflows
-- **Processing Troubleshooting**: Issues specific to offline processing
-
-#### docs/development.html Structure Requirements
-
-- **Prerequisites**: System requirements and dependencies
-- **Initial Setup**: Environment configuration and installation
-- **GitHub Integration**: Token setup and authentication
-- **Code Generation**: Protocol Buffer compilation and type generation
-- **Knowledge Base Processing**: Resource extraction and vector index creation
-- **Development Workflow**: Running with `npm run dev` and local testing
-- **Troubleshooting**: Common development issues and solutions
-
-#### docs/deployment.html Structure Requirements
-
-- **Deployment Options**: Docker Compose and AWS CloudFormation methods
-- **Infrastructure Requirements**: Prerequisites and dependencies
-- **Security Configuration**: SSL certificates, secrets management, network
-  isolation
-- **Production Considerations**: Monitoring, scaling, maintenance procedures
-- **Troubleshooting**: Common deployment issues and validation procedures
 
 ### Documentation Maintenance Workflows
 
@@ -500,38 +388,13 @@ Service for embeddings **State**: Stateless processing service
 - `GetModels`: Returns available analysis models
 ```
 
-**README.md update (if affects usage):**
+**services/analysis/CHANGELOG.md update:**
 
 ```markdown
-## Available Services
+## 2025-10-16
 
-- **Analysis**: Text analysis and processing
-- **Vector**: Document embeddings and similarity
-- **Memory**: Conversation and interaction tracking
-```
-
-**docs/development.html update (if affects development):**
-
-```html
-<h4>Analysis Service Setup</h4>
-<p>Configure the analysis service models:</p>
-<pre><code>node scripts/configure-analysis.js</code></pre>
-```
-
-**docs/deployment.html update (if affects deployment):**
-
-```html
-<h4>Analysis Service Deployment</h4>
-<p>The analysis service requires additional GPU resources:</p>
-<pre><code># Update docker-compose.yml for GPU support
-analysis:
-  deploy:
-    resources:
-      reservations:
-        devices:
-          - driver: nvidia
-            count: 1
-            capabilities: [gpu]</code></pre>
+- Added new `analysis` service with `AnalyzeText` and `GetModels` operations
+- Integrated with Vector Service for embedding dependencies
 ```
 
 ### Component Modification Example
@@ -557,7 +420,7 @@ persistent vector storage
 **services/vector/CHANGELOG.md update:**
 
 ```markdown
-## 2025-08-08
+## 2025-10-16
 
 - Added new `UpdateIndex` operation to the Vector Service
 - Increased default `indexRefreshInterval` to 3600 seconds
@@ -565,50 +428,20 @@ persistent vector storage
 
 ### Documentation Synchronization Workflow
 
-#### Complete Development Cycle Example
+Complete development cycle example:
 
-1. **Feature Planning**:
+```bash
+# 1. Plan and draft documentation
+git checkout -b feature/sentiment-analysis
+vim docs/architecture.html  # Add new component
 
-   ```bash
-   git checkout -b feature/sentiment-analysis
-   # Draft documentation changes first
-   vim docs/architecture.html  # Add new component
-   vim docs/development.html # Update development workflow if needed
-   vim docs/deployment.html # Update deployment if needed
-   vim services/example/CHANGELOG.md # Update changelog
-   vim README.md # Update usage examples
-   ```
+# 2. Implement with documentation
+npm run dev
+git add . && git commit -m "feat: sentiment analysis with docs"
 
-2. **Implementation with Documentation**:
+# 3. Validate before commit
+npm run check
 
-   ```bash
-   # Implement feature
-   npm run dev
-   # Update documentation as code evolves
-   git add . && git commit -m "feat: sentiment analysis with docs"
-   ```
-
-3. **Pre-commit Validation**:
-
-   ```bash
-   # Check documentation linting, formatting and spelling
-   npm run check
-   ```
-
-4. **Pull Request Process**:
-   - Include documentation changes in PR description
-   - Reviewers validate both code and documentation
-   - Merge only when both are approved and synchronized
-
-### Simple Development Workflow
-
-1. Make code changes to add/modify functionality
-2. Update `docs/architecture.html` if system design changes
-3. Update the component's `CHANGELOG.md` to describe changes
-4. Update `README.md` if the project setup is impacted
-5. Commit code and documentation together
-6. Verify documentation accuracy in pull request
-
-This approach keeps documentation simple, current, and focused on the four
-essential files that users and developers need to understand and work with the
-system.
+# 4. Submit PR with documentation changes
+git push origin feature/sentiment-analysis
+```

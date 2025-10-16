@@ -101,8 +101,6 @@ class ReplService {
 }
 ```
 
-### Interface Definition Requirements
-
 ### Factory Function Requirements
 
 Use factory functions for runtime dependency creation:
@@ -402,7 +400,7 @@ export class HtmlFormatter {
   #domPurify;
   #marked;
 
-  constructor({ jsdom, domPurify, marked }) {
+  constructor(jsdom, domPurify, marked) {
     if (!jsdom) throw new Error("jsdom dependency is required");
     if (!domPurify) throw new Error("domPurify dependency is required");
     if (!marked) throw new Error("marked dependency is required");
@@ -424,11 +422,7 @@ export class HtmlFormatter {
   }
 }
 
-export function createHtmlFormatter() {
-  return new HtmlFormatter({
-    jsdom: { JSDOM: import("jsdom").JSDOM },
-    domPurify: import("dompurify"),
-    marked: import("marked"),
-  });
+export function createHtmlFormatter(jsdom, domPurify, marked) {
+  return new HtmlFormatter(jsdom, domPurify, marked);
 }
 ```

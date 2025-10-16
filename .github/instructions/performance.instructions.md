@@ -335,3 +335,31 @@ export function generateRandomVector(dimensions) {
   return vector.map((val) => val / magnitude);
 }
 ```
+
+### Performance Constraint Guidelines
+
+Choose appropriate constraints based on operation complexity:
+
+#### Quick Operations (< 100ms expected)
+
+- **maxDuration**: 150-250ms
+- **maxMemory**: 500-1000KB
+- Examples: Array filtering, simple calculations, cache lookups
+
+#### Medium Operations (100-300ms expected)
+
+- **maxDuration**: 300-500ms
+- **maxMemory**: 1000-2000KB
+- Examples: Vector queries, data transformations, file parsing
+
+#### Heavy Operations (300ms+ expected)
+
+- **maxDuration**: 500-1000ms
+- **maxMemory**: 2000-5000KB
+- Examples: Large dataset processing, complex computations, batch operations
+
+#### Memory Stability Tests
+
+- **maxMemory only**: Set 20-30% above baseline to catch leaks
+- **High iteration count**: 1000+ iterations to expose gradual leaks
+- Examples: Repeated queries, long-running processes, cache operations

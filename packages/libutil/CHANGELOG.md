@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-10-16
+
+- Added `Retry` class for handling transient errors with exponential backoff and
+  jitter
+- Implemented support for retrying on 429 (Rate Limit), 502 (Bad Gateway), 503
+  (Service Unavailable), and 504 (Gateway Timeout) status codes
+- Added retry support for network connection errors (ECONNREFUSED, ECONNRESET,
+  ETIMEDOUT)
+- Configurable retry attempts (default: 10) and initial delay (default: 1000ms)
+- Comprehensive test coverage for retry behavior in `test/retry.test.js`
+
 ## 2025-10-15
 
 - Bump version

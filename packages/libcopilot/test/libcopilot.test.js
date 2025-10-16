@@ -4,15 +4,18 @@ import assert from "node:assert";
 
 // Module under test
 import { Copilot } from "../index.js";
+import { Retry } from "@copilot-ld/libutil";
 
 describe("libcopilot", () => {
   describe("Copilot", () => {
     let mockFetch;
     let copilot;
+    let retry;
 
     beforeEach(() => {
       mockFetch = mock.fn();
-      copilot = new Copilot("test-token", "gpt-4", mockFetch);
+      retry = new Retry();
+      copilot = new Copilot("test-token", "gpt-4", retry, mockFetch);
     });
 
     test("creates copilot with token and model", () => {
@@ -255,70 +258,14 @@ describe("libcopilot", () => {
     });
   });
 
-  describe("Retry behavior", () => {
-    let mockFetch;
-    let copilot;
-
-    beforeEach(() => {
-      mockFetch = mock.fn();
-      copilot = new Copilot("test-token", "gpt-4", mockFetch);
-      // Use very short delays for testing to speed up retry tests
-      copilot._setTestDelay(1);
-    });
-
-    test("retry mechanism works for both createCompletions and createEmbeddings", async () => {
-      const retryResponse = {
-        ok: false,
-        status: 429,
-        statusText: "Too Many Requests",
-        text: mock.fn(() => Promise.resolve("Rate limit exceeded")),
-      };
-
-      // Test both methods fail with max retries
-      // This test verifies that exhausted retries throw proper errors (not undefined)
-      mockFetch.mock.mockImplementation(() => Promise.resolve(retryResponse));
-
-      // Test createCompletions
-      await assert.rejects(() =>
-        copilot.createCompletions([{ role: "user", content: "Hello" }]),
-      );
-      assert.strictEqual(mockFetch.mock.callCount(), 6); // Initial + 5 retries
-
-      // Reset mock for second test
-      mockFetch.mock.resetCalls();
-
-      // Test createEmbeddings
-      await assert.rejects(() => copilot.createEmbeddings(["test text"]));
-      assert.strictEqual(mockFetch.mock.callCount(), 6); // Initial + 5 retries
-    });
-
-    test("non-429 errors do not trigger retries", async () => {
-      const errorResponse = {
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-        text: mock.fn(() => Promise.resolve("Server error")),
-      };
-
-      mockFetch.mock.mockImplementationOnce(() =>
-        Promise.resolve(errorResponse),
-      );
-
-      await assert.rejects(() =>
-        copilot.createCompletions([{ role: "user", content: "Hello" }]),
-      );
-
-      // Should only make one call for non-429 errors
-      assert.strictEqual(mockFetch.mock.callCount(), 1);
-    });
-  });
-
   describe("Copilot instance methods", () => {
     let copilot;
+    let retry;
 
     beforeEach(() => {
       const mockFetch = mock.fn();
-      copilot = new Copilot("test-token", "gpt-4", mockFetch);
+      retry = new Retry();
+      copilot = new Copilot("test-token", "gpt-4", retry, mockFetch);
     });
 
     test("countTokens returns token count for text", () => {

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2025-10-16
+
+- Refactored retry logic into reusable `Retry` class in `@copilot-ld/libutil`
+- Updated `Copilot` class to use injected `Retry` dependency for better
+  testability
+- Moved retry tests to `@copilot-ld/libutil/test/retry.test.js`
+- Enhanced retry logic to handle transient server errors (502 Bad Gateway, 503
+  Service Unavailable, 504 Gateway Timeout)
+- Added retry support for network connection errors (ECONNREFUSED, ECONNRESET,
+  ETIMEDOUT)
+- Increased maximum retry attempts from 5 to 10 for better resilience during
+  heavy data processing
+- Added jitter to exponential backoff to prevent thundering herd problem
+- Added comprehensive test coverage for all retry scenarios
+
 ## 2025-10-15
 
 - Bump version

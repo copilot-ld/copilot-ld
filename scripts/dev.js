@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { spawn } from "child_process";
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import { writeFileSync, readFileSync, existsSync, openSync } from "fs";
 
 const PID_FILE = "data/dev.pid";
 const LOG_FILE = "data/dev.log";
@@ -17,6 +17,9 @@ const SERVICES = [
   "@copilot-ld/tool",
 ];
 
+// Quiet mode flag
+let quietMode = false;
+
 // Small helpers for IO and patterns
 const readJson = (path, fallback = {}) =>
   existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : fallback;
@@ -24,8 +27,19 @@ const writeJson = (path, obj) =>
   writeFileSync(path, JSON.stringify(obj, null, 2));
 const matchPattern = () => `(${MATCH_PATTERNS.join("|")})`;
 
+/**
+ * Output helper that respects quiet mode
+ * @param {string} message - Message to output
+ * @returns {void}
+ */
+const output = (message) => {
+  if (!quietMode) {
+    console.log(message);
+  }
+};
+
 // Consistent per-service status logging
-const logStatus = (service, status) => console.log(`${service}: ${status}`);
+const logStatus = (service, status) => output(`${service}: ${status}`);
 
 /**
  * List all running development processes matching known patterns
@@ -49,7 +63,7 @@ function cleanup() {
     spawn("bash", ["-c", `pkill -f '${m}' || true`], { stdio: "inherit" });
   });
   writeFileSync(PID_FILE, "{}");
-  console.log("Cleanup complete.");
+  output("Cleanup complete.");
 }
 
 /**
@@ -57,9 +71,22 @@ function cleanup() {
  * @returns {void}
  */
 function start() {
-  writeFileSync(LOG_FILE, "", { flag: "w" });
+  // Append-only logging: ensure log file exists but never truncate
+  if (!existsSync(LOG_FILE)) {
+    writeFileSync(LOG_FILE, "", { flag: "a" });
+  }
 
   const pids = { ...readJson(PID_FILE, {}) };
+
+  // Check if all services are already running and return early
+  const allRunning = SERVICES.every((service) => pids[service]);
+  if (allRunning) {
+    output("All services are already running.");
+    return;
+  }
+
+  // Open log file in append mode once for all children
+  const logFd = openSync(LOG_FILE, "a");
 
   SERVICES.forEach((service) => {
     if (pids[service]) {
@@ -68,11 +95,11 @@ function start() {
     }
 
     logStatus(service, "starting...");
-    const child = spawn(
-      "bash",
-      ["-c", `npm run dev -w ${service} >> ${LOG_FILE} 2>&1`],
-      { detached: true, stdio: "ignore" },
-    );
+    // Spawn directly without shell redirection; append stdout/stderr via file descriptor
+    const child = spawn("bash", ["-c", `npm run dev -w ${service}`], {
+      detached: true,
+      stdio: ["ignore", logFd, logFd],
+    });
     child.on("error", (error) => logStatus(service, `error: ${error.message}`));
     child.unref();
     // Negative PID denotes process group ID for group signaling
@@ -80,7 +107,7 @@ function start() {
   });
 
   writeJson(PID_FILE, pids);
-  console.log(`All services started. Logging to: ${LOG_FILE}`);
+  output(`All services started. Logging to: ${LOG_FILE}`);
 }
 
 /**
@@ -89,7 +116,7 @@ function start() {
  */
 function stop() {
   if (!existsSync(PID_FILE)) {
-    console.log("No PID file found. Services may not be running.");
+    output("No PID file found. Services may not be running.");
     return;
   }
 
@@ -97,7 +124,7 @@ function stop() {
     const pids = readJson(PID_FILE, {});
     const entries = Object.entries(pids);
     if (entries.length === 0) {
-      console.log("No services running.");
+      output("No services running.");
       return;
     }
 
@@ -123,7 +150,7 @@ function stop() {
         }
       });
       writeFileSync(PID_FILE, "{}");
-      console.log("All services stopped.");
+      output("All services stopped.");
     }, 2000);
   } catch (error) {
     console.error("Error reading PID file:", error.message);
@@ -135,11 +162,17 @@ function stop() {
  * @returns {void}
  */
 function help() {
-  console.log("Usage: node dev.js [--start | --stop | --list | --cleanup]");
+  output(
+    "Usage: node dev.js [--start | --stop | --list | --cleanup] [--quiet]",
+  );
   process.exit(1);
 }
 
-const cmd = process.argv[2];
+// Parse command line arguments
+const args = process.argv.slice(2);
+quietMode = args.includes("--quiet");
+const cmd = args.find((arg) => arg.startsWith("--") && arg !== "--quiet");
+
 const commands = new Map([
   ["--start", start],
   ["--stop", stop],

@@ -5,8 +5,7 @@ get started with the platform.
 
 ## Contents
 
-- `./knowledge/` - Example knowledge base with sample documents including
-  security best practices, development methodologies, and architectural patterns
+- `./knowledge/` - Example knowledge base generated with utilities in `./eval`
 - `./tools/` - **Example tool implementations that extend the core Copilot-LD
   system** demonstrating how to create custom tool services and integrate them
   with the platform

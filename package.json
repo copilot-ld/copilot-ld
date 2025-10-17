@@ -46,10 +46,15 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write --list-different .",
-    "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' --dictionaries .dictionary.txt --no-suggestions",
+    "spellcheck": "spellchecker --quiet --files '**/*.md' '**/*.html' '!eval/**' '!examples/**' --dictionaries .dictionary.txt --no-suggestions",
+    "spellcheck:eval": "spellchecker --quiet --files 'eval/**/*.md' 'eval/**/*.html' --dictionaries .dictionary.eval.txt --no-suggestions",
+    "validate:shape": "node scripts/validate-shape.js",
     "check": "npm run spellcheck && npm run format && npm run lint",
     "check:fix": "npm run spellcheck && npm run format:fix && npm run lint:fix",
-    "security": "npm audit --audit-level=low --workspaces"
+    "security": "npm audit --audit-level=low --workspaces",
+    "chat": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/chat.js",
+    "search": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/search.js",
+    "query": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/query.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

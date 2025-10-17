@@ -5,6 +5,9 @@
 /data/
 **/generated
 
+# Eval outputs
+/eval/output/
+
 # Custom tools
 /tools
 !/tools/README.md

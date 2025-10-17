@@ -490,22 +490,22 @@ ls data/resources/ | grep "Assistant" | wc -l</code></pre>
       </p>
 
       <pre><code># Interactive mode
-node scripts/query.js
+npm run query
 
 # Pipe queries
-echo "? headline ?" | node scripts/query.js
-echo '? name "Agile Values"' | node scripts/query.js
-echo "#agile-manifesto ? ?" | node scripts/query.js</code></pre>
+echo "? headline ?" | npm run query
+echo '? name "Agile Values"' | npm run query
+echo "#agile-manifesto ? ?" | npm run query</code></pre>
 
       <h4>Common Query Patterns</h4>
       <p>Find resources of a certain type:</p>
-      <pre><code>echo "? http://www.w3.org/1999/02/22-rdf-syntax-ns#type TechArticle" | node scripts/query.js</code></pre>
+      <pre><code>echo "? http://www.w3.org/1999/02/22-rdf-syntax-ns#type TechArticle" | npm run query</code></pre>
 
       <p>Find resources using the type shorthand:</p>
-      <pre><code>echo "? type DefinedTerm" | node scripts/query.js</code></pre>
+      <pre><code>echo "? type DefinedTerm" | npm run query</code></pre>
 
       <p>Find all resources with any title:</p>
-      <pre><code>echo "? http://purl.org/dc/terms/title ?" | node scripts/query.js</code></pre>
+      <pre><code>echo "? http://purl.org/dc/terms/title ?" | npm run query</code></pre>
 
       <h4>Query Tips</h4>
       <ul>

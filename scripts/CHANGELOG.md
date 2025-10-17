@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-17
+
+- Updated `dev.js` to preserve existing `data/dev.log` contents by removing
+  truncation behavior; log file is now append-only and created only if missing
+  to maintain historical development server output across restarts.
+
 ## 2025-10-14
 
 - Simplified index creation across all processing scripts using

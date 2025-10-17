@@ -53,7 +53,7 @@ authentication.
 2. Generate a new token with `read:packages` permission
 3. Copy the token and set it as the `GITHUB_TOKEN` environment variable
 
-### Alternative: Using .npmrc with token
+### Alternative: Using `.npmrc` with token
 
 If you prefer to store the token in a file (not recommended for production):
 

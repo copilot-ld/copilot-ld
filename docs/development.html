@@ -107,25 +107,25 @@ npm run spellcheck     # Spell check documentation</code></pre>
       <h4>Interactive Testing</h4>
 
       <pre><code># Interactive chat with the system
-node scripts/chat.js
+npm run chat
 &gt; What are Docker security best practices?
 &gt; How do I implement rolling updates in Kubernetes?
 
 # Semantic search testing
-node scripts/search.js
+npm run search
 &gt; docker security
 &gt; kubernetes deployment</code></pre>
 
       <h4>Scripted Testing</h4>
 
       <pre><code># Pipe input for automated testing
-echo "Tell me about container security" | npx env-cmd -- node scripts/chat.js
+echo "Tell me about container security" | npm run chat
 
 # Search with CLI flags for precise testing
-echo "docker" | npx env-cmd -- node scripts/search.js --limit 10 --threshold 0.25
+echo "docker" | npm run search -- --limit 10 --threshold 0.25
 
 # Test descriptor-based search
-echo "kubernetes deployment" | npx env-cmd -- node scripts/search.js --index descriptor --limit 5</code></pre>
+echo "kubernetes deployment" | npm run search -- --index descriptor --limit 5</code></pre>
 
       <h4>System Validation Scripts</h4>
 
@@ -224,7 +224,7 @@ npm run codegen:service   # Service bases only</code></pre>
       <p>Quick validation of your development environment:</p>
 
       <pre><code># Test basic system functionality
-echo "hello" | npx env-cmd -- node scripts/chat.js
+echo "hello" | npm run chat
 
 # Verify code generation
 ls generated/types/

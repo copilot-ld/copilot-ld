@@ -88,7 +88,8 @@ export class Repl {
    */
   async #output(text) {
     if (text !== undefined && text !== null) {
-      const formatted = "\n" + this.#formatter.format(text).trim() + "\n";
+      // Always print a blank line after the reply
+      const formatted = "\n" + this.#formatter.format(text).trim() + "\n\n";
       return new Promise((resolve) => {
         this.#process.stdout.write(formatted, () => {
           // Add a small delay to ensure the output is visually complete
@@ -194,6 +195,8 @@ export class Repl {
 
       const lines = input.trim().split("\n");
       for (const line of lines) {
+        // Print the prompt and user input before processing
+        this.#process.stdout.write(`${this.#config.prompt}${line}\n`);
         await this.#handleLine(line);
       }
 

@@ -1,361 +1,436 @@
 ---
-applyTo: "**/*.test.js"
+applyTo: "**"
 ---
 
-# Testing Instructions
+# Integration Testing Instructions
 
 ## Purpose Declaration
 
-This file provides comprehensive testing standards for JavaScript test files
-using Node.js built-in testing framework to ensure consistent, maintainable, and
-reliable tests across this project's codebase.
+This file provides comprehensive guidance for integration testing of the
+microservices platform using non-interactive script commands to validate
+end-to-end system functionality through the Agent, Search, and Graph Query
+interfaces.
 
 ## Core Principles
 
-1. **Single Testing Framework**: Use `node:test` exclusively - No external
-   testing frameworks or assertion libraries allowed
-2. **Node.js Built-in Only**: Leverage Node.js 18+ built-in testing capabilities
-   with `node:assert` for assertions
-3. **Test Isolation**: All tests must be independent and not rely on shared
-   state between test cases
-4. **Mock External Dependencies**: Keep tests isolated and fast by mocking all
-   external service dependencies
-5. **Behavior Testing**: Test what the code does, not how it implements the
-   behavior internally
+1. **Non-Interactive Testing Only**: All tests must use piped input and command
+   line options for automated execution without user interaction
+2. **Single-Line Commands**: All test commands must be executable as single
+   terminal commands using the `run_in_terminal` tool
+3. **Standard Input Validation**: Tests must verify system responses through
+   standard output examination
+4. **Service Integration Focus**: Tests validate complete service chains, not
+   individual components
+5. **Stateless Execution**: Each test command must be self-contained and not
+   depend on previous command state
+6. **Output Validation**: Test success is determined by examining command output
+   for expected content patterns
 
 ## Implementation Requirements
 
-### Required Import Pattern
+### Chat Integration Testing
 
-All test files must use this exact import structure:
+The `npm run chat` command tests the full Agent service stack including Memory,
+LLM, and Tool services through conversational interactions.
 
-```javascript
-// Standard imports - always first
-import {
-  test,
-  describe,
-  before,
-  after,
-  beforeEach,
-  afterEach,
-} from "node:test";
-import assert from "node:assert";
+#### Basic Chat Testing
 
-// Module under test - second section
-import { ComponentName } from "../index.js";
+Test simple conversation processing:
 
-// Mock imports - third section, alphabetically ordered
-import { mockHistoryService } from "../../test/shared/mock/history.js";
-import { mockVectorService } from "../../test/shared/mock/vector.js";
-import { testRequestData } from "./mock/data.js";
+```bash
+echo "Tell me about the company" | npm run chat
 ```
 
-### Directory Structure Requirements
+This validates:
 
-```
-../services/agent/test/
-│   ├── agent.test.js
-│   ├── mock/
-│   │   ├── dependencies.js      # Agent-specific dependency mocks
-│   │   └── data.js              # Agent-specific test data
-│   └── fixture/
-│       └── requests.js          # Agent test fixtures
-../packages/librpc/test/
-│   ├── service.test.js
-│   └── helpers/
-│       └── grpc-helpers.js
-../test/
-    ├── shared/
-    │   ├── mock/
-    │   │   ├── vector.js         # Vector service mock
-    │   │   ├── history.js        # History service mock
-    │   │   └── data.js           # Common test data
-    │   └── fixture/
-    │       └── services.js       # Shared test fixtures
-    └── integration/
-        └── agent-flow.test.js
+- Agent service request processing
+- LLM service integration
+- Memory service conversation tracking
+- Response generation and formatting
+
+#### Multi-Turn Conversation Testing
+
+Test conversation continuity with multiple messages:
+
+```bash
+printf "Tell me about microservices\nWhat are their benefits?\n" | npm run chat
 ```
 
-### Naming Conventions
+This validates:
 
-- **Tests**: `<module-name>.test.js`
-- **Mocks**: `<service-name>.js` in `mock/` directories
-- **Data**: `data.js` for test data
-- **Fixtures**: `<purpose>.js` in `fixture/` directories
+- Conversation ID management
+- Message history preservation
+- Context-aware response generation
+- Multi-turn conversation flow
 
-### Mock Creation Pattern
+#### Tool Execution Testing
 
-```javascript
-// ./test/shared/mock/vector.js
-export function mockVectorService(overrides = {}) {
-  return {
-    queryItems: async (request, callback) => {
-      callback(null, { items: [], total: 0 });
-    },
-    close: () => {},
-    ...overrides,
-  };
-}
+Test tool invocation through natural language:
+
+```bash
+echo "Search for information about drug development" | npm run chat
 ```
+
+This validates:
+
+- Tool service integration
+- Natural language to tool mapping
+- Tool execution and result processing
+- Response formatting with tool results
+
+#### Error Handling Testing
+
+Test error response handling:
+
+```bash
+echo "" | npm run chat
+```
+
+This validates:
+
+- Empty input handling
+- Service error propagation
+- Graceful error responses
+
+### Search Integration Testing
+
+The `npm run search` command tests vector search capabilities including
+embedding generation and similarity matching across content and descriptor
+indices.
+
+#### Basic Content Search Testing
+
+Test default content index search:
+
+```bash
+echo "pharmaceutical research" | npm run search
+```
+
+This validates:
+
+- LLM embedding generation
+- Vector index query execution
+- Content similarity matching
+- Resource retrieval and formatting
+
+#### Descriptor Search Testing
+
+Test descriptor index search with command-line option:
+
+```bash
+echo "clinical trials" | npm run search -- --index descriptor
+```
+
+This validates:
+
+- Index selection via --index
+- Descriptor-based similarity search
+- Alternative index querying
+
+#### Threshold Filtering Testing
+
+Test similarity threshold configuration with command-line option:
+
+```bash
+echo "regulatory compliance" | npm run search -- --threshold 0.7
+```
+
+This validates:
+
+- Threshold option processing
+- Result filtering by similarity score
+- High-confidence match retrieval
+
+#### Result Limit Testing
+
+Test result count limitation with command-line option:
+
+```bash
+echo "drug development" | npm run search -- --limit 3
+```
+
+This validates:
+
+- Limit option processing
+- Result set truncation
+- Top-N result retrieval
+
+#### Combined Configuration Testing
+
+Test multiple configuration options together with command-line options:
+
+```bash
+echo "manufacturing quality" | npm run search -- --threshold 0.6 --limit 5 --index content
+```
+
+This validates:
+
+- Multiple option processing
+- Configuration state management
+- Combined filtering and limiting
+
+### Query Integration Testing
+
+The `npm run query` command tests graph database queries using triple pattern
+matching with RDF/SPARQL-like syntax.
+
+#### Subject Pattern Testing
+
+Test queries for specific subjects:
+
+```bash
+echo "person:john ? ?" | npm run query
+```
+
+This validates:
+
+- Subject-based graph querying
+- Wildcard pattern matching
+- Triple retrieval and formatting
+
+#### Predicate Pattern Testing
+
+Test queries for specific relationships:
+
+```bash
+echo "? foaf:name ?" | npm run query
+```
+
+This validates:
+
+- Predicate-based graph filtering
+- Relationship discovery
+- Cross-entity querying
+
+#### Object Pattern Testing
+
+Test queries for specific values:
+
+```bash
+echo '? ? "John Doe"' | npm run query
+```
+
+This validates:
+
+- Object-based graph matching
+- Literal value querying
+- Quoted string handling
+
+#### Wildcard Query Testing
+
+Test broad pattern matching:
+
+```bash
+echo "? ? ?" | npm run query
+```
+
+This validates:
+
+- Complete graph enumeration
+- Wildcard-only pattern handling
+- Large result set management
+
+#### Type Discovery Testing
+
+Test entity type queries:
+
+```bash
+echo "? rdf:type schema:Person" | npm run query
+```
+
+This validates:
+
+- Type-based entity discovery
+- Schema vocabulary support
+- Classification querying
+
+#### Combined Pattern Testing
+
+Test specific triple patterns:
+
+```bash
+echo "person:sarah foaf:knows person:michael" | npm run query
+```
+
+This validates:
+
+- Complete triple specification
+- Exact match querying
+- Relationship verification
 
 ## Best Practices
 
-### Test Structure Requirements
+### Test Command Construction
 
-1. **Descriptive Test Names**: Use clear, behavior-describing test names that
-   explain what is being tested
-2. **Single Assertion per Concept**: Don't over-assert - test one logical
-   concept per test case
-3. **Minimal Setup**: Only create what's needed for the specific test - avoid
-   excessive test preparation
-4. **Resource Cleanup**: Use before/after hooks to manage test state and clean
-   up resources
+When constructing test commands:
 
-### Test Organization Pattern
+- Use `echo` for single-line input to test scripts
+- Use `printf` with `\n` for multi-line input sequences
+- Quote strings containing spaces or special characters
+- Pipe commands directly to `npm run` scripts
+- Chain configuration commands before query commands
 
-```javascript
-import { describe, test, beforeEach } from "node:test";
-import assert from "node:assert";
+### Output Validation Patterns
 
-// Mock functions for testing
-function createMockDependency() {
-  return { mockMethod: () => "mocked" };
-}
+When validating test output:
 
-// Mock class for testing
-class ComponentName {
-  constructor(dependency) {
-    this.dependency = dependency;
-  }
-
-  async method(input) {
-    return { status: "success", data: [input] };
-  }
-}
-
-const validInput = "test input";
-
-describe("ComponentName", () => {
-  let component;
-  let mockDependency;
-
-  beforeEach(() => {
-    mockDependency = createMockDependency();
-    component = new ComponentName(mockDependency);
-  });
-
-  test("performs expected behavior when given valid input", async () => {
-    const result = await component.method(validInput);
-
-    assert.strictEqual(result.status, "success");
-    assert(result.data.length > 0);
-  });
-});
-```
-
-### Error Testing Requirements
-
-All error conditions must be tested using `assert.rejects`:
-
-```javascript
-import { test } from "node:test";
-import assert from "node:assert";
-
-// Mock functions for testing
-function createMockDependency() {
-  return { mockMethod: () => "mocked" };
-}
-
-// Mock class for testing
-class ComponentName {
-  constructor(dependency) {
-    this.dependency = dependency;
-  }
-
-  async method(input) {
-    if (!input) throw new Error("Invalid input");
-    return { status: "success", data: [input] };
-  }
-}
-
-const invalidInput = null; // Example invalid input
-const component = new ComponentName(createMockDependency());
-
-test("throws error for invalid input", async () => {
-  await assert.rejects(() => component.method(invalidInput), {
-    message: /Invalid input/,
-  });
-});
-```
+- Search for expected content markers in response text
+- Verify service names appear in error messages
+- Check for proper markdown formatting in results
+- Confirm similarity scores appear in search results
+- Validate RDF triple formatting in query results
 
 ## Explicit Prohibitions
 
-### Forbidden Practices
+### Forbidden Testing Patterns
 
-1. **DO NOT** use external testing frameworks (Jest, Mocha, etc.)
-2. **DO NOT** use external assertion libraries (Chai, etc.)
-3. **DO NOT** share state between test cases
-4. **DO NOT** test implementation details - focus on behavior
-5. **DO NOT** create tests that depend on external services without mocking
-6. **DO NOT** use hard-coded delays (`setTimeout`) in tests
-7. **DO NOT** commit tests with console.log statements for debugging
+1. **DO NOT** use interactive modes or expect user input during tests
+2. **DO NOT** reference test prerequisites like `npm run codegen` or data
+   processing
+3. **DO NOT** create custom code or test harnesses for integration testing
+4. **DO NOT** rely on persistent state between test command executions
+5. **DO NOT** use test commands that require manual setup steps
+6. **DO NOT** create multi-file test structures for integration testing
+7. **DO NOT** use testing frameworks or libraries for these integration tests
+8. **DO NOT** assume specific conversation IDs or message history state
 
 ### Alternative Approaches
 
-- Instead of external frameworks → Use `node:test`
-- Instead of shared state → Use `beforeEach` for isolated setup
-- Instead of implementation testing → Test public API behavior
-- Instead of external service calls → Use dependency injection with mocks
+- Instead of shell scripts → Use single-line piped commands with `echo` or
+  `printf`
+- Instead of interactive testing → Use non-interactive piped input
+- Instead of setup documentation → Focus on command execution only
+- Instead of custom test code → Use standard command-line input redirection
+- Instead of stateful testing → Design each command as independent validation
+- Instead of manual setup → Assume system is already operational
+- Instead of test frameworks → Use direct command execution and output
+  examination
+- Instead of conversation state → Test each interaction independently
 
 ## Comprehensive Examples
 
-### Basic Service Test Example
+### Complete Chat Integration Test
 
-```javascript
-import { test, describe, beforeEach } from "node:test";
-import assert from "node:assert";
-import { VectorService } from "../index.js";
-import { testVectorData } from "../../test/shared/mock/data.js";
-
-describe("VectorService", () => {
-  let vectorService;
-  let mockStorage;
-
-  beforeEach(() => {
-    mockStorage = {
-      query: async () => testVectorData.slice(0, 1),
-    };
-    vectorService = new VectorService(mockStorage);
-  });
-
-  test("returns items matching query", async () => {
-    const result = await vectorService.queryItems({
-      embedding: [0.1, 0.2, 0.3],
-      limit: 10,
-    });
-
-    assert.strictEqual(result.items.length, 1);
-    assert.strictEqual(result.items[0].id, "vector-1");
-  });
-
-  test("handles empty results gracefully", async () => {
-    mockStorage.query = async () => [];
-
-    const result = await vectorService.queryItems({
-      embedding: [0.1, 0.2, 0.3],
-      limit: 10,
-    });
-
-    assert.strictEqual(result.items.length, 0);
-  });
-
-  test("throws error for invalid embedding", async () => {
-    await assert.rejects(
-      () => vectorService.queryItems({ embedding: null, limit: 10 }),
-      { message: /Invalid embedding/ },
-    );
-  });
-});
-```
-
-### Integration Test Example
-
-```javascript
-import { test, describe, before, after } from "node:test";
-import assert from "node:assert";
-
-// Module under test
-import { AgentService } from "../../services/agent/index.js";
-
-// Mock imports
-import { mockHistoryService } from "../shared/mock/history.js";
-import { mockVectorService } from "../shared/mock/vector.js";
-import { testRequestData } from "../shared/mock/data.js";
-
-describe("Agent Service Integration", () => {
-  let agentService;
-
-  before(async () => {
-    const mockServices = {
-      vector: mockVectorService({
-        queryItems: async (request, callback) => {
-          callback(null, {
-            items: [{ id: "chunk1", score: 0.95 }],
-            total: 1,
-          });
-        },
-      }),
-      history: mockHistoryService(),
-    };
-
-    agentService = new AgentService(mockServices);
-  });
-
-  after(async () => {
-    await agentService.close();
-  });
-
-  test("processes complete request flow", async () => {
-    const request = {
-      ...testRequestData,
-      query: "docker security best practices",
-    };
-
-    const response = await agentService.processRequest(request);
-
-    assert.strictEqual(response.status, "success");
-    assert(response.chunks.length > 0);
-    assert.strictEqual(response.chunks[0].id, "chunk1");
-  });
-});
-```
-
-### Performance Test Example
-
-```javascript
-import { test } from "node:test";
-import assert from "node:assert";
-
-// Mock agentService for example
-const agentService = {
-  async processRequest(request) {
-    return { status: "success" };
-  },
-};
-
-test("processes request within time limit", async () => {
-  const start = performance.now();
-
-  await agentService.processRequest({ query: "test" });
-
-  const duration = performance.now() - start;
-  assert(duration < 1000, `Request took too long: ${duration}ms`);
-});
-```
-
-### Running Tests
-
-Execute tests using these exact commands:
+Test full conversation flow with agent:
 
 ```bash
-# Run all tests across workspaces
-npm test
-
-# Re-generate types/services/clients before integration tests if proto changed
-npm run codegen
-
-# Run tests for specific package
-npm test -w @copilot-ld/librpc
-
-# Run integration tests
-node --test test/integration/**/*.test.js
-
-# Run with watch mode
-npm test -- --watch
-
-# Run specific test file
-node --test services/agent/test/agent.test.js
-
-# Run performance tests
-npm run perf
+printf "What is the company's drug development process?\nTell me about clinical trials\n" | npm run chat
 ```
+
+**Expected Output Validation**:
+
+- Response contains relevant information
+- Conversation flows naturally between questions
+- Each response addresses the specific question
+- Markdown formatting is preserved
+
+### Complete Search Integration Test
+
+Test vector search with full configuration using command-line options:
+
+```bash
+echo "pharmaceutical manufacturing processes" | npm run search -- --threshold 0.65 --limit 10 --index content
+```
+
+**Expected Output Validation**:
+
+- Command-line options execute without error
+- Search results include similarity scores
+- Results are limited to 10 items
+- Only results above 0.65 threshold appear
+- Content index is used for search
+
+### Complete Query Integration Test
+
+Test graph queries with various patterns:
+
+```bash
+echo "project:precision-medicine ? ?" | npm run query
+```
+
+**Expected Output Validation**:
+
+- Query executes without syntax errors
+- Results show RDF triples in Turtle format
+- Subject matches the specified pattern
+- All predicates and objects for subject are shown
+
+### Multi-Configuration Search Test
+
+Test sequential configuration changes using command-line options:
+
+```bash
+echo "drug formulation optimization" | npm run search -- --index descriptor --threshold 0.5
+echo "drug formulation optimization" | npm run search -- --index content --threshold 0.7
+```
+
+**Expected Output Validation**:
+
+- First search uses descriptor index with 0.5 threshold
+- Second search uses content index with 0.7 threshold
+- Results differ based on index and threshold changes
+- Each command is independent and stateless
+
+### Complex Graph Pattern Test
+
+Test specific relationship queries:
+
+```bash
+echo "? schema:memberOf org:bionova" | npm run query
+```
+
+**Expected Output Validation**:
+
+- Query finds all entities with membership relationship
+- Organization is correctly identified as object
+- Results show person/team entities as subjects
+- Triple format follows RDF standards
+
+### Threshold Range Test
+
+Test different similarity thresholds using command-line options:
+
+```bash
+echo "clinical trials" | npm run search -- --threshold 0.3
+echo "clinical trials" | npm run search -- --threshold 0.5
+echo "clinical trials" | npm run search -- --threshold 0.8
+```
+
+**Expected Output Validation**:
+
+- Lower thresholds return more results
+- Higher thresholds return fewer, more relevant results
+- Similarity scores meet configured thresholds
+- Result quality improves with higher thresholds
+
+### Graph Relationship Discovery Test
+
+Test discovering entity relationships:
+
+```bash
+echo "person:sarah ? ?" | npm run query
+echo "? foaf:knows person:sarah" | npm run query
+echo "person:sarah foaf:knows ?" | npm run query
+```
+
+**Expected Output Validation**:
+
+- First query shows all facts about Sarah
+- Second query shows who knows Sarah
+- Third query shows who Sarah knows
+- Relationship directionality is preserved
+
+### Multi-Turn Context Test
+
+Test conversation context maintenance:
+
+```bash
+printf "What is drug formulation?\nHow does it affect bioavailability?\nWhat are the main challenges?\n" | npm run chat
+```
+
+**Expected Output Validation**:
+
+- First response explains drug formulation
+- Second response discusses bioavailability impact
+- Third response discusses challenges in context
+- Pronoun references resolve correctly

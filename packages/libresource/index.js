@@ -25,6 +25,17 @@ export class ResourceIndex {
   }
 
   /**
+   * Checks if a resource exists in the index
+   * @param {string} id - Resource identifier
+   * @returns {Promise<boolean>} True if the resource exists, false otherwise
+   */
+  async has(id) {
+    if (!id) throw new Error("id is required");
+    const key = `${id}.json`;
+    return await this.#storage.has(key);
+  }
+
+  /**
    * Stores a resource in the index
    * @param {object} resource - Resource object to store
    * @returns {Promise<void>}

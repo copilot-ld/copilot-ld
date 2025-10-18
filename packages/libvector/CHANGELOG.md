@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-18
+
+- Moved `vectors.js` script from `scripts/` to `bin/vectors.js` as a binary
+- Added `bin` field to `package.json` to expose `vectors` binary
+- Updated script with shebang line and proper error handling
+
 ## 2025-10-15
 
 - Bump version

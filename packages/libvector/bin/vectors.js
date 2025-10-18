@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
@@ -7,13 +8,12 @@ import { createLogger } from "@copilot-ld/libutil";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
 
-// Configuration
-const config = await ScriptConfig.create("vectors");
-
 /**
  * Processes resources into vector embeddings
+ * @returns {Promise<void>}
  */
 async function main() {
+  const config = await ScriptConfig.create("vectors");
   const vectorStorage = createStorage("vectors");
 
   const resourceIndex = createResourceIndex();
@@ -37,4 +37,7 @@ async function main() {
   await processor.process(actor, "descriptor");
 }
 
-main();
+main().catch((error) => {
+  console.error("Vector processing failed:", error);
+  process.exit(1);
+});

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-18
+
+- Moved `graphs.js` script from `scripts/` to `bin/graphs.js` as a binary
+- Added `bin` field to `package.json` to expose `graphs` binary
+- Updated script with shebang line and proper error handling
+
 ## 2025-10-15
 
 - Bump version

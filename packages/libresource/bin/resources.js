@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
@@ -8,8 +9,6 @@ import { createLogger } from "@copilot-ld/libutil";
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
 import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
 import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
-
-const config = await ScriptConfig.create("resources");
 
 /**
  * Parse command line arguments
@@ -35,6 +34,7 @@ function parseArgs() {
  * @returns {Promise<void>}
  */
 async function main() {
+  const config = await ScriptConfig.create("resources");
   const args = parseArgs();
   const knowledgeStorage = createStorage("knowledge");
 
@@ -57,4 +57,7 @@ async function main() {
   await resourceProcessor.process(".html");
 }
 
-main();
+main().catch((error) => {
+  console.error("Resource processing failed:", error);
+  process.exit(1);
+});

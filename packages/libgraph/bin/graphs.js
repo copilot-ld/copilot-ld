@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { createLogger } from "@copilot-ld/libutil";
 import { createResourceIndex } from "@copilot-ld/libresource";
@@ -7,6 +8,7 @@ import { GraphProcessor } from "@copilot-ld/libgraph/processor.js";
 
 /**
  * Processes resources into RDF graphs
+ * @returns {Promise<void>}
  */
 async function main() {
   const resourceIndex = createResourceIndex();
@@ -21,4 +23,7 @@ async function main() {
   await processor.process(actor);
 }
 
-main();
+main().catch((error) => {
+  console.error("Graph processing failed:", error);
+  process.exit(1);
+});

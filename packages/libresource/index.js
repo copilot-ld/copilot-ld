@@ -32,7 +32,7 @@ export class ResourceIndex {
   async has(id) {
     if (!id) throw new Error("id is required");
     const key = `${id}.json`;
-    return await this.#storage.has(key);
+    return await this.#storage.exists(key);
   }
 
   /**

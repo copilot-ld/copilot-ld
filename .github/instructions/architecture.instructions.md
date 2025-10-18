@@ -416,19 +416,27 @@ import { cors } from "hono/cors";
 
 import { AgentClient } from "../../generated/services/agent/client.js";
 import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
-import { createSecurityMiddleware } from "@copilot-ld/libweb";
+import {
+  createValidationMiddleware,
+  createCorsMiddleware,
+} from "@copilot-ld/libweb";
 import { common } from "@copilot-ld/libtype";
 
 const extConfig = await ExtensionConfig.create("web");
 const agentClient = new AgentClient(await ServiceConfig.create("agent"));
 const app = new Hono();
 
-// Security and CORS
-const security = createSecurityMiddleware(extConfig);
-app.use("/api/*", security.createRateLimitMiddleware());
+// Create middleware instances
+const validationMiddleware = createValidationMiddleware(extConfig);
+const corsMiddleware = createCorsMiddleware(extConfig);
+
+// CORS middleware
 app.use(
   "/api/*",
-  cors({ origin: ["http://localhost:3000"], allowMethods: ["POST"] }),
+  corsMiddleware.create({
+    origin: ["http://localhost:3000"],
+    allowMethods: ["POST"],
+  }),
 );
 
 app.post("/api/chat", async (c) => {

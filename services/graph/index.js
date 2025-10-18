@@ -66,41 +66,16 @@ export class GraphService extends GraphBase {
 
     const storage = this.#graphIndex.storage();
 
-    try {
-      // Check if ontology exists
-      const exists = await storage.exists("ontology.json");
-      if (!exists) {
-        this.debug("Ontology file not found");
-        return {
-          ontology_json: JSON.stringify({
-            predicates: {},
-            types: {},
-            subjectsByType: {},
-            commonPatterns: [],
-            statistics: {
-              totalPredicates: 0,
-              totalTypes: 0,
-              totalSubjects: 0,
-              lastUpdated: new Date().toISOString(),
-            },
-          }),
-        };
-      }
+    // Get the ontology file content
+    const ontologyContent = await storage.get("ontology.json");
 
-      // Get the ontology file content
-      const ontologyContent = await storage.get("ontology.json");
+    // Handle both object and string formats
+    const ontologyJson =
+      typeof ontologyContent === "object"
+        ? JSON.stringify(ontologyContent)
+        : ontologyContent;
 
-      // Handle both object and string formats
-      const ontologyJson =
-        typeof ontologyContent === "object"
-          ? JSON.stringify(ontologyContent)
-          : ontologyContent;
-
-      return { ontology_json: ontologyJson };
-    } catch (error) {
-      this.error("Failed to get ontology", { error: error.message });
-      throw error;
-    }
+    return { ontology_json: ontologyJson };
   }
 
   /**

@@ -1,12 +1,13 @@
 /* eslint-env node */
-import { Server } from "@copilot-ld/librpc";
+import { Server, clients } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createResourceIndex } from "@copilot-ld/libresource";
 
-import { LlmClient } from "../../generated/services/llm/client.js";
 import { VectorService } from "./index.js";
+
+const { LlmClient } = clients;
 
 const config = await ServiceConfig.create("vector");
 

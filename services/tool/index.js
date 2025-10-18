@@ -77,6 +77,8 @@ class ToolService extends ToolBase {
         req,
       );
 
+      this.debug("Tool execution complete", { name: toolName });
+
       return {
         role: "tool",
         tool_call_id: req.id,

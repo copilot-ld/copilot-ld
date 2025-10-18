@@ -31,6 +31,8 @@ export class VectorService extends VectorBase {
     logFn,
   ) {
     super(config, logFn);
+    if (!contentIndex) throw new Error("contentIndex is required");
+    if (!descriptorIndex) throw new Error("descriptorIndex is required");
     if (!llmClient) throw new Error("llmClient is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
 

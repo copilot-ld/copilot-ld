@@ -7,7 +7,7 @@ import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 import { Writer } from "n3";
 
 import { common } from "@copilot-ld/libtype";
-import { ProcessorBase, countTokens } from "@copilot-ld/libutil";
+import { ProcessorBase, countTokens, generateHash } from "@copilot-ld/libutil";
 
 /**
  * Resource processor for batch processing HTML files into Message objects
@@ -19,12 +19,14 @@ export class ResourceProcessor extends ProcessorBase {
   #descriptorProcessor;
   #logger;
   #baseIri;
+  #skolemizer;
 
   /**
    * Creates a new ResourceProcessor instance
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage for knowledge base data
    * @param {import("@copilot-ld/libresource").DescriptorProcessor} descriptorProcessor - DescriptorProcessor instance for descriptor generation
+   * @param {import("@copilot-ld/libresource").Skolemizer} skolemizer - Skolemizer instance for blank node skolemization
    * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
    * @param {string} [baseIri] - Base IRI for resolving relative URLs
    */
@@ -32,17 +34,20 @@ export class ResourceProcessor extends ProcessorBase {
     resourceIndex,
     knowledgeStorage,
     descriptorProcessor,
+    skolemizer,
     logger,
     baseIri,
   ) {
     super(logger, 5);
     if (!descriptorProcessor)
       throw new Error("descriptorProcessor is required");
+    if (!skolemizer) throw new Error("skolemizer is required");
     this.#resourceIndex = resourceIndex;
     this.#knowledgeStorage = knowledgeStorage;
     this.#descriptorProcessor = descriptorProcessor;
     this.#logger = logger;
     this.#baseIri = baseIri;
+    this.#skolemizer = skolemizer;
   }
 
   /**
@@ -59,9 +64,25 @@ export class ResourceProcessor extends ProcessorBase {
       const html = Buffer.isBuffer(htmlContent)
         ? htmlContent.toString("utf8")
         : String(htmlContent);
-      const items = await this.#parseHTML(html, key);
+
+      // Fix common HTML issues before parsing
+      const fixedHtml = this.#fixHtml(html);
+
+      const items = await this.#parseHTML(fixedHtml, key);
       await super.process(items, key);
     }
+  }
+
+  /**
+   * Fix common HTML encoding issues
+   * @param {string} html - The HTML string to fix
+   * @returns {string} Fixed HTML string
+   * @private
+   */
+  #fixHtml(html) {
+    // Replace < and > followed by numbers (like p<0.001 or n>100) with HTML entities
+    // to prevent them from being interpreted as HTML tags
+    return html.replace(/<(\d)/g, "&lt;$1").replace(/>(\d)/g, "&gt;$1");
   }
 
   /**
@@ -110,9 +131,10 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Extract RDF quads from HTML content using microdata streaming parser
+   * Applies skolemization to replace blank nodes with URIs for cross-document deduplication
    * @param {string} html - The HTML string to process
    * @param {string} baseIri - Base IRI for resolving relative URLs
-   * @returns {Promise<Array>} Array of quad objects
+   * @returns {Promise<Array>} Array of quad objects with skolemized blank nodes
    * @private
    */
   async #extractQuads(html, baseIri) {
@@ -132,7 +154,9 @@ export class ResourceProcessor extends ProcessorBase {
       });
 
       parser.on("end", () => {
-        resolve(quads);
+        // Apply skolemization to replace blank nodes with URIs
+        const skolemizedQuads = this.#skolemizer.skolemize(quads);
+        resolve(skolemizedQuads);
       });
 
       parser.write(html);
@@ -287,6 +311,15 @@ export class ResourceProcessor extends ProcessorBase {
     // Process each item group directly to JSON-LD (single-pass)
     const items = [];
     for (const [itemIri, itemQuads] of itemGroups) {
+      // Deterministic resource name based on IRI
+      const itemName = generateHash(itemIri);
+
+      // Check if the resource already exists
+      const exists = await this.#resourceIndex.has(
+        `common.Message:${itemName}`,
+      );
+      if (exists) continue;
+
       // Convert item quads to N-Quads
       const itemRdf = await this.#quadsToRdf(itemQuads);
 
@@ -300,6 +333,7 @@ export class ResourceProcessor extends ProcessorBase {
 
       if (mainItem) {
         items.push({
+          name: itemName,
           subject: itemIri,
           rdf: itemRdf,
           json: JSON.stringify(mainItem),
@@ -312,13 +346,13 @@ export class ResourceProcessor extends ProcessorBase {
 
   /** @inheritdoc */
   async processItem(item) {
-    const subject = item.subject;
+    const { name, subject } = item;
     const descriptor = await this.#descriptorProcessor.process(item);
     const content = await this.#createContent(item);
 
     // Create and store the resource
     const resource = common.Message.fromObject({
-      id: { subject },
+      id: { name, subject },
       role: "system",
       content,
       descriptor,

@@ -4,6 +4,7 @@ import assert from "node:assert";
 
 import { toType, toIdentifier, ResourceIndex } from "../index.js";
 import { ResourceProcessor } from "../processor.js";
+import { Skolemizer } from "../skolemizer.js";
 import { common, resource } from "@copilot-ld/libtype";
 
 /**
@@ -65,6 +66,10 @@ function createMockStorage() {
     async findByPrefix(prefix) {
       return Array.from(data.keys()).filter((key) => key.startsWith(prefix));
     },
+
+    async has(key) {
+      return data.has(key);
+    },
   };
 }
 
@@ -106,6 +111,24 @@ describe("ResourceIndex", () => {
     assert.throws(() => new ResourceIndex(mockStorage, null), {
       message: "policy is required",
     });
+  });
+
+  test("has() returns true when resource exists", async () => {
+    const message = new common.Message({
+      role: "system",
+      content: { text: "Test message" },
+    });
+
+    await resourceIndex.put(message);
+    const exists = await resourceIndex.has(message.id);
+
+    assert.strictEqual(exists, true);
+  });
+
+  test("has() returns false when resource does not exist", async () => {
+    const exists = await resourceIndex.has("nonexistent-id");
+
+    assert.strictEqual(exists, false);
   });
 
   test("puts resource content with identifier generation", async () => {
@@ -203,6 +226,7 @@ describe("ResourceProcessor", () => {
   beforeEach(() => {
     resourceIndex = {
       put: async (_resource) => {},
+      has: async (_id) => false,
     };
 
     knowledgeStorage = {
@@ -234,10 +258,13 @@ describe("ResourceProcessor", () => {
       },
     };
 
+    const skolemizer = new Skolemizer();
+
     processor = new ResourceProcessor(
       resourceIndex,
       knowledgeStorage,
       descriptorProcessor,
+      skolemizer,
       logger,
     );
   });
@@ -340,9 +367,17 @@ describe("ResourceProcessor", () => {
   });
 
   test("constructor validates required dependencies", async () => {
+    const skolemizer = new Skolemizer();
+
     // Test that constructor properly validates required parameters
     assert.throws(() => {
-      new ResourceProcessor(resourceIndex, knowledgeStorage, null, logger);
+      new ResourceProcessor(
+        resourceIndex,
+        knowledgeStorage,
+        null,
+        skolemizer,
+        logger,
+      );
     }, /descriptorProcessor is required/);
 
     assert.throws(() => {
@@ -351,8 +386,9 @@ describe("ResourceProcessor", () => {
         knowledgeStorage,
         descriptorProcessor,
         null,
+        logger,
       );
-    }, /logger is required/);
+    }, /skolemizer is required/);
   });
 });
 

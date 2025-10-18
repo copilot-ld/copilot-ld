@@ -14,8 +14,9 @@ technical details can vary based on specific prompt requirements.
 
 ## Overview Statistics
 
-- **Total Files**: 20 files (increased to accommodate more content)
-- **Total Items**: 500-600 items (doubled from previous version)
+- **Total Files**: 45-50 files (distributed for manageable content generation)
+- **Total Items**: 500-600 items
+- **Items Per File**: 10-15 items average
 - **Vector-Optimized Items**: 200-240 items with rich text descriptions
 - **Graph-Optimized Items**: 200-240 items with structural relationships
 - **Hybrid Items**: 100-120 items valuable for both approaches
@@ -77,8 +78,8 @@ originality and avoid conflicts:
 
 - Team Lead: Themis (Regulatory Director)
 - Senior Regulatory Affairs Managers: 2 (Nemesis, Astraea)
-- Regulatory Affairs Specialists: 6 (Dike, Eirene, Eunomia, Horae, Aidos,
-  Soteria)
+- Regulatory Affairs Specialists: 7 (Dike, Eirene, Eunomia, Horae, Aidos,
+  Soteria, Vulcan)
 
 **Total R&D**: 42 people (1 director + 16 discovery + 15 clinical + 10
 regulatory)
@@ -87,11 +88,11 @@ regulatory)
 
 **Department Leadership**: 1 director (Hephaestus)
 
-**Production Team**: 18 people
+**Production Team**: 19 people
 
 - Team Lead: Demeter (Manufacturing Manager)
 - Senior Production Engineers: 2 (Persephone, Kore)
-- Production Engineers: 8 (Hermes, Hestia, Ares, Enyo, Deimos, Phobos, Eris,
+- Production Engineers: 8 (Hades, Hestia, Ares, Enyo, Deimos, Phobos, Eris,
   Harmonia)
 - Production Technicians: 8 (Aphrodite, Dionysus, Pan, Silenus, Priapus, Momus,
   Lyssa, Mania)
@@ -110,7 +111,7 @@ regulatory)
 - Supply Chain Coordinators: 7 (Metis, Pallas, Styx, Dione, Eurynome,
   Amphitrite, Galene)
 
-**Total Manufacturing**: 42 people (1 director + 18 production + 12 QA + 10
+**Total Manufacturing**: 42 people (1 director + 19 production + 12 QA + 10
 supply chain)
 
 ### BioNova Commercial
@@ -123,11 +124,11 @@ supply chain)
 - Senior Market Access Manager: 1 (Iris)
 - Market Access Specialists: 4 (Tyche, Eros, Morpheus, Phantasos)
 
-**Sales Team**: 7 people
+**Sales Team**: 8 people
 
-- Team Lead: Hermes (Sales Director)
+- Team Lead: Mercury (Sales Director)
 - Senior Account Managers: 2 (Hera, Poseidon)
-- Account Managers: 4 (Triton, Nereus, Proteus, Glaucus)
+- Account Managers: 5 (Triton, Nereus, Proteus, Glaucus, Thetis)
 
 **Marketing Team**: 5 people
 
@@ -135,7 +136,7 @@ supply chain)
 - Content Strategists: 2 (Calliope, Terpsichore)
 - Marketing Analysts: 2 (Clio, Euterpe)
 
-**Total Commercial**: 20 people (1 director + 6 market access + 7 sales + 5
+**Total Commercial**: 20 people (1 director + 6 market access + 8 sales + 5
 marketing)
 
 ### BioNova Information Technology (IT)
@@ -427,7 +428,7 @@ IT Operations (compliance monitoring)
 **Location**: BioNova HQ **Organizer**: Gaia (CTO) **Attendees**: Executive
 leadership, department directors, IT Data Science team leads
 
-## Product Ecosystem (7 Drug Products + 12 Technology Platforms + 3 Services)
+## Product Ecosystem (7 Drug Products + 14 Technology Platforms + 3 Services)
 
 ### Drug Products with Clinical Development Pipeline
 
@@ -876,7 +877,7 @@ Content valuable for both vector and graph approaches:
 
 - **Drug**: 7 items (with clinical descriptions AND development pipeline
   relationships)
-- **SoftwareApplication**: 12 items (technology platforms with capabilities AND
+- **SoftwareApplication**: 14 items (technology platforms with capabilities AND
   dependency relationships)
 - **Service**: 3 items (with service descriptions AND organizational providers)
 - **Course**: 12 items (with educational content AND prerequisite chains)
@@ -1029,56 +1030,181 @@ certification and which team benefits?"
 
 ## File Distribution Pattern
 
-### Organizational Files (2 files)
+### Organizational Files (9 files, ~160 items total)
 
-- `bionova-organization` - All 140 people, 5 organizations (HQ + 4 departments),
-  hierarchical structure
-- `bionova-projects` - 12 projects, 8 events, cross-functional teams
+**Department Organization Files (5 files)**:
 
-### Product Files (3 files)
+- `bionova-hq-executives` - 2 executives, HQ organization structure
+- `bionova-rd-department` - 42 people (1 director + 3 teams), R&D department
+  structure
+- `bionova-manufacturing-department` - 41 people (1 director + 3 teams),
+  Manufacturing department structure
+- `bionova-commercial-department` - 20 people (1 director + 3 teams), Commercial
+  department structure
+- `bionova-it-department` - 34 people (1 director + 4 teams), IT department
+  structure
 
-- `drug-portfolio` - 7 drug products, clinical pipeline, development
-  relationships
-- `technology-platforms` - 12 technology platforms, dependency relationships,
-  platform integrations
-- `services-offerings` - 3 managed services, service capabilities, provider
-  relationships
+**Project Files (3 files)**:
 
-### Knowledge Base Files (6 files)
+- `cross-functional-projects-drug-dev` - Projects Alpha, Beta, Gamma, Delta
+  (drug development and clinical focus)
+- `cross-functional-projects-technology` - Projects Epsilon, Zeta, Eta, Theta
+  (technology and infrastructure focus)
+- `cross-functional-projects-data` - Projects Iota, Kappa, Lambda, Mu (data, ML,
+  and platform focus)
 
-- `research-articles-1` - Drug development and clinical studies
-  (ScholarlyArticle)
-- `research-articles-2` - AI/ML pharmaceutical research (ScholarlyArticle)
-- `industry-insights` - Blog posts on pharmaceutical trends (BlogPosting)
-- `faq-collection` - Clinical trials, regulatory, manufacturing FAQs (FAQPage)
-- `scientific-reviews` - Drug efficacy and platform assessments (Review)
-- `scientific-discussions` - Comments on research articles (Comment)
+**Event Files (1 file)**:
 
-### Certification Files (1 file)
+- `bionova-events` - All 8 events (training, conferences, meetings, audits)
 
-- `pharmaceutical-certifications` - All 12 courses with prerequisite chains
-  across 3 tracks
+### Product Files (7 files, ~25 items total)
 
-### Policy Files (1 file)
+**Drug Portfolio Files (2 files)**:
 
-- `quality-compliance-policies` - All 13 policy documents with hierarchical
-  relationships and compliance frameworks
+- `drug-portfolio-clinical` - Oncora, Oncora-XR, Cardiozen, Immunex,
+  Immunex-Plus (clinical pipeline)
+- `drug-portfolio-advanced` - Neurova, Vitalis (early/marketed drugs)
 
-### Clinical Documentation Files (3 files)
+**Technology Platform Files (4 files)**:
 
-- `clinical-protocols` - Trial protocols and study reports
-- `drug-development-cases` - Development case studies
-- `regulatory-compliance` - Patient safety and compliance guides
+- `technology-platforms-discovery` - MolecularForge, DrugDesignStudio,
+  BioAnalyzer (discovery tools)
+- `technology-platforms-clinical` - ClinicalStream, PharmaSync (clinical
+  operations)
+- `technology-platforms-manufacturing` - ProcessControl, ManufacturingOS
+  (manufacturing systems)
+- `technology-platforms-data` - CloudOps, DataLake, AnalyticsHub, MLFlow,
+  APIGateway (data & cloud platforms)
 
-### Technology Documentation Files (4 files)
+**Security & Compliance Platform Files (1 file)**:
 
-- `platform-implementation` - Implementation guides
-- `ai-ml-pharma` - AI/ML in drug discovery
-- `manufacturing-automation` - Manufacturing systems guides
-- `cloud-infrastructure` - Cloud and DevOps documentation
+- `technology-platforms-security` - SecurityVault, ComplianceMonitor (security
+  systems)
 
-**Total**: 20 files (2 org + 3 product + 6 knowledge + 1 cert + 1 policy + 3
-clinical + 4 tech)
+**Services Files (1 file)**:
+
+- `managed-services` - 3 managed services (CMO, CRO, Regulatory Consulting)
+
+### Knowledge Base Files (12 files, ~230 items total)
+
+**Research Article Files (4 files, 50-60 items)**:
+
+- `research-articles-oncology` - Oncology and cancer research (ScholarlyArticle,
+  12-15 items)
+- `research-articles-cardiovascular` - Cardiovascular disease research
+  (ScholarlyArticle, 12-15 items)
+- `research-articles-ai-ml` - AI/ML in drug discovery (ScholarlyArticle, 12-15
+  items)
+- `research-articles-manufacturing` - Manufacturing science and process
+  optimization (ScholarlyArticle, 12-15 items)
+
+**Blog Post Files (4 files, 40-50 items)**:
+
+- `blog-drug-development` - Drug development insights and trends (BlogPosting,
+  10-12 items)
+- `blog-technology-innovation` - Technology and digital transformation
+  (BlogPosting, 10-12 items)
+- `blog-regulatory-affairs` - Regulatory strategy and compliance (BlogPosting,
+  10-12 items)
+- `blog-commercial-insights` - Market access and commercialization (BlogPosting,
+  10-12 items)
+
+**FAQ Files (4 files, 30-40 items)**:
+
+- `faq-clinical-trials` - Clinical trial Q&A (FAQPage, 8-10 items)
+- `faq-regulatory-compliance` - Regulatory and compliance Q&A (FAQPage, 8-10
+  items)
+- `faq-manufacturing-quality` - Manufacturing and GMP Q&A (FAQPage, 7-10 items)
+- `faq-technology-platforms` - IT systems and platforms Q&A (FAQPage, 7-10
+  items)
+
+### Certification Files (3 files, 12 items total)
+
+**Certification Track Files (3 files)**:
+
+- `certification-pharmaceutical-sciences` - 4 courses (PHARM-101, PHARM-201,
+  PHARM-301, PHARM-CERT)
+- `certification-manufacturing-excellence` - 4 courses (MFG-101, MFG-201,
+  MFG-301, MFG-CERT)
+- `certification-bioinformatics` - 4 courses (DATA-101, DATA-201, DATA-301,
+  DATA-CERT)
+
+### Policy Files (2 files, 13 items total)
+
+**Policy Documentation Files (2 files)**:
+
+- `quality-compliance-policies-core` - Master QMS, 3 Level-2 policies, 7 Level-3
+  procedures
+- `compliance-frameworks` - 4 compliance framework documents (FDA, GMP, HIPAA,
+  ICH-GCP)
+
+### Review and Comment Files (2 files, 80-100 items total)
+
+**Review Files (1 file)**:
+
+- `product-reviews` - Drug efficacy reviews, clinical trial feedback, platform
+  assessments (Review, 30-40 items)
+
+**Comment Files (1 file)**:
+
+- `scientific-discussions` - Comments on research articles and blog posts
+  (Comment, 50-60 items)
+
+### Clinical Documentation Files (5 files, 48-60 items total)
+
+**Clinical Protocol Files (2 files)**:
+
+- `clinical-protocols-oncology-cardiovascular` - Trial protocols for Oncora,
+  Cardiozen (8-10 items)
+- `clinical-protocols-immunology-neuroscience` - Trial protocols for Immunex,
+  Neurova, Vitalis (8-10 items)
+
+**Development Case Files (2 files)**:
+
+- `drug-development-cases-clinical` - Phase I-III development case studies (8-10
+  items)
+- `drug-development-cases-manufacturing` - Manufacturing scale-up case studies
+  (8-10 items)
+
+**Regulatory & Safety Files (1 file)**:
+
+- `regulatory-patient-safety` - Patient safety guides, informed consent
+  procedures, compliance (16-20 items)
+
+### Technology Documentation Files (5 files, 64-80 items total)
+
+**Platform Implementation Files (2 files)**:
+
+- `platform-implementation-discovery-clinical` - Implementation guides for
+  MolecularForge, ClinicalStream, PharmaSync (12-16 items)
+- `platform-implementation-manufacturing-data` - Implementation guides for
+  manufacturing and data platforms (12-16 items)
+
+**AI/ML Documentation Files (1 file)**:
+
+- `ai-ml-pharmaceutical-applications` - AI/ML in drug discovery, clinical
+  trials, manufacturing (16-20 items)
+
+**Manufacturing Systems Files (1 file)**:
+
+- `manufacturing-automation-systems` - ProcessControl, ManufacturingOS, quality
+  systems (12-16 items)
+
+**Cloud Infrastructure Files (1 file)**:
+
+- `cloud-infrastructure-devops` - CloudOps, container orchestration, CI/CD,
+  infrastructure as code (12-16 items)
+
+**Total**: 45 files
+
+- Organizational: 9 files (~160 items)
+- Product: 7 files (~25 items)
+- Knowledge Base: 12 files (~230 items)
+- Certifications: 3 files (~12 items)
+- Policies: 2 files (~13 items)
+- Reviews/Comments: 2 files (~90 items)
+- Clinical Docs: 5 files (~54 items)
+- Technology Docs: 5 files (~72 items)
 
 ## Validation Checklist
 
@@ -1091,7 +1217,7 @@ When generating demo content, verify the following shape requirements:
 - [ ] 12 projects with Greek letter names
 - [ ] 8 events
 - [ ] 7 drug products with pharmaceutical naming
-- [ ] 12 technology platforms with scientific naming
+- [ ] 14 technology platforms with scientific naming
 - [ ] 3 managed services
 - [ ] 12 courses across 3 certification tracks
 - [ ] 13 policy documents in hierarchical structure
@@ -1131,8 +1257,8 @@ When generating demo content, verify the following shape requirements:
    reference the BioNova storyline and this shape file
 2. **Maintain Entity Names**: Use exact names specified for people, drugs,
    technology platforms, projects, departments
-3. **Preserve Quantities**: Generate exact numbers of entities specified (120
-   people, 7 drugs, 12 platforms, etc.)
+3. **Preserve Quantities**: Generate exact numbers of entities specified (140
+   people, 7 drugs, 14 platforms, etc.)
 4. **Keep Relationships**: Maintain organizational hierarchy, project
    membership, drug pipelines, platform dependencies
 5. **Vary Content Only**: Change descriptions, technical details, and narrative

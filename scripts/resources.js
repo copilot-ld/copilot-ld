@@ -7,6 +7,7 @@ import { createLogger } from "@copilot-ld/libutil";
 
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
 import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
+import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
 
 const config = await ScriptConfig.create("resources");
 
@@ -42,12 +43,14 @@ async function main() {
 
   const resourceIndex = createResourceIndex();
   const descriptorProcessor = new DescriptorProcessor(llm);
+  const skolemizer = new Skolemizer();
 
   // Process knowledge using ResourceProcessor
   const resourceProcessor = new ResourceProcessor(
     resourceIndex,
     knowledgeStorage,
     descriptorProcessor,
+    skolemizer,
     logger,
     args.base,
   );

@@ -117,23 +117,28 @@ async function serviceMethod(request, callback) {
 /* eslint-env node */
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createSecurityMiddleware } from "@copilot-ld/libweb";
+import {
+  createValidationMiddleware,
+  createCorsMiddleware,
+} from "@copilot-ld/libweb";
 
 const app = new Hono();
-const security = createSecurityMiddleware({}); // pass real ExtensionConfig in production
+const validationMiddleware = createValidationMiddleware();
+const corsMiddleware = createCorsMiddleware();
 
-// Error, rate limit, and CORS
-app.use("*", security.createErrorMiddleware());
-app.use("/api/*", security.createRateLimitMiddleware());
+// CORS middleware
 app.use(
   "/api/*",
-  cors({ origin: ["http://localhost:3000"], allowMethods: ["GET", "POST"] }),
+  corsMiddleware.create({
+    origin: ["http://localhost:3000"],
+    allowMethods: ["GET", "POST"],
+  }),
 );
 
 // Validation example
 app.post(
   "/api/query",
-  security.createValidationMiddleware({
+  validationMiddleware.create({
     required: ["query", "userId"],
     types: { query: "string", userId: "string", limit: "number" },
     maxLengths: { query: 5000, userId: 100 },

@@ -35,10 +35,6 @@ export class Repl {
     this.#formatter = formatter;
     this.#readline = readlineModule;
     this.#process = processObj;
-
-    this.#formatter = formatter;
-    this.#readline = readline;
-    this.#process = process;
     this.#config = {
       prompt: "> ",
       onLine: null,

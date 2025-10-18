@@ -67,7 +67,7 @@ function createMockStorage() {
       return Array.from(data.keys()).filter((key) => key.startsWith(prefix));
     },
 
-    async has(key) {
+    async exists(key) {
       return data.has(key);
     },
   };

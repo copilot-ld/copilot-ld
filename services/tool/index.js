@@ -39,7 +39,6 @@ export class ToolService extends ToolBase {
    */
   async Call(req) {
     try {
-      // Validate request structure early
       if (!req?.id || !req?.function) {
         throw new Error("Invalid tool request: missing id or function");
       }
@@ -47,27 +46,23 @@ export class ToolService extends ToolBase {
       const toolName = req.function.id.name;
       this.debug("Executing tool", { name: toolName });
 
-      // Look up endpoint configuration
       const endpoint = this.#endpoints[toolName];
       if (!endpoint) {
         throw new Error(`Tool endpoint not found: ${toolName}`);
       }
 
-      // Parse the endpoint method configuration
       const methodParts = endpoint.method.split(".");
       if (methodParts.length !== 3) {
         throw new Error(`Invalid endpoint method format: ${endpoint.method}`);
       }
       const [servicePackage, serviceName, serviceMethod] = methodParts;
 
-      // Parse the request type configuration
       const requestParts = endpoint.request.split(".");
       if (requestParts.length !== 2) {
         throw new Error(`Invalid endpoint request format: ${endpoint.request}`);
       }
       const [requestPackage, requestType] = requestParts;
 
-      // Route to appropriate service
       const result = await this.#routeToService(
         servicePackage,
         serviceName,
@@ -169,11 +164,9 @@ export class ToolService extends ToolBase {
 
     const args = JSON.parse(toolRequest.function.arguments);
 
-    // Pass-on filter and GitHub token if present
     if (toolRequest.filter) args.filter = toolRequest.filter;
     if (toolRequest.github_token) args.github_token = toolRequest.github_token;
 
-    // Get the request type from the types object
     const RequestType = types[requestPackage]?.[requestType];
     if (!RequestType) {
       throw new Error(
@@ -181,7 +174,6 @@ export class ToolService extends ToolBase {
       );
     }
 
-    // Use fromObject to create the properly typed request
     return RequestType.fromObject(args);
   }
 }

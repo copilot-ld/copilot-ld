@@ -121,34 +121,29 @@ export class ValidationMiddleware {
    */
   create(schema) {
     return async (c, next) => {
-      try {
-        const data = await c.req.json();
-        if (!data || typeof data !== "object") {
-          return c.json({ error: "Invalid request data" }, 400);
-        }
-
-        const requiredError = this.#validateRequiredFields(data, schema);
-        if (requiredError) {
-          return c.json({ error: requiredError }, 400);
-        }
-
-        const typeError = this.#validateFieldTypes(data, schema);
-        if (typeError) {
-          return c.json({ error: typeError }, 400);
-        }
-
-        const lengthError = this.#validateFieldLengths(data, schema);
-        if (lengthError) {
-          return c.json({ error: lengthError }, 400);
-        }
-
-        const sanitizedData = this.#sanitizeData(data);
-        c.set("validatedData", sanitizedData);
-        await next();
-      } catch (error) {
-        console.error("Validation error:", error.message);
-        return c.json({ error: "Invalid request format" }, 400);
+      const data = await c.req.json();
+      if (!data || typeof data !== "object") {
+        return c.json({ error: "Invalid request data" }, 400);
       }
+
+      const requiredError = this.#validateRequiredFields(data, schema);
+      if (requiredError) {
+        return c.json({ error: requiredError }, 400);
+      }
+
+      const typeError = this.#validateFieldTypes(data, schema);
+      if (typeError) {
+        return c.json({ error: typeError }, 400);
+      }
+
+      const lengthError = this.#validateFieldLengths(data, schema);
+      if (lengthError) {
+        return c.json({ error: lengthError }, 400);
+      }
+
+      const sanitizedData = this.#sanitizeData(data);
+      c.set("validatedData", sanitizedData);
+      await next();
     };
   }
 }

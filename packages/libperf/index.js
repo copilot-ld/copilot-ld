@@ -334,11 +334,6 @@ export async function measurePerformance(count, fn) {
   const monitor = new PerformanceMonitor();
   monitor.start(count);
 
-  try {
-    await fn();
-    return monitor.stop();
-  } catch (error) {
-    monitor.stop();
-    throw error;
-  }
+  await fn();
+  return monitor.stop();
 }

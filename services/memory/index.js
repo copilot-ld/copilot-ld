@@ -9,8 +9,8 @@ const { MemoryBase } = services;
  */
 export class MemoryService extends MemoryBase {
   #storage;
-  #windows = new Map(); // Cache of MemoryWindow instances per resource
-  #lock = {}; // Lock mechanism for network-level request coordination
+  #windows = new Map();
+  #lock = {};
 
   /**
    * Creates a new Memory service instance
@@ -45,8 +45,6 @@ export class MemoryService extends MemoryBase {
   async Append(req) {
     if (!req.for) throw new Error("for is required");
 
-    // Acquire a lock in case clients append memory as a fire-and-forget call and
-    // immediately want to read back the window
     this.#lock[req.for] = true;
 
     try {
@@ -55,10 +53,8 @@ export class MemoryService extends MemoryBase {
         count: req.identifiers?.length || 0,
       });
 
-      // Get the MemoryWindow for this resource
       const window = this.#getWindow(req.for);
 
-      // Use MemoryWindow to append identifiers
       if (req.identifiers && req.identifiers.length > 0) {
         await window.append(req.identifiers);
       }
@@ -77,7 +73,6 @@ export class MemoryService extends MemoryBase {
       throw new Error("Budget allocation of tools and history is required");
     }
 
-    // Wait for lock to be released if another append is in progress
     while (this.#lock[req.for]) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }

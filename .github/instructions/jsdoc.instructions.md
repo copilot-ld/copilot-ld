@@ -382,10 +382,9 @@ syntax:
  * @param {string} name - Service name identifier
  * @param {object} config - Configuration object
  * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Storage factory function
- * @param {() => {grpc: object, protoLoader: object}} grpcFn - gRPC libraries factory function
- * @param {(serviceName: string) => object} authFn - Authentication factory function
  * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFactory - LLM client factory
  * @param {(token: string) => object} octokitFactory - Octokit client factory function
+ * @param {(namespace: string) => LoggerInterface} logFn - Logger factory function
  * @returns {Promise<ServiceInterface>} Configured service instance
  * @throws {Error} When configuration is invalid
  */
@@ -393,10 +392,9 @@ async function createService(
   name,
   config,
   storageFn,
-  grpcFn,
-  authFn,
   llmFactory,
   octokitFactory,
+  logFn,
 ) {
   // Implementation...
 }

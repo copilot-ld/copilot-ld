@@ -131,7 +131,7 @@ export class ResourceIndex {
  * @param {object} object - Plain object with type information
  * @returns {object} Typed object content
  */
-function toType(object) {
+export function toType(object) {
   if (!object?.id?.type) {
     throw new Error("Object must have an identifier");
   }
@@ -150,7 +150,7 @@ function toType(object) {
  * @param {string} uri - Resource URI (e.g., "common.Message.abc123" or "parent/child/common.Message.abc123")
  * @returns {types.resource.Identifier} Identifier instance
  */
-function toIdentifier(uri) {
+export function toIdentifier(uri) {
   const tree = uri.split("/");
 
   // The last part is the name, everything before is the parent path
@@ -183,5 +183,3 @@ export function createResourceIndex(storageType = undefined, policy = null) {
 
   return new ResourceIndex(storage, policyInstance);
 }
-
-export { toType, toIdentifier };

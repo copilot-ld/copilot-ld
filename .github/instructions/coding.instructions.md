@@ -365,8 +365,8 @@ import { VectorBase } from "./service.js";
 
 class VectorService extends VectorBase {
   #contentIndex;
-  constructor(config, contentIndex, grpcFn, authFn, logFn) {
-    super(config, grpcFn, authFn, logFn);
+  constructor(config, contentIndex, logFn) {
+    super(config, logFn);
     this.#contentIndex = contentIndex;
   }
   async QueryItems(req) {

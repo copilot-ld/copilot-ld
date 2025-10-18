@@ -37,7 +37,7 @@ jobs:
       - name: Detect changes
         id: detect-changes
         run: |
-          ITEMS=$(node scripts/release-changes.js \
+          ITEMS=$(npx --workspace=@copilot-ld/librel rel-changes \
             ${{ github.event.pull_request.base.sha }} \
             ${{ github.event.pull_request.head.sha }})
           echo "items=$ITEMS" >> $GITHUB_OUTPUT
@@ -79,7 +79,7 @@ jobs:
         run: |
           # Pull latest changes to avoid conflicts
           git pull --rebase origin main
-          VERSIONS=$(node scripts/release-bump.js --force \
+          VERSIONS=$(npx --workspace=@copilot-ld/librel rel-bump --force \
             ${{ needs.prepare.outputs.bump-type }} \
             ${{ join(fromJson(needs.prepare.outputs.changed-items), ' ') }})
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT

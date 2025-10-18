@@ -5,6 +5,8 @@
 - Moved `graphs.js` script from `scripts/` to `bin/graphs.js` as a binary
 - Added `bin` field to `package.json` to expose `graphs` binary
 - Updated script with shebang line and proper error handling
+- Fixed missing dependencies: Added `@copilot-ld/libstorage`,
+  `@copilot-ld/libtype`, and `@copilot-ld/libutil` to `package.json`
 
 ## 2025-10-15
 

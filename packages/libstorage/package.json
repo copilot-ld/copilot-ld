@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.859.0",
-    "@aws-sdk/credential-providers": "^3.859.0"
+    "@aws-sdk/credential-providers": "^3.859.0",
+    "@copilot-ld/libutil": "^0.1.33"
   },
   "repository": {
     "type": "git",

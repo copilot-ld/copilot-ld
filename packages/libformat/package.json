@@ -13,7 +13,6 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.36",
     "marked": "^15.0.12",
     "marked-terminal": "^7.3.0",
     "sanitize-html": "^2.17.0"

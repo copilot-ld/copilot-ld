@@ -13,7 +13,6 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.28",
     "@copilot-ld/libutil": "^0.1.33",
     "@grpc/grpc-js": "^1.12.2"
   },

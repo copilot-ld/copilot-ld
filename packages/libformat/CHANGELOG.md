@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-18
+
+- Fixed unnecessary dependency: Removed unused `@copilot-ld/libtype` from
+  `package.json`
+
 ## 2025-10-15
 
 - Bump version

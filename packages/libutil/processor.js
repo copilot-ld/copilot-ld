@@ -49,7 +49,6 @@ export class ProcessorBase {
     for (let i = 0; i < items.length; i++) {
       currentBatch.push(items[i]);
 
-      // Process batch when it reaches the configured size
       if (currentBatch.length >= this.#batchSize) {
         await this.processBatch(
           currentBatch,
@@ -62,7 +61,6 @@ export class ProcessorBase {
       }
     }
 
-    // Process any remaining items in the final batch
     if (currentBatch.length > 0) {
       await this.processBatch(
         currentBatch,
@@ -92,7 +90,6 @@ export class ProcessorBase {
       context,
     });
 
-    // Process all items in the batch in parallel
     const promises = batch.map(async (item, itemIndex) => {
       const globalIndex = processed + itemIndex;
       try {

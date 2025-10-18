@@ -20,7 +20,6 @@ export class VectorIndex extends IndexBase {
       vector,
     };
 
-    // Use parent class to update index in memory and on disk
     await super.addItem(item);
   }
 
@@ -47,7 +46,6 @@ export class VectorIndex extends IndexBase {
 
     identifiers.sort((a, b) => b.score - a.score);
 
-    // Apply shared filters
     let results = this._applyLimitFilter(identifiers, limit);
     results = this._applyTokensFilter(results, max_tokens);
 

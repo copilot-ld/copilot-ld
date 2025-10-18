@@ -1,11 +1,11 @@
 /* eslint-env node */
 
-// Export everything from generated types (includes both core and tool namespaces)
-export * from "./generated/types/types.js";
+import { countTokens, generateHash, generateUUID } from "@copilot-ld/libutil";
 
 import * as types from "./generated/types/types.js";
-import { countTokens } from "@copilot-ld/libutil";
-import { generateHash, generateUUID } from "@copilot-ld/libutil";
+
+// Export everything from generated types (includes both core and tool namespaces)
+export * from "./generated/types/types.js";
 
 // Core namespaces only (tools and any experimental namespaces are excluded intentionally)
 const {

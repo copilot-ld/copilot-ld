@@ -7,7 +7,7 @@ const { AgentBase } = services;
 /**
  * Main orchestration service for agent requests
  */
-class AgentService extends AgentBase {
+export class AgentService extends AgentBase {
   #mind;
   #octokitFn;
 
@@ -84,5 +84,3 @@ class AgentService extends AgentBase {
     return response;
   }
 }
-
-export { AgentService };

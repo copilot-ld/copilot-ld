@@ -1,8 +1,8 @@
 /* eslint-env node */
 
-import * as types from "./generated/types/types.js";
-
 import { countTokens, generateHash, generateUUID } from "@copilot-ld/libutil";
+
+import * as types from "./generated/types/types.js";
 
 // Export everything from generated types (includes both core and tool namespaces)
 export * from "./generated/types/types.js";

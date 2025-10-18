@@ -10,7 +10,7 @@ const { ToolBase } = services;
  * Tool service implementation that acts as a gRPC proxy between tool calls and actual implementations
  * @implements {ToolBase}
  */
-class ToolService extends ToolBase {
+export class ToolService extends ToolBase {
   #clients;
   #endpoints;
 
@@ -185,5 +185,3 @@ class ToolService extends ToolBase {
     return RequestType.fromObject(args);
   }
 }
-
-export { ToolService };

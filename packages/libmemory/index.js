@@ -18,7 +18,6 @@ export class MemoryIndex extends IndexBase {
       identifier,
     };
 
-    // Use parent class to update index in memory and on disk
     await super.addItem(item);
   }
 }
@@ -58,7 +57,6 @@ export class MemoryFilter {
     let totalBudget = 0;
     const filtered = [];
 
-    // Sort by score (descending) if available, otherwise preserve order
     const sorted = identifiers.slice().sort((a, b) => {
       if (a.score !== undefined && b.score !== undefined) {
         return b.score - a.score;
@@ -72,7 +70,6 @@ export class MemoryFilter {
         filtered.push(identifier);
         totalBudget += tokens;
       } else {
-        // Stop when budget would be exceeded
         break;
       }
     }
@@ -111,7 +108,6 @@ export class MemoryWindow {
       throw new Error("Budget allocation of tools and history is required");
     }
 
-    // Apply budget filtering with calculated budgets
     const filteredTools = MemoryFilter.filterByBudget(
       tools,
       Math.round(budget * allocation.tools),

@@ -57,7 +57,6 @@ export class GraphIndex extends IndexBase {
   async addItem(identifier, quads) {
     if (!this.loaded) await this.loadData();
 
-    // Add N3 quads to store - each quad should have subject, predicate, object N3 terms
     for (const quad of quads) {
       this.#graph.addQuad(quad.subject, quad.predicate, quad.object);
     }
@@ -68,7 +67,6 @@ export class GraphIndex extends IndexBase {
       quads,
     };
 
-    // Use parent class to update index in memory and on disk
     await super.addItem(item);
   }
 
@@ -77,13 +75,9 @@ export class GraphIndex extends IndexBase {
    * @returns {Promise<void>}
    */
   async loadData() {
-    // Clear the N3 store before loading
     this.#graph.removeMatches();
-
-    // Use the common loading logic from IndexBase
     await super.loadData();
 
-    // Add all N3 quads to store after loading
     for (const item of this.index.values()) {
       if (item.quads && Array.isArray(item.quads)) {
         for (const quad of item.quads) {
@@ -116,7 +110,6 @@ export class GraphIndex extends IndexBase {
   #findMatchingIdentifiers(subjects) {
     const identifiers = [];
     for (const item of this.index.values()) {
-      // Check if any of the item's quads have subjects that match our query
       if (item.quads && Array.isArray(item.quads)) {
         const hasMatch = item.quads.some((quad) => {
           return subjects.has(quad.subject.value);
@@ -138,12 +131,10 @@ export class GraphIndex extends IndexBase {
   #patternTermToN3Term(term) {
     if (!term) return null;
 
-    // Handle quoted literals
     if (term.startsWith('"') && term.endsWith('"')) {
       return literal(term.slice(1, -1));
     }
 
-    // For prefixed terms, resolve them manually using known prefixes
     if (term.includes(":")) {
       const [prefix, localName] = term.split(":", 2);
 
@@ -152,12 +143,10 @@ export class GraphIndex extends IndexBase {
       }
     }
 
-    // For full URIs
     if (term.startsWith("http://") || term.startsWith("https://")) {
       return namedNode(term);
     }
 
-    // For simple terms that don't look like URIs, treat as literals
     return literal(term);
   }
 

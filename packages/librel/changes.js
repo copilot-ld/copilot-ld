@@ -25,7 +25,6 @@ export class ReleaseChanges {
       throw new Error("Both baseSha and headSha are required");
     }
 
-    // Validate that both SHAs exist in the repository
     try {
       this.#execSync(`git cat-file -e ${baseSha}`, { encoding: "utf8" });
     } catch {
@@ -42,14 +41,12 @@ export class ReleaseChanges {
       );
     }
 
-    // Get changed files between commits
     let diff;
     try {
       diff = this.#execSync(`git diff --name-only ${baseSha}...${headSha}`, {
         encoding: "utf8",
       });
     } catch (error) {
-      // Provide better error context including the actual command that failed
       const command = `git diff --name-only ${baseSha}...${headSha}`;
       const errorMessage = error.stderr
         ? error.stderr.toString()
@@ -59,7 +56,6 @@ export class ReleaseChanges {
       );
     }
 
-    // Filter for packages, services, extensions with package.json
     const items = diff
       .split("\n")
       .filter((path) => /^(packages|services|extensions)\//.test(path))

@@ -71,14 +71,11 @@ export class Config {
     const nameUpper = this.name.toUpperCase();
     const fileData = this.#getFileData(this.namespace, this.name);
 
-    // Start with defaults and file config
     const data = { ...this.defaults, ...fileData };
 
-    // Add standard service defaults
     if (data.host === undefined) data.host = "0.0.0.0";
     if (data.port === undefined) data.port = 3000;
 
-    // Apply environment variable overrides (now includes host/port)
     for (const param of Object.keys(data)) {
       const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
       if (this.#process.env[varName] !== undefined) {
@@ -137,10 +134,8 @@ export class Config {
 
     try {
       const configContent = await this.#storage.get("config.json");
-      // Storage automatically parses JSON files, so configContent is already an object
       this.#fileData = configContent || {};
     } catch {
-      // config.json is optional, so we just use an empty object if not found
       this.#fileData = {};
     }
   }

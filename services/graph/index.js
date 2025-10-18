@@ -40,21 +40,18 @@ export class GraphService extends GraphBase {
       max_tokens: req.filter?.max_tokens,
     });
 
-    // 1. Build query pattern from request
     const pattern = {
       subject: req.subject || null,
       predicate: req.predicate || null,
       object: req.object || null,
     };
 
-    // 2. Query graph index with pattern
     const identifiers = await this.#graphIndex.queryItems(pattern, req?.filter);
 
     this.debug("Graph query results", {
       count: identifiers.length,
     });
 
-    // 3. Get content strings from resource identifiers
     const results = await this.#getResources(identifiers);
 
     return { results };
@@ -65,11 +62,8 @@ export class GraphService extends GraphBase {
     this.debug("Getting ontology");
 
     const storage = this.#graphIndex.storage();
-
-    // Get the ontology file content
     const ontologyContent = await storage.get("ontology.json");
 
-    // Handle both object and string formats
     const ontologyJson =
       typeof ontologyContent === "object"
         ? JSON.stringify(ontologyContent)
@@ -89,17 +83,14 @@ export class GraphService extends GraphBase {
       return [];
     }
 
-    // Get resources from the index
     const actor = "common.System.root";
     const resources = await this.#resourceIndex.get(
       actor,
       identifiers.map((id) => String(id)),
     );
 
-    // Extract content strings from resources
     const contents = resources
       .map((resource) => {
-        // Not all resources have content, fallback to descriptor
         return resource.content
           ? String(resource.content)
           : String(resource.descriptor);

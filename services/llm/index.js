@@ -37,7 +37,7 @@ export class LlmService extends LlmBase {
       req.messages,
       req.tools,
       req.temperature,
-      undefined, // max_tokens - use default
+      undefined,
     );
 
     return llm.CompletionsResponse.fromObject(completion);
@@ -48,7 +48,6 @@ export class LlmService extends LlmBase {
     const copilot = this.#llmFactory(req.github_token, this.config.model);
     const data = await copilot.createEmbeddings(req.chunks);
 
-    // Ensure embedding data uses proper typed constructors
     return {
       data: data.map((embedding) =>
         embedding instanceof common.Embedding
@@ -58,5 +57,3 @@ export class LlmService extends LlmBase {
     };
   }
 }
-
-// Export the service class (no bootstrap code here)

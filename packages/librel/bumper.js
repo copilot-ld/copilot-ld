@@ -38,11 +38,9 @@ export class ReleaseBumper {
       await this.#bumpRecursively(bumpType, item, results, processed, options);
     }
 
-    // Update package-lock.json in root after all bumps are complete
     if (results.length > 0) {
       this.#execSync("npm install", { cwd: initialCwd });
 
-      // Only add and commit package-lock.json if there are changes
       if (this.#hasChanges("package-lock.json", initialCwd)) {
         this.#execSync("git add package-lock.json", { cwd: initialCwd });
         this.#execSync(
@@ -56,36 +54,30 @@ export class ReleaseBumper {
   }
 
   async #bumpRecursively(bumpType, item, results, processed, options) {
-    // Prevent infinite loops in circular dependencies
     if (processed.has(item)) return;
     processed.add(item);
 
-    // Extract directory type and package name from path (e.g., "packages/libconfig")
     const [type, name] = item.split("/");
     const packagePath = join(item, "package.json");
 
-    // Bump the package version using npm (without creating git tag yet)
     this.#execSync(`npm version ${bumpType} --no-git-tag-version`, {
       cwd: item,
     });
 
-    // Read the updated package.json to get the new version and package name
     const pkg = JSON.parse(this.#readFileSync(packagePath, "utf8"));
     const newVersion = pkg.version;
     const packageName = pkg.name;
 
-    // Create git commit and tag for this version bump only if there are changes
     if (this.#hasChanges(packagePath)) {
       this.#execSync(`git add ${packagePath}`);
       this.#execSync(
         `git commit --no-verify -m "chore: bump ${name} to v${newVersion}"`,
       );
-      // Create or update the tag. If it exists and force is true, overwrite it
+
       try {
         this.#execSync(`git tag ${name}@v${newVersion}`);
       } catch (error) {
         if (options.force === true) {
-          // Overwrite existing tag to point at the new commit
           this.#execSync(`git tag -f ${name}@v${newVersion}`);
         } else {
           throw error;
@@ -93,10 +85,8 @@ export class ReleaseBumper {
       }
     }
 
-    // Record the bump result
     results.push({ type, name, version: newVersion });
 
-    // Find all packages that depend on this one and recursively bump them
     const dependents = this.#findDependents(packageName);
     for (const dependent of dependents) {
       this.#updateDependency(dependent, packageName, newVersion);
@@ -113,24 +103,25 @@ export class ReleaseBumper {
   #findDependents(packageName) {
     const dependents = [];
     for (const dir of ["packages", "services", "extensions", "tools"]) {
+      let subdirs;
       try {
-        const subdirs = this.#readdirSync(dir, { withFileTypes: true })
+        subdirs = this.#readdirSync(dir, { withFileTypes: true })
           .filter((dirent) => dirent.isDirectory())
           .map((dirent) => join(dir, dirent.name));
-
-        for (const subdir of subdirs) {
-          try {
-            const pkg = JSON.parse(
-              this.#readFileSync(join(subdir, "package.json"), "utf8"),
-            );
-            const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-            if (deps[packageName]) dependents.push(subdir);
-          } catch {
-            /* Ignore packages that can't be read */
-          }
-        }
       } catch {
-        /* Ignore directories that can't be read */
+        continue;
+      }
+
+      for (const subdir of subdirs) {
+        try {
+          const pkg = JSON.parse(
+            this.#readFileSync(join(subdir, "package.json"), "utf8"),
+          );
+          const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+          if (deps[packageName]) dependents.push(subdir);
+        } catch {
+          continue;
+        }
       }
     }
     return dependents;
@@ -163,7 +154,6 @@ export class ReleaseBumper {
       });
       return result.trim().length > 0;
     } catch {
-      // If git command fails, assume no changes
       return false;
     }
   }

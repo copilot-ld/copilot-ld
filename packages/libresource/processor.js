@@ -60,14 +60,11 @@ export class ResourceProcessor extends ProcessorBase {
 
     for (const key of keys) {
       const htmlContent = await this.#knowledgeStorage.get(key);
-      // Convert to string immediately after retrieval from storage
       const html = Buffer.isBuffer(htmlContent)
         ? htmlContent.toString("utf8")
         : String(htmlContent);
 
-      // Fix common HTML issues before parsing
       const fixedHtml = this.#fixHtml(html);
-
       const items = await this.#parseHTML(fixedHtml, key);
       await super.process(items, key);
     }
@@ -80,8 +77,6 @@ export class ResourceProcessor extends ProcessorBase {
    * @private
    */
   #fixHtml(html) {
-    // Replace < and > followed by numbers (like p<0.001 or n>100) with HTML entities
-    // to prevent them from being interpreted as HTML tags
     return html.replace(/<(\d)/g, "&lt;$1").replace(/>(\d)/g, "&gt;$1");
   }
 
@@ -100,10 +95,9 @@ export class ResourceProcessor extends ProcessorBase {
         return baseElement.getAttribute("href");
       }
     } catch {
-      // Fall through to default
+      return this.#baseIri || `https://example.invalid/${key}`;
     }
 
-    // Use provided base IRI or construct from document key
     return this.#baseIri || `https://example.invalid/${key}`;
   }
 
@@ -131,10 +125,9 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Extract RDF quads from HTML content using microdata streaming parser
-   * Applies skolemization to replace blank nodes with URIs for cross-document deduplication
    * @param {string} html - The HTML string to process
    * @param {string} baseIri - Base IRI for resolving relative URLs
-   * @returns {Promise<Array>} Array of quad objects with skolemized blank nodes
+   * @returns {Promise<Array>} Array of quad objects
    * @private
    */
   async #extractQuads(html, baseIri) {
@@ -154,7 +147,6 @@ export class ResourceProcessor extends ProcessorBase {
       });
 
       parser.on("end", () => {
-        // Apply skolemization to replace blank nodes with URIs
         const skolemizedQuads = this.#skolemizer.skolemize(quads);
         resolve(skolemizedQuads);
       });
@@ -195,7 +187,6 @@ export class ResourceProcessor extends ProcessorBase {
    * @private
    */
   #groupQuadsByItem(allQuads) {
-    // Find all subjects that have Schema.org types (these are the items we want to process)
     const typedItems = new Set();
 
     for (const quad of allQuads) {
@@ -210,13 +201,11 @@ export class ResourceProcessor extends ProcessorBase {
 
     const itemGroups = new Map();
 
-    // For each typed item, collect all connected quads
     for (const itemIri of typedItems) {
       const relevantQuads = [];
       const visitedNodes = new Set();
       const nodesToProcess = [itemIri];
 
-      // Breadth-first traversal to find all quads connected to the item
       while (nodesToProcess.length > 0) {
         const currentNode = nodesToProcess.shift();
 
@@ -225,15 +214,12 @@ export class ResourceProcessor extends ProcessorBase {
         }
         visitedNodes.add(currentNode);
 
-        // Find all quads where this node is the subject
         for (const quad of allQuads) {
           const subjectValue = quad.subject.value;
 
           if (subjectValue === currentNode) {
             relevantQuads.push(quad);
 
-            // If the object is a named node and hasn't been visited, add it for processing
-            // Note: After skolemization, there are no more BlankNodes - they're all NamedNodes
             if (
               quad.object.termType === "NamedNode" &&
               !visitedNodes.has(quad.object.value)
@@ -291,13 +277,8 @@ export class ResourceProcessor extends ProcessorBase {
    * @returns {Promise<object[]>} Array of JSON-LD objects with nquads and subject
    */
   async #parseHTML(html, key) {
-    // Extract base IRI for the document
     const baseIri = this.#extractBaseIri(html, key);
-
-    // Minify HTML to remove whitespace, comments, CSS, and JavaScript
     const minifiedHtml = await this.#minifyHTML(html);
-
-    // Extract RDF from HTML (not N-Quads string)
     const allQuads = await this.#extractQuads(minifiedHtml, baseIri);
 
     if (!allQuads || allQuads.length === 0) {
@@ -305,28 +286,20 @@ export class ResourceProcessor extends ProcessorBase {
       return [];
     }
 
-    // Group quads by top-level items to avoid blank node ID conflicts
     const itemGroups = this.#groupQuadsByItem(allQuads);
 
-    // Process each item group directly to JSON-LD (single-pass)
     const items = [];
     for (const [itemIri, itemQuads] of itemGroups) {
-      // Deterministic resource name based on IRI
       const itemName = generateHash(itemIri);
 
-      // Check if the resource already exists
       const exists = await this.#resourceIndex.has(
         `common.Message:${itemName}`,
       );
       if (exists) continue;
 
-      // Convert item quads to N-Quads
       const itemRdf = await this.#quadsToRdf(itemQuads);
-
-      // Convert item N-Quads directly to JSON-LD (preserves blank node IDs)
       const itemJsonArray = await this.#rdfToJson(itemRdf);
 
-      // Find the main item in the JSON-LD array (should match the itemIri)
       const mainItem =
         itemJsonArray.find((item) => item["@id"] === itemIri) ||
         itemJsonArray[0];

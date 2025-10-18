@@ -39,7 +39,6 @@ export class AgentService extends AgentBase {
 
     this.#octokitFn = octokitFn;
 
-    // Create service callback adapters for the AgentMind
     const callbacks = {
       memory: {
         append: async (req) => await memoryClient.Append(req),
@@ -54,7 +53,6 @@ export class AgentService extends AgentBase {
       },
     };
 
-    // Initialize the AgentMind with dependencies
     this.#mind = new AgentMind(config, callbacks, resourceIndex);
   }
 
@@ -69,11 +67,9 @@ export class AgentService extends AgentBase {
       messages: req.messages?.length || 0,
     });
 
-    // Validate GitHub token at service level
     const octokit = this.#octokitFn(req.github_token);
     await octokit.request("GET /user");
 
-    // Delegate to AgentMind for business logic
     const response = await this.#mind.processRequest(req);
 
     this.debug("Request processed", {

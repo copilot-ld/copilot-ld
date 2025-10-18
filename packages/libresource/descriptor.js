@@ -21,7 +21,6 @@ export class DescriptorProcessor {
     if (!llm) throw new Error("llm is required");
     this.#llm = llm;
 
-    // Load descriptor prompt template
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const templatePath = join(
       __dirname,
@@ -38,10 +37,8 @@ export class DescriptorProcessor {
   async process(item) {
     const { json } = item;
 
-    // Generate prompt using mustache template
     const prompt = mustache.render(this.#descriptorTemplate, { json });
 
-    // Call LLM to generate descriptor
     const completion = await this.#llm.createCompletions(
       [
         {
@@ -49,9 +46,9 @@ export class DescriptorProcessor {
           content: prompt,
         },
       ],
-      undefined, // tools
-      0.1, // temperature
-      2000, // max_tokens
+      undefined,
+      0.1,
+      2000,
     );
 
     let descriptor = {};

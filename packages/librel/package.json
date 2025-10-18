@@ -6,6 +6,11 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "rel-bump": "./bin/bump.js",
+    "rel-changes": "./bin/changes.js",
+    "rel-parameters": "./bin/parameters.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },

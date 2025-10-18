@@ -15,7 +15,7 @@
 
 import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 import { writeFileSync, readFileSync, existsSync } from "fs";
-import { StackParameters } from "../packages/librel/parameters.js";
+import { StackParameters } from "../parameters.js";
 
 /**
  * Reads JSON from stdin

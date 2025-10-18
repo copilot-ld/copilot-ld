@@ -50,11 +50,11 @@ runs:
         cd $GITHUB_WORKSPACE
 
         if [ -n "${{ inputs.retrieve }}" ] && [ "${{ inputs.retrieve }}" != "" ]; then
-          echo '${{ inputs.retrieve }}' | node scripts/stack-parameters.js --retrieve --file="${{ inputs.output-file }}"
+          echo '${{ inputs.retrieve }}' | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="${{ inputs.output-file }}"
         fi
 
         if [ -n "${{ inputs.amend }}" ] && [ "${{ inputs.amend }}" != "" ]; then
-          echo '${{ inputs.amend }}' | node scripts/stack-parameters.js --amend --file="${{ inputs.output-file }}"
+          echo '${{ inputs.amend }}' | npx --workspace=@copilot-ld/librel rel-parameters --amend --file="${{ inputs.output-file }}"
         fi
 
         echo "parameters-file=$(pwd)/${{ inputs.output-file }}" >> $GITHUB_OUTPUT

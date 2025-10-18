@@ -57,4 +57,4 @@ jobs:
 
       - name: Display ALB URL
         run: |
-          echo '{"${{ inputs.environment_name }}-cld-network-stack-cf": ["ApplicationLoadBalancerDNSName"]}' | node scripts/stack-parameters.js --retrieve | jq -r '.[] | select(.ParameterKey == "ApplicationLoadBalancerDNSName") | .ParameterValue'
+          echo '{"${{ inputs.environment_name }}-cld-network-stack-cf": ["ApplicationLoadBalancerDNSName"]}' | npx --workspace=@copilot-ld/librel rel-parameters --retrieve | jq -r '.[] | select(.ParameterKey == "ApplicationLoadBalancerDNSName") | .ParameterValue'

@@ -232,11 +232,11 @@ export class ResourceProcessor extends ProcessorBase {
           if (subjectValue === currentNode) {
             relevantQuads.push(quad);
 
-            // If the object is a blank node or named node, add it for processing
+            // If the object is a named node and hasn't been visited, add it for processing
+            // Note: After skolemization, there are no more BlankNodes - they're all NamedNodes
             if (
-              quad.object.termType === "BlankNode" ||
-              (quad.object.termType === "NamedNode" &&
-                !visitedNodes.has(quad.object.value))
+              quad.object.termType === "NamedNode" &&
+              !visitedNodes.has(quad.object.value)
             ) {
               nodesToProcess.push(quad.object.value);
             }

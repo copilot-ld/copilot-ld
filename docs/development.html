@@ -6,28 +6,47 @@
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
   <body>
-    <header>
+    <header class="container">
       <hgroup>
-        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <h1>
+          <a href="index.html">🧬 <mark>Copilot-LD</mark></a>
+        </h1>
         <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
       </hgroup>
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="configuration.html">Configuration</a></li>
-          <li><a href="processing.html">Processing</a></li>
-          <li><a href="deployment.html">Deployment</a></li>
-          <li><a href="development.html" class="active">Development</a></li>
+          <li><a href="concepts.html">Concepts</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Architecture</summary>
+              <ul>
+                <li><a href="architecture.html">Overview</a></li>
+                <li><a href="reference.html">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Guides</summary>
+              <ul>
+                <li><a href="configuration.html">Configuration</a></li>
+                <li><a href="processing.html">Processing</a></li>
+                <li><a href="deployment.html">Deployment</a></li>
+                <li>
+                  <a href="development.html" class="active">Development</a>
+                </li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
+    <main class="container">
       <h2>Development Guide</h2>
 
       <p>
@@ -37,7 +56,24 @@
         processing, see the <a href="processing.html">Processing Guide</a>.
       </p>
 
-      <h3>Prerequisites</h3>
+      <aside>
+        <nav>
+          <h5>Contents</h5>
+          <ul>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#workflow">Development Workflow</a></li>
+            <li><a href="#testing">Testing and Validation</a></li>
+            <li><a href="#scripts">Development Scripts</a></li>
+            <li><a href="#codegen">Code Generation Workflow</a></li>
+            <li><a href="#web">Web Interface Testing</a></li>
+            <li><a href="#troubleshooting">Development Troubleshooting</a></li>
+            <li><a href="#next">Next Steps</a></li>
+          </ul>
+        </nav>
+        <hr />
+      </aside>
+
+      <h3 id="prerequisites">Prerequisites</h3>
 
       <p>Complete the initial setup steps:</p>
       <ul>
@@ -51,7 +87,7 @@
         </li>
       </ul>
 
-      <h3>Development Workflow</h3>
+      <h3 id="workflow">Development Workflow</h3>
 
       <p>
         By default all services run in development mode with debug logging
@@ -67,7 +103,7 @@ npm run dev:stop
 # Restart development environment
 npm run dev:restart</code></pre>
 
-      <h3>Testing and Validation</h3>
+      <h3 id="testing">Testing and Validation</h3>
 
       <p>Run various testing and validation checks:</p>
 
@@ -97,7 +133,7 @@ npm run spellcheck     # Spell check documentation</code></pre>
 
       <pre><code>npm run security</code></pre>
 
-      <h3>Development Scripts</h3>
+      <h3 id="scripts">Development Scripts</h3>
 
       <p>
         The <code>scripts/</code> directory contains utilities for development
@@ -149,7 +185,7 @@ node scripts/secret.js
 # GitHub token setup and validation
 npx env-cmd -- node scripts/token.js</code></pre>
 
-      <h3>Code Generation Workflow</h3>
+      <h3 id="codegen">Code Generation Workflow</h3>
 
       <p>
         For details about Protocol Buffer compilation and type generation, see
@@ -166,7 +202,7 @@ npm run codegen:type      # Type definitions only
 npm run codegen:client    # Client stubs only
 npm run codegen:service   # Service bases only</code></pre>
 
-      <h3>Web Interface Testing</h3>
+      <h3 id="web">Web Interface Testing</h3>
 
       <p>Access the development interfaces:</p>
 
@@ -180,7 +216,7 @@ npm run codegen:service   # Service bases only</code></pre>
         </li>
       </ul>
 
-      <h3>Development Troubleshooting</h3>
+      <h3 id="troubleshooting">Development Troubleshooting</h3>
 
       <h4>Service Issues</h4>
 
@@ -237,7 +273,7 @@ ls data/vectors/
 # Validate service configuration
 npm test -- --grep="Config"</code></pre>
 
-      <h3>Next Steps</h3>
+      <h3 id="next">Next Steps</h3>
 
       <ul>
         <li>
@@ -258,7 +294,7 @@ npm test -- --grep="Config"</code></pre>
         </li>
       </ul>
     </main>
-    <footer>
+    <footer class="container">
       <p>© D. Olsson</p>
     </footer>
   </body>

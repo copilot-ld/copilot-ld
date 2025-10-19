@@ -6,220 +6,239 @@
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
 
   <body>
-    <header>
+    <header class="container">
       <hgroup>
-        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <h1>
+          <a href="index.html">🧬 <mark>Copilot-LD</mark></a>
+        </h1>
         <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
       </hgroup>
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html" class="active">Architecture</a></li>
-          <li><a href="configuration.html">Configuration</a></li>
-          <li><a href="processing.html">Processing</a></li>
-          <li><a href="deployment.html">Deployment</a></li>
-          <li><a href="development.html">Development</a></li>
+          <li><a href="concepts.html">Concepts</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Architecture</summary>
+              <ul>
+                <li><a href="architecture.html" class="active">Overview</a></li>
+                <li><a href="reference.html">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Guides</summary>
+              <ul>
+                <li><</li>
+                <li><a href="configuration.html">Configuration</a></li>
+                <li><a href="processing.html">Processing</a></li>
+                <li><a href="deployment.html">Deployment</a></li>
+                <li><a href="development.html">Development</a></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
+    <main class="container">
       <h2>Architecture Overview</h2>
 
       <p>
-        Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
-        data and retrieval-augmented generation.
+        Copilot-LD is built as a microservices platform using gRPC for
+        inter-service communication, with framework-agnostic business logic
+        packages and application-specific extensions. This architecture
+        prioritizes modularity, maintainability, and performance.
       </p>
 
-      <h3>System Design</h3>
+      <aside>
+        <nav>
+          <h5>Contents</h5>
+          <ul>
+            <li><a href="#overview">High-Level Overview</a></li>
+            <li><a href="#structure">Directory Structure</a></li>
+            <li><a href="#relationships">Component Relationships</a></li>
+            <li><a href="#online">Online Request Flow</a></li>
+            <li><a href="#offline">Offline Processing Flow</a></li>
+            <li><a href="#codegen">Code Generation Workflow</a></li>
+            <li><a href="#deployment">Deployment Architecture</a></li>
+            <li><a href="#security">Security Architecture</a></li>
+            <li><a href="#next">Next Steps</a></li>
+          </ul>
+        </nav>
+        <hr />
+      </aside>
 
-      <ul>
-        <li>
-          <strong>gRPC Microservices</strong>: Single-responsibility services
-          with gRPC communication
-        </li>
-        <li>
-          <strong>Extensions</strong>: Plugin-based adapters for different
-          applications
-        </li>
-        <li>
-          <strong>Modularity</strong>: Reusable business logic packages for
-          maximum reusability
-        </li>
-        <li>
-          <strong>Performance</strong>: Parallel processing and optimized vector
-          operations
-        </li>
-      </ul>
-
-      <h4>Communication Layer</h4>
-
-      <ul>
-        <li>
-          <strong>gRPC Protocol</strong>: All inter-service communication uses
-          gRPC with Protocol Buffers
-        </li>
-        <li>
-          <strong>REST APIs</strong>: Extensions expose REST endpoints for
-          external client integration
-        </li>
-        <li>
-          <strong>Schema Definition</strong>: Authoritative protobuf schemas in
-          <code>/proto</code> (copied verbatim into
-          <code>/generated/proto</code> during code generation) ensure type
-          safety. Optional tool schemas in <code>/tools</code>
-          <strong>extend the core system</strong> with additional functionality.
-          All runtime loading now reads exclusively from
-          <code>/generated/proto</code> for a single source of operational
-          truth.
-        </li>
-      </ul>
-
-      <h4>Service Architecture</h4>
-
-      <ul>
-        <li>
-          <strong>Agent Service</strong>: Central orchestrator managing request
-          flow
-        </li>
-        <li>
-          <strong>Specialized Services</strong>: Domain-specific services
-          (<code>LLM</code>, <code>Memory</code>, <code>Vector</code>,
-          <code>Graph</code>)
-        </li>
-        <li>
-          <strong>Parallelism</strong>: Readiness checks run in parallel; the
-          main request flow is orchestrated sequentially per request
-        </li>
-        <li>
-          <strong>Stateless Design</strong>: Services maintain no persistent
-          state
-        </li>
-      </ul>
-
-      <h4>Generated Code Workflow</h4>
+      <h3 id="overview">High-Level Overview</h3>
 
       <p>
-        Both code generation and service startup follow a unified three-step
-        workflow to ensure generated code is available:
+        The system is organized into three primary layers, each with distinct
+        responsibilities:
       </p>
 
-      <ol>
+      <ul>
         <li>
-          <strong>Resolve Source Path</strong>: Use
-          <code>storageFactory("generated", "local")</code> to determine the
-          canonical storage location for generated artifacts
+          <strong>Extensions</strong>: Application adapters that expose the
+          platform through different interfaces (web UI, Teams bot, REST API)
         </li>
         <li>
-          <strong>Ensure Storage Exists</strong>: Call
-          <code>ensureBucket()</code> to create the storage directory if it
-          doesn't exist
+          <strong>Services</strong>: Single-responsibility microservices
+          communicating via gRPC with Protocol Buffers
         </li>
         <li>
-          <strong>Create Package Symlinks</strong>: Use
-          <code>Finder.createPackageSymlinks()</code> to link package target
-          directories (<code>packages/libtype/generated/</code>,
-          <code>packages/librpc/generated/</code>) to the source location
+          <strong>Packages</strong>: Reusable business logic libraries that
+          services and extensions import
         </li>
-      </ol>
+      </ul>
 
-      <p>
-        This workflow is used by both the code generation binary (<code
-          >npm run codegen</code
-        >) and the download utility that services use at startup. When
-        <code>STORAGE_TYPE=s3</code>, services automatically download and
-        extract the latest generated code bundle from remote storage before
-        creating symlinks.
-      </p>
-
-      <h3>Directory Structure</h3>
+      <h3 id="structure">Directory Structure</h3>
 
       <pre>
-./services/          # gRPC service implementations (custom logic only)
-./extensions/        # Extensions that adapt core system to applications
-./packages/          # Reusable, domain-focused logic (pure business logic)
-./scripts/           # Utility scripts & code generation
-./proto/             # Authoritative protobuf source schemas (never edited in generated/)
-./tools/             # Custom tools that extend the core system
-./generated/         # ALL generated artifacts (proto copies, types, service bases, clients)
-./data/              # Knowledge base, vectors, and resource data
-  </pre
-      >
-
-      <h3>High-Level Architecture</h3>
-
-      <pre class="mermaid">
-flowchart TD
-    A[Clients]
-    B[Extensions]
-    C[Agent service]
-    D[Memory service]
-    E[LLM service]
-    F[Tool service]
-    G[Vector service]
-    H[Graph service]
-    I[GitHub API]
-    J[LLM backend]
-    K[Memory store]
-    L[Content Vector Index]
-    M[Descriptor Vector Index]
-    N[Graph Index]
-    O[Resource Storage]
-
-    %% Clients communicate with Extensions over REST
-    A -- REST --> B
-
-    %% Extensions interact with the Agent via gRPC
-    B -- gRPC --> C
-
-    %% Agent service interact with backend services
-    C -- gRPC --> D
-    C -- gRPC --> E
-    C -- gRPC --> F
-    C -- gRPC --> G
-    C -- gRPC --> H
-    C -- REST --> I
-
-    %% Interaction with the foundation model
-    E -- REST --> J
-
-    %% Services that interact with storage
-    D -- Local I/O --> K
-    G -- Local I/O --> L
-    G -- Local I/O --> M
-    H -- Local I/O --> N
-    C -- Local I/O --> O
+copilot-ld/
+├── services/              # gRPC microservices
+│   ├── agent/            # Request orchestration
+│   ├── memory/           # Conversation storage
+│   ├── llm/              # Language model interface
+│   ├── vector/           # Similarity search
+│   ├── graph/            # Graph queries
+│   └── tool/             # Tool execution proxy
+├── extensions/           # Application adapters
+│   ├── web/             # Web interface
+│   └── teams/           # Teams bot (example)
+├── packages/            # Business logic libraries
+│   ├── libagent/        # Agent orchestration
+│   ├── libmemory/       # Memory management
+│   ├── libvector/       # Vector operations
+│   ├── libgraph/        # Graph operations
+│   ├── libresource/     # Resource management
+│   ├── librpc/          # gRPC infrastructure
+│   ├── libtype/         # Generated types
+│   └── lib.../          # Additional utilities
+├── proto/               # Protocol Buffer schemas
+├── tools/               # Optional tool extensions
+├── generated/           # Generated code artifacts
+├── data/                # Runtime and processed data
+└── scripts/             # Development utilities
       </pre>
 
-      <h3>Online Sequence Diagram</h3>
+      <h3 id="relationships">Component Relationships</h3>
+
+      <h4>Communication Patterns</h4>
+
+      <ul>
+        <li>
+          <strong>Client → Extension</strong>: HTTP/HTTPS (REST endpoints)
+        </li>
+        <li>
+          <strong>Extension → Services</strong>: gRPC with HMAC authentication
+        </li>
+        <li>
+          <strong>Service → Service</strong>: gRPC with HMAC authentication
+        </li>
+        <li>
+          <strong>All Layers → Packages</strong>: Direct imports (ES modules)
+        </li>
+      </ul>
+
+      <h4>Service Layer</h4>
 
       <p>
-        The online sequence diagram reflects the current implementation in the
-        codebase. The Agent performs operations sequentially: it validates the
-        GitHub token, ensures service readiness in parallel (including Tool
-        service), computes a token budget (subtracting
-        <code>assistant.content.tokens</code> and applying configured
-        allocation), assembles a memory window using the budget, and then enters
-        a tool calling loop that iteratively requests completions and
-        autonomously executes tools based on LLM decisions until no more tool
-        calls are needed. The Agent makes intelligent decisions about which
-        tools to call and when, without hard-wired dependencies on specific
-        services. Only readiness checks are executed in parallel; the main
-        request flow is sequential.
+        Each service is a thin gRPC adapter around business logic packages. The
+        Agent service orchestrates requests by calling other services as needed:
       </p>
+
+      <ul>
+        <li>
+          <strong>Agent</strong>: Orchestrates request processing and tool
+          calling loops
+        </li>
+        <li>
+          <strong>Memory</strong>: Manages conversation history with budget
+          allocation
+        </li>
+        <li>
+          <strong>LLM</strong>: Interfaces with language models for embeddings
+          and completions
+        </li>
+        <li>
+          <strong>Vector</strong>: Performs similarity search across dual
+          indexes
+        </li>
+        <li>
+          <strong>Graph</strong>: Executes pattern-based queries on RDF graphs
+        </li>
+        <li>
+          <strong>Tool</strong>: Proxies tool calls from agent to
+          implementations
+        </li>
+      </ul>
+
       <p>
-        Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
-        data and retrieval-augmented generation. As of 2025-09-05 the platform
-        consolidates all generated protobuf artifacts into a single
-        <code>/generated</code> directory to eliminate ambiguity between source
-        and generated files, simplifying extension with additional tool schemas
-        that <strong>extend the core system</strong>.
+        For detailed service implementations, see the
+        <a href="reference.html">Reference Guide</a>.
       </p>
+
+      <h4>Package Layer</h4>
+
+      <p>
+        Business logic packages (<code>@copilot-ld/lib*</code>) contain
+        framework-agnostic code that services import. This separation enables:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Testability</strong>: Unit test logic without service
+          infrastructure
+        </li>
+        <li>
+          <strong>Reusability</strong>: Same code powers services and CLI tools
+        </li>
+        <li>
+          <strong>Maintainability</strong>: Clear separation between
+          communication and computation
+        </li>
+      </ul>
+
+      <p>
+        For complete package catalog, see the
+        <a href="reference.html#package-catalog">Reference Guide</a>.
+      </p>
+
+      <h4>Extension Layer</h4>
+
+      <p>
+        Extensions are application-specific adapters that call the Agent service
+        via gRPC. They handle:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Protocol Translation</strong>: Convert HTTP/WebSocket/Bot
+          protocols to gRPC
+        </li>
+        <li>
+          <strong>Authentication</strong>: Validate user credentials and manage
+          sessions
+        </li>
+        <li>
+          <strong>Input Validation</strong>: Sanitize and validate user input
+        </li>
+        <li><strong>Rate Limiting</strong>: Protect backend from abuse</li>
+      </ul>
+
+      <h3 id="online">Online Request Flow</h3>
+
+      <p>
+        The following sequence diagram shows how a user request flows through
+        the system at runtime. The Agent makes autonomous decisions about which
+        services to call and when:
+      </p>
+
       <pre class="mermaid">
 sequenceDiagram
     participant Client
@@ -272,916 +291,284 @@ sequenceDiagram
 
     Agent-->>Extension: RPC response (with conversation_id)
     Extension-->>Client: REST response
-  </pre
-      >
+      </pre>
 
-      <h4>Service Responsibilities</h4>
+      <h4>Key Characteristics</h4>
 
-      <h5>Agent Service</h5>
+      <ul>
+        <li>
+          <strong>Sequential per request</strong>: Each request is processed
+          step-by-step
+        </li>
+        <li>
+          <strong>Concurrent requests</strong>: Multiple requests can be handled
+          in parallel
+        </li>
+        <li>
+          <strong>Autonomous decisions</strong>: Agent decides which tools to
+          call dynamically
+        </li>
+        <li>
+          <strong>Policy filtering</strong>: All resource access respects access
+          policies
+        </li>
+        <li>
+          <strong>Budget management</strong>: Token budgets allocated across
+          context components
+        </li>
+      </ul>
+
+      <h3 id="offline">Offline Processing Flow</h3>
 
       <p>
-        Central orchestrator that autonomously decides what tool calls to make
-        and when. Requests are processed sequentially as shown in the sequence
-        diagram (readiness checks run in parallel). The service is built as a
-        thin gRPC wrapper around business logic in the
-        <code>@copilot-ld/libagent</code> package, which provides
-        framework-agnostic agent orchestration with <code>AgentMind</code> for
-        planning and <code>AgentHands</code> for tool execution.
-      </p>
-
-      <p><strong>Architecture</strong>:</p>
-      <ul>
-        <li>
-          <strong>Business logic library</strong>: Agent orchestration logic
-          implemented in <code>@copilot-ld/libagent</code> with
-          <code>AgentMind</code> for conversation setup and planning, and
-          <code>AgentHands</code> for focused tool execution
-        </li>
-        <li>
-          <strong>Service adapter pattern</strong>: Agent service acts as a gRPC
-          adapter that delegates to <code>AgentMind</code> for business logic
-          while handling authentication and service communication
-        </li>
-        <li>
-          <strong>Improved testability</strong>: Business logic can be unit
-          tested independently of gRPC service infrastructure
-        </li>
-        <li>
-          <strong>Resource integration</strong>: Integrates with
-          <code>ResourceIndex</code> for direct resource access with
-          policy-based access control
-        </li>
-      </ul>
-
-      <details>
-        <summary>Message assembly order and budgeting</summary>
-        <ul>
-          <li>
-            <strong>Assembly order</strong> (passed to completions):
-            <code>assistant</code> → <code>tasks</code> → <code>tools</code> →
-            <code>history</code>
-          </li>
-
-          <li>
-            <strong>gRPC Protocol</strong>: All inter-service communication uses
-            gRPC with Protocol Buffers. Services load schemas exclusively from
-            <code>/generated/proto</code> produced by code generation.
-          </li>
-          <li>
-            <strong>Budgeting</strong>: Effective token budget is computed as
-            <code>max(0, config.budget.tokens - assistant.content.tokens)</code
-            >, with optional allocation shaping for <code>tools</code> and
-            <code>history</code>
-          </li>
-          <li>
-            <strong>Autonomous tool calling</strong>: Agent makes intelligent
-            decisions about which tools to call and when, without hard-wired
-            dependencies on specific services
-          </li>
-        </ul>
-      </details>
-
-      <h5>Memory Service</h5>
-
-      <p>
-        Manages conversation memory using JSONL (newline-delimited JSON) storage
-        for efficient appends. Provides memory windows with tools and history
-        allocation for context assembly. The service is built as a thin gRPC
-        wrapper around the business logic in
-        <code>@copilot-ld/libmemory</code> package.
-      </p>
-
-      <p><strong>Key Operations</strong>:</p>
-      <ul>
-        <li>
-          <code>Append</code>: Adds resource identifiers to conversation memory
-          with deduplication
-        </li>
-        <li>
-          <code>Get</code>: Returns memory window with tools and history items,
-          applying budget filtering when allocation is specified
-        </li>
-      </ul>
-
-      <p><strong>Architecture</strong>:</p>
-      <ul>
-        <li>
-          <strong>Business logic library</strong>: Core memory logic implemented
-          in <code>@copilot-ld/libmemory</code> with <code>MemoryWindow</code>,
-          <code>MemoryIndex</code>, and <code>MemoryFilter</code> classes
-        </li>
-        <li>
-          <strong>Per-resource isolation</strong>: Each conversation has its own
-          <code>MemoryIndex</code> and <code>MemoryWindow</code> instance for
-          optimal performance and data isolation
-        </li>
-        <li>
-          <strong>On-demand initialization</strong>: Memory windows are created
-          as needed and cached at the service level for efficiency
-        </li>
-        <li>
-          <strong>Network-level coordination</strong>: Service manages request
-          locks to ensure consistency during concurrent operations
-        </li>
-        <li>
-          <strong><code>IndexBase</code> compliance</strong>:
-          <code>MemoryIndex</code> properly extends
-          <code>IndexBase</code> patterns with <code>addItem()</code> and
-          <code>queryItems()</code>
-        </li>
-        <li>
-          <strong>Memory allocation</strong>: Supports budget-based filtering
-          for tools and history separately
-        </li>
-        <li>
-          <strong>JSONL storage</strong>: Uses append-only storage for efficient
-          memory operations
-        </li>
-        <li>
-          <strong>De-duplication</strong>: Automatically removes duplicate
-          identifiers from memory storage
-        </li>
-        <li>
-          <strong>Enhanced testability</strong>: Business logic can be unit
-          tested independently of gRPC service infrastructure
-        </li>
-      </ul>
-
-      <h5>LLM Service</h5>
-
-      <p>
-        Interfaces with language models for embedding generation and text
-        completion. Handles communication with external AI services.
-      </p>
-
-      <h5>Vector Service</h5>
-
-      <p>
-        Performs text-based similarity search operations against dual vector
-        indexes (content and descriptor). Integrates with the LLM service for
-        embedding generation and returns content strings directly for immediate
-        use.
-      </p>
-
-      <p><strong>Key Operations</strong>:</p>
-      <ul>
-        <li>
-          <code>QueryByContent</code>: Queries content vector index using text
-          input, returns matching content strings
-        </li>
-        <li>
-          <code>QueryByDescriptor</code>: Queries descriptor vector index using
-          text input, returns matching descriptor strings
-        </li>
-      </ul>
-
-      <p><strong>Architecture</strong>:</p>
-      <ul>
-        <li>
-          <strong>Text-based interface</strong>: Accepts text queries and
-          handles embedding generation internally via LLM service
-        </li>
-        <li>
-          <strong>Dual-index architecture</strong>: Maintains separate content
-          and descriptor vector indexes for targeted search capabilities
-        </li>
-        <li>
-          <strong>Direct content return</strong>: Returns ready-to-use content
-          strings rather than resource identifiers
-        </li>
-        <li>
-          <strong>Resource integration</strong>: Uses ResourceIndex internally
-          to retrieve full content from vector matches
-        </li>
-      </ul>
-
-      <h5>Graph Service</h5>
-
-      <p>
-        Performs pattern-based queries against knowledge graphs using RDF graph
-        patterns. Enables semantic search and ontology exploration for knowledge
-        base navigation.
-      </p>
-
-      <p><strong>Key Operations</strong>:</p>
-      <ul>
-        <li>
-          <code>QueryByPattern</code>: Queries graph data using subject,
-          predicate, object patterns with wildcard support
-        </li>
-        <li>
-          <code>GetOntology</code>: Returns dataset ontology with predicates,
-          types, and common patterns for query planning
-        </li>
-      </ul>
-
-      <p><strong>Architecture</strong>:</p>
-      <ul>
-        <li>
-          <strong>Graph-based queries</strong>: Uses N3 store for RDF graph
-          pattern matching with SPARQL-like semantics
-        </li>
-        <li>
-          <strong>Resource integration</strong>: Returns resource identifiers
-          that integrate with the ResourceIndex for content retrieval
-        </li>
-        <li>
-          <strong>Ontology support</strong>: Provides dataset structure
-          information for intelligent query construction
-        </li>
-        <li>
-          <strong>Pattern matching</strong>: Supports wildcard queries (null
-          values) and exact term matching
-        </li>
-      </ul>
-
-      <h5>Tool Service</h5>
-
-      <p>
-        Acts as a gRPC proxy between tool calls requested by LLMs and actual
-        tool implementations. Supports both mapping to existing services and
-        custom tool implementations that
-        <strong>extend the core system</strong> through configuration-driven
-        endpoint mapping.
-      </p>
-
-      <p><strong>Key Operations</strong>:</p>
-      <ul>
-        <li>
-          <code>Call</code>: Proxies tool calls to appropriate services based on
-          configuration mapping
-        </li>
-        <li>
-          <code>ListTools</code>: Returns available tools with OpenAI-compatible
-          schemas for LLM consumption
-        </li>
-      </ul>
-
-      <p><strong>Architecture</strong>:</p>
-      <ul>
-        <li>
-          <strong>Configuration-driven</strong>: Tools defined via endpoint
-          mappings in configuration files
-        </li>
-        <li>
-          <strong>Pure proxy</strong>: No business logic, just routing and
-          protocol conversion
-        </li>
-        <li>
-          <strong>Extensible</strong>: Supports mapping to existing services
-          (e.g., <code>vector.QueryItems</code>) and custom tools that
-          <strong>extend the platform</strong>
-        </li>
-        <li>
-          <strong>Schema generation</strong>: Automatically generates
-          OpenAI-compatible JSON schemas from protobuf types
-        </li>
-      </ul>
-
-      <h3>Offline Sequence Diagram</h3>
-
-      <p>
-        The platform includes offline scripts for knowledge base preparation and
-        vector index creation. These scripts process external knowledge sources
-        into searchable vector indices before the services are deployed.
+        Before the system can answer questions, knowledge must be processed into
+        searchable formats. This happens offline during the build process:
       </p>
 
       <pre class="mermaid">
 sequenceDiagram
     participant Dev as Developer
-    participant Resources as npm run process:resources
-    participant Vectors as npm run process:vectors
+    participant Scripts as Processing Scripts
+    participant HTML as HTML Files
+    participant ResourceProc as Resource Processor
+    participant ResourceIndex as Resource Index
     participant LLM as LLM API
-    participant Storage as Local Storage
+    participant VectorProc as Vector Processor
+    participant VectorIndex as Vector Indexes
 
-    Note over Dev,Storage: HTML knowledge base with microdata available at data/knowledge/
+    Note over Dev,VectorIndex: Offline Processing Pipeline
 
-    Dev->>Resources: npm run process:resources
-    Resources->>Storage: Read HTML files from data/knowledge/
-    Storage-->>Resources: HTML content with microdata
-    loop For each HTML file
-        Resources->>Resources: Extract microdata items as resources
-        Resources->>Resources: Generate resource identifier (URI)
-        Resources->>Resources: Apply policy filtering
-        Resources->>Storage: Store resource.json with metadata
-    end
-    Resources->>Storage: Persist resource index
+    Dev->>Scripts: npm run process
 
-    Dev->>Vectors: npm run process:vectors
-    Vectors->>Storage: Load resource index
-    Storage-->>Vectors: All resource metadata
+    Note over Scripts: 1. Assistant Processing
+    Scripts->>ResourceIndex: Load assistants from config/assistants.yml
+    ResourceIndex-->>Scripts: Assistants stored
 
-    loop Process resources in batches (content & descriptor)
-        Vectors->>Storage: Load resource content
-        Storage-->>Vectors: Resource content/descriptors
-        Vectors->>LLM: Create embeddings for resource batch
-        LLM-->>Vectors: Resource embeddings
-        Vectors->>Storage: Add to dual vector indexes
+    Note over Scripts: 2. Resource Processing
+    Scripts->>HTML: Read knowledge files
+    HTML-->>ResourceProc: HTML with microdata
+
+    loop For each microdata item
+        ResourceProc->>ResourceProc: Extract content & metadata
+        ResourceProc->>ResourceIndex: Store resource with URI identifier
     end
 
-    Vectors->>Storage: Persist content & descriptor vector indexes
-    Note right of Storage: Ready for runtime vector search with dual indexes
+    Note over Scripts: 3. Descriptor Generation
+    loop For each resource
+        Scripts->>LLM: Generate descriptor (batched)
+        LLM-->>Scripts: Descriptor text
+        Scripts->>ResourceIndex: Update resource with descriptor
+    end
+
+    Note over Scripts: 4. Vector Processing
+    Scripts->>ResourceIndex: Load all resources
+
+    loop Batch processing
+        ResourceProc->>LLM: Create embeddings (content + descriptors, batched)
+        LLM-->>VectorProc: Vector embeddings
+        VectorProc->>VectorIndex: Add to content index
+        VectorProc->>VectorIndex: Add to descriptor index
+    end
+
+    VectorIndex-->>Scripts: Indexes persisted to disk
+    Scripts-->>Dev: Processing complete
       </pre>
 
-      <h4>Offline Processing Workflow</h4>
-
-      <p>
-        The offline processing workflow requires a knowledge base with HTML
-        microdata to be available at <code>data/knowledge/</code>. See the
-        <a href="processing.html">Processing Guide</a> for complete knowledge
-        base setup instructions including HTML structure examples and microdata
-        patterns.
-      </p>
-
-      <h5>1. Resource Processing (<code>npm run process:resources</code>)</h5>
-
-      <ul>
-        <li>
-          Scans HTML files for microdata items with configurable selectors
-        </li>
-        <li>
-          Extracts structured content and generates unique resource identifiers
-          using URI format
-        </li>
-        <li>Applies policy-based filtering for access control</li>
-        <li>
-          Stores individual resources with metadata in unified resource storage
-        </li>
-        <li>Creates searchable resource index with type-based organization</li>
-      </ul>
-
-      <h5>2. Vector Processing (<code>npm run process:vectors</code>)</h5>
-
-      <ul>
-        <li>
-          <strong>Dual-Index Architecture</strong>: Creates separate content and
-          descriptor vector indexes
-        </li>
-        <li>
-          <strong>Batch Processing</strong>: Processes resources in
-          token-optimized batches to minimize API calls
-        </li>
-        <li>
-          <strong>Embedding Generation</strong>: Creates vector embeddings for
-          both content and descriptors via LLM API
-        </li>
-        <li>
-          <strong>Index Creation</strong>: Builds dual indexes for flexible
-          search capabilities
-        </li>
-        <li>
-          <strong>Persistence</strong>: Stores indexes to disk for runtime
-          access with index type selection
-        </li>
-      </ul>
-
-      <h5>Key Characteristics</h5>
-
-      <ul>
-        <li>
-          <strong>Offline Execution</strong>: All processing occurs before
-          service deployment
-        </li>
-        <li>
-          <strong>API Optimization</strong>: Batched requests minimize LLM API
-          calls and costs
-        </li>
-        <li>
-          <strong>Resource-Based Architecture</strong>: Unified resource
-          management with policy control
-        </li>
-        <li>
-          <strong>Flexible Search</strong>: Dual-index system enables content
-          and descriptor-based searches
-        </li>
-        <li>
-          <strong>Incremental Processing</strong>: Skips existing resources to
-          support iterative updates
-        </li>
-        <li>
-          <strong>Token Management</strong>: Respects API token limits while
-          maximizing batch efficiency
-        </li>
-      </ul>
-
-      <h5>Data Flow</h5>
+      <h4>Processing Stages</h4>
 
       <ol>
         <li>
-          <strong>Raw Knowledge</strong> → HTML files with microdata (provided
-          in <code>data/knowledge/</code>)
+          <strong>Assistant Configuration</strong>: Load assistant definitions
+          from YAML
         </li>
         <li>
-          <strong>Structured Resources</strong> → Individual JSON files with
-          metadata and URI identifiers
+          <strong>Resource Extraction</strong>: Parse HTML microdata into
+          individual resources
         </li>
         <li>
-          <strong>Vector Embeddings</strong> → Numerical representations for
-          similarity search (content & descriptors)
+          <strong>Descriptor Generation</strong>: Generate AI descriptions of
+          resource purpose
         </li>
         <li>
-          <strong>Dual Vector Indexes</strong> → Content and descriptor
-          databases ready for runtime queries with index type selection
+          <strong>Embedding Creation</strong>: Convert content and descriptors
+          to vectors
+        </li>
+        <li>
+          <strong>Index Building</strong>: Create dual indexes for similarity
+          search
         </li>
       </ol>
 
       <p>
-        This offline pipeline ensures that runtime services can perform fast
-        vector similarity searches without depending on external APIs or
-        requiring real-time embedding generation.
+        For detailed processing workflows, see the
+        <a href="processing.html">Processing Guide</a>.
       </p>
 
-      <h3 id="code-generation">Code Generation</h3>
+      <h3 id="codegen">Code Generation Workflow</h3>
 
       <p>
-        The platform uses a centralized code generation approach with all
-        generated artifacts consolidated in a single
-        <code>generated/</code> directory at the project root. The
-        <code>@copilot-ld/libcodegen</code>
-        package provides the codegen utility that discovers protobuf schemas
-        from both core services and tools, generating type-safe JavaScript code
-        and service infrastructure.
+        Protocol Buffer schemas in <code>proto/</code> and <code>tools/</code>
+        are compiled into JavaScript types and service infrastructure:
       </p>
-
-      <h4>Generation Process</h4>
-
-      <ol>
-        <li>
-          <strong>Setup Workflow</strong>: Follows the unified three-step
-          workflow (resolve source path, ensure storage exists, create symlinks)
-          to prepare the <code>generated/</code> directory
-        </li>
-        <li>
-          <strong>Schema Discovery</strong>: Scans <code>proto/</code> for core
-          service definitions and <code>tools/</code> for
-          <strong>extension schemas that extend the platform</strong>
-        </li>
-        <li>
-          <strong>Centralized Output</strong>: Creates all artifacts in
-          <code>generated/</code> with organized sub-directories for types,
-          services, and copied proto files
-        </li>
-        <li>
-          <strong>Type Generation</strong>: Produces consolidated JavaScript
-          types and TypeScript declarations accessible via
-          <code>@copilot-ld/libtype</code>
-        </li>
-        <li>
-          <strong>Service Generation</strong>: Creates base service classes and
-          typed clients for gRPC communication via
-          <code>@copilot-ld/librpc</code>
-        </li>
-        <li>
-          <strong>Package Integration</strong>: Symlinks created during setup
-          make generated code available through reusable business logic packages
-        </li>
-      </ol>
-
-      <h4>Output Structure</h4>
 
       <pre>
-./generated/
-├── proto/           # Copied .proto files for runtime loading
-├── types/
-│   └── types.js     # Consolidated protobuf type definitions
-└── services/
-    ├── exports.js   # Aggregated service and client exports
-    └── service-name/
-        ├── service.js  # Generated base class
-        └── client.js   # Generated typed client
+Developer defines schema → npm run codegen → Generated artifacts
+                                              ↓
+proto/agent.proto ──────────────────→ generated/types/types.js
+proto/memory.proto                     generated/services/agent/service.js
+tools/hash.proto                       generated/services/agent/client.js
+                                       generated/proto/ (copied schemas)
       </pre>
 
-      <h4>Factory Function Pattern</h4>
-
       <p>
-        The platform provides factory functions for simplified creation of key
-        components with default configurations:
+        Services automatically create symlinks at startup so packages can access
+        generated code via <code>@copilot-ld/libtype</code> and
+        <code>@copilot-ld/librpc</code>.
       </p>
 
-      <pre><code>import { createGraphIndex } from "@copilot-ld/libgraph";
-import { createResourceIndex } from "@copilot-ld/libresource";
-
-// Create indexes with default storage and configuration
-const graphIndex = createGraphIndex();
-const resourceIndex = createResourceIndex();
-
-// Optional parameters for advanced use cases
-const customResourceIndex = createResourceIndex("persistent", customPolicy);</code></pre>
-
       <p>
-        Factory functions encapsulate the complexity of storage initialization,
-        policy configuration, and component wiring, making the platform more
-        accessible while maintaining full customization capabilities for
-        advanced scenarios.
+        For code generation details, see the
+        <a href="reference.html#code-generation">Reference Guide</a>.
       </p>
 
-      <h4>Code Generation Commands</h4>
+      <h3 id="deployment">Deployment Architecture</h3>
 
       <p>
-        Re-run code generation after changing schemas in <code>proto/</code> or
-        adding tool definitions in <code>tools/</code>:
+        The system can be deployed in multiple configurations depending on your
+        needs:
       </p>
 
-      <pre><code># Generate everything (recommended)
-npm run codegen
+      <h4>Local Development</h4>
 
-# Generate specific components
-npm run codegen:type        # Types only
-npm run codegen:service     # Service base classes only  
-npm run codegen:client      # Client classes only
-npm run codegen:definition  # Service definitions only</code></pre>
+      <pre><code># All services run on localhost with individual ports
+npm run dev
 
-      <p>
-        The <code>@copilot-ld/libcodegen</code> package uses
-        <code>protobufjs</code> for schema processing and
-        <code>Mustache</code> templates for code generation, producing ES
-        modules with full type safety. Services automatically create package
-        symlinks at startup to ensure generated code is accessible through
-        <code>@copilot-ld/libtype</code> and <code>@copilot-ld/librpc</code>
-        while maintaining clean package separation.
-      </p>
+# Services available at:
+# - Web Extension: http://localhost:3000/web
+# - Agent: localhost:3002 (gRPC, internal)
+# - Memory: localhost:3003 (gRPC, internal)
+# - etc.</code></pre>
 
-      <h4>Enhanced Content Representation</h4>
+      <h4>Docker Compose</h4>
 
-      <p>
-        The <code>resource.Content</code> message supports multiple content
-        representations to accommodate different processing needs:
-      </p>
+      <pre><code># Services run in Docker network with internal communication
+docker-compose up
 
-      <pre><code>message Content {
-  int32 tokens = 1;
-  optional string text = 2;     // Plain text content
-  optional string nquads = 3;   // RDF N-Quads representation
-  optional string jsonld = 4;   // JSON-LD structured data
-}</code></pre>
+# Only web extension exposed externally
+# Backend services isolated in Docker network</code></pre>
 
-      <p>
-        This flexible structure allows resources to store multiple content
-        formats simultaneously, enabling both semantic graph processing and
-        traditional text-based operations. The
-        <code>ResourceProcessor</code> populates both <code>nquads</code> and
-        <code>jsonld</code> fields during HTML processing, while maintaining
-        token counts for all representations.
-      </p>
-
-      <h4>Generated Artifact Structure</h4>
-
-      <pre>
-./generated/
-├── bundle.tar.gz    # Compressed archive of all generated artifacts
-├── proto/           # Copied original .proto files for runtime access
-├── types/
-│   └── types.js     # Consolidated protobuf type definitions
-└── services/        # Service base classes and clients
-    ├── agent/
-    │   ├── service.js   # Generated base class
-    │   └── client.js    # Generated typed client
-    ├── exports.js       # Aggregated service/client exports
-    └── definitions/     # Pre-compiled service definitions
-        ├── agent.js     # gRPC service definition for Agent
-        ├── vector.js    # gRPC service definition for Vector
-        └── exports.js   # Aggregated definitions exports
-
-# Package symlinks created automatically at service startup
-./packages/libtype/generated/    → symlink to ./generated/
-./packages/librpc/generated/     → symlink to ./generated/
-      </pre>
-
-      <h4>Code Generation Workflow</h4>
-
-      <p>
-        The centralized generation approach ensures consistency and eliminates
-        ambiguity between source and generated artifacts:
-      </p>
+      <h4>Production (AWS/Cloud)</h4>
 
       <ul>
         <li>
-          <strong>Unified Location</strong>: All generated code lives in a
-          single <code>generated/</code> directory at the project root
+          <strong>Load Balancer</strong>: Application Load Balancer routes to
+          extensions
         </li>
         <li>
-          <strong>Schema Discovery</strong>: Automatically finds protobuf
-          schemas in <code>proto/</code> and tool extensions in
-          <code>tools/</code>
+          <strong>Container Orchestration</strong>: ECS/Kubernetes manages
+          services
         </li>
         <li>
-          <strong>Type Safety</strong>: Creates unified type definitions
-          accessible via <code>@copilot-ld/libtype</code>
+          <strong>Network Isolation</strong>: Backend services in private VPC
         </li>
         <li>
-          <strong>Service Infrastructure</strong>: Produces base classes, typed
-          clients, and pre-compiled service definitions through
-          <code>@copilot-ld/librpc</code>
-        </li>
-        <li>
-          <strong>Pre-compiled Definitions</strong>: Generates runtime-ready
-          gRPC service definitions that eliminate the need for proto-loader
-          dependencies
-        </li>
-        <li>
-          <strong>Package Integration</strong>: Service startup automatically
-          creates symlinks for clean access through reusable business logic
-          packages
-        </li>
-        <li>
-          <strong>Tool Extension</strong>: Supports additional schemas that
-          extend core system functionality
+          <strong>Service Discovery</strong>: DNS-based service resolution
         </li>
       </ul>
 
-      <h3>Docker Build Architecture</h3>
-
       <p>
-        The platform uses a unified Docker build process that simplifies
-        container creation and reduces maintenance overhead.
+        For deployment instructions, see the
+        <a href="deployment.html">Deployment Guide</a>.
       </p>
 
-      <h4>Unified Dockerfile</h4>
+      <h3 id="security">Security Architecture</h3>
 
-      <p>
-        A single root-level <code>Dockerfile</code> handles building for all
-        components (services, extensions, and tools) using component-specific
-        build contexts to automatically include only the required files.
-      </p>
+      <p>Security is built into every layer of the architecture:</p>
 
-      <h4>Build Process</h4>
-
-      <ol>
-        <li>
-          <strong>Multi-stage build</strong>: Separates build dependencies from
-          runtime image for smaller production containers
-        </li>
-        <li>
-          <strong>Component context</strong>: Build context set to component
-          directory automatically includes only relevant files
-        </li>
-        <li>
-          <strong>Generated code download</strong>: Uses
-          <code>download</code> binary to retrieve generated code at startup
-        </li>
-        <li>
-          <strong>Production optimization</strong>: Final stage includes only
-          production dependencies and component files
-        </li>
-      </ol>
-
-      <h4>Usage Examples</h4>
-
-      <pre><code># Build using Docker Compose (recommended)
-docker compose build agent
-docker compose build web
-
-# Manual build with component context
-docker build -f ../../Dockerfile -t agent ./services/agent/
-docker build -f ../../Dockerfile -t web ./extensions/web/</code></pre>
-
-      <h4>Benefits</h4>
+      <h4>Network Isolation</h4>
 
       <ul>
         <li>
-          <strong>Consistency</strong>: All components use identical build
-          process
+          <strong>External Access</strong>: Only extensions exposed via load
+          balancer
         </li>
         <li>
-          <strong>Maintenance</strong>: Single Dockerfile to update and maintain
+          <strong>Internal Services</strong>: Backend services not accessible
+          from outside
         </li>
         <li>
-          <strong>Flexibility</strong>: Easy to add new components without
-          creating new Dockerfiles
-        </li>
-        <li>
-          <strong>Optimization</strong>: Shared layers between components
-          improve build efficiency
+          <strong>gRPC Communication</strong>: All inter-service calls require
+          HMAC authentication
         </li>
       </ul>
 
-      <h3>Security Architecture</h3>
-
-      <p>
-        The security design focuses on service authentication and secure
-        communication channels.
-      </p>
-
-      <h4>Authentication Mechanisms</h4>
-
-      <p>
-        For specific configuration details including environment variables,
-        token formats, and timeout values, see the
-        <a href="configuration.html">Configuration Guide</a>.
-      </p>
-
-      <h5>Current State</h5>
+      <h4>Authentication</h4>
 
       <ul>
         <li>
-          <strong>Service-to-Service</strong>: Cryptographic authentication is
-          implemented and enforced between internal services via the
-          <code>@copilot-ld/librpc</code> package. All gRPC communication uses
-          time-limited tokens with secure headers.
+          <strong>Service-to-Service</strong>: HMAC signatures with time-limited
+          tokens
         </li>
         <li>
-          <strong>Request-Level</strong>: The Agent validates incoming
-          <code>github_token</code> by calling <code>GET /user</code> via
-          GitHub's API before processing requests.
-        </li>
-      </ul>
-
-      <h5>Service Authentication (Current Implementation)</h5>
-
-      <p>
-        The platform implements cryptographic authentication for all
-        service-to-service communication:
-      </p>
-
-      <pre class="mermaid">
-sequenceDiagram
-    participant Service A
-    participant Service B
-    participant Authenticator
-
-    Service A->>Authenticator: generateToken(serviceId)
-    Authenticator->>Authenticator: Create payload: serviceId:timestamp
-    Authenticator->>Authenticator: Sign with cryptographic algorithm
-    Authenticator-->>Service A: Encoded authentication token
-
-    Service A->>Service B: gRPC request + token
-    Service B->>Authenticator: verifyToken(token)
-    Authenticator->>Authenticator: Decode and validate signature
-    Authenticator->>Authenticator: Check token expiration
-    Authenticator-->>Service B: {isValid, serviceId, error}
-
-    alt Token Valid
-        Service B-->>Service A: Process request
-    else Token Invalid
-        Service B-->>Service A: Authentication error
-    end
-      </pre>
-
-      <h5>Token Generation Process (Implemented)</h5>
-
-      <ol>
-        <li>Create payload combining service ID and current timestamp</li>
-        <li>Generate cryptographic signature using a shared secret</li>
-        <li>Encode authentication token with service identity and timestamp</li>
-        <li>Attach token to gRPC metadata headers</li>
-      </ol>
-
-      <h5>Token Verification Process (Implemented)</h5>
-
-      <ol>
-        <li>Extract token from authentication headers in gRPC metadata</li>
-        <li>
-          Decode token and extract service ID, timestamp, and cryptographic
-          signature
-        </li>
-        <li>Verify timestamp is within configured token lifetime</li>
-        <li>Recreate expected signature using shared secret</li>
-        <li>Compare signatures using secure comparison</li>
-        <li>Reject request with authentication error if validation fails</li>
-      </ol>
-
-      <h4>Communication Security</h4>
-
-      <p>
-        For specific protocol details, timeout configurations, and environment
-        variables, see the <a href="configuration.html">Configuration Guide</a>.
-      </p>
-
-      <h5>gRPC Internal Communication</h5>
-
-      <ul>
-        <li><strong>Protocol</strong>: gRPC over secure transport</li>
-        <li>
-          <strong>Authentication</strong>: Cryptographic signatures with
-          time-limited tokens
-        </li>
-        <li>
-          <strong>Token Lifetime</strong>: Short-lived configurable duration
-        </li>
-        <li>
-          <strong>Secret Management</strong>: Shared secret from environment
-          variables
-        </li>
-        <li>
-          <strong>Schema Validation</strong>: Protocol Buffer message validation
-        </li>
-      </ul>
-
-      <h5>External API Communication</h5>
-
-      <ul>
-        <li>
-          <strong>Clients to Extensions</strong>: HTTP/HTTPS via load balancer
-        </li>
-        <li>
-          <strong>LLM Service to External APIs</strong>: HTTPS with API key
+          <strong>GitHub Integration</strong>: OAuth device flow for user
           authentication
         </li>
+        <li>
+          <strong>API Keys</strong>: LLM service uses API keys for external
+          calls
+        </li>
       </ul>
 
-      <h4>Security Limitations</h4>
+      <h4>Access Control</h4>
 
-      <h5>mTLS Not Implemented</h5>
+      <ul>
+        <li>
+          <strong>Policy-Based</strong>: All resource access filtered by
+          policies
+        </li>
+        <li>
+          <strong>Conversation Scoping</strong>: Users only access their own
+          conversations
+        </li>
+        <li>
+          <strong>Tool Restrictions</strong>: Tools can be restricted by
+          configuration
+        </li>
+      </ul>
 
       <p>
-        Mutual TLS (mTLS) is not currently implemented between services. Future
-        security enhancements should include:
+        For security implementation details, see the
+        <a href="reference.html#security-implementation">Reference Guide</a>.
       </p>
 
-      <ul>
-        <li>Certificate-based service authentication</li>
-        <li>Encrypted gRPC communication channels</li>
-        <li>Service identity verification via digital certificates</li>
-      </ul>
+      <h3 id="next">Next Steps</h3>
 
-      <h5>Rate-Limiting Not Implemented</h5>
-
-      <p>
-        Rate-limiting is not currently implemented for externally facing
-        services. Future enhancements should include:
-      </p>
+      <p>Now that you understand the architecture, explore:</p>
 
       <ul>
-        <li>Request throttling per client IP address to prevent abuse</li>
-        <li>Adaptive rate limiting based on service resource utilization</li>
         <li>
-          Token bucket or sliding window algorithms for burst traffic handling
+          <strong><a href="reference.html">Reference</a></strong
+          >: Detailed implementation information
         </li>
         <li>
-          Configurable rate limits per extension type (web vs API clients)
-        </li>
-      </ul>
-
-      <h4>Threat Model</h4>
-
-      <h5>Protected Against</h5>
-
-      <ol>
-        <li>
-          <strong>External Service Access</strong>: Backend services cannot be
-          directly accessed from outside the Docker environment
+          <strong><a href="configuration.html">Configuration</a></strong
+          >: Set up your environment
         </li>
         <li>
-          <strong>Service Impersonation</strong>: HMAC authentication prevents
-          unauthorized service access with cryptographic verification
+          <strong><a href="processing.html">Processing</a></strong
+          >: Prepare your knowledge base
         </li>
         <li>
-          <strong>Token Replay</strong>: Short-lived time-limited tokens
-          minimize replay attack windows
+          <strong><a href="development.html">Development</a></strong
+          >: Local development workflow
         </li>
         <li>
-          <strong>Request Forgery</strong>: HMAC signatures prevent message
-          tampering and ensure request authenticity
+          <strong><a href="deployment.html">Deployment</a></strong
+          >: Deploy to production
         </li>
-      </ol>
-
-      <h5>Current Vulnerabilities</h5>
-
-      <ol>
-        <li>
-          <strong>Shared Secret Exposure</strong>: If the authentication secret
-          is compromised, all service authentication is bypassed
-        </li>
-        <li>
-          <strong>Container Compromise</strong>: If one container is
-          compromised, the attacker gains access to the shared authentication
-          secret
-        </li>
-        <li>
-          <strong>Extension Security</strong>: Extensions are the primary attack
-          surface and must implement their own input validation
-        </li>
-      </ol>
-
-      <h4>Service Security Responsibilities</h4>
-
-      <h5>Extensions (Web)</h5>
-
-      <ul>
-        <li>Input validation and sanitization</li>
-        <li>Rate limiting and DDoS protection</li>
-        <li>Session management</li>
-        <li>CORS policy enforcement</li>
-      </ul>
-
-      <h5>Agent Service</h5>
-
-      <ul>
-        <li>Request orchestration security</li>
-        <li>Service-to-service authentication enforcement</li>
-        <li>Business logic security validation</li>
-      </ul>
-
-      <h5>Backend Services (Memory, LLM, Vector)</h5>
-
-      <ul>
-        <li>gRPC message validation</li>
-        <li>Resource usage limiting</li>
-        <li>Data access controls</li>
-        <li>Error handling without information disclosure</li>
       </ul>
     </main>
-    <footer>
+    <footer class="container">
       <p>© D. Olsson</p>
     </footer>
 

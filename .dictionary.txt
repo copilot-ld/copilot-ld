@@ -20,6 +20,7 @@ Cryptographic
 DDoS
 DI
 DevOps
+DNS-based
 Docker
 Dockerfile
 Dockerfiles
@@ -48,6 +49,7 @@ Integrations
 JSDoc
 JSON
 JSON-LD
+Kubernetes
 JSON-ND
 JSONL
 JWT
@@ -75,7 +77,9 @@ OpenID
 PAX
 PGID
 PID
+Pre-compilation
 Pre-compiled
+Pre-computed
 Preloaded
 Proto
 Protobuf
@@ -97,6 +101,7 @@ Symlinks
 TLS
 TODO
 TypeScript
+UI
 URI
 URI-based
 URIs
@@ -106,6 +111,7 @@ UTF
 UUID
 VPC
 WASM
+WebSocket
 XML
 YAML
 assistants-yml
@@ -119,8 +125,10 @@ balancer
 boolean
 changelog
 charset
+chatbots
 chunking
 codebase
+codebases
 codegen
 compatibility
 config
@@ -131,6 +139,7 @@ cryptographic
 css
 cyclomatic
 debuggable
+declaratively
 deduplicate
 deduplication
 deserialization
@@ -179,6 +188,7 @@ libstorage
 libtext
 libtype
 libvector
+Lifecycle
 lifecycle
 llm
 localhost
@@ -213,6 +223,7 @@ pre-calculate
 pre-calculated
 pre-compile
 pre-compiled
+pre-computed
 pre-processed
 preloaded
 prod

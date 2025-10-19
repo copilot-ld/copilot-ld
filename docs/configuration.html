@@ -6,42 +6,80 @@
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
   <body>
-    <header>
+    <header class="container">
       <hgroup>
-        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <h1>
+          <a href="index.html">🧬 <mark>Copilot-LD</mark></a>
+        </h1>
         <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
       </hgroup>
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="configuration.html" class="active">Configuration</a></li>
-          <li><a href="processing.html">Processing</a></li>
-          <li><a href="deployment.html">Deployment</a></li>
-          <li><a href="development.html">Development</a></li>
+          <li><a href="concepts.html">Concepts</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Architecture</summary>
+              <ul>
+                <li><a href="architecture.html">Overview</a></li>
+                <li><a href="reference.html">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Guides</summary>
+              <ul>
+                <li>
+                  <a href="configuration.html" class="active">Configuration</a>
+                </li>
+                <li><a href="processing.html">Processing</a></li>
+                <li><a href="deployment.html">Deployment</a></li>
+                <li><a href="development.html">Development</a></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
+    <main class="container">
       <h2>Configuration Guide</h2>
+
       <p>
         Comprehensive configuration guide for environment variables and YAML
         settings across all Copilot-LD components.
       </p>
 
-      <h3>Prerequisites</h3>
+      <aside>
+        <nav>
+          <h5>Contents</h5>
+          <ul>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#files">Configuration Files</a></li>
+            <li><a href="#environment">Environment Variables</a></li>
+            <li><a href="#yaml">JSON and YAML Configuration</a></li>
+            <li><a href="#runtime">Runtime Configuration</a></li>
+            <li><a href="#reference">Environment Variable Reference</a></li>
+            <li><a href="#ssl">SSL Certificate Configuration</a></li>
+            <li><a href="#validation">Configuration Validation</a></li>
+            <li><a href="#next">Next Steps</a></li>
+          </ul>
+        </nav>
+        <hr />
+      </aside>
+
+      <h3 id="prerequisites">Prerequisites</h3>
       <ul>
         <li>Node.js 22.0.0 or later</li>
         <li>Git</li>
         <li>GitHub account for authentication and API access</li>
       </ul>
 
-      <h3>Configuration Files</h3>
+      <h3 id="files">Configuration Files</h3>
       <p>The Copilot-LD platform uses two primary configuration approaches:</p>
       <ul>
         <li>
@@ -55,7 +93,7 @@
         </li>
       </ul>
 
-      <h3>Environment Variables</h3>
+      <h3 id="environment">Environment Variables</h3>
 
       <h4>Initial Setup</h4>
       <p>Create your environment configuration:</p>
@@ -157,7 +195,7 @@ DEBUG=*
 # Or enable for specific components
 DEBUG=agent</code></pre>
 
-      <h3>JSON and YAML Configuration</h3>
+      <h3 id="yaml">JSON and YAML Configuration</h3>
 
       <h4>Service Configuration (<code>config.json</code>)</h4>
       <p>Defines service behavior and operational parameters in JSON format.</p>
@@ -239,7 +277,7 @@ documentation-specialist:
       Success measured by documentation clarity, accuracy, and 
       completeness</code></pre>
 
-      <h3>Runtime Configuration</h3>
+      <h3 id="runtime">Runtime Configuration</h3>
 
       <h4>Docker Compose Environment</h4>
       <p>
@@ -271,7 +309,7 @@ docker compose up</code></pre>
         <li>Store secrets in AWS Secrets Manager or similar</li>
       </ul>
 
-      <h3>Environment Variable Reference</h3>
+      <h3 id="reference">Environment Variable Reference</h3>
 
       <table>
         <thead>
@@ -365,7 +403,7 @@ docker compose up</code></pre>
         </tbody>
       </table>
 
-      <h3>SSL Certificate Configuration</h3>
+      <h3 id="ssl">SSL Certificate Configuration</h3>
       <p>For HTTPS support in Docker Compose deployments:</p>
 
       <h4>Generate Self-Signed Certificates</h4>
@@ -377,7 +415,7 @@ node scripts/cert.js</code></pre>
 cp your-cert.crt data/cert/localhost.crt
 cp your-cert.key data/cert/localhost.key</code></pre>
 
-      <h3>Configuration Validation</h3>
+      <h3 id="validation">Configuration Validation</h3>
       <p>Verify your configuration is properly set up:</p>
 
       <h4>Test GitHub Authentication</h4>
@@ -392,7 +430,7 @@ npm run codegen
 # Run configuration tests
 npm test -- --grep="Config"</code></pre>
 
-      <h3>Next Steps</h3>
+      <h3 id="next">Next Steps</h3>
       <p>Once configuration is complete, proceed to:</p>
       <ul>
         <li>

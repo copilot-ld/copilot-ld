@@ -7,14 +7,14 @@ applyTo: "**"
 ## Purpose Declaration
 
 This file defines simple documentation standards for this project to ensure that
-`README.md`, `docs/configuration.html`, `docs/architecture.html`,
-`docs/development.html`, and `docs/deployment.html` remain current and
+`README.md` and all documentation guides in `docs/` remain current and
 synchronized with all code changes across the platform.
 
 ## Core Principles
 
-1. **Six-File Documentation**: This project maintains `README.md`,
-   `docs/configuration.html`, `docs/architecture.html`, `docs/processing.html`,
+1. **Nine-File Documentation**: This project maintains `README.md`,
+   `docs/index.html`, `docs/concepts.html`, `docs/architecture.html`,
+   `docs/reference.html`, `docs/configuration.html`, `docs/processing.html`,
    `docs/development.html`, and `docs/deployment.html` as official documentation
 2. **Domain-Specific Documentation**: Each piece of information must exist in
    exactly ONE place. Carefully consider which guide is the authoritative source
@@ -50,7 +50,7 @@ synchronized with all code changes across the platform.
 
 ### Documentation Files
 
-This project maintains exactly six main documentation files plus component
+This project maintains exactly nine main documentation files plus component
 changelogs. Each file has a specific domain focus and serves as the
 authoritative source for its subject matter:
 
@@ -61,6 +61,42 @@ authoritative source for its subject matter:
 - **Usage Examples**: Basic examples of how to use the project
 - **Links to Detailed Guides**: References to comprehensive documentation
 - **Development Workflow**: How to contribute and develop locally
+
+#### docs/index.html Requirements
+
+- **Problem Statement**: What challenges does Copilot-LD address?
+- **Solution Overview**: How does the platform solve these problems?
+- **Key Capabilities**: What can users accomplish with Copilot-LD?
+- **Use Cases**: Who is it for and when should they use it?
+- **Getting Started Navigation**: Clear paths to relevant guides for different
+  user types
+
+#### docs/concepts.html Requirements
+
+- **Core Concepts**: Explanation of linked data, RAG, microservices, and gRPC
+- **Architectural Principles**: Why these design choices were made
+- **System Capabilities**: What each component enables
+- **Request Flow**: High-level walkthrough of how requests are processed
+- **Offline vs Online**: Why processing is separated from runtime
+
+#### docs/architecture.html Requirements
+
+- **System Overview**: High-level component relationships and structure
+- **Directory Structure**: Organization of services, packages, extensions, and
+  scripts
+- **Communication Patterns**: How components interact via gRPC and REST
+- **Sequence Diagrams**: Visual representation of online and offline flows
+- **Links to Reference**: Pointers to detailed implementation in Reference guide
+
+#### docs/reference.html Requirements
+
+- **Service Implementations**: Detailed descriptions of each service
+- **Package Catalog**: Comprehensive package documentation
+- **Code Generation**: Protocol Buffer workflow, commands, and patterns
+- **Security Implementation**: Authentication mechanisms, threat model, security
+  patterns
+- **Docker Build Process**: Container architecture and build workflow
+- **Tool System**: How tools extend the platform
 
 #### docs/configuration.html Requirements
 
@@ -74,16 +110,6 @@ authoritative source for its subject matter:
   AWS deployments
 - **Security Guidelines**: Best practices for handling sensitive configuration
   values
-
-#### docs/architecture.html Requirements
-
-- **System Overview**: High-level description of the system architecture
-- **Component Structure**: Overview of services, packages, extensions, and
-  scripts
-- **Communication Patterns**: How components interact with each other
-- **Data Flow**: How information flows through the system
-- **Code Generation**: Authoritative documentation of Protocol Buffer
-  compilation and type generation processes
 
 #### docs/processing.html Requirements
 
@@ -183,20 +209,24 @@ When changing existing functionality:
 1. Add entry to component's `CHANGELOG.md` with current date
 2. **Identify Domain Owner**: Determine which documentation file is the
    authoritative source for the affected functionality
-3. Update `docs/configuration.html` if the change affects configuration options
-4. Update `docs/architecture.html` if the change affects system design or code
-   generation
-5. Update `docs/processing.html` if the change affects knowledge processing or
+3. Update `docs/index.html` if the change affects problem statement, solution
+   overview, or use cases
+4. Update `docs/concepts.html` if the change affects core concepts or
+   architectural principles
+5. Update `docs/architecture.html` if the change affects high-level system
+   structure
+6. Update `docs/reference.html` if the change affects implementation details
+7. Update `docs/configuration.html` if the change affects configuration options
+8. Update `docs/processing.html` if the change affects knowledge processing or
    data management
-6. Update `docs/development.html` if the change affects local development setup
-7. Update `docs/deployment.html` if the change affects deployment procedures
-8. Update `README.md` if the change affects quick setup or core usage
-9. **Update Cross-References**: Verify that references from other guides still
-   point to the correct authoritative sections
-10. Verify all references remain accurate across all documentation files
-11. If you modify `proto/*.proto`, update any code samples in the authoritative
-    `docs/architecture.html` and ensure references from other guides remain
-    valid
+9. Update `docs/development.html` if the change affects local development setup
+10. Update `docs/deployment.html` if the change affects deployment procedures
+11. Update `README.md` if the change affects quick setup or core usage
+12. **Update Cross-References**: Verify that references from other guides still
+    point to the correct authoritative sections
+13. Verify all references remain accurate across all documentation files
+14. If you modify `proto/*.proto`, update any code samples in the authoritative
+    `docs/reference.html` and ensure references from other guides remain valid
 
 ### JavaScript Code Block Standards
 
@@ -247,7 +277,8 @@ class ExampleService {
 
 ### Documentation Timing
 
-- Update `README.md`, `docs/configuration.html`, `docs/architecture.html`,
+- Update `README.md`, `docs/index.html`, `docs/concepts.html`,
+  `docs/architecture.html`, `docs/reference.html`, `docs/configuration.html`,
   `docs/processing.html`, `docs/development.html`, and `docs/deployment.html` in
   the same commit as code changes
 - **Domain-First Updates**: Always update the authoritative documentation file
@@ -290,20 +321,23 @@ class ExampleService {
 Before committing, verify:
 
 1. `README.md` accurately describes current functionality
-2. `docs/configuration.html` contains complete configuration documentation
-3. `docs/architecture.html` reflects actual system design
-4. `docs/processing.html` provides complete processing pipeline documentation
-5. `docs/development.html` contains complete development setup instructions
-6. `docs/deployment.html` provides accurate deployment procedures
-7. **No Information Duplication**: Each piece of information exists in exactly
-   one authoritative location with appropriate cross-references
-8. **Cross-References Work**: All links between documentation files point to
-   valid sections and remain accurate
-9. Setup and usage instructions are current and functional
-10. Component descriptions match implementation
-11. All external links are functional and relevant
-12. Code examples compile and execute successfully
-13. All JavaScript code blocks pass ES linting with strict configuration
+2. `docs/index.html` provides clear problem/solution overview and navigation
+3. `docs/concepts.html` explains core concepts and architectural principles
+4. `docs/architecture.html` shows high-level system structure
+5. `docs/reference.html` contains detailed implementation documentation
+6. `docs/configuration.html` contains complete configuration documentation
+7. `docs/processing.html` provides complete processing pipeline documentation
+8. `docs/development.html` contains complete development setup instructions
+9. `docs/deployment.html` provides accurate deployment procedures
+10. **No Information Duplication**: Each piece of information exists in exactly
+    one authoritative location with appropriate cross-references
+11. **Cross-References Work**: All links between documentation files point to
+    valid sections and remain accurate
+12. Setup and usage instructions are current and functional
+13. Component descriptions match implementation
+14. All external links are functional and relevant
+15. Code examples compile and execute successfully
+16. All JavaScript code blocks pass ES linting with strict configuration
 
 ### Documentation Maintenance Workflows
 
@@ -340,7 +374,7 @@ Before committing, verify:
    `docs/deployment.html`
 3. **DO NOT** implement new components without carefully determining which
    documentation file should be the authoritative source
-4. **DO NOT** create additional documentation files beyond the six official
+4. **DO NOT** create additional documentation files beyond the nine official
    files
 5. **DO NOT** add detailed instructions to guides that should reference other
    domain-specific guides instead
@@ -357,8 +391,8 @@ Before committing, verify:
   code changes
 - Instead of missing documentation → Include documentation updates in every
   functional change
-- Instead of additional files → Use the six official documentation files for all
-  documentation needs
+- Instead of additional files → Use the nine official documentation files for
+  all documentation needs
 - Instead of detailed instructions in wrong guide → Reference the
   domain-specific authoritative guide (e.g., Configuration Guide for setup,
   Processing Guide for knowledge base work)
@@ -373,7 +407,7 @@ Before committing, verify:
 
 When adding a new service called `analysis`:
 
-**docs/architecture.html update:**
+**docs/reference.html update:**
 
 ```markdown
 ### Analysis Service
@@ -391,7 +425,7 @@ Service for embeddings **State**: Stateless processing service
 **services/analysis/CHANGELOG.md update:**
 
 ```markdown
-## 2025-10-16
+## 2025-10-18
 
 - Added new `analysis` service with `AnalyzeText` and `GetModels` operations
 - Integrated with Vector Service for embedding dependencies
@@ -401,7 +435,7 @@ Service for embeddings **State**: Stateless processing service
 
 When modifying the vector service to add new functionality:
 
-**docs/architecture.html update:**
+**docs/reference.html update:**
 
 ```markdown
 ### Vector Service

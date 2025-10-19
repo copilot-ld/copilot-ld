@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";

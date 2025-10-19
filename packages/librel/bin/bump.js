@@ -2,6 +2,7 @@
 /* eslint-env node */
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync, readdirSync } from "fs";
+import { parseArgs } from "node:util";
 
 import { ReleaseBumper } from "@copilot-ld/librel";
 
@@ -10,21 +11,19 @@ import { ReleaseBumper } from "@copilot-ld/librel";
  * @returns {Promise<void>}
  */
 async function main() {
-  const args = process.argv.slice(2);
+  const { values, positionals } = parseArgs({
+    options: {
+      force: {
+        type: "boolean",
+        short: "f",
+        default: false,
+      },
+    },
+    allowPositionals: true,
+  });
 
-  // Parse flags and positional args robustly
-  let force = false;
-  const positional = [];
-  for (const arg of args) {
-    if (arg === "--force" || arg === "-f") {
-      force = true;
-      continue;
-    }
-    positional.push(arg);
-  }
-
-  const bumpType = positional.shift();
-  const items = positional;
+  const bumpType = positionals[0];
+  const items = positionals.slice(1);
 
   if (!bumpType || items.length === 0) {
     console.error(
@@ -41,7 +40,7 @@ async function main() {
   );
 
   try {
-    const results = await bumper.bump(bumpType, items, { force });
+    const results = await bumper.bump(bumpType, items, { force: values.force });
     console.log(JSON.stringify(results));
   } catch (error) {
     console.error(`Error during release bump:`, error.message);

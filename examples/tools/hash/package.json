@@ -14,10 +14,10 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@copilot-ld/librpc": "^0.1.0",
-    "@copilot-ld/libtype": "^0.1.0",
-    "@copilot-ld/libconfig": "^0.1.0",
-    "@copilot-ld/libutil": "^0.1.0"
+    "@copilot-ld/librpc": "^0.1.46",
+    "@copilot-ld/libtype": "^0.1.36",
+    "@copilot-ld/libconfig": "^0.1.28",
+    "@copilot-ld/libutil": "^0.1.33"
   },
   "repository": {
     "type": "git",

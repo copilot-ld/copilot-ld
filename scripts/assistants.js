@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";

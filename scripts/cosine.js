@@ -1,9 +1,11 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { PerformanceMonitor } from "@copilot-ld/libperf";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 import { VectorIndex } from "@copilot-ld/libvector";
+import { parseArgs } from "node:util";
 
 // Just call config to have it load environment etc.
 await ScriptConfig.create("cosine");
@@ -14,12 +16,21 @@ await ScriptConfig.create("cosine");
  * @returns {Promise<void>}
  */
 async function main() {
+  const { values } = parseArgs({
+    options: {
+      index: {
+        type: "string",
+        short: "i",
+        default: "content",
+      },
+    },
+  });
+
   const input = (await process.stdin.toArray()).join("").trim();
   const logger = createLogger("cosine");
   const storage = createStorage("vectors");
 
-  // Get index from command line arguments (default to content)
-  const index = process.argv[2] || "content";
+  const index = values.index;
   const indexKey = index === "descriptor" ? "descriptors.json" : "content.json";
 
   const vectorIndex = new VectorIndex(storage, indexKey);

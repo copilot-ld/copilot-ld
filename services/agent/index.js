@@ -1,5 +1,4 @@
 /* eslint-env node */
-import { AgentMind, AgentHands } from "@copilot-ld/libagent";
 import { services } from "@copilot-ld/librpc";
 
 const { AgentBase } = services;
@@ -14,47 +13,17 @@ export class AgentService extends AgentBase {
   /**
    * Creates a new Agent service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
-   * @param {object} memoryClient - Memory service client
-   * @param {object} llmClient - LLM service client
-   * @param {object} toolClient - Tool service client
-   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance for data access
+   * @param {import("@copilot-ld/libagent").AgentMind} agentMind - AgentMind instance for request orchestration
    * @param {(token: string) => import("@octokit/rest").Octokit} octokitFn - Factory function to create Octokit instances
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
    */
-  constructor(
-    config,
-    memoryClient,
-    llmClient,
-    toolClient,
-    resourceIndex,
-    octokitFn,
-    logFn,
-  ) {
+  constructor(config, agentMind, octokitFn, logFn) {
     super(config, logFn);
-    if (!memoryClient) throw new Error("memoryClient is required");
-    if (!llmClient) throw new Error("llmClient is required");
-    if (!toolClient) throw new Error("toolClient is required");
-    if (!resourceIndex) throw new Error("resourceIndex is required");
+    if (!agentMind) throw new Error("agentMind is required");
     if (!octokitFn) throw new Error("octokitFn is required");
 
+    this.#mind = agentMind;
     this.#octokitFn = octokitFn;
-
-    const callbacks = {
-      memory: {
-        append: async (req) => await memoryClient.Append(req),
-        get: async (req) => await memoryClient.Get(req),
-      },
-      llm: {
-        createCompletions: async (req) =>
-          await llmClient.CreateCompletions(req),
-      },
-      tool: {
-        call: async (req) => await toolClient.Call(req),
-      },
-    };
-
-    const agentHands = new AgentHands(config, callbacks);
-    this.#mind = new AgentMind(config, callbacks, resourceIndex, agentHands);
   }
 
   /**

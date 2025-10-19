@@ -21,7 +21,7 @@ describe("agent service", () => {
 
     test("AgentService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(AgentService.length, 7); // config, memoryClient, llmClient, toolClient, resourceIndex, octokitFactory, logFn
+      assert.strictEqual(AgentService.length, 4); // config, agentMind, octokitFactory, logFn
     });
 
     test("AgentService has proper method signatures", () => {
@@ -33,10 +33,7 @@ describe("agent service", () => {
 
   describe("AgentService business logic", () => {
     let mockConfig;
-    let mockMemoryClient;
-    let mockLlmClient;
-    let mockToolClient;
-    let mockResourceIndex;
+    let mockAgentMind;
     let mockOctokitFactory;
 
     beforeEach(() => {
@@ -52,34 +49,13 @@ describe("agent service", () => {
         temperature: 0.7,
       };
 
-      mockMemoryClient = {
-        Append: async () => ({ accepted: "test-conversation" }),
-        Get: async () => ({
-          tools: [],
-          context: [],
-          history: [],
-        }),
-      };
-
-      mockLlmClient = {
-        CreateEmbeddings: async () => ({
-          data: [{ embedding: [0.1, 0.2, 0.3] }],
-        }),
-        CreateCompletions: async () => ({
+      mockAgentMind = {
+        processRequest: async () => ({
+          conversation_id: "test-conversation",
           choices: [
             { message: { role: "assistant", content: "Test response" } },
           ],
-          usage: { total_tokens: 100 },
         }),
-      };
-
-      mockToolClient = {
-        Call: async () => ({ result: "test result" }),
-      };
-
-      mockResourceIndex = {
-        get: async () => [{ content: { tokens: 50 } }],
-        put: () => {},
       };
 
       mockOctokitFactory = () => ({
@@ -89,52 +65,26 @@ describe("agent service", () => {
 
     test("constructor validates required dependencies", () => {
       assert.throws(
-        () =>
-          new AgentService(
-            mockConfig,
-            null,
-            mockLlmClient,
-            mockToolClient,
-            mockResourceIndex,
-            mockOctokitFactory,
-          ),
-        /memoryClient is required/,
+        () => new AgentService(mockConfig, null, mockOctokitFactory),
+        /agentMind is required/,
       );
 
       assert.throws(
-        () =>
-          new AgentService(
-            mockConfig,
-            mockMemoryClient,
-            null,
-            mockToolClient,
-            mockResourceIndex,
-            mockOctokitFactory,
-          ),
-        /llmClient is required/,
-      );
-
-      assert.throws(
-        () =>
-          new AgentService(
-            mockConfig,
-            mockMemoryClient,
-            mockLlmClient,
-            null,
-            mockResourceIndex,
-            mockOctokitFactory,
-          ),
-        /toolClient is required/,
+        () => new AgentService(mockConfig, mockAgentMind, null),
+        /octokitFn is required/,
       );
     });
 
     test("ProcessRequest throws error for missing user message", async () => {
+      const mockAgentMindWithError = {
+        processRequest: async () => {
+          throw new Error("No user message found in request");
+        },
+      };
+
       const service = new AgentService(
         mockConfig,
-        mockMemoryClient,
-        mockLlmClient,
-        mockToolClient,
-        mockResourceIndex,
+        mockAgentMindWithError,
         mockOctokitFactory,
         () => ({ debug: () => {}, info: () => {}, error: () => {} }), // Mock logger
       );
@@ -149,15 +99,29 @@ describe("agent service", () => {
     test("creates service instance with all dependencies", () => {
       const service = new AgentService(
         mockConfig,
-        mockMemoryClient,
-        mockLlmClient,
-        mockToolClient,
-        mockResourceIndex,
+        mockAgentMind,
         mockOctokitFactory,
       );
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
+    });
+
+    test("ProcessRequest calls agentMind and returns response", async () => {
+      const service = new AgentService(
+        mockConfig,
+        mockAgentMind,
+        mockOctokitFactory,
+        () => ({ debug: () => {}, info: () => {}, error: () => {} }),
+      );
+
+      const result = await service.ProcessRequest({
+        messages: [{ role: "user", content: "Hello" }],
+        github_token: "test-token",
+      });
+
+      assert.ok(result);
+      assert.strictEqual(result.conversation_id, "test-conversation");
     });
   });
 });

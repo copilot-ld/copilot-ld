@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/librpc",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "description": "gRPC framework and utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

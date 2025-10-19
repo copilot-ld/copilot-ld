@@ -23,7 +23,7 @@
   "dependencies": {
     "@copilot-ld/libstorage": "^0.1.24",
     "@copilot-ld/libtype": "^0.1.37",
-    "@copilot-ld/libutil": "^0.1.33",
+    "@copilot-ld/libutil": "^0.1.34",
     "n3": "^1.21.0"
   },
   "repository": {

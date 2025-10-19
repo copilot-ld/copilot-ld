@@ -1,4 +1,5 @@
 /* eslint-env node */
+import { resolve } from "path";
 
 /**
  * Release changes detection implementation with dependency injection
@@ -6,12 +7,14 @@
 export class ReleaseChanges {
   #execSync;
   #existsSync;
+  #workingDir;
 
-  constructor(execSyncFn, existsSyncFn) {
+  constructor(execSyncFn, existsSyncFn, workingDir = process.cwd()) {
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!existsSyncFn) throw new Error("existsSyncFn is required");
     this.#execSync = execSyncFn;
     this.#existsSync = existsSyncFn;
+    this.#workingDir = workingDir;
   }
 
   /**
@@ -26,7 +29,10 @@ export class ReleaseChanges {
     }
 
     try {
-      this.#execSync(`git cat-file -e ${baseSha}`, { encoding: "utf8" });
+      this.#execSync(`git cat-file -e ${baseSha}`, {
+        encoding: "utf8",
+        cwd: this.#workingDir,
+      });
     } catch {
       throw new Error(
         `Base commit SHA '${baseSha}' does not exist in repository`,
@@ -34,7 +40,10 @@ export class ReleaseChanges {
     }
 
     try {
-      this.#execSync(`git cat-file -e ${headSha}`, { encoding: "utf8" });
+      this.#execSync(`git cat-file -e ${headSha}`, {
+        encoding: "utf8",
+        cwd: this.#workingDir,
+      });
     } catch {
       throw new Error(
         `Head commit SHA '${headSha}' does not exist in repository`,
@@ -45,6 +54,7 @@ export class ReleaseChanges {
     try {
       diff = this.#execSync(`git diff --name-only ${baseSha}...${headSha}`, {
         encoding: "utf8",
+        cwd: this.#workingDir,
       });
     } catch (error) {
       const command = `git diff --name-only ${baseSha}...${headSha}`;
@@ -61,7 +71,10 @@ export class ReleaseChanges {
       .filter((path) => /^(packages|services|extensions)\//.test(path))
       .map((path) => path.split("/").slice(0, 2).join("/"))
       .filter((item, index, self) => self.indexOf(item) === index)
-      .filter((item) => this.#existsSync(`${item}/package.json`));
+      .filter((item) => {
+        const packageJsonPath = resolve(this.#workingDir, item, "package.json");
+        return this.#existsSync(packageJsonPath);
+      });
 
     return items;
   }

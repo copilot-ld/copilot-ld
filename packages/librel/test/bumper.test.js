@@ -13,6 +13,7 @@ describe("ReleaseBumper", () => {
   let releaseBumper;
   let capturedCommands;
   let fileContents;
+  const testWorkingDir = "/test/project";
 
   beforeEach(() => {
     capturedCommands = [];
@@ -37,6 +38,7 @@ describe("ReleaseBumper", () => {
       mockFs.readFileSync,
       mockFs.writeFileSync,
       mockFs.readdirSync,
+      testWorkingDir,
     );
   });
 
@@ -46,7 +48,10 @@ describe("ReleaseBumper", () => {
    */
   function setupPackageFiles(packages) {
     for (const [path, name] of Object.entries(packages)) {
-      fileContents.set(path, JSON.stringify(packageJsonFixtures[name]));
+      const content = JSON.stringify(packageJsonFixtures[name]);
+      // Store both relative and absolute paths
+      fileContents.set(path, content);
+      fileContents.set(`${testWorkingDir}/${path}`, content);
     }
   }
 
@@ -89,6 +94,7 @@ describe("ReleaseBumper", () => {
       mockFs.readFileSync,
       mockFs.writeFileSync,
       mockFs.readdirSync,
+      testWorkingDir,
     );
     const results = await releaseBumper.bump("patch", ["packages/libconfig"]);
 
@@ -104,8 +110,13 @@ describe("ReleaseBumper", () => {
       "services/agent/package.json": "agent",
     });
 
-    mockFs.readdirSync = (dir, _options) =>
-      directoryStructures.complex[dir] || [];
+    mockFs.readdirSync = (dir, _options) => {
+      // Normalize absolute paths to relative for mock lookup
+      const normalizedDir = dir.startsWith(testWorkingDir)
+        ? dir.slice(testWorkingDir.length + 1)
+        : dir;
+      return directoryStructures.complex[normalizedDir] || [];
+    };
 
     const testExecSync = (command, options) => {
       capturedCommands.push({ command, options });
@@ -123,6 +134,7 @@ describe("ReleaseBumper", () => {
       mockFs.readFileSync,
       mockFs.writeFileSync,
       mockFs.readdirSync,
+      testWorkingDir,
     );
     const results = await releaseBumper.bump("patch", ["packages/libconfig"]);
 
@@ -156,6 +168,7 @@ describe("ReleaseBumper", () => {
       mockFs.readFileSync,
       mockFs.writeFileSync,
       mockFs.readdirSync,
+      testWorkingDir,
     );
     await releaseBumper.bump("patch", ["packages/libconfig"]);
 
@@ -188,6 +201,7 @@ describe("ReleaseBumper", () => {
       mockFs.readFileSync,
       mockFs.writeFileSync,
       mockFs.readdirSync,
+      testWorkingDir,
     );
     await releaseBumper.bump("patch", ["packages/libconfig"]);
 
@@ -221,6 +235,7 @@ describe("ReleaseBumper", () => {
       mockFs.readFileSync,
       mockFs.writeFileSync,
       mockFs.readdirSync,
+      testWorkingDir,
     );
 
     await assert.rejects(

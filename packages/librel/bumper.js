@@ -9,8 +9,15 @@ export class ReleaseBumper {
   #readFileSync;
   #writeFileSync;
   #readdirSync;
+  #workingDir;
 
-  constructor(execSyncFn, readFileSyncFn, writeFileSyncFn, readdirSyncFn) {
+  constructor(
+    execSyncFn,
+    readFileSyncFn,
+    writeFileSyncFn,
+    readdirSyncFn,
+    workingDir = process.cwd(),
+  ) {
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!readFileSyncFn) throw new Error("readFileSyncFn is required");
     if (!writeFileSyncFn) throw new Error("writeFileSyncFn is required");
@@ -19,6 +26,7 @@ export class ReleaseBumper {
     this.#readFileSync = readFileSyncFn;
     this.#writeFileSync = writeFileSyncFn;
     this.#readdirSync = readdirSyncFn;
+    this.#workingDir = workingDir;
   }
 
   /**
@@ -29,9 +37,6 @@ export class ReleaseBumper {
    * @returns {Promise<object[]>} Bump results
    */
   async bump(bumpType, items, options = {}) {
-    // Capture initial working directory (assuming tool starts at repo root)
-    const initialCwd = process.cwd();
-
     const results = [];
     const processed = new Set();
     for (const item of items) {
@@ -39,13 +44,13 @@ export class ReleaseBumper {
     }
 
     if (results.length > 0) {
-      this.#execSync("npm install", { cwd: initialCwd });
+      this.#execSync("npm install", { cwd: this.#workingDir });
 
-      if (this.#hasChanges("package-lock.json", initialCwd)) {
-        this.#execSync("git add package-lock.json", { cwd: initialCwd });
+      if (this.#hasChanges("package-lock.json")) {
+        this.#execSync("git add package-lock.json", { cwd: this.#workingDir });
         this.#execSync(
           'git commit --no-verify -m "chore: update package-lock.json after dependency bumps"',
-          { cwd: initialCwd },
+          { cwd: this.#workingDir },
         );
       }
     }
@@ -59,26 +64,34 @@ export class ReleaseBumper {
 
     const [type, name] = item.split("/");
     const packagePath = join(item, "package.json");
+    const itemAbsolutePath = join(this.#workingDir, item);
 
     this.#execSync(`npm version ${bumpType} --no-git-tag-version`, {
-      cwd: item,
+      cwd: itemAbsolutePath,
     });
 
-    const pkg = JSON.parse(this.#readFileSync(packagePath, "utf8"));
+    const pkg = JSON.parse(
+      this.#readFileSync(join(this.#workingDir, packagePath), "utf8"),
+    );
     const newVersion = pkg.version;
     const packageName = pkg.name;
 
     if (this.#hasChanges(packagePath)) {
-      this.#execSync(`git add ${packagePath}`);
+      this.#execSync(`git add ${packagePath}`, { cwd: this.#workingDir });
       this.#execSync(
         `git commit --no-verify -m "chore: bump ${name} to v${newVersion}"`,
+        { cwd: this.#workingDir },
       );
 
       try {
-        this.#execSync(`git tag ${name}@v${newVersion}`);
+        this.#execSync(`git tag ${name}@v${newVersion}`, {
+          cwd: this.#workingDir,
+        });
       } catch (error) {
         if (options.force === true) {
-          this.#execSync(`git tag -f ${name}@v${newVersion}`);
+          this.#execSync(`git tag -f ${name}@v${newVersion}`, {
+            cwd: this.#workingDir,
+          });
         } else {
           throw error;
         }
@@ -105,7 +118,8 @@ export class ReleaseBumper {
     for (const dir of ["packages", "services", "extensions", "tools"]) {
       let subdirs;
       try {
-        subdirs = this.#readdirSync(dir, { withFileTypes: true })
+        const absoluteDir = join(this.#workingDir, dir);
+        subdirs = this.#readdirSync(absoluteDir, { withFileTypes: true })
           .filter((dirent) => dirent.isDirectory())
           .map((dirent) => join(dir, dirent.name));
       } catch {
@@ -115,7 +129,10 @@ export class ReleaseBumper {
       for (const subdir of subdirs) {
         try {
           const pkg = JSON.parse(
-            this.#readFileSync(join(subdir, "package.json"), "utf8"),
+            this.#readFileSync(
+              join(this.#workingDir, subdir, "package.json"),
+              "utf8",
+            ),
           );
           const deps = { ...pkg.dependencies, ...pkg.devDependencies };
           if (deps[packageName]) dependents.push(subdir);
@@ -129,27 +146,30 @@ export class ReleaseBumper {
 
   #updateDependency(packagePath, dependencyName, newVersion) {
     const packageJsonPath = join(packagePath, "package.json");
-    const pkg = JSON.parse(this.#readFileSync(packageJsonPath, "utf8"));
+    const absolutePackageJsonPath = join(this.#workingDir, packageJsonPath);
+    const pkg = JSON.parse(this.#readFileSync(absolutePackageJsonPath, "utf8"));
 
     if (pkg.dependencies?.[dependencyName])
       pkg.dependencies[dependencyName] = `^${newVersion}`;
     if (pkg.devDependencies?.[dependencyName])
       pkg.devDependencies[dependencyName] = `^${newVersion}`;
 
-    this.#writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2) + "\n");
-    this.#execSync(`git add ${packageJsonPath}`);
+    this.#writeFileSync(
+      absolutePackageJsonPath,
+      JSON.stringify(pkg, null, 2) + "\n",
+    );
+    this.#execSync(`git add ${packageJsonPath}`, { cwd: this.#workingDir });
   }
 
   /**
    * Checks if a file has changes that can be committed
    * @param {string} filePath - Path to the file to check
-   * @param {string} [cwd] - Optional working directory for git command
    * @returns {boolean} True if file has changes, false otherwise
    */
-  #hasChanges(filePath, cwd) {
+  #hasChanges(filePath) {
     try {
       const result = this.#execSync(`git status --porcelain ${filePath}`, {
-        cwd: cwd || process.cwd(),
+        cwd: this.#workingDir,
         encoding: "utf8",
       });
       return result.trim().length > 0;

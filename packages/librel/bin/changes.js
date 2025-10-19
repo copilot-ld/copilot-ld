@@ -23,7 +23,8 @@ function main() {
   }
 
   try {
-    const releaseChanges = new ReleaseChanges(execSync, existsSync);
+    const workingDir = process.env.INIT_CWD || process.cwd();
+    const releaseChanges = new ReleaseChanges(execSync, existsSync, workingDir);
     const items = releaseChanges.getChangedPackages(baseSha, headSha);
 
     // Output as JSON for GitHub Actions

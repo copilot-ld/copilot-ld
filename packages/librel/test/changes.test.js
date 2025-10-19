@@ -10,6 +10,7 @@ describe("ReleaseChanges", () => {
   let mockExecSync;
   let mockFs;
   let releaseChanges;
+  const testWorkingDir = "/test/project";
 
   beforeEach(() => {
     mockExecSync = (command) => {
@@ -27,7 +28,11 @@ describe("ReleaseChanges", () => {
           path.includes("agent")),
     };
 
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
   });
 
   test("constructor requires dependencies", () => {
@@ -37,6 +42,20 @@ describe("ReleaseChanges", () => {
     assert.throws(() => new ReleaseChanges(mockExecSync), {
       message: "existsSyncFn is required",
     });
+  });
+
+  test("constructor accepts optional working directory", () => {
+    const changes = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      "/custom/dir",
+    );
+    assert.ok(changes);
+  });
+
+  test("constructor defaults to process.cwd when working directory not provided", () => {
+    const changes = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    assert.ok(changes);
   });
 
   test("finds changed packages between commits", () => {
@@ -49,8 +68,13 @@ describe("ReleaseChanges", () => {
   });
 
   test("filters packages without package.json", () => {
-    mockFs.existsSync = (path) => path === "packages/libconfig/package.json";
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    mockFs.existsSync = (path) =>
+      path.endsWith("package.json") && path.includes("libconfig");
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
 
     const changes = releaseChanges.getChangedPackages("abc123", "def456");
     assert.deepStrictEqual(changes, ["packages/libconfig"]);
@@ -58,7 +82,11 @@ describe("ReleaseChanges", () => {
 
   test("handles empty diff output", () => {
     mockExecSync = () => gitDiffOutputs.empty;
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
 
     const changes = releaseChanges.getChangedPackages("abc123", "def456");
     assert.deepStrictEqual(changes, []);
@@ -72,7 +100,11 @@ describe("ReleaseChanges", () => {
       return "";
     };
 
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
 
     assert.throws(
       () => releaseChanges.getChangedPackages("invalid-sha", "def456"),
@@ -101,7 +133,11 @@ describe("ReleaseChanges", () => {
       return "";
     };
 
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
 
     assert.throws(() => releaseChanges.getChangedPackages("abc123", "def456"), {
       message: /Git diff command failed/,
@@ -116,10 +152,54 @@ describe("ReleaseChanges", () => {
       return "";
     };
 
-    releaseChanges = new ReleaseChanges(mockExecSync, mockFs.existsSync);
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
 
     assert.throws(() => releaseChanges.getChangedPackages("abc123", "def456"), {
       message: /Head commit SHA 'def456' does not exist/,
     });
+  });
+
+  test("uses working directory for git commands", () => {
+    let capturedOptions = null;
+    mockExecSync = (command, options) => {
+      capturedOptions = options;
+      if (command.includes("git diff --name-only")) {
+        return gitDiffOutputs.empty;
+      }
+      return "";
+    };
+
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
+    releaseChanges.getChangedPackages("abc123", "def456");
+
+    assert.strictEqual(capturedOptions.cwd, testWorkingDir);
+  });
+
+  test("resolves package.json paths relative to working directory", () => {
+    const checkedPaths = [];
+    mockFs.existsSync = (path) => {
+      checkedPaths.push(path);
+      return false;
+    };
+
+    releaseChanges = new ReleaseChanges(
+      mockExecSync,
+      mockFs.existsSync,
+      testWorkingDir,
+    );
+    releaseChanges.getChangedPackages("abc123", "def456");
+
+    assert.ok(
+      checkedPaths.some((path) => path.startsWith(testWorkingDir)),
+      "Paths should be resolved relative to working directory",
+    );
   });
 });

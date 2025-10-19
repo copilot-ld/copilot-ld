@@ -21,7 +21,7 @@
     "linked-data"
   ],
   "dependencies": {
-    "@copilot-ld/libstorage": "^0.1.23",
+    "@copilot-ld/libstorage": "^0.1.24",
     "@copilot-ld/libtype": "^0.1.36",
     "@copilot-ld/libutil": "^0.1.33",
     "n3": "^1.21.0"

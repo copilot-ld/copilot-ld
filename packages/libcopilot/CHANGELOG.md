@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-19
+
+- Bump version
+
 ## 2025-10-16
 
 - Refactored retry logic into reusable `Retry` class in `@copilot-ld/libutil`

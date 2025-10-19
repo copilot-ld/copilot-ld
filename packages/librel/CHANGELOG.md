@@ -2,6 +2,7 @@
 
 ## 2025-10-19
 
+- Bump version
 - Fixed `rel-changes` to use `process.env.INIT_CWD` when run via `npx` to
   correctly detect working directory
 - Fixed `rel-bump` to use `process.env.INIT_CWD` when run via `npx` to correctly

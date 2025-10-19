@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-19
+
+- Bump version
+
 ## 2025-10-16
 
 - Added `Retry` class for handling transient errors with exponential backoff and

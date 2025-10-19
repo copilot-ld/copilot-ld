@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-19
+
+- Bump version
+
 ## 2025-10-18
 
 - Moved `graphs.js` script from `scripts/` to `bin/graphs.js` as a binary

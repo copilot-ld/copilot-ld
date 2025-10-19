@@ -2,6 +2,7 @@
 
 ## 2025-10-19
 
+- Bump version
 - Refactored `AgentMind` to accept `AgentHands` as a constructor dependency
   instead of using dynamic import
 - Updated constructor signature:

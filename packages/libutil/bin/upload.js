@@ -4,24 +4,23 @@
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
 import { Logger, Uploader } from "@copilot-ld/libutil";
-
-/**
- * Parse command line arguments
- * @returns {object} Parsed arguments
- */
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const outputOnly = args.includes("--stdout");
-
-  return { outputOnly };
-}
+import { parseArgs } from "node:util";
 
 /**
  * Main execution function
  * @returns {Promise<void>}
  */
 async function main() {
-  const { outputOnly } = parseArgs();
+  const { values } = parseArgs({
+    options: {
+      stdout: {
+        type: "boolean",
+        default: false,
+      },
+    },
+  });
+
+  const outputOnly = values.stdout;
 
   await ScriptConfig.create("upload");
 

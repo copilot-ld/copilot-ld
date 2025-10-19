@@ -10,29 +10,36 @@
   },
   "scripts": {
     "chat": "node chat.js",
-    "chunk": "node chunk.js",
     "dev": "node dev.js",
-    "download": "node download.js",
     "embed": "node embed.js",
     "search": "node search.js",
     "token": "node token.js",
-    "index": "node index.js",
     "test": "echo 'No tests specified for scripts'"
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.0.0",
+    "@copilot-ld/libagent": "^0.1.12",
     "@copilot-ld/libconfig": "^0.1.12",
     "@copilot-ld/libcopilot": "^0.1.12",
+    "@copilot-ld/libformat": "^0.1.12",
+    "@copilot-ld/libgraph": "^0.1.12",
+    "@copilot-ld/libperf": "^0.1.12",
     "@copilot-ld/libpolicy": "^0.1.9",
     "@copilot-ld/librel": "^0.1.14",
     "@copilot-ld/librepl": "^0.1.13",
+    "@copilot-ld/libresource": "^0.1.12",
     "@copilot-ld/librpc": "^0.1.15",
     "@copilot-ld/libstorage": "^0.1.10",
+    "@copilot-ld/libtype": "^0.1.12",
+    "@copilot-ld/libutil": "^0.1.12",
     "@copilot-ld/libvector": "^0.1.11",
     "@grpc/proto-loader": "^0.8.0",
     "@octokit/auth-oauth-device": "^8.0.1",
     "@octokit/core": "^7.0.3",
-    "glob": "^11.0.3"
+    "glob": "^11.0.3",
+    "js-yaml": "^4.1.0",
+    "n3": "^1.26.0",
+    "protobufjs": "^7.4.0"
   },
   "repository": {
     "url": "git+https://github.com/copilot-ld/copilot-ld.git"

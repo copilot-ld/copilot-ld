@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import yaml from "js-yaml";
 import { createResourceIndex } from "@copilot-ld/libresource";

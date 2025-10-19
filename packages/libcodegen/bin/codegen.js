@@ -6,6 +6,7 @@ import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import { parseArgs } from "node:util";
 
 import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
@@ -68,17 +69,40 @@ function printUsage() {
 
 /**
  * Parse command line flags
- * @param {string[]} flags - Command line flags
  * @returns {object} Parsed flags with convenience methods
  */
-function parseFlags(flags) {
-  const flagSet = new Set(flags);
-  const doAll = flagSet.has("--all");
+function parseFlags() {
+  const { values } = parseArgs({
+    options: {
+      all: {
+        type: "boolean",
+        default: false,
+      },
+      type: {
+        type: "boolean",
+        default: false,
+      },
+      service: {
+        type: "boolean",
+        default: false,
+      },
+      client: {
+        type: "boolean",
+        default: false,
+      },
+      definition: {
+        type: "boolean",
+        default: false,
+      },
+    },
+  });
+
+  const doAll = values.all;
   return {
-    doTypes: doAll || flagSet.has("--type"),
-    doServices: doAll || flagSet.has("--service"),
-    doClients: doAll || flagSet.has("--client"),
-    doDefinitions: doAll || flagSet.has("--definition"),
+    doTypes: doAll || values.type,
+    doServices: doAll || values.service,
+    doClients: doAll || values.client,
+    doDefinitions: doAll || values.definition,
     hasGenerationFlags() {
       return (
         this.doTypes || this.doServices || this.doClients || this.doDefinitions
@@ -148,11 +172,10 @@ async function executeGeneration(codegens, sourcePath, flags) {
 /**
  * Simplified main function
  * @param {string} projectRoot - Project root directory path
- * @param {string[]} flags - Command line flags
  * @param {object} finder - Finder instance for path management
  */
-async function runCodegen(projectRoot, flags, finder) {
-  const parsedFlags = parseFlags(flags);
+async function runCodegen(projectRoot, finder) {
+  const parsedFlags = parseFlags();
 
   if (!parsedFlags.hasGenerationFlags()) {
     printUsage();
@@ -204,8 +227,7 @@ async function main() {
     const finder = new Finder(fsAsync, logger, process);
     const projectRoot = findMonorepoRoot(__dirname);
 
-    const flags = process.argv.slice(2);
-    await runCodegen(projectRoot, flags, finder);
+    await runCodegen(projectRoot, finder);
   } catch (err) {
     process.stderr.write(`Error: ${err.message}\n`);
     process.exit(1);

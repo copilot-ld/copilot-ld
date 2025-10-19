@@ -1,13 +1,25 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { execSync } from "child_process";
 import { existsSync, mkdirSync } from "fs";
 import { join } from "path";
+import { parseArgs } from "node:util";
 
 /**
  * Generates a self-signed certificate for localhost development
  * Creates certificate and key files in data/cert/ directory
  */
 function main() {
+  const { values } = parseArgs({
+    options: {
+      force: {
+        type: "boolean",
+        short: "f",
+        default: false,
+      },
+    },
+  });
+
   const certDir = join(process.cwd(), "data", "cert");
   const certPath = join(certDir, "localhost.crt");
   const keyPath = join(certDir, "localhost.key");
@@ -18,7 +30,7 @@ function main() {
     console.log(`Created directory: ${certDir}`);
   }
 
-  const force = process.argv.includes("--force");
+  const force = values.force;
 
   // Check if certificate already exists
   if ((existsSync(certPath) || existsSync(keyPath)) && !force) {

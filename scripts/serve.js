@@ -1,10 +1,28 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { createServer } from "http";
 import { readFile, watch } from "fs";
 import { join } from "path";
+import { parseArgs } from "node:util";
 
-const port = process.argv[2] || 8080;
-const dir = process.argv[3] || "docs";
+const { values, positionals } = parseArgs({
+  options: {
+    port: {
+      type: "string",
+      short: "p",
+      default: "8080",
+    },
+    dir: {
+      type: "string",
+      short: "d",
+      default: "docs",
+    },
+  },
+  allowPositionals: true,
+});
+
+const port = positionals[0] || values.port;
+const dir = positionals[1] || values.dir;
 
 const server = createServer((req, res) => {
   const url = req.url === "/" ? "/index.html" : req.url;

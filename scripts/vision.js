@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { ScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";

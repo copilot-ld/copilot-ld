@@ -1,6 +1,8 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import crypto from "crypto";
 import { updateEnvFile } from "@copilot-ld/libutil";
+import { parseArgs } from "node:util";
 
 /**
  * Generates a cryptographically secure random secret key
@@ -15,8 +17,16 @@ function generateSecret(length = 32) {
  * Main function to generate and update secret in .env file
  */
 async function main() {
-  const args = process.argv.slice(2);
-  const outputOnly = args.includes("--stdout");
+  const { values } = parseArgs({
+    options: {
+      stdout: {
+        type: "boolean",
+        default: false,
+      },
+    },
+  });
+
+  const outputOnly = values.stdout;
 
   const secret = generateSecret();
 

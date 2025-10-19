@@ -5,28 +5,11 @@ import { createLlm } from "@copilot-ld/libcopilot";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
+import { parseArgs } from "node:util";
 
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
 import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
 import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
-
-/**
- * Parse command line arguments
- * @returns {object} Parsed arguments
- */
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const parsed = { base: null }; // default selector and no base IRI
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--base" && i + 1 < args.length) {
-      parsed.base = args[i + 1];
-      i++; // skip the next argument as it's the value
-    }
-  }
-
-  return parsed;
-}
 
 /**
  * Process all HTML files in the knowledge base directory and generate resources
@@ -35,7 +18,17 @@ function parseArgs() {
  */
 async function main() {
   const config = await ScriptConfig.create("resources");
-  const args = parseArgs();
+
+  const { values } = parseArgs({
+    options: {
+      base: {
+        type: "string",
+        default: null,
+      },
+    },
+  });
+
+  const args = { base: values.base };
   const knowledgeStorage = createStorage("knowledge");
 
   const llm = createLlm(await config.githubToken(), "gpt-4o-mini");

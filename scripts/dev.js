@@ -1,6 +1,8 @@
+#!/usr/bin/env node
 /* eslint-env node */
 import { spawn } from "child_process";
 import { writeFileSync, readFileSync, existsSync, openSync } from "fs";
+import { parseArgs } from "node:util";
 
 const PID_FILE = "data/dev.pid";
 const LOG_FILE = "data/dev.log";
@@ -169,18 +171,49 @@ function help() {
 }
 
 // Parse command line arguments
-const args = process.argv.slice(2);
-quietMode = args.includes("--quiet");
-const cmd = args.find((arg) => arg.startsWith("--") && arg !== "--quiet");
+const { values } = parseArgs({
+  options: {
+    start: {
+      type: "boolean",
+      default: false,
+    },
+    stop: {
+      type: "boolean",
+      default: false,
+    },
+    list: {
+      type: "boolean",
+      default: false,
+    },
+    cleanup: {
+      type: "boolean",
+      default: false,
+    },
+    quiet: {
+      type: "boolean",
+      short: "q",
+      default: false,
+    },
+    help: {
+      type: "boolean",
+      short: "h",
+      default: false,
+    },
+  },
+});
 
-const commands = new Map([
-  ["--start", start],
-  ["--stop", stop],
-  ["--list", list],
-  ["--cleanup", cleanup],
-  ["--help", help],
-  ["-h", help],
-]);
+quietMode = values.quiet;
 
-if (!cmd || !commands.has(cmd)) help();
-commands.get(cmd)();
+if (values.help) {
+  help();
+} else if (values.start) {
+  start();
+} else if (values.stop) {
+  stop();
+} else if (values.list) {
+  list();
+} else if (values.cleanup) {
+  cleanup();
+} else {
+  help();
+}

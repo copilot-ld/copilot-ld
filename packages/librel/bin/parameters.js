@@ -15,6 +15,7 @@
 
 import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 import { writeFileSync, readFileSync, existsSync } from "fs";
+import { parseArgs } from "node:util";
 import { StackParameters } from "../parameters.js";
 
 /**
@@ -27,19 +28,6 @@ async function readStdin() {
     chunks.push(chunk);
   }
   return JSON.parse(Buffer.concat(chunks).toString());
-}
-
-/**
- * Parses command line arguments
- * @returns {object} Parsed arguments
- */
-function parseArgs() {
-  const args = process.argv.slice(2);
-  return {
-    retrieve: args.includes("--retrieve"),
-    amend: args.includes("--amend"),
-    file: args.find((arg) => arg.startsWith("--file="))?.split("=")[1] || null,
-  };
 }
 
 /**
@@ -79,7 +67,28 @@ function outputParameters(parameters, filename) {
  */
 async function main() {
   try {
-    const args = parseArgs();
+    const { values } = parseArgs({
+      options: {
+        retrieve: {
+          type: "boolean",
+          default: false,
+        },
+        amend: {
+          type: "boolean",
+          default: false,
+        },
+        file: {
+          type: "string",
+          default: null,
+        },
+      },
+    });
+
+    const args = {
+      retrieve: values.retrieve,
+      amend: values.amend,
+      file: values.file,
+    };
 
     if (!args.retrieve && !args.amend) {
       throw new Error("Must specify either --retrieve or --amend");

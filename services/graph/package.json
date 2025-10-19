@@ -16,11 +16,9 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.28",
-    "@copilot-ld/librpc": "^0.1.46",
-    "@copilot-ld/libstorage": "^0.1.23",
     "@copilot-ld/libgraph": "^0.1.13",
-    "@copilot-ld/libtype": "^0.1.36",
-    "@copilot-ld/libutil": "^0.1.33",
+    "@copilot-ld/libresource": "^0.1.46",
+    "@copilot-ld/librpc": "^0.1.46",
     "n3": "^1.26.0"
   },
   "repository": {

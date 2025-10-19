@@ -6,36 +6,73 @@
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
   <body>
-    <header>
+    <header class="container">
       <hgroup>
-        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <h1>
+          <a href="index.html">🧬 <mark>Copilot-LD</mark></a>
+        </h1>
         <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
       </hgroup>
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="configuration.html">Configuration</a></li>
-          <li><a href="processing.html" class="active">Processing</a></li>
-          <li><a href="deployment.html">Deployment</a></li>
-          <li><a href="development.html">Development</a></li>
+          <li><a href="concepts.html">Concepts</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Architecture</summary>
+              <ul>
+                <li><a href="architecture.html">Overview</a></li>
+                <li><a href="reference.html">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Guides</summary>
+              <ul>
+                <li><a href="configuration.html">Configuration</a></li>
+                <li><a href="processing.html" class="active">Processing</a></li>
+                <li><a href="deployment.html">Deployment</a></li>
+                <li><a href="development.html">Development</a></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
+    <main class="container">
       <h2>Processing Guide</h2>
+
       <p>
         Complete guide to processing knowledge bases, resources, tools, and
         vectors in Copilot-LD. This covers the offline pipeline that transforms
         raw knowledge into searchable, embedded content.
       </p>
 
-      <h3>Prerequisites</h3>
+      <aside>
+        <nav>
+          <h5>Contents</h5>
+          <ul>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#process">1. Processing All Data</a></li>
+            <li><a href="#structure">2. Knowledge Base Structure</a></li>
+            <li><a href="#resources">3. Resource Processing</a></li>
+            <li><a href="#tools">4. Tool Processing</a></li>
+            <li><a href="#vectors">5. Vector Processing</a></li>
+            <li><a href="#management">6. Data Management Utilities</a></li>
+            <li><a href="#querying">7. Querying Processed Data</a></li>
+            <li><a href="#next">Next Steps</a></li>
+          </ul>
+        </nav>
+        <hr />
+      </aside>
+
+      <h3 id="prerequisites">Prerequisites</h3>
       <ul>
         <li><a href="configuration.html">Configuration Guide</a> completed</li>
         <li>
@@ -49,7 +86,7 @@
         </li>
       </ul>
 
-      <h3>Overview</h3>
+      <h3 id="overview">Overview</h3>
       <p>
         The Copilot-LD processing pipeline transforms your knowledge base into
         searchable resources, tool definitions, and vector embeddings. The
@@ -57,7 +94,7 @@
         automatically in the correct sequence.
       </p>
 
-      <h3>1. Processing All Data</h3>
+      <h3 id="process">1. Processing All Data</h3>
       <p>
         Process assistants, knowledge base content, tools, and vectors with a
         single command. The system handles all stages automatically:
@@ -65,7 +102,7 @@
 
       <pre><code>npm run process</code></pre>
 
-      <h3>2. Knowledge Base Structure</h3>
+      <h3 id="structure">2. Knowledge Base Structure</h3>
       <p>
         Copilot-LD uses HTML files with structured microdata to organize
         knowledge. This approach provides semantic context and enables accurate
@@ -144,7 +181,7 @@
       <pre><code># Copy example knowledge base to your data directory
 cp -r examples/knowledge data/</code></pre>
 
-      <h3>3. Resource Processing</h3>
+      <h3 id="resources">3. Resource Processing</h3>
       <p>
         The resource processor extracts structured content from HTML files and
         creates searchable resources stored in the
@@ -203,7 +240,7 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
         search and select appropriate assistants based on context.
       </p>
 
-      <h3>4. Tool Processing</h3>
+      <h3 id="tools">4. Tool Processing</h3>
       <p>
         Tool processing generates OpenAI-compatible JSON schemas from Protocol
         Buffer definitions, enabling dynamic tool registration and validation.
@@ -318,7 +355,7 @@ message HashResponse {
   }
 }</code></pre>
 
-      <h3>5. Vector Processing</h3>
+      <h3 id="vectors">5. Vector Processing</h3>
       <p>
         Vector processing creates embeddings of resource content and descriptors
         for efficient similarity search and retrieval-augmented generation. This
@@ -374,7 +411,7 @@ message HashResponse {
         </li>
       </ul>
 
-      <h3>6. Data Management Utilities</h3>
+      <h3 id="management">6. Data Management Utilities</h3>
       <p>
         Copilot-LD includes utilities for managing processed data across
         development and deployment environments. These commands require that the
@@ -481,7 +518,7 @@ ls data/resources/ | grep "Message" | wc -l
 ls data/resources/ | grep "ToolFunction" | wc -l
 ls data/resources/ | grep "Assistant" | wc -l</code></pre>
 
-      <h3>7. Querying Processed Data</h3>
+      <h3 id="querying">7. Querying Processed Data</h3>
       <p>
         Query the extracted graph data using the query script. Queries use the
         format
@@ -518,7 +555,7 @@ echo "#agile-manifesto ? ?" | npm run query</code></pre>
         </li>
       </ul>
 
-      <h3>Next Steps</h3>
+      <h3 id="next">Next Steps</h3>
       <p>Once processing is complete, proceed to:</p>
       <ul>
         <li>
@@ -535,7 +572,7 @@ echo "#agile-manifesto ? ?" | npm run query</code></pre>
         </li>
       </ul>
     </main>
-    <footer>
+    <footer class="container">
       <p>© D. Olsson</p>
     </footer>
   </body>

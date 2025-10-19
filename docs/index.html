@@ -6,67 +6,186 @@
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
   <body>
-    <header>
+    <header class="container">
       <hgroup>
-        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <h1>
+          <a href="index.html">🧬 <mark>Copilot-LD</mark></a>
+        </h1>
         <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
       </hgroup>
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="configuration.html">Configuration</a></li>
-          <li><a href="processing.html">Processing</a></li>
-          <li><a href="deployment.html">Deployment</a></li>
-          <li><a href="development.html">Development</a></li>
+          <li><a href="concepts.html">Concepts</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Architecture</summary>
+              <ul>
+                <li><a href="architecture.html">Overview</a></li>
+                <li><a href="reference.html">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Guides</summary>
+              <ul>
+                <li><a href="configuration.html">Configuration</a></li>
+                <li><a href="processing.html">Processing</a></li>
+                <li><a href="deployment.html">Deployment</a></li>
+                <li><a href="development.html">Development</a></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
-      <h2>Welcome</h2>
+    <main class="container">
+      <h2>Why</h2>
       <p>
-        Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked
-        data and retrieval-augmented generation.
+        Traditional RAG systems treat knowledge as plain text, leading to
+        responses based on text similarity rather than actual meaning.
+        Copilot-LD is different: it uses structured linked data to understand
+        <em>relationships and context</em>, delivering responses grounded in
+        your knowledge graph—not just matching keywords.
       </p>
 
+      <h3>Key Features</h3>
+
       <article>
-        <h3>🎯 Amazingly <mark>Accurate</mark></h3>
+        <h4>🎯 Amazingly <mark>Accurate</mark></h4>
         <p>
-          Chunking and similarity searches are done with linked data for amazing
-          accuracy.
+          Semantic understanding through linked data preserves relationships and
+          context. Content chunks align with meaning, not arbitrary character
+          limits. Dual-index search finds both content and purpose.
         </p>
       </article>
 
       <article>
-        <h3>⚡️ Incredibly <mark>Fast</mark></h3>
+        <h4>⚡️ Incredibly <mark>Fast</mark></h4>
         <p>
-          Retrieval of vectors and text are done in parallel using in-memory
-          indices for incredible speed.
+          In-memory vector operations eliminate API latency. Pre-computed
+          embeddings mean zero runtime API cost. Parallel processing and
+          optimized indexes deliver sub-second responses.
         </p>
       </article>
 
       <article>
-        <h3>🛡️ Robustly <mark>Secure</mark></h3>
+        <h4>🛡️ Robustly <mark>Secure</mark></h4>
         <p>
-          The system is deployed with gRPC, HMAC authentication and a container
-          surface below 10 MB for robust security.
+          Network-isolated backend services with HMAC authentication.
+          Policy-based access control for all resources. Minimal container
+          images (under 10 MB) reduce attack surface. Time-limited tokens
+          prevent replay attacks.
         </p>
       </article>
 
       <article>
-        <h3>✨ Elegantly <mark>Simple</mark></h3>
+        <h4>✨ Elegantly <mark>Simple</mark></h4>
         <p>
-          Developed in plain JavaScript with no external dependencies, making
-          the system ridiculously simple to deploy.
+          Plain JavaScript with zero external dependencies beyond Node.js
+          built-ins. No framework complexity or deployment woes. Easy to
+          understand, audit, and operate. All in about 5,000 lines of clean
+          code.
         </p>
       </article>
+
+      <h3>What Can You Build?</h3>
+
+      <article>
+        <h4>🚀 Autonomous <mark>Agents</mark></h4>
+        <p>
+          Create intelligent agents that autonomously select and execute tools
+          to accomplish complex tasks. The agent analyzes requests, determines
+          which tools to invoke, and chains multiple operations together—all
+          without manual intervention.
+        </p>
+      </article>
+
+      <article>
+        <h4>🧠 Knowledge Graph <mark>Explorers</mark></h4>
+        <p>
+          Navigate organizational knowledge through graph queries that traverse
+          relationships between entities. Discover connections, hierarchies, and
+          dependencies using RDF triple patterns to uncover insights hidden in
+          your data.
+        </p>
+      </article>
+
+      <article>
+        <h4>🧩 Decision Support <mark>Systems</mark></h4>
+        <p>
+          Build systems that combine graph traversal with semantic search to
+          analyze policies, procedures, and relationships. Agents automatically
+          gather relevant information, evaluate constraints, and provide
+          reasoned recommendations.
+        </p>
+      </article>
+
+      <article>
+        <h4>🎬 Workflow <mark>Automation</mark></h4>
+        <p>
+          Deploy agents that understand your processes and autonomously execute
+          multi-step workflows. They query knowledge graphs to understand
+          dependencies, invoke appropriate tools, and adapt to changing
+          conditions.
+        </p>
+      </article>
+
+      <h3>Getting Started</h3>
+
+      <p>New to Copilot-LD? Start here:</p>
+
+      <ul>
+        <li>
+          <strong><a href="concepts.html">Concepts</a></strong
+          >: Understand the "why" behind the architecture and core technologies
+        </li>
+        <li>
+          <strong><a href="architecture.html">Architecture</a></strong
+          >: See how the system is structured and components interact
+        </li>
+        <li>
+          <strong><a href="configuration.html">Configuration</a></strong
+          >: Set up your environment and configure services
+        </li>
+        <li>
+          <strong><a href="processing.html">Processing</a></strong
+          >: Prepare your knowledge base for deployment
+        </li>
+      </ul>
+
+      <p>Ready to build or extend?</p>
+
+      <ul>
+        <li>
+          <strong><a href="development.html">Development</a></strong
+          >: Local development workflow and testing
+        </li>
+        <li>
+          <strong><a href="reference.html">Reference</a></strong
+          >: Detailed implementation guide for developers
+        </li>
+        <li>
+          <strong><a href="deployment.html">Deployment</a></strong
+          >: Deploy to Docker, AWS, or other cloud platforms
+        </li>
+      </ul>
+
+      <h3>Next Steps</h3>
+
+      <p>
+        Dive into <strong><a href="concepts.html">Concepts</a></strong> to
+        understand the foundational technologies, or jump straight to
+        <strong><a href="configuration.html">Configuration</a></strong> if
+        you're ready to start building.
+      </p>
     </main>
-    <footer>
+    <footer class="container">
       <p>© D. Olsson</p>
     </footer>
   </body>

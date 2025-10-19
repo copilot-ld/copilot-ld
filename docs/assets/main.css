@@ -14,3 +14,7 @@ mark {
   background-clip: text;
   color: transparent;
 }
+
+h1 a {
+  text-decoration: none;
+}

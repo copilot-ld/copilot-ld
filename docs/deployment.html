@@ -6,28 +6,45 @@
     <link rel="icon" href="favicon.svg" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
   </head>
   <body>
-    <header>
+    <header class="container">
       <hgroup>
-        <h1>🧬 <mark>Copilot-LD</mark></h1>
+        <h1>
+          <a href="index.html">🧬 <mark>Copilot-LD</mark></a>
+        </h1>
         <p>An intelligent agent leveraging GitHub Copilot and Linked Data</p>
       </hgroup>
       <nav>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="configuration.html">Configuration</a></li>
-          <li><a href="processing.html">Processing</a></li>
-          <li><a href="deployment.html" class="active">Deployment</a></li>
-          <li><a href="development.html">Development</a></li>
+          <li><a href="concepts.html">Concepts</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Architecture</summary>
+              <ul>
+                <li><a href="architecture.html">Overview</a></li>
+                <li><a href="reference.html">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Guides</summary>
+              <ul>
+                <li><a href="configuration.html">Configuration</a></li>
+                <li><a href="processing.html">Processing</a></li>
+                <li><a href="deployment.html" class="active">Deployment</a></li>
+                <li><a href="development.html">Development</a></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
+    <main class="container">
       <h2>Deployment Guide</h2>
 
       <p>
@@ -36,7 +53,22 @@
         method that best fits your infrastructure requirements.
       </p>
 
-      <h3>Prerequisites</h3>
+      <aside>
+        <nav>
+          <h5>Contents</h5>
+          <ul>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#docker">Docker Compose Deployment</a></li>
+            <li><a href="#aws">AWS CloudFormation Deployment</a></li>
+            <li><a href="#production">Production Considerations</a></li>
+            <li><a href="#troubleshooting">Troubleshooting</a></li>
+            <li><a href="#maintenance">Maintenance</a></li>
+          </ul>
+        </nav>
+        <hr />
+      </aside>
+
+      <h3 id="prerequisites">Prerequisites</h3>
 
       <ul>
         <li><a href="processing.html">Processing Guide</a> completed</li>
@@ -49,7 +81,7 @@
         credentials are configured as repository secrets.
       </p>
 
-      <h3>Docker Compose Deployment</h3>
+      <h3 id="docker">Docker Compose Deployment</h3>
 
       <p>
         The Docker Compose deployment provides a complete containerized stack
@@ -133,7 +165,7 @@ docker compose ps</code></pre>
         </li>
       </ul>
 
-      <h3>AWS CloudFormation Deployment</h3>
+      <h3 id="aws">AWS CloudFormation Deployment</h3>
 
       <p>
         Deploy Copilot-LD on AWS using ECS Fargate with CloudFormation for
@@ -396,7 +428,7 @@ aws iam attach-role-policy \
         section in the Processing Guide.
       </p>
 
-      <h3>Production Considerations</h3>
+      <h3 id="production">Production Considerations</h3>
 
       <h4>Security</h4>
 
@@ -428,7 +460,7 @@ aws iam attach-role-policy \
         </li>
       </ul>
 
-      <h3>Troubleshooting</h3>
+      <h3 id="troubleshooting">Troubleshooting</h3>
 
       <h4>Docker Compose Issues</h4>
 
@@ -524,7 +556,7 @@ curl -k https://localhost/web/health
 aws ecs list-services --cluster copilot-ld
 aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:...</code></pre>
 
-      <h3>Maintenance</h3>
+      <h3 id="maintenance">Maintenance</h3>
 
       <h4>Updates</h4>
 
@@ -560,7 +592,7 @@ aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing
         </li>
       </ul>
     </main>
-    <footer>
+    <footer class="container">
       <p>© D. Olsson</p>
     </footer>
   </body>

@@ -21,14 +21,14 @@ const resourceIndex = createResourceIndex();
 // Create callbacks for AgentHands and AgentMind
 const callbacks = {
   memory: {
-    append: async (req) => await memoryClient.Append(req),
-    get: async (req) => await memoryClient.Get(req),
+    append: memoryClient.Append.bind(memoryClient),
+    get: memoryClient.Get.bind(memoryClient),
   },
   llm: {
-    createCompletions: async (req) => await llmClient.CreateCompletions(req),
+    createCompletions: llmClient.CreateCompletions.bind(llmClient),
   },
   tool: {
-    call: async (req) => await toolClient.Call(req),
+    call: toolClient.Call.bind(toolClient),
   },
 };
 

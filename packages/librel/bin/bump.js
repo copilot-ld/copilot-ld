@@ -32,11 +32,13 @@ async function main() {
     process.exit(1);
   }
 
+  const workingDir = process.env.INIT_CWD || process.cwd();
   const bumper = new ReleaseBumper(
     execSync,
     readFileSync,
     writeFileSync,
     readdirSync,
+    workingDir,
   );
 
   try {

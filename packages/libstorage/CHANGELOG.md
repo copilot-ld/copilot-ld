@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-19
+
+- Bump version
+
 ## 2025-10-18
 
 - Fixed missing dependency: Added `@copilot-ld/libutil` to `package.json`

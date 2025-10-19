@@ -2,6 +2,7 @@
 
 ## 2025-10-19
 
+- Bump version
 - **REFACTOR**: Moved all dependency wiring to `server.js` for complete
   dependency injection control
 - Updated `AgentService` constructor to accept `AgentMind` as injected

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-19
+
+- Bump version
+
 ## 2025-10-18
 
 - Moved `resources.js` script from `scripts/` to `bin/resources.js` as a binary

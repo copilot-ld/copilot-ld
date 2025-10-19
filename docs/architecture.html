@@ -9,6 +9,10 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+    />
   </head>
 
   <body>
@@ -442,7 +446,7 @@ tools/hash.proto                       generated/services/agent/client.js
 
       <h4>Local Development</h4>
 
-      <pre><code># All services run on localhost with individual ports
+      <pre><code class="language-bash"># All services run on localhost with individual ports
 npm run dev
 
 # Services available at:
@@ -453,7 +457,7 @@ npm run dev
 
       <h4>Docker Compose</h4>
 
-      <pre><code># Services run in Docker network with internal communication
+      <pre><code class="language-bash"># Services run in Docker network with internal communication
 docker-compose up
 
 # Only web extension exposed externally
@@ -574,6 +578,8 @@ docker-compose up
       <p>© D. Olsson</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
     <script type="module">
       import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
     </script>

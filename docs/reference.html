@@ -9,6 +9,10 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+    />
   </head>
 
   <body>
@@ -484,7 +488,7 @@
 
       <h4>Code Generation Commands</h4>
 
-      <pre><code># Generate everything (recommended)
+      <pre><code class="language-bash"># Generate everything (recommended)
 npm run codegen
 
 # Generate specific components
@@ -499,7 +503,7 @@ npm run codegen:definition  # Service definitions</code></pre>
         Packages provide factory functions for simplified component creation:
       </p>
 
-      <pre><code>import { createGraphIndex } from "@copilot-ld/libgraph";
+      <pre><code class="language-javascript">import { createGraphIndex } from "@copilot-ld/libgraph";
 import { createResourceIndex } from "@copilot-ld/libresource";
 
 // Create with defaults
@@ -515,7 +519,7 @@ const customResourceIndex = createResourceIndex("persistent", customPolicy);</co
         The <code>resource.Content</code> message supports multiple formats:
       </p>
 
-      <pre><code>message Content {
+      <pre><code class="language-protobuf">message Content {
   int32 tokens = 1;
   optional string text = 2;     // Plain text
   optional string nquads = 3;   // RDF N-Quads
@@ -560,7 +564,7 @@ const customResourceIndex = createResourceIndex("persistent", customPolicy);</co
 
       <h5>Token Lifecycle</h5>
 
-      <pre><code>// Token generation (simplified)
+      <pre><code class="language-javascript">// Token generation (simplified)
 const payload = `${serviceId}:${timestamp}`;
 const signature = hmac(sharedSecret, payload);
 const token = `${payload}:${signature}`;
@@ -685,7 +689,7 @@ const isValid = secureCompare(signature, expectedSignature) && !isExpired(timest
         service or extension:
       </p>
 
-      <pre><code># Build any service
+      <pre><code class="language-bash"># Build any service
 docker build --build-arg SERVICE_NAME=agent -t copilot-ld-agent .
 docker build --build-arg SERVICE_NAME=memory -t copilot-ld-memory .
 
@@ -761,7 +765,7 @@ docker build --build-arg SERVICE_NAME=web -t copilot-ld-web .</code></pre>
         Indexes extend <code>IndexBase</code> and implement standard methods:
       </p>
 
-      <pre><code>class CustomIndex extends IndexBase {
+      <pre><code class="language-javascript">class CustomIndex extends IndexBase {
   async addItem(item) {
     // Add item to index
   }
@@ -778,7 +782,7 @@ docker build --build-arg SERVICE_NAME=web -t copilot-ld-web .</code></pre>
         access:
       </p>
 
-      <pre><code>import { createStorage } from "@copilot-ld/libstorage";
+      <pre><code class="language-javascript">import { createStorage } from "@copilot-ld/libstorage";
 
 // Automatically uses local or S3 based on config
 const storage = createStorage();
@@ -853,7 +857,7 @@ extensions/your-extension/
 
       <h4>Tool Configuration Example</h4>
 
-      <pre><code># config/tools.yml
+      <pre><code class="language-yaml"># config/tools.yml
 your_tool:
   method: "your-tool.YourTool.Execute"
   request: "your-tool.YourToolRequest"
@@ -870,7 +874,7 @@ your_tool:
 
       <p>Test business logic packages independently:</p>
 
-      <pre><code>import { AgentMind } from "@copilot-ld/libagent";
+      <pre><code class="language-javascript">import { AgentMind } from "@copilot-ld/libagent";
 
 describe("AgentMind", () => {
   it("assembles context correctly", async () => {
@@ -884,7 +888,7 @@ describe("AgentMind", () => {
 
       <p>Test service communication:</p>
 
-      <pre><code>import { createAgentClient } from "@copilot-ld/librpc";
+      <pre><code class="language-javascript">import { createAgentClient } from "@copilot-ld/librpc";
 
 describe("Agent Service", () => {
   it("processes requests end-to-end", async () => {
@@ -898,7 +902,7 @@ describe("Agent Service", () => {
 
       <p>Use <code>@copilot-ld/libperf</code> for benchmarks:</p>
 
-      <pre><code>import { benchmark } from "@copilot-ld/libperf";
+      <pre><code class="language-javascript">import { benchmark } from "@copilot-ld/libperf";
 
 await benchmark("Vector search", async () => {
   await vectorService.queryByContent("test query");
@@ -928,5 +932,11 @@ await benchmark("Vector search", async () => {
     <footer class="container">
       <p>© D. Olsson</p>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-protobuf.min.js"></script>
   </body>
 </html>

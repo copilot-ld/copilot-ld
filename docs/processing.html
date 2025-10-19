@@ -9,6 +9,10 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+    />
   </head>
   <body>
     <header class="container">
@@ -101,7 +105,7 @@
         single command. The system handles all stages automatically:
       </p>
 
-      <pre><code>npm run process</code></pre>
+      <pre><code class="language-bash">npm run process</code></pre>
 
       <h3 id="structure">2. Knowledge Base Structure</h3>
       <p>
@@ -116,7 +120,7 @@
         to structure content:
       </p>
 
-      <pre><code>&lt;!-- Example: data/knowledge/security-practices.html --&gt;
+      <pre><code class="language-markup">&lt;!-- Example: data/knowledge/security-practices.html --&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;title&gt;Security Best Practices&lt;/title&gt;
@@ -179,7 +183,7 @@
         microdata structure:
       </p>
 
-      <pre><code># Copy example knowledge base to your data directory
+      <pre><code class="language-bash"># Copy example knowledge base to your data directory
 cp -r examples/knowledge data/</code></pre>
 
       <h3 id="resources">3. Resource Processing</h3>
@@ -197,7 +201,7 @@ cp -r examples/knowledge data/</code></pre>
         custom selectors:
       </p>
 
-      <pre><code># Process only article elements
+      <pre><code class="language-bash"># Process only article elements
 node scripts/resources.js --selector "article[itemscope]"
 
 # Process multiple content types
@@ -209,7 +213,7 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
         <code>data/resources/</code> with Copilot-LD (CLD) identifiers:
       </p>
 
-      <pre><code>data/resources/
+      <pre><code class="language-bash">data/resources/
 ├── common.Message.{hash}.json          # Individual message resources
 ├── common.Assistant.{name}.json        # Assistant configurations
 └── common.Conversation.{uuid}.json     # Conversation metadata
@@ -255,7 +259,7 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
         <code>tools/</code> directory for <code>*.proto</code> files:
       </p>
 
-      <pre><code>// examples/tools/hash.proto
+      <pre><code class="language-javascript">// examples/tools/hash.proto
 syntax = "proto3";
 
 package hash;
@@ -282,7 +286,7 @@ message HashResponse {
         function:
       </p>
 
-      <pre><code>// Generated schema for sha256_hash tool
+      <pre><code class="language-javascript">// Generated schema for sha256_hash tool
 {
   "type": "object",
   "properties": {
@@ -331,7 +335,7 @@ message HashResponse {
         <code>sha256_hash</code> tool resource:
       </p>
 
-      <pre><code>{
+      <pre><code class="language-json">{
   "id": {
     "type": "tool.ToolFunction",
     "name": "sha256_hash"
@@ -397,7 +401,7 @@ message HashResponse {
       <h4>Vector Storage</h4>
       <p>Embeddings are stored in <code>data/vectors/</code> as JSONL files:</p>
 
-      <pre><code>data/vectors/
+      <pre><code class="language-bash">data/vectors/
 ├── content.jsonl         # Content-based embeddings  
 └── descriptors.jsonl     # Descriptor-based embeddings</code></pre>
 
@@ -426,7 +430,7 @@ message HashResponse {
         storage:
       </p>
 
-      <pre><code>npm run upload</code></pre>
+      <pre><code class="language-bash">npm run upload</code></pre>
 
       <h5>Upload Process</h5>
       <p>The upload utility synchronizes these storage areas:</p>
@@ -458,7 +462,7 @@ message HashResponse {
       <h4>Download Processed Data</h4>
       <p>Download pre-processed data bundle from remote storage:</p>
 
-      <pre><code>npm run download</code></pre>
+      <pre><code class="language-bash">npm run download</code></pre>
 
       <h5>Download Process</h5>
       <p>
@@ -483,7 +487,7 @@ message HashResponse {
 
       <h5>Bundle Configuration</h5>
       <p>Configure the download source in <code>config/config.json</code>:</p>
-      <pre><code>tool:
+      <pre><code class="language-yaml">tool:
   download:
     owner: "your-organization"
     repo: "your-knowledge-repository"</code></pre>
@@ -492,14 +496,14 @@ message HashResponse {
       <p>Typical workflow for managing processed data across environments:</p>
 
       <h5>Development Environment</h5>
-      <pre><code># Process knowledge base locally
+      <pre><code class="language-bash"># Process knowledge base locally
 npm run process
 
 # Upload processed data to S3
 npm run upload</code></pre>
 
       <h5>Production Environment</h5>
-      <pre><code># Download pre-processed data bundle
+      <pre><code class="language-bash"># Download pre-processed data bundle
 npm run download
 
 # Or synchronize from S3 if using upload/download pattern
@@ -508,7 +512,7 @@ npm run download
       <h4>Storage Monitoring</h4>
       <p>Monitor data storage usage and processing status:</p>
 
-      <pre><code># Check local storage sizes
+      <pre><code class="language-bash"># Check local storage sizes
 du -sh data/*/
 
 # Monitor S3 bucket usage (if using AWS)
@@ -527,7 +531,7 @@ ls data/resources/ | grep "Assistant" | wc -l</code></pre>
         field can be replaced with <code>?</code> as a wildcard:
       </p>
 
-      <pre><code># Interactive mode
+      <pre><code class="language-bash"># Interactive mode
 npm run query
 
 # Pipe queries
@@ -537,13 +541,13 @@ echo "#agile-manifesto ? ?" | npm run query</code></pre>
 
       <h4>Common Query Patterns</h4>
       <p>Find resources of a certain type:</p>
-      <pre><code>echo "? http://www.w3.org/1999/02/22-rdf-syntax-ns#type TechArticle" | npm run query</code></pre>
+      <pre><code class="language-bash">echo "? http://www.w3.org/1999/02/22-rdf-syntax-ns#type TechArticle" | npm run query</code></pre>
 
       <p>Find resources using the type shorthand:</p>
-      <pre><code>echo "? type DefinedTerm" | npm run query</code></pre>
+      <pre><code class="language-bash">echo "? type DefinedTerm" | npm run query</code></pre>
 
       <p>Find all resources with any title:</p>
-      <pre><code>echo "? http://purl.org/dc/terms/title ?" | npm run query</code></pre>
+      <pre><code class="language-bash">echo "? http://purl.org/dc/terms/title ?" | npm run query</code></pre>
 
       <h4>Query Tips</h4>
       <ul>
@@ -576,5 +580,11 @@ echo "#agile-manifesto ? ?" | npm run query</code></pre>
     <footer class="container">
       <p>© D. Olsson</p>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
   </body>
 </html>

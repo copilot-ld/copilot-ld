@@ -4,6 +4,7 @@ import { Octokit } from "@octokit/core";
 import { Server, clients } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
 import { createResourceIndex } from "@copilot-ld/libresource";
+import { AgentMind, AgentHands } from "@copilot-ld/libagent";
 
 import { AgentService } from "./index.js";
 
@@ -17,12 +18,32 @@ const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
 const resourceIndex = createResourceIndex();
 
+// Create callbacks for AgentHands and AgentMind
+const callbacks = {
+  memory: {
+    append: memoryClient.Append.bind(memoryClient),
+    get: memoryClient.Get.bind(memoryClient),
+  },
+  llm: {
+    createCompletions: llmClient.CreateCompletions.bind(llmClient),
+  },
+  tool: {
+    call: toolClient.Call.bind(toolClient),
+  },
+};
+
+// Wire up the dependency chain: AgentHands -> AgentMind -> AgentService
+const agentHands = new AgentHands(agentConfig, callbacks);
+const agentMind = new AgentMind(
+  agentConfig,
+  callbacks,
+  resourceIndex,
+  agentHands,
+);
+
 const service = new AgentService(
   agentConfig,
-  memoryClient,
-  llmClient,
-  toolClient,
-  resourceIndex,
+  agentMind,
   (auth) => new Octokit({ auth }),
 );
 

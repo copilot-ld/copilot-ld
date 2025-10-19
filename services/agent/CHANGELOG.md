@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-10-19
+
+- **REFACTOR**: Moved all dependency wiring to `server.js` for complete
+  dependency injection control
+- Updated `AgentService` constructor to accept `AgentMind` as injected
+  dependency instead of creating it internally
+- `AgentHands` and `AgentMind` are now wired together in `server.js`, not in
+  service constructor
+- Simplified `AgentService` constructor signature:
+  `(config, agentMind, octokitFn, logFn)`
+- Removed hard-wiring of classes inside constructors following proper dependency
+  injection patterns
+
 ## 2025-10-15
 
 - Bump version

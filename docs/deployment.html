@@ -9,6 +9,10 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+    />
   </head>
   <body>
     <header class="container">
@@ -144,7 +148,7 @@
         <code>config/.build_token</code> and deploy the stack like this:
       </p>
 
-      <pre><code># Build all container images using unified Dockerfile
+      <pre><code class="language-bash"># Build all container images using unified Dockerfile
 GITHUB_TOKEN=$(cat config/.build_token) docker compose build
 
 # Start the complete stack
@@ -185,7 +189,7 @@ docker compose ps</code></pre>
 
       <p>First, create an OIDC identity provider in your AWS account:</p>
 
-      <pre><code># Using AWS CLI
+      <pre><code class="language-bash"># Using AWS CLI
 aws iam create-open-id-connect-provider \
   --url https://token.actions.githubusercontent.com \
   --client-id-list sts.amazonaws.com \
@@ -221,7 +225,7 @@ aws iam create-open-id-connect-provider \
         <code>github-actions-role.json</code>:
       </p>
 
-      <pre><code>{
+      <pre><code class="language-json">{
     "Version": "2012-10-17",
     "Statement": [
         {
@@ -248,7 +252,7 @@ aws iam create-open-id-connect-provider \
 
       <p>Create the role and attach policies:</p>
 
-      <pre><code># Create the role
+      <pre><code class="language-bash"># Create the role
 aws iam create-role \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --assume-role-policy-document file://github-actions-role.json
@@ -535,7 +539,7 @@ aws iam attach-role-policy \
 
       <p>Debug OIDC authentication issues:</p>
 
-      <pre><code># Validate OIDC provider exists
+      <pre><code class="language-bash"># Validate OIDC provider exists
 aws iam get-open-id-connect-provider \
   --open-id-connect-provider-arn arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com
 
@@ -549,7 +553,7 @@ aws sts get-caller-identity</code></pre>
 
       <p>Validate your deployment:</p>
 
-      <pre><code># Docker Compose validation
+      <pre><code class="language-bash"># Docker Compose validation
 docker-compose ps
 curl -k https://localhost/web/health
 
@@ -596,5 +600,8 @@ aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing
     <footer class="container">
       <p>© D. Olsson</p>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   </body>
 </html>

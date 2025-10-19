@@ -9,6 +9,10 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <link rel="stylesheet" href="assets/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+    />
   </head>
   <body>
     <header class="container">
@@ -95,7 +99,7 @@
         enabled.
       </p>
 
-      <pre><code># Launch all services in development mode
+      <pre><code class="language-bash"># Launch all services in development mode
 npm run dev:start
 
 # Stop development environment
@@ -108,7 +112,7 @@ npm run dev:restart</code></pre>
 
       <p>Run various testing and validation checks:</p>
 
-      <pre><code># Execute all tests
+      <pre><code class="language-bash"># Execute all tests
 npm test
 
 # Execute tests in watch mode for TDD
@@ -132,7 +136,7 @@ npm run spellcheck     # Spell check documentation</code></pre>
 
       <p>Check for security vulnerabilities:</p>
 
-      <pre><code>npm run security</code></pre>
+      <pre><code class="language-bash">npm run security</code></pre>
 
       <h3 id="scripts">Development Scripts</h3>
 
@@ -143,7 +147,7 @@ npm run spellcheck     # Spell check documentation</code></pre>
 
       <h4>Interactive Testing</h4>
 
-      <pre><code># Interactive chat with the system
+      <pre><code class="language-bash"># Interactive chat with the system
 npm run chat
 &gt; What are Docker security best practices?
 &gt; How do I implement rolling updates in Kubernetes?
@@ -155,7 +159,7 @@ npm run search
 
       <h4>Scripted Testing</h4>
 
-      <pre><code># Pipe input for automated testing
+      <pre><code class="language-bash"># Pipe input for automated testing
 echo "Tell me about container security" | npm run chat
 
 # Search with CLI flags for precise testing
@@ -166,7 +170,7 @@ echo "kubernetes deployment" | npm run search -- --index descriptor --limit 5</c
 
       <h4>System Validation Scripts</h4>
 
-      <pre><code># Test vector embeddings and similarity
+      <pre><code class="language-bash"># Test vector embeddings and similarity
 node scripts/cosine.js "first text" "second text"
 
 # Validate model configurations
@@ -177,7 +181,7 @@ echo "sample text" | npx env-cmd -- node scripts/embed.js</code></pre>
 
       <h4>Development Utilities</h4>
 
-      <pre><code># Generate SSL certificates for HTTPS development
+      <pre><code class="language-bash"># Generate SSL certificates for HTTPS development
 node scripts/cert.js
 
 # Generate service authentication secrets
@@ -195,7 +199,7 @@ npx env-cmd -- node scripts/token.js</code></pre>
         in the Architecture Guide.
       </p>
 
-      <pre><code># Generate all code from proto definitions
+      <pre><code class="language-bash"># Generate all code from proto definitions
 mkdir generated
 npm run codegen
 
@@ -260,7 +264,7 @@ npm run codegen:service   # Service bases only</code></pre>
 
       <p>Quick validation of your development environment:</p>
 
-      <pre><code># Test basic system functionality
+      <pre><code class="language-bash"># Test basic system functionality
 echo "hello" | npm run chat
 
 # Verify code generation
@@ -298,5 +302,7 @@ npm test -- --grep="Config"</code></pre>
     <footer class="container">
       <p>© D. Olsson</p>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
   </body>
 </html>

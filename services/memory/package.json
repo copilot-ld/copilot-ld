@@ -12,7 +12,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.29",
     "@copilot-ld/libmemory": "^0.1.4",
-    "@copilot-ld/librpc": "^0.1.46",
+    "@copilot-ld/librpc": "^0.1.47",
     "@copilot-ld/libstorage": "^0.1.23"
   },
   "repository": {

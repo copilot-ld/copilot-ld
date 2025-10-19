@@ -73,22 +73,25 @@ describe("@copilot-ld/libagent Integration", () => {
     assert.ok(AgentMind);
     assert.ok(AgentHands);
 
+    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      agentHands,
     );
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
 
     assert.ok(agentMind instanceof AgentMind);
     assert.ok(agentHands instanceof AgentHands);
   });
 
   test("AgentMind and AgentHands work together in complete workflow", async () => {
+    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      agentHands,
     );
 
     // Mock setupConversation to return valid data

@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { AgentMind } from "@copilot-ld/libagent";
+import { AgentMind, AgentHands } from "@copilot-ld/libagent";
 import { services } from "@copilot-ld/librpc";
 
 const { AgentBase } = services;
@@ -53,7 +53,8 @@ export class AgentService extends AgentBase {
       },
     };
 
-    this.#mind = new AgentMind(config, callbacks, resourceIndex);
+    const agentHands = new AgentHands(config, callbacks);
+    this.#mind = new AgentMind(config, callbacks, resourceIndex, agentHands);
   }
 
   /**

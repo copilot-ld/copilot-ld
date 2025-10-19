@@ -3,11 +3,13 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { AgentMind } from "../mind.js";
+import { AgentHands } from "../hands.js";
 
 describe("AgentMind", () => {
   let mockConfig;
   let mockServiceCallbacks;
   let mockResourceIndex;
+  let mockAgentHands;
 
   beforeEach(() => {
     mockConfig = {
@@ -67,6 +69,8 @@ describe("AgentMind", () => {
       ],
       put: () => {},
     };
+
+    mockAgentHands = new AgentHands(mockConfig, mockServiceCallbacks);
   });
 
   test("constructor validates required parameters", () => {
@@ -78,6 +82,11 @@ describe("AgentMind", () => {
       () => new AgentMind(mockConfig, mockServiceCallbacks),
       /resourceIndex is required/,
     );
+
+    assert.throws(
+      () => new AgentMind(mockConfig, mockServiceCallbacks, mockResourceIndex),
+      /agentHands is required/,
+    );
   });
 
   test("constructor creates instance with valid parameters", () => {
@@ -85,6 +94,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     assert.ok(agentMind instanceof AgentMind);
@@ -95,6 +105,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     const assistant = { content: { tokens: 100 } };
@@ -115,6 +126,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     const assistant = { content: { tokens: 100 } };
@@ -135,6 +147,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     // Mock resource index to return specific items
@@ -164,6 +177,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     await assert.rejects(
@@ -177,6 +191,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     // Mock resource index to return tool functions
@@ -201,6 +216,7 @@ describe("AgentMind", () => {
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
+      mockAgentHands,
     );
 
     // Mock setupConversation to return valid data

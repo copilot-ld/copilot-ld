@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-19
+
+- Updated `AgentService` constructor to create and inject `AgentHands` instance
+  to `AgentMind`
+- Added static import of `AgentHands` from `@copilot-ld/libagent`
+- Improved dependency injection pattern following proper constructor-based
+  injection
+
 ## 2025-10-15
 
 - Bump version

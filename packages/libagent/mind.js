@@ -10,21 +10,25 @@ export class AgentMind {
   #config;
   #callbacks;
   #resourceIndex;
+  #agentHands;
 
   /**
    * Creates a new AgentMind instance
    * @param {import("./index.js").AgentConfig} config - Agent configuration
    * @param {import("./index.js").Callbacks} callbacks - Service callback functions
    * @param {object} resourceIndex - Resource index for data access
+   * @param {import("./hands.js").AgentHands} agentHands - AgentHands instance for tool execution
    */
-  constructor(config, callbacks, resourceIndex) {
+  constructor(config, callbacks, resourceIndex, agentHands) {
     if (!config) throw new Error("config is required");
     if (!callbacks) throw new Error("callbacks is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
+    if (!agentHands) throw new Error("agentHands is required");
 
     this.#config = config;
     this.#callbacks = callbacks;
     this.#resourceIndex = resourceIndex;
+    this.#agentHands = agentHands;
   }
 
   /**
@@ -87,10 +91,8 @@ export class AgentMind {
       );
       const githubToken = req.github_token;
 
-      // Use AgentHands for tool execution (will be implemented in AgentHands)
-      const { AgentHands } = await import("./hands.js");
-      const agentHands = new AgentHands(this.#config, this.#callbacks);
-      const completions = await agentHands.executeToolLoop(
+      // Use AgentHands for tool execution
+      const completions = await this.#agentHands.executeToolLoop(
         messages,
         tools,
         maxTokens,

@@ -10,7 +10,7 @@ export class AgentMind {
   #config;
   #callbacks;
   #resourceIndex;
-  #agentHands;
+  #hands;
 
   /**
    * Creates a new AgentMind instance
@@ -28,7 +28,7 @@ export class AgentMind {
     this.#config = config;
     this.#callbacks = callbacks;
     this.#resourceIndex = resourceIndex;
-    this.#agentHands = agentHands;
+    this.#hands = agentHands;
   }
 
   /**
@@ -92,7 +92,7 @@ export class AgentMind {
       const githubToken = req.github_token;
 
       // Use AgentHands for tool execution
-      const completions = await this.#agentHands.executeToolLoop(
+      const completions = await this.#hands.executeToolLoop(
         messages,
         tools,
         maxTokens,

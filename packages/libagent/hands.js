@@ -12,14 +12,14 @@ export class AgentHands {
   /**
    * Creates a new AgentHands instance
    * @param {import("./index.js").AgentConfig} config - Agent configuration
-   * @param {import("./index.js").Callbacks} serviceCallbacks - Service callback functions
+   * @param {import("./index.js").Callbacks} callbacks - Service callback functions
    */
-  constructor(config, serviceCallbacks) {
+  constructor(config, callbacks) {
     if (!config) throw new Error("config is required");
-    if (!serviceCallbacks) throw new Error("serviceCallbacks is required");
+    if (!callbacks) throw new Error("callbacks is required");
 
     this.#config = config;
-    this.#callbacks = serviceCallbacks;
+    this.#callbacks = callbacks;
   }
 
   /**

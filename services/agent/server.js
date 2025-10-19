@@ -32,7 +32,6 @@ const callbacks = {
   },
 };
 
-// Wire up the dependency chain: AgentHands -> AgentMind -> AgentService
 const agentHands = new AgentHands(agentConfig, callbacks);
 const agentMind = new AgentMind(
   agentConfig,

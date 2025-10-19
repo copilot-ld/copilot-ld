@@ -61,10 +61,7 @@ describe("AgentHands", () => {
   test("constructor validates required parameters", () => {
     assert.throws(() => new AgentHands(), /config is required/);
 
-    assert.throws(
-      () => new AgentHands(mockConfig),
-      /serviceCallbacks is required/,
-    );
+    assert.throws(() => new AgentHands(mockConfig), /callbacks is required/);
   });
 
   test("constructor creates instance with valid parameters", () => {

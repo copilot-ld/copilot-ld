@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-20
+
+- Added `bin/assistants.js` binary for processing assistant configurations
+- Updated `package.json` with `bin` field to enable `npx assistants` command
+- Moved assistant processing logic from `scripts/assistants.js` to package
+  binary
+
 ## 2025-10-19
 
 - Bump version

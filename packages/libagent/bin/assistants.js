@@ -4,7 +4,7 @@ import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 
-import { AssistantProcessor } from "../packages/libagent/processor.js";
+import { AssistantProcessor } from "../processor.js";
 
 /**
  * Process assistant configurations from assistants.yml and generate Assistant resources

@@ -258,6 +258,7 @@ symlink
 symlinks
 testability
 tiktoken
+toc
 tokenizer
 typedef
 typeof

@@ -98,7 +98,7 @@ export default [
 
   {
     // Configuration for browser JavaScript files
-    files: ["**/public/**/*.js"],
+    files: ["**/public/**/*.js", "**/docs/assets/**/*.js"],
     languageOptions: {
       globals: { ...globals.browser },
     },

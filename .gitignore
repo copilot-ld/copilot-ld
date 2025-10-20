@@ -3,6 +3,7 @@
 
 # Generated files and data
 /data/
+/dist/
 **/generated
 
 # Eval outputs

@@ -22,7 +22,7 @@ const projectRoot = resolve(__dirname, "..");
 try {
   // Run cloc with certain exclusions
   const result = execSync(
-    "cloc . --exclude-dir=config,data,examples,generated,node_modules,scripts,test,tools --quiet",
+    "cloc . --exclude-dir=config,data,dist,examples,generated,node_modules,scripts,test,tools --quiet",
     {
       cwd: projectRoot,
       encoding: "utf8",

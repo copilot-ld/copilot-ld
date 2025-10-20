@@ -13,9 +13,9 @@ synchronized with all code changes across the platform.
 ## Core Principles
 
 1. **Nine-File Documentation**: This project maintains `README.md`,
-   `docs/index.html`, `docs/concepts.html`, `docs/architecture.html`,
-   `docs/reference.html`, `docs/configuration.html`, `docs/processing.html`,
-   `docs/development.html`, and `docs/deployment.html` as official documentation
+   `docs/index.md`, `docs/concepts.md`, `docs/architecture.md`,
+   `docs/reference.md`, `docs/configuration.md`, `docs/processing.md`,
+   `docs/development.md`, and `docs/deployment.md` as official documentation
 2. **Domain-Specific Documentation**: Each piece of information must exist in
    exactly ONE place. Carefully consider which guide is the authoritative source
    for each topic and use cross-references to avoid duplication
@@ -62,7 +62,7 @@ authoritative source for its subject matter:
 - **Links to Detailed Guides**: References to comprehensive documentation
 - **Development Workflow**: How to contribute and develop locally
 
-#### docs/index.html Requirements
+#### docs/index.md Requirements
 
 - **Problem Statement**: What challenges does Copilot-LD address?
 - **Solution Overview**: How does the platform solve these problems?
@@ -71,7 +71,7 @@ authoritative source for its subject matter:
 - **Getting Started Navigation**: Clear paths to relevant guides for different
   user types
 
-#### docs/concepts.html Requirements
+#### docs/concepts.md Requirements
 
 - **Core Concepts**: Explanation of linked data, RAG, microservices, and gRPC
 - **Architectural Principles**: Why these design choices were made
@@ -79,7 +79,7 @@ authoritative source for its subject matter:
 - **Request Flow**: High-level walkthrough of how requests are processed
 - **Offline vs Online**: Why processing is separated from runtime
 
-#### docs/architecture.html Requirements
+#### docs/architecture.md Requirements
 
 - **System Overview**: High-level component relationships and structure
 - **Directory Structure**: Organization of services, packages, extensions, and
@@ -88,7 +88,7 @@ authoritative source for its subject matter:
 - **Sequence Diagrams**: Visual representation of online and offline flows
 - **Links to Reference**: Pointers to detailed implementation in Reference guide
 
-#### docs/reference.html Requirements
+#### docs/reference.md Requirements
 
 - **Service Implementations**: Detailed descriptions of each service
 - **Package Catalog**: Comprehensive package documentation
@@ -98,7 +98,7 @@ authoritative source for its subject matter:
 - **Docker Build Process**: Container architecture and build workflow
 - **Tool System**: How tools extend the platform
 
-#### docs/configuration.html Requirements
+#### docs/configuration.md Requirements
 
 - **Configuration Overview**: Complete guide to environment variables and YAML
   configuration
@@ -111,7 +111,7 @@ authoritative source for its subject matter:
 - **Security Guidelines**: Best practices for handling sensitive configuration
   values
 
-#### docs/processing.html Requirements
+#### docs/processing.md Requirements
 
 - **Knowledge Base Processing**: Complete guide to processing HTML knowledge
   sources into searchable resources
@@ -124,7 +124,7 @@ authoritative source for its subject matter:
 - **Processing Troubleshooting**: Issues specific to offline processing
   workflows
 
-#### docs/development.html Requirements
+#### docs/development.md Requirements
 
 - **Development Setup**: Complete local development environment configuration
 - **Development Workflow**: Running with `npm run dev` and local testing
@@ -132,7 +132,7 @@ authoritative source for its subject matter:
 - **Cross-References**: Links to Configuration Guide for setup details and
   Processing Guide for knowledge base preparation
 
-#### docs/deployment.html Requirements
+#### docs/deployment.md Requirements
 
 - **Production Deployment**: Docker Compose and AWS CloudFormation options
 - **Infrastructure Requirements**: Prerequisites and dependencies
@@ -188,18 +188,18 @@ When adding services, packages, extensions, or scripts:
    format
 2. **Determine Domain Ownership**: Carefully consider which documentation file
    should be the authoritative source for the new component
-3. Update `docs/configuration.html` if the change adds new configuration options
-4. Update `docs/architecture.html` to include the new component
-5. Update `docs/processing.html` if the change affects knowledge base processing
+3. Update `docs/configuration.md` if the change adds new configuration options
+4. Update `docs/architecture.md` to include the new component
+5. Update `docs/processing.md` if the change affects knowledge base processing
    or data management workflows
-6. Update `docs/development.html` if the change affects local development setup
-7. Update `docs/deployment.html` if the change affects deployment procedures
+6. Update `docs/development.md` if the change affects local development setup
+7. Update `docs/deployment.md` if the change affects deployment procedures
 8. Update `README.md` if the change affects quick setup or usage
 9. **Add Cross-References**: Include references from other guides to the
    authoritative documentation instead of duplicating information
 10. Ensure component descriptions are clear and accurate
 11. If you add or change `.proto` files, document required `npm run codegen`
-    steps in `docs/architecture.html` and verify generated files are committed
+    steps in `docs/architecture.md` and verify generated files are committed
     when appropriate
 
 #### Modifying Existing Components
@@ -209,24 +209,24 @@ When changing existing functionality:
 1. Add entry to component's `CHANGELOG.md` with current date
 2. **Identify Domain Owner**: Determine which documentation file is the
    authoritative source for the affected functionality
-3. Update `docs/index.html` if the change affects problem statement, solution
+3. Update `docs/index.md` if the change affects problem statement, solution
    overview, or use cases
-4. Update `docs/concepts.html` if the change affects core concepts or
+4. Update `docs/concepts.md` if the change affects core concepts or
    architectural principles
-5. Update `docs/architecture.html` if the change affects high-level system
+5. Update `docs/architecture.md` if the change affects high-level system
    structure
-6. Update `docs/reference.html` if the change affects implementation details
-7. Update `docs/configuration.html` if the change affects configuration options
-8. Update `docs/processing.html` if the change affects knowledge processing or
+6. Update `docs/reference.md` if the change affects implementation details
+7. Update `docs/configuration.md` if the change affects configuration options
+8. Update `docs/processing.md` if the change affects knowledge processing or
    data management
-9. Update `docs/development.html` if the change affects local development setup
-10. Update `docs/deployment.html` if the change affects deployment procedures
+9. Update `docs/development.md` if the change affects local development setup
+10. Update `docs/deployment.md` if the change affects deployment procedures
 11. Update `README.md` if the change affects quick setup or core usage
 12. **Update Cross-References**: Verify that references from other guides still
     point to the correct authoritative sections
 13. Verify all references remain accurate across all documentation files
 14. If you modify `proto/*.proto`, update any code samples in the authoritative
-    `docs/reference.html` and ensure references from other guides remain valid
+    `docs/reference.md` and ensure references from other guides remain valid
 
 ### JavaScript Code Block Standards
 
@@ -277,10 +277,10 @@ class ExampleService {
 
 ### Documentation Timing
 
-- Update `README.md`, `docs/index.html`, `docs/concepts.html`,
-  `docs/architecture.html`, `docs/reference.html`, `docs/configuration.html`,
-  `docs/processing.html`, `docs/development.html`, and `docs/deployment.html` in
-  the same commit as code changes
+- Update `README.md`, `docs/index.md`, `docs/concepts.md`,
+  `docs/architecture.md`, `docs/reference.md`, `docs/configuration.md`,
+  `docs/processing.md`, `docs/development.md`, and `docs/deployment.md` in the
+  same commit as code changes
 - **Domain-First Updates**: Always update the authoritative documentation file
   first, then update cross-references in other files
 - Include documentation updates in pull request descriptions
@@ -303,14 +303,14 @@ class ExampleService {
 
 ### Cross-Reference Maintenance
 
-- Verify all component references in `docs/architecture.html` match actual
+- Verify all component references in `docs/architecture.md` match actual
   implementations
 - Ensure setup instructions in `README.md` work with current code
 - Validate that usage examples reflect current functionality
-- Ensure configuration documentation in `docs/configuration.html` is complete
-  and current
-- Ensure development setup in `docs/development.html` is complete and accurate
-- Verify deployment procedures in `docs/deployment.html` work with current
+- Ensure configuration documentation in `docs/configuration.md` is complete and
+  current
+- Ensure development setup in `docs/development.md` is complete and accurate
+- Verify deployment procedures in `docs/deployment.md` work with current
   infrastructure
 - Check that all service names match proto definitions
 - Verify port numbers and configuration options are current
@@ -321,14 +321,14 @@ class ExampleService {
 Before committing, verify:
 
 1. `README.md` accurately describes current functionality
-2. `docs/index.html` provides clear problem/solution overview and navigation
-3. `docs/concepts.html` explains core concepts and architectural principles
-4. `docs/architecture.html` shows high-level system structure
-5. `docs/reference.html` contains detailed implementation documentation
-6. `docs/configuration.html` contains complete configuration documentation
-7. `docs/processing.html` provides complete processing pipeline documentation
-8. `docs/development.html` contains complete development setup instructions
-9. `docs/deployment.html` provides accurate deployment procedures
+2. `docs/index.md` provides clear problem/solution overview and navigation
+3. `docs/concepts.md` explains core concepts and architectural principles
+4. `docs/architecture.md` shows high-level system structure
+5. `docs/reference.md` contains detailed implementation documentation
+6. `docs/configuration.md` contains complete configuration documentation
+7. `docs/processing.md` provides complete processing pipeline documentation
+8. `docs/development.md` contains complete development setup instructions
+9. `docs/deployment.md` provides accurate deployment procedures
 10. **No Information Duplication**: Each piece of information exists in exactly
     one authoritative location with appropriate cross-references
 11. **Cross-References Work**: All links between documentation files point to
@@ -369,9 +369,8 @@ Before committing, verify:
 
 1. **DO NOT** duplicate information across multiple documentation files -
    establish a single authoritative source and reference it from other locations
-2. **DO NOT** leave outdated references in `README.md`,
-   `docs/architecture.html`, `docs/processing.html`, `docs/development.html`, or
-   `docs/deployment.html`
+2. **DO NOT** leave outdated references in `README.md`, `docs/architecture.md`,
+   `docs/processing.md`, `docs/development.md`, or `docs/deployment.md`
 3. **DO NOT** implement new components without carefully determining which
    documentation file should be the authoritative source
 4. **DO NOT** create additional documentation files beyond the nine official
@@ -407,7 +406,7 @@ Before committing, verify:
 
 When adding a new service called `analysis`:
 
-**docs/reference.html update:**
+**docs/reference.md update:**
 
 ```markdown
 ### Analysis Service
@@ -435,7 +434,7 @@ Service for embeddings **State**: Stateless processing service
 
 When modifying the vector service to add new functionality:
 
-**docs/reference.html update:**
+**docs/reference.md update:**
 
 ```markdown
 ### Vector Service
@@ -467,7 +466,7 @@ Complete development cycle example:
 ```bash
 # 1. Plan and draft documentation
 git checkout -b feature/sentiment-analysis
-vim docs/architecture.html  # Add new component
+vim docs/architecture.md  # Add new component
 
 # 2. Implement with documentation
 npm run dev

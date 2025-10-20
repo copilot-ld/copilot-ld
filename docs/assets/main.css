@@ -1,3 +1,5 @@
+@import url("https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css");
+
 :root {
   --gradient: linear-gradient(
     to right,
@@ -15,6 +17,8 @@ mark {
   color: transparent;
 }
 
-h1 a {
+hgroup a {
+  font-weight: bold;
+  font-size: var(--pico-font-size);
   text-decoration: none;
 }

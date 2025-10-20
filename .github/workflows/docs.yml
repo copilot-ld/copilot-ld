@@ -1,4 +1,4 @@
-name: Build and Deploy Docs
+name: Publish Documentation
 
 on:
   push:
@@ -26,8 +26,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and Install dependencies
+        uses: ./.github/actions/setup-node
 
       - name: Build documentation
         run: npm run docs:build

@@ -4,7 +4,7 @@ import assert from "node:assert";
 
 import { AgentMind, AgentHands } from "../index.js";
 
-describe("@copilot-ld/libagent Integration", () => {
+describe("libagent", () => {
   let mockConfig;
   let mockServiceCallbacks;
   let mockResourceIndex;

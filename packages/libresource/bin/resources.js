@@ -23,12 +23,11 @@ async function main() {
     options: {
       base: {
         type: "string",
-        default: null,
       },
     },
   });
 
-  const args = { base: values.base };
+  const args = { base: values.base ?? null };
   const knowledgeStorage = createStorage("knowledge");
 
   const llm = createLlm(await config.githubToken(), "gpt-4o-mini");

@@ -46,13 +46,48 @@ export class GraphProcessor extends ProcessorBase {
       return;
     }
 
+    // CRITICAL: Sort quads to ensure rdf:type assertions are processed before
+    // property triples. OntologyProcessor's inverse relationship detection
+    // requires type information to be available when processing object properties.
+    // This is defensive - ResourceProcessor should already provide canonical
+    // ordering, but we enforce it here for robustness against other quad sources.
+    // See: SCRATCHPAD.md "RDF Quad Ordering for Reliable Processing"
+    quads.sort((a, b) => {
+      const aIsType = this.#isTypePredicate(a.predicate.value);
+      const bIsType = this.#isTypePredicate(b.predicate.value);
+      if (aIsType && !bIsType) return -1;
+      if (!aIsType && bIsType) return 1;
+      return 0;
+    });
+
     // Add quads to the graph index
-    await this.#targetIndex.addItem(item.identifier, quads);
+    // Include token count in identifier for token filtering
+    const tokens =
+      item.resource.content?.tokens || item.resource.descriptor?.tokens;
+    if (!tokens) {
+      throw new Error(
+        `Resource missing tokens: ${String(item.identifier)}`,
+      );
+    }
+    
+    // Add tokens directly to the identifier object (protobuf instance)
+    item.identifier.tokens = tokens;
+    await this.#targetIndex.add(item.identifier, quads);
 
     // Update ontology with quad information
     for (const quad of quads) {
       this.#ontologyProcessor.process(quad);
     }
+  }
+
+  /**
+   * Check if a predicate is rdf:type
+   * @param {string} predicate - Predicate IRI
+   * @returns {boolean} True if predicate is rdf:type
+   * @private
+   */
+  #isTypePredicate(predicate) {
+    return predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   }
 
   /**
@@ -72,8 +107,9 @@ export class GraphProcessor extends ProcessorBase {
    */
   async saveOntology() {
     const storage = this.#targetIndex.storage();
-    const ontologyData = this.#ontologyProcessor.getOntologyData();
-    await storage.put("ontology.json", JSON.stringify(ontologyData, null, 2));
+    // Generate SHACL TTL (replaces previous custom ontology.json)
+    const ttl = this.#ontologyProcessor.buildShacl();
+    await storage.put("ontology.ttl", ttl);
   }
 
   /**
@@ -91,14 +127,14 @@ export class GraphProcessor extends ProcessorBase {
     );
 
     // 3. Load the full resources using the identifiers
-    const resources = await this.#resourceIndex.get(actor, filteredIdentifiers);
+    const resources = await this.#resourceIndex.get(filteredIdentifiers, actor);
 
     // 4. Pre-filter resource contents that already exist in the target graph index
     const existing = new Set();
     const checks = await Promise.all(
       resources.map(async (resource) => ({
         id: String(resource.id),
-        exists: await this.#targetIndex.hasItem(String(resource.id)),
+        exists: await this.#targetIndex.has(String(resource.id)),
       })),
     );
     checks

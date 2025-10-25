@@ -1,0 +1,24 @@
+{
+  "name": "@copilot-ld/libeval",
+  "version": "1.0.0",
+  "description": "Evaluation system for RAG agent quality assessment",
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "evaluation",
+    "llm-as-judge",
+    "rag",
+    "metrics"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@copilot-ld/librpc": "file:../librpc",
+    "@copilot-ld/libtype": "file:../libtype"
+  }
+}

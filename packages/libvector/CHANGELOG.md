@@ -1,8 +1,29 @@
 # Changelog
 
+## 2025-10-24
+
+- **REFACTOR**: Migrated from `@copilot-ld/libutil` to `@copilot-ld/libindex`
+  for `IndexBase` functionality
+- Moved `@copilot-ld/libutil` to `devDependencies` (only used by CLI tools and
+  offline processor, not needed for runtime library code)
+
+## 2025-10-21
+
+- **BREAKING**: Renamed `VectorIndex.addItem()` to `add()` for consistency with
+  `IndexInterface`
+- Added `@implements {IndexInterface}` JSDoc to `VectorIndex` class
+
 ## 2025-10-19
 
 - Bump version
+
+# Changelog
+
+## 2025-10-24
+
+- **Fixed**: Token filtering in vector queries now works correctly - identifiers
+  now include `tokens` field when added to vector indexes, enabling proper token
+  budget enforcement via `_applyTokensFilter()`
 
 ## 2025-10-18
 

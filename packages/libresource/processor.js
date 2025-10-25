@@ -2,6 +2,7 @@
 
 import { JSDOM } from "jsdom";
 import { minify } from "html-minifier-terser";
+import { sanitizeDom } from "./sanitizer.js";
 import jsonld from "jsonld";
 import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 import { Writer } from "n3";
@@ -16,38 +17,36 @@ import { ProcessorBase, countTokens, generateHash } from "@copilot-ld/libutil";
 export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
   #knowledgeStorage;
-  #descriptorProcessor;
+  #describer;
   #logger;
   #baseIri;
   #skolemizer;
 
   /**
    * Creates a new ResourceProcessor instance
+   * @param {string} baseIri - Base IRI for resolving relative URLs
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage for knowledge base data
-   * @param {import("@copilot-ld/libresource").DescriptorProcessor} descriptorProcessor - DescriptorProcessor instance for descriptor generation
    * @param {import("@copilot-ld/libresource").Skolemizer} skolemizer - Skolemizer instance for blank node skolemization
-   * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
-   * @param {string} [baseIri] - Base IRI for resolving relative URLs
+   * @param {import("@copilot-ld/libresource").Describer} [describer] - Optional Describer for descriptor generation
+   * @param {import("@copilot-ld/libutil").Logger} [logger] - Optional logger instance for debug output
    */
   constructor(
+    baseIri,
     resourceIndex,
     knowledgeStorage,
-    descriptorProcessor,
     skolemizer,
+    describer,
     logger,
-    baseIri,
   ) {
     super(logger, 5);
-    if (!descriptorProcessor)
-      throw new Error("descriptorProcessor is required");
     if (!skolemizer) throw new Error("skolemizer is required");
+    this.#baseIri = baseIri;
     this.#resourceIndex = resourceIndex;
     this.#knowledgeStorage = knowledgeStorage;
-    this.#descriptorProcessor = descriptorProcessor;
-    this.#logger = logger;
-    this.#baseIri = baseIri;
     this.#skolemizer = skolemizer;
+    this.#describer = describer || null;
+    this.#logger = logger || { debug: () => {} };
   }
 
   /**
@@ -63,41 +62,37 @@ export class ResourceProcessor extends ProcessorBase {
       const html = Buffer.isBuffer(htmlContent)
         ? htmlContent.toString("utf8")
         : String(htmlContent);
-
-      const fixedHtml = this.#fixHtml(html);
-      const items = await this.#parseHTML(fixedHtml, key);
+      // Parse DOM once, apply text fixes in-place, then operate downstream
+      const dom = new JSDOM(html);
+      sanitizeDom(dom); // Mutates the DOM in-place
+      const baseIri = this.#extractBaseIri(dom, key);
+      const items = await this.#parseHTML(dom, baseIri);
       await super.process(items, key);
     }
   }
 
   /**
-   * Fix common HTML encoding issues
+   * Fix common HTML encoding issues, like plain text "<10%" or ">5 items"
    * @param {string} html - The HTML string to fix
    * @returns {string} Fixed HTML string
    * @private
    */
-  #fixHtml(html) {
-    return html.replace(/<(\d)/g, "&lt;$1").replace(/>(\d)/g, "&gt;$1");
-  }
+  // (HTML fixing now applied directly on DOM in process())
 
   /**
-   * Extract base IRI from HTML document
-   * @param {string} html - The HTML string to process
-   * @param {string} key - The document key/filename for fallback base IRI
+   * Extract base IRI from DOM document
+   * @param {import('jsdom').JSDOM} dom - Parsed JSDOM instance
+   * @param {string} key - Document key for fallback construction
    * @returns {string} The base IRI for the document
    * @private
    */
-  #extractBaseIri(html, key) {
+  #extractBaseIri(dom, key) {
     try {
-      const dom = new JSDOM(html);
       const baseElement = dom.window.document.querySelector("base[href]");
-      if (baseElement) {
-        return baseElement.getAttribute("href");
-      }
+      if (baseElement) return baseElement.getAttribute("href");
     } catch {
-      return this.#baseIri || `https://example.invalid/${key}`;
+      // fall through to fallback
     }
-
     return this.#baseIri || `https://example.invalid/${key}`;
   }
 
@@ -165,8 +160,23 @@ export class ResourceProcessor extends ProcessorBase {
   async #quadsToRdf(quads) {
     return new Promise((resolve, reject) => {
       try {
+        // Sort quads to produce canonical output: rdf:type assertions first,
+        // then all other triples. This follows RDF best practices and ensures
+        // deterministic serialization for downstream consumers.
+        const sortedQuads = quads.slice().sort((a, b) => {
+          const aIsType =
+            a.predicate.value ===
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+          const bIsType =
+            b.predicate.value ===
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+          if (aIsType && !bIsType) return -1;
+          if (!aIsType && bIsType) return 1;
+          return 0;
+        });
+
         const writer = new Writer({ format: "N-Quads" });
-        writer.addQuads(quads);
+        writer.addQuads(sortedQuads);
         writer.end((error, result) => {
           if (error) {
             reject(new Error(`N-Quads serialization failed: ${error.message}`));
@@ -271,14 +281,14 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   * Parse HTML content and extract RDF data as JSON-LD objects.
-   * @param {string} html - The HTML string to process
-   * @param {string} key - Document key for base IRI derivation
+   * Parse DOM content and extract RDF data as JSON-LD objects.
+   * @param {import('jsdom').JSDOM} dom - Parsed JSDOM instance
+   * @param {string} baseIri - Base IRI already resolved
    * @returns {Promise<object[]>} Array of JSON-LD objects with nquads and subject
    */
-  async #parseHTML(html, key) {
-    const baseIri = this.#extractBaseIri(html, key);
-    const minifiedHtml = await this.#minifyHTML(html);
+  async #parseHTML(dom, baseIri) {
+    const serialized = dom.serialize();
+    const minifiedHtml = await this.#minifyHTML(serialized);
     const allQuads = await this.#extractQuads(minifiedHtml, baseIri);
 
     if (!allQuads || allQuads.length === 0) {
@@ -320,16 +330,22 @@ export class ResourceProcessor extends ProcessorBase {
   /** @inheritdoc */
   async processItem(item) {
     const { name, subject } = item;
-    const descriptor = await this.#descriptorProcessor.process(item);
+
+    let descriptor;
+    if (this.#describer) {
+      descriptor = await this.#describer.describe(item);
+    }
     const content = await this.#createContent(item);
 
     // Create and store the resource
-    const resource = common.Message.fromObject({
+    const message = {
       id: { name, subject },
       role: "system",
       content,
-      descriptor,
-    });
+    };
+
+    if (descriptor) message.descriptor = descriptor;
+    const resource = common.Message.fromObject(message);
 
     await this.#resourceIndex.put(resource);
     return resource;

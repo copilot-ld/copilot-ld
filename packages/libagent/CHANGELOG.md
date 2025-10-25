@@ -1,6 +1,18 @@
 # Changelog
 
-## 2025-10-20
+## 2025-10-24
+
+- **Fixed**: Token budget is now divided across tool calls in
+  `AgentHands.processToolCalls()` before calling services, preventing LLM token
+  limit errors when multiple tool calls return large result sets
+- **Removed**: Eliminated post-processing token truncation logic in favor of
+  upfront budget allocation to tool services
+- **Removed**: Removed unused `countTokens` import from `@copilot-ld/libutil`
+- **Fixed**: Memory window token filtering now works correctly - identifiers
+  appended to memory now include `tokens` field from message content, enabling
+  proper token budget enforcement via `MemoryFilter.filterByBudget()`
+
+## 2025-10-22
 
 - Added `bin/assistants.js` binary for processing assistant configurations
 - Updated `package.json` with `bin` field to enable `npx assistants` command

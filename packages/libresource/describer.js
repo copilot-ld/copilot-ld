@@ -9,12 +9,12 @@ import mustache from "mustache";
 /**
  * Helper class for creating descriptors using LLM
  */
-export class DescriptorProcessor {
+export class Describer {
   #llm;
   #descriptorTemplate;
 
   /**
-   * Creates a new DescriptorProcessor instance
+   * Creates a new Describer instance
    * @param {import("@copilot-ld/libcopilot").Copilot} llm - LLM client for descriptor generation
    */
   constructor(llm) {
@@ -22,10 +22,7 @@ export class DescriptorProcessor {
     this.#llm = llm;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
-    const templatePath = join(
-      __dirname,
-      "../../scripts/descriptor-prompt.md.mustache",
-    );
+    const templatePath = join(__dirname, "./prompts/descriptor.md.mustache");
     this.#descriptorTemplate = readFileSync(templatePath, "utf8");
   }
 
@@ -34,7 +31,7 @@ export class DescriptorProcessor {
    * @param {object} item - The item object containing json data and metadata
    * @returns {Promise<object>} Descriptor object
    */
-  async process(item) {
+  async describe(item) {
     const { json } = item;
 
     const prompt = mustache.render(this.#descriptorTemplate, { json });

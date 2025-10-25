@@ -81,7 +81,45 @@ npm run chat
 npm run search
 > docker security
 > kubernetes deployment
+
+# Graph query testing
+npm run query
+> ? rdf:type schema:Person
+> person:john ? ?
 ```
+
+### Evaluation Testing
+
+The evaluation system assesses agent response quality using `LLM-as-a-judge` methodology:
+
+```bash
+# Run full evaluation suite (default 5 parallel)
+npm run eval
+
+# Run with custom concurrency
+npm run eval -- --concurrency 10
+
+# Run specific test case
+npm run eval -- --case vector_drug_formulation
+
+# Generate report from existing results
+npm run eval -- --report-only --input run-2025-10-23-001.json
+```
+
+**Evaluation Metrics** (0-10 scale):
+
+- **Relevance**: Does the response address the user's question?
+- **Accuracy**: Are the facts and information correct?
+- **Completeness**: Does the response cover all aspects?
+- **Coherence**: Is the response well-structured and organized?
+- **Source Attribution**: Does the response properly cite sources?
+
+Test cases are defined in `config/eval.yml` based on the BioNova pharmaceutical demo scenarios in `eval/EVAL.md`.
+
+Evaluation reports are written to:
+
+- `data/evalresults/run-YYYY-MM-DD-XXX.md` - Human-readable markdown report
+- `data/evalresults/run-YYYY-MM-DD-XXX.json` - Machine-readable JSON results
 
 ### Scripted Testing
 

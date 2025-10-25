@@ -62,8 +62,8 @@ Built as a gRPC wrapper around `@copilot-ld/libmemory`.
 - **On-demand initialization**: Windows created and cached as needed
 - **Network coordination**: Request locks ensure consistency during concurrent
   ops
-- **`IndexBase` compliance**: Extends standard patterns with `addItem()` and
-  `queryItems()`
+- **`IndexInterface` compliance**: Implements standard interface with `add()`,
+  `get()`, `has()`, and `queryItems()`
 - **JSONL storage**: Append-only format for efficient operations
 
 ### LLM Service
@@ -158,6 +158,7 @@ functionality that can be used in services, CLI tools, or other applications.
 - **@copilot-ld/libcodegen**: Code generation from protobuf schemas
 - **@copilot-ld/libstorage**: Storage abstraction (local, S3)
 - **@copilot-ld/libconfig**: Configuration loading and validation
+- **@copilot-ld/libindex**: Base index class for storage-backed indexes
 
 ### Utility Packages
 
@@ -231,13 +232,13 @@ import { createGraphIndex } from "@copilot-ld/libgraph";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { Policy } from "@copilot-ld/libpolicy";
 
-// Create with defaults
-const graphIndex = createGraphIndex();
-const resourceIndex = createResourceIndex();
+// Create with defaults (storage prefix "graphs")
+const graphIndex = createGraphIndex("graphs");
+const resourceIndex = createResourceIndex("resources");
 
 // Advanced customization
 const policy = new Policy();
-const customResourceIndex = createResourceIndex("local", policy);
+const customResourceIndex = createResourceIndex("resources", policy);
 ```
 
 ### Enhanced Content Representation
@@ -403,21 +404,34 @@ enables:
 
 ### Index Pattern
 
-Indexes extend `IndexBase` and implement standard methods:
+Indexes extend `IndexBase` from `@copilot-ld/libindex` and implement the `IndexInterface`:
 
 ```javascript
 /* eslint-env node */
-import { IndexBase } from "@copilot-ld/libutil";
+import { IndexBase } from "@copilot-ld/libindex";
 
+/**
+ * @implements {import("@copilot-ld/libindex").IndexInterface}
+ */
 class CustomIndex extends IndexBase {
-  async addItem(item) {
+  async add(item) {
     // Add item to index
-    await this.storage.write(item.id, item);
+    await this.storage().put(item.id, item);
+  }
+
+  async get(ids) {
+    // Get items by array of IDs - always returns array
+    return await Promise.all(ids.map((id) => this.storage().get(id)));
+  }
+
+  async has(id) {
+    // Check if item exists
+    return await this.storage().exists(id);
   }
 
   async queryItems(query) {
     // Query and return matching items
-    return await this.storage.query(query);
+    return await this.storage().query(query);
   }
 }
 ```

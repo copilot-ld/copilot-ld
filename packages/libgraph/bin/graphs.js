@@ -11,9 +11,9 @@ import { GraphProcessor } from "@copilot-ld/libgraph/processor.js";
  * @returns {Promise<void>}
  */
 async function main() {
-  const resourceIndex = createResourceIndex();
-  const graphIndex = createGraphIndex();
-  const logger = createLogger("processor");
+  const resourceIndex = createResourceIndex("resources");
+  const graphIndex = createGraphIndex("graphs");
+  const logger = createLogger("graphs");
 
   const processor = new GraphProcessor(graphIndex, resourceIndex, logger);
 

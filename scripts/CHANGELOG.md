@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-23
+
+- Added `eval.js` script for running `LLM-as-a-judge` evaluation system
+- Added `@copilot-ld/libeval` dependency for evaluation functionality
+- Evaluation system includes 5 metrics: Relevance, Accuracy, Completeness, Coherence, Source Attribution
+- Test cases based on BioNova demo scenarios from `eval/EVAL.md`
+- Reports generated in markdown and JSON formats
+
 ## 2025-10-17
 
 - Updated `dev.js` to preserve existing `data/dev.log` contents by removing

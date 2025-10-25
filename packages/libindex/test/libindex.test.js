@@ -14,8 +14,8 @@ class TestIndex extends IndexBase {
     super(storage, indexKey);
   }
 
-  // Override addItem to test inheritance of base functionality
-  async addItem(identifier, data) {
+  // Override add to test inheritance of base functionality
+  async add(identifier, data) {
     const item = {
       id: String(identifier),
       identifier,
@@ -23,7 +23,7 @@ class TestIndex extends IndexBase {
     };
 
     // Use parent class for generic index operations
-    await super.addItem(item);
+    await super.add(item);
   }
 }
 
@@ -123,12 +123,12 @@ describe("IndexBase - Shared Functionality", () => {
 
       // Verify data was loaded into index
       assert.strictEqual(
-        await testIndex.hasItem("test.Item.item1"),
+        await testIndex.has("test.Item.item1"),
         true,
         "Should load first item",
       );
       assert.strictEqual(
-        await testIndex.hasItem("test.Item.item2"),
+        await testIndex.has("test.Item.item2"),
         true,
         "Should load second item",
       );
@@ -153,8 +153,8 @@ describe("IndexBase - Shared Functionality", () => {
   });
 
   describe("Item Management", () => {
-    test("hasItem returns false for non-existent items", async () => {
-      const exists = await testIndex.hasItem("test.Item.nonexistent");
+    test("has returns false for non-existent items", async () => {
+      const exists = await testIndex.has("test.Item.nonexistent");
       assert.strictEqual(
         exists,
         false,
@@ -162,49 +162,50 @@ describe("IndexBase - Shared Functionality", () => {
       );
     });
 
-    test("hasItem returns true for existing items", async () => {
+    test("has returns true for existing items", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "test1",
         tokens: 10,
       });
 
-      await testIndex.addItem(identifier, "test-data");
-      const exists = await testIndex.hasItem(String(identifier));
+      await testIndex.add(identifier, "test-data");
+      const exists = await testIndex.has(String(identifier));
 
       assert.strictEqual(exists, true, "Should return true for existing item");
     });
 
-    test("getItem returns null for non-existent items", async () => {
-      const result = await testIndex.getItem("test.Item.nonexistent");
+    test("get returns empty array for non-existent items", async () => {
+      const result = await testIndex.get(["test.Item.nonexistent"]);
       assert.strictEqual(
-        result,
-        null,
-        "Should return null for non-existent item",
+        result.length,
+        0,
+        "Should return empty array for non-existent item",
       );
     });
 
-    test("getItem returns identifier for existing items", async () => {
+    test("get returns identifier for existing items", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "test1",
         tokens: 10,
       });
 
-      await testIndex.addItem(identifier, "test-data");
-      const result = await testIndex.getItem(String(identifier));
+      await testIndex.add(identifier, "test-data");
+      const result = await testIndex.get([String(identifier)]);
 
+      assert.strictEqual(result.length, 1, "Should return one item");
       assert.strictEqual(
-        result.name,
+        result[0].name,
         "test1",
         "Should return correct identifier",
       );
       assert.strictEqual(
-        result.type,
+        result[0].type,
         "test.Item",
         "Should return correct type",
       );
-      assert.strictEqual(result.tokens, 10, "Should return correct tokens");
+      assert.strictEqual(result[0].tokens, 10, "Should return correct tokens");
     });
   });
 
@@ -236,7 +237,7 @@ describe("IndexBase - Shared Functionality", () => {
 
       for (const item of items) {
         const identifier = resource.Identifier.fromObject(item);
-        await testIndex.addItem(identifier, item.data);
+        await testIndex.add(identifier, item.data);
       }
     });
 
@@ -363,14 +364,14 @@ describe("IndexBase - Shared Functionality", () => {
   });
 
   describe("New IndexBase Implementation", () => {
-    test("addItem uses parent class storage logic", async () => {
+    test("add uses parent class storage logic", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "test1",
         tokens: 10,
       });
 
-      await testIndex.addItem(identifier, "test-data");
+      await testIndex.add(identifier, "test-data");
 
       // Verify storage methods were called
       assert.strictEqual(
@@ -381,7 +382,7 @@ describe("IndexBase - Shared Functionality", () => {
 
       // Verify item was stored in memory
       assert.strictEqual(
-        await testIndex.hasItem(String(identifier)),
+        await testIndex.has(String(identifier)),
         true,
         "Should store item in memory index",
       );
@@ -397,7 +398,7 @@ describe("IndexBase - Shared Functionality", () => {
 
       for (const item of items) {
         const identifier = resource.Identifier.fromObject(item);
-        await testIndex.addItem(identifier, `data-${item.name}`);
+        await testIndex.add(identifier, `data-${item.name}`);
       }
 
       // Test basic query
@@ -426,13 +427,13 @@ describe("IndexBase - Shared Functionality", () => {
 
   describe("Abstract Method Enforcement", () => {
     test("IndexBase provides concrete implementations", () => {
-      // IndexBase now provides concrete addItem and queryItems
+      // IndexBase now provides concrete add and queryItems
       const index = new IndexBase(mockStorage);
 
       assert.strictEqual(
-        typeof index.addItem,
+        typeof index.add,
         "function",
-        "Should provide addItem method",
+        "Should provide add method",
       );
       assert.strictEqual(
         typeof index.queryItems,
@@ -441,7 +442,7 @@ describe("IndexBase - Shared Functionality", () => {
       );
     });
 
-    test("IndexBase addItem handles basic storage operations", async () => {
+    test("IndexBase add handles basic storage operations", async () => {
       const index = new IndexBase(mockStorage);
       const item = {
         id: "test.Item.basic",
@@ -449,7 +450,7 @@ describe("IndexBase - Shared Functionality", () => {
         data: "basic-data",
       };
 
-      await index.addItem(item);
+      await index.add(item);
 
       assert.strictEqual(
         mockStorage.append.mock.callCount(),
@@ -457,7 +458,7 @@ describe("IndexBase - Shared Functionality", () => {
         "Should call storage append",
       );
       assert.strictEqual(
-        await index.hasItem("test.Item.basic"),
+        await index.has("test.Item.basic"),
         true,
         "Should store item in index",
       );

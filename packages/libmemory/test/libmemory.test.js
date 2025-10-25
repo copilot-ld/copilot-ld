@@ -65,8 +65,8 @@ describe("MemoryIndex", () => {
       tokens: 15,
     });
 
-    await memoryIndex.addItem(identifier1);
-    await memoryIndex.addItem(identifier2);
+    await memoryIndex.add(identifier1);
+    await memoryIndex.add(identifier2);
 
     const stored = storage.data.get("test-conversation.jsonl");
     const lines = stored.split("\n");
@@ -106,9 +106,9 @@ describe("MemoryIndex", () => {
       tokens: 12,
     }); // duplicate name
 
-    await memoryIndex.addItem(identifier1);
-    await memoryIndex.addItem(identifier2);
-    await memoryIndex.addItem(identifier3); // This will overwrite the first one
+    await memoryIndex.add(identifier1);
+    await memoryIndex.add(identifier2);
+    await memoryIndex.add(identifier3); // This will overwrite the first one
 
     const memory = await memoryIndex.queryItems();
 
@@ -137,7 +137,7 @@ describe("MemoryIndex", () => {
       tokens: 10,
     });
 
-    await memoryIndex.addItem(identifier);
+    await memoryIndex.add(identifier);
     const result = await memoryIndex.queryItems();
 
     assert.strictEqual(result.length, 1);
@@ -247,8 +247,8 @@ describe("MemoryWindow", () => {
       tokens: 15,
     });
 
-    await memoryIndex.addItem(identifier1);
-    await memoryIndex.addItem(identifier2);
+    await memoryIndex.add(identifier1);
+    await memoryIndex.add(identifier2);
 
     await assert.rejects(
       () => memoryWindow.build(),
@@ -282,10 +282,10 @@ describe("MemoryWindow", () => {
       score: 0.6,
     });
 
-    await memoryIndex.addItem(tool1);
-    await memoryIndex.addItem(tool2);
-    await memoryIndex.addItem(msg1);
-    await memoryIndex.addItem(msg2);
+    await memoryIndex.add(tool1);
+    await memoryIndex.add(tool2);
+    await memoryIndex.add(msg1);
+    await memoryIndex.add(msg2);
 
     const memory = await memoryWindow.build(50, {
       tools: 0.3, // 30% of 50 = 15 tokens

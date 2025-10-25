@@ -7,8 +7,8 @@ import { createResourceIndex } from "@copilot-ld/libresource";
 import { GraphService } from "./index.js";
 
 const config = await ServiceConfig.create("graph");
-const graphIndex = createGraphIndex();
-const resourceIndex = createResourceIndex();
+const graphIndex = createGraphIndex("graphs");
+const resourceIndex = createResourceIndex("resources");
 
 const service = new GraphService(config, graphIndex, resourceIndex);
 const server = new Server(service, config);

@@ -3,6 +3,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { AgentMind, AgentHands } from "../index.js";
+import { common } from "@copilot-ld/libtype";
 
 describe("libagent", () => {
   let mockConfig;
@@ -39,13 +40,11 @@ describe("libagent", () => {
         createCompletions: async () => ({
           choices: [
             {
-              message: {
+              message: common.Message.fromObject({
                 role: "assistant",
                 content: "Test response",
                 tool_calls: [],
-                id: { name: "test-response" },
-                withIdentifier: () => {},
-              },
+              }),
             },
           ],
         }),
@@ -102,7 +101,13 @@ describe("libagent", () => {
           toString: () => "test-conv",
         },
       },
-      message: { id: { name: "test-msg" } },
+      message: {
+        id: {
+          name: "test-msg",
+          type: "common.Message",
+          toJSON: () => ({ name: "test-msg", type: "common.Message" }),
+        },
+      },
       assistant: { content: { tokens: 100 } },
       tasks: [],
       permanentTools: [],

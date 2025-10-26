@@ -2,7 +2,12 @@
 /* eslint-env node */
 import { parseArgs } from "node:util";
 import yaml from "js-yaml";
-import { Evaluator } from "@copilot-ld/libeval";
+import {
+  Evaluator,
+  Judge,
+  MetricsCalculator,
+  ReportGenerator,
+} from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
 import { clients } from "@copilot-ld/librpc";
 import { ServiceConfig } from "@copilot-ld/libconfig";
@@ -57,23 +62,12 @@ async function main() {
         type: "string",
         short: "t",
       },
-      "report-only": {
-        type: "boolean",
-        short: "r",
-        default: false,
-      },
-      input: {
-        type: "string",
-        short: "i",
-      },
     },
   });
 
   const args = {
     concurrency: parseInt(values.concurrency, 10),
     case: values.case || null,
-    reportOnly: values["report-only"],
-    input: values.input || null,
   };
 
   console.log("🔬 Evaluation System");
@@ -82,22 +76,6 @@ async function main() {
   // Initialize storage
   const configStorage = createStorage("config");
   const resultsStorage = createStorage("eval");
-
-  // Handle report-only mode
-  if (args.reportOnly) {
-    if (!args.input) {
-      console.error("Error: --report-only requires --input <file>");
-      process.exit(1);
-    }
-
-    console.log(`Generating report from: ${args.input}`);
-    const resultsJson = await resultsStorage.get(args.input);
-    const results = JSON.parse(resultsJson);
-
-    const evaluator = new Evaluator(null, null, "dummy");
-    await evaluator.report(results, resultsStorage);
-    return;
-  }
 
   // Initialize clients
   console.log("Initializing clients...");
@@ -119,8 +97,19 @@ async function main() {
   const testCases = await loadTestCases(configStorage, args.case);
   console.log(`Loaded ${testCases.length} test case(s)\n`);
 
-  // Create evaluator
-  const evaluator = new Evaluator(llmClient, agentClient, githubToken);
+  // Create dependencies
+  const judge = new Judge(llmClient, githubToken);
+  const metrics = new MetricsCalculator();
+  const reporter = new ReportGenerator();
+
+  // Create evaluator with all dependencies
+  const evaluator = new Evaluator(
+    agentClient,
+    githubToken,
+    judge,
+    metrics,
+    reporter,
+  );
 
   // Run evaluation
   console.log("Starting evaluation...\n");

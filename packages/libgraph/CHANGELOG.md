@@ -2,6 +2,8 @@
 
 ## 2025-10-26
 
+- Added performance tests in `test/libgraph.perf.js` for `parseGraphQuery()`,
+  `GraphIndex.loadData()`, `GraphIndex.query()`, and memory stability validation
 - **REFACTOR**: Separated `OntologyProcessor` data collection from serialization
   with new pluggable `ShaclSerializer` class
 - Enhanced ontology generation with inverse relationship detection, class

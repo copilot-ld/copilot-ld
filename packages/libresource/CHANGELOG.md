@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-26
+
+- Added performance tests in `test/libresource.perf.js` for
+  `ResourceIndex.get()`, `ResourceIndex.put()`, policy evaluation overhead, and
+  memory stability validation
+
 ## 2025-10-21
 
 - **BREAKING**: Simplified `ResourceIndex` API with `add()` alias for `put()`,

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-26
+
+- Added performance tests in `test/libagent.perf.js`
+
 ## 2025-10-24
 
 - **Fixed**: Token budget management - budget now divided across tool calls

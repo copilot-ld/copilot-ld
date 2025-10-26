@@ -320,20 +320,35 @@ export function createScalingMetrics(performanceMetrics) {
  * @returns {Promise<void>} Promise that resolves after cleanup
  */
 export async function isolatePerformanceTest() {
-  global.gc();
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  // Run GC multiple times to ensure memory is fully stabilized
+  // Young generation objects may need multiple GC cycles
+  for (let i = 0; i < 3; i++) {
+    global.gc();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
 }
 
 /**
  * Measure performance of an async function with automatic test isolation
+ * Runs multiple measurements and takes median by duration to filter GC outliers
  * @param {number} count - Count for scaling tests
  * @param {Function} fn - Async function to measure
- * @returns {Promise<PerformanceMetric>} Performance metrics
+ * @param {number} [runs] - Number of measurement runs (default: 3)
+ * @returns {Promise<PerformanceMetric>} Performance metrics (median by duration)
  */
-export async function measurePerformance(count, fn) {
-  const monitor = new PerformanceMonitor();
-  monitor.start(count);
+export async function measurePerformance(count, fn, runs = 3) {
+  const measurements = [];
 
-  await fn();
-  return monitor.stop();
+  for (let i = 0; i < runs; i++) {
+    await isolatePerformanceTest();
+    const monitor = new PerformanceMonitor();
+    monitor.start(count);
+    await fn();
+    measurements.push(monitor.stop());
+  }
+
+  // Sort by duration and take median measurement to filter GC outliers
+  // This preserves correlation between duration and memory from same run
+  measurements.sort((a, b) => a.duration - b.duration);
+  return measurements[Math.floor(measurements.length / 2)];
 }

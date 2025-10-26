@@ -261,7 +261,7 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
  * @returns {Promise<void>}
  */
 async function main() {
-  const resourceIndex = createResourceIndex("local");
+  const resourceIndex = createResourceIndex("resources");
   const logger = createLogger("tools");
 
   const [endpoints, descriptors] = await Promise.all([

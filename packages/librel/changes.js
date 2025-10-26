@@ -9,6 +9,12 @@ export class ReleaseChanges {
   #existsSync;
   #workingDir;
 
+  /**
+   *
+   * @param execSyncFn
+   * @param existsSyncFn
+   * @param workingDir
+   */
   constructor(execSyncFn, existsSyncFn, workingDir = process.cwd()) {
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!existsSyncFn) throw new Error("existsSyncFn is required");

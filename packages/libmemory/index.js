@@ -1,10 +1,11 @@
 /* eslint-env node */
-import { IndexBase } from "@copilot-ld/libutil";
+import { IndexBase } from "@copilot-ld/libindex";
 
 /**
  * Memory index for managing conversation memory using JSONL storage
  * Extends IndexBase to provide memory-specific operations with deduplication
  * Each instance manages memory for a single resource/conversation
+ * @implements {import("@copilot-ld/libindex").IndexInterface}
  */
 export class MemoryIndex extends IndexBase {
   /**
@@ -12,13 +13,13 @@ export class MemoryIndex extends IndexBase {
    * @param {import("@copilot-ld/libtype").resource.Identifier} identifier - Identifier to add
    * @returns {Promise<void>}
    */
-  async addItem(identifier) {
+  async add(identifier) {
     const item = {
       id: String(identifier),
       identifier,
     };
 
-    await super.addItem(item);
+    await super.add(item);
   }
 }
 
@@ -65,10 +66,15 @@ export class MemoryFilter {
     });
 
     for (const identifier of sorted) {
-      const tokens = identifier.tokens || 0;
-      if (totalBudget + tokens <= budget) {
+      if (identifier.tokens === undefined || identifier.tokens === null) {
+        throw new Error(
+          `Identifier missing tokens field: ${JSON.stringify(identifier)}`,
+        );
+      }
+
+      if (totalBudget + identifier.tokens <= budget) {
         filtered.push(identifier);
-        totalBudget += tokens;
+        totalBudget += identifier.tokens;
       } else {
         break;
       }
@@ -130,7 +136,7 @@ export class MemoryWindow {
    */
   async append(identifiers) {
     for (const identifier of identifiers) {
-      await this.#index.addItem(identifier);
+      await this.#index.add(identifier);
     }
   }
 }

@@ -4,6 +4,7 @@ AssumeRole
 Backend
 Balancer
 Base64
+BioNova
 BuildKit
 CD
 CI
@@ -93,6 +94,7 @@ S3
 S3-Compatible
 S3-compatible
 SHA-256
+SHACL
 SPARQL-like
 SSL
 Schemas
@@ -217,6 +219,7 @@ nodejs
 npm
 orchestrator
 pico
+pluggable
 plugins
 portability
 pre-calculate

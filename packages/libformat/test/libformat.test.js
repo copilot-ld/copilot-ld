@@ -44,6 +44,9 @@ describe("libformat", () => {
       };
       mockMarked = {
         Marked: class {
+          /**
+           *
+           */
           setOptions() {
             return mockMarkedInstance;
           }
@@ -116,6 +119,9 @@ describe("libformat", () => {
       };
       mockMarked = {
         Marked: class {
+          /**
+           *
+           */
           use() {
             return mockMarkedInstance;
           }

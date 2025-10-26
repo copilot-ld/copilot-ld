@@ -48,6 +48,9 @@ export class Server {
     this.#logger = logFn(config.name);
   }
 
+  /**
+   *
+   */
   async start() {
     this.#server = new this.#grpc.Server();
 
@@ -68,6 +71,9 @@ export class Server {
     this.#setupShutdown();
   }
 
+  /**
+   *
+   */
   #getServiceDefinition() {
     // Get service name from config (e.g., "agent" -> "agent")
     const serviceName = this.config.name.toLowerCase();
@@ -81,6 +87,10 @@ export class Server {
     return definition;
   }
 
+  /**
+   *
+   * @param handlers
+   */
   #wrapHandlers(handlers) {
     const wrapped = {};
     for (const [method, handler] of Object.entries(handlers)) {
@@ -89,6 +99,10 @@ export class Server {
     return wrapped;
   }
 
+  /**
+   *
+   * @param handler
+   */
   #wrapUnary(handler) {
     return async (call, callback) => {
       // Authenticate
@@ -115,6 +129,10 @@ export class Server {
     };
   }
 
+  /**
+   *
+   * @param uri
+   */
   async #bindServer(uri) {
     return new Promise((resolve, reject) => {
       this.#server.bindAsync(
@@ -131,6 +149,9 @@ export class Server {
     });
   }
 
+  /**
+   *
+   */
   #setupShutdown() {
     const shutdown = () => {
       this.#logger.debug("Shutting down...");

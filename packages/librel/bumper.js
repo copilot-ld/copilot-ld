@@ -11,6 +11,14 @@ export class ReleaseBumper {
   #readdirSync;
   #workingDir;
 
+  /**
+   *
+   * @param execSyncFn
+   * @param readFileSyncFn
+   * @param writeFileSyncFn
+   * @param readdirSyncFn
+   * @param workingDir
+   */
   constructor(
     execSyncFn,
     readFileSyncFn,
@@ -58,6 +66,14 @@ export class ReleaseBumper {
     return results;
   }
 
+  /**
+   *
+   * @param bumpType
+   * @param item
+   * @param results
+   * @param processed
+   * @param options
+   */
   async #bumpRecursively(bumpType, item, results, processed, options) {
     if (processed.has(item)) return;
     processed.add(item);
@@ -113,6 +129,10 @@ export class ReleaseBumper {
     }
   }
 
+  /**
+   *
+   * @param packageName
+   */
   #findDependents(packageName) {
     const dependents = [];
     for (const dir of ["packages", "services", "extensions", "tools"]) {
@@ -144,6 +164,12 @@ export class ReleaseBumper {
     return dependents;
   }
 
+  /**
+   *
+   * @param packagePath
+   * @param dependencyName
+   * @param newVersion
+   */
   #updateDependency(packagePath, dependencyName, newVersion) {
     const packageJsonPath = join(packagePath, "package.json");
     const absolutePackageJsonPath = join(this.#workingDir, packageJsonPath);

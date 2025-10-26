@@ -1,5 +1,21 @@
 # Changelog
 
+## 2025-10-24
+
+- **REFACTOR**: Migrated from `@copilot-ld/libutil` to `@copilot-ld/libindex`
+  for `IndexBase` functionality
+- Removed unused `@copilot-ld/libutil` dependency (was not actually used in
+  code)
+- **BREAKING**: Removed defensive `|| 0` fallback in `filterByBudget()` - now
+  throws error if identifier is missing `tokens` field, ensuring bugs are caught
+  early rather than silently treating missing tokens as zero
+
+## 2025-10-18
+
+- **BREAKING**: Renamed `MemoryIndex.addItem()` to `add()` for consistency with
+  `IndexInterface`
+- Added `@implements {IndexInterface}` JSDoc to `MemoryIndex` class
+
 ## 2025-10-19
 
 - Bump version

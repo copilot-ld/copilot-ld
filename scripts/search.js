@@ -39,7 +39,7 @@ async function performSearch(prompt, state) {
     limit: limit > 0 ? limit : 0,
   });
 
-  const resources = await resourceIndex.get("common.System.root", identifiers);
+  const resources = await resourceIndex.get(identifiers, "common.System.root");
 
   let output = ``;
   output += `Searching: ${index} index\n\n`;
@@ -68,7 +68,7 @@ const repl = new Repl(createTerminalFormatter(), {
     contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
     descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
 
-    resourceIndex = createResourceIndex();
+    resourceIndex = createResourceIndex("resources");
   },
 
   state: {

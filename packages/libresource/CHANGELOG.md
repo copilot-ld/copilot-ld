@@ -1,5 +1,35 @@
 # Changelog
 
+## 2025-10-21
+
+- Added `storage()` method to `ResourceIndex` to return the storage instance
+- Added `add(resource)` method to `ResourceIndex` as an alias for `put()`
+- **BREAKING**: Simplified `get()` signature to `get(ids, actor)` where `ids` is
+  `string[]` and `actor` is optional - always returns array of resources
+- Added `@implements {IndexInterface}` JSDoc to `ResourceIndex` class
+
+## 2025-10-21
+
+- Added canonical RDF quad ordering in `#quadsToRdf()` to ensure `rdf:type`
+  assertions appear first in N-Quads serialization
+- N-Quads output now follows RDF best practices with deterministic ordering
+
+## 2025-10-21
+
+- **BREAKING**: Updated `createResourceIndex()` signature to `(prefix, policy?)`
+  and now forces local storage type internally. All callers must pass a storage
+  prefix such as `"resources"`.
+
+## 2025-10-21
+
+- **BREAKING**: Reordered `ResourceProcessor` constructor parameters to
+  `(baseIri, resourceIndex, knowledgeStorage, skolemizer, describer?, logger?)`
+- Renamed `DescriptorProcessor` to `Describer` and file `descriptor.js` to
+  `describer.js`
+- Made `describer` optional; descriptors are skipped when not provided
+- Made `logger` optional; falls back to no-op debug logger when omitted
+- Updated `bin/resources.js` and tests to reflect new signature and naming
+
 ## 2025-10-19
 
 - Bump version

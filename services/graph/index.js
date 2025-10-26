@@ -62,14 +62,20 @@ export class GraphService extends GraphBase {
     this.debug("Getting ontology");
 
     const storage = this.#graphIndex.storage();
-    const ontologyContent = await storage.get("ontology.json");
+    // Preferred SHACL Turtle file
+    let ontologyContent = await storage.get("ontology.ttl");
 
-    const ontologyJson =
-      typeof ontologyContent === "object"
-        ? JSON.stringify(ontologyContent)
-        : ontologyContent;
+    // Backward compatibility: fall back to legacy JSON if TTL missing
+    if (!ontologyContent) {
+      const legacy = await storage.get("ontology.json");
+      if (legacy) {
+        ontologyContent =
+          typeof legacy === "object" ? JSON.stringify(legacy, null, 2) : legacy;
+      }
+    }
 
-    return { ontology_json: ontologyJson };
+    // Field name retained (ontology_json) for proto compatibility
+    return { ontology_json: String(ontologyContent || "") };
   }
 
   /**
@@ -85,8 +91,8 @@ export class GraphService extends GraphBase {
 
     const actor = "common.System.root";
     const resources = await this.#resourceIndex.get(
-      actor,
       identifiers.map((id) => String(id)),
+      actor,
     );
 
     const contents = resources

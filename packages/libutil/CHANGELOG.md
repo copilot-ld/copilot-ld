@@ -1,5 +1,25 @@
 # Changelog
 
+# Changelog
+
+## 2025-10-24
+
+- **BREAKING**: Added validation in `_applyTokensFilter()` to throw error if
+  identifier is missing `tokens` field, ensuring bugs are caught early rather
+  than silently allowing `NaN` comparisons
+
+## 2025-10-18
+
+- **BREAKING**: Added `IndexInterface` typedef defining minimal interface for
+  index implementations
+- **BREAKING**: Renamed `IndexBase.addItem()` to `add()` for consistency with
+  interface
+- **BREAKING**: Simplified `IndexBase.get()` to only accept array of IDs and
+  always return array - signature is now `get(ids)` where ids is `string[]`
+- **BREAKING**: Renamed `IndexBase.hasItem()` to `has()` for consistency with
+  interface
+- Added `@implements {IndexInterface}` JSDoc to `IndexBase` class
+
 ## 2025-10-19
 
 - Bump version

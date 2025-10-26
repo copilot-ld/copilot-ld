@@ -3,41 +3,9 @@ import { describe, test, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { createDownloader, IndexBase } from "../index.js";
+import { createDownloader } from "../index.js";
 
 describe("libutil", () => {
-  describe("IndexBase", () => {
-    test("is exported and can be extended", () => {
-      assert.ok(IndexBase, "IndexBase should be exported");
-      assert.strictEqual(
-        typeof IndexBase,
-        "function",
-        "IndexBase should be a constructor",
-      );
-
-      // Test that it can be extended
-      class TestIndex extends IndexBase {
-        constructor(storage) {
-          super(storage, "test.jsonl");
-        }
-      }
-
-      const mockStorage = {
-        exists: () => Promise.resolve(false),
-        get: () => Promise.resolve([]),
-        append: () => Promise.resolve(),
-      };
-
-      const testIndex = new TestIndex(mockStorage);
-      assert.ok(testIndex, "Should be able to create subclass instance");
-      assert.strictEqual(
-        testIndex.indexKey,
-        "test.jsonl",
-        "Should inherit properties",
-      );
-    });
-  });
-
   describe("downloadFactory", () => {
     test("creates Download instance with correct dependencies", () => {
       const mockStorageFactory = mock.fn();

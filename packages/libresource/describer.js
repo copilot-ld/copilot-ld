@@ -1,0 +1,70 @@
+/* eslint-env node */
+
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+import mustache from "mustache";
+
+/**
+ * Helper class for creating descriptors using LLM
+ */
+export class Describer {
+  #llm;
+  #descriptorTemplate;
+
+  /**
+   * Creates a new Describer instance
+   * @param {import("@copilot-ld/libcopilot").Copilot} llm - LLM client for descriptor generation
+   */
+  constructor(llm) {
+    if (!llm) throw new Error("llm is required");
+    this.#llm = llm;
+
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const templatePath = join(__dirname, "./prompts/descriptor.md.mustache");
+    this.#descriptorTemplate = readFileSync(templatePath, "utf8");
+  }
+
+  /**
+   * Create a descriptor for the item using LLM
+   * @param {object} item - The item object containing json data and metadata
+   * @returns {Promise<object>} Descriptor object
+   */
+  async describe(item) {
+    const { json } = item;
+
+    const prompt = mustache.render(this.#descriptorTemplate, { json });
+
+    const completion = await this.#llm.createCompletions(
+      [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      undefined,
+      0.1,
+      2000,
+    );
+
+    let descriptor = {};
+    try {
+      descriptor = JSON.parse(completion.choices[0].message.content);
+    } catch (error) {
+      throw new Error(`LLM response parsing failed: ${error.message}`);
+    }
+
+    if (
+      !descriptor?.purpose ||
+      !descriptor.applicability ||
+      !descriptor.evaluation
+    ) {
+      throw new Error(
+        `Descriptor format is invalid: ${JSON.stringify(descriptor)}`,
+      );
+    }
+
+    return descriptor;
+  }
+}

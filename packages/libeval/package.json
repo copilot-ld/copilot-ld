@@ -21,7 +21,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@copilot-ld/librpc": "file:../librpc",
+    "@copilot-ld/librpc": "^0.1.48",
     "@copilot-ld/libtype": "file:../libtype"
   }
 }

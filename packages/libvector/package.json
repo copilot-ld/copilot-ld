@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.1",
-    "@copilot-ld/libtype": "^0.1.37"
+    "@copilot-ld/libtype": "^0.1.38"
   },
   "devDependencies": {
     "@copilot-ld/libutil": "^0.1.34"

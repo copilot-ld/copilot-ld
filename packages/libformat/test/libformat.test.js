@@ -45,7 +45,8 @@ describe("libformat", () => {
       mockMarked = {
         Marked: class {
           /**
-           *
+           * Set options for marked instance
+           * @returns {object} Mock marked instance
            */
           setOptions() {
             return mockMarkedInstance;
@@ -120,7 +121,8 @@ describe("libformat", () => {
       mockMarked = {
         Marked: class {
           /**
-           *
+           * Use marked extensions
+           * @returns {object} Mock marked instance
            */
           use() {
             return mockMarkedInstance;

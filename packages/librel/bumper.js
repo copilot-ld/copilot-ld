@@ -12,12 +12,12 @@ export class ReleaseBumper {
   #workingDir;
 
   /**
-   *
-   * @param execSyncFn
-   * @param readFileSyncFn
-   * @param writeFileSyncFn
-   * @param readdirSyncFn
-   * @param workingDir
+   * Creates a new ReleaseBumper instance
+   * @param {Function} execSyncFn - Function to execute shell commands synchronously
+   * @param {Function} readFileSyncFn - Function to read files synchronously
+   * @param {Function} writeFileSyncFn - Function to write files synchronously
+   * @param {Function} readdirSyncFn - Function to read directory contents synchronously
+   * @param {string} workingDir - Working directory for operations
    */
   constructor(
     execSyncFn,
@@ -67,12 +67,12 @@ export class ReleaseBumper {
   }
 
   /**
-   *
-   * @param bumpType
-   * @param item
-   * @param results
-   * @param processed
-   * @param options
+   * Bumps a package version recursively with its dependents
+   * @param {string} bumpType - Type of version bump
+   * @param {string} item - Package path to bump
+   * @param {Array} results - Array to collect bump results
+   * @param {Set} processed - Set of already processed items
+   * @param {object} options - Bump options
    */
   async #bumpRecursively(bumpType, item, results, processed, options) {
     if (processed.has(item)) return;
@@ -130,8 +130,9 @@ export class ReleaseBumper {
   }
 
   /**
-   *
-   * @param packageName
+   * Finds all packages that depend on the specified package
+   * @param {string} packageName - Name of the package
+   * @returns {string[]} Array of dependent package paths
    */
   #findDependents(packageName) {
     const dependents = [];
@@ -165,10 +166,10 @@ export class ReleaseBumper {
   }
 
   /**
-   *
-   * @param packagePath
-   * @param dependencyName
-   * @param newVersion
+   * Updates a dependency version in a package
+   * @param {string} packagePath - Path to the package
+   * @param {string} dependencyName - Name of the dependency to update
+   * @param {string} newVersion - New version to set
    */
   #updateDependency(packagePath, dependencyName, newVersion) {
     const packageJsonPath = join(packagePath, "package.json");

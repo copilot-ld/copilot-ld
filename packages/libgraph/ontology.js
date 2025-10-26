@@ -15,9 +15,7 @@ export class OntologyProcessor {
   #predicateDirections; // Map<"subj|pred|obj", count>
   #inversePredicates; // Map<"fromClass|predicate|toClass", inversePredicate>
 
-  /**
-   *
-   */
+  /** Creates a new OntologyProcessor instance */
   constructor() {
     this.#classSubjects = new Map();
     this.#subjectClasses = new Map();
@@ -51,10 +49,10 @@ export class OntologyProcessor {
   }
 
   /**
-   *
-   * @param objectNode
-   * @param predicate
-   * @param subject
+   * Processes object node if it is a named node
+   * @param {object} objectNode - RDF object node
+   * @param {string} predicate - Predicate IRI
+   * @param {string} subject - Subject IRI
    */
   #processObjectIfNamedNode(objectNode, predicate, subject) {
     if (objectNode?.termType !== "NamedNode" || !objectNode.value) return;
@@ -63,8 +61,8 @@ export class OntologyProcessor {
   }
 
   /**
-   *
-   * @param predicate
+   * Increments the count for a predicate
+   * @param {string} predicate - Predicate IRI
    */
   #incrementPredicate(predicate) {
     this.#predicateCounts.set(
@@ -84,9 +82,9 @@ export class OntologyProcessor {
   }
 
   /**
-   *
-   * @param subject
-   * @param object
+   * Records a type assertion for subject and object
+   * @param {string} subject - Subject IRI
+   * @param {string} object - Object IRI (class)
    */
   #recordTypeAssertion(subject, object) {
     if (!this.#classSubjects.has(object))
@@ -98,9 +96,9 @@ export class OntologyProcessor {
   }
 
   /**
-   *
-   * @param subject
-   * @param predicate
+   * Records predicate usage for all classes of the subject
+   * @param {string} subject - Subject IRI
+   * @param {string} predicate - Predicate IRI
    */
   #recordPredicateForSubjectClasses(subject, predicate) {
     const classes = this.#subjectClasses.get(subject);
@@ -117,9 +115,9 @@ export class OntologyProcessor {
   }
 
   /**
-   *
-   * @param predicate
-   * @param object
+   * Records object type information for a predicate
+   * @param {string} predicate - Predicate IRI
+   * @param {string} object - Object IRI
    */
   #recordPredicateObjectType(predicate, object) {
     const objectClasses = this.#subjectClasses.get(object);
@@ -135,10 +133,10 @@ export class OntologyProcessor {
   }
 
   /**
-   *
-   * @param subject
-   * @param predicate
-   * @param object
+   * Records inverse relationship patterns between subjects and objects
+   * @param {string} subject - Subject IRI
+   * @param {string} predicate - Predicate IRI
+   * @param {string} object - Object IRI
    */
   #recordInversePair(subject, predicate, object) {
     const subjectClasses = this.#subjectClasses.get(subject);

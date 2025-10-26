@@ -11,9 +11,9 @@ import { resource } from "@copilot-ld/libtype";
  */
 class TestIndex extends IndexBase {
   /**
-   *
-   * @param storage
-   * @param indexKey
+   * Creates a test index instance
+   * @param {object} storage - Storage backend
+   * @param {string} indexKey - Index storage key
    */
   constructor(storage, indexKey = "test.jsonl") {
     super(storage, indexKey);
@@ -21,9 +21,9 @@ class TestIndex extends IndexBase {
 
   // Override add to test inheritance of base functionality
   /**
-   *
-   * @param identifier
-   * @param data
+   * Adds an item to the index
+   * @param {string} identifier - Item identifier
+   * @param {object} data - Item data
    */
   async add(identifier, data) {
     const item = {

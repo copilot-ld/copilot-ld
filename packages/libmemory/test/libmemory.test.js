@@ -5,20 +5,17 @@ import { MemoryIndex, MemoryFilter, MemoryWindow } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
 
 // Mock storage for testing
-/**
- *
- */
+/** Mock storage implementation for testing */
 class MockStorage {
-  /**
-   *
-   */
+  /** Creates a new mock storage instance */
   constructor() {
     this.data = new Map();
   }
 
   /**
-   *
-   * @param key
+   * Gets data from storage
+   * @param {string} key - Storage key
+   * @returns {Promise<any>} Stored value
    */
   async get(key) {
     const value = this.data.get(key);
@@ -32,18 +29,18 @@ class MockStorage {
   }
 
   /**
-   *
-   * @param key
-   * @param value
+   * Sets data in storage
+   * @param {string} key - Storage key
+   * @param {any} value - Value to store
    */
   async set(key, value) {
     this.data.set(key, value);
   }
 
   /**
-   *
-   * @param key
-   * @param value
+   * Appends data to storage
+   * @param {string} key - Storage key
+   * @param {string} value - Value to append
    */
   async append(key, value) {
     const existing = this.data.get(key) || "";
@@ -52,16 +49,17 @@ class MockStorage {
   }
 
   /**
-   *
-   * @param key
+   * Checks if key exists in storage
+   * @param {string} key - Storage key
+   * @returns {Promise<boolean>} True if key exists
    */
   async exists(key) {
     return this.data.has(key);
   }
 
   /**
-   *
-   * @param key
+   * Deletes data from storage
+   * @param {string} key - Storage key
    */
   async delete(key) {
     this.data.delete(key);

@@ -20,13 +20,13 @@ export class ResourceProcessor extends ProcessorBase {
   #skolemizer;
 
   /**
-   *
-   * @param baseIri
-   * @param resourceIndex
-   * @param knowledgeStorage
-   * @param skolemizer
-   * @param describer
-   * @param logger
+   * Creates a new ResourceProcessor instance
+   * @param {string} baseIri - Base IRI for resource identification
+   * @param {object} resourceIndex - Index for storing resources
+   * @param {object} knowledgeStorage - Storage backend for knowledge files
+   * @param {object} skolemizer - Blank node skolemizer
+   * @param {object} describer - Optional resource describer
+   * @param {object} logger - Logger instance
    */
   constructor(
     baseIri,
@@ -47,8 +47,8 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param extension
+   * Processes HTML files from knowledge storage
+   * @param {string} extension - File extension to filter by
    */
   async process(extension = ".html") {
     const keys = await this.#knowledgeStorage.findByExtension(extension);
@@ -67,9 +67,10 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param dom
-   * @param key
+   * Extracts base IRI from DOM or uses fallback
+   * @param {object} dom - JSDOM instance
+   * @param {string} key - Storage key
+   * @returns {string} Base IRI for the document
    */
   #extractBaseIri(dom, key) {
     const baseElement = dom.window.document.querySelector("base[href]");
@@ -81,8 +82,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param html
+   * Minifies HTML content
+   * @param {string} html - HTML content to minify
+   * @returns {Promise<string>} Minified HTML
    */
   async #minifyHTML(html) {
     return await minify(html, {
@@ -95,9 +97,10 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param html
-   * @param baseIri
+   * Extracts RDF quads from HTML using microdata parser
+   * @param {string} html - HTML content
+   * @param {string} baseIri - Base IRI for parsing
+   * @returns {Promise<Array>} Array of RDF quads
    */
   async #extractQuads(html, baseIri) {
     return new Promise((resolve, reject) => {
@@ -126,8 +129,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param quads
+   * Converts RDF quads to Turtle format string
+   * @param {Array} quads - Array of RDF quads
+   * @returns {Promise<string>} RDF in Turtle format
    */
   async #quadsToRdf(quads) {
     const typeUri = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -149,8 +153,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param allQuads
+   * Groups RDF quads by their schema.org typed items
+   * @param {Array} allQuads - Complete set of RDF quads from HTML
+   * @returns {Map} Map of item IRIs to their related quads
    */
   #groupQuadsByItem(allQuads) {
     const typedItems = new Set(
@@ -196,8 +201,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param rdf
+   * Converts RDF to JSON-LD format
+   * @param {string} rdf - RDF in N-Quads format
+   * @returns {Promise<Array>} Array of JSON-LD objects
    */
   async #rdfToJson(rdf) {
     const jsonldArray = await jsonld.fromRDF(rdf, {
@@ -214,9 +220,10 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param dom
-   * @param baseIri
+   * Parses HTML and extracts structured items
+   * @param {object} dom - JSDOM instance
+   * @param {string} baseIri - Base IRI for parsing
+   * @returns {Promise<Array>} Array of extracted items
    */
   async #parseHTML(dom, baseIri) {
     const minifiedHtml = await this.#minifyHTML(dom.serialize());
@@ -253,8 +260,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param item
+   * Processes an extracted item into a Message resource
+   * @param {object} item - Item to process
+   * @returns {Promise<object>} Processed Message resource
    */
   async processItem(item) {
     const { name, subject } = item;
@@ -271,8 +279,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   *
-   * @param item
+   * Creates message content from item data
+   * @param {object} item - Item with RDF and JSON data
+   * @returns {Promise<object>} Content object for Message
    */
   async #createContent(item) {
     return {

@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@copilot-ld/libtype": "^0.1.38",
-    "@copilot-ld/libutil": "^0.1.34",
+    "@copilot-ld/libutil": "^0.1.35",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {},

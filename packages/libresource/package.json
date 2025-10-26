@@ -20,7 +20,7 @@
     "@copilot-ld/libpolicy": "^0.1.23",
     "@copilot-ld/libstorage": "^0.1.24",
     "@copilot-ld/libtype": "^0.1.38",
-    "@copilot-ld/libutil": "^0.1.34"
+    "@copilot-ld/libutil": "^0.1.35"
   },
   "devDependencies": {
     "jsdom": "^27.0.0",

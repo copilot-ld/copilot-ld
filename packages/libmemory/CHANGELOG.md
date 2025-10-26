@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-26
+
+- Added performance tests in `test/libmemory.perf.js` for `filterByBudget()`,
+  `splitToolsAndHistory()`, `MemoryWindow.build()`, and memory stability
+  validation
+
 ## 2025-10-24
 
 - **BREAKING**: Enhanced error handling in `filterByBudget()` to throw error

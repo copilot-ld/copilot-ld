@@ -1,7 +1,4 @@
 /* eslint-env node */
-import { Judge } from "./judge.js";
-import { MetricsCalculator } from "./metrics.js";
-import { ReportGenerator } from "./report.js";
 import { common, agent } from "@copilot-ld/libtype";
 
 /**
@@ -17,20 +14,24 @@ export class Evaluator {
 
   /**
    * Create a new Evaluator instance
-   * @param {import('@copilot-ld/librpc').LlmClient} llmClient - LLM client for judge
    * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for testing
    * @param {string} githubToken - GitHub token for API access
+   * @param {import('./judge.js').Judge} judge - Judge instance for evaluation
+   * @param {import('./metrics.js').MetricsCalculator} metrics - Metrics calculator for aggregation
+   * @param {import('./report.js').ReportGenerator} reporter - Report generator for output
    */
-  constructor(llmClient, agentClient, githubToken) {
-    if (!llmClient) throw new Error("llmClient is required");
+  constructor(agentClient, githubToken, judge, metrics, reporter) {
     if (!agentClient) throw new Error("agentClient is required");
     if (!githubToken) throw new Error("githubToken is required");
+    if (!judge) throw new Error("judge is required");
+    if (!metrics) throw new Error("metrics is required");
+    if (!reporter) throw new Error("reporter is required");
 
-    this.#judge = new Judge(llmClient, githubToken);
-    this.#metrics = new MetricsCalculator();
-    this.#reporter = new ReportGenerator();
     this.#agentClient = agentClient;
     this.#githubToken = githubToken;
+    this.#judge = judge;
+    this.#metrics = metrics;
+    this.#reporter = reporter;
   }
 
   /**

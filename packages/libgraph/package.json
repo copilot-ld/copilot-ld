@@ -22,7 +22,7 @@
   ],
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.1",
-    "@copilot-ld/libstorage": "^0.1.24",
+    "@copilot-ld/libstorage": "^0.1.25",
     "@copilot-ld/libtype": "^0.1.38",
     "n3": "^1.21.0"
   },

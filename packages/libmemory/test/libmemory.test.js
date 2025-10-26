@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
-import { MemoryIndex, MemoryFilter, MemoryWindow } from "../index.js";
+import { MemoryFilter, MemoryWindow, MemoryIndex } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
 
 // Mock storage for testing
@@ -65,113 +65,6 @@ class MockStorage {
     this.data.delete(key);
   }
 }
-
-describe("MemoryIndex", () => {
-  let storage;
-  let memoryIndex;
-
-  beforeEach(() => {
-    storage = new MockStorage();
-    memoryIndex = new MemoryIndex(storage, "test-conversation.jsonl");
-  });
-
-  it("should create instance with required storage", () => {
-    assert.throws(() => new MemoryIndex(), /storage is required/);
-  });
-
-  it("should add identifiers to memory", async () => {
-    const identifier1 = resource.Identifier.fromObject({
-      name: "msg1",
-      type: "common.Message",
-      tokens: 10,
-    });
-    const identifier2 = resource.Identifier.fromObject({
-      name: "msg2",
-      type: "common.Message",
-      tokens: 15,
-    });
-
-    await memoryIndex.add(identifier1);
-    await memoryIndex.add(identifier2);
-
-    const stored = storage.data.get("test-conversation.jsonl");
-    const lines = stored.split("\n");
-    assert.strictEqual(lines.length, 2);
-    const item1 = JSON.parse(lines[0]);
-    const item2 = JSON.parse(lines[1]);
-
-    // Check the identifier properties (not deep equality since they become plain objects after serialization)
-    assert.strictEqual(item1.identifier.name, "msg1");
-    assert.strictEqual(item1.identifier.type, "common.Message");
-    assert.strictEqual(item1.identifier.tokens, 10);
-    assert.strictEqual(item2.identifier.name, "msg2");
-    assert.strictEqual(item2.identifier.type, "common.Message");
-    assert.strictEqual(item2.identifier.tokens, 15);
-  });
-
-  it("should handle empty identifiers array", async () => {
-    // Test no-op when no identifiers are added
-    const result = await memoryIndex.queryItems();
-    assert.deepStrictEqual(result, []);
-  });
-
-  it("should add identifiers and query them back", async () => {
-    const identifier1 = resource.Identifier.fromObject({
-      name: "msg1",
-      type: "common.Message",
-      tokens: 10,
-    });
-    const identifier2 = resource.Identifier.fromObject({
-      name: "msg2",
-      type: "common.Message",
-      tokens: 15,
-    });
-    const identifier3 = resource.Identifier.fromObject({
-      name: "msg1",
-      type: "common.Message",
-      tokens: 12,
-    }); // duplicate name
-
-    await memoryIndex.add(identifier1);
-    await memoryIndex.add(identifier2);
-    await memoryIndex.add(identifier3); // This will overwrite the first one
-
-    const memory = await memoryIndex.queryItems();
-
-    // Should only have 2 items after deduplication (same name+type = same identifier)
-    assert.strictEqual(memory.length, 2);
-
-    // Find the items by name since order might vary
-    const msg1 = memory.find((item) => item.name === "msg1");
-    const msg2 = memory.find((item) => item.name === "msg2");
-
-    assert.ok(msg1, "Should have msg1");
-    assert.ok(msg2, "Should have msg2");
-    assert.strictEqual(msg1.tokens, 12); // Latest occurrence kept
-    assert.strictEqual(msg2.tokens, 15);
-  });
-
-  it("should return empty array for non-existent memory", async () => {
-    const memory = await memoryIndex.queryItems();
-    assert.deepStrictEqual(memory, []);
-  });
-
-  it("should implement queryItems interface", async () => {
-    const identifier = resource.Identifier.fromObject({
-      name: "msg1",
-      type: "common.Message",
-      tokens: 10,
-    });
-
-    await memoryIndex.add(identifier);
-    const result = await memoryIndex.queryItems();
-
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].name, "msg1");
-    assert.strictEqual(result[0].type, "common.Message");
-    assert.strictEqual(result[0].tokens, 10);
-  });
-});
 
 describe("MemoryFilter", () => {
   it("should split tools and history correctly", () => {

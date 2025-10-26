@@ -2,6 +2,9 @@
 
 ## 2025-10-26
 
+- Fixed NPM workspace configuration by adding `html-validate` dependency and
+  removing unused `glob` and `@aws-sdk/client-cloudformation` dependencies from
+  `package.json`
 - Moved evaluation functionality to `@copilot-ld/libeval` package for
   reusability
 

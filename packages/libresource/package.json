@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "@copilot-ld/libcopilot": "^0.1.39",
-    "@copilot-ld/libpolicy": "^0.1.23",
-    "@copilot-ld/libstorage": "^0.1.24",
+    "@copilot-ld/libpolicy": "^0.1.24",
+    "@copilot-ld/libstorage": "^0.1.25",
     "@copilot-ld/libtype": "^0.1.38",
     "@copilot-ld/libutil": "^0.1.35"
   },

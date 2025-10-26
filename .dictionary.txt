@@ -67,6 +67,7 @@ MinIO
 N3
 NACLs
 Node.js
+NPM
 OAuth
 OIDC
 OOP

@@ -15,7 +15,7 @@ async function main() {
   const configStorage = createStorage("config");
   const logger = createLogger("assistants");
 
-  const resourceIndex = createResourceIndex();
+  const resourceIndex = createResourceIndex("resources");
 
   // Process assistants using AssistantProcessor
   const assistantProcessor = new AssistantProcessor(

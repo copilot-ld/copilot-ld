@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-10-24
+
+- **BREAKING**: Enhanced error handling in `filterByBudget()` to throw error
+  when identifier missing `tokens` field
+- **REFACTOR**: Migrated from `@copilot-ld/libutil` to `@copilot-ld/libindex`
+  for `IndexBase` functionality
+
+## 2025-10-18
+
+- **BREAKING**: Renamed `MemoryIndex.addItem()` to `add()` for consistency with
+  `IndexInterface`
+
 ## 2025-10-19
 
 - Bump version

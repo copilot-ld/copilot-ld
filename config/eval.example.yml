@@ -1,0 +1,437 @@
+# BioNova Evaluation Cases
+
+# ==============================================================================
+# Scenario 1: Scientific Knowledge Base (Vector Search)
+# ==============================================================================
+
+vector_drug_formulation:
+  query: "How to optimize drug formulation"
+  expectedTopics:
+    - pharmaceutical development processes
+    - bioavailability optimization techniques
+    - drug delivery system design
+    - formulation chemistry concepts
+  groundTruth: |
+    Drug formulation optimization involves several key aspects: developing effective 
+    pharmaceutical formulations that maximize bioavailability, designing appropriate 
+    drug delivery systems to ensure therapeutic efficacy, and applying formulation 
+    chemistry principles to create stable and effective medications.
+
+vector_clinical_trial_safety:
+  query: "Managing adverse events in clinical trials"
+  expectedTopics:
+    - pharmacovigilance procedures
+    - patient safety protocols
+    - clinical trial monitoring
+    - adverse event reporting requirements
+  groundTruth: |
+    Managing adverse events in clinical trials requires comprehensive pharmacovigilance 
+    procedures, strict patient safety protocols, continuous clinical trial monitoring, 
+    and timely adverse event reporting to regulatory authorities. Patient safety is 
+    the primary concern in all clinical trial conduct.
+
+vector_cancer_treatment:
+  query: "cancer treatment options"
+  expectedTopics:
+    - oncology therapies and medications
+    - tumor treatment approaches
+    - cancer drug development
+    - therapeutic interventions
+  groundTruth: |
+    Cancer treatment encompasses various oncology therapies including chemotherapy, 
+    immunotherapy, and targeted therapies. Tumor treatment approaches vary based on 
+    cancer type and stage. Modern cancer drug development focuses on precision medicine 
+    and personalized therapeutic interventions.
+
+vector_drug_mechanisms:
+  query: "How do drugs work in the body?"
+  expectedTopics:
+    - drug mechanisms of action
+    - pharmacokinetics
+    - pharmacodynamics
+    - therapeutic effects
+  groundTruth: |
+    Drugs work in the body through specific mechanisms of action that produce therapeutic 
+    effects. Pharmacokinetics describes how the body processes drugs (absorption, 
+    distribution, metabolism, excretion), while pharmacodynamics explains how drugs 
+    affect the body at molecular and cellular levels.
+
+# ==============================================================================
+# Scenario 2: Organizational Intelligence (Graph Traversal)
+# ==============================================================================
+
+graph_cso_reports:
+  query: "Find all people who report to the Chief Scientific Officer"
+  expectedTopics:
+    - CSO direct reports
+    - R&D department heads
+    - organizational reporting chain
+    - research leadership
+  groundTruth: |
+    The Chief Scientific Officer oversees the Research & Development department, 
+    including direct reports who lead various R&D teams such as Drug Discovery, 
+    Preclinical Research, and Clinical Development. The organizational structure 
+    includes multiple levels of research leadership.
+
+graph_rd_projects:
+  query: "Find all projects involving the R&D Drug Discovery team"
+  expectedTopics:
+    - drug discovery projects
+    - cross-functional project relationships
+    - R&D team involvement
+    - project membership
+  groundTruth: |
+    The R&D Drug Discovery team participates in multiple projects including drug 
+    development initiatives, research collaborations, and cross-functional programs 
+    that span discovery, preclinical, and clinical phases of pharmaceutical development.
+
+graph_gmp_training:
+  query: "Find attendees of GMP Training who work in Manufacturing"
+  expectedTopics:
+    - manufacturing department personnel
+    - GMP certification participants
+    - training attendance records
+    - quality assurance roles
+  groundTruth: |
+    Manufacturing department personnel regularly attend GMP (Good Manufacturing Practice) 
+    Training as part of compliance requirements. Attendees include manufacturing 
+    technicians, quality assurance specialists, and production managers who must 
+    maintain GMP certification.
+
+graph_platform_dependencies:
+  query:
+    "Find all people involved in projects that depend on the MolecularForge
+    platform"
+  expectedTopics:
+    - MolecularForge users
+    - dependent platforms
+    - project team members
+    - technology dependencies
+  groundTruth: |
+    MolecularForge is a foundational AI platform for drug discovery. Multiple teams 
+    use this platform across R&D projects, and several other technology platforms 
+    depend on MolecularForge capabilities. Project teams span multiple departments 
+    including drug discovery, preclinical research, and computational chemistry.
+
+graph_bionova_services:
+  query: "What services does BioNova offer to external clients?"
+  expectedTopics:
+    - contract manufacturing services
+    - clinical trial conduct services
+    - regulatory consulting
+    - CRO and CMO capabilities
+  groundTruth: |
+    BioNova offers external services including Contract Manufacturing Organization (CMO) 
+    capabilities for pharmaceutical production, Clinical Research Organization (CRO) 
+    services for clinical trial conduct, and regulatory consulting services to help 
+    other companies navigate FDA approval processes.
+
+graph_platform_users:
+  query: "Which teams use the MolecularForge platform?"
+  expectedTopics:
+    - R&D Drug Discovery team
+    - computational chemistry teams
+    - AI platform users
+    - cross-department technology usage
+  groundTruth: |
+    MolecularForge is primarily used by the R&D Drug Discovery team for AI-powered 
+    molecular modeling and compound screening. Additional teams across computational 
+    chemistry and preclinical research also utilize the platform's capabilities.
+
+graph_clinical_sites:
+  query: "List all clinical trial sites and their locations"
+  expectedTopics:
+    - medical organizations
+    - trial site locations
+    - clinical trial conduct
+    - geographic distribution
+  groundTruth: |
+    BioNova conducts clinical trials at multiple medical organization sites across 
+    various geographic locations. These sites include academic medical centers, 
+    community hospitals, and specialized research facilities that participate in 
+    Phase I, II, and III clinical trials.
+
+# ==============================================================================
+# Scenario 3: Drug Development Pipeline (Hybrid Approach)
+# ==============================================================================
+
+hybrid_cardiovascular_drug:
+  query: "How does the drug work for cardiovascular disease"
+  expectedTopics:
+    - cardiovascular drug mechanisms
+    - therapeutic effects on heart disease
+    - clinical efficacy
+    - pharmacological action
+  groundTruth: |
+    Cardiovascular drugs work through various mechanisms to treat heart disease, 
+    including modulating blood pressure, improving cardiac contractility, reducing 
+    cholesterol, and preventing blood clots. Therapeutic effects target specific 
+    pathways to improve cardiovascular outcomes and patient survival.
+
+hybrid_oncora_pipeline:
+  query: "What drugs depend on successful Phase III trials of Oncora?"
+  expectedTopics:
+    - drug pipeline dependencies
+    - clinical development stages
+    - oncology drug relationships
+    - development sequencing
+  groundTruth: |
+    Several drugs in the BioNova pipeline have dependencies on Oncora's Phase III 
+    trial success, particularly combination therapies and next-generation oncology 
+    treatments. Pipeline dependencies ensure that promising therapeutic approaches 
+    build on validated mechanisms and clinical evidence.
+
+hybrid_oncology_docs:
+  query: "Find clinical documentation for drugs in the oncology pipeline"
+  expectedTopics:
+    - oncology clinical trials
+    - drug development documents
+    - cancer treatment protocols
+    - clinical study reports
+  groundTruth: |
+    The oncology pipeline includes comprehensive clinical documentation covering 
+    trial protocols, investigator brochures, clinical study reports, and regulatory 
+    submissions. Documentation spans multiple development stages from early clinical 
+    trials through late-phase pivotal studies.
+
+hybrid_immunex_dependencies:
+  query:
+    "What clinical evidence supports drugs required for Immunex-Plus
+    development?"
+  expectedTopics:
+    - combination therapy evidence
+    - drug dependency relationships
+    - clinical trial data
+    - therapeutic rationale
+  groundTruth: |
+    Immunex-Plus development depends on clinical evidence from both Immunex and 
+    Cardiozen trials. The combination therapy rationale is supported by preclinical 
+    data showing synergistic effects and clinical evidence demonstrating complementary 
+    mechanisms of action. Both component drugs require successful clinical validation.
+
+# ==============================================================================
+# Scenario 4: Certification Learning Paths (Graph Traversal)
+# ==============================================================================
+
+graph_regulatory_prerequisites:
+  query:
+    "What courses must I complete before Regulatory Affairs and FDA Submissions?"
+  expectedTopics:
+    - prerequisite courses
+    - certification path requirements
+    - regulatory training sequence
+    - foundation courses
+  groundTruth: |
+    Before taking Regulatory Affairs and FDA Submissions, learners must complete 
+    prerequisite courses including foundation-level pharmaceutical regulations, 
+    quality management systems fundamentals, and good documentation practices. 
+    The certification path follows a structured sequence from basic to advanced topics.
+
+graph_manufacturing_certification:
+  query: "Find all courses in the Manufacturing Excellence certification track"
+  expectedTopics:
+    - manufacturing certification courses
+    - GMP training
+    - quality assurance courses
+    - production excellence path
+  groundTruth: |
+    The Manufacturing Excellence certification track includes courses on Good 
+    Manufacturing Practices (GMP), quality systems, process validation, equipment 
+    qualification, and continuous improvement. The complete track prepares personnel 
+    for manufacturing leadership roles.
+
+graph_gmp_content:
+  query: "Find content about GMP compliance training"
+  expectedTopics:
+    - Good Manufacturing Practices
+    - compliance requirements
+    - quality standards
+    - regulatory guidelines
+  groundTruth: |
+    GMP compliance training covers Good Manufacturing Practice requirements, quality 
+    standards for pharmaceutical production, regulatory guidelines from FDA and other 
+    authorities, and practical application of GMP principles in manufacturing operations. 
+    Training ensures personnel understand and follow quality requirements.
+
+# ==============================================================================
+# Scenario 5: Regulatory Compliance (Hybrid Approach)
+# ==============================================================================
+
+hybrid_fda_policies:
+  query: "Find all policies required for FDA compliance"
+  expectedTopics:
+    - FDA regulatory requirements
+    - quality management policies
+    - compliance procedures
+    - regulatory submissions
+  groundTruth: |
+    FDA compliance requires comprehensive quality management policies covering drug 
+    development, manufacturing, and distribution. Key policies include quality systems, 
+    current Good Manufacturing Practices (cGMP), clinical trial conduct, pharmacovigilance, 
+    and regulatory submission procedures.
+
+hybrid_clinical_trial_policy:
+  query: "What policies does Clinical Trial Policy depend on?"
+  expectedTopics:
+    - policy dependencies
+    - regulatory framework
+    - quality management system
+    - compliance hierarchy
+  groundTruth: |
+    Clinical Trial Policy depends on foundational policies including the Master Quality 
+    Management System Policy, Human Subjects Protection Policy, Data Integrity Policy, 
+    and Pharmacovigilance Policy. These dependencies ensure comprehensive compliance 
+    across all clinical research activities.
+
+hybrid_patient_data:
+  query: "Find content about patient data protection requirements"
+  expectedTopics:
+    - HIPAA compliance
+    - data privacy
+    - patient confidentiality
+    - information security
+  groundTruth: |
+    Patient data protection requires HIPAA compliance for privacy and security of 
+    protected health information (PHI). Requirements include secure data storage, 
+    access controls, encryption, audit trails, breach notification procedures, and 
+    training for all personnel handling patient information.
+
+# ==============================================================================
+# Scenario 6: Technology Platform Ecosystem (Hybrid Approach)
+# ==============================================================================
+
+hybrid_ai_molecular_modeling:
+  query: "How to use AI for molecular modeling"
+  expectedTopics:
+    - MolecularForge capabilities
+    - AI drug discovery
+    - computational chemistry
+    - machine learning applications
+  groundTruth: |
+    AI molecular modeling uses machine learning to predict molecular properties, 
+    optimize drug candidates, and simulate molecular interactions. MolecularForge 
+    platform provides AI-powered capabilities for compound screening, structure-activity 
+    relationship prediction, and computational chemistry workflows in drug discovery.
+
+hybrid_molecularforge_deps:
+  query: "What platforms depend on MolecularForge?"
+  expectedTopics:
+    - platform dependencies
+    - technology integration
+    - system architecture
+    - dependent systems
+  groundTruth: |
+    Several platforms depend on MolecularForge including compound screening systems, 
+    preclinical modeling tools, and integrated drug discovery platforms. These 
+    dependencies reflect MolecularForge's role as a foundational AI capability that 
+    enables advanced computational chemistry across the technology ecosystem.
+
+hybrid_clinical_platforms:
+  query: "Find documentation for platforms supporting clinical trial management"
+  expectedTopics:
+    - clinical trial systems
+    - patient management
+    - data collection platforms
+    - trial operations technology
+  groundTruth: |
+    Clinical trial management platforms support patient recruitment, data collection, 
+    study monitoring, and regulatory compliance. Documentation covers system capabilities, 
+    integration points, user workflows, and compliance features for managing all 
+    aspects of clinical trial operations.
+
+# ==============================================================================
+# Scenario 7: Error Handling and Edge Cases
+# ==============================================================================
+
+edge_nonexistent_drug:
+  query: "Find information about drug XYZ-999"
+  expectedTopics:
+    - drug not found response
+    - knowledge base limitations
+    - no fabricated information
+  groundTruth: |
+    The system should indicate that drug XYZ-999 is not found in the knowledge base 
+    without fabricating information. If similar drugs exist, the system may suggest 
+    them, but should clearly state that the requested drug is not available in the 
+    current dataset.
+
+edge_ambiguous_apollo:
+  query: "Find all connections to Apollo"
+  expectedTopics:
+    - multiple relationship types
+    - organizational connections
+    - comprehensive results
+    - role relationships
+  groundTruth: |
+    Apollo has multiple types of connections including CEO role relationships, 
+    organizational structure connections, and project involvement. The system should 
+    return comprehensive results covering different connection types and clearly 
+    categorize them without omitting valid relationships.
+
+edge_empty_query:
+  query: ""
+  expectedTopics:
+    - error handling
+    - helpful guidance
+    - no fabrication
+  groundTruth: |
+    Empty queries should be handled gracefully with helpful error messages that guide 
+    users on how to formulate valid queries. The system should not crash, timeout, 
+    or fabricate placeholder responses. Clear guidance helps users understand expected 
+    input formats.
+
+edge_person_vs_drug:
+  query: "What drugs does Chronos work on?"
+  expectedTopics:
+    - entity type disambiguation
+    - person-to-project relationships
+    - indirect drug connections
+    - relationship traversal
+  groundTruth: |
+    Chronos is a person, not a drug. The system should correctly identify the entity 
+    type and find projects that Chronos works on, then identify drugs related to 
+    those projects. This requires proper entity typing and multi-hop relationship 
+    traversal from person to projects to drugs.
+
+edge_nonexistent_relationship:
+  query: "Find all people who report to Demeter"
+  expectedTopics:
+    - manager role identification
+    - direct reports
+    - no fabricated relationships
+    - accurate hierarchy
+  groundTruth: |
+    Demeter should be correctly identified by role (Manager vs Director) and the 
+    system should return actual team members if they exist, or clearly state if 
+    there are no direct reports. The system must not create non-existent reporting 
+    relationships to fill gaps.
+
+edge_circular_deps:
+  query:
+    "What platforms depend on ManufacturingOS and what does ManufacturingOS
+    depend on?"
+  expectedTopics:
+    - dependency direction
+    - no circular references
+    - correct dependency graph
+    - bidirectional query handling
+  groundTruth: |
+    ManufacturingOS has dependencies on other platforms like ProcessControl and 
+    BioAnalyzer. The system should maintain correct dependency direction and not 
+    show circular dependencies. Bidirectional queries should be handled without 
+    confusion, showing what ManufacturingOS requires and what requires ManufacturingOS.
+
+edge_self_referential:
+  query:
+    "What are the prerequisites for the Master Quality Management System Policy?"
+  expectedTopics:
+    - root policy identification
+    - no self-reference
+    - hierarchy clarity
+    - dependent policies
+  groundTruth: |
+    The Master Quality Management System Policy is the top-level root policy with 
+    no prerequisites. The system should correctly identify it as the root of the 
+    policy hierarchy and not return itself as a prerequisite. It may show what 
+    policies depend on it (reverse relationship) but should never show circular or 
+    self-referential relationships.

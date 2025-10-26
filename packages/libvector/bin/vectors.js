@@ -16,7 +16,7 @@ async function main() {
   const config = await ScriptConfig.create("vectors");
   const vectorStorage = createStorage("vectors");
 
-  const resourceIndex = createResourceIndex();
+  const resourceIndex = createResourceIndex("resources");
   const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
   const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
   const llm = createLlm(await config.githubToken());

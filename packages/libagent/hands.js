@@ -146,13 +146,19 @@ export class AgentHands {
     // Add the assistant's message with tool calls to conversation
     messages.push(choiceWithToolCalls.message);
 
-    // Execute each tool call and collect results
+    // Calculate per-tool token limit to prevent message bloat
+    // Divide token budget fairly across all tool calls before service execution
+    const toolCallCount = choiceWithToolCalls.message.tool_calls.length;
+    const perToolLimit = Math.floor(maxTokens / toolCallCount);
+
+    // Execute each tool call with allocated budget
     for (const toolCall of choiceWithToolCalls.message.tool_calls) {
       const toolResult = await this.executeToolCall(
         toolCall,
-        maxTokens,
+        perToolLimit,
         githubToken,
       );
+
       messages.push(toolResult.message);
     }
   }

@@ -11,6 +11,14 @@ export class ReleaseBumper {
   #readdirSync;
   #workingDir;
 
+  /**
+   * Creates a new ReleaseBumper instance
+   * @param {Function} execSyncFn - Function to execute shell commands synchronously
+   * @param {Function} readFileSyncFn - Function to read files synchronously
+   * @param {Function} writeFileSyncFn - Function to write files synchronously
+   * @param {Function} readdirSyncFn - Function to read directory contents synchronously
+   * @param {string} workingDir - Working directory for operations
+   */
   constructor(
     execSyncFn,
     readFileSyncFn,
@@ -58,6 +66,14 @@ export class ReleaseBumper {
     return results;
   }
 
+  /**
+   * Bumps a package version recursively with its dependents
+   * @param {string} bumpType - Type of version bump
+   * @param {string} item - Package path to bump
+   * @param {Array} results - Array to collect bump results
+   * @param {Set} processed - Set of already processed items
+   * @param {object} options - Bump options
+   */
   async #bumpRecursively(bumpType, item, results, processed, options) {
     if (processed.has(item)) return;
     processed.add(item);
@@ -113,6 +129,11 @@ export class ReleaseBumper {
     }
   }
 
+  /**
+   * Finds all packages that depend on the specified package
+   * @param {string} packageName - Name of the package
+   * @returns {string[]} Array of dependent package paths
+   */
   #findDependents(packageName) {
     const dependents = [];
     for (const dir of ["packages", "services", "extensions", "tools"]) {
@@ -144,6 +165,12 @@ export class ReleaseBumper {
     return dependents;
   }
 
+  /**
+   * Updates a dependency version in a package
+   * @param {string} packagePath - Path to the package
+   * @param {string} dependencyName - Name of the dependency to update
+   * @param {string} newVersion - New version to set
+   */
   #updateDependency(packagePath, dependencyName, newVersion) {
     const packageJsonPath = join(packagePath, "package.json");
     const absolutePackageJsonPath = join(this.#workingDir, packageJsonPath);

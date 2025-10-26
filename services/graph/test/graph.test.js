@@ -49,7 +49,7 @@ describe("graph service", () => {
       };
 
       mockResourceIndex = {
-        get: async (actor, ids) =>
+        get: async (ids, _actor) =>
           ids.map((id) => {
             const content = { text: `Content for ${id}` };
             content.toString = function () {

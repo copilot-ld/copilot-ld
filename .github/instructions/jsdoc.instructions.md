@@ -22,6 +22,8 @@ documentation that provides excellent IDE support.
    uniform developer experience
 5. **Complete Coverage**: All public functions, methods, and classes must have
    comprehensive JSDoc documentation
+6. **Private Method Documentation**: All private methods (prefixed with `#`)
+   must have at least a description comment block explaining their purpose
 
 ## Implementation Requirements
 
@@ -64,6 +66,63 @@ export class FileStorage {
    */
   async put(key, data) {
     // implementation
+  }
+}
+```
+
+### Private Method Documentation Requirements
+
+All private methods (those starting with `#`) must have at least a description
+explaining their purpose. While `@param` and `@returns` annotations are optional
+for private methods, the description is mandatory:
+
+**✅ CORRECT - Private method with description only:**
+
+```javascript
+/* eslint-disable no-unused-private-class-members */
+class ResourceProcessor {
+  #baseIri;
+
+  /** Extracts the base IRI from DOM or uses fallback */
+  #extractBaseIri(dom, key) {
+    const baseElement = dom.window.document.querySelector("base[href]");
+    return baseElement?.getAttribute("href") || this.#baseIri;
+  }
+
+  /** Calculates cosine similarity between two vectors */
+  #calculateSimilarity(a, b) {
+    // Implementation
+    return 0.5;
+  }
+}
+```
+
+**✅ ALSO CORRECT - Private method with full documentation:**
+
+```javascript
+/* eslint-disable no-unused-private-class-members */
+class ResourceProcessor {
+  /**
+   * Groups RDF quads by their schema.org typed items
+   * @param {Array} allQuads - Complete set of RDF quads from HTML
+   * @returns {Map<string, Array>} Map of item IRIs to their related quads
+   */
+  #groupQuadsByItem(allQuads) {
+    // Implementation
+    return new Map();
+  }
+}
+```
+
+**❌ INCORRECT - Missing documentation:**
+
+```javascript
+/* eslint-disable no-unused-private-class-members */
+class ResourceProcessor {
+  #extractBaseIri(dom, key) {
+    // No JSDoc comment - ESLint will error
+    const baseElement = dom.window.document.querySelector("base[href]");
+    return baseElement?.getAttribute("href");
   }
 }
 ```
@@ -130,8 +189,9 @@ function createService(options) {
    descriptions, @param, @returns, and @throws annotations
 2. **Constructor Documentation**: Constructors must document all parameters with
    types and descriptions
-3. **Private Methods**: Private methods should have documentation explaining
-   their purpose within the implementation
+3. **Private Methods**: Private methods must have at least a description
+   explaining their purpose. Full `@param` and `@returns` annotations are
+   optional but recommended for complex private methods
 4. **Consistency**: Use consistent terminology and patterns across similar
    methods
 
@@ -226,6 +286,8 @@ function createCache(storage) {
 7. **DO NOT** commit code with ESLint JSDoc warnings
 8. **DO NOT** use concrete class unions (like `LocalStorage|S3Storage`) when an
    interface is available (use `StorageInterface` instead)
+9. **DO NOT** leave private methods undocumented - all private methods must have
+   at least a description comment
 
 ### Alternative Approaches
 
@@ -237,6 +299,8 @@ function createCache(storage) {
 - Instead of vague descriptions → Write clear, specific behavior descriptions
 - Instead of generic Function types → Use detailed function signatures with
   TypeScript-style syntax
+- Instead of undocumented private methods → Add at least a description comment
+  explaining the method's purpose
 
 ## Comprehensive Examples
 
@@ -331,16 +395,83 @@ export class VectorIndex {
     this.#vectors.set(id, { embedding, metadata });
   }
 
-  /**
-   * Private method for calculating similarity scores
-   * @param {number[]} a - First vector
-   * @param {number[]} b - Second vector
-   * @returns {number} Cosine similarity score
-   * @private
-   */
+  /** Calculates cosine similarity between two vectors */
   #calculateSimilarity(a, b) {
     // Calculate cosine similarity
     return 0.5;
+  }
+}
+```
+
+### Private Method Documentation Example
+
+```javascript
+/* eslint-env node */
+/* eslint-disable no-unused-private-class-members */
+import { minify } from "html-minifier-terser";
+
+/**
+ * Resource processor for batch processing HTML files
+ */
+export class ResourceProcessor {
+  #resourceIndex;
+  #knowledgeStorage;
+  #baseIri;
+
+  constructor(baseIri, resourceIndex, knowledgeStorage) {
+    this.#baseIri = baseIri;
+    this.#resourceIndex = resourceIndex;
+    this.#knowledgeStorage = knowledgeStorage;
+  }
+
+  /**
+   * Process all HTML files in knowledge storage
+   * @param {string} extension - File extension to filter by
+   * @returns {Promise<void>}
+   */
+  async process(extension = ".html") {
+    const keys = await this.#knowledgeStorage.findByExtension(extension);
+    for (const key of keys) {
+      const items = await this.#parseHTML(key);
+      await this.#processItems(items);
+    }
+  }
+
+  /** Extracts base IRI from DOM or uses configured fallback */
+  #extractBaseIri(dom, key) {
+    const baseElement = dom.window.document.querySelector("base[href]");
+    return baseElement?.getAttribute("href") || this.#baseIri;
+  }
+
+  /**
+   * Minifies HTML content for efficient processing
+   * @param {string} html - Raw HTML content
+   * @returns {Promise<string>} Minified HTML
+   */
+  async #minifyHTML(html) {
+    return await minify(html, {
+      collapseWhitespace: true,
+      removeComments: true,
+    });
+  }
+
+  /** Parses HTML and extracts RDF items */
+  async #parseHTML(key) {
+    const html = await this.#knowledgeStorage.get(key);
+    const minified = await this.#minifyHTML(html);
+    return this.#extractItems(minified);
+  }
+
+  /** Extracts structured items from HTML content */
+  #extractItems(html) {
+    return [];
+  }
+
+  /** Processes extracted items and stores in index */
+  async #processItems(items) {
+    for (const item of items) {
+      await this.#resourceIndex.put(item);
+    }
   }
 }
 ```

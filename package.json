@@ -15,8 +15,8 @@
     "scripts"
   ],
   "scripts": {
-    "data:init": "mkdir -p generated data/memories data/policies data/resources data/graphs data/vectors",
-    "data:clean": "rm -rf generated data/memories data/policies data/resources data/graphs data/vectors",
+    "data:init": "mkdir -p generated data/eval data/memories data/policies data/resources data/graphs data/vectors",
+    "data:clean": "rm -rf generated data/eval data/memories data/policies data/resources data/graphs data/vectors",
     "data:reset": "npm run data:clean && npm run data:init && npm run codegen",
     "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
     "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
@@ -54,6 +54,9 @@
     "check": "npm run spellcheck && npm run format && npm run lint",
     "check:fix": "npm run spellcheck && npm run format:fix && npm run lint:fix",
     "security": "npm audit --audit-level=low --workspaces",
+    "validate:html": "find eval/output -name '*.html' | node scripts/validate.js",
+    "eval": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- npx --workspace=@copilot-ld/libeval evaluation",
+    "eval:reset": "rm -rf data/eval && mkdir -p data/eval",
     "chat": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/chat.js",
     "search": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/search.js",
     "query": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/query.js"
@@ -69,6 +72,7 @@
     "globals": "^16.3.0",
     "gray-matter": "^4.0.3",
     "html-minifier-terser": "^7.2.0",
+    "html-validate": "^9.7.1",
     "marked": "^14.1.0",
     "marked-gfm-heading-id": "^4.1.0",
     "marked-highlight": "^2.1.0",

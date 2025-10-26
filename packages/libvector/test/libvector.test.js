@@ -26,19 +26,19 @@ describe("libvector", () => {
       assert.strictEqual(vectorIndex.storage(), mockStorage);
     });
 
-    test("addItem adds new vector", async () => {
+    test("add adds new vector", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "Message",
         name: "test-1",
         tokens: 10,
       });
-      await vectorIndex.addItem(identifier, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier, [0.1, 0.2, 0.3]);
 
       // Verify item was added by checking internal state using URI
-      assert(await vectorIndex.hasItem("Message.test-1"));
+      assert(await vectorIndex.has("Message.test-1"));
     });
 
-    test("addItem updates existing vector", async () => {
+    test("add updates existing vector", async () => {
       const identifier1 = resource.Identifier.fromObject({
         type: "Message",
         name: "test-1",
@@ -49,26 +49,26 @@ describe("libvector", () => {
         name: "test-1",
         tokens: 20,
       });
-      await vectorIndex.addItem(identifier1, [0.1, 0.2, 0.3]);
-      await vectorIndex.addItem(identifier2, [0.4, 0.5, 0.6]);
+      await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier2, [0.4, 0.5, 0.6]);
 
-      assert(await vectorIndex.hasItem("Message.test-1"));
+      assert(await vectorIndex.has("Message.test-1"));
     });
 
-    test("hasItem returns true for existing item", async () => {
+    test("has returns true for existing item", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "Message",
         name: "test-1",
       });
-      await vectorIndex.addItem(identifier, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier, [0.1, 0.2, 0.3]);
 
-      const exists = await vectorIndex.hasItem("Message.test-1");
+      const exists = await vectorIndex.has("Message.test-1");
 
       assert.strictEqual(exists, true);
     });
 
-    test("hasItem returns false for non-existing item", async () => {
-      const exists = await vectorIndex.hasItem("Message.non-existent");
+    test("has returns false for non-existing item", async () => {
+      const exists = await vectorIndex.has("Message.non-existent");
 
       assert.strictEqual(exists, false);
     });
@@ -101,7 +101,7 @@ describe("libvector", () => {
 
       // Should not throw and should initialize empty index
       assert.strictEqual(mockStorage.exists.mock.callCount(), 1);
-      assert.strictEqual(await vectorIndex.hasItem("Message.any-id"), false);
+      assert.strictEqual(await vectorIndex.has("Message.any-id"), false);
     });
 
     test("queryItems returns similar vectors", async () => {
@@ -123,8 +123,8 @@ describe("libvector", () => {
         name: "different",
         tokens: 15,
       });
-      await vectorIndex.addItem(identifier1, normalize([0.1, 0.2, 0.3]));
-      await vectorIndex.addItem(identifier2, normalize([0.9, 0.8, 0.7]));
+      await vectorIndex.add(identifier1, normalize([0.1, 0.2, 0.3]));
+      await vectorIndex.add(identifier2, normalize([0.9, 0.8, 0.7]));
 
       const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
         threshold: 0.8,
@@ -155,8 +155,8 @@ describe("libvector", () => {
         name: "item2",
         tokens: 15,
       });
-      await vectorIndex.addItem(identifier1, normalize([0.1, 0.2, 0.3]));
-      await vectorIndex.addItem(identifier2, normalize([0.9, 0.8, 0.7]));
+      await vectorIndex.add(identifier1, normalize([0.1, 0.2, 0.3]));
+      await vectorIndex.add(identifier2, normalize([0.9, 0.8, 0.7]));
 
       const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
         threshold: 0.9,
@@ -182,9 +182,9 @@ describe("libvector", () => {
         name: "item3",
         tokens: 20,
       });
-      await vectorIndex.addItem(identifier1, [0.1, 0.2, 0.3]);
-      await vectorIndex.addItem(identifier2, [0.2, 0.3, 0.4]);
-      await vectorIndex.addItem(identifier3, [0.3, 0.4, 0.5]);
+      await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier2, [0.2, 0.3, 0.4]);
+      await vectorIndex.add(identifier3, [0.3, 0.4, 0.5]);
 
       const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
         threshold: 0,
@@ -202,7 +202,7 @@ describe("libvector", () => {
         name: "item1",
         tokens: 10,
       });
-      await vectorIndex.addItem(identifier, [0.9, 0.8, 0.7]);
+      await vectorIndex.add(identifier, [0.9, 0.8, 0.7]);
 
       const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
         threshold: 0.9,
@@ -225,7 +225,7 @@ describe("libvector", () => {
         name: "test-id",
         tokens: 42,
       });
-      await vectorIndex.addItem(identifier, normalize([0.1, 0.2, 0.3]));
+      await vectorIndex.add(identifier, normalize([0.1, 0.2, 0.3]));
 
       const results = await vectorIndex.queryItems(normalize([0.1, 0.2, 0.3]), {
         threshold: 0,
@@ -248,8 +248,8 @@ describe("libvector", () => {
         name: "item2",
         tokens: 15,
       });
-      await vectorIndex.addItem(identifier1, [0.1, 0.2, 0.3]);
-      await vectorIndex.addItem(identifier2, [0.2, 0.3, 0.4]);
+      await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier2, [0.2, 0.3, 0.4]);
 
       const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
         threshold: 0,
@@ -269,8 +269,8 @@ describe("libvector", () => {
         name: "item2",
         tokens: 15,
       });
-      await vectorIndex.addItem(identifier1, [0.1, 0.2, 0.3]);
-      await vectorIndex.addItem(identifier2, [0.2, 0.3, 0.4]);
+      await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier2, [0.2, 0.3, 0.4]);
 
       const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
         threshold: 0,
@@ -281,28 +281,29 @@ describe("libvector", () => {
       assert.strictEqual(results.length, 2);
     });
 
-    test("getItem returns identifier for existing item", async () => {
+    test("get returns identifier for existing item", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "Message",
         name: "test-1",
         tokens: 10,
       });
-      await vectorIndex.addItem(identifier, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier, [0.1, 0.2, 0.3]);
 
-      const result = await vectorIndex.getItem("Message.test-1");
+      const result = await vectorIndex.get(["Message.test-1"]);
 
-      assert.strictEqual(result.name, "test-1");
-      assert.strictEqual(result.type, "Message");
-      assert.strictEqual(result.tokens, 10);
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].name, "test-1");
+      assert.strictEqual(result[0].type, "Message");
+      assert.strictEqual(result[0].tokens, 10);
     });
 
-    test("getItem returns null for non-existing item", async () => {
-      const result = await vectorIndex.getItem("Message.non-existent");
+    test("get returns empty array for non-existing item", async () => {
+      const result = await vectorIndex.get(["Message.non-existent"]);
 
-      assert.strictEqual(result, null);
+      assert.strictEqual(result.length, 0);
     });
 
-    test("getItem works after loadData", async () => {
+    test("get works after loadData", async () => {
       const testData = {
         id: "Message.test-1",
         identifier: {
@@ -317,15 +318,15 @@ describe("libvector", () => {
       mockStorage.get = mock.fn(() => Promise.resolve([testData]));
 
       await vectorIndex.loadData();
-      const result = await vectorIndex.getItem("Message.test-1");
+      const result = await vectorIndex.get(["Message.test-1"]);
 
-      assert.strictEqual(result.name, "test-1");
-      assert.strictEqual(result.type, "Message");
-      assert.strictEqual(result.name, "test-1");
-      assert.strictEqual(result.tokens, 10);
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].name, "test-1");
+      assert.strictEqual(result[0].type, "Message");
+      assert.strictEqual(result[0].tokens, 10);
     });
 
-    test("getItem returns updated identifier after item update", async () => {
+    test("get returns updated identifier after item update", async () => {
       const identifier1 = resource.Identifier.fromObject({
         type: "Message",
         name: "test-1",
@@ -337,13 +338,14 @@ describe("libvector", () => {
         tokens: 20,
       });
 
-      await vectorIndex.addItem(identifier1, [0.1, 0.2, 0.3]);
-      await vectorIndex.addItem(identifier2, [0.4, 0.5, 0.6]);
+      await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
+      await vectorIndex.add(identifier2, [0.4, 0.5, 0.6]);
 
-      const result = await vectorIndex.getItem("Message.test-1");
+      const result = await vectorIndex.get(["Message.test-1"]);
 
-      assert.strictEqual(result.name, "test-1");
-      assert.strictEqual(result.tokens, 20); // Should have updated value
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].name, "test-1");
+      assert.strictEqual(result[0].tokens, 20); // Should have updated value
     });
 
     test("queryItems respects max_tokens filter - stops when limit reached", async () => {
@@ -364,9 +366,9 @@ describe("libvector", () => {
       });
 
       // Add items with identical vectors so they all match equally
-      await vectorIndex.addItem(identifier1, [1.0, 0.0, 0.0]);
-      await vectorIndex.addItem(identifier2, [1.0, 0.0, 0.0]);
-      await vectorIndex.addItem(identifier3, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(identifier1, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(identifier2, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(identifier3, [1.0, 0.0, 0.0]);
 
       // Query with max_tokens=20, should get first two items (10+15=25 > 20, so stops at first item)
       const results = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
@@ -386,7 +388,7 @@ describe("libvector", () => {
         tokens: 100,
       });
 
-      await vectorIndex.addItem(identifier, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(identifier, [1.0, 0.0, 0.0]);
 
       // Query with max_tokens=50, should return empty since first item is 100 tokens
       const results = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
@@ -414,9 +416,9 @@ describe("libvector", () => {
         tokens: 20,
       });
 
-      await vectorIndex.addItem(messageId, [1.0, 0.0, 0.0]);
-      await vectorIndex.addItem(toolId, [1.0, 0.0, 0.0]);
-      await vectorIndex.addItem(resourceId, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(messageId, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(toolId, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(resourceId, [1.0, 0.0, 0.0]);
 
       // Test different prefix filters
       const allResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
@@ -499,9 +501,9 @@ describe("libvector", () => {
         tokens: 15,
       });
 
-      await vectorIndex.addItem(msg1, [1.0, 0.0, 0.0]);
-      await vectorIndex.addItem(msg2, [1.0, 0.0, 0.0]);
-      await vectorIndex.addItem(tool1, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(msg1, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(msg2, [1.0, 0.0, 0.0]);
+      await vectorIndex.add(tool1, [1.0, 0.0, 0.0]);
 
       // Test prefix + limit filter
       const prefixLimitResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {

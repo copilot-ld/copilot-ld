@@ -21,6 +21,7 @@
     "@copilot-ld/libagent": "^0.1.4",
     "@copilot-ld/libconfig": "^0.1.28",
     "@copilot-ld/libcopilot": "^0.1.37",
+    "@copilot-ld/libeval": "file:../packages/libeval",
     "@copilot-ld/libformat": "^0.1.36",
     "@copilot-ld/libgraph": "^0.1.13",
     "@copilot-ld/libperf": "^0.1.9",

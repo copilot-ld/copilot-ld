@@ -1,10 +1,11 @@
 /* eslint-env node */
 
 import { resource } from "@copilot-ld/libtype";
-import { IndexBase } from "@copilot-ld/libutil";
+import { IndexBase } from "@copilot-ld/libindex";
 
 /**
  * VectorIndex class for managing vector data with lazy loading
+ * @implements {import("@copilot-ld/libindex").IndexInterface}
  */
 export class VectorIndex extends IndexBase {
   /**
@@ -13,14 +14,14 @@ export class VectorIndex extends IndexBase {
    * @param {number[]} vector - The vector
    * @returns {Promise<void>}
    */
-  async addItem(identifier, vector) {
+  async add(identifier, vector) {
     const item = {
       id: String(identifier),
       identifier,
       vector,
     };
 
-    await super.addItem(item);
+    await super.add(item);
   }
 
   /**

@@ -15,7 +15,7 @@ const config = await ServiceConfig.create("vector");
 const llmClient = new LlmClient(await ServiceConfig.create("llm"));
 
 // Initialize resource index
-const resourceIndex = createResourceIndex();
+const resourceIndex = createResourceIndex("resources");
 
 // Initialize vector indices
 const vectorStorage = createStorage("vectors");

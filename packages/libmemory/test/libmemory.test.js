@@ -5,11 +5,18 @@ import { MemoryIndex, MemoryFilter, MemoryWindow } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
 
 // Mock storage for testing
+/** Mock storage implementation for testing */
 class MockStorage {
+  /** Creates a new mock storage instance */
   constructor() {
     this.data = new Map();
   }
 
+  /**
+   * Gets data from storage
+   * @param {string} key - Storage key
+   * @returns {Promise<any>} Stored value
+   */
   async get(key) {
     const value = this.data.get(key);
     if (!value) throw new Error("Not found");
@@ -21,20 +28,39 @@ class MockStorage {
     return value;
   }
 
+  /**
+   * Sets data in storage
+   * @param {string} key - Storage key
+   * @param {any} value - Value to store
+   */
   async set(key, value) {
     this.data.set(key, value);
   }
 
+  /**
+   * Appends data to storage
+   * @param {string} key - Storage key
+   * @param {string} value - Value to append
+   */
   async append(key, value) {
     const existing = this.data.get(key) || "";
     const newValue = existing ? `${existing}\n${value}` : value;
     this.data.set(key, newValue);
   }
 
+  /**
+   * Checks if key exists in storage
+   * @param {string} key - Storage key
+   * @returns {Promise<boolean>} True if key exists
+   */
   async exists(key) {
     return this.data.has(key);
   }
 
+  /**
+   * Deletes data from storage
+   * @param {string} key - Storage key
+   */
   async delete(key) {
     this.data.delete(key);
   }
@@ -65,8 +91,8 @@ describe("MemoryIndex", () => {
       tokens: 15,
     });
 
-    await memoryIndex.addItem(identifier1);
-    await memoryIndex.addItem(identifier2);
+    await memoryIndex.add(identifier1);
+    await memoryIndex.add(identifier2);
 
     const stored = storage.data.get("test-conversation.jsonl");
     const lines = stored.split("\n");
@@ -106,9 +132,9 @@ describe("MemoryIndex", () => {
       tokens: 12,
     }); // duplicate name
 
-    await memoryIndex.addItem(identifier1);
-    await memoryIndex.addItem(identifier2);
-    await memoryIndex.addItem(identifier3); // This will overwrite the first one
+    await memoryIndex.add(identifier1);
+    await memoryIndex.add(identifier2);
+    await memoryIndex.add(identifier3); // This will overwrite the first one
 
     const memory = await memoryIndex.queryItems();
 
@@ -137,7 +163,7 @@ describe("MemoryIndex", () => {
       tokens: 10,
     });
 
-    await memoryIndex.addItem(identifier);
+    await memoryIndex.add(identifier);
     const result = await memoryIndex.queryItems();
 
     assert.strictEqual(result.length, 1);
@@ -247,8 +273,8 @@ describe("MemoryWindow", () => {
       tokens: 15,
     });
 
-    await memoryIndex.addItem(identifier1);
-    await memoryIndex.addItem(identifier2);
+    await memoryIndex.add(identifier1);
+    await memoryIndex.add(identifier2);
 
     await assert.rejects(
       () => memoryWindow.build(),
@@ -282,10 +308,10 @@ describe("MemoryWindow", () => {
       score: 0.6,
     });
 
-    await memoryIndex.addItem(tool1);
-    await memoryIndex.addItem(tool2);
-    await memoryIndex.addItem(msg1);
-    await memoryIndex.addItem(msg2);
+    await memoryIndex.add(tool1);
+    await memoryIndex.add(tool2);
+    await memoryIndex.add(msg1);
+    await memoryIndex.add(msg2);
 
     const memory = await memoryWindow.build(50, {
       tools: 0.3, // 30% of 50 = 15 tokens

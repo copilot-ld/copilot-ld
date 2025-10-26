@@ -1,126 +1,213 @@
 /* eslint-env node */
 
 /**
- * Ontology management helper for tracking RDF patterns
+ * OntologyProcessor builds a lightweight SHACL shapes graph from observed RDF quads.
+ * Observes rdf:type assertions, predicate usage per class, global predicate frequency,
+ * object types, and inverse relationship patterns to generate SHACL NodeShapes with
+ * sh:targetClass, sh:property, sh:class constraints, and sh:inversePath constraints.
  */
 export class OntologyProcessor {
-  #ontology;
+  #classSubjects; // Map<classIRI, Set<subjectIRI>>
+  #subjectClasses; // Map<subjectIRI, Set<classIRI>>
+  #classPredicates; // Map<classIRI, Map<predicateIRI, Set<subjectIRI>>>
+  #predicateCounts; // Map<predicateIRI, count>
+  #predicateObjectTypes; // Map<predicateIRI, Map<classIRI, count>>
+  #predicateDirections; // Map<"subj|pred|obj", count>
+  #inversePredicates; // Map<"fromClass|predicate|toClass", inversePredicate>
 
+  /** Creates a new OntologyProcessor instance */
   constructor() {
-    this.#ontology = {
-      predicates: new Map(),
-      types: new Map(),
-      subjects: new Map(),
-      patterns: new Set(),
-    };
+    this.#classSubjects = new Map();
+    this.#subjectClasses = new Map();
+    this.#classPredicates = new Map();
+    this.#predicateCounts = new Map();
+    this.#predicateObjectTypes = new Map();
+    this.#predicateDirections = new Map();
+    this.#inversePredicates = new Map();
   }
 
   /**
-   * Process a single quad for ontology updates
-   * @param {object} quad - Single quad object
+   * Process a single RDF/JS quad
+   * @param {import('rdf-js').Quad|any} quad - Quad object implementing RDF/JS terms
    */
   process(quad) {
-    const { subject, predicate, object } = this.#extractQuadValues(quad);
+    if (!quad) return;
+    const subject = quad.subject?.value;
+    const predicate = quad.predicate?.value;
+    if (!predicate || !subject) return;
 
-    if (!predicate) return;
+    this.#incrementPredicate(predicate);
 
-    this.#trackPredicate(predicate);
-    this.#trackTypeRelations(subject, predicate, object);
-    this.#trackPatterns(subject, predicate);
+    const object = quad.object?.value;
+    if (this.#isTypePredicate(predicate)) {
+      if (object) this.#recordTypeAssertion(subject, object);
+      return;
+    }
+
+    this.#recordPredicateForSubjectClasses(subject, predicate);
+    this.#processObjectIfNamedNode(quad.object, predicate, subject);
   }
 
   /**
-   * Extract values from quad object
-   * @param {object} quad - Quad object (N3 term objects)
-   * @returns {{subject: string, predicate: string, object: string}} Extracted values
-   * @private
+   * Processes object node if it is a named node
+   * @param {object} objectNode - RDF object node
+   * @param {string} predicate - Predicate IRI
+   * @param {string} subject - Subject IRI
    */
-  #extractQuadValues(quad) {
-    return {
-      subject: quad.subject.value || "",
-      predicate: quad.predicate.value || "",
-      object: quad.object.value || "",
-    };
+  #processObjectIfNamedNode(objectNode, predicate, subject) {
+    if (objectNode?.termType !== "NamedNode" || !objectNode.value) return;
+    this.#recordPredicateObjectType(predicate, objectNode.value);
+    this.#recordInversePair(subject, predicate, objectNode.value);
   }
 
   /**
-   * Track predicate usage in ontology
-   * @param {string} predicate - Predicate URI
-   * @private
+   * Increments the count for a predicate
+   * @param {string} predicate - Predicate IRI
    */
-  #trackPredicate(predicate) {
-    const predicateCount = this.#ontology.predicates.get(predicate) || 0;
-    this.#ontology.predicates.set(predicate, predicateCount + 1);
+  #incrementPredicate(predicate) {
+    this.#predicateCounts.set(
+      predicate,
+      (this.#predicateCounts.get(predicate) || 0) + 1,
+    );
   }
 
   /**
-   * Track type relations in ontology
-   * @param {string} subject - Subject URI
-   * @param {string} predicate - Predicate URI
-   * @param {string} object - Object value
+   * Determine if predicate is rdf:type
+   * @param {string} predicate - Predicate IRI
+   * @returns {boolean} true if rdf:type
    * @private
    */
-  #trackTypeRelations(subject, predicate, object) {
-    if (
-      predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-      object
-    ) {
-      const typeCount = this.#ontology.types.get(object) || 0;
-      this.#ontology.types.set(object, typeCount + 1);
+  #isTypePredicate(predicate) {
+    return predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  }
 
-      if (!this.#ontology.subjects.has(object)) {
-        this.#ontology.subjects.set(object, new Set());
+  /**
+   * Records a type assertion for subject and object
+   * @param {string} subject - Subject IRI
+   * @param {string} object - Object IRI (class)
+   */
+  #recordTypeAssertion(subject, object) {
+    if (!this.#classSubjects.has(object))
+      this.#classSubjects.set(object, new Set());
+    this.#classSubjects.get(object).add(subject);
+    if (!this.#subjectClasses.has(subject))
+      this.#subjectClasses.set(subject, new Set());
+    this.#subjectClasses.get(subject).add(object);
+  }
+
+  /**
+   * Records predicate usage for all classes of the subject
+   * @param {string} subject - Subject IRI
+   * @param {string} predicate - Predicate IRI
+   */
+  #recordPredicateForSubjectClasses(subject, predicate) {
+    const classes = this.#subjectClasses.get(subject);
+    if (!classes) return;
+    for (const cls of classes) {
+      if (!this.#classPredicates.has(cls))
+        this.#classPredicates.set(cls, new Map());
+      const predMap = this.#classPredicates.get(cls);
+      if (!predMap.has(predicate)) {
+        predMap.set(predicate, new Set());
       }
-      if (subject) {
-        this.#ontology.subjects.get(object).add(subject);
+      predMap.get(predicate).add(subject);
+    }
+  }
+
+  /**
+   * Records object type information for a predicate
+   * @param {string} predicate - Predicate IRI
+   * @param {string} object - Object IRI
+   */
+  #recordPredicateObjectType(predicate, object) {
+    const objectClasses = this.#subjectClasses.get(object);
+    if (!objectClasses || objectClasses.size === 0) return;
+
+    if (!this.#predicateObjectTypes.has(predicate)) {
+      this.#predicateObjectTypes.set(predicate, new Map());
+    }
+    const typeMap = this.#predicateObjectTypes.get(predicate);
+    for (const cls of objectClasses) {
+      typeMap.set(cls, (typeMap.get(cls) || 0) + 1);
+    }
+  }
+
+  /**
+   * Records inverse relationship patterns between subjects and objects
+   * @param {string} subject - Subject IRI
+   * @param {string} predicate - Predicate IRI
+   * @param {string} object - Object IRI
+   */
+  #recordInversePair(subject, predicate, object) {
+    const subjectClasses = this.#subjectClasses.get(subject);
+    const objectClasses = this.#subjectClasses.get(object);
+    if (!subjectClasses || !objectClasses) return;
+    for (const subjClass of subjectClasses) {
+      for (const objClass of objectClasses) {
+        const key = `${subjClass}|${predicate}|${objClass}`;
+        this.#predicateDirections.set(
+          key,
+          (this.#predicateDirections.get(key) || 0) + 1,
+        );
       }
     }
   }
 
   /**
-   * Track common patterns in ontology
-   * @param {string} subject - Subject URI
-   * @param {string} predicate - Predicate URI
+   * Compute inverse predicates for all class-predicate-class relationships.
+   * Call this after all quads have been processed via process().
    * @private
    */
-  #trackPatterns(subject, predicate) {
-    if (subject && predicate) {
-      this.#ontology.patterns.add(`${predicate}`);
+  #computeInversePredicates() {
+    for (const [
+      forwardKey,
+      forwardCount,
+    ] of this.#predicateDirections.entries()) {
+      const [fromClass, predicate, toClass] = forwardKey.split("|");
+      if (forwardCount === 0) continue;
+
+      let bestInverse = null;
+      let bestScore = 0;
+
+      for (const [key, count] of this.#predicateDirections.entries()) {
+        const [subjClass, pred, objClass] = key.split("|");
+        if (
+          subjClass === toClass &&
+          objClass === fromClass &&
+          pred !== predicate
+        ) {
+          if (count > bestScore && count >= forwardCount * 0.5) {
+            bestScore = count;
+            bestInverse = pred;
+          }
+        }
+      }
+
+      if (bestInverse) {
+        this.#inversePredicates.set(forwardKey, bestInverse);
+      }
     }
   }
 
   /**
-   * Generate serializable ontology data
-   * @returns {object} Ontology data ready for storage
+   * Returns a read-only view of collected ontology statistics.
+   * MUST be called after all quads are processed.
+   * WARNING: Do not mutate the returned Maps or Sets. They are internal data structures
+   * shared with the processor for performance. This method is intended only for
+   * serializer consumption within the same package.
+   * @returns {import('./serializer.js').OntologyData} Ontology data snapshot containing class subjects, predicates, and inverse relationships
    */
-  getOntologyData() {
+  getData() {
+    // Compute inverse predicates once before returning data
+    this.#computeInversePredicates();
+
     return {
-      predicates: Object.fromEntries(
-        Array.from(this.#ontology.predicates.entries()).sort(
-          (a, b) => b[1] - a[1],
-        ), // Sort by frequency
-      ),
-      types: Object.fromEntries(
-        Array.from(this.#ontology.types.entries()).sort((a, b) => b[1] - a[1]), // Sort by frequency
-      ),
-      subjectsByType: Object.fromEntries(
-        Array.from(this.#ontology.subjects.entries()).map(
-          ([type, subjects]) => [
-            type,
-            Array.from(subjects).slice(0, 5), // Limit to 5 examples per type
-          ],
-        ),
-      ),
-      commonPatterns: Array.from(this.#ontology.patterns).slice(0, 20), // Limit to 20 most common patterns
-      statistics: {
-        totalPredicates: this.#ontology.predicates.size,
-        totalTypes: this.#ontology.types.size,
-        totalSubjects: Array.from(this.#ontology.subjects.values()).reduce(
-          (total, subjects) => total + subjects.size,
-          0,
-        ),
-        lastUpdated: new Date().toISOString(),
-      },
+      classSubjects: this.#classSubjects,
+      subjectClasses: this.#subjectClasses,
+      classPredicates: this.#classPredicates,
+      predicateCounts: this.#predicateCounts,
+      predicateObjectTypes: this.#predicateObjectTypes,
+      inversePredicates: this.#inversePredicates,
     };
   }
 }

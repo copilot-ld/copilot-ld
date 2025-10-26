@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-10-24
+
+- **BREAKING**: Enhanced validation in `_applyTokensFilter()` to throw error
+  when identifier missing `tokens` field instead of silent failure
+
+## 2025-10-18
+
+- **BREAKING**: Refactored `IndexBase` interface with renamed methods
+  (`addItem()` → `add()`, `hasItem()` → `has()`) and simplified `get()` to
+  always return array
+- Added `IndexInterface` typedef defining minimal interface for index
+  implementations
+
 ## 2025-10-19
 
 - Bump version

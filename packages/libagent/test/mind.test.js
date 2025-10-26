@@ -150,7 +150,7 @@ describe("AgentMind", () => {
     );
 
     // Mock resource index to return specific items
-    mockResourceIndex.get = async (identifiers, actor) => {
+    mockResourceIndex.get = async (identifiers, _actor) => {
       if (!identifiers || identifiers.length === 0) return [];
       return identifiers.map((id) => ({ id, type: "mock" }));
     };

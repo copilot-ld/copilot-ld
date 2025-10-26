@@ -65,7 +65,7 @@ export class AgentMind {
         ...message.id.toJSON(),
         tokens: message.content?.tokens || 0,
       };
-      
+
       await this.#callbacks.memory.append(
         memory.AppendRequest.fromObject({
           for: conversation.id.toString(),
@@ -109,13 +109,13 @@ export class AgentMind {
         completions.choices[0].message.withIdentifier(conversation.id);
         completions.choices[0].message.withTokens();
         this.#resourceIndex.put(completions.choices[0].message);
-        
+
         // Append response to memory with token count for filtering
         const responseIdentifier = {
           ...completions.choices[0].message.id.toJSON(),
           tokens: completions.choices[0].message.content?.tokens || 0,
         };
-        
+
         await this.#callbacks.memory.append(
           memory.AppendRequest.fromObject({
             for: conversation.id.toString(),

@@ -68,7 +68,7 @@ describe("vector service", () => {
       };
 
       mockResourceIndex = {
-        get: async (identifiers, actor) =>
+        get: async (identifiers, _actor) =>
           identifiers.map((id) => ({
             id,
             content: { toString: () => `Content for ${id}` },

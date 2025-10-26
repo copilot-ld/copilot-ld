@@ -4,7 +4,8 @@
 
 - **REFACTOR**: Migrated from `@copilot-ld/libutil` to `@copilot-ld/libindex`
   for `IndexBase` functionality
-- Removed unused `@copilot-ld/libutil` dependency (was not actually used in code)
+- Removed unused `@copilot-ld/libutil` dependency (was not actually used in
+  code)
 - **BREAKING**: Removed defensive `|| 0` fallback in `filterByBudget()` - now
   throws error if identifier is missing `tokens` field, ensuring bugs are caught
   early rather than silently treating missing tokens as zero

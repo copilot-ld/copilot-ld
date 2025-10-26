@@ -99,9 +99,10 @@ export class VectorProcessor extends ProcessorBase {
       resourcesToProcess.push({
         text: text,
         identifier: resource.id,
-        tokens: representation === "descriptor" 
-          ? resource.descriptor.tokens 
-          : resource.content?.tokens || resource.descriptor.tokens,
+        tokens:
+          representation === "descriptor"
+            ? resource.descriptor.tokens
+            : resource.content?.tokens || resource.descriptor.tokens,
       });
     }
 
@@ -114,11 +115,11 @@ export class VectorProcessor extends ProcessorBase {
     const texts = [item.text];
     const embeddings = await this.#llm.createEmbeddings(texts);
     const vector = embeddings[0].embedding;
-    
+
     // Add token count directly to the identifier object (protobuf instance)
     // This ensures token filtering works in query results
     item.identifier.tokens = item.tokens;
-    
+
     await this.#targetIndex.add(item.identifier, vector);
     return vector;
   }

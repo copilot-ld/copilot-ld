@@ -71,7 +71,7 @@ export class MemoryFilter {
           `Identifier missing tokens field: ${JSON.stringify(identifier)}`,
         );
       }
-      
+
       if (totalBudget + identifier.tokens <= budget) {
         filtered.push(identifier);
         totalBudget += identifier.tokens;

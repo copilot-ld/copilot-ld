@@ -4,7 +4,8 @@
 
 - Added `eval.js` script for running `LLM-as-a-judge` evaluation system
 - Added `@copilot-ld/libeval` dependency for evaluation functionality
-- Evaluation system includes 5 metrics: Relevance, Accuracy, Completeness, Coherence, Source Attribution
+- Evaluation system includes 5 metrics: Relevance, Accuracy, Completeness,
+  Coherence, Source Attribution
 - Test cases based on BioNova demo scenarios from `eval/EVAL.md`
 - Reports generated in markdown and JSON formats
 

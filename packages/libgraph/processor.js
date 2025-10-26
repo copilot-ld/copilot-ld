@@ -65,11 +65,9 @@ export class GraphProcessor extends ProcessorBase {
     const tokens =
       item.resource.content?.tokens || item.resource.descriptor?.tokens;
     if (!tokens) {
-      throw new Error(
-        `Resource missing tokens: ${String(item.identifier)}`,
-      );
+      throw new Error(`Resource missing tokens: ${String(item.identifier)}`);
     }
-    
+
     // Add tokens directly to the identifier object (protobuf instance)
     item.identifier.tokens = tokens;
     await this.#targetIndex.add(item.identifier, quads);

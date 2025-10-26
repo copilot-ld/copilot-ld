@@ -90,7 +90,8 @@ npm run query
 
 ### Evaluation Testing
 
-The evaluation system assesses agent response quality using `LLM-as-a-judge` methodology:
+The evaluation system assesses agent response quality using `LLM-as-a-judge`
+methodology:
 
 ```bash
 # Run full evaluation suite (default 5 parallel)
@@ -114,7 +115,8 @@ npm run eval -- --report-only --input run-2025-10-23-001.json
 - **Coherence**: Is the response well-structured and organized?
 - **Source Attribution**: Does the response properly cite sources?
 
-Test cases are defined in `config/eval.yml` based on the BioNova pharmaceutical demo scenarios in `eval/EVAL.md`.
+Test cases are defined in `config/eval.yml` based on the BioNova pharmaceutical
+demo scenarios in `eval/EVAL.md`.
 
 Evaluation reports are written to:
 

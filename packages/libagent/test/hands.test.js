@@ -211,9 +211,18 @@ describe("AgentHands", () => {
     // Verify token budget was divided equally across tool calls
     assert.strictEqual(capturedMaxTokens.length, 3);
     // Protobuf may convert to string, so check both numeric and string equality
-    assert.ok(capturedMaxTokens[0] == 3000, `Expected 3000, got ${capturedMaxTokens[0]}`);
-    assert.ok(capturedMaxTokens[1] == 3000, `Expected 3000, got ${capturedMaxTokens[1]}`);
-    assert.ok(capturedMaxTokens[2] == 3000, `Expected 3000, got ${capturedMaxTokens[2]}`);
+    assert.ok(
+      capturedMaxTokens[0] == 3000,
+      `Expected 3000, got ${capturedMaxTokens[0]}`,
+    );
+    assert.ok(
+      capturedMaxTokens[1] == 3000,
+      `Expected 3000, got ${capturedMaxTokens[1]}`,
+    );
+    assert.ok(
+      capturedMaxTokens[2] == 3000,
+      `Expected 3000, got ${capturedMaxTokens[2]}`,
+    );
   });
 
   test("executeToolLoop handles completion without tool calls", async () => {

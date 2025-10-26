@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable max-lines -- Complex resource processing requires extended implementation */
 
 import { JSDOM } from "jsdom";
 import { minify } from "html-minifier-terser";

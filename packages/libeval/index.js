@@ -84,18 +84,18 @@ export class Evaluator {
     });
 
     const response = await this.#agentClient.ProcessRequest(request);
-    
+
     // Extract message content from first choice
     if (!response.choices || response.choices.length === 0) {
       throw new Error("No choices in agent response");
     }
-    
+
     if (!response.choices[0].message?.content?.text) {
       throw new Error(
         `No content in agent response for test case: ${testCase.id}`,
       );
     }
-    
+
     const responseContent = response.choices[0].message.content.text;
 
     // Evaluate with LLM judge

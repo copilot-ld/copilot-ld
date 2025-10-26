@@ -52,12 +52,12 @@ async function main() {
 
   if (response.choices && response.choices.length > 0) {
     let ontology = response.choices[0].message.content?.text || "";
-    
+
     // Strip markdown code fences if present
     ontology = ontology.replace(/^```(?:turtle)?[\r\n]+/gm, "");
     ontology = ontology.replace(/[\r\n]+```$/gm, "");
     ontology = ontology.trim();
-    
+
     console.log(ontology);
   } else {
     console.error("Error: No response from Copilot");

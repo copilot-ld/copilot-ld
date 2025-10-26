@@ -5,15 +5,17 @@
 This document references the following files for BioNova content generation:
 
 - **Narrative Context**: `README.md` - Complete BioNova story and background
-- **Structural Specifications**: `ONTOLOGY.md` - Entity definitions, quantities, and relationships
-- **Evaluation Scenarios**: `config/eval.yml` - Test scenarios and validation criteria
+- **Structural Specifications**: `ONTOLOGY.md` - Entity definitions, quantities,
+  and relationships
+- **Evaluation Scenarios**: `config/eval.yml` - Test scenarios and validation
+  criteria
 
 ## Purpose
 
 This file defines HTML format requirements for generating BioNova pharmaceutical
 company demo content. All generated content must follow the structural
-specifications in `ONTOLOGY.md`, align with the narrative context in `README.md`,
-and support the evaluation scenarios defined in `config/eval.yml`.
+specifications in `ONTOLOGY.md`, align with the narrative context in
+`README.md`, and support the evaluation scenarios defined in `config/eval.yml`.
 
 **Output Location**: `./data/evalset/`
 
@@ -67,16 +69,18 @@ Platform:      https://bionova.example/id/platform/{slug}
    criteria
 4. Understand the output format requirements in this file
 
-**Writing Approach** - Follow the content quality guidelines defined in `config/eval.yml`:
+**Writing Approach** - Follow the content quality guidelines defined in
+`config/eval.yml`:
 
-- **Vector-optimized content**: Use semantic diversity techniques (see config/eval.yml
-  validation guidelines)
-- **Graph-optimized content**: Implement explicit relationships (see config/eval.yml
-  validation guidelines)
+- **Vector-optimized content**: Use semantic diversity techniques (see
+  config/eval.yml validation guidelines)
+- **Graph-optimized content**: Implement explicit relationships (see
+  config/eval.yml validation guidelines)
 - **Hybrid content**: Combine both approaches (see config/eval.yml validation
   guidelines)
 
-**Validation** - After generating content, validate against the checklists in `config/eval.yml`:
+**Validation** - After generating content, validate against the checklists in
+`config/eval.yml`:
 
 - Structural compliance with ONTOLOGY.md
 - Scenario support for all test queries in config/eval.yml

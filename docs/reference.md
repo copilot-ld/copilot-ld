@@ -404,7 +404,8 @@ enables:
 
 ### Index Pattern
 
-Indexes extend `IndexBase` from `@copilot-ld/libindex` and implement the `IndexInterface`:
+Indexes extend `IndexBase` from `@copilot-ld/libindex` and implement the
+`IndexInterface`:
 
 ```javascript
 /* eslint-env node */

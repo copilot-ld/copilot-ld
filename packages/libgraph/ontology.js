@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable max-lines -- Complex ontology analysis requires extended implementation */
 
 import { DataFactory, Writer } from "n3";
 
@@ -44,17 +45,46 @@ export class OntologyProcessor {
    */
   process(quad) {
     if (!quad) return;
-    const subject = quad.subject?.value || "";
-    const predicate = quad.predicate?.value || "";
-    const object = quad.object?.value || "";
-    const objectType = quad.object?.termType || "";
+    const { subject, predicate, object, objectType } =
+      this.#extractQuadValues(quad);
     if (!predicate || !subject) return;
+
     this.#incrementPredicate(predicate);
+
     if (this.#isTypePredicate(predicate) && object) {
       this.#recordTypeAssertion(subject, object);
       return;
     }
+
+    this.#processNonTypeTriple(subject, predicate, object, objectType);
+  }
+
+  /**
+   * Extract values from quad
+   * @param {import('rdf-js').Quad|any} quad - Quad object
+   * @returns {{subject: string, predicate: string, object: string, objectType: string}} Extracted quad values
+   * @private
+   */
+  #extractQuadValues(quad) {
+    return {
+      subject: quad.subject?.value || "",
+      predicate: quad.predicate?.value || "",
+      object: quad.object?.value || "",
+      objectType: quad.object?.termType || "",
+    };
+  }
+
+  /**
+   * Process non-type triples (not rdf:type)
+   * @param {string} subject - Subject IRI
+   * @param {string} predicate - Predicate IRI
+   * @param {string} object - Object IRI
+   * @param {string} objectType - Object term type
+   * @private
+   */
+  #processNonTypeTriple(subject, predicate, object, objectType) {
     this.#recordPredicateForSubjectClasses(subject, predicate);
+
     // Track object types for NamedNode objects (IRIs)
     if (objectType === "NamedNode" && object) {
       this.#recordPredicateObjectType(predicate, object);

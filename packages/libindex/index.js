@@ -117,7 +117,7 @@ export class IndexBase {
           `Identifier missing tokens field: ${JSON.stringify(identifier)}`,
         );
       }
-      
+
       if (total + identifier.tokens > max_tokens) break;
 
       total += identifier.tokens;
@@ -183,7 +183,7 @@ export class IndexBase {
     this.#index.clear();
     for (const item of items) {
       // Reconstruct identifier as proper protobuf object if present
-      if (item.identifier && typeof item.identifier === 'object') {
+      if (item.identifier && typeof item.identifier === "object") {
         item.identifier = resource.Identifier.fromObject(item.identifier);
         // Recalculate the id using the proper toString() method
         item.id = String(item.identifier);

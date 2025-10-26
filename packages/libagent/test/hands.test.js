@@ -161,6 +161,70 @@ describe("AgentHands", () => {
     assert.strictEqual(messages[2].role, "tool");
   });
 
+  test("processToolCalls divides token budget across multiple tool calls", async () => {
+    let capturedMaxTokens = [];
+
+    const mockCallbacksWithCapture = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolDef) => {
+          // Capture the max_tokens value passed to each tool call
+          capturedMaxTokens.push(toolDef.filter?.max_tokens);
+          return {
+            role: "tool",
+            content: "Tool result",
+          };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(mockConfig, mockCallbacksWithCapture);
+
+    const choiceWithToolCalls = {
+      message: {
+        role: "assistant",
+        tool_calls: [
+          { id: "call1", function: { name: "search" } },
+          { id: "call2", function: { name: "analyze" } },
+          { id: "call3", function: { name: "query" } },
+        ],
+      },
+    };
+
+    const messages = [];
+    const maxTokens = 9000; // Will be divided by 3 tool calls = 3000 each
+
+    await agentHands.processToolCalls(
+      choiceWithToolCalls,
+      messages,
+      maxTokens,
+      "test-token",
+    );
+
+    // Should add assistant message + 3 tool result messages
+    assert.strictEqual(messages.length, 4);
+    assert.strictEqual(messages[0].role, "assistant");
+    assert.strictEqual(messages[1].role, "tool");
+    assert.strictEqual(messages[2].role, "tool");
+    assert.strictEqual(messages[3].role, "tool");
+
+    // Verify token budget was divided equally across tool calls
+    assert.strictEqual(capturedMaxTokens.length, 3);
+    // Protobuf may convert to string, so check both numeric and string equality
+    assert.ok(
+      capturedMaxTokens[0] == 3000,
+      `Expected 3000, got ${capturedMaxTokens[0]}`,
+    );
+    assert.ok(
+      capturedMaxTokens[1] == 3000,
+      `Expected 3000, got ${capturedMaxTokens[1]}`,
+    );
+    assert.ok(
+      capturedMaxTokens[2] == 3000,
+      `Expected 3000, got ${capturedMaxTokens[2]}`,
+    );
+  });
+
   test("executeToolLoop handles completion without tool calls", async () => {
     const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
 

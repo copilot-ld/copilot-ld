@@ -8,7 +8,7 @@ import { createLogger } from "@copilot-ld/libutil";
 import { parseArgs } from "node:util";
 
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
-import { DescriptorProcessor } from "@copilot-ld/libresource/descriptor.js";
+import { Describer } from "@copilot-ld/libresource/describer.js";
 import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
 
 /**
@@ -23,28 +23,30 @@ async function main() {
     options: {
       base: {
         type: "string",
+        short: "b",
+        default: "https://example.invalid/",
       },
     },
   });
 
-  const args = { base: values.base ?? null };
+  const args = { base: values.base };
   const knowledgeStorage = createStorage("knowledge");
 
   const llm = createLlm(await config.githubToken(), "gpt-4o-mini");
   const logger = createLogger("resources");
 
-  const resourceIndex = createResourceIndex();
-  const descriptorProcessor = new DescriptorProcessor(llm);
+  const resourceIndex = createResourceIndex("resources");
+  const describer = new Describer(llm);
   const skolemizer = new Skolemizer();
 
   // Process knowledge using ResourceProcessor
   const resourceProcessor = new ResourceProcessor(
+    args.base,
     resourceIndex,
     knowledgeStorage,
-    descriptorProcessor,
     skolemizer,
+    describer,
     logger,
-    args.base,
   );
   await resourceProcessor.process(".html");
 }

@@ -60,11 +60,16 @@ export class AgentMind {
       await this.setupConversation(req);
 
     if (message?.id) {
-      // Append message to memory
+      // Append message to memory with token count for filtering
+      const messageIdentifier = {
+        ...message.id.toJSON(),
+        tokens: message.content?.tokens || 0,
+      };
+
       await this.#callbacks.memory.append(
         memory.AppendRequest.fromObject({
           for: conversation.id.toString(),
-          identifiers: [message.id],
+          identifiers: [messageIdentifier],
         }),
       );
 
@@ -102,11 +107,19 @@ export class AgentMind {
       // Save the response
       if (completions?.choices?.length > 0) {
         completions.choices[0].message.withIdentifier(conversation.id);
+        completions.choices[0].message.withTokens();
         this.#resourceIndex.put(completions.choices[0].message);
+
+        // Append response to memory with token count for filtering
+        const responseIdentifier = {
+          ...completions.choices[0].message.id.toJSON(),
+          tokens: completions.choices[0].message.content?.tokens || 0,
+        };
+
         await this.#callbacks.memory.append(
           memory.AppendRequest.fromObject({
             for: conversation.id.toString(),
-            identifiers: [completions.choices[0].message.id],
+            identifiers: [responseIdentifier],
           }),
         );
       }
@@ -131,9 +144,10 @@ export class AgentMind {
 
     // Step 1: Initiate the conversation
     if (req.conversation_id) {
-      [conversation] = await this.#resourceIndex.get(actor, [
-        req.conversation_id,
-      ]);
+      [conversation] = await this.#resourceIndex.get(
+        [req.conversation_id],
+        actor,
+      );
     } else {
       conversation = common.Conversation.fromObject({
         id: {
@@ -149,12 +163,14 @@ export class AgentMind {
       throw new Error("No user message found in request");
     }
     message.withIdentifier(conversation.id);
+    message.withTokens();
     this.#resourceIndex.put(message);
 
     // Step 2: Load assistant and tasks, subtract from token budget
-    const [assistant] = await this.#resourceIndex.get(actor, [
-      `common.Assistant.${this.#config.assistant}`,
-    ]);
+    const [assistant] = await this.#resourceIndex.get(
+      [`common.Assistant.${this.#config.assistant}`],
+      actor,
+    );
 
     if (!assistant) {
       throw new Error(`Assistant not found: ${this.#config.assistant}`);
@@ -166,8 +182,8 @@ export class AgentMind {
       (name) => `tool.ToolFunction.${name}`,
     );
     const functions = await this.#resourceIndex.get(
-      "common.System.root",
       functionIds,
+      "common.System.root",
     );
 
     const permanentTools = functions.map((func) => {
@@ -205,15 +221,21 @@ export class AgentMind {
     }
 
     // Add tools if available
-    const tools = await this.#resourceIndex.get(actor, window?.tools);
+    const tools = await this.#resourceIndex.get(window?.tools, actor);
     messages.push(...tools);
 
     // Add context if available
-    const context = await this.#resourceIndex.get(actor, window?.context);
+    const context = await this.#resourceIndex.get(window?.context, actor);
     messages.push(...context);
 
     // Add conversation history in chronological order
-    const history = await this.#resourceIndex.get(actor, window?.history);
+    const history = await this.#resourceIndex.get(window?.history, actor);
+    // Ensure all retrieved messages have token counts
+    for (const msg of history) {
+      if (msg?.content && !msg.content.tokens) {
+        msg.withTokens();
+      }
+    }
     messages.push(...history);
 
     return messages;
@@ -226,7 +248,7 @@ export class AgentMind {
    */
   async buildTools(identifiers) {
     const actor = "common.System.root";
-    const functions = await this.#resourceIndex.get(actor, identifiers);
+    const functions = await this.#resourceIndex.get(identifiers, actor);
 
     return functions.map((func) => {
       return tool.ToolDefinition.fromObject({

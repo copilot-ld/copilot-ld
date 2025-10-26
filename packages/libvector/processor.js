@@ -50,7 +50,7 @@ export class VectorProcessor extends ProcessorBase {
     );
 
     // 3. Load the full resources using the identifiers
-    const resources = await this.#resourceIndex.get(actor, filteredIdentifiers);
+    const resources = await this.#resourceIndex.get(filteredIdentifiers, actor);
 
     // 4. Select the appropriate vector index based on representation
     this.#targetIndex =
@@ -63,7 +63,7 @@ export class VectorProcessor extends ProcessorBase {
     const checks = await Promise.all(
       resources.map(async (resource) => ({
         id: String(resource.id),
-        exists: await this.#targetIndex.hasItem(String(resource.id)),
+        exists: await this.#targetIndex.has(String(resource.id)),
       })),
     );
     checks
@@ -99,6 +99,10 @@ export class VectorProcessor extends ProcessorBase {
       resourcesToProcess.push({
         text: text,
         identifier: resource.id,
+        tokens:
+          representation === "descriptor"
+            ? resource.descriptor.tokens
+            : resource.content?.tokens || resource.descriptor.tokens,
       });
     }
 
@@ -111,7 +115,12 @@ export class VectorProcessor extends ProcessorBase {
     const texts = [item.text];
     const embeddings = await this.#llm.createEmbeddings(texts);
     const vector = embeddings[0].embedding;
-    await this.#targetIndex.addItem(item.identifier, vector);
+
+    // Add token count directly to the identifier object (protobuf instance)
+    // This ensures token filtering works in query results
+    item.identifier.tokens = item.tokens;
+
+    await this.#targetIndex.add(item.identifier, vector);
     return vector;
   }
 }

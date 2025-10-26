@@ -1,10 +1,12 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { JSDOM } from "jsdom";
 
 import { toType, toIdentifier, ResourceIndex } from "../index.js";
 import { ResourceProcessor } from "../processor.js";
 import { Skolemizer } from "../skolemizer.js";
+import { sanitizeDom } from "../sanitizer.js";
 import { common, resource } from "@copilot-ld/libtype";
 
 /**
@@ -156,7 +158,7 @@ describe("ResourceIndex", () => {
     const resourceId = message.id;
 
     // Then get it back
-    const retrieved = await resourceIndex.get("test-actor", [resourceId]);
+    const retrieved = await resourceIndex.get([resourceId], "test-actor");
 
     assert.strictEqual(retrieved.length, 1);
     assert.strictEqual(retrieved[0].role, "system");
@@ -170,13 +172,13 @@ describe("ResourceIndex", () => {
   });
 
   test("returns empty array when passed null identifiers", async () => {
-    const retrieved = await resourceIndex.get("test-actor", null);
+    const retrieved = await resourceIndex.get(null, "test-actor");
     assert.strictEqual(retrieved.length, 0);
     assert.ok(Array.isArray(retrieved));
   });
 
   test("returns empty array when passed undefined identifiers", async () => {
-    const retrieved = await resourceIndex.get("test-actor", undefined);
+    const retrieved = await resourceIndex.get(undefined, "test-actor");
     assert.strictEqual(retrieved.length, 0);
     assert.ok(Array.isArray(retrieved));
   });
@@ -219,7 +221,7 @@ describe("ResourceIndex", () => {
 describe("ResourceProcessor", () => {
   let resourceIndex;
   let knowledgeStorage;
-  let descriptorProcessor;
+  let describer;
   let logger;
   let processor;
 
@@ -248,8 +250,8 @@ describe("ResourceProcessor", () => {
       debug: () => {}, // Mock logger
     };
 
-    descriptorProcessor = {
-      process: async (_item) => {
+    describer = {
+      describe: async (_item) => {
         return {
           purpose: "Provide information about articles and their content",
           applicability: "Use when displaying article metadata",
@@ -257,14 +259,14 @@ describe("ResourceProcessor", () => {
         };
       },
     };
-
     const skolemizer = new Skolemizer();
 
     processor = new ResourceProcessor(
+      "https://example.invalid/",
       resourceIndex,
       knowledgeStorage,
-      descriptorProcessor,
       skolemizer,
+      describer,
       logger,
     );
   });
@@ -341,9 +343,9 @@ describe("ResourceProcessor", () => {
     }
   });
 
-  test("handles descriptor processor errors gracefully", async () => {
+  test("handles describer errors gracefully", async () => {
     // Test error handling in the descriptor processing pipeline
-    descriptorProcessor.process = async () => {
+    describer.describe = async () => {
       throw new Error("Descriptor processing failed");
     };
 
@@ -366,26 +368,52 @@ describe("ResourceProcessor", () => {
     assert.ok(true, "Processor handled descriptor errors gracefully");
   });
 
+  test("omits descriptor when describer not provided", async () => {
+    const skolemizer = new Skolemizer();
+    const noDescriber = null;
+    let stored;
+    resourceIndex.put = async (resource) => {
+      stored = resource;
+    };
+    const proc = new ResourceProcessor(
+      "https://example.invalid/",
+      resourceIndex,
+      knowledgeStorage,
+      skolemizer,
+      noDescriber,
+      logger,
+    );
+    await proc.process(".html");
+    if (stored) {
+      assert.ok(
+        !stored.descriptor || Object.keys(stored.descriptor).length === 0,
+        "Descriptor should be absent when processor not provided",
+      );
+    }
+  });
+
   test("constructor validates required dependencies", async () => {
     const skolemizer = new Skolemizer();
 
-    // Test that constructor properly validates required parameters
-    assert.throws(() => {
+    // Describer is optional; constructing without it should NOT throw
+    assert.doesNotThrow(() => {
       new ResourceProcessor(
+        "https://example.invalid/",
         resourceIndex,
         knowledgeStorage,
-        null,
         skolemizer,
+        null,
         logger,
       );
-    }, /descriptorProcessor is required/);
+    });
 
     assert.throws(() => {
       new ResourceProcessor(
+        "https://example.invalid/",
         resourceIndex,
         knowledgeStorage,
-        descriptorProcessor,
         null,
+        describer,
         logger,
       );
     }, /skolemizer is required/);
@@ -476,5 +504,27 @@ describe("toType helper function", () => {
         message: "Unknown type: invalid.Type",
       },
     );
+  });
+});
+
+describe("sanitizeDom patterns", () => {
+  test("encodes angle-number and stray ampersand; preserves existing &amp; entity and unknown entity", () => {
+    const html = `<!DOCTYPE html><div>Value <5 and >10 plus R&D &amp; already encoded &unknown; end</div>`;
+    const dom = new JSDOM(html);
+    sanitizeDom(dom);
+    const text = dom.window.document.querySelector("div").textContent;
+    const expected =
+      "Value &lt;5 and &gt;10 plus R&amp;D &amp; already encoded &unknown; end";
+    assert.strictEqual(text, expected);
+  });
+
+  test("normalizes smart quotes and nbsp characters", () => {
+    const html = `<!DOCTYPE html><p>“Quoted” ‘text’ and&nbsp;space</p>`;
+    const dom = new JSDOM(html.replace(/&nbsp;/g, "\u00A0"));
+    sanitizeDom(dom);
+    const text = dom.window.document.querySelector("p").textContent;
+    assert.strictEqual(text, '"Quoted" \u0027text\u0027 and space');
+    // Ensure no smart quotes remain
+    assert.doesNotMatch(text, /[“”‘’]/);
   });
 });

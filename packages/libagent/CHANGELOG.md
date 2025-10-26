@@ -1,21 +1,19 @@
 # Changelog
 
-## 2025-10-20
+## 2025-10-24
 
-- Added `bin/assistants.js` binary for processing assistant configurations
-- Updated `package.json` with `bin` field to enable `npx assistants` command
-- Moved assistant processing logic from `scripts/assistants.js` to package
-  binary
+- **Fixed**: Token budget management - budget now divided across tool calls
+  upfront and memory identifiers include `tokens` field for proper filtering
+
+## 2025-10-22
+
+- Added `bin/assistants.js` binary for processing assistant configurations via
+  `npx assistants` command
 
 ## 2025-10-19
 
-- Bump version
-- Refactored `AgentMind` to accept `AgentHands` as a constructor dependency
-  instead of using dynamic import
-- Updated constructor signature:
-  `AgentMind(config, callbacks, resourceIndex, agentHands)`
-- Removed dynamic `import("./hands.js")` from `processRequest()` method
-- All imports are now static for improved predictability and tree-shaking
+- **REFACTOR**: Simplified `AgentMind` constructor to accept `AgentHands`
+  dependency directly instead of dynamic import
 
 ## 2025-10-15
 

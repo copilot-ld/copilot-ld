@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-10-21
+
+- **BREAKING**: Simplified `ResourceIndex` API with `add()` alias for `put()`,
+  streamlined `get()` signature to `get(ids, actor)`, and renamed
+  `DescriptorProcessor` to `Describer`
+- **BREAKING**: Reordered `ResourceProcessor` constructor parameters and made
+  `describer` and `logger` optional
+- **BREAKING**: Updated `createResourceIndex()` to force local storage with
+  `(prefix, policy?)` signature
+- Enhanced N-Quads output with canonical RDF quad ordering (`rdf:type`
+  assertions first)
+
 ## 2025-10-19
 
 - Bump version

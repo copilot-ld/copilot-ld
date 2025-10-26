@@ -144,6 +144,7 @@ common.Message.fromObject = function (object) {
   }
   const typed = MessagefromObject(object);
   typed.withIdentifier();
+  typed.withTokens();
   return typed;
 };
 
@@ -169,6 +170,7 @@ common.Assistant.fromObject = function (object) {
 
   const typed = AssistantfromObject(object);
   typed.withIdentifier();
+  typed.withTokens();
   return typed;
 };
 
@@ -193,6 +195,7 @@ tool.ToolFunction.fromObject = function (object) {
 
   const typed = ToolFunctionfromObject(object);
   typed.withIdentifier();
+  typed.withTokens();
   return typed;
 };
 

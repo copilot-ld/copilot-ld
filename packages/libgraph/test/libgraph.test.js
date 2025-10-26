@@ -68,7 +68,7 @@ describe("libgraph", () => {
       };
 
       n3Store = new Store();
-      graphIndex = new GraphIndex(mockStorage, n3Store, "test.jsonl");
+      graphIndex = new GraphIndex(mockStorage, n3Store, {}, "test.jsonl");
     });
 
     test("multiple resources can be added and queried selectively", async () => {
@@ -130,7 +130,7 @@ describe("libgraph", () => {
       // Add all resources to the index
       for (const { identifier, jsonld } of resources) {
         const quads = jsonldToQuads(jsonld);
-        await graphIndex.addItem(identifier, quads);
+        await graphIndex.add(identifier, quads);
       }
 
       // Test 1: Query by type - should find only Message resources
@@ -258,7 +258,7 @@ describe("libgraph", () => {
       };
 
       const quads = jsonldToQuads(jsonld);
-      await graphIndex.addItem(identifier, quads);
+      await graphIndex.add(identifier, quads);
 
       // Test: Query using full RDF type predicate should work
       const fullTypePattern = {
@@ -311,33 +311,34 @@ describe("libgraph", () => {
       };
 
       // Test hasItem returns false before adding
-      const hasBeforeAdd = await graphIndex.hasItem(String(identifier));
+      const hasBeforeAdd = await graphIndex.has(String(identifier));
       assert.strictEqual(
         hasBeforeAdd,
         false,
         "Should not have item before adding",
       );
 
-      // Test getItem returns null before adding
-      const getBeforeAdd = await graphIndex.getItem(String(identifier));
+      // Test get returns empty array before adding
+      const getBeforeAdd = await graphIndex.get([String(identifier)]);
       assert.strictEqual(
-        getBeforeAdd,
-        null,
-        "Should return null before adding",
+        getBeforeAdd.length,
+        0,
+        "Should return empty array before adding",
       );
 
       // Add the item
       const quads = jsonldToQuads(jsonld);
-      await graphIndex.addItem(identifier, quads);
+      await graphIndex.add(identifier, quads);
 
       // Test hasItem returns true after adding
-      const hasAfterAdd = await graphIndex.hasItem(String(identifier));
+      const hasAfterAdd = await graphIndex.has(String(identifier));
       assert.strictEqual(hasAfterAdd, true, "Should have item after adding");
 
-      // Test getItem returns identifier after adding
-      const getAfterAdd = await graphIndex.getItem(String(identifier));
+      // Test get returns identifier after adding
+      const getAfterAdd = await graphIndex.get([String(identifier)]);
+      assert.strictEqual(getAfterAdd.length, 1, "Should return one item");
       assert.strictEqual(
-        String(getAfterAdd),
+        String(getAfterAdd[0]),
         String(identifier),
         "Should return correct identifier after adding",
       );
@@ -346,21 +347,21 @@ describe("libgraph", () => {
     test("constructor validation works correctly", () => {
       // Test missing storage
       assert.throws(
-        () => new GraphIndex(null, new Store()),
+        () => new GraphIndex(null, new Store(), {}),
         /storage is required/,
         "Should throw for missing storage",
       );
 
       // Test missing store
       assert.throws(
-        () => new GraphIndex(mockStorage, null),
+        () => new GraphIndex(mockStorage, null, {}),
         /store must be an N3 Store instance/,
         "Should throw for missing store",
       );
 
       // Test invalid store
       assert.throws(
-        () => new GraphIndex(mockStorage, {}),
+        () => new GraphIndex(mockStorage, {}, {}),
         /store must be an N3 Store instance/,
         "Should throw for invalid store",
       );
@@ -439,7 +440,7 @@ describe("libgraph", () => {
       // Add all resources
       for (const { identifier, jsonld } of resources) {
         const quads = jsonldToQuads(jsonld);
-        await graphIndex.addItem(identifier, quads);
+        await graphIndex.add(identifier, quads);
       }
 
       // Test prefix filter

@@ -120,7 +120,7 @@ export class VectorService extends VectorBase {
 
     // Get resources from the index
     const actor = "common.System.root";
-    const resources = await this.#resourceIndex.get(actor, identifiers);
+    const resources = await this.#resourceIndex.get(identifiers, actor);
 
     const contents = resources
       .map((resource) => {

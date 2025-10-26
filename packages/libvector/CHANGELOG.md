@@ -1,15 +1,21 @@
 # Changelog
 
-## 2025-10-19
+## 2025-10-24
 
-- Bump version
+- **Fixed**: Token filtering in vector queries by ensuring identifiers include
+  `tokens` field for proper budget enforcement
+- **REFACTOR**: Migrated from `@copilot-ld/libutil` to `@copilot-ld/libindex`
+  for `IndexBase` functionality
+
+## 2025-10-21
+
+- **BREAKING**: Renamed `VectorIndex.addItem()` to `add()` for consistency with
+  `IndexInterface`
 
 ## 2025-10-18
 
-- Moved `vectors.js` script from `scripts/` to `bin/vectors.js` as a binary
-- Added `bin` field to `package.json` to expose `vectors` binary
-- Updated script with shebang line and proper error handling
-- Fixed missing dependency: Added `@copilot-ld/libutil` to `package.json`
+- Moved `vectors.js` to `bin/vectors.js` for `npx` execution and added required
+  dependencies
 
 ## 2025-10-15
 

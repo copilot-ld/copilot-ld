@@ -9,6 +9,12 @@ export class ReleaseChanges {
   #existsSync;
   #workingDir;
 
+  /**
+   * Creates a new ReleaseChanges instance
+   * @param {Function} execSyncFn - Function to execute shell commands synchronously
+   * @param {Function} existsSyncFn - Function to check if files exist synchronously
+   * @param {string} workingDir - Working directory for operations
+   */
   constructor(execSyncFn, existsSyncFn, workingDir = process.cwd()) {
     if (!execSyncFn) throw new Error("execSyncFn is required");
     if (!existsSyncFn) throw new Error("existsSyncFn is required");

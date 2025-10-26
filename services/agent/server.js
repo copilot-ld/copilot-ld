@@ -16,7 +16,7 @@ const memoryClient = new MemoryClient(await ServiceConfig.create("memory"));
 const llmClient = new LlmClient(await ServiceConfig.create("llm"));
 const toolClient = new ToolClient(await ServiceConfig.create("tool"));
 
-const resourceIndex = createResourceIndex();
+const resourceIndex = createResourceIndex("resources");
 
 // Create callbacks for AgentHands and AgentMind
 const callbacks = {

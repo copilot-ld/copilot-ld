@@ -1,10 +1,19 @@
 # Changelog
 
+## 2025-10-26
+
+- Moved evaluation functionality to `@copilot-ld/libeval` package for
+  reusability
+
+## 2025-10-23
+
+- Added `evalset.js` script for running `LLM-as-a-judge` evaluation system with
+  5 quality metrics
+
 ## 2025-10-17
 
-- Updated `dev.js` to preserve existing `data/dev.log` contents by removing
-  truncation behavior; log file is now append-only and created only if missing
-  to maintain historical development server output across restarts.
+- Updated `dev.js` to preserve existing log contents with append-only behavior
+  instead of truncation
 
 ## 2025-10-14
 

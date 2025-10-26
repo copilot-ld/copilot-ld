@@ -1,5 +1,29 @@
 # Changelog
 
+## 2025-10-26
+
+- **REFACTOR**: Separated `OntologyProcessor` data collection from serialization
+  with new pluggable `ShaclSerializer` class
+- Enhanced ontology generation with inverse relationship detection, class
+  constraints, and instance counts in SHACL output
+- Added comprehensive test coverage for `GraphProcessor` and `OntologyProcessor`
+
+## 2025-10-24
+
+- **Fixed**: Token filtering in graph queries by ensuring identifiers include
+  `tokens` field for proper budget enforcement
+- **REFACTOR**: Migrated from `@copilot-ld/libutil` to `@copilot-ld/libindex`
+  for `IndexBase` functionality
+
+## 2025-10-21
+
+- **BREAKING**: Renamed `GraphIndex` methods to match `IndexInterface`
+  (`addItem()` → `add()`, `hasItem()` → `has()`)
+- **BREAKING**: Reordered `GraphIndex` constructor parameters to
+  `(storage, store, prefixes, indexKey)`
+- Enhanced SHACL ontology generation with property instance counts and improved
+  formatting
+
 ## 2025-10-19
 
 - Bump version

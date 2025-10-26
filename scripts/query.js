@@ -84,7 +84,7 @@ person:john ? ?         # Find all about person:john
 ? ? ?                   # Find all graphs`,
 
   setup: async () => {
-    graphIndex = createGraphIndex();
+    graphIndex = createGraphIndex("graphs");
   },
 
   onLine: performQuery,

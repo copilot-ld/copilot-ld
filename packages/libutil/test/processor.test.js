@@ -66,12 +66,22 @@ describe("ProcessorBase", () => {
     });
 
     test("calls processItem for each item", async () => {
+      /** Test processor that tracks processed items */
       class TestProcessor extends ProcessorBase {
+        /**
+         * Creates a test processor
+         * @param {object} logger - Logger instance
+         */
         constructor(logger) {
           super(logger, 2);
           this.processedItems = [];
         }
 
+        /**
+         * Processes a single item
+         * @param {any} item - Item to process
+         * @returns {Promise<string>} Processed result
+         */
         async processItem(item) {
           this.processedItems.push(item);
           return `processed-${item}`;
@@ -86,12 +96,22 @@ describe("ProcessorBase", () => {
     });
 
     test("continues processing when individual items fail", async () => {
+      /** Test processor that simulates failures */
       class TestProcessor extends ProcessorBase {
+        /**
+         * Creates a test processor
+         * @param {object} logger - Logger instance
+         */
         constructor(logger) {
           super(logger, 3);
           this.processedItems = [];
         }
 
+        /**
+         * Processes a single item with failure simulation
+         * @param {any} item - Item to process
+         * @returns {Promise<string>} Processed result
+         */
         async processItem(item) {
           if (item === "fail") {
             throw new Error("Simulated failure");

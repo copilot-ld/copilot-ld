@@ -48,6 +48,7 @@ export class Server {
     this.#logger = logFn(config.name);
   }
 
+  /** Starts the gRPC server */
   async start() {
     this.#server = new this.#grpc.Server();
 
@@ -68,6 +69,10 @@ export class Server {
     this.#setupShutdown();
   }
 
+  /**
+   * Gets the service definition from generated definitions
+   * @returns {object} Service definition
+   */
   #getServiceDefinition() {
     // Get service name from config (e.g., "agent" -> "agent")
     const serviceName = this.config.name.toLowerCase();
@@ -81,6 +86,11 @@ export class Server {
     return definition;
   }
 
+  /**
+   * Wraps handlers with auth and error handling
+   * @param {object} handlers - Service method handlers
+   * @returns {object} Wrapped handlers
+   */
   #wrapHandlers(handlers) {
     const wrapped = {};
     for (const [method, handler] of Object.entries(handlers)) {
@@ -89,6 +99,11 @@ export class Server {
     return wrapped;
   }
 
+  /**
+   * Wraps a unary handler with auth and error handling
+   * @param {Function} handler - Unary handler function
+   * @returns {Function} Wrapped handler
+   */
   #wrapUnary(handler) {
     return async (call, callback) => {
       // Authenticate
@@ -115,6 +130,11 @@ export class Server {
     };
   }
 
+  /**
+   * Binds server to the specified URI
+   * @param {string} uri - Server URI to bind to
+   * @returns {Promise<number>} Bound port number
+   */
   async #bindServer(uri) {
     return new Promise((resolve, reject) => {
       this.#server.bindAsync(
@@ -131,6 +151,7 @@ export class Server {
     });
   }
 
+  /** Sets up graceful shutdown handlers */
   #setupShutdown() {
     const shutdown = () => {
       this.#logger.debug("Shutting down...");

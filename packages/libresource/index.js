@@ -6,6 +6,7 @@ import { createPolicy } from "@copilot-ld/libpolicy";
 
 /**
  * Resource index for typed resource management with access control
+ * @implements {import("@copilot-ld/libutil").IndexInterface}
  */
 export class ResourceIndex {
   #storage;
@@ -22,6 +23,14 @@ export class ResourceIndex {
 
     this.#storage = storage;
     this.#policy = policy;
+  }
+
+  /**
+   * Gets the storage instance
+   * @returns {import("@copilot-ld/libstorage").StorageInterface} Storage instance
+   */
+  storage() {
+    return this.#storage;
   }
 
   /**
@@ -61,20 +70,31 @@ export class ResourceIndex {
   }
 
   /**
-   * Gets resources by their identifiers with access control
-   * @param {string} actor - Actor identifier for access control
+   * Stores a resource in the index (alias for put)
+   * @param {object} resource - Resource object to store
+   * @returns {Promise<void>}
+   */
+  async add(resource) {
+    return this.put(resource);
+  }
+
+  /**
+   * Gets resources by their identifiers with optional access control
    * @param {string[]|null} ids - Array of resource identifiers, or null
+   * @param {string} [actor] - Optional actor identifier for access control
    * @returns {Promise<import("@copilot-ld/libtype").resource.Resource[]>} Array of resources
    */
-  async get(actor, ids) {
-    if (!actor) throw new Error("actor is required");
+  async get(ids, actor = null) {
+    // Handle null/undefined
     if (ids === null || ids === undefined) return [];
     if (!Array.isArray(ids)) throw new Error("ids must be an array or null");
     if (ids.length === 0) return [];
 
-    // Evaluate access policy
-    if (!(await this.#policy.evaluate({ actor, resources: ids }))) {
-      throw new Error("Access denied");
+    // Evaluate access policy if actor is provided
+    if (actor) {
+      if (!(await this.#policy.evaluate({ actor, resources: ids }))) {
+        throw new Error("Access denied");
+      }
     }
 
     const keys = ids.map((id) => `${id}.json`);
@@ -172,14 +192,16 @@ export function toIdentifier(uri) {
 }
 
 /**
- * Creates a ResourceIndex instance with default configuration
- * @param {string} [storageType] - Storage type for createStorage (default: undefined)
- * @param {import("@copilot-ld/libpolicy").Policy} [policy] - Policy instance (default: createPolicy())
+ * Creates a ResourceIndex instance with configurable storage prefix.
+ * BREAKING CHANGE: Signature changed from (storageType?, policy?) to (prefix, policy?)
+ * @param {string} prefix - Storage prefix (bucket name) used to create the underlying storage
+ * @param {import("@copilot-ld/libpolicy").Policy} [policy] - Optional policy instance (defaults to createPolicy())
  * @returns {ResourceIndex} Configured ResourceIndex instance
  */
-export function createResourceIndex(storageType = undefined, policy = null) {
-  const storage = createStorage("resources", storageType);
+export function createResourceIndex(prefix, policy = null) {
+  if (!prefix) throw new Error("prefix is required");
+  // Always use local storage type per new requirement while allowing custom prefix
+  const storage = createStorage(prefix, "local");
   const policyInstance = policy || createPolicy();
-
   return new ResourceIndex(storage, policyInstance);
 }

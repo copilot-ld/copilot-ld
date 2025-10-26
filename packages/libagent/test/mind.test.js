@@ -4,6 +4,7 @@ import assert from "node:assert";
 
 import { AgentMind } from "../mind.js";
 import { AgentHands } from "../hands.js";
+import { common } from "@copilot-ld/libtype";
 
 describe("AgentMind", () => {
   let mockConfig;
@@ -41,13 +42,11 @@ describe("AgentMind", () => {
         createCompletions: async () => ({
           choices: [
             {
-              message: {
+              message: common.Message.fromObject({
                 role: "assistant",
                 content: "Test response",
                 tool_calls: [],
-                id: { name: "test-response" },
-                withIdentifier: () => {},
-              },
+              }),
             },
           ],
         }),
@@ -151,7 +150,7 @@ describe("AgentMind", () => {
     );
 
     // Mock resource index to return specific items
-    mockResourceIndex.get = async (actor, identifiers) => {
+    mockResourceIndex.get = async (identifiers, _actor) => {
       if (!identifiers || identifiers.length === 0) return [];
       return identifiers.map((id) => ({ id, type: "mock" }));
     };
@@ -227,7 +226,13 @@ describe("AgentMind", () => {
           toString: () => "test-conv",
         },
       },
-      message: { id: { name: "test-msg" } },
+      message: {
+        id: {
+          name: "test-msg",
+          type: "common.Message",
+          toJSON: () => ({ name: "test-msg", type: "common.Message" }),
+        },
+      },
       assistant: { content: { tokens: 100 } },
       tasks: [],
       permanentTools: [],

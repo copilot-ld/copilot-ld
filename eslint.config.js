@@ -19,6 +19,22 @@ const strictJSDocRules = () => ({
   "jsdoc/require-description": "error",
   // Allow implementations using `@inheritdoc` to omit explicit @returns
   "jsdoc/require-returns": ["error", { exemptedBy: ["throws", "inheritdoc"] }],
+  // Require JSDoc for private methods (but not params/returns)
+  "jsdoc/require-jsdoc": [
+    "error",
+    {
+      require: {
+        FunctionDeclaration: true,
+        MethodDefinition: true,
+        ClassDeclaration: true,
+        ArrowFunctionExpression: false,
+        FunctionExpression: false,
+      },
+      contexts: [
+        "MethodDefinition[key.name=/^#/]", // Private methods starting with #
+      ],
+    },
+  ],
 });
 
 export default [

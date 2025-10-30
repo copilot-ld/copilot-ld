@@ -36,26 +36,23 @@ npm run dev:restart
 Run various testing and validation checks:
 
 ```bash
-# Execute all tests
 npm test
-
-# Execute tests in watch mode for TDD
 npm run test:watch
-
-# Run performance benchmarks
 npm run perf
-
-# Run all quality checks
 npm run check
-
-# Auto-fix issues where possible
 npm run check:fix
-
-# Individual checks
-npm run lint           # ESLint code analysis
-npm run format         # Prettier formatting check
-npm run spellcheck     # Spell check documentation
 ```
+
+Individual quality checks:
+
+```bash
+npm run lint
+npm run format
+npm run spellcheck
+```
+
+These run ESLint code analysis, Prettier formatting check, and spell check
+documentation respectively.
 
 ### Security Auditing
 
@@ -167,15 +164,23 @@ npx env-cmd -- node scripts/token.js
 For details about Protocol Buffer compilation and type generation, see the
 [Code Generation](/architecture/) section in the Architecture Guide.
 
+Generate all code from proto definitions:
+
 ```bash
-# Generate all code from proto definitions
 mkdir generated
 npm run codegen
-
-npm run codegen:type      # Type definitions only
-npm run codegen:client    # Client stubs only
-npm run codegen:service   # Service bases only
 ```
+
+Generate specific components:
+
+```bash
+npm run codegen:type
+npm run codegen:client
+npm run codegen:service
+```
+
+These generate type definitions only, client stubs only, and service bases only
+respectively.
 
 ## Web Interface Testing
 
@@ -183,3 +188,59 @@ Access the development interfaces:
 
 - **Web Extension**: `http://localhost:3000/web`
 - **Documentation Server**: `npm run docs` serves on `http://localhost:8080`
+
+## Trace Analysis
+
+All system operations are automatically traced and stored in `data/traces/` as
+daily JSONL files.
+
+### Viewing Traces
+
+```bash
+# View today's traces
+cat data/traces/$(date +%Y-%m-%d).jsonl | jq
+
+# Count spans by operation type
+cat data/traces/*.jsonl | jq -r '.name' | sort | uniq -c
+
+# Count spans by service
+cat data/traces/*.jsonl | jq -r '.attributes["service.name"]' | sort | uniq -c
+
+# Find all spans for a specific trace ID
+cat data/traces/*.jsonl | jq 'select(.trace_id == "TRACE_ID_HERE")'
+
+# Find error spans
+cat data/traces/*.jsonl | jq 'select(.status.message != "")'
+```
+
+### Analyzing Request Flows
+
+```bash
+# Find traces with most spans (complex operations)
+cat data/traces/*.jsonl | jq -r '.trace_id' | sort | uniq -c | sort -rn | head
+
+# Analyze trace depth (parent-child nesting)
+cat data/traces/*.jsonl | \
+  jq -r '{trace_id, name, parent: .parent_span_id}' | \
+  jq -s 'group_by(.trace_id) | map({trace: .[0].trace_id, depth: length})'
+```
+
+### Common Trace Patterns
+
+**Agent Request Trace**:
+
+- Root span: `Agent.ProcessRequest`
+- Child spans: `Memory.GetWindow`, `Llm.CreateEmbeddings`,
+  `Vector.QueryByContent`, `Tool.CallTool`, etc.
+
+**Tool Execution Chain**:
+
+- Root span: `Tool.CallTool`
+- May have nested `Tool.CallTool` spans for recursive tool execution
+
+**Vector Search**:
+
+- `Llm.CreateEmbeddings` (generate query vector)
+- `Vector.QueryByContent` or `Vector.QueryByDescriptor` (similarity search)
+
+For detailed tracing implementation, see the [Reference Guide](/reference/).

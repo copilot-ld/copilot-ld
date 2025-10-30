@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { createLlm } from "@copilot-ld/libcopilot";
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
@@ -9,7 +9,7 @@ import { createStorage } from "@copilot-ld/libstorage";
 import { VectorIndex } from "@copilot-ld/libvector";
 
 // Configuration
-const config = await ScriptConfig.create("search");
+const config = await createScriptConfig("search");
 
 // Global state
 /** @type {VectorIndex} */
@@ -22,14 +22,15 @@ let resourceIndex;
 /**
  * Performs a semantic search using embeddings
  * @param {string} prompt - The search query text
- * @param {object} state - REPL state containing limit, threshold, and index settings
+ * @param {object} state - REPL state containing limit, threshold, and representation settings
  * @returns {Promise<string>} Formatted search results as markdown
  */
 async function performSearch(prompt, state) {
-  const { limit, threshold, index } = state;
+  const { limit, threshold, representation } = state;
 
-  // Select the appropriate index
-  const targetIndex = index === "descriptor" ? descriptorIndex : contentIndex;
+  // Select the appropriate representation based on representation
+  const targetIndex =
+    representation === "descriptor" ? descriptorIndex : contentIndex;
 
   const llm = createLlm(await config.githubToken());
   const embeddings = await llm.createEmbeddings([prompt]);
@@ -42,14 +43,14 @@ async function performSearch(prompt, state) {
   const resources = await resourceIndex.get(identifiers, "common.System.root");
 
   let output = ``;
-  output += `Searching: ${index} index\n\n`;
+  output += `Searching: ${representation} index\n\n`;
   identifiers.forEach((identifier, i) => {
     const resource = resources.find((r) => r.id.name === identifier.name);
     if (!resource) return;
 
     // Not all resources have content, fallback to descriptor
-    const text = resource[index]
-      ? String(resource[index])
+    const text = resource[representation]
+      ? String(resource[representation])
       : String(resource.descriptor);
 
     output += `# ${i + 1}: ${identifier} (${identifier.score.toFixed(4)})\n\n`;
@@ -74,7 +75,7 @@ const repl = new Repl(createTerminalFormatter(), {
   state: {
     limit: 0,
     threshold: 0,
-    index: "content",
+    representation: "content",
   },
 
   commands: {
@@ -98,15 +99,15 @@ const repl = new Repl(createTerminalFormatter(), {
       }
       state.threshold = value;
     },
-    index: (args, state) => {
+    representation: (args, state) => {
       if (args.length === 0) {
-        return "Usage: /index content|descriptor";
+        return "Usage: /representation content|descriptor";
       }
       const value = args[0].toLowerCase();
       if (value !== "content" && value !== "descriptor") {
-        return `Error: index must be 'content' or 'descriptor'`;
+        return `Error: representation must be 'content' or 'descriptor'`;
       }
-      state.index = value;
+      state.representation = value;
     },
   },
 

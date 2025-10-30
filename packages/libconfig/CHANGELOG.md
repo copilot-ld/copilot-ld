@@ -1,5 +1,22 @@
 # Changelog
 
+## 2025-10-27
+
+- **BREAKING**: Replaced static `.create()` methods with factory functions for
+  consistent developer experience
+- **BREAKING**: Removed `ServiceConfig`, `ExtensionConfig`, and `ScriptConfig`
+  subclasses - factory functions now directly instantiate `Config` class with
+  appropriate namespace
+- Moved `Config` class to separate `config.js` file for better code organization
+- Added `createConfig()`, `createServiceConfig()`, `createExtensionConfig()`,
+  and `createScriptConfig()` factory functions
+- Simplified factory function implementations to directly use `Config` class
+  constructor with namespace parameter
+- Updated all imports and usage across services, extensions, scripts, packages,
+  tests, examples, and documentation
+- Factory functions now return `Config` instances instead of specialized
+  subclass instances
+
 ## 2025-10-19
 
 - Bump version

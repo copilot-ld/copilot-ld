@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-10-29
+
+- Fixed Mermaid diagram rendering by preventing HTML entity escaping in code
+  blocks
+- Added post-processing step in `DocsBuilder` to `unescape` HTML entities
+  (`&gt;`, `&lt;`, etc.) in Mermaid code blocks after Prettier formatting
+- Updated Mermaid.js initialization in `main.js` to use `nodes` option with
+  `.language-mermaid` selector
+- Fixed Mermaid configuration to use `startOnLoad: false` and explicit
+  `mermaid.run()` call with node selector
+- Mermaid.js now correctly parses and renders sequence diagram arrows (`->`,
+  `-->>`, etc.)
+
 ## 2025-10-20
 
 - Updated automated tests to match current `DocsBuilder` and `DocsServer`

@@ -15,6 +15,37 @@ export class OntologyProcessor {
   #predicateDirections; // Map<"subj|pred|obj", count>
   #inversePredicates; // Map<"fromClass|predicate|toClass", inversePredicate>
 
+  /**
+   * Minimum ratio threshold for inferring inverse relationships.
+   * Both forward and reverse ratios must be >= this value to consider predicates as inverses.
+   * Lower values are more permissive but risk false pairings.
+   * @type {number}
+   */
+  #minInverseRatio = 0.8;
+
+  /**
+   * Maximum ratio threshold for inferring inverse relationships.
+   * Both forward and reverse ratios must be <= this value to consider predicates as inverses.
+   * Higher values are more permissive but risk pairing relationships with very different cardinalities.
+   * @type {number}
+   */
+  #maxInverseRatio = 1.25;
+
+  /**
+   * Predicates that are typically one-way references and should NOT get inverse paths.
+   * These represent semantic relationships that are inherently directional (citations, mentions, references).
+   * @type {Set<string>}
+   */
+  #oneWayPredicates = new Set([
+    "https://schema.org/citation",
+    "https://schema.org/mentions",
+    "https://schema.org/about",
+    "https://schema.org/isRelatedTo",
+    "https://schema.org/references",
+    "https://schema.org/sameAs",
+    "https://schema.org/url",
+  ]);
+
   /** Creates a new OntologyProcessor instance */
   constructor() {
     this.#classSubjects = new Map();
@@ -156,9 +187,15 @@ export class OntologyProcessor {
   /**
    * Compute inverse predicates for all class-predicate-class relationships.
    * Call this after all quads have been processed via process().
+   * Uses conservative heuristics to avoid false inverse pairings:
+   * - Requires high count match to infer bidirectional relationship (see #minInverseRatio and #maxInverseRatio)
+   * - Excludes known one-way reference predicates (citation, mentions, about, etc.)
+   * - Detects and prevents circular contradictions (A↔B when A↔C already exists)
    * @private
    */
   #computeInversePredicates() {
+    const assignedInverses = new Map(); // Track predicate → inverse to detect conflicts
+
     for (const [
       forwardKey,
       forwardCount,
@@ -166,27 +203,97 @@ export class OntologyProcessor {
       const [fromClass, predicate, toClass] = forwardKey.split("|");
       if (forwardCount === 0) continue;
 
-      let bestInverse = null;
-      let bestScore = 0;
+      // Skip one-way reference predicates
+      if (this.#oneWayPredicates.has(predicate)) continue;
 
-      for (const [key, count] of this.#predicateDirections.entries()) {
-        const [subjClass, pred, objClass] = key.split("|");
+      const bestInverse = this.#findBestInverse(
+        forwardCount,
+        toClass,
+        fromClass,
+        predicate,
+      );
+
+      if (bestInverse) {
+        this.#assignInverseIfValid(
+          forwardKey,
+          predicate,
+          bestInverse,
+          assignedInverses,
+        );
+      }
+    }
+  }
+
+  /**
+   * Find the best inverse predicate for a forward relationship
+   * @param {number} forwardCount - Count of forward relationships
+   * @param {string} toClass - Target class IRI
+   * @param {string} fromClass - Source class IRI
+   * @param {string} predicate - Forward predicate IRI
+   * @returns {string|null} Best inverse predicate or null
+   * @private
+   */
+  #findBestInverse(forwardCount, toClass, fromClass, predicate) {
+    let bestInverse = null;
+    let bestScore = 0;
+
+    for (const [key, count] of this.#predicateDirections.entries()) {
+      const [subjClass, pred, objClass] = key.split("|");
+      if (
+        subjClass === toClass &&
+        objClass === fromClass &&
+        pred !== predicate
+      ) {
+        const matchRatio = count / forwardCount;
         if (
-          subjClass === toClass &&
-          objClass === fromClass &&
-          pred !== predicate
+          count > bestScore &&
+          matchRatio >= this.#minInverseRatio &&
+          matchRatio <= this.#maxInverseRatio
         ) {
-          if (count > bestScore && count >= forwardCount * 0.5) {
+          // Also check reverse ratio to ensure symmetry
+          const reverseKey = `${subjClass}|${pred}|${objClass}`;
+          const reverseCount = this.#predicateDirections.get(reverseKey) || 0;
+          const reverseRatio = forwardCount / reverseCount;
+
+          if (
+            reverseRatio >= this.#minInverseRatio &&
+            reverseRatio <= this.#maxInverseRatio
+          ) {
             bestScore = count;
             bestInverse = pred;
           }
         }
       }
-
-      if (bestInverse) {
-        this.#inversePredicates.set(forwardKey, bestInverse);
-      }
     }
+
+    return bestInverse;
+  }
+
+  /**
+   * Assign inverse predicate if it doesn't create conflicts
+   * @param {string} forwardKey - Forward relationship key
+   * @param {string} predicate - Forward predicate IRI
+   * @param {string} inverse - Inverse predicate IRI
+   * @param {Map<string, string>} assignedInverses - Map of assigned inverses
+   * @private
+   */
+  #assignInverseIfValid(forwardKey, predicate, inverse, assignedInverses) {
+    const existingInverse = assignedInverses.get(predicate);
+    const reverseExistingInverse = assignedInverses.get(inverse);
+
+    if (!existingInverse && !reverseExistingInverse) {
+      // Safe to assign - no conflicts
+      this.#inversePredicates.set(forwardKey, inverse);
+      assignedInverses.set(predicate, inverse);
+      assignedInverses.set(inverse, predicate);
+    } else if (
+      existingInverse === inverse &&
+      reverseExistingInverse === predicate
+    ) {
+      // Already correctly paired bidirectionally - safe to assign
+      this.#inversePredicates.set(forwardKey, inverse);
+    }
+    // else: conflict detected, skip this pairing to avoid contradictions
   }
 
   /**

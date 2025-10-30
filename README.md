@@ -98,16 +98,13 @@ Access the services:
 #### Option B: Production-Like Environment
 
 For a production-like environment with an Application Load Balancer (ALB) and
-S3-compatible storage:
+S3-compatible storage, first generate SSL certificates and comment out host and
+port variables in `.env` (using GNU `sed`), then start all services including
+ALB and MinIO:
 
 ```sh
-# Generate SSL certificates for localhost
 node scripts/cert.js
-
-# Comment out host and port variables in .env (GNU sed)
 sed -i -E '/(HOST|PORT)=/s/^/# /' .env
-
-# Start all services including ALB and MinIO
 docker compose up
 ```
 
@@ -164,14 +161,12 @@ Piping for scripted testing:
 echo "What is Kanban?" | npm run search
 ```
 
-Command-line flags for non-interactive runs (handled by the internal `Repl`
-state):
+Command-line flags can be used for non-interactive runs to limit results and set
+a minimum similarity threshold, or target the descriptor index instead of
+content:
 
 ```sh
-# Limit results and set a minimum similarity threshold
 echo "testing" | npm run search -- --limit 10 --threshold 0.25
-
-# Target the descriptor index instead of content
 echo "find pipeline tasks" | npm run search -- --index descriptor --limit 5
 ```
 
@@ -179,9 +174,11 @@ echo "find pipeline tasks" | npm run search -- --index descriptor --limit 5
 
 ### Code Quality
 
+Run all quality checks or automatically fix linting and formatting issues:
+
 ```sh
-npm run check        # Check linting and formatting
-npm run check:fix    # Automatically fix linting and formatting issues
+npm run check
+npm run check:fix
 ```
 
 ### Testing

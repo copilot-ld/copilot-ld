@@ -72,7 +72,11 @@ describe("libagent", () => {
     assert.ok(AgentMind);
     assert.ok(AgentHands);
 
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
@@ -85,7 +89,11 @@ describe("libagent", () => {
   });
 
   test("AgentMind and AgentHands work together in complete workflow", async () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
@@ -126,7 +134,7 @@ describe("libagent", () => {
 
     const result = await agentMind.processRequest(request);
 
-    assert.ok(result.conversation_id);
-    assert.strictEqual(result.conversation_id, "test-conv");
+    assert.ok(result.resource_id);
+    assert.strictEqual(result.resource_id, "test-conv");
   });
 });

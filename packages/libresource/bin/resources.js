@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
@@ -17,7 +17,7 @@ import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
  * @returns {Promise<void>}
  */
 async function main() {
-  const config = await ScriptConfig.create("resources");
+  const config = await createScriptConfig("resources");
 
   const { values } = parseArgs({
     options: {
@@ -26,22 +26,26 @@ async function main() {
         short: "b",
         default: "https://example.invalid/",
       },
+      fast: {
+        type: "boolean",
+        short: "f",
+        default: false,
+      },
     },
   });
 
-  const args = { base: values.base };
   const knowledgeStorage = createStorage("knowledge");
 
   const llm = createLlm(await config.githubToken(), "gpt-4o-mini");
   const logger = createLogger("resources");
 
   const resourceIndex = createResourceIndex("resources");
-  const describer = new Describer(llm);
+  const describer = values.fast ? null : new Describer(llm);
   const skolemizer = new Skolemizer();
 
   // Process knowledge using ResourceProcessor
   const resourceProcessor = new ResourceProcessor(
-    args.base,
+    values.base,
     resourceIndex,
     knowledgeStorage,
     skolemizer,

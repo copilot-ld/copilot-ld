@@ -6,7 +6,7 @@
  * @property {number} budget - Token budget for request processing
  * @property {object} allocation - Budget allocation configuration
  * @property {number} allocation.tools - Ratio for tool memory allocation (0-1)
- * @property {number} allocation.history - Ratio for history memory allocation (0-1)
+ * @property {number} allocation.resources - Ratio for resource memory allocation (0-1)
  * @property {number} allocation.results - Ratio for tool results allocation (0-1)
  * @property {string} assistant - Assistant identifier to use
  * @property {string[]} permanent_tools - Array of permanent tool names

@@ -1,9 +1,13 @@
 syntax = "proto3";
 
+package common;
+
 import "resource.proto";
 import "tool.proto";
 
-package common;
+message Empty {
+  bool void = 1;
+}
 
 message Usage {
   int32 prompt_tokens = 1;

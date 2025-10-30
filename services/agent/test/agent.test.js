@@ -51,7 +51,7 @@ describe("agent service", () => {
 
       mockAgentMind = {
         processRequest: async () => ({
-          conversation_id: "test-conversation",
+          resource_id: "test-conversation",
           choices: [
             { message: { role: "assistant", content: "Test response" } },
           ],
@@ -121,7 +121,7 @@ describe("agent service", () => {
       });
 
       assert.ok(result);
-      assert.strictEqual(result.conversation_id, "test-conversation");
+      assert.strictEqual(result.resource_id, "test-conversation");
     });
   });
 });

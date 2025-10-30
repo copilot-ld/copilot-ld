@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package trace;
+
+service Trace {
+  rpc RecordSpan(Span) returns (RecordSpanResponse);
+  rpc QuerySpans(QuerySpansRequest) returns (QuerySpansResponse);
+  rpc FlushTraces(FlushTracesRequest) returns (FlushTracesResponse);
+}
+
+message Span {
+  string trace_id = 1;
+  string span_id = 2;
+  string parent_span_id = 3;
+  string name = 4;
+  SpanKind kind = 5;
+  int64 start_time_unix_nano = 6;
+  int64 end_time_unix_nano = 7;
+  map<string, string> attributes = 8;
+  repeated SpanEvent events = 9;
+  SpanStatus status = 10;
+}
+
+enum SpanKind {
+  SPAN_KIND_UNSPECIFIED = 0;
+  SPAN_KIND_INTERNAL = 1;
+  SPAN_KIND_SERVER = 2;
+  SPAN_KIND_CLIENT = 3;
+}
+
+message SpanEvent {
+  string name = 1;
+  int64 time_unix_nano = 2;
+  map<string, string> attributes = 3;
+}
+
+message SpanStatus {
+  StatusCode code = 1;
+  string message = 2;
+}
+
+enum StatusCode {
+  STATUS_CODE_UNSET = 0;
+  STATUS_CODE_OK = 1;
+  STATUS_CODE_ERROR = 2;
+}
+
+message RecordSpanResponse {
+  bool success = 1;
+}
+
+message QuerySpansRequest {
+  string trace_id = 1;
+  string service_name = 2;
+  int64 start_time_unix_nano = 3;
+  int64 end_time_unix_nano = 4;
+  int32 limit = 5;
+}
+
+message QuerySpansResponse {
+  repeated Span spans = 1;
+}
+
+message FlushTracesRequest {}
+
+message FlushTracesResponse {
+  int32 flushed_count = 1;
+}

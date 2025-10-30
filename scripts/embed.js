@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { Copilot } from "@copilot-ld/libcopilot";
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 
-const config = await ScriptConfig.create("embed");
+const config = await createScriptConfig("embed");
 
 /**
  * Main function to create embeddings from stdin input

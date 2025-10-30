@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { cors } from "hono/cors";
 
-import { ExtensionConfig } from "@copilot-ld/libconfig";
+import { Config } from "@copilot-ld/libconfig";
 
 /**
  * Simple HTML escape function to prevent XSS attacks
@@ -30,7 +30,7 @@ function escapeHtml(str) {
 export class ValidationMiddleware {
   /**
    * Creates validation middleware instance
-   * @param {ExtensionConfig} [_config] - Extension configuration object
+   * @param {Config} [_config] - Extension configuration object
    */
   constructor(_config = null) {}
 
@@ -155,7 +155,7 @@ export class ValidationMiddleware {
 export class CorsMiddleware {
   /**
    * Creates CORS middleware instance
-   * @param {ExtensionConfig} [_config] - Extension configuration object
+   * @param {Config} [_config] - Extension configuration object
    */
   constructor(_config = null) {}
 
@@ -177,7 +177,7 @@ export class CorsMiddleware {
 
 /**
  * Factory function to create validation middleware
- * @param {ExtensionConfig} [config] - Extension configuration object (optional)
+ * @param {Config} [config] - Extension configuration object (optional)
  * @returns {ValidationMiddleware} Validation middleware instance
  */
 export function createValidationMiddleware(config = null) {
@@ -186,7 +186,7 @@ export function createValidationMiddleware(config = null) {
 
 /**
  * Factory function to create CORS middleware
- * @param {ExtensionConfig} [config] - Extension configuration object (optional)
+ * @param {Config} [config] - Extension configuration object (optional)
  * @returns {CorsMiddleware} CORS middleware instance
  */
 export function createCorsMiddleware(config = null) {

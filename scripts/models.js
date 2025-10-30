@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { Copilot } from "@copilot-ld/libcopilot";
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 
-const config = await ScriptConfig.create("models");
+const config = await createScriptConfig("models");
 
 /**
  * Main function to list available models from the copilot service

@@ -1,16 +1,21 @@
 /* eslint-env node */
 import { Server } from "@copilot-ld/librpc";
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createGraphIndex } from "@copilot-ld/libgraph";
-import { createResourceIndex } from "@copilot-ld/libresource";
+import { createTracer } from "@copilot-ld/librpc";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
 import { GraphService } from "./index.js";
 
-const config = await ServiceConfig.create("graph");
-const graphIndex = createGraphIndex("graphs");
-const resourceIndex = createResourceIndex("resources");
+const config = await createServiceConfig("graph");
 
-const service = new GraphService(config, graphIndex, resourceIndex);
-const server = new Server(service, config);
+// Initialize observability
+const logger = await createLogger("graph");
+const tracer = await createTracer("graph");
+
+const graphIndex = createGraphIndex("graphs");
+
+const service = new GraphService(config, graphIndex);
+const server = new Server(service, config, logger, tracer);
 
 await server.start();

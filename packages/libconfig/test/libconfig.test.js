@@ -3,7 +3,11 @@ import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { Config, ServiceConfig, ExtensionConfig } from "../index.js";
+import {
+  createConfig,
+  createServiceConfig,
+  createExtensionConfig,
+} from "../index.js";
 
 describe("libconfig", () => {
   describe("Config", () => {
@@ -28,7 +32,7 @@ describe("libconfig", () => {
     test("creates config with defaults", async () => {
       const mockStorageFn = () => mockStorage;
 
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         { defaultValue: 42 },
@@ -50,7 +54,7 @@ describe("libconfig", () => {
       };
 
       const mockStorageFn = () => mockStorage;
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         {},
@@ -69,7 +73,7 @@ describe("libconfig", () => {
       };
 
       const mockStorageFn = () => mockStorage;
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         { numbers: [], boolean: false }, // Need defaults for the properties to exist
@@ -87,7 +91,7 @@ describe("libconfig", () => {
       };
 
       const mockStorageFn = () => mockStorage;
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         { invalid: "" }, // Need default for the property to exist
@@ -100,7 +104,7 @@ describe("libconfig", () => {
 
     test("loads environment variables from process.env", async () => {
       const mockStorageFn = () => mockStorage;
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         {},
@@ -114,7 +118,7 @@ describe("libconfig", () => {
 
     test("handles storage initialization gracefully", async () => {
       const mockStorageFn = () => mockStorage;
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         {},
@@ -131,7 +135,7 @@ describe("libconfig", () => {
         get: () => Promise.resolve(Buffer.from("test: value")),
       }));
 
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         {},
@@ -143,7 +147,7 @@ describe("libconfig", () => {
     });
 
     test("uses default storageFactory when storageFn not provided", async () => {
-      const config = await Config.create("test", "myservice", {}, mockProcess);
+      const config = await createConfig("test", "myservice", {}, mockProcess);
 
       assert.strictEqual(config.name, "myservice");
       // Should have a default storageFn that calls storageFactory
@@ -159,7 +163,7 @@ describe("libconfig", () => {
         cwd: () => "/test/dir",
       };
 
-      const config = await Config.create("test", "myservice", {}, mockProcess);
+      const config = await createConfig("test", "myservice", {}, mockProcess);
 
       assert.strictEqual(config.name, "myservice");
       // Config should be able to create storage through environment-driven storageFactory
@@ -187,7 +191,7 @@ describe("libconfig", () => {
         path: (key) => key, // Add the missing path method
       });
 
-      const config = await Config.create(
+      const config = await createConfig(
         "test",
         "myservice",
         {},
@@ -207,7 +211,7 @@ describe("libconfig", () => {
       };
 
       // Can create config without storage dependency
-      const config = await Config.create("test", "myservice", {}, mockProcess);
+      const config = await createConfig("test", "myservice", {}, mockProcess);
 
       // Can use environment-driven storageFactory without config dependency
       // This would have been circular before the decoupling
@@ -227,7 +231,7 @@ describe("libconfig", () => {
         },
       };
 
-      config = await Config.create("test", "myservice", {}, mockProcess);
+      config = await createConfig("test", "myservice", {}, mockProcess);
     });
 
     test("githubClientId returns from environment", () => {
@@ -252,7 +256,7 @@ describe("libconfig", () => {
         path: (key) => key, // Add the missing path method
       });
 
-      const testConfig = await Config.create(
+      const testConfig = await createConfig(
         "test",
         "myservice",
         {},
@@ -271,7 +275,7 @@ describe("libconfig", () => {
     });
 
     test("creates service config", async () => {
-      const config = await ServiceConfig.create("testservice", {
+      const config = await createServiceConfig("testservice", {
         custom: "value",
       });
 
@@ -281,7 +285,7 @@ describe("libconfig", () => {
     });
 
     test("creates extension config", async () => {
-      const config = await ExtensionConfig.create("testextension", {
+      const config = await createExtensionConfig("testextension", {
         custom: "value",
       });
 

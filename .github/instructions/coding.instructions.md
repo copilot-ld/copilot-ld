@@ -149,7 +149,7 @@ base. Log key boundaries and external calls:
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { VectorBase } from "./service.js";
 
 class ExampleService extends VectorBase {
@@ -164,7 +164,7 @@ class ExampleService extends VectorBase {
   }
 }
 
-await new ExampleService(await ServiceConfig.create("vector"), null).start();
+await new ExampleService(await createServiceConfig("vector"), null).start();
 ```
 
 **Logging Guidelines:**
@@ -358,7 +358,7 @@ export class ConfigLoader {
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { createStorage } from "@copilot-ld/libstorage";
 import { VectorBase } from "./service.js";
@@ -378,7 +378,7 @@ class VectorService extends VectorBase {
   }
 }
 
-const config = await ServiceConfig.create("vector");
+const config = await createServiceConfig("vector");
 const index = new VectorIndex(createStorage("vectors"), "content.jsonl");
 await new VectorService(config, index).start();
 ```

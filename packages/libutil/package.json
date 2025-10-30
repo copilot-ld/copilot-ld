@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libutil",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "description": "Utility functions and utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -15,6 +15,9 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libtelemetry": "*"
   },
   "repository": {
     "type": "git",

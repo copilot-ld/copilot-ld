@@ -1,167 +1,55 @@
 /* eslint-env node */
-import grpc from "@grpc/grpc-js";
+import { createServiceConfig } from "@copilot-ld/libconfig";
+import { Tracer } from "@copilot-ld/libtelemetry/tracer.js";
 
-import { createLogger } from "@copilot-ld/libutil";
-
-import { createAuth } from "./base.js";
+import { capitalizeFirstLetter } from "./base.js";
 import * as exports from "./generated/services/exports.js";
-import * as definitionsExports from "./generated/definitions/exports.js";
 
-export { createGrpc, createAuth, Rpc, Client } from "./base.js";
+export { createGrpc, createAuth, Rpc } from "./base.js";
+export { Client } from "./client.js";
 export { Interceptor, HmacAuth } from "./auth.js";
-
-/**
- * gRPC Server class using pre-compiled service definitions
- * Takes a service instance and creates a gRPC server around it
- */
-export class Server {
-  #grpc;
-  #auth;
-  #logger;
-  #server;
-  #service;
-
-  /**
-   * Creates a gRPC server for a service
-   * @param {object} service - Service instance with business logic
-   * @param {object} config - Server configuration
-   * @param {() => {grpc: object}} grpcFn - gRPC factory
-   * @param {(serviceName: string) => object} authFn - Auth factory
-   * @param {(namespace: string) => object} logFn - Log factory
-   */
-  constructor(
-    service,
-    config,
-    grpcFn = () => ({ grpc }),
-    authFn = createAuth,
-    logFn = createLogger,
-  ) {
-    if (!service) throw new Error("service is required");
-    if (!config) throw new Error("config is required");
-
-    this.#service = service;
-    this.config = config;
-
-    const { grpc } = grpcFn();
-    this.#grpc = grpc;
-    this.#auth = authFn(config.name);
-    this.#logger = logFn(config.name);
-  }
-
-  /** Starts the gRPC server */
-  async start() {
-    this.#server = new this.#grpc.Server();
-
-    // Get pre-compiled service definition
-    const definition = this.#getServiceDefinition();
-
-    // Get handlers from the service instance
-    const handlers = this.#service.getHandlers();
-
-    // Wrap handlers with auth/error handling
-    const wrappedHandlers = this.#wrapHandlers(handlers);
-
-    this.#server.addService(definition, wrappedHandlers);
-
-    const uri = `${this.config.host}:${this.config.port}`;
-    await this.#bindServer(uri);
-
-    this.#setupShutdown();
-  }
-
-  /**
-   * Gets the service definition from generated definitions
-   * @returns {object} Service definition
-   */
-  #getServiceDefinition() {
-    // Get service name from config (e.g., "agent" -> "agent")
-    const serviceName = this.config.name.toLowerCase();
-
-    const definition = definitionsExports.definitions[serviceName];
-    if (!definition) {
-      throw new Error(
-        `Service definition for ${serviceName} not found. Available: ${Object.keys(definitionsExports.definitions).join(", ")}`,
-      );
-    }
-    return definition;
-  }
-
-  /**
-   * Wraps handlers with auth and error handling
-   * @param {object} handlers - Service method handlers
-   * @returns {object} Wrapped handlers
-   */
-  #wrapHandlers(handlers) {
-    const wrapped = {};
-    for (const [method, handler] of Object.entries(handlers)) {
-      wrapped[method] = this.#wrapUnary(handler);
-    }
-    return wrapped;
-  }
-
-  /**
-   * Wraps a unary handler with auth and error handling
-   * @param {Function} handler - Unary handler function
-   * @returns {Function} Wrapped handler
-   */
-  #wrapUnary(handler) {
-    return async (call, callback) => {
-      // Authenticate
-      const validation = this.#auth.validateCall(call);
-      if (!validation.isValid) {
-        return callback({
-          code: this.#grpc.status.UNAUTHENTICATED,
-          message: `Authentication failed: ${validation.error}`,
-        });
-      }
-
-      try {
-        const response = await handler(call);
-        callback(null, response);
-      } catch (error) {
-        this.#logger.debug("RPC handler error", {
-          error: error?.message || String(error),
-        });
-        callback({
-          code: this.#grpc.status.INTERNAL,
-          message: error?.message || String(error),
-        });
-      }
-    };
-  }
-
-  /**
-   * Binds server to the specified URI
-   * @param {string} uri - Server URI to bind to
-   * @returns {Promise<number>} Bound port number
-   */
-  async #bindServer(uri) {
-    return new Promise((resolve, reject) => {
-      this.#server.bindAsync(
-        uri,
-        this.#grpc.ServerCredentials.createInsecure(),
-        (error, port) => {
-          if (error) reject(error);
-          else {
-            this.#logger.debug("Server listening", { uri });
-            resolve(port);
-          }
-        },
-      );
-    });
-  }
-
-  /** Sets up graceful shutdown handlers */
-  #setupShutdown() {
-    const shutdown = () => {
-      this.#logger.debug("Shutting down...");
-      this.#server.tryShutdown(() => process.exit(0));
-    };
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
-  }
-}
+export { Server } from "./server.js";
 
 // Export services and clients objects for runtime access
 export const services = exports.services || {};
 export const clients = exports.clients || {};
+
+/**
+ * Creates a tracer instance for a service
+ * This factory should be called at startup in server.js files or when creating clients
+ * @param {string} serviceName - Name of the service being traced
+ * @returns {Promise<Tracer>} Configured tracer instance
+ * @throws {Error} If trace service configuration cannot be loaded
+ */
+export async function createTracer(serviceName) {
+  const traceConfig = await createServiceConfig("trace");
+  const { TraceClient } = clients;
+  const traceClient = new TraceClient(traceConfig);
+  return new Tracer({ serviceName, traceClient });
+}
+
+/**
+ * Factory function to create a client instance with optional logging and tracing
+ * @param {string} name - Service name (e.g., "memory", "llm", "tool")
+ * @param {object} [logger] - Optional logger instance
+ * @param {import("@copilot-ld/libtelemetry").Tracer} [tracer] - Optional tracer instance for distributed tracing
+ * @returns {Promise<object>} Initialized client instance
+ */
+export async function createClient(name, logger = null, tracer = null) {
+  // Build the client class name (e.g., "memory" -> "MemoryClient")
+  const className = capitalizeFirstLetter(name) + "Client";
+
+  // Get the client class from exports
+  const ClientClass = clients[className];
+  if (!ClientClass) {
+    throw new Error(
+      `Client ${className} not found. Available clients: ${Object.keys(clients).join(", ")}`,
+    );
+  }
+
+  // Create config for the service
+  const config = await createServiceConfig(name);
+
+  // Create and return the client instance with logger and tracer
+  return new ClientClass(config, logger, tracer);
+}

@@ -199,12 +199,17 @@ export class CodegenBase {
       ]),
     ]);
 
+    // Filter out well-known google namespaces as they are not in libtype
+    const filteredNamespaces = Array.from(namespaces).filter(
+      (ns) => !ns.startsWith("google"),
+    );
+
     return {
       packageName,
       serviceName,
       methods,
       namespaceName: packageName,
-      importNamespaces: Array.from(namespaces).map((ns, index, array) => ({
+      importNamespaces: filteredNamespaces.map((ns, index, array) => ({
         name: ns,
         isLast: index === array.length - 1,
       })),

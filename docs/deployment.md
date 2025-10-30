@@ -51,18 +51,16 @@ The platform uses a unified Docker build process with a single `Dockerfile` that
 handles all components (services, extensions, and tools). Building the
 containers requires a GitHub Personal Access Token (PAT) with at minimum the
 `read:packages` scope. Put the token in `config/.build_token` and deploy the
-stack like this:
+stack:
 
 ```bash
-# Build all container images using unified Dockerfile
 GITHUB_TOKEN=$(cat config/.build_token) docker compose build
-
-# Start the complete stack
 docker compose up -d
-
-# Check service status
 docker compose ps
 ```
+
+The first command builds all container images, the second starts the complete
+stack, and the third checks service status.
 
 ### Access Points
 
@@ -84,10 +82,9 @@ GitHub Actions to your AWS account.
 
 #### 1. Create GitHub OIDC Identity Provider in AWS
 
-First, create an OIDC identity provider in your AWS account:
+First, create an OIDC identity provider in your AWS account using AWS CLI:
 
 ```bash
-# Using AWS CLI
 aws iam create-open-id-connect-provider \
   --url https://token.actions.githubusercontent.com \
   --client-id-list sts.amazonaws.com \
@@ -136,49 +133,46 @@ Create an IAM role that GitHub Actions can assume. Save this as
 }
 ```
 
-Create the role and attach policies:
+Create the role and attach the necessary policies:
 
 ```bash
-# Create the role
 aws iam create-role \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --assume-role-policy-document file://github-actions-role.json
 
-# Attach CloudFormation permissions
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/CloudFormationFullAccess
 
-# Attach EC2 permissions for network infrastructure deployment
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess
 
-# Attach ECS permissions for service deployment
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/AmazonECS_FullAccess
 
-# Attach IAM permissions for role creation
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/IAMFullAccess
 
-# Attach S3 permissions for data management
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-# Attach Secrets Manager permissions
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/SecretsManagerReadWrite
 
-# Attach CloudWatch Logs permissions for log group management
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
 ```
+
+These attach CloudFormation permissions, `EC2` permissions for network
+infrastructure deployment, `ECS` permissions for service deployment, `IAM`
+permissions for role creation, `S3` permissions for data management, Secrets
+Manager permissions, and CloudWatch Logs permissions for log group management.
 
 **Security Note:** For production environments, replace `*FullAccess` policies
 with more restrictive, principle-of-least-privilege policies tailored to your

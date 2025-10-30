@@ -8,14 +8,14 @@
         "query_by_content",
         "query_by_pattern"
       ],
-      "threshold": 0.25,
+      "threshold": 0.5,
       "temperature": 0.25,
       "budget": {
         "tokens": 90000,
         "allocation": {
           "tools": 0.1,
-          "history": 0.1,
-          "results": 0.8
+          "context": 0.8,
+          "conversation": 0.1
         }
       }
     },
@@ -26,7 +26,7 @@
       "endpoints": {
         "get_ontology": {
           "method": "graph.Graph.GetOntology",
-          "request": "graph.OntologyRequest"
+          "request": "common.Empty"
         },
         "query_by_pattern": {
           "method": "graph.Graph.QueryByPattern",

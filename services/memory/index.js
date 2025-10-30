@@ -42,60 +42,51 @@ export class MemoryService extends MemoryBase {
   }
 
   /** @inheritdoc */
-  async Append(req) {
-    if (!req.for) throw new Error("for is required");
+  async AppendMemory(req) {
+    if (!req.resource_id) throw new Error("resource_id is required");
 
-    this.#lock[req.for] = true;
+    this.#lock[req.resource_id] = true;
 
     try {
-      this.debug("Appending memory", {
-        for: req.for,
-        count: req.identifiers?.length || 0,
-      });
-
-      const window = this.#getWindow(req.for);
+      const window = this.#getWindow(req.resource_id);
 
       if (req.identifiers && req.identifiers.length > 0) {
         await window.append(req.identifiers);
       }
     } finally {
-      delete this.#lock[req.for];
+      delete this.#lock[req.resource_id];
     }
 
-    return { accepted: req.for };
+    return { accepted: req.resource_id };
   }
 
   /** @inheritdoc */
-  async Get(req) {
-    if (!req.for) throw new Error("for is required");
+  async GetWindow(req) {
+    if (!req.resource_id) throw new Error("resource_id is required");
 
-    if (!req.budget || !req.allocation?.tools || !req.allocation?.history) {
-      throw new Error("Budget allocation of tools and history is required");
+    if (
+      !req.budget ||
+      !req.allocation?.tools ||
+      !req.allocation?.context ||
+      !req.allocation?.conversation
+    ) {
+      throw new Error(
+        "Budget allocation is required: tools, context, conversation",
+      );
     }
 
-    while (this.#lock[req.for]) {
+    while (this.#lock[req.resource_id]) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    this.debug("Getting memory window", {
-      for: req.for,
-      budget: req.budget,
-      allocationTools: req.allocation?.tools,
-      allocationHistory: req.allocation?.history,
-    });
-
-    const window = this.#getWindow(req.for);
+    const window = this.#getWindow(req.resource_id);
     const memory = await window.build(req.budget, req.allocation);
 
-    this.debug("Memory window contents", {
-      tools: memory.tools.length,
-      history: memory.history.length,
-    });
-
     return {
-      for: req.for,
+      resource_id: req.resource_id,
       tools: memory.tools,
-      history: memory.history,
+      context: memory.context,
+      conversation: memory.conversation,
     };
   }
 }

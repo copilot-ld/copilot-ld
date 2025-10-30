@@ -60,7 +60,7 @@ export default [
       "**/data/**",
       "**/package-lock.json",
       "SCRATCHPAD*.md",
-      // Ignore protobuf generated types file (contains invalid JSDoc from protobufjs)
+      // Ignore generated types with invalid JSDoc from protobufjs
       "**/generated/types/types.js",
     ],
   },

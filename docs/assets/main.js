@@ -45,11 +45,11 @@ Prism.highlightAll();
 // Initialize Mermaid if diagrams exist (marked outputs language-mermaid class)
 if (document.querySelector(".language-mermaid")) {
   mermaid.initialize({
-    startOnLoad: true,
+    startOnLoad: false,
     theme: "neutral",
   });
   // Run mermaid on code blocks with language-mermaid class
   mermaid.run({
-    querySelector: ".language-mermaid",
+    nodes: document.querySelectorAll(".language-mermaid code"),
   });
 }

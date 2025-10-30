@@ -5,14 +5,14 @@
     <title>BioNova Drug Development Pipeline</title>
     <meta
       name="description"
-      content="Seven BioNova drug products with mechanism, formulation, phase metadata, derivative relationships, and linked projects, trials, and events."
+      content="Ten BioNova drug products with mechanism, formulation, phase metadata, derivative relationships, and linked projects, trials, and events."
     />
   </head>
   <body>
     <header>
       <h1>BioNova Drug Development Pipeline</h1>
       <p>
-        This document models seven drugs across discovery, clinical, and
+        This document models ten drugs across discovery, clinical, and
         commercialization stages. Each <code>Drug</code> item includes mechanism
         of action, formulation strategy, development phase markers, derivative
         relationships, platform dependencies, associated projects, and temporal
@@ -362,13 +362,154 @@
       </section>
     </article>
 
+    <!-- NovaMed -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Drug"
+      itemid="https://bionova.example/id/drug/novamed"
+    >
+      <h2 itemprop="name">NovaMed</h2>
+      <p itemprop="description">
+        Novel small-molecule therapeutic targeting inflammatory cascade
+        modulation through selective cytokine pathway inhibition. Designed for
+        chronic inflammatory conditions with optimized oral bioavailability and
+        sustained tissue penetration profile. Formulation includes
+        gastro-resistant coating for targeted intestinal release.
+      </p>
+      <meta itemprop="drugClass" content="Selective cytokine inhibitor" />
+      <meta
+        itemprop="activeIngredient"
+        content="NovaMed Compound F (JAK-STAT inhibitor)"
+      />
+      <meta
+        itemprop="clinicalPharmacology"
+        content="Selectively inhibits JAK1/JAK2 signaling pathways, reducing pro-inflammatory cytokine production while maintaining immune surveillance capacity."
+      />
+      <meta itemprop="identifier" content="NVM-BASE-008" />
+      <meta itemprop="legalStatus" content="Phase II dose-finding studies" />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/gamma"
+      />
+      <section>
+        <h3>Discovery &amp; Safety Platforms</h3>
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/molecularforge"
+        />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/datalake"
+        />
+      </section>
+    </article>
+
+    <!-- OncoVex -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Drug"
+      itemid="https://bionova.example/id/drug/oncovex"
+    >
+      <h2 itemprop="name">OncoVex</h2>
+      <p itemprop="description">
+        Next-generation oncolytic immunotherapy combining viral vector-mediated
+        tumor lysis with immune checkpoint modulation. Engineered virus
+        selectively replicates in tumor cells while expressing
+        immune-stimulatory transgenes. Administered via intratumoral injection
+        with expansion to systemic immune response.
+      </p>
+      <meta
+        itemprop="drugClass"
+        content="Oncolytic viral immunotherapy vector"
+      />
+      <meta
+        itemprop="activeIngredient"
+        content="Modified vaccinia virus expressing GM-CSF and PD-L1 antagonist"
+      />
+      <meta
+        itemprop="clinicalPharmacology"
+        content="Induces immunogenic tumor cell death while simultaneously blocking PD-1/PD-L1 checkpoint, generating tumor-specific T-cell responses with abscopal effect potential."
+      />
+      <meta itemprop="identifier" content="OCV-BASE-009" />
+      <meta itemprop="legalStatus" content="Phase I/II combination trials" />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <section>
+        <h3>Biologic Development Platforms</h3>
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/molecularforge"
+        />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/mlflow"
+        />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+      </section>
+    </article>
+
+    <!-- NeuroGenex -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Drug"
+      itemid="https://bionova.example/id/drug/neurogenex"
+    >
+      <h2 itemprop="name">NeuroGenex</h2>
+      <p itemprop="description">
+        Neuroprotective agent leveraging novel mitochondrial biogenesis pathway
+        activation to enhance neuronal resilience and reduce oxidative stress in
+        neurodegenerative conditions. Combines blood-brain barrier penetration
+        with sustained CNS exposure via lipid nanoparticle formulation.
+      </p>
+      <meta itemprop="drugClass" content="Mitochondrial biogenesis enhancer" />
+      <meta
+        itemprop="activeIngredient"
+        content="NeuroGenex Compound G (PGC-1α activator)"
+      />
+      <meta
+        itemprop="clinicalPharmacology"
+        content="Activates peroxisome proliferator-activated receptor gamma coactivator 1-alpha pathway, increasing mitochondrial density and oxidative capacity while reducing reactive oxygen species accumulation."
+      />
+      <meta itemprop="identifier" content="NGX-BASE-010" />
+      <meta
+        itemprop="legalStatus"
+        content="Phase II efficacy and biomarker studies"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/zeta"
+      />
+      <section>
+        <h3>Pharmacovigilance &amp; Post-Market Platforms</h3>
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+      </section>
+    </article>
+
     <!-- Path Helper: Drug Evolution Chain -->
     <section
       itemscope
       itemtype="https://schema.org/CreativeWork"
       itemid="https://bionova.example/id/path/drug-evolution-oncora-family"
-      data-rel="path"
-      data-hops="3"
     >
       <meta itemprop="name" content="Oncora Evolution Chain" />
       <p itemprop="description">

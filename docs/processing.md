@@ -117,14 +117,19 @@ node scripts/resources.js --selector "[itemtype*='Article'], [itemtype*='HowTo']
 ### Output Structure
 
 Resource processing creates individual JSON files in `data/resources/` with
-Copilot-LD (CLD) identifiers:
+Copilot-LD (CLD) identifiers. The directory structure includes:
+
+- Individual message resources: `common.Message.{hash}.json`
+- Assistant configurations: `common.Assistant.{name}.json`
+- Conversation metadata: `common.Conversation.{uuid}.json`
+- Tool definitions: `tool.ToolFunction.{name}.json`
 
 ```bash
 data/resources/
-├── common.Message.{hash}.json          # Individual message resources
-├── common.Assistant.{name}.json        # Assistant configurations
-└── common.Conversation.{uuid}.json     # Conversation metadata
-├── tool.ToolFunction.{name}.json       # Tool definitions
+├── common.Message.{hash}.json
+├── common.Assistant.{name}.json
+└── common.Conversation.{uuid}.json
+├── tool.ToolFunction.{name}.json
 ```
 
 #### Resource Format
@@ -266,10 +271,13 @@ The vector processor creates two types of embeddings:
 
 Embeddings are stored in `data/vectors/` as JSONL files:
 
+- `content.jsonl`: Content-based embeddings
+- `descriptors.jsonl`: Descriptor-based embeddings
+
 ```bash
 data/vectors/
-├── content.jsonl         # Content-based embeddings
-└── descriptors.jsonl     # Descriptor-based embeddings
+├── content.jsonl
+└── descriptors.jsonl
 ```
 
 Each vector entry contains:
@@ -351,12 +359,11 @@ npm run upload
 
 #### Production Environment
 
-```bash
-# Download pre-processed data bundle
-npm run download
+Download pre-processed data bundle or synchronize from S3 if using the
+upload/download pattern, then deploy with processed data available:
 
-# Or synchronize from S3 if using upload/download pattern
-# Deploy with processed data available
+```bash
+npm run download
 ```
 
 ### Storage Monitoring

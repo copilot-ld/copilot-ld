@@ -11,7 +11,7 @@ export class {{className}} {
 
   /**
    * Creates a new {{serviceName}} service instance
-   * @param { object } config - Service configuration
+   * @param {object} config - Service configuration
    * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
   constructor(config, logFn = createLogger) {
@@ -48,9 +48,12 @@ export class {{className}} {
     return {
 {{#methods}}
       {{name}}: async (call) => {
+        // Validate and convert request
         const error = {{requestTypeNamespace}}.{{requestType}}.verify(call.request);
         if (error) throw new Error(`{{name}}: ${error}`);
         const req = {{requestTypeNamespace}}.{{requestType}}.fromObject(call.request);
+        
+        // Call implementation
         return await this.{{name}}(req);
       },
 {{/methods}}

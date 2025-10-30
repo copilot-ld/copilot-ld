@@ -1,9 +1,9 @@
 syntax = "proto3";
 
+package llm;
+
 import "common.proto";
 import "tool.proto";
-
-package llm;
 
 service Llm {
   rpc CreateEmbeddings(EmbeddingsRequest) returns (EmbeddingsResponse);

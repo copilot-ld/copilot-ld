@@ -14,30 +14,28 @@
       <!-- Role items start -->
       <!--
     Each Role:
-      - itemid: https://ld.company.com/role/{slug}
-      - mainEntity: person, organization/project/team, roleName, startDate, endDate (optional)
+      - itemid: https://bionova.example/id/role/{slug}
+      - isRelatedTo: links to person (via link href) and organization (nested)
+      - roleName: title/position
+      - startDate, endDate (optional): temporal boundaries
       - Diverse vocabulary, vector-optimized, cross-file links
   -->
       <!-- Role 1 -->
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/ceo"
+        itemid="https://bionova.example/id/role/ceo"
       >
         <span itemprop="roleName">Chief Executive Officer</span>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/person/alex-chen"
+        />
         <div
-          itemprop="mainEntity"
-          itemscope
-          itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/alex-chen"
-        >
-          <span itemprop="name">Alex Chen</span>
-        </div>
-        <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/hq"
+          itemid="https://bionova.example/id/org/hq"
         >
           <span itemprop="name">Headquarters</span>
         </div>
@@ -47,22 +45,18 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/rd-director"
+        itemid="https://bionova.example/id/role/rd-director"
       >
         <span itemprop="roleName">Director of R&D</span>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/person/sophia-li"
+        />
         <div
-          itemprop="mainEntity"
-          itemscope
-          itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/sophia-li"
-        >
-          <span itemprop="name">Sophia Li</span>
-        </div>
-        <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/rd"
+          itemid="https://bionova.example/id/org/rd"
         >
           <span itemprop="name">R&D Division</span>
         </div>
@@ -72,22 +66,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/clinical-lead"
+        itemid="https://bionova.example/id/role/clinical-lead"
       >
         <span itemprop="roleName">Clinical Lead</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/maria-garcia"
+          itemid="https://bionova.example/id/person/maria-garcia"
         >
           <span itemprop="name">Maria Garcia</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/clinical-ops"
+          itemid="https://bionova.example/id/org/clinical-ops"
         >
           <span itemprop="name">Clinical Operations Team</span>
         </div>
@@ -97,22 +91,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/quality-manager"
+        itemid="https://bionova.example/id/role/quality-manager"
       >
         <span itemprop="roleName">Quality Manager</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/ella-jones"
+          itemid="https://bionova.example/id/person/ella-jones"
         >
           <span itemprop="name">Ella Jones</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/quality"
+          itemid="https://bionova.example/id/org/quality"
         >
           <span itemprop="name">Quality Assurance</span>
         </div>
@@ -122,22 +116,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/genomics-lead"
+        itemid="https://bionova.example/id/role/genomics-lead"
       >
         <span itemprop="roleName">Genomics Lead</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/lily-nguyen"
+          itemid="https://bionova.example/id/person/lily-nguyen"
         >
           <span itemprop="name">Lily Nguyen</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/genomics"
+          itemid="https://bionova.example/id/org/genomics"
         >
           <span itemprop="name">Genomics Team</span>
         </div>
@@ -147,22 +141,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/pharmacovigilance-officer"
+        itemid="https://bionova.example/id/role/pharmacovigilance-officer"
       >
         <span itemprop="roleName">Pharmacovigilance Officer</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/henry-shaw"
+          itemid="https://bionova.example/id/person/henry-shaw"
         >
           <span itemprop="name">Henry Shaw</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/safety"
+          itemid="https://bionova.example/id/org/safety"
         >
           <span itemprop="name">Drug Safety</span>
         </div>
@@ -172,22 +166,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/data-engineering-lead"
+        itemid="https://bionova.example/id/role/data-engineering-lead"
       >
         <span itemprop="roleName">Data Engineering Lead</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/kevin-wu"
+          itemid="https://bionova.example/id/person/kevin-wu"
         >
           <span itemprop="name">Kevin Wu</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/data-platform"
+          itemid="https://bionova.example/id/org/data-platform"
         >
           <span itemprop="name">Data Platform</span>
         </div>
@@ -197,22 +191,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/security-architect"
+        itemid="https://bionova.example/id/role/security-architect"
       >
         <span itemprop="roleName">Security Architect</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/james-porter"
+          itemid="https://bionova.example/id/person/james-porter"
         >
           <span itemprop="name">James Porter</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/security"
+          itemid="https://bionova.example/id/org/security"
         >
           <span itemprop="name">Security & Compliance</span>
         </div>
@@ -222,22 +216,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/clinical-data-scientist"
+        itemid="https://bionova.example/id/role/clinical-data-scientist"
       >
         <span itemprop="roleName">Clinical Data Scientist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/oliver-smith"
+          itemid="https://bionova.example/id/person/oliver-smith"
         >
           <span itemprop="name">Oliver Smith</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/clinical-ops"
+          itemid="https://bionova.example/id/org/clinical-ops"
         >
           <span itemprop="name">Clinical Operations Team</span>
         </div>
@@ -247,22 +241,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/manufacturing-compliance-specialist"
+        itemid="https://bionova.example/id/role/manufacturing-compliance-specialist"
       >
         <span itemprop="roleName">Manufacturing Compliance Specialist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/rachel-klein"
+          itemid="https://bionova.example/id/person/rachel-klein"
         >
           <span itemprop="name">Rachel Klein</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/manufacturing"
+          itemid="https://bionova.example/id/org/manufacturing"
         >
           <span itemprop="name">Manufacturing Quality</span>
         </div>
@@ -273,22 +267,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/ai-ethics-officer"
+        itemid="https://bionova.example/id/role/ai-ethics-officer"
       >
         <span itemprop="roleName">AI Ethics Officer</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/samuel-prose"
+          itemid="https://bionova.example/id/person/samuel-prose"
         >
           <span itemprop="name">Samuel Prose</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/governance"
+          itemid="https://bionova.example/id/org/governance"
         >
           <span itemprop="name">Governance & Ethics</span>
         </div>
@@ -298,22 +292,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/supply-chain-analyst"
+        itemid="https://bionova.example/id/role/supply-chain-analyst"
       >
         <span itemprop="roleName">Supply Chain Analyst</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/marcus-lane"
+          itemid="https://bionova.example/id/person/marcus-lane"
         >
           <span itemprop="name">Marcus Lane</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/supply-chain"
+          itemid="https://bionova.example/id/org/supply-chain"
         >
           <span itemprop="name">Supply Chain</span>
         </div>
@@ -323,22 +317,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/observability-engineer"
+        itemid="https://bionova.example/id/role/observability-engineer"
       >
         <span itemprop="roleName">Observability Engineer</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/victor-chen"
+          itemid="https://bionova.example/id/person/victor-chen"
         >
           <span itemprop="name">Victor Chen</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/platform-engineering"
+          itemid="https://bionova.example/id/org/platform-engineering"
         >
           <span itemprop="name">Platform Engineering</span>
         </div>
@@ -348,22 +342,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/federated-learning-researcher"
+        itemid="https://bionova.example/id/role/federated-learning-researcher"
       >
         <span itemprop="roleName">Federated Learning Researcher</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/grace-yamada"
+          itemid="https://bionova.example/id/person/grace-yamada"
         >
           <span itemprop="name">Grace Yamada</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/ml-research"
+          itemid="https://bionova.example/id/org/ml-research"
         >
           <span itemprop="name">ML Research</span>
         </div>
@@ -373,22 +367,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/pk-pd-modeler"
+        itemid="https://bionova.example/id/role/pk-pd-modeler"
       >
         <span itemprop="roleName">PK/PD Modeler</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/alex-mendoza"
+          itemid="https://bionova.example/id/person/alex-mendoza"
         >
           <span itemprop="name">Alex Mendoza</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/clinical-pharmacology"
+          itemid="https://bionova.example/id/org/clinical-pharmacology"
         >
           <span itemprop="name">Clinical Pharmacology</span>
         </div>
@@ -398,22 +392,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/multi-modal-integration-specialist"
+        itemid="https://bionova.example/id/role/multi-modal-integration-specialist"
       >
         <span itemprop="roleName">Multi-Modal Integration Specialist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/kate-danvers"
+          itemid="https://bionova.example/id/person/kate-danvers"
         >
           <span itemprop="name">Kate Danvers</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/data-platform"
+          itemid="https://bionova.example/id/org/data-platform"
         >
           <span itemprop="name">Data Platform</span>
         </div>
@@ -423,22 +417,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/synthetic-data-scientist"
+        itemid="https://bionova.example/id/role/synthetic-data-scientist"
       >
         <span itemprop="roleName">Synthetic Data Scientist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/ethan-zhang"
+          itemid="https://bionova.example/id/person/ethan-zhang"
         >
           <span itemprop="name">Ethan Zhang</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/ml-research"
+          itemid="https://bionova.example/id/org/ml-research"
         >
           <span itemprop="name">ML Research</span>
         </div>
@@ -448,22 +442,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/patient-engagement-strategist"
+        itemid="https://bionova.example/id/role/patient-engagement-strategist"
       >
         <span itemprop="roleName">Patient Engagement Strategist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/maya-singh"
+          itemid="https://bionova.example/id/person/maya-singh"
         >
           <span itemprop="name">Maya Singh</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/patient-experience"
+          itemid="https://bionova.example/id/org/patient-experience"
         >
           <span itemprop="name">Patient Experience</span>
         </div>
@@ -473,22 +467,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/trial-automation-strategist"
+        itemid="https://bionova.example/id/role/trial-automation-strategist"
       >
         <span itemprop="roleName">Trial Automation Strategist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/julia-fang"
+          itemid="https://bionova.example/id/person/julia-fang"
         >
           <span itemprop="name">Julia Fang</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/clinical-ops"
+          itemid="https://bionova.example/id/org/clinical-ops"
         >
           <span itemprop="name">Clinical Operations Team</span>
         </div>
@@ -498,22 +492,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/deployment-reliability-engineer"
+        itemid="https://bionova.example/id/role/deployment-reliability-engineer"
       >
         <span itemprop="roleName">Deployment Reliability Engineer</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/diego-martin"
+          itemid="https://bionova.example/id/person/diego-martin"
         >
           <span itemprop="name">Diego Martin</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/platform-engineering"
+          itemid="https://bionova.example/id/org/platform-engineering"
         >
           <span itemprop="name">Platform Engineering</span>
         </div>
@@ -523,22 +517,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/lineage-governance-analyst"
+        itemid="https://bionova.example/id/role/lineage-governance-analyst"
       >
         <span itemprop="roleName">Lineage Governance Analyst</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/isaac-turner"
+          itemid="https://bionova.example/id/person/isaac-turner"
         >
           <span itemprop="name">Isaac Turner</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/governance"
+          itemid="https://bionova.example/id/org/governance"
         >
           <span itemprop="name">Governance & Ethics</span>
         </div>
@@ -548,22 +542,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/memory-optimization-engineer"
+        itemid="https://bionova.example/id/role/memory-optimization-engineer"
       >
         <span itemprop="roleName">Memory Optimization Engineer</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/luke-fleming"
+          itemid="https://bionova.example/id/person/luke-fleming"
         >
           <span itemprop="name">Luke Fleming</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/platform-engineering"
+          itemid="https://bionova.example/id/org/platform-engineering"
         >
           <span itemprop="name">Platform Engineering</span>
         </div>
@@ -573,22 +567,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/vector-retrieval-specialist"
+        itemid="https://bionova.example/id/role/vector-retrieval-specialist"
       >
         <span itemprop="roleName">Vector Retrieval Specialist</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/jordan-park"
+          itemid="https://bionova.example/id/person/jordan-park"
         >
           <span itemprop="name">Jordan Park</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/data-platform"
+          itemid="https://bionova.example/id/org/data-platform"
         >
           <span itemprop="name">Data Platform</span>
         </div>
@@ -598,22 +592,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/registry-outcomes-analyst"
+        itemid="https://bionova.example/id/role/registry-outcomes-analyst"
       >
         <span itemprop="roleName">Registry Outcomes Analyst</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/brianna-lowe"
+          itemid="https://bionova.example/id/person/brianna-lowe"
         >
           <span itemprop="name">Brianna Lowe</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/real-world-evidence"
+          itemid="https://bionova.example/id/org/real-world-evidence"
         >
           <span itemprop="name">Real-World Evidence</span>
         </div>
@@ -623,22 +617,22 @@
       <div
         itemscope
         itemtype="https://schema.org/Role"
-        itemid="https://ld.company.com/role/quality-manager-successor"
+        itemid="https://bionova.example/id/role/quality-manager-successor"
       >
         <span itemprop="roleName">Quality Manager (Successor)</span>
         <div
-          itemprop="mainEntity"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Person"
-          itemid="https://ld.company.com/person/ella-jones"
+          itemid="https://bionova.example/id/person/ella-jones"
         >
           <span itemprop="name">Ella Jones</span>
         </div>
         <div
-          itemprop="mainEntityOfPage"
+          itemprop="isRelatedTo"
           itemscope
           itemtype="https://schema.org/Organization"
-          itemid="https://ld.company.com/org/quality"
+          itemid="https://bionova.example/id/org/quality"
         >
           <span itemprop="name">Quality Assurance</span>
         </div>

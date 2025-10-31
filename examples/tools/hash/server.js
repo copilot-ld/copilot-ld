@@ -1,13 +1,18 @@
 /* eslint-env node */
 import { Server } from "@copilot-ld/librpc";
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
+import { createTracer } from "@copilot-ld/librpc";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
 import { HashService } from "./index.js";
 
-// Bootstrap the service
-const config = await ServiceConfig.create("hash");
-const service = new HashService(config);
+const config = await createServiceConfig("hash");
 
-// Create and start the server
-const server = new Server(service, config);
+// Initialize observability
+const logger = await createLogger("hash");
+const tracer = await createTracer("hash");
+
+const service = new HashService(config);
+const server = new Server(service, config, logger, tracer);
+
 await server.start();

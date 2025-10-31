@@ -43,8 +43,6 @@
           itemtype="https://schema.org/Person"
           itemid="https://bionova.example/id/person/zeus"
           itemprop="employee"
-          data-rel="reportsTo"
-          data-to="https://bionova.example/id/person/apollo"
         >
           <span itemprop="name">Zeus</span>
           <span itemprop="jobTitle">Chief Scientific Officer (CSO)</span>
@@ -70,13 +68,23 @@
             Research &amp; Development department driving discovery, clinical
             development, and regulatory affairs.
           </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/drug-discovery-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/clinical-development-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/regulatory-affairs-team"
+          />
           <div
             itemscope
             itemtype="https://schema.org/Person"
             itemid="https://bionova.example/id/person/minerva"
             itemprop="employee"
-            data-rel="reportsTo"
-            data-to="https://bionova.example/id/person/zeus"
           >
             <span itemprop="name">Minerva</span>
             <span itemprop="jobTitle">Director, BioNova R&amp;D</span>
@@ -98,13 +106,23 @@
             Manufacturing department ensuring GMP-compliant production and
             quality assurance.
           </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/production-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/quality-assurance-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/supply-chain-team"
+          />
           <div
             itemscope
             itemtype="https://schema.org/Person"
             itemid="https://bionova.example/id/person/hephaestus"
             itemprop="employee"
-            data-rel="reportsTo"
-            data-to="https://bionova.example/id/person/zeus"
           >
             <span itemprop="name">Hephaestus</span>
             <span itemprop="jobTitle">Director, BioNova Manufacturing</span>
@@ -126,13 +144,23 @@
             Commercial department managing market access, sales strategy, and
             pharmaceutical marketing.
           </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/market-access-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/sales-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/marketing-team"
+          />
           <div
             itemscope
             itemtype="https://schema.org/Person"
             itemid="https://bionova.example/id/person/rhea"
             itemprop="employee"
-            data-rel="reportsTo"
-            data-to="https://bionova.example/id/person/zeus"
           >
             <span itemprop="name">Rhea</span>
             <span itemprop="jobTitle">Director, BioNova Commercial</span>
@@ -154,13 +182,27 @@
             Information Technology department building AI platforms, data
             infrastructure, and microservices architecture.
           </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/platform-engineering-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/data-science-ai-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/it-operations-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/cloud-infrastructure-team"
+          />
           <div
             itemscope
             itemtype="https://schema.org/Person"
             itemid="https://bionova.example/id/person/gaia"
             itemprop="employee"
-            data-rel="reportsTo"
-            data-to="https://bionova.example/id/person/zeus"
           >
             <span itemprop="name">Gaia</span>
             <span itemprop="jobTitle">CTO / Director, BioNova IT</span>
@@ -179,8 +221,6 @@
           itemscope
           itemtype="https://schema.org/CreativeWork"
           itemid="https://bionova.example/id/path/leadership-reporting-chain"
-          data-rel="path"
-          data-hops="3"
         >
           <meta itemprop="name" content="Leadership Reporting Chain" />
           <p itemprop="description">

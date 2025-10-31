@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-10-31
+
+- Fixed performance tests to use correct method names and allocation structure
+- Updated `test/libmemory.perf.js` to call `splitResources()` instead of
+  non-existent `splitToolsAndHistory()`
+- Updated `MemoryWindow.build()` test allocation to include required `tools`,
+  `context`, and `conversation` properties
+
 ## 2025-10-26
 
 - Added performance tests in `test/libmemory.perf.js` for `filterByBudget()`,

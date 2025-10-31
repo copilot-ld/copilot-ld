@@ -2,13 +2,14 @@
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
-import { ServiceConfig, ExtensionConfig } from "@copilot-ld/libconfig";
+import { Config } from "@copilot-ld/libconfig";
 import { Client, Server } from "@copilot-ld/librpc";
 
 describe("Service Integration", () => {
   let mockGrpcFn;
   let mockAuthFn;
   let mockLogFn;
+  let mockObserverFn;
 
   beforeEach(() => {
     // Mock gRPC factory
@@ -49,14 +50,31 @@ describe("Service Integration", () => {
     });
 
     // Mock log factory
-    mockLogFn = () => ({
+    mockLogFn = {
       debug: mock.fn(),
+    };
+
+    // Mock observer factory
+    mockObserverFn = () => ({
+      observeServerCall: async (method, handler, call, callback) => {
+        return await handler(call, callback);
+      },
+      observeClientCall: async (method, request, fn) => {
+        return await fn();
+      },
     });
   });
 
   test("ServiceConfig integrates with Client", () => {
-    const config = new ServiceConfig("agent");
-    const client = new Client(config, mockGrpcFn, mockAuthFn, mockLogFn);
+    const config = new Config("service", "agent");
+    const client = new Client(
+      config,
+      mockLogFn,
+      null,
+      mockObserverFn,
+      mockGrpcFn,
+      mockAuthFn,
+    );
 
     assert.ok(client);
     assert.strictEqual(config.name, "agent");
@@ -64,8 +82,15 @@ describe("Service Integration", () => {
   });
 
   test("ExtensionConfig integrates with Client", () => {
-    const config = new ExtensionConfig("vector");
-    const client = new Client(config, mockGrpcFn, mockAuthFn, mockLogFn);
+    const config = new Config("extension", "vector");
+    const client = new Client(
+      config,
+      mockLogFn,
+      null,
+      mockObserverFn,
+      mockGrpcFn,
+      mockAuthFn,
+    );
 
     assert.ok(client);
     assert.strictEqual(config.name, "vector");
@@ -73,7 +98,7 @@ describe("Service Integration", () => {
   });
 
   test("ServiceConfig integrates with Server", () => {
-    const config = new ServiceConfig("test-service");
+    const config = new Config("service", "test-service");
     const mockService = {
       getProtoName: () => "test.proto",
       getHandlers: () => ({
@@ -84,9 +109,11 @@ describe("Service Integration", () => {
     const server = new Server(
       mockService,
       config,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     assert.ok(server);
@@ -95,20 +122,24 @@ describe("Service Integration", () => {
   });
 
   test("Multiple services use different configs", () => {
-    const agentConfig = new ServiceConfig("agent");
-    const vectorConfig = new ServiceConfig("vector");
+    const agentConfig = new Config("service", "agent");
+    const vectorConfig = new Config("service", "vector");
 
     const agentClient = new Client(
       agentConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
     const vectorClient = new Client(
       vectorConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     assert.ok(agentClient);
@@ -119,20 +150,24 @@ describe("Service Integration", () => {
   });
 
   test("Extension and Service configs work together", () => {
-    const extensionConfig = new ExtensionConfig("llm");
-    const serviceConfig = new ServiceConfig("agent");
+    const extensionConfig = new Config("extension", "llm");
+    const serviceConfig = new Config("service", "agent");
 
     const extensionClient = new Client(
       extensionConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
     const serviceClient = new Client(
       serviceConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     assert.ok(extensionClient);
@@ -143,7 +178,7 @@ describe("Service Integration", () => {
   });
 
   test("Service and Server work together", () => {
-    const config = new ServiceConfig("integration-test");
+    const config = new Config("service", "integration-test");
 
     const mockService = {
       getProtoName: () => "test.proto",
@@ -159,9 +194,11 @@ describe("Service Integration", () => {
     const server = new Server(
       mockService,
       config,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     assert.ok(server);
@@ -173,9 +210,16 @@ describe("Service Integration", () => {
   });
 
   test("Client and Server can use same config", () => {
-    const config = new ServiceConfig("memory");
+    const config = new Config("service", "memory");
 
-    const client = new Client(config, mockGrpcFn, mockAuthFn, mockLogFn);
+    const client = new Client(
+      config,
+      mockLogFn,
+      null,
+      mockObserverFn,
+      mockGrpcFn,
+      mockAuthFn,
+    );
 
     const mockService = {
       getProtoName: () => "shared.proto",
@@ -187,9 +231,11 @@ describe("Service Integration", () => {
     const server = new Server(
       mockService,
       config,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     assert.ok(client);
@@ -208,13 +254,15 @@ describe("Service Integration", () => {
         })),
       };
 
-      const config = new ServiceConfig("compliance-test");
+      const config = new Config("service", "compliance-test");
       const server = new Server(
         mockService,
         config,
+        mockLogFn,
+        null,
+        mockObserverFn,
         mockGrpcFn,
         mockAuthFn,
-        mockLogFn,
       );
 
       assert.ok(server);

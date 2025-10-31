@@ -21,7 +21,7 @@ describe("graph service", () => {
 
     test("GraphService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(GraphService.length, 4); // config, graphIndex, resourceIndex, logFn
+      assert.strictEqual(GraphService.length, 3); // config, graphIndex, logFn
     });
 
     test("GraphService has proper method signatures", () => {
@@ -34,7 +34,6 @@ describe("graph service", () => {
   describe("GraphService business logic", () => {
     let mockConfig;
     let mockGraphIndex;
-    let mockResourceIndex;
 
     beforeEach(() => {
       mockConfig = {
@@ -47,73 +46,35 @@ describe("graph service", () => {
           "tool.ToolFunction.tool1",
         ],
       };
-
-      mockResourceIndex = {
-        get: async (ids, _actor) =>
-          ids.map((id) => {
-            const content = { text: `Content for ${id}` };
-            content.toString = function () {
-              return this.text || "";
-            };
-
-            const descriptor = { purpose: `Purpose for ${id}` };
-            descriptor.toString = function () {
-              return this.purpose || "";
-            };
-
-            return {
-              id: { type: "common.Message", name: id },
-              content,
-              descriptor,
-            };
-          }),
-      };
     });
 
     test("creates service instance with graph index", () => {
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
     });
 
     test("QueryByPattern queries the graph index", async () => {
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
+      const service = new GraphService(mockConfig, mockGraphIndex);
       const result = await service.QueryByPattern({ subject: "test" });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.results));
-      assert.strictEqual(result.results.length, 2);
-      assert.strictEqual(result.results[0], "Content for common.Message.msg1");
+      assert.ok(Array.isArray(result.identifiers));
+      assert.strictEqual(result.identifiers.length, 2);
     });
 
     test("QueryByPattern handles empty pattern", async () => {
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       const result = await service.QueryByPattern({});
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.results));
+      assert.ok(Array.isArray(result.identifiers));
     });
 
     test("QueryByPattern converts empty strings to null in pattern", async () => {
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
+      const service = new GraphService(mockConfig, mockGraphIndex);
       const result = await service.QueryByPattern({
         subject: "",
         predicate: "testPredicate",
@@ -121,7 +82,7 @@ describe("graph service", () => {
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.results));
+      assert.ok(Array.isArray(result.identifiers));
     });
 
     test("QueryByPattern with specific subject pattern", async () => {
@@ -131,11 +92,7 @@ describe("graph service", () => {
         return ["common.Message.msg1"];
       };
 
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       await service.QueryByPattern({
         subject: "http://example.org/message1",
@@ -158,11 +115,7 @@ describe("graph service", () => {
         return ["tool.ToolFunction.tool1"];
       };
 
-      const service = new GraphService(
-        mockConfig,
-        mockGraphIndex,
-        mockResourceIndex,
-      );
+      const service = new GraphService(mockConfig, mockGraphIndex);
 
       await service.QueryByPattern({
         subject: null,

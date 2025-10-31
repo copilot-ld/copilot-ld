@@ -17,6 +17,7 @@ const SERVICES = [
   "@copilot-ld/vector",
   "@copilot-ld/graph",
   "@copilot-ld/tool",
+  "@copilot-ld/trace",
 ];
 
 // Quiet mode flag

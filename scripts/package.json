@@ -9,6 +9,10 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "analyze:graph": "node analyze-graph.js",
+    "analyze:knowledge": "node analyze-knowledge.js",
+    "analyze:ontology": "node analyze-ontology.js",
+    "analyze": "npm run analyze:graph && npm run analyze:knowledge && npm run analyze:ontology",
     "chat": "node chat.js",
     "dev": "node dev.js",
     "embed": "node embed.js",
@@ -36,8 +40,8 @@
     "@grpc/proto-loader": "^0.8.0",
     "@octokit/auth-oauth-device": "^8.0.1",
     "@octokit/core": "^7.0.3",
-    "html-validate": "^9.7.1",
     "js-yaml": "^4.1.0",
+    "linkedom": "^0.18.5",
     "n3": "^1.26.0",
     "protobufjs": "^7.4.0"
   },

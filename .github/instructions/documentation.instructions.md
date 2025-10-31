@@ -242,7 +242,7 @@ All JavaScript code blocks must be complete, valid, and pass ES linting:
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 
 class ExampleService {
   constructor(config) {

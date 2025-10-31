@@ -75,18 +75,28 @@ describe("LibMemory Performance Tests", () => {
   );
 
   test(
-    "MemoryFilter.splitToolsAndHistory by memory size",
+    "MemoryFilter.splitResources by memory size",
     createPerformanceTest({
       count: [500, 1000, 2000, 4000],
       setupFn: (memorySize) => {
-        const toolCount = Math.floor(memorySize * 0.3);
-        const historyCount = memorySize - toolCount;
+        const toolCount = Math.floor(memorySize * 0.2);
+        const contextCount = Math.floor(memorySize * 0.3);
+        const conversationCount = memorySize - toolCount - contextCount;
         const tools = generateMockIdentifiers(toolCount, "tool.ToolFunction");
-        const history = generateMockIdentifiers(historyCount, "common.Message");
-        const memory = [...tools, ...history].sort(() => Math.random() - 0.5);
+        const context = generateMockIdentifiers(contextCount, "schema.Article");
+        const conversation = generateMockIdentifiers(
+          conversationCount,
+          "common.Message",
+        ).map((id) => ({
+          ...id,
+          parent: "common.Conversation/conversation-1",
+        }));
+        const memory = [...tools, ...context, ...conversation].sort(
+          () => Math.random() - 0.5,
+        );
         return { memory };
       },
-      testFn: ({ memory }) => MemoryFilter.splitToolsAndHistory(memory),
+      testFn: ({ memory }) => MemoryFilter.splitResources(memory),
       constraints: {
         maxDuration: 10,
         maxMemory: 500,
@@ -108,7 +118,8 @@ describe("LibMemory Performance Tests", () => {
         const budget = 45000;
         const allocation = {
           tools: 0.2,
-          history: 0.8,
+          context: 0.3,
+          conversation: 0.5,
         };
         return { memoryWindow, budget, allocation };
       },

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
 
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createDownloader, execLine } from "@copilot-ld/libutil";
 
@@ -10,7 +10,7 @@ import { createDownloader, execLine } from "@copilot-ld/libutil";
  * @returns {Promise<void>}
  */
 async function main() {
-  await ScriptConfig.create("download");
+  await createScriptConfig("download");
   const downloader = createDownloader(createStorage);
   await downloader.download();
 

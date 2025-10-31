@@ -70,31 +70,47 @@ describe("MemoryFilter", () => {
   it("should split tools and history correctly", () => {
     const memory = [
       { name: "tool1", type: "tool.ToolFunction.search", tokens: 10 },
-      { name: "msg1", type: "common.Message", tokens: 15 },
+      {
+        name: "msg1",
+        type: "common.Message",
+        parent: "common.Conversation",
+        tokens: 15,
+      },
       { name: "tool2", type: "tool.ToolFunction.analyze", tokens: 20 },
-      { name: "msg2", type: "common.Message", tokens: 25 },
+      {
+        name: "msg2",
+        type: "common.Message",
+        parent: "common.Conversation",
+        tokens: 25,
+      },
+      { name: "context1", type: "resource.Resource", tokens: 30 },
     ];
 
-    const { tools, history } = MemoryFilter.splitToolsAndHistory(memory);
+    const { tools, context, conversation } =
+      MemoryFilter.splitResources(memory);
 
     assert.strictEqual(tools.length, 2);
-    assert.strictEqual(history.length, 2);
+    assert.strictEqual(conversation.length, 2);
+    assert.strictEqual(context.length, 1);
     assert.strictEqual(tools[0].name, "tool1");
     assert.strictEqual(tools[1].name, "tool2");
-    assert.strictEqual(history[0].name, "msg1");
-    assert.strictEqual(history[1].name, "msg2");
+    assert.strictEqual(conversation[0].name, "msg1");
+    assert.strictEqual(conversation[1].name, "msg2");
+    assert.strictEqual(context[0].name, "context1");
   });
 
   it("should handle empty memory array", () => {
-    const { tools, history } = MemoryFilter.splitToolsAndHistory([]);
+    const { tools, context, conversation } = MemoryFilter.splitResources([]);
     assert.deepStrictEqual(tools, []);
-    assert.deepStrictEqual(history, []);
+    assert.deepStrictEqual(context, []);
+    assert.deepStrictEqual(conversation, []);
   });
 
   it("should handle non-array input", () => {
-    const { tools, history } = MemoryFilter.splitToolsAndHistory(null);
+    const { tools, context, conversation } = MemoryFilter.splitResources(null);
     assert.deepStrictEqual(tools, []);
-    assert.deepStrictEqual(history, []);
+    assert.deepStrictEqual(context, []);
+    assert.deepStrictEqual(conversation, []);
   });
 
   it("should filter by budget correctly", () => {
@@ -171,7 +187,7 @@ describe("MemoryWindow", () => {
 
     await assert.rejects(
       () => memoryWindow.build(),
-      /Budget allocation of tools and history is required/,
+      /Budget allocation is required: tools, context, conversation/,
     );
   });
 
@@ -191,12 +207,14 @@ describe("MemoryWindow", () => {
     const msg1 = resource.Identifier.fromObject({
       name: "msg1",
       type: "common.Message",
+      parent: "common.Conversation",
       tokens: 15,
       score: 0.7,
     });
     const msg2 = resource.Identifier.fromObject({
       name: "msg2",
       type: "common.Message",
+      parent: "common.Conversation",
       tokens: 25,
       score: 0.6,
     });
@@ -208,13 +226,15 @@ describe("MemoryWindow", () => {
 
     const memory = await memoryWindow.build(50, {
       tools: 0.3, // 30% of 50 = 15 tokens
-      history: 0.4, // 40% of 50 = 20 tokens
+      context: 0.3, // 30% of 50 = 15 tokens
+      conversation: 0.4, // 40% of 50 = 20 tokens
     });
 
     assert.strictEqual(memory.tools.length, 1);
-    assert.strictEqual(memory.history.length, 1);
+    assert.strictEqual(memory.context.length, 0); // Messages with parent don't count as context
+    assert.strictEqual(memory.conversation.length, 1);
     assert.strictEqual(memory.tools[0].name, "tool1"); // Higher score, fits budget
-    assert.strictEqual(memory.history[0].name, "msg1"); // Higher score, fits budget
+    assert.strictEqual(memory.conversation[0].name, "msg1"); // Higher score, fits budget
   });
 
   it("should append identifiers through window", async () => {

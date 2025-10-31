@@ -2,7 +2,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { ExtensionConfig } from "@copilot-ld/libconfig";
+import { Config } from "@copilot-ld/libconfig";
 import {
   ValidationMiddleware,
   CorsMiddleware,
@@ -15,7 +15,7 @@ describe("ValidationMiddleware", () => {
   let config;
 
   beforeEach(() => {
-    config = new ExtensionConfig("test");
+    config = new Config("extension", "test");
     validationMiddleware = new ValidationMiddleware(config);
   });
 
@@ -34,7 +34,7 @@ describe("CorsMiddleware", () => {
   let config;
 
   beforeEach(() => {
-    config = new ExtensionConfig("test");
+    config = new Config("extension", "test");
     corsMiddleware = new CorsMiddleware(config);
   });
 
@@ -59,7 +59,7 @@ describe("Factory functions", () => {
   });
 
   test("createValidationMiddleware works with config", () => {
-    const config = new ExtensionConfig("test");
+    const config = new Config("extension", "test");
     const middleware = createValidationMiddleware(config);
     assert(middleware instanceof ValidationMiddleware);
   });
@@ -70,7 +70,7 @@ describe("Factory functions", () => {
   });
 
   test("createCorsMiddleware works with config", () => {
-    const config = new ExtensionConfig("test");
+    const config = new Config("extension", "test");
     const middleware = createCorsMiddleware(config);
     assert(middleware instanceof CorsMiddleware);
   });

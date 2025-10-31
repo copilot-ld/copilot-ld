@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
@@ -13,7 +13,7 @@ import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
  * @returns {Promise<void>}
  */
 async function main() {
-  const config = await ScriptConfig.create("vectors");
+  const config = await createScriptConfig("vectors");
   const vectorStorage = createStorage("vectors");
 
   const resourceIndex = createResourceIndex("resources");

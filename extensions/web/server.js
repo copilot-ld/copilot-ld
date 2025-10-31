@@ -1,14 +1,17 @@
 /* eslint-env node */
 import { serve } from "@hono/node-server";
-import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
+import {
+  createExtensionConfig,
+  createServiceConfig,
+} from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libutil";
 import { clients } from "@copilot-ld/librpc";
 import { createWebExtension } from "./index.js";
 
 const { AgentClient } = clients;
 
-const config = await ExtensionConfig.create("web");
-const client = new AgentClient(await ServiceConfig.create("agent"));
+const config = await createExtensionConfig("web");
+const client = new AgentClient(await createServiceConfig("agent"));
 const app = await createWebExtension(client, config);
 
 serve(

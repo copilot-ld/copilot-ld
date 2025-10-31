@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-28
+
+- Removed manual `this.debug()` calls from `CreateCompletions()` method
+- Observability now handled automatically by `@copilot-ld/librpc` `Observer`
+- Service implementation focuses purely on business logic
+
 ## 2025-10-19
 
 - Bump version

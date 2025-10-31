@@ -1,5 +1,23 @@
 # Changelog
 
+## 2025-10-31
+
+- **BREAKING**: Extracted `HTML-to-RDF` parsing functionality into new `Parser`
+  class in `parser.js` for better separation of concerns
+- **BREAKING**: Updated `ResourceProcessor` constructor to inject `Parser` as
+  fourth parameter:
+  `(baseIri, resourceIndex, knowledgeStorage, parser, describer, logger)`
+- Implemented smart RDF merging in `ResourceProcessor` to handle duplicate
+  entity IRIs across multiple HTML files using union semantics
+- Added `#rdfToQuads()` method to parse N-Quads strings back into quad objects
+  for merging
+- Added `#unionQuads()` method to merge quad arrays using RDF union semantics
+  with deduplication
+- Enhanced `#parseHTML()` to detect duplicate resources, merge their RDF
+  triples, and update existing resources with complete data
+- Added debug logging for resource merge operations showing quad count changes
+- Exported `Parser` class from package index for external use
+
 ## 2025-10-26
 
 - Added performance tests in `test/libresource.perf.js` for

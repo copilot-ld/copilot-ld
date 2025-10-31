@@ -69,7 +69,11 @@ describe("AgentMind", () => {
       put: () => {},
     };
 
-    mockAgentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    mockAgentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
   });
 
   test("constructor validates required parameters", () => {
@@ -160,12 +164,12 @@ describe("AgentMind", () => {
     const window = {
       tools: ["tool1", "tool2"],
       context: ["context1"],
-      history: ["history1", "history2"],
+      conversation: ["conversation1", "conversation2"],
     };
 
     const messages = await agentMind.buildMessages(assistant, tasks, window);
 
-    // Should include: assistant + tasks + tools + context + history
+    // Should include: assistant + tasks + tools + context + conversation
     assert.strictEqual(messages.length, 7);
     assert.deepStrictEqual(messages[0], assistant);
     assert.deepStrictEqual(messages[1], tasks[0]);
@@ -251,7 +255,7 @@ describe("AgentMind", () => {
 
     const result = await agentMind.processRequest(request);
 
-    assert.ok(result.conversation_id);
-    assert.strictEqual(result.conversation_id, "test-conv");
+    assert.ok(result.resource_id);
+    assert.strictEqual(result.resource_id, "test-conv");
   });
 });

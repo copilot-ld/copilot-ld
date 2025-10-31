@@ -50,7 +50,7 @@ override RPC methods using typed messages from `@copilot-ld/libtype`.
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { vector } from "@copilot-ld/libtype";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { createStorage } from "@copilot-ld/libstorage";
@@ -79,7 +79,7 @@ class VectorService extends VectorBase {
 }
 
 // Bootstrap
-const config = await ServiceConfig.create("vector", {
+const config = await createServiceConfig("vector", {
   threshold: 0.3,
   limit: 0,
 });
@@ -300,7 +300,7 @@ import { Service } from "@copilot-ld/librpc";
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { createStorage } from "@copilot-ld/libstorage";
 import { vector } from "@copilot-ld/libtype";
@@ -324,7 +324,7 @@ class VectorService extends VectorBase {
   }
 }
 
-const config = await ServiceConfig.create("vector");
+const config = await createServiceConfig("vector");
 const index = new VectorIndex(createStorage("vectors"), "content.jsonl");
 await new VectorService(config, index).start();
 ```
@@ -415,15 +415,18 @@ import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 
 import { AgentClient } from "../../generated/services/agent/client.js";
-import { ExtensionConfig, ServiceConfig } from "@copilot-ld/libconfig";
+import {
+  createExtensionConfig,
+  createServiceConfig,
+} from "@copilot-ld/libconfig";
 import {
   createValidationMiddleware,
   createCorsMiddleware,
 } from "@copilot-ld/libweb";
 import { common } from "@copilot-ld/libtype";
 
-const extConfig = await ExtensionConfig.create("web");
-const agentClient = new AgentClient(await ServiceConfig.create("agent"));
+const extConfig = await createExtensionConfig("web");
+const agentClient = new AgentClient(await createServiceConfig("agent"));
 const app = new Hono();
 
 // Create middleware instances

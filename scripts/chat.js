@@ -2,7 +2,7 @@
 /* eslint-env node */
 import { Repl } from "@copilot-ld/librepl";
 import { createTerminalFormatter } from "@copilot-ld/libformat";
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { agent, common } from "@copilot-ld/libtype";
 
 import { clients } from "@copilot-ld/librpc";
@@ -12,7 +12,7 @@ const { AgentClient } = clients;
 
 /** @typedef {import("@copilot-ld/libtype").common.Message} Message */
 
-const config = await ServiceConfig.create("agent");
+const config = await createServiceConfig("agent");
 const agentClient = new AgentClient(config);
 
 // Global state
@@ -42,7 +42,7 @@ async function handlePrompt(prompt) {
   const request = new agent.AgentRequest({
     messages: messages,
     github_token: await config.githubToken(),
-    conversation_id: conversationId || undefined,
+    resource_id: conversationId || undefined,
   });
 
   const result = await agentClient.ProcessRequest(request);
@@ -51,8 +51,8 @@ async function handlePrompt(prompt) {
     throw new Error("No response from agent service");
   }
 
-  if (result.conversation_id) {
-    conversationId = result.conversation_id;
+  if (result.resource_id) {
+    conversationId = result.resource_id;
   }
 
   messages.push(result.choices[0].message);

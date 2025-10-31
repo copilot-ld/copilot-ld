@@ -7,6 +7,7 @@ import { AgentHands } from "../hands.js";
 describe("AgentHands", () => {
   let mockConfig;
   let mockServiceCallbacks;
+  let mockResourceIndex;
 
   beforeEach(() => {
     mockConfig = {
@@ -56,21 +57,45 @@ describe("AgentHands", () => {
         }),
       },
     };
+
+    mockResourceIndex = {
+      get: async () => [
+        {
+          id: { name: "test-resource" },
+          content: "Test content",
+          descriptor: "Test descriptor",
+        },
+      ],
+      put: () => {},
+    };
   });
 
   test("constructor validates required parameters", () => {
     assert.throws(() => new AgentHands(), /config is required/);
 
     assert.throws(() => new AgentHands(mockConfig), /callbacks is required/);
+
+    assert.throws(
+      () => new AgentHands(mockConfig, mockServiceCallbacks),
+      /resourceIndex is required/,
+    );
   });
 
   test("constructor creates instance with valid parameters", () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
     assert.ok(agentHands instanceof AgentHands);
   });
 
   test("mergeTools combines permanent and remembered tools without duplicates", () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
 
     const permanentTools = [
       { id: { name: "search" }, type: "function" },
@@ -90,7 +115,11 @@ describe("AgentHands", () => {
   });
 
   test("executeToolCall handles successful tool execution", async () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
 
     const toolCall = {
       id: "test-call",
@@ -98,6 +127,7 @@ describe("AgentHands", () => {
     };
 
     const result = await agentHands.executeToolCall(
+      "test-resource-id",
       toolCall,
       100,
       "test-token",
@@ -109,7 +139,11 @@ describe("AgentHands", () => {
   });
 
   test("executeToolCall handles tool execution errors", async () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
 
     // Mock service callback to throw error
     mockServiceCallbacks.tool.call = async () => {
@@ -122,6 +156,7 @@ describe("AgentHands", () => {
     };
 
     const result = await agentHands.executeToolCall(
+      "test-resource-id",
       toolCall,
       100,
       "test-token",
@@ -134,7 +169,11 @@ describe("AgentHands", () => {
   });
 
   test("processToolCalls adds messages and processes tool calls", async () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
 
     const choiceWithToolCalls = {
       message: {
@@ -148,6 +187,7 @@ describe("AgentHands", () => {
 
     const messages = [];
     await agentHands.processToolCalls(
+      "test-resource-id",
       choiceWithToolCalls,
       messages,
       100,
@@ -178,7 +218,11 @@ describe("AgentHands", () => {
       },
     };
 
-    const agentHands = new AgentHands(mockConfig, mockCallbacksWithCapture);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockCallbacksWithCapture,
+      mockResourceIndex,
+    );
 
     const choiceWithToolCalls = {
       message: {
@@ -195,6 +239,7 @@ describe("AgentHands", () => {
     const maxTokens = 9000; // Will be divided by 3 tool calls = 3000 each
 
     await agentHands.processToolCalls(
+      "test-resource-id",
       choiceWithToolCalls,
       messages,
       maxTokens,
@@ -226,12 +271,17 @@ describe("AgentHands", () => {
   });
 
   test("executeToolLoop handles completion without tool calls", async () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
 
     const messages = [{ role: "user", content: "Hello" }];
     const tools = [];
 
     const result = await agentHands.executeToolLoop(
+      "test-resource-id",
       messages,
       tools,
       100,
@@ -244,7 +294,11 @@ describe("AgentHands", () => {
   });
 
   test("executeToolLoop handles completion with tool calls", async () => {
-    const agentHands = new AgentHands(mockConfig, mockServiceCallbacks);
+    const agentHands = new AgentHands(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+    );
 
     // Mock LLM to return tool calls on first iteration, then stop
     let iteration = 0;
@@ -279,6 +333,7 @@ describe("AgentHands", () => {
     const tools = [{ type: "function", function: { name: "search" } }];
 
     const result = await agentHands.executeToolLoop(
+      "test-resource-id",
       messages,
       tools,
       100,

@@ -10,7 +10,7 @@ import {
 } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
 import { clients } from "@copilot-ld/librpc";
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 
 // Extract generated clients
 const { LlmClient, AgentClient } = clients;
@@ -79,8 +79,8 @@ async function main() {
 
   // Initialize clients
   console.log("Initializing clients...");
-  const llmConfig = await ServiceConfig.create("llm");
-  const agentConfig = await ServiceConfig.create("agent");
+  const llmConfig = await createServiceConfig("llm");
+  const agentConfig = await createServiceConfig("agent");
 
   const llmClient = new LlmClient(llmConfig);
   const agentClient = new AgentClient(agentConfig);

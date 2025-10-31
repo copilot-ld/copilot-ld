@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { createLlm } from "@copilot-ld/libcopilot";
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common } from "@copilot-ld/libtype";
 
-const config = await ScriptConfig.create("annotate");
+const config = await createScriptConfig("annotate");
 
 /**
  * Main function to convert text to HTML with Schema.org microdata

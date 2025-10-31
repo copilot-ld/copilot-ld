@@ -1,12 +1,22 @@
 /* eslint-env node */
-import { Client } from "@copilot-ld/librpc/base.js";
+import { Client } from "@copilot-ld/librpc/client.js";
 import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
 
 /**
- * Typed client for the {{serviceName}} gRPC service with automatic type conversion.
+ * Typed client for the {{serviceName}} gRPC service.
  * Extends the `Client` class for shared gRPC client functionality.
  */
 export class {{className}} extends Client {
+  /**
+   * Creates a new {{serviceName}} client instance
+   * @param {object} config - Service configuration
+   * @param {import("@copilot-ld/libtelemetry").Logger} [logger] - Optional logger instance
+   * @param {import("@copilot-ld/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
+   */
+  constructor(config, logger = null, tracer = null) {
+    super(config, logger, tracer);
+  }
+
 {{#methods}}
   /**
    * Call the `{{name}}` RPC with request/response type conversion.
@@ -14,13 +24,20 @@ export class {{className}} extends Client {
    * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Typed response message.
    */
   async {{name}}({{paramName}}) {
+    // Type validation
     if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
       throw new TypeError(
         `{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`,
       );
     }
+    
+    // Convert to plain object
     const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
+    
+    // Make gRPC call (tracing handled by base Client class)
     const response = await this.callMethod("{{name}}", request);
+    
+    // Convert response back to typed object
     return {{responseTypeNamespace}}.{{responseType}}.fromObject(response);
   }
 {{^isLast}}

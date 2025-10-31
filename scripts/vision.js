@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
 import { parseArgs } from "node:util";
 
@@ -23,7 +23,7 @@ async function main() {
     process.exit(1);
   }
 
-  const config = await ScriptConfig.create("vision");
+  const config = await createScriptConfig("vision");
   const llm = createLlm(await config.githubToken(), "gpt-4o");
   const description = await llm.imageToText(values.image);
   console.log(description);

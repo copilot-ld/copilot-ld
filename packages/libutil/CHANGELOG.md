@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-28
+
+- Deprecated `Logger` class (moved to `@copilot-ld/libtelemetry`)
+- Re-exported `Logger` and `createLogger` from `@copilot-ld/libtelemetry` for
+  backward compatibility
+- Removed direct `Logger` implementation (now imports from
+  `@copilot-ld/libtelemetry`)
+- Added `@copilot-ld/libtelemetry` as dependency
+
 ## 2025-10-24
 
 - **BREAKING**: Enhanced validation in `_applyTokensFilter()` to throw error

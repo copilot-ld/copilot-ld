@@ -1,16 +1,16 @@
 syntax = "proto3";
 
-import "resource.proto";
-
 package memory;
 
+import "resource.proto";
+
 service Memory {
-  rpc Append(AppendRequest) returns (AppendResponse);
-  rpc Get(GetRequest) returns (Window);
+  rpc AppendMemory(AppendRequest) returns (AppendResponse);
+  rpc GetWindow(WindowRequest) returns (WindowResponse);
 }
 
 message AppendRequest {
-  string for = 1; // The resource for which to append memory
+  string resource_id = 1;
   repeated resource.Identifier identifiers = 2;
 }
 
@@ -18,19 +18,21 @@ message AppendResponse {
   string accepted = 1;
 }
 
-message GetRequest {
-  string for = 1;
+message WindowRequest {
+  string resource_id = 1;
   int32 budget = 2;
   Allocation allocation = 3;
 
   message Allocation {
     float tools = 1;
-    float history = 2;
+    float context = 2;
+    float conversation = 3;
   }
 }
 
-message Window {
-  string for = 1;
+message WindowResponse {
+  string resource_id = 1;
   repeated resource.Identifier tools = 2;
-  repeated resource.Identifier history = 3;
+  repeated resource.Identifier context = 3;
+  repeated resource.Identifier conversation = 4;
 }

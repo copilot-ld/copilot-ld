@@ -7,9 +7,9 @@ class AgentChat extends HTMLElement {
     this.loading = false;
     this.collapsed = localStorage.getItem("agent_collapsed") === "true";
     this.expanded = localStorage.getItem("agent_expanded") === "true";
-    this.conversation_id = localStorage.getItem("agent_conversation_id");
+    this.resource_id = localStorage.getItem("agent_resource_id");
     const msg = localStorage.getItem("agent_messages");
-    if (this.conversation_id && msg) this.messages = JSON.parse(msg);
+    if (this.resource_id && msg) this.messages = JSON.parse(msg);
   }
 
   connectedCallback() {
@@ -86,14 +86,14 @@ class AgentChat extends HTMLElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
-          conversation_id: this.conversation_id,
+          resource_id: this.resource_id,
         }),
       });
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
       const data = await response.json();
-      this.conversation_id = data.conversation_id;
-      localStorage.setItem("agent_conversation_id", this.conversation_id);
+      this.resource_id = data.resource_id;
+      localStorage.setItem("agent_resource_id", this.resource_id);
 
       this.addMessage(data.message.role, data.message.content);
     } catch (error) {
@@ -113,9 +113,9 @@ class AgentChat extends HTMLElement {
 
   newSession() {
     this.i = -1;
-    this.conversation_id = null;
+    this.resource_id = null;
     this.messages = [];
-    localStorage.removeItem("agent_conversation_id");
+    localStorage.removeItem("agent_resource_id");
     localStorage.removeItem("agent_messages");
     this.update();
     this.shadowRoot.querySelector("#prompt").focus();

@@ -21,6 +21,7 @@ import { createLogger } from "@copilot-ld/libutil";
 import { createGraphIndex } from "@copilot-ld/libgraph";
 
 import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
+import { Parser } from "@copilot-ld/libresource/parser.js";
 import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
 import { GraphProcessor } from "@copilot-ld/libgraph/processor.js";
 
@@ -60,11 +61,12 @@ async function main() {
   // 2. Resource processing. Base IRI uses placeholder stable domain.
   const base = "https://example.invalid/";
   const skolemizer = new Skolemizer();
+  const parser = new Parser(skolemizer, logger);
   const resourceProcessor = new ResourceProcessor(
     base,
     resourceIndex,
     knowledgeStorage,
-    skolemizer,
+    parser,
     null, // We don't need descriptors, so avoid calling out to the LLM
     logger,
   );

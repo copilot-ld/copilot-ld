@@ -18,7 +18,7 @@
     "@copilot-ld/libconfig": "^0.1.31",
     "@copilot-ld/libresource": "^0.1.51",
     "@copilot-ld/librpc": "^0.1.50",
-    "@copilot-ld/libstorage": "^0.1.25",
+    "@copilot-ld/libstorage": "^0.1.26",
     "@copilot-ld/libtype": "^0.1.38",
     "@copilot-ld/libvector": "^0.1.42"
   },

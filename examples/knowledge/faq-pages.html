@@ -14,7 +14,7 @@
       <!-- FAQPage items start -->
       <!--
     Each FAQPage:
-      - itemid: https://ld.company.com/faq/{slug}
+      - itemid: https://bionova.example/id/faq/{slug}
       - mainEntity: Question/Answer pairs
       - about/mentions: Drugs, Trials, Policies, Platforms, People, Organizations
       - Diverse vocabulary, vector-optimized, cross-file links
@@ -23,7 +23,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/drug-approval-process"
+        itemid="https://bionova.example/id/faq/drug-approval-process"
       >
         <h2 itemprop="name">What is the process for drug approval?</h2>
         <div
@@ -44,7 +44,7 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/novamed"
+                itemid="https://bionova.example/id/drug/novamed"
                 ><span itemprop="name">NovaMed</span></span
               >
               completed all three phases before receiving approval from the
@@ -52,7 +52,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Organization"
-                itemid="https://ld.company.com/org/regulatory"
+                itemid="https://bionova.example/id/org/regulatory"
                 ><span itemprop="name">Regulatory Affairs</span></span
               >
               team.</span
@@ -64,7 +64,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/clinical-trial-phases"
+        itemid="https://bionova.example/id/faq/clinical-trial-phases"
       >
         <h2 itemprop="name">What are the phases of a clinical trial?</h2>
         <div
@@ -85,9 +85,10 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/MedicalTrial"
-                itemid="https://ld.company.com/trial/phase2-oncology"
-                ><span itemprop="name">Phase 2 Oncology Trial</span></span
-              >
+                itemid="https://bionova.example/id/trial/phase2-oncology"
+                ><span itemprop="name">Phase 2 Oncology Trial</span
+                ><meta itemprop="status" content="Recruiting"
+              /></span>
               is currently in the efficacy stage.</span
             >
           </div>
@@ -97,7 +98,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/gmp-compliance"
+        itemid="https://bionova.example/id/faq/gmp-compliance"
       >
         <h2 itemprop="name">How do we ensure GMP compliance?</h2>
         <div
@@ -120,7 +121,7 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/SoftwareApplication"
-                itemid="https://ld.company.com/platform/gmp360"
+                itemid="https://bionova.example/id/platform/gmp360"
                 ><span itemprop="name">GMP360</span></span
               >
               platform supports these processes, in line with the
@@ -128,7 +129,7 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/Policy"
-                itemid="https://ld.company.com/policy/gmp"
+                itemid="https://bionova.example/id/policy/gmp"
                 ><span itemprop="name">GMP Policy</span></span
               >.</span
             >
@@ -139,7 +140,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/precision-medicine-benefits"
+        itemid="https://bionova.example/id/faq/precision-medicine-benefits"
       >
         <h2 itemprop="name">What are the benefits of precision medicine?</h2>
         <div
@@ -162,9 +163,27 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/Project"
-                itemid="https://ld.company.com/project/precision-medicine"
-                ><span itemprop="name">Precision Medicine Project</span></span
-              >
+                itemid="https://bionova.example/id/project/precision-medicine"
+                ><span itemprop="name">Precision Medicine Project</span>
+                <meta
+                  itemprop="description"
+                  content="Cross-functional initiative integrating genomic sequencing, biomarker analysis, and AI-driven patient stratification to enable personalized oncology treatments with improved efficacy and reduced adverse events."
+                />
+                <meta itemprop="identifier" content="PROJ-PRECISION-MED-2024" />
+                <meta itemprop="startDate" content="2024-01-15" />
+                <link
+                  itemprop="member"
+                  href="https://bionova.example/id/person/lily-nguyen"
+                />
+                <link
+                  itemprop="funder"
+                  href="https://bionova.example/id/org/bionova"
+                />
+                <link
+                  itemprop="parentOrganization"
+                  href="https://bionova.example/id/org/bionova-rd"
+                />
+              </span>
               is a key initiative in this area.</span
             >
           </div>
@@ -174,7 +193,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/data-integrity"
+        itemid="https://bionova.example/id/faq/data-integrity"
       >
         <h2 itemprop="name">How is data integrity maintained?</h2>
         <div
@@ -195,7 +214,7 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/SoftwareApplication"
-                itemid="https://ld.company.com/platform/insight-ai"
+                itemid="https://bionova.example/id/platform/insightai"
                 ><span itemprop="name">InsightAI</span></span
               >
               platform provides robust data management features.</span
@@ -207,7 +226,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/adverse-event-reporting"
+        itemid="https://bionova.example/id/faq/adverse-event-reporting"
       >
         <h2 itemprop="name">How are adverse events reported?</h2>
         <div
@@ -231,14 +250,14 @@
                 itemprop="about"
                 itemscope
                 itemtype="https://schema.org/Policy"
-                itemid="https://ld.company.com/policy/pharmacovigilance"
+                itemid="https://bionova.example/id/policy/pharmacovigilance"
                 ><span itemprop="name">Pharmacovigilance Policy</span></span
               >. Serious events linked to
               <span
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/oncora"
+                itemid="https://bionova.example/id/drug/oncora"
                 ><span itemprop="name">Oncora</span></span
               >
               trigger expedited narrative assembly.</span
@@ -250,7 +269,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/pharmacovigilance-workflow"
+        itemid="https://bionova.example/id/faq/pharmacovigilance-workflow"
       >
         <h2 itemprop="name">What is the pharmacovigilance workflow?</h2>
         <div
@@ -272,7 +291,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/cardiozen"
+                itemid="https://bionova.example/id/drug/cardiozen"
                 ><span itemprop="name">Cardiozen</span></span
               >
               and
@@ -280,7 +299,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/vitalis"
+                itemid="https://bionova.example/id/drug/vitalis"
                 ><span itemprop="name">Vitalis</span></span
               >.</span
             >
@@ -291,7 +310,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/trial-enrollment-forecasting"
+        itemid="https://bionova.example/id/faq/trial-enrollment-forecasting"
       >
         <h2 itemprop="name">How do we forecast trial enrollment?</h2>
         <div
@@ -311,12 +330,10 @@
               >We combine historical accrual patterns, site activation latency
               models, and demographic feasibility scoring. The automation
               platform enhances estimates for
-              <span
+              <a
                 itemprop="mentions"
-                itemscope
-                itemtype="https://schema.org/MedicalTrial"
-                itemid="https://ld.company.com/trial/oncora-phase3"
-                ><span itemprop="name">Oncora Phase III</span></span
+                href="https://bionova.example/id/trial/oncora-phase-iii"
+                >Oncora Phase III</a
               >.</span
             >
           </div>
@@ -326,7 +343,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/vector-search-accuracy"
+        itemid="https://bionova.example/id/faq/vector-search-accuracy"
       >
         <h2 itemprop="name">How is vector search accuracy improved?</h2>
         <div
@@ -348,7 +365,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/neurova"
+                itemid="https://bionova.example/id/drug/neurova"
                 ><span itemprop="name">Neurova</span></span
               >
               gain better contextual alignment.</span
@@ -360,7 +377,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/hybrid-search-benefits"
+        itemid="https://bionova.example/id/faq/hybrid-search-benefits"
       >
         <h2 itemprop="name">Why use hybrid search?</h2>
         <div
@@ -380,12 +397,10 @@
               >Hybrid search merges semantic similarity with structured keyword
               weighting for regulated corpora. This ensures adverse event
               retrieval while retaining conceptual relevance for
-              <span
+              <a
                 itemprop="mentions"
-                itemscope
-                itemtype="https://schema.org/MedicalTrial"
-                itemid="https://ld.company.com/trial/immunex-phase2"
-                ><span itemprop="name">Immunex Phase II</span></span
+                href="https://bionova.example/id/trial/immunex-phase-ii"
+                >Immunex Phase II</a
               >
               narratives.</span
             >
@@ -396,7 +411,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/ontology-updates"
+        itemid="https://bionova.example/id/faq/ontology-updates"
       >
         <h2 itemprop="name">How are ontology updates managed?</h2>
         <div
@@ -418,7 +433,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Policy"
-                itemid="https://ld.company.com/policy/data-governance"
+                itemid="https://bionova.example/id/policy/data-governance"
                 ><span itemprop="name">Data Governance Policy</span></span
               >
               ensure consistency.</span
@@ -430,7 +445,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/data-lineage-benefits"
+        itemid="https://bionova.example/id/faq/data-lineage-benefits"
       >
         <h2 itemprop="name">Why is data lineage important?</h2>
         <div
@@ -452,7 +467,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/vitalis"
+                itemid="https://bionova.example/id/drug/vitalis"
                 ><span itemprop="name">Vitalis</span></span
               >
               safety analyses.</span
@@ -464,7 +479,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/model-drift-detection"
+        itemid="https://bionova.example/id/faq/model-drift-detection"
       >
         <h2 itemprop="name">How is model drift detected?</h2>
         <div
@@ -481,7 +496,14 @@
             <span itemprop="text"
               >We analyze feature distribution shifts, embedding centroid
               movement, and performance degradation metrics. Early warning helps
-              maintain reliability for trial enrollment predictions.</span
+              maintain reliability for trial enrollment predictions using
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/insightai"
+                ><span itemprop="name">InsightAI</span></span
+              >.</span
             >
           </div>
         </div>
@@ -490,7 +512,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/bias-auditing-methods"
+        itemid="https://bionova.example/id/faq/bias-auditing-methods"
       >
         <h2 itemprop="name">How do we audit model bias?</h2>
         <div
@@ -512,7 +534,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Policy"
-                itemid="https://ld.company.com/policy/ai-ethics"
+                itemid="https://bionova.example/id/policy/ai-ethics"
                 ><span itemprop="name">AI Ethics Policy</span></span
               >.</span
             >
@@ -523,7 +545,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/federated-learning-benefits"
+        itemid="https://bionova.example/id/faq/federated-learning-benefits"
       >
         <h2 itemprop="name">Why use federated learning?</h2>
         <div
@@ -541,12 +563,10 @@
               >Federated learning trains models across decentralized nodes
               without centralizing raw data, preserving patient confidentiality
               for
-              <span
+              <a
                 itemprop="mentions"
-                itemscope
-                itemtype="https://schema.org/MedicalTrial"
-                itemid="https://ld.company.com/trial/neurova-phase1"
-                ><span itemprop="name">Neurova Phase I</span></span
+                href="https://bionova.example/id/trial/neurova-phase-i"
+                >Neurova Phase I</a
               >
               exploratory endpoints.</span
             >
@@ -557,7 +577,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/pk-pd-modeling"
+        itemid="https://bionova.example/id/faq/pk-pd-modeling"
       >
         <h2 itemprop="name">What is PK/PD modeling used for?</h2>
         <div
@@ -578,8 +598,9 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/MedicalTrial"
-                itemid="https://ld.company.com/trial/oncora-dose-optimization"
-                ><span itemprop="name">Oncora Dose Optimization</span></span
+                itemid="https://bionova.example/id/trial/oncora-dose-optimization"
+                ><span itemprop="name">Oncora Dose Optimization</span
+                ><meta itemprop="status" content="Completed" /></span
               >.</span
             >
           </div>
@@ -589,7 +610,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/multi-modal-fusion-purpose"
+        itemid="https://bionova.example/id/faq/multi-modal-fusion-purpose"
       >
         <h2 itemprop="name">Why apply multi-modal data fusion?</h2>
         <div
@@ -611,7 +632,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/immunex"
+                itemid="https://bionova.example/id/drug/immunex"
                 ><span itemprop="name">Immunex</span></span
               >.</span
             >
@@ -622,7 +643,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/synthetic-data-validation"
+        itemid="https://bionova.example/id/faq/synthetic-data-validation"
       >
         <h2 itemprop="name">How do we validate synthetic data?</h2>
         <div
@@ -643,7 +664,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/oncora-xr"
+                itemid="https://bionova.example/id/drug/oncora-xr"
                 ><span itemprop="name">Oncora-XR</span></span
               >
               benefit from calibrated synthetic augmentation.</span
@@ -655,7 +676,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/patient-reported-outcomes-value"
+        itemid="https://bionova.example/id/faq/patient-reported-outcomes-value"
       >
         <h2 itemprop="name">Why integrate patient-reported outcomes?</h2>
         <div
@@ -671,8 +692,16 @@
           >
             <span itemprop="text"
               >PROs add functional and quality-of-life context to clinical
-              endpoints. Cardiozen studies leverage normalized symptom diaries
-              for longitudinal insight.</span
+              endpoints.
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              studies leverage normalized symptom diaries for longitudinal
+              insight.</span
             >
           </div>
         </div>
@@ -681,7 +710,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/automation-platform-benefits"
+        itemid="https://bionova.example/id/faq/automation-platform-benefits"
       >
         <h2 itemprop="name">
           What does the trial automation platform improve?
@@ -702,12 +731,10 @@
             <span itemprop="text"
               >It streamlines enrollment forecasting, query management, and
               feasibility scoring, reducing cycle time for
-              <span
+              <a
                 itemprop="mentions"
-                itemscope
-                itemtype="https://schema.org/MedicalTrial"
-                itemid="https://ld.company.com/trial/immunex-phase2"
-                ><span itemprop="name">Immunex Phase II</span></span
+                href="https://bionova.example/id/trial/immunex-phase-ii"
+                >Immunex Phase II</a
               >.</span
             >
           </div>
@@ -717,7 +744,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/layered-deployment-security"
+        itemid="https://bionova.example/id/faq/layered-deployment-security"
       >
         <h2 itemprop="name">How does layered deployment security work?</h2>
         <div
@@ -739,7 +766,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Policy"
-                itemid="https://ld.company.com/policy/security"
+                itemid="https://bionova.example/id/policy/security"
                 ><span itemprop="name">Security Policy</span></span
               >.</span
             >
@@ -750,7 +777,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/digital-thread-value"
+        itemid="https://bionova.example/id/faq/digital-thread-value"
       >
         <h2 itemprop="name">Why maintain a digital thread?</h2>
         <div
@@ -769,7 +796,15 @@
             <span itemprop="text"
               >A digital thread links design, manufacturing, and clinical
               artifacts to preserve context for audits and continuous
-              improvement, benefiting GMP oversight.</span
+              improvement, benefiting
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/gmp"
+                ><span itemprop="name">GMP</span></span
+              >
+              oversight.</span
             >
           </div>
         </div>
@@ -778,7 +813,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/adaptive-supply-chain-analytics"
+        itemid="https://bionova.example/id/faq/adaptive-supply-chain-analytics"
       >
         <h2 itemprop="name">How do supply chain analytics reduce risk?</h2>
         <div
@@ -797,7 +832,15 @@
             <span itemprop="text"
               >We apply probabilistic lead-time modeling, anomaly detection for
               demand spikes, and temperature excursion prediction to optimize
-              inventory supporting Cardiozen distribution.</span
+              inventory supporting
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              distribution.</span
             >
           </div>
         </div>
@@ -806,7 +849,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/microservices-boundaries"
+        itemid="https://bionova.example/id/faq/microservices-boundaries"
       >
         <h2 itemprop="name">How are microservices boundaries defined?</h2>
         <div
@@ -822,8 +865,15 @@
           >
             <span itemprop="text"
               >Boundaries follow single-responsibility principles: vector
-              indexing, memory management, tool invocation, and orchestration
-              are isolated to maintain scalability and clarity.</span
+              indexing via
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/vector-indexing"
+                ><span itemprop="name">Vector Indexing Service</span></span
+              >, memory management, tool invocation, and orchestration are
+              isolated to maintain scalability and clarity.</span
             >
           </div>
         </div>
@@ -832,7 +882,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/compliance-monitoring-architecture"
+        itemid="https://bionova.example/id/faq/compliance-monitoring-architecture"
       >
         <h2 itemprop="name">What is the compliance monitoring architecture?</h2>
         <div
@@ -854,7 +904,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/SoftwareApplication"
-                itemid="https://ld.company.com/platform/gmp360"
+                itemid="https://bionova.example/id/platform/gmp360"
                 ><span itemprop="name">GMP360</span></span
               >.</span
             >
@@ -865,7 +915,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/secure-deployment-practices"
+        itemid="https://bionova.example/id/faq/secure-deployment-practices"
       >
         <h2 itemprop="name">Which practices secure deployments?</h2>
         <div
@@ -886,7 +936,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Policy"
-                itemid="https://ld.company.com/policy/security"
+                itemid="https://bionova.example/id/policy/security"
                 ><span itemprop="name">Security Policy</span></span
               >.</span
             >
@@ -897,7 +947,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/pipeline-reliability-engineering"
+        itemid="https://bionova.example/id/faq/pipeline-reliability-engineering"
       >
         <h2 itemprop="name">How do we engineer pipeline reliability?</h2>
         <div
@@ -914,7 +964,14 @@
             <span itemprop="text"
               >Adaptive backpressure, circuit breakers, and observability
               correlation reduce saturation risk when indexing high-volume
-              Vitalis registry updates.</span
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              registry updates.</span
             >
           </div>
         </div>
@@ -923,7 +980,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/temporal-data-processing"
+        itemid="https://bionova.example/id/faq/temporal-data-processing"
       >
         <h2 itemprop="name">How is temporal data processed?</h2>
         <div
@@ -942,7 +999,14 @@
             <span itemprop="text"
               >We apply event time normalization, sliding window aggregation,
               and multi-resolution sampling to interpret symptom evolution for
-              Neurova endpoints.</span
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/neurova"
+                ><span itemprop="name">Neurova</span></span
+              >
+              endpoints.</span
             >
           </div>
         </div>
@@ -951,7 +1015,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/vector-caching-strategy"
+        itemid="https://bionova.example/id/faq/vector-caching-strategy"
       >
         <h2 itemprop="name">What is our vector caching strategy?</h2>
         <div
@@ -967,8 +1031,14 @@
           >
             <span itemprop="text"
               >Semantic-aware LRU with refresh prioritization caches frequently
-              accessed compliance and clinical embeddings, accelerating
-              retrieval for safety reviews.</span
+              accessed compliance and clinical embeddings through
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/vector-indexing"
+                ><span itemprop="name">Vector Indexing Service</span></span
+              >, accelerating retrieval for safety reviews.</span
             >
           </div>
         </div>
@@ -977,7 +1047,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/cognitive-biomarker-validation"
+        itemid="https://bionova.example/id/faq/cognitive-biomarker-validation"
       >
         <h2 itemprop="name">How are cognitive biomarkers validated?</h2>
         <div
@@ -996,7 +1066,14 @@
             <span itemprop="text"
               >Convergent construct analysis, test-retest reliability, and
               correlation with CSF markers confirm endpoint robustness in
-              Neurova biomarker studies.</span
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/neurova"
+                ><span itemprop="name">Neurova</span></span
+              >
+              biomarker studies.</span
             >
           </div>
         </div>
@@ -1005,7 +1082,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/dose-optimization-rationale"
+        itemid="https://bionova.example/id/faq/dose-optimization-rationale"
       >
         <h2 itemprop="name">Why conduct dose optimization trials?</h2>
         <div
@@ -1026,7 +1103,7 @@
                 itemprop="mentions"
                 itemscope
                 itemtype="https://schema.org/Drug"
-                itemid="https://ld.company.com/drug/oncora"
+                itemid="https://bionova.example/id/drug/oncora"
                 ><span itemprop="name">Oncora</span></span
               >.</span
             >
@@ -1037,7 +1114,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/quality-of-life-outcomes"
+        itemid="https://bionova.example/id/faq/quality-of-life-outcomes"
       >
         <h2 itemprop="name">How are quality-of-life outcomes measured?</h2>
         <div
@@ -1053,8 +1130,15 @@
           >
             <span itemprop="text"
               >Standardized PRO instruments, symptom diaries, and functional
-              status indices create a composite view for Cardiozen QoL
-              trials.</span
+              status indices create a composite view for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              QoL trials.</span
             >
           </div>
         </div>
@@ -1063,7 +1147,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/rare-disease-registry-value"
+        itemid="https://bionova.example/id/faq/rare-disease-registry-value"
       >
         <h2 itemprop="name">Why maintain a rare disease registry?</h2>
         <div
@@ -1079,8 +1163,15 @@
           >
             <span itemprop="text"
               >Registries enable longitudinal safety and effectiveness profiling
-              across heterogeneous populations, informing Vitalis labeling
-              evolution.</span
+              across heterogeneous populations, informing
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              labeling evolution.</span
             >
           </div>
         </div>
@@ -1089,7 +1180,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/long-term-safety-followup"
+        itemid="https://bionova.example/id/faq/long-term-safety-followup"
       >
         <h2 itemprop="name">How is long-term safety tracked?</h2>
         <div
@@ -1107,8 +1198,15 @@
           >
             <span itemprop="text"
               >Extended safety uses periodic lab monitoring, cumulative AE
-              profiling, and survivorship analytics applied to Vitalis long-term
-              cohorts.</span
+              profiling, and survivorship analytics applied to
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              long-term cohorts.</span
             >
           </div>
         </div>
@@ -1117,7 +1215,7 @@
       <div
         itemscope
         itemtype="https://schema.org/FAQPage"
-        itemid="https://ld.company.com/faq/global-collaboration-benefits"
+        itemid="https://bionova.example/id/faq/global-collaboration-benefits"
       >
         <h2 itemprop="name">Why foster global trial collaboration?</h2>
         <div
@@ -1136,7 +1234,14 @@
             <span itemprop="text"
               >Global collaboration diversifies patient demographics,
               accelerates enrollment, and enhances external validity, supporting
-              Cardiozen multi-site efficacy evidence.</span
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              multi-site efficacy evidence.</span
             >
           </div>
         </div>

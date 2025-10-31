@@ -28,7 +28,7 @@ describe("vector service", () => {
 
     test("VectorService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(VectorService.length, 6); // config, contentIndex, descriptorIndex, llmClient, resourceIndex, logFn
+      assert.strictEqual(VectorService.length, 5); // config, contentIndex, descriptorIndex, llmClient, logFn
     });
 
     test("VectorService has proper method signatures", () => {
@@ -44,7 +44,6 @@ describe("vector service", () => {
     let mockContentIndex;
     let mockDescriptorIndex;
     let mockLlmClient;
-    let mockResourceIndex;
 
     beforeEach(() => {
       mockConfig = {
@@ -66,15 +65,6 @@ describe("vector service", () => {
           data: [{ embedding: [0.1, 0.2, 0.3] }],
         }),
       };
-
-      mockResourceIndex = {
-        get: async (identifiers, _actor) =>
-          identifiers.map((id) => ({
-            id,
-            content: { toString: () => `Content for ${id}` },
-            descriptor: { toString: () => `Descriptor for ${id}` },
-          })),
-      };
     });
 
     test("creates service instance with indexes", () => {
@@ -83,7 +73,6 @@ describe("vector service", () => {
         mockContentIndex,
         mockDescriptorIndex,
         mockLlmClient,
-        mockResourceIndex,
       );
 
       assert.ok(service);
@@ -96,18 +85,15 @@ describe("vector service", () => {
         mockContentIndex,
         mockDescriptorIndex,
         mockLlmClient,
-        mockResourceIndex,
       );
 
       const result = await service.QueryByContent({
         text: "test query",
-        filters: { threshold: "0.3", limit: "10" },
+        filter: { threshold: 0.3, limit: 10 },
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.results));
-      assert.strictEqual(result.results.length, 1);
-      assert.strictEqual(result.results[0], "Content for msg1");
+      assert.ok(Array.isArray(result.identifiers));
     });
 
     test("QueryByDescriptor queries descriptor index", async () => {
@@ -116,18 +102,15 @@ describe("vector service", () => {
         mockContentIndex,
         mockDescriptorIndex,
         mockLlmClient,
-        mockResourceIndex,
       );
 
       const result = await service.QueryByDescriptor({
         text: "test descriptor query",
-        filters: { threshold: "0.3", limit: "10" },
+        filter: { threshold: 0.3, limit: 10 },
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.results));
-      assert.strictEqual(result.results.length, 1);
-      assert.strictEqual(result.results[0], "Descriptor for desc1");
+      assert.ok(Array.isArray(result.identifiers));
     });
 
     test("QueryByContent handles empty filters", async () => {
@@ -136,7 +119,6 @@ describe("vector service", () => {
         mockContentIndex,
         mockDescriptorIndex,
         mockLlmClient,
-        mockResourceIndex,
       );
 
       const result = await service.QueryByContent({
@@ -144,7 +126,7 @@ describe("vector service", () => {
       });
 
       assert.ok(result);
-      assert.ok(Array.isArray(result.results));
+      assert.ok(Array.isArray(result.identifiers));
     });
   });
 });

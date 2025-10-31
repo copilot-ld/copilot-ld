@@ -17,6 +17,7 @@ const {
   graph = {},
   memory = {},
   tool = {},
+  trace = {},
 } = types;
 
 /**
@@ -209,4 +210,5 @@ export {
   graph,
   memory,
   tool,
+  trace,
 };

@@ -4,13 +4,13 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { createLlm } from "@copilot-ld/libcopilot";
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common } from "@copilot-ld/libtype";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const config = await ScriptConfig.create("ontology");
+const config = await createScriptConfig("ontology");
 
 /**
  * Main function to generate SHACL ontology from input text

@@ -37,6 +37,7 @@ describe("Server", () => {
   let mockGrpcFn;
   let mockAuthFn;
   let mockLogFn;
+  let mockObserverFn;
 
   beforeEach(() => {
     mockService = {
@@ -72,21 +73,47 @@ describe("Server", () => {
     mockAuthFn = () => ({
       validateCall: () => ({ isValid: true, serviceId: "test" }),
     });
-    mockLogFn = () => ({
+    mockLogFn = {
       debug: mock.fn(),
+    };
+    mockObserverFn = () => ({
+      observeServerCall: async (method, handler, call, callback) => {
+        return await handler(call, callback);
+      },
+      observeClientCall: async (method, request, fn) => {
+        return await fn();
+      },
     });
   });
 
   test("should require service parameter", () => {
     assert.throws(
-      () => new Server(null, mockConfig, mockGrpcFn, mockAuthFn, mockLogFn),
+      () =>
+        new Server(
+          null,
+          mockConfig,
+          mockLogFn,
+          null,
+          mockObserverFn,
+          mockGrpcFn,
+          mockAuthFn,
+        ),
       /service is required/,
     );
   });
 
   test("should require config parameter", () => {
     assert.throws(
-      () => new Server(mockService, null, mockGrpcFn, mockAuthFn, mockLogFn),
+      () =>
+        new Server(
+          mockService,
+          null,
+          mockLogFn,
+          null,
+          mockObserverFn,
+          mockGrpcFn,
+          mockAuthFn,
+        ),
       /config is required/,
     );
   });
@@ -95,9 +122,11 @@ describe("Server", () => {
     const server = new Server(
       mockService,
       mockConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     assert.ok(server);
@@ -116,9 +145,11 @@ describe("Server", () => {
     const server = new Server(
       spiedService,
       mockConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
-      mockLogFn,
     );
 
     // Test that the server has the service and can access its methods
@@ -137,6 +168,7 @@ describe("Client", () => {
   let mockGrpcFn;
   let mockAuthFn;
   let mockLogFn;
+  let mockObserverFn;
 
   beforeEach(() => {
     mockConfig = {
@@ -167,20 +199,40 @@ describe("Client", () => {
     mockAuthFn = () => ({
       createClientInterceptor: () => () => {},
     });
-    mockLogFn = () => ({
+    mockLogFn = {
       debug: mock.fn(),
+    };
+    mockObserverFn = () => ({
+      observeClientCall: async (method, request, fn) => {
+        return await fn();
+      },
     });
   });
 
   test("should require config parameter", () => {
     assert.throws(
-      () => new Client(null, mockGrpcFn, mockAuthFn, mockLogFn),
+      () =>
+        new Client(
+          null,
+          mockLogFn,
+          null,
+          mockObserverFn,
+          mockGrpcFn,
+          mockAuthFn,
+        ),
       /config is required/,
     );
   });
 
   test("should accept valid parameters", () => {
-    const client = new Client(mockConfig, mockGrpcFn, mockAuthFn, mockLogFn);
+    const client = new Client(
+      mockConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
+      mockGrpcFn,
+      mockAuthFn,
+    );
 
     assert.ok(client);
     assert.strictEqual(client.config, mockConfig);

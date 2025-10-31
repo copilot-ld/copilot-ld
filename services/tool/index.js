@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import * as types from "@copilot-ld/libtype";
 
 import { services, clients } from "@copilot-ld/librpc";
@@ -17,10 +17,11 @@ export class ToolService extends ToolBase {
   /**
    * Creates a new Tool service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
+   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
    */
   constructor(config, logFn) {
     super(config, logFn);
+
     this.#clients = new Map();
     this.#endpoints = config.endpoints || {};
   }
@@ -34,17 +35,16 @@ export class ToolService extends ToolBase {
   }
 
   /**
-   * @inheritdoc
+   * Makes a tool call by routing to the appropriate service
    * @param {import("@copilot-ld/libtype").tool.ToolDefinition} req - Tool execution request
    */
-  async Call(req) {
+  async CallTool(req) {
     try {
       if (!req?.id || !req?.function) {
         throw new Error("Invalid tool request: missing id or function");
       }
 
       const toolName = req.function.id.name;
-      this.debug("Executing tool", { name: toolName });
 
       const endpoint = this.#endpoints[toolName];
       if (!endpoint) {
@@ -63,7 +63,8 @@ export class ToolService extends ToolBase {
       }
       const [requestPackage, requestType] = requestParts;
 
-      const result = await this.#routeToService(
+      // Route to the appropriate service and pass-on the tool call result
+      return await this.#routeToService(
         servicePackage,
         serviceName,
         serviceMethod,
@@ -71,23 +72,8 @@ export class ToolService extends ToolBase {
         requestType,
         req,
       );
-
-      this.debug("Tool execution complete", { name: toolName });
-
-      return {
-        role: "tool",
-        tool_call_id: req.id,
-        content: JSON.stringify(result),
-      };
     } catch (error) {
-      this.debug("Tool execution failed", {
-        name: req.function?.name,
-        error: error.message,
-      });
-
       return {
-        role: "tool",
-        tool_call_id: req.id || "",
         content: JSON.stringify({ error: error.message }),
       };
     }
@@ -128,7 +114,6 @@ export class ToolService extends ToolBase {
     );
 
     const response = await client[serviceMethod](serviceRequest);
-
     return response;
   }
 
@@ -147,7 +132,7 @@ export class ToolService extends ToolBase {
     }
 
     const ClientClass = clients[clientClassName];
-    return new ClientClass(await ServiceConfig.create(servicePackage));
+    return new ClientClass(await createServiceConfig(servicePackage));
   }
 
   /**

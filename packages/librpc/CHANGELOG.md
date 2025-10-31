@@ -1,5 +1,41 @@
 # Changelog
 
+## 2025-10-28
+
+- Updated `Tracer` import to use direct path
+  `@copilot-ld/libtelemetry/tracer.js` to avoid circular dependency
+- Integrated `Observer` from `@copilot-ld/libtelemetry` for unified
+  observability
+- Removed manual logging and span management from `Client` and `Server` classes
+- Added automatic span events: `request.sent`, `response.received` (client),
+  `request.received`, `response.sent` (server)
+- Added automatic request and response attribute extraction via `Observer`
+- Simplified RPC implementation by delegating all observability to `Observer`
+- Removed `logger()`, `tracer()`, and `debug()` methods from `Rpc` base class
+  (now internal to `Observer`)
+- Updated constructor signatures to remove `logFn` parameter (Observer creates
+  logger internally)
+- All observability now happens automatically at RPC boundaries without manual
+  instrumentation
+
+## 2025-10-28 (earlier)
+
+- Extracted `Client` class from `base.js` into separate `client.js` file for
+  better organization
+- Moved `capitalizeFirstLetter` utility function to `base.js` for reuse across
+  `client.js` and `index.js`
+- Updated `createClient` factory in `index.js` to use shared
+  `capitalizeFirstLetter` utility
+- Updated generated client template to import from
+  `@copilot-ld/librpc/client.js` instead of `base.js`
+- Updated `index.js` exports to maintain backward compatibility
+
+## 2025-10-27
+
+- Updated `Client.callMethod()` to accept optional `metadata` parameter for gRPC
+  metadata injection
+- Trace context now propagates via gRPC metadata instead of `AsyncLocalStorage`
+
 ## 2025-10-19
 
 - Bump version

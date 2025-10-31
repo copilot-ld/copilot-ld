@@ -323,7 +323,7 @@ Generated bases and clients must be used. Extend the generated `*Base` and imple
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { vector } from "@copilot-ld/libtype";
 import { VectorBase } from "./service.js";
 
@@ -334,12 +334,12 @@ class ExampleService extends VectorBase {
   }
 }
 
-await new ExampleService(await ServiceConfig.create("vector"), null).start();
+await new ExampleService(await createServiceConfig("vector"), null).start();
 ```
 
 ### Configuration Requirements
 
-Use `ServiceConfig.create(name, defaults?)` to construct and load service configuration.
+Use `createServiceConfig(name, defaults?)` to construct and load service configuration.
 
 ## Best Practices
 
@@ -367,7 +367,7 @@ Use `this.debug(message, context)` from the base `Service` class.
 
 ```javascript
 /* eslint-env node */
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { ExampleBase } from "./service.js";
 
 class ExampleService extends ExampleBase {
@@ -376,7 +376,7 @@ class ExampleService extends ExampleBase {
   }
 }
 
-await new ExampleService(await ServiceConfig.create("example"))
+await new ExampleService(await createServiceConfig("example"))
   .start();
 ```
 ```

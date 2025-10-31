@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-31
+
+- Enhanced `isolatePerformanceTest()` to gracefully handle missing `global.gc`
+  function
+- Function now skips garbage collection instead of throwing error when
+  `--expose-gc` flag not available
+
 ## 2025-10-19
 
 - Bump version

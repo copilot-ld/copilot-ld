@@ -55,7 +55,7 @@ async function performQuery(prompt) {
         const hasMore = item.quads.length > 10;
 
         output += `# ${i + 1}: ${identifier}\n\n`;
-        output += `\n\`\`\`\n${quadsText}${hasMore ? "\n  # ... and " + (item.quads.length - 10) + " more triples" : ""}\n\`\`\`\n\n`;
+        output += `\n\`\`\`turtle\n${quadsText}${hasMore ? "\n  # ... and " + (item.quads.length - 10) + " more triples" : ""}\n\`\`\`\n\n`;
       });
     }
 

@@ -59,6 +59,9 @@ export class AgentMind {
     const { assistant, permanentTools, conversation, message, tasks } =
       await this.setupConversation(req);
 
+    // The resource we're dealing with is the conversation itself
+    const resource_id = conversation.id.toString();
+
     if (message?.id) {
       // Append message to memory with token count for filtering
       const messageIdentifier = {
@@ -68,7 +71,7 @@ export class AgentMind {
 
       await this.#callbacks.memory.append(
         memory.AppendRequest.fromObject({
-          for: conversation.id.toString(),
+          resource_id,
           identifiers: [messageIdentifier],
         }),
       );
@@ -92,12 +95,13 @@ export class AgentMind {
 
       // Special parameters to pass down to tools and LLM calls
       const maxTokens = Math.round(
-        budget * this.#config.budget?.allocation?.results,
+        budget * this.#config.budget?.allocation?.context,
       );
       const githubToken = req.github_token;
 
       // Use AgentHands for tool execution
       const completions = await this.#hands.executeToolLoop(
+        resource_id,
         messages,
         tools,
         maxTokens,
@@ -118,19 +122,19 @@ export class AgentMind {
 
         await this.#callbacks.memory.append(
           memory.AppendRequest.fromObject({
-            for: conversation.id.toString(),
+            resource_id,
             identifiers: [responseIdentifier],
           }),
         );
       }
 
       return {
+        resource_id,
         ...completions,
-        conversation_id: conversation.id.toString(),
       };
     }
 
-    return { conversation_id: conversation.id.toString() };
+    return { resource_id };
   }
 
   /**
@@ -143,11 +147,8 @@ export class AgentMind {
     let conversation;
 
     // Step 1: Initiate the conversation
-    if (req.conversation_id) {
-      [conversation] = await this.#resourceIndex.get(
-        [req.conversation_id],
-        actor,
-      );
+    if (req.resource_id) {
+      [conversation] = await this.#resourceIndex.get([req.resource_id], actor);
     } else {
       conversation = common.Conversation.fromObject({
         id: {
@@ -228,15 +229,12 @@ export class AgentMind {
     const context = await this.#resourceIndex.get(window?.context, actor);
     messages.push(...context);
 
-    // Add conversation history in chronological order
-    const history = await this.#resourceIndex.get(window?.history, actor);
-    // Ensure all retrieved messages have token counts
-    for (const msg of history) {
-      if (msg?.content && !msg.content.tokens) {
-        msg.withTokens();
-      }
-    }
-    messages.push(...history);
+    // Add conversation identifiers (the resource index return results in chronological order)
+    const conversation = await this.#resourceIndex.get(
+      window?.conversation,
+      actor,
+    );
+    messages.push(...conversation);
 
     return messages;
   }
@@ -298,15 +296,10 @@ export class AgentMind {
     const allocation = this.#config.budget?.allocation;
 
     const window = await this.#callbacks.memory.get(
-      memory.GetRequest.fromObject({
-        for: String(conversation.id),
+      memory.WindowRequest.fromObject({
+        resource_id: String(conversation.id),
         budget,
-        allocation: allocation
-          ? memory.GetRequest.Allocation.fromObject({
-              tools: allocation.tools,
-              history: allocation.history,
-            })
-          : undefined,
+        allocation,
       }),
     );
 

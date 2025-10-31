@@ -70,6 +70,7 @@ service orchestrates requests by calling other services as needed:
 - **Vector**: Performs similarity search across dual indexes
 - **Graph**: Executes pattern-based queries on RDF graphs
 - **Tool**: Proxies tool calls from agent to implementations
+- **Trace**: Collects distributed traces for observability
 
 For detailed service implementations, see the [Reference Guide](/reference/).
 
@@ -126,14 +127,14 @@ sequenceDiagram
     Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
 
     Agent->>Memory: Get (for conversation, with budget/allocation)
-    Memory-->>Agent: Window (tools, history)
+    Memory-->>Agent: Window (tools, identifiers)
 
-    Agent->>ResourceIndex: Resolve window identifiers (tools/history)
+    Agent->>ResourceIndex: Resolve window identifiers (tools/identifiers)
     ResourceIndex-->>Agent: Resources (policy-filtered)
 
     Note over Agent: Autonomous Tool Calling Loop (max 10 iterations)
     loop Until no tool calls or max iterations
-        Agent->>LLM: CreateCompletions (assistant + tasks + tools + history)
+        Agent->>LLM: CreateCompletions (assistant + tasks + tools + identifiers)
         LLM-->>Agent: Completion with autonomous tool call decisions
 
         alt Tool calls present
@@ -150,7 +151,7 @@ sequenceDiagram
 
     Agent->>ResourceIndex: Put final completion message (scoped to conversation)
 
-    Agent-->>Extension: RPC response (with conversation_id)
+    Agent-->>Extension: RPC response (with resource_id)
     Extension-->>Client: REST response
 ```
 
@@ -251,28 +252,30 @@ The system can be deployed in multiple configurations depending on your needs:
 
 ### Local Development
 
-```bash
-# All services run on localhost with individual ports
-npm run dev
+All services run on localhost with individual ports:
 
-# Services available at:
-# - Web Extension: http://localhost:3000/web
-# - Agent: localhost:3001 (gRPC, internal)
-# - Memory: localhost:3002 (gRPC, internal)
-# - LLM: localhost:3003 (gRPC, internal)
-# - Vector: localhost:3004 (gRPC, internal)
-# - Graph: localhost:3005 (gRPC, internal)
-# - Tool: localhost:3006 (gRPC, internal)
+```bash
+npm run dev
 ```
+
+Services available at:
+
+- **Web Extension**: `http://localhost:3000/web/`
+- **Agent**: `localhost:3001` (gRPC, internal)
+- **Memory**: `localhost:3002` (gRPC, internal)
+- **LLM**: `localhost:3003` (gRPC, internal)
+- **Vector**: `localhost:3004` (gRPC, internal)
+- **Graph**: `localhost:3005` (gRPC, internal)
+- **Tool**: `localhost:3006` (gRPC, internal)
 
 ### Docker Compose
 
-```bash
-# Services run in Docker network with internal communication
-docker-compose up
+Services run in Docker network with internal communication. Only the web
+extension is exposed externally, while backend services are isolated in the
+Docker network:
 
-# Only web extension exposed externally
-# Backend services isolated in Docker network
+```bash
+docker-compose up
 ```
 
 ### Production (AWS/Cloud)
@@ -307,6 +310,90 @@ Security is built into every layer of the architecture:
 - **Tool Restrictions**: Tools can be restricted by configuration
 
 For security implementation details, see the [Reference Guide](/reference/).
+
+## Observability Architecture
+
+The platform includes built-in distributed tracing to provide visibility into
+system behavior across all microservices.
+
+### Tracing Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Agent
+    participant Memory
+    participant LLM
+    participant Trace as Trace Service
+    participant Storage as data/traces/
+
+    Note over Client,Storage: All operations automatically traced
+
+    Client->>Agent: ProcessRequest
+    activate Agent
+    Agent->>Trace: RecordSpan (Agent.ProcessRequest SERVER)
+
+    Agent->>Memory: GetWindow
+    activate Memory
+    Memory->>Trace: RecordSpan (Memory.GetWindow CLIENT)
+    Memory->>Trace: RecordSpan (Memory.GetWindow SERVER)
+    Memory-->>Agent: Conversation resources
+    deactivate Memory
+
+    Agent->>LLM: CreateCompletions
+    activate LLM
+    LLM->>Trace: RecordSpan (Llm.CreateCompletions CLIENT)
+    LLM->>Trace: RecordSpan (Llm.CreateCompletions SERVER)
+    LLM-->>Agent: Response
+    deactivate LLM
+
+    Agent-->>Client: Final response
+    deactivate Agent
+
+    Note over Trace,Storage: Buffered batch writes
+    Trace->>Storage: Flush spans to YYYY-MM-DD.jsonl
+```
+
+### Tracing Components
+
+- **libtelemetry**: Core tracing library with `Tracer` and `Span` classes
+- **Trace Service**: Receives spans via gRPC and persists to JSONL files
+- **Code Generation**: Automatic instrumentation in service bases and clients
+- **AsyncLocalStorage**: Propagates trace context across async operations
+
+### Key Features
+
+- **Zero-touch**: All gRPC methods automatically create spans
+- **Distributed context**: Trace IDs link related spans across services
+- **Parent-child tracking**: Span relationships captured automatically
+- **Buffered I/O**: Efficient batch writes to daily trace files
+- **Error safety**: Tracing failures never break application flow
+
+### Trace Data
+
+Spans are stored in `data/traces/YYYY-MM-DD.jsonl` with one JSON object per
+line:
+
+```json
+{
+  "trace_id": "8c1675ebe7c638",
+  "span_id": "efdbcc4e6a1a78",
+  "parent_span_id": "",
+  "name": "Agent.ProcessRequest",
+  "kind": 0,
+  "start_time_unix_nano": "1234567890123456789",
+  "end_time_unix_nano": "1234567890234567890",
+  "attributes": {
+    "service.name": "agent",
+    "rpc.service": "Agent",
+    "rpc.method": "ProcessRequest"
+  },
+  "status": { "code": "OK" }
+}
+```
+
+For detailed tracing implementation and analysis, see the
+[Reference Guide](/reference/).
 
 ## Next Steps
 

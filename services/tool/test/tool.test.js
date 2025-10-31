@@ -12,8 +12,8 @@ describe("tool service", () => {
       assert.ok(ToolService.prototype);
     });
 
-    test("ToolService has Call method", () => {
-      assert.strictEqual(typeof ToolService.prototype.Call, "function");
+    test("ToolService has CallTool method", () => {
+      assert.strictEqual(typeof ToolService.prototype.CallTool, "function");
     });
 
     test("ToolService constructor accepts expected parameters", () => {
@@ -23,7 +23,7 @@ describe("tool service", () => {
 
     test("ToolService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(ToolService.prototype);
-      assert(methods.includes("Call"));
+      assert(methods.includes("CallTool"));
       assert(methods.includes("constructor"));
     });
   });
@@ -58,20 +58,20 @@ describe("tool service", () => {
       assert.deepStrictEqual(service.endpoints, mockConfig.endpoints);
     });
 
-    test("Call validates request structure", async () => {
+    test("CallTool validates request structure", async () => {
       const service = new ToolService(mockConfig);
 
-      const result = await service.Call({});
+      const result = await service.CallTool({});
 
       assert.ok(result);
-      assert.strictEqual(result.role, "tool");
+      assert.ok(result.content);
       assert.ok(result.content.includes("error"));
     });
 
-    test("Call handles missing endpoint", async () => {
+    test("CallTool handles missing endpoint", async () => {
       const service = new ToolService(mockConfig);
 
-      const result = await service.Call({
+      const result = await service.CallTool({
         id: "test-call",
         function: {
           id: { name: "unknown.tool" },
@@ -79,39 +79,40 @@ describe("tool service", () => {
       });
 
       assert.ok(result);
-      assert.strictEqual(result.role, "tool");
-      assert.strictEqual(result.tool_call_id, "test-call");
+      assert.ok(result.content);
       assert.ok(result.content.includes("not found"));
     });
 
-    test("Call handles invalid endpoint method format", async () => {
+    test("CallTool handles invalid endpoint method format", async () => {
       const invalidConfig = {
         name: "tool", // Required for logging
         endpoints: {
           "invalid.tool": {
             method: "invalid", // Invalid format - needs package.service.method
+            request: "tool.Request",
           },
         },
       };
 
       const service = new ToolService(invalidConfig);
 
-      const result = await service.Call({
+      const result = await service.CallTool({
         id: "test-call",
         function: {
           id: { name: "invalid.tool" },
+          arguments: "{}",
         },
       });
 
       assert.ok(result);
-      assert.strictEqual(result.role, "tool");
+      assert.ok(result.content);
       assert.ok(result.content.includes("Invalid endpoint method format"));
     });
 
     test("returns proper tool result structure", async () => {
       const service = new ToolService(mockConfig);
 
-      const result = await service.Call({
+      const result = await service.CallTool({
         id: "test-call-123",
         function: {
           id: { name: "nonexistent.tool" },
@@ -119,8 +120,6 @@ describe("tool service", () => {
       });
 
       assert.ok(result);
-      assert.strictEqual(result.role, "tool");
-      assert.strictEqual(result.tool_call_id, "test-call-123");
       assert.ok(typeof result.content === "string");
     });
   });

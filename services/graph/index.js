@@ -8,22 +8,18 @@ const { GraphBase } = services;
  */
 export class GraphService extends GraphBase {
   #graphIndex;
-  #resourceIndex;
 
   /**
    * Creates a new Graph service instance
-   * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
+   * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {import("@copilot-ld/libgraph").GraphIndex} graphIndex - Pre-initialized graph index
-   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Pre-initialized resource index
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
+   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
    */
-  constructor(config, graphIndex, resourceIndex, logFn) {
+  constructor(config, graphIndex, logFn) {
     super(config, logFn);
     if (!graphIndex) throw new Error("graphIndex is required");
-    if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#graphIndex = graphIndex;
-    this.#resourceIndex = resourceIndex;
   }
 
   /**
@@ -32,14 +28,6 @@ export class GraphService extends GraphBase {
    * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResults>} Query results with resource strings
    */
   async QueryByPattern(req) {
-    this.debug("Graph query", {
-      subject: req.subject,
-      predicate: req.predicate,
-      object: req.object,
-      limit: req.filter?.limit,
-      max_tokens: req.filter?.max_tokens,
-    });
-
     const pattern = {
       subject: req.subject || null,
       predicate: req.predicate || null,
@@ -47,62 +35,14 @@ export class GraphService extends GraphBase {
     };
 
     const identifiers = await this.#graphIndex.queryItems(pattern, req?.filter);
-
-    this.debug("Graph query results", {
-      count: identifiers.length,
-    });
-
-    const results = await this.#getResources(identifiers);
-
-    return { results };
+    return { identifiers };
   }
 
   /** @inheritdoc */
   async GetOntology(_req) {
-    this.debug("Getting ontology");
-
     const storage = this.#graphIndex.storage();
-    // Preferred SHACL Turtle file
-    let ontologyContent = await storage.get("ontology.ttl");
 
-    // Backward compatibility: fall back to legacy JSON if TTL missing
-    if (!ontologyContent) {
-      const legacy = await storage.get("ontology.json");
-      if (legacy) {
-        ontologyContent =
-          typeof legacy === "object" ? JSON.stringify(legacy, null, 2) : legacy;
-      }
-    }
-
-    // Field name retained (ontology_json) for proto compatibility
-    return { ontology_json: String(ontologyContent || "") };
-  }
-
-  /**
-   * Retrieves resource strings from resource identifiers
-   * @param {string[]} identifiers - Resource identifiers
-   * @returns {Promise<string[]>} Array of resource strings
-   * @private
-   */
-  async #getResources(identifiers) {
-    if (!identifiers?.length) {
-      return [];
-    }
-
-    const actor = "common.System.root";
-    const resources = await this.#resourceIndex.get(
-      identifiers.map((id) => String(id)),
-      actor,
-    );
-
-    const contents = resources
-      .map((resource) => {
-        return resource.content
-          ? String(resource.content)
-          : String(resource.descriptor);
-      })
-      .filter((content) => content.length > 0);
-
-    return contents;
+    const content = String((await storage.get("ontology.ttl")) || "");
+    return { content };
   }
 }

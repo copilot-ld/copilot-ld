@@ -32,20 +32,10 @@ export class AgentService extends AgentBase {
    * @returns {Promise<import("@copilot-ld/libtype").agent.AgentResponse>} Response message
    */
   async ProcessRequest(req) {
-    this.debug("Processing request", {
-      conversation: req.conversation_id,
-      messages: req.messages?.length || 0,
-    });
-
     const octokit = this.#octokitFn(req.github_token);
     await octokit.request("GET /user");
 
     const response = await this.#mind.processRequest(req);
-
-    this.debug("Request processed", {
-      conversation: response.conversation_id,
-      choices: response.choices?.length || 0,
-    });
 
     return response;
   }

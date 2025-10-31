@@ -28,21 +28,41 @@ export class MemoryIndex extends IndexBase {
  */
 export class MemoryFilter {
   /**
-   * Splits memory identifiers into tools and history based on type
+   * Split resources into specific types
    * @param {import("@copilot-ld/libtype").resource.Identifier[]} memory - Memory identifiers to split
-   * @returns {{tools: import("@copilot-ld/libtype").resource.Identifier[], history: import("@copilot-ld/libtype").resource.Identifier[]}} Split results
+   * @returns {object} Split results
    */
-  static splitToolsAndHistory(memory) {
-    if (!Array.isArray(memory)) return { tools: [], history: [] };
+  static splitResources(memory) {
+    if (!Array.isArray(memory)) {
+      return {
+        tools: [],
+        context: [],
+        conversation: [],
+      };
+    }
 
     const tools = memory.filter((identifier) =>
       identifier.type?.startsWith("tool.ToolFunction"),
     );
-    const history = memory.filter(
-      (identifier) => !identifier.type?.startsWith("tool.ToolFunction"),
+
+    const conversation = memory.filter(
+      (identifier) =>
+        identifier.type?.startsWith("common.Message") &&
+        identifier.parent?.startsWith("common.Conversation"),
     );
 
-    return { tools, history };
+    // Everything else is considered context
+    const context = memory.filter(
+      (identifier) =>
+        !identifier.type?.startsWith("tool.ToolFunction") &&
+        !identifier.parent?.startsWith("common.Conversation"),
+    );
+
+    return {
+      tools,
+      context,
+      conversation,
+    };
   }
 
   /**
@@ -103,29 +123,42 @@ export class MemoryWindow {
   /**
    * Builds a memory window with budget allocation
    * @param {number} budget - Total token budget
-   * @param {{tools: number, history: number}} allocation - Budget allocation ratios (0-1)
-   * @returns {Promise<{tools: import("@copilot-ld/libtype").resource.Identifier[], history: import("@copilot-ld/libtype").resource.Identifier[]}>} Memory window results
+   * @param {{tools: number, resources: number}} allocation - Budget allocation ratios (0-1)
+   * @returns {Promise<{tools: import("@copilot-ld/libtype").resource.Identifier[], identifiers: import("@copilot-ld/libtype").resource.Identifier[]}>} Memory window results
    */
   async build(budget, allocation) {
     const identifiers = await this.#index.queryItems();
-    const { tools, history } = MemoryFilter.splitToolsAndHistory(identifiers);
+    const { tools, context, conversation } =
+      MemoryFilter.splitResources(identifiers);
 
-    if (!budget || !allocation?.tools || !allocation?.history) {
-      throw new Error("Budget allocation of tools and history is required");
+    if (
+      !budget ||
+      !allocation?.tools ||
+      !allocation?.context ||
+      !allocation?.conversation
+    ) {
+      throw new Error(
+        "Budget allocation is required: tools, context, conversation",
+      );
     }
 
     const filteredTools = MemoryFilter.filterByBudget(
       tools,
       Math.round(budget * allocation.tools),
     );
-    const filteredHistory = MemoryFilter.filterByBudget(
-      history,
-      Math.round(budget * allocation.history),
+    const filteredContext = MemoryFilter.filterByBudget(
+      context,
+      Math.round(budget * allocation.context),
+    );
+    const filteredConversation = MemoryFilter.filterByBudget(
+      conversation,
+      Math.round(budget * allocation.conversation),
     );
 
     return {
       tools: filteredTools,
-      history: filteredHistory,
+      context: filteredContext,
+      conversation: filteredConversation,
     };
   }
 

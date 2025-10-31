@@ -134,21 +134,26 @@ S3-compatible storage:
 
 #### Local Storage (Default)
 
+Use local filesystem (default behavior, no configuration needed):
+
 ```bash
-# Use local filesystem (default)
-# STORAGE_TYPE=local
+STORAGE_TYPE=local
 ```
 
 #### S3-Compatible Storage
+
+Configure S3 or S3-compatible storage. `S3_BUCKET_ROLE_ARN` is used for local
+development and CI/CD, while `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are
+used for MinIO or direct S3 access:
 
 ```bash
 STORAGE_TYPE=s3
 
 S3_REGION=us-east-1
 S3_BUCKET_NAME=copilot-ld
-S3_BUCKET_ROLE_ARN=arn:aws:iam::xxxxxxxxxxxx:xxx      # For local development and CI/CD
-AWS_ACCESS_KEY_ID=xxx                                 # For MinIO or direct S3 access
-AWS_SECRET_ACCESS_KEY=xxx                             # For MinIO or direct S3 access
+S3_BUCKET_ROLE_ARN=arn:aws:iam::xxxxxxxxxxxx:xxx
+AWS_ACCESS_KEY_ID=xxx
+AWS_SECRET_ACCESS_KEY=xxx
 ```
 
 ### Development Options
@@ -184,7 +189,7 @@ Defines service parameters and the available tools in JSON format.
         "tokens": 90000,
         "allocation": {
           "tools": 0.1,
-          "history": 0.1,
+          "resources": 0.1,
           "results": 0.8
         }
       }
@@ -268,13 +273,10 @@ software_dev_expert:
 ### Docker Compose Environment
 
 When using Docker Compose, comment out host and port variables to use container
-networking:
+networking. This example uses GNU `sed`:
 
 ```bash
-# Comment out for Docker Compose (GNU sed)
 sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
-
-# Start with container networking
 docker compose up
 ```
 

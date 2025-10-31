@@ -1,15 +1,22 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { Server } from "@copilot-ld/librpc";
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
+import { createTracer } from "@copilot-ld/librpc";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
 import { MemoryService } from "./index.js";
 
-const config = await ServiceConfig.create("memory");
+const config = await createServiceConfig("memory");
+
+// Initialize observability
+const logger = await createLogger("memory");
+const tracer = await createTracer("memory");
+
 const memoryStorage = createStorage("memories");
 
 const service = new MemoryService(config, memoryStorage);
-const server = new Server(service, config);
+const server = new Server(service, config, logger, tracer);
 
 await server.start();

@@ -1,7 +1,7 @@
 /* eslint-env node */
 import grpc from "@grpc/grpc-js";
 
-import { createLogger } from "@copilot-ld/libutil";
+import { createObserver } from "@copilot-ld/libtelemetry";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { definitions } from "./generated/definitions/exports.js";
@@ -11,7 +11,7 @@ import { definitions } from "./generated/definitions/exports.js";
  * @param {string} str - String to capitalize
  * @returns {string} Capitalized string
  */
-function capitalizeFirstLetter(str) {
+export function capitalizeFirstLetter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
@@ -38,34 +38,40 @@ export function createAuth(serviceName) {
   return new Interceptor(new HmacAuth(secret), serviceName);
 }
 
+export { createObserver } from "@copilot-ld/libtelemetry";
+
 /**
  * Base class for both Server and Client with shared gRPC functionality
  */
 export class Rpc {
   #grpc;
   #auth;
-  #logger;
+  #observer;
 
   /**
    * Creates a new Rpc instance
    * @param {object} config - Configuration object
+   * @param {object} [logger] - Optional logger instance
+   * @param {import("@copilot-ld/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
+   * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string) => object} authFn - Auth factory
-   * @param {(namespace: string) => object} logFn - Log factory
    */
   constructor(
     config,
+    logger = null,
+    tracer = null,
+    observerFn = createObserver,
     grpcFn = createGrpc,
     authFn = createAuth,
-    logFn = createLogger,
   ) {
     if (!config) throw new Error("config is required");
+    if (typeof observerFn !== "function")
+      throw new Error("observerFn must be a function");
     if (typeof grpcFn !== "function")
       throw new Error("createGrpc must be a function");
     if (typeof authFn !== "function")
       throw new Error("createAuth must be a function");
-    if (typeof logFn !== "function")
-      throw new Error("createLogger must be a function");
 
     this.config = config;
 
@@ -76,8 +82,8 @@ export class Rpc {
     // Setup authentication
     this.#auth = authFn(this.config.name);
 
-    // Setup logging
-    this.#logger = logFn(this.config.name);
+    // Create observer with logger and tracer
+    this.#observer = observerFn(this.config.name, logger, tracer);
   }
 
   /**
@@ -93,18 +99,10 @@ export class Rpc {
   auth = () => this.#auth;
 
   /**
-   * Returns the logger instance
-   * @returns {object} Logger instance
+   * Returns the observer instance
+   * @returns {object} Observer instance
    */
-  logger = () => this.#logger;
-
-  /**
-   * Logs a debug message
-   * @param {string} message - Message to log
-   * @param {object} context - Context to log
-   * @returns {void}
-   */
-  debug = (message, context) => this.#logger.debug(message, context);
+  observer = () => this.#observer;
 
   /**
    * Get pre-compiled service definition
@@ -119,78 +117,5 @@ export class Rpc {
       );
     }
     return definition;
-  }
-}
-
-/**
- * Creates a gRPC client with consistent API using pre-compiled definitions
- */
-export class Client extends Rpc {
-  #client;
-
-  /**
-   * Creates a new Client instance
-   * @param {object} config - Configuration object
-   * @param {() => {grpc: object}} grpcFn - gRPC factory
-   * @param {(serviceName: string) => object} authFn - Auth factory
-   * @param {(namespace: string) => object} logFn - Log factory
-   */
-  constructor(
-    config,
-    grpcFn = createGrpc,
-    authFn = createAuth,
-    logFn = createLogger,
-  ) {
-    super(config, grpcFn, authFn, logFn);
-    this.#setupClient();
-  }
-
-  /**
-   * Sets up the gRPC client using pre-compiled definition
-   * @private
-   */
-  #setupClient() {
-    const serviceName = capitalizeFirstLetter(this.config.name);
-    const serviceDefinition = this.getServiceDefinition(serviceName);
-
-    // In case default host is used, resort to a well-known service name
-    const host =
-      this.config.host === "0.0.0.0"
-        ? `${this.config.name}.copilot-ld.local`
-        : this.config.host;
-
-    const uri = `${host}:${this.config.port}`;
-    const options = {
-      interceptors: [this.auth().createClientInterceptor()],
-    };
-    const clientCredentials = this.grpc().credentials.createInsecure();
-
-    // Create client using pre-compiled service definition
-    const ClientConstructor =
-      this.grpc().makeGenericClientConstructor(serviceDefinition);
-    this.#client = new ClientConstructor(uri, clientCredentials, options);
-  }
-
-  /**
-   * Call a gRPC method and return a promise
-   * @param {string} methodName - The name of the gRPC method to call
-   * @param {object} request - The request object to send
-   * @returns {Promise<object>} The response from the gRPC call
-   */
-  async callMethod(methodName, request) {
-    if (!this.#client[methodName]) {
-      throw new Error(`Method ${methodName} not found on gRPC client`);
-    }
-
-    return new Promise((resolve, reject) => {
-      this.#client[methodName](request, (error, response) => {
-        if (error) {
-          this.debug(`gRPC call failed: ${methodName}`, { error });
-          reject(error);
-        } else {
-          resolve(response);
-        }
-      });
-    });
   }
 }

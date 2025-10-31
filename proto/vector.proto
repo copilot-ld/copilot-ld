@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-import "tool.proto";
-
 package vector;
 
+import "tool.proto";
+
 service Vector {
-  rpc QueryByContent(TextQuery) returns (tool.QueryResults);
-  rpc QueryByDescriptor(TextQuery) returns (tool.QueryResults);
+  rpc QueryByContent(TextQuery) returns (tool.ToolCallResult);
+  rpc QueryByDescriptor(TextQuery) returns (tool.ToolCallResult);
 }
 
 message TextQuery {

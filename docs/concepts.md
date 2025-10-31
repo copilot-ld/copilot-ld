@@ -85,6 +85,74 @@ Buffers for message serialization.
 - **Cross-Platform**: Works across different languages and platforms
 - **Built-in Features**: Authentication, timeouts, and error handling included
 
+### Distributed Tracing
+
+Copilot-LD implements comprehensive distributed tracing to make the agent's
+decision-making process observable. Each request creates a trace—a complete
+record of all service calls, tool executions, and timing information as the
+agent processes the request.
+
+**Why Tracing for Agentic Systems?**
+
+Agentic AI systems present unique observability challenges that make tracing
+essential:
+
+- **Non-Deterministic Behavior**: Unlike traditional software with fixed code
+  paths, agents make autonomous decisions at runtime. You can't predict which
+  services will be called or in what order. Tracing reveals the actual execution
+  path chosen by the agent for each request.
+
+- **Tool Calling Complexity**: Agents dynamically select and execute tools based
+  on conversation context. Understanding which tools were called, why, and with
+  what parameters is critical for debugging and optimization. Traces capture the
+  complete tool execution graph.
+
+- **Multi-Service Orchestration**: A single user request flows through multiple
+  services (Agent → Memory → LLM → Tool → Vector). Traditional logs from
+  individual services don't show the complete picture. Distributed tracing
+  correlates all activity across services using a shared trace ID.
+
+- **Performance Analysis**: Agentic workflows involve expensive operations—LLM
+  API calls, vector searches, memory retrievals. Traces with precise timing
+  information identify performance bottlenecks and optimization opportunities.
+
+- **Trust and Transparency**: Users and operators need to understand how the
+  agent reached its conclusions. Traces provide an audit trail showing exactly
+  what information was retrieved, which tools were executed, and how token
+  budgets were allocated.
+
+**The Tracing Model**:
+
+Each trace consists of spans—individual units of work with start/end times,
+attributes, and relationships to other spans:
+
+1. **Trace ID**: Unique identifier shared by all spans in a request
+2. **Span ID**: Unique identifier for each operation
+3. **Parent Span ID**: Links spans into a hierarchical tree showing call
+   relationships
+4. **Span Kind**: Classifies operations as SERVER (incoming), CLIENT (outgoing),
+   or INTERNAL
+5. **Attributes**: Structured metadata (service name, method, resource IDs,
+   message counts)
+6. **Events**: Point-in-time markers (request.sent, response.received) with
+   additional context
+7. **Status**: Success or error state with optional error messages
+
+**Why Distributed Tracing?**
+
+- **Complete Request Visibility**: See every service call, tool execution, and
+  data retrieval in one view
+- **Performance Debugging**: Identify slow operations with nanosecond-precision
+  timing
+- **Causal Relationships**: Understand which calls triggered which subsequent
+  operations
+- **Production Monitoring**: Detect anomalies, errors, and performance
+  degradation in real-time
+- **Agent Behavior Analysis**: Study how the agent makes decisions across many
+  requests
+- **OpenTelemetry Compatibility**: Standard format enables integration with
+  industry-standard tools
+
 ## System Capabilities
 
 ### Intelligent Request Processing

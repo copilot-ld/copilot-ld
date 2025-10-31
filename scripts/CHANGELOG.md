@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-28
+
+- Simplified `analyze-traces.js` from 280 to 150 lines by removing unnecessary
+  validation logic and focusing on essential trace overview functionality
+- Replaced detailed timing validation with simple context propagation check
+- Combined helper functions to reduce complexity and improve readability
+- Output now focuses on quick glance view: span counts, context validity, and
+  example trace hierarchies
+
 ## 2025-10-26
 
 - Fixed NPM workspace configuration by adding `html-validate` dependency and

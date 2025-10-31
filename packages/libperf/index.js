@@ -320,6 +320,13 @@ export function createScalingMetrics(performanceMetrics) {
  * @returns {Promise<void>} Promise that resolves after cleanup
  */
 export async function isolatePerformanceTest() {
+  // Check if gc is available (requires --expose-gc flag)
+  if (typeof global.gc !== "function") {
+    // In development/CI environments without --expose-gc, skip GC
+    // This will still run tests but with less isolation
+    return;
+  }
+
   // Run GC multiple times to ensure memory is fully stabilized
   // Young generation objects may need multiple GC cycles
   for (let i = 0; i < 3; i++) {

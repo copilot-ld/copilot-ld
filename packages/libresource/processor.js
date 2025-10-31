@@ -1,54 +1,58 @@
 /* eslint-env node */
 
 import { JSDOM } from "jsdom";
-import { minify } from "html-minifier-terser";
 import { sanitizeDom } from "./sanitizer.js";
-import jsonld from "jsonld";
-import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
-import { Writer } from "n3";
 
 import { common } from "@copilot-ld/libtype";
 import { ProcessorBase, countTokens, generateHash } from "@copilot-ld/libutil";
 
-/** Resource processor for batch processing HTML files into Message objects */
+/**
+ * Batch processes HTML knowledge files into structured Message resources.
+ * Implements RDF union semantics to merge entity references across files.
+ * See docs/reference.md for detailed processing pipeline and architecture.
+ */
 export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
   #knowledgeStorage;
+  #parser;
   #describer;
   #logger;
   #baseIri;
-  #skolemizer;
 
   /**
    * Creates a new ResourceProcessor instance
-   * @param {string} baseIri - Base IRI for resource identification
-   * @param {object} resourceIndex - Index for storing resources
-   * @param {object} knowledgeStorage - Storage backend for knowledge files
-   * @param {object} skolemizer - Blank node skolemizer
-   * @param {object} describer - Optional resource describer
-   * @param {object} logger - Logger instance
+   * @param {string} baseIri - Base IRI for resource identification (fallback if HTML lacks <base>)
+   * @param {object} resourceIndex - Index for storing/retrieving Message resources
+   * @param {object} knowledgeStorage - Storage backend for HTML knowledge files
+   * @param {object} parser - Parser instance for HTML→RDF→JSON-LD conversions
+   * @param {object} describer - Optional descriptor generator for semantic metadata
+   * @param {object} logger - Logger instance with debug() method
+   * @throws {Error} If parser is null or undefined
    */
   constructor(
     baseIri,
     resourceIndex,
     knowledgeStorage,
-    skolemizer,
+    parser,
     describer,
     logger,
   ) {
     super(logger, 5);
-    if (!skolemizer) throw new Error("skolemizer is required");
+
+    if (!parser) throw new Error("parser is required");
+
     this.#baseIri = baseIri;
+    this.#parser = parser;
     this.#resourceIndex = resourceIndex;
     this.#knowledgeStorage = knowledgeStorage;
-    this.#skolemizer = skolemizer;
     this.#describer = describer || null;
     this.#logger = logger || { debug: () => {} };
   }
 
   /**
-   * Processes HTML files from knowledge storage
-   * @param {string} extension - File extension to filter by
+   * Processes HTML files from knowledge storage into Message resources
+   * @param {string} extension - File extension to filter by (default: ".html")
+   * @returns {Promise<void>}
    */
   async process(extension = ".html") {
     const keys = await this.#knowledgeStorage.findByExtension(extension);
@@ -58,19 +62,22 @@ export class ResourceProcessor extends ProcessorBase {
       const html = Buffer.isBuffer(htmlContent)
         ? htmlContent.toString("utf8")
         : String(htmlContent);
+
       const dom = new JSDOM(html);
       sanitizeDom(dom);
+
       const baseIri = this.#extractBaseIri(dom, key);
       const items = await this.#parseHTML(dom, baseIri);
+
       await super.process(items, key);
     }
   }
 
   /**
-   * Extracts base IRI from DOM or uses fallback
-   * @param {object} dom - JSDOM instance
-   * @param {string} key - Storage key
-   * @returns {string} Base IRI for the document
+   * Extracts base IRI from DOM's base element or uses fallback
+   * @param {object} dom - JSDOM instance with parsed HTML
+   * @param {string} key - Storage key (filename) for fallback IRI generation
+   * @returns {string} Base IRI to use for this document
    */
   #extractBaseIri(dom, key) {
     const baseElement = dom.window.document.querySelector("base[href]");
@@ -82,206 +89,102 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   * Minifies HTML content
-   * @param {string} html - HTML content to minify
-   * @returns {Promise<string>} Minified HTML
-   */
-  async #minifyHTML(html) {
-    return await minify(html, {
-      collapseWhitespace: true,
-      removeComments: true,
-      removeRedundantAttributes: true,
-      minifyCSS: true,
-      minifyJS: true,
-    });
-  }
-
-  /**
-   * Extracts RDF quads from HTML using microdata parser
-   * @param {string} html - HTML content
-   * @param {string} baseIri - Base IRI for parsing
-   * @returns {Promise<Array>} Array of RDF quads
-   */
-  async #extractQuads(html, baseIri) {
-    return new Promise((resolve, reject) => {
-      const quads = [];
-      const parser = new MicrodataRdfParser({
-        baseIRI: baseIri,
-        contentType: "text/html",
-      });
-
-      parser.on("data", (quad) => {
-        quads.push(quad);
-      });
-
-      parser.on("error", (error) => {
-        reject(new Error(`Microdata parsing failed: ${error.message}`));
-      });
-
-      parser.on("end", () => {
-        const skolemizedQuads = this.#skolemizer.skolemize(quads);
-        resolve(skolemizedQuads);
-      });
-
-      parser.write(html);
-      parser.end();
-    });
-  }
-
-  /**
-   * Converts RDF quads to Turtle format string
-   * @param {Array} quads - Array of RDF quads
-   * @returns {Promise<string>} RDF in Turtle format
-   */
-  async #quadsToRdf(quads) {
-    const typeUri = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const sortedQuads = quads.slice().sort((a, b) => {
-      const aIsType = a.predicate.value === typeUri;
-      const bIsType = b.predicate.value === typeUri;
-      return aIsType === bIsType ? 0 : aIsType ? -1 : 1;
-    });
-
-    return new Promise((resolve, reject) => {
-      const writer = new Writer({ format: "N-Quads" });
-      writer.addQuads(sortedQuads);
-      writer.end((error, result) => {
-        if (error)
-          reject(new Error(`N-Quads serialization failed: ${error.message}`));
-        else resolve(result);
-      });
-    });
-  }
-
-  /**
-   * Groups RDF quads by their schema.org typed items
-   * @param {Array} allQuads - Complete set of RDF quads from HTML
-   * @returns {Map} Map of item IRIs to their related quads
-   */
-  #groupQuadsByItem(allQuads) {
-    const typedItems = new Set(
-      allQuads
-        .filter(
-          (q) =>
-            q.predicate.value ===
-              "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-            q.object.value.startsWith("https://schema.org/"),
-        )
-        .map((q) => q.subject.value),
-    );
-
-    const itemGroups = new Map();
-    for (const itemIri of typedItems) {
-      const visited = new Set();
-      const toProcess = [itemIri];
-      const relevantQuads = [];
-
-      while (toProcess.length > 0) {
-        const current = toProcess.shift();
-        if (visited.has(current)) continue;
-        visited.add(current);
-
-        for (const quad of allQuads) {
-          if (quad.subject.value === current) {
-            relevantQuads.push(quad);
-            if (
-              quad.object.termType === "NamedNode" &&
-              !visited.has(quad.object.value)
-            ) {
-              toProcess.push(quad.object.value);
-            }
-          }
-        }
-      }
-
-      if (relevantQuads.length > 0) {
-        itemGroups.set(itemIri, relevantQuads);
-      }
-    }
-    return itemGroups;
-  }
-
-  /**
-   * Converts RDF to JSON-LD format
-   * @param {string} rdf - RDF in N-Quads format
-   * @returns {Promise<Array>} Array of JSON-LD objects
-   */
-  async #rdfToJson(rdf) {
-    const jsonldArray = await jsonld.fromRDF(rdf, {
-      format: "application/n-quads",
-    });
-    const context = {
-      "@vocab": "https://schema.org/",
-      rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-      rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-    };
-    return Promise.all(
-      jsonldArray.map((item) => jsonld.compact(item, context)),
-    );
-  }
-
-  /**
-   * Parses HTML and extracts structured items
-   * @param {object} dom - JSDOM instance
-   * @param {string} baseIri - Base IRI for parsing
-   * @returns {Promise<Array>} Array of extracted items
+   * Parses HTML DOM and extracts structured items with RDF union merging.
+   * Implements entity merging across files using stable IRI-based identifiers.
+   * @param {object} dom - JSDOM instance with parsed and sanitized HTML
+   * @param {string} baseIri - Base IRI for resolving relative references
+   * @returns {Promise<Array>} Array of item objects ready for processItem()
    */
   async #parseHTML(dom, baseIri) {
-    const minifiedHtml = await this.#minifyHTML(dom.serialize());
-    const allQuads = await this.#extractQuads(minifiedHtml, baseIri);
+    const parsedItems = await this.#parser.parseHTML(dom, baseIri);
 
-    if (!allQuads || allQuads.length === 0) {
-      this.#logger.debug("No RDF data found in HTML content");
+    if (!parsedItems || parsedItems.length === 0) {
       return [];
     }
 
-    const itemGroups = this.#groupQuadsByItem(allQuads);
     const items = [];
 
-    for (const [itemIri, itemQuads] of itemGroups) {
-      const itemName = generateHash(itemIri);
-      if (await this.#resourceIndex.has(`common.Message:${itemName}`)) continue;
+    for (const parsedItem of parsedItems) {
+      const itemName = generateHash(parsedItem.iri);
+      const resourceKey = `common.Message.${itemName}`;
 
-      const itemRdf = await this.#quadsToRdf(itemQuads);
-      const itemJsonArray = await this.#rdfToJson(itemRdf);
-      const mainItem =
-        itemJsonArray.find((item) => item["@id"] === itemIri) ||
-        itemJsonArray[0];
+      if (await this.#resourceIndex.has(resourceKey)) {
+        const [existing] = await this.#resourceIndex.get([resourceKey]);
+        const existingQuads = await this.#parser.rdfToQuads(
+          existing.content.nquads,
+        );
 
-      if (mainItem) {
-        items.push({
-          name: itemName,
-          subject: itemIri,
-          rdf: itemRdf,
-          json: JSON.stringify(mainItem),
-        });
+        const mergedQuads = this.#parser.unionQuads(
+          existingQuads,
+          parsedItem.quads,
+        );
+
+        if (mergedQuads.length > existingQuads.length) {
+          this.#logger.debug(
+            `Merging resource ${itemName}: ${existingQuads.length} -> ${mergedQuads.length} quads`,
+          );
+
+          const mergedRdf = await this.#parser.quadsToRdf(mergedQuads);
+          const mergedJsonArray = await this.#parser.rdfToJson(mergedRdf);
+          const mergedItem =
+            mergedJsonArray.find((item) => item["@id"] === parsedItem.iri) ||
+            mergedJsonArray[0];
+
+          if (mergedItem) {
+            items.push({
+              name: itemName,
+              subject: parsedItem.iri,
+              rdf: mergedRdf,
+              json: JSON.stringify(mergedItem),
+            });
+          }
+        } else {
+          this.#logger.debug(
+            `Skipping duplicate resource ${itemName}: no new information`,
+          );
+        }
+
+        continue;
       }
+
+      items.push({
+        name: itemName,
+        subject: parsedItem.iri,
+        rdf: parsedItem.rdf,
+        json: parsedItem.json,
+      });
     }
+
     return items;
   }
 
   /**
-   * Processes an extracted item into a Message resource
-   * @param {object} item - Item to process
-   * @returns {Promise<object>} Processed Message resource
+   * Processes an extracted item into a complete Message resource
+   * @param {object} item - Item object with name, subject, rdf, and json properties
+   * @returns {Promise<object>} Typed Message resource stored in ResourceIndex
    */
   async processItem(item) {
     const { name, subject } = item;
+
     const descriptor = this.#describer
       ? await this.#describer.describe(item)
       : undefined;
+
     const content = await this.#createContent(item);
+
     const message = { id: { name, subject }, role: "system", content };
     if (descriptor) message.descriptor = descriptor;
 
     const resource = common.Message.fromObject(message);
     await this.#resourceIndex.put(resource);
+
     return resource;
   }
 
   /**
-   * Creates message content from item data
-   * @param {object} item - Item with RDF and JSON data
-   * @returns {Promise<object>} Content object for Message
+   * Creates message content object from item's RDF data
+   * @param {object} item - Item with rdf (N-Quads) and json (JSON-LD string) properties
+   * @returns {Promise<object>} Content object with nquads, jsonld, and tokens
    */
   async #createContent(item) {
     return {

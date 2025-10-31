@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
 
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
 import { Logger, Uploader } from "@copilot-ld/libutil";
 import { parseArgs } from "node:util";
@@ -22,7 +22,7 @@ async function main() {
 
   const outputOnly = values.stdout;
 
-  await ScriptConfig.create("upload");
+  await createScriptConfig("upload");
 
   const logger = new Logger("upload");
   const uploader = new Uploader(createStorage, logger);

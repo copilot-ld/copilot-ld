@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { createLlm } from "@copilot-ld/libcopilot";
-import { ScriptConfig } from "@copilot-ld/libconfig";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common, tool } from "@copilot-ld/libtype";
 
 /**
@@ -10,7 +10,7 @@ import { common, tool } from "@copilot-ld/libtype";
  */
 async function main() {
   try {
-    const config = await ScriptConfig.create("hello");
+    const config = await createScriptConfig("hello");
     const token = await config.githubToken();
     const llm = createLlm(token);
     const models = await llm.listModels();

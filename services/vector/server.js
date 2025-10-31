@@ -1,21 +1,21 @@
 /* eslint-env node */
-import { Server, clients } from "@copilot-ld/librpc";
-import { ServiceConfig } from "@copilot-ld/libconfig";
+import { Server, createClient } from "@copilot-ld/librpc";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createResourceIndex } from "@copilot-ld/libresource";
+import { createTracer } from "@copilot-ld/librpc";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
 import { VectorService } from "./index.js";
 
-const { LlmClient } = clients;
+const config = await createServiceConfig("vector");
 
-const config = await ServiceConfig.create("vector");
+// Initialize observability
+const logger = await createLogger("vector");
+const tracer = await createTracer("vector");
 
 // Initialize LLM client
-const llmClient = new LlmClient(await ServiceConfig.create("llm"));
-
-// Initialize resource index
-const resourceIndex = createResourceIndex("resources");
+const llmClient = await createClient("llm", logger, tracer);
 
 // Initialize vector indices
 const vectorStorage = createStorage("vectors");
@@ -27,8 +27,7 @@ const service = new VectorService(
   contentIndex,
   descriptorIndex,
   llmClient,
-  resourceIndex,
 );
-const server = new Server(service, config);
+const server = new Server(service, config, logger, tracer);
 
 await server.start();

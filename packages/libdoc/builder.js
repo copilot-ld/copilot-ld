@@ -66,9 +66,7 @@ export class DocsBuilder {
       html.matchAll(/<h2 id="([^"]+)">([^<]+)<\/h2>/g),
       (m) => `<li><a href="#${m[1]}">${m[2]}</a></li>`,
     );
-    return headings.length
-      ? `<ul>\n          ${headings.join("\n          ")}\n        </ul>`
-      : "";
+    return headings.length ? `<ul>${headings.join("\n")}</ul>` : "";
   }
 
   /**
@@ -187,6 +185,27 @@ export class DocsBuilder {
         useTabs: false,
       });
 
+      // Post-process: Unescape HTML entities in Mermaid code blocks
+      // Prettier escapes entities, but Mermaid.js needs raw syntax
+      let finalHtml = formattedHtml;
+      const mermaidBlocks = formattedHtml.match(
+        /<code class="language-mermaid">[\s\S]*?<\/code>/g,
+      );
+      if (mermaidBlocks) {
+        finalHtml = formattedHtml.replace(
+          /<code class="language-mermaid">([\s\S]*?)<\/code>/g,
+          (_match, code) => {
+            const unescapedCode = code
+              .replace(/&amp;/g, "&")
+              .replace(/&lt;/g, "<")
+              .replace(/&gt;/g, ">")
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'");
+            return `<code class="language-mermaid">${unescapedCode}</code>`;
+          },
+        );
+      }
+
       // Write output file (index.md → index.html, example.md → example/index.html)
       const baseName = mdFile.replace(".md", "");
       const isIndex = baseName === "index";
@@ -195,7 +214,7 @@ export class DocsBuilder {
       this.#fs.mkdirSync(outputDir, { recursive: true });
       this.#fs.writeFileSync(
         this.#path.join(outputDir, "index.html"),
-        formattedHtml,
+        finalHtml,
         "utf-8",
       );
       console.log(`  ✓ ${isIndex ? "index.html" : `${baseName}/index.html`}`);

@@ -54,24 +54,24 @@ export async function createWebExtension(client, config, logFn = createLogger) {
       required: ["message"],
       types: {
         message: "string",
-        conversation_id: "string",
+        resource_id: "string",
       },
       maxLengths: {
         message: 5000,
-        conversation_id: 100,
+        resource_id: 100,
       },
     }),
     async (c) => {
       try {
         const data = c.get("validatedData");
-        const { message, conversation_id } = data;
+        const { message, resource_id } = data;
 
         const requestParams = agent.AgentRequest.fromObject({
           messages: [
             common.Message.fromObject({ role: "user", content: message }),
           ],
           github_token: await config.githubToken(),
-          conversation_id: conversation_id,
+          resource_id: resource_id,
         });
 
         const response = await client.ProcessRequest(requestParams);
@@ -89,7 +89,7 @@ export async function createWebExtension(client, config, logFn = createLogger) {
 
         return c.json({
           message: reply,
-          conversation_id: response.conversation_id,
+          resource_id: response.resource_id,
           status: "success",
         });
       } catch (error) {

@@ -205,3 +205,9 @@ export function createResourceIndex(prefix, policy = null) {
   const policyInstance = policy || createPolicy();
   return new ResourceIndex(storage, policyInstance);
 }
+
+export { Describer } from "./describer.js";
+export { Parser } from "./parser.js";
+export { ResourceProcessor } from "./processor.js";
+export { sanitizeDom } from "./sanitizer.js";
+export { Skolemizer } from "./skolemizer.js";

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2025-10-29
+
+- Added `resourceIndex` dependency to `ToolService` constructor for loading
+  resources
+- Implemented `#processQueryResults()` method to load resources from identifiers
+  and convert to strings
+- Tool service now processes `QueryResults` by loading resources and converting
+  their content or descriptor representations to strings using built-in
+  `.toString()` methods
+- Updated tests to use correct `CallTool` method name and include
+  `resourceIndex` dependency
+
+## 2025-10-28
+
+- Removed manual `this.debug()` calls from `Call()` method
+- Observability now handled automatically by `@copilot-ld/librpc` `Observer`
+- Service implementation focuses purely on business logic
+
 ## 2025-10-19
 
 - Bump version

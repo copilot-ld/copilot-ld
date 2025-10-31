@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-10-29
+
+- Removed `resourceIndex` dependency from `VectorService` - resource loading now
+  handled by Tool service
+- Updated `server.js` to remove `resourceIndex` initialization
+
+## 2025-10-28
+
+- Removed manual `this.debug()` calls from `#queryByText()` method
+- Observability now handled automatically by `@copilot-ld/librpc` `Observer`
+- Service implementation focuses purely on business logic
+
 ## 2025-10-19
 
 - Bump version

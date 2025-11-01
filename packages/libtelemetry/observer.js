@@ -57,7 +57,6 @@ export class Observer {
       methodName,
       metadata,
       {},
-      request,
     );
 
     // Log request.sent event

@@ -3,42 +3,54 @@ import { common, agent } from "@copilot-ld/libtype";
 
 /**
  * Main evaluator orchestrates the evaluation workflow
- * Coordinates judge, metrics, and reporting
+ * Dispatches to appropriate evaluator based on test case configuration
  */
 export class Evaluator {
-  #judge;
-  #metrics;
-  #reporter;
   #agentClient;
   #githubToken;
+  #criteriaEvaluator;
+  #retrievalEvaluator;
+  #traceEvaluator;
 
   /**
    * Create a new Evaluator instance
    * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for testing
+   * @param {import('@copilot-ld/librpc').MemoryClient} memoryClient - Memory client for retrieval evaluation
+   * @param {import('@copilot-ld/librpc').TraceClient} traceClient - Trace client for trace evaluation
    * @param {string} githubToken - GitHub token for API access
-   * @param {import('./judge.js').Judge} judge - Judge instance for evaluation
-   * @param {import('./metrics.js').MetricsCalculator} metrics - Metrics calculator for aggregation
-   * @param {import('./report.js').ReportGenerator} reporter - Report generator for output
+   * @param {import('./criteria.js').CriteriaEvaluator} criteriaEvaluator - Criteria evaluator instance
+   * @param {import('./retrieval.js').RetrievalEvaluator} retrievalEvaluator - Retrieval evaluator instance
+   * @param {import('./trace.js').TraceEvaluator} traceEvaluator - Trace evaluator instance
    */
-  constructor(agentClient, githubToken, judge, metrics, reporter) {
+  constructor(
+    agentClient,
+    memoryClient,
+    traceClient,
+    githubToken,
+    criteriaEvaluator,
+    retrievalEvaluator,
+    traceEvaluator,
+  ) {
     if (!agentClient) throw new Error("agentClient is required");
+    if (!memoryClient) throw new Error("memoryClient is required");
+    if (!traceClient) throw new Error("traceClient is required");
     if (!githubToken) throw new Error("githubToken is required");
-    if (!judge) throw new Error("judge is required");
-    if (!metrics) throw new Error("metrics is required");
-    if (!reporter) throw new Error("reporter is required");
+    if (!criteriaEvaluator) throw new Error("criteriaEvaluator is required");
+    if (!retrievalEvaluator) throw new Error("retrievalEvaluator is required");
+    if (!traceEvaluator) throw new Error("traceEvaluator is required");
 
     this.#agentClient = agentClient;
     this.#githubToken = githubToken;
-    this.#judge = judge;
-    this.#metrics = metrics;
-    this.#reporter = reporter;
+    this.#criteriaEvaluator = criteriaEvaluator;
+    this.#retrievalEvaluator = retrievalEvaluator;
+    this.#traceEvaluator = traceEvaluator;
   }
 
   /**
    * Evaluate all test cases with parallel processing
    * @param {object[]} testCases - Array of test cases to evaluate
    * @param {number} concurrency - Number of concurrent evaluations (default 5)
-   * @returns {Promise<object>} Aggregated evaluation results
+   * @returns {Promise<object[]>} Array of evaluation results
    */
   async evaluate(testCases, concurrency = 5) {
     if (!testCases || testCases.length === 0) {
@@ -64,8 +76,8 @@ export class Evaluator {
       results.push(...batchResults);
     }
 
-    console.log(`Evaluation complete. Aggregating results...`);
-    return this.#metrics.aggregate(results);
+    console.log(`Evaluation complete.`);
+    return results;
   }
 
   /**
@@ -76,7 +88,7 @@ export class Evaluator {
   async #evaluateCase(testCase) {
     console.log(`Evaluating case: ${testCase.id}`);
 
-    // Get agent response
+    // Execute query against agent
     const request = agent.AgentRequest.fromObject({
       messages: [
         common.Message.fromObject({ role: "user", content: testCase.query }),
@@ -85,52 +97,27 @@ export class Evaluator {
     });
 
     const response = await this.#agentClient.ProcessRequest(request);
+    const resourceId = response.resource_id;
 
-    // Extract message content from first choice
-    if (!response.choices || response.choices.length === 0) {
-      throw new Error("No choices in agent response");
+    // Determine evaluation type and dispatch
+    let result;
+    if (testCase.criteria) {
+      result = await this.#criteriaEvaluator.evaluate(testCase, response);
+    } else if (testCase.true_subjects) {
+      result = await this.#retrievalEvaluator.evaluate(testCase, resourceId, response);
+    } else if (testCase.trace_checks) {
+      result = await this.#traceEvaluator.evaluate(testCase, resourceId);
+    } else {
+      throw new Error(`Invalid test case: ${testCase.id} - no evaluation method specified`);
     }
 
-    if (!response.choices[0].message?.content?.text) {
-      throw new Error(
-        `No content in agent response for test case: ${testCase.id}`,
-      );
-    }
-
-    const responseContent = response.choices[0].message.content.text;
-
-    // Evaluate with LLM judge
-    const scores = await this.#judge.evaluateAll(
-      testCase.query,
-      responseContent,
-      testCase.groundTruth,
-      testCase.expectedTopics,
-    );
-
-    return {
-      caseId: testCase.id,
-      query: testCase.query,
-      response: responseContent,
-      scores,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  /**
-   * Generate reports from evaluation results
-   * @param {object} results - Aggregated evaluation results
-   * @param {object} storage - Storage instance for output
-   * @returns {Promise<void>} Resolves when reports are written
-   */
-  async report(results, storage) {
-    console.log("Generating reports...");
-    await Promise.all([
-      this.#reporter.generateMarkdown(results, storage),
-      this.#reporter.generateJSON(results, storage),
-    ]);
+    // Add conversation ID to result for debugging
+    result.conversationId = resourceId;
+    return result;
   }
 }
 
-export { Judge } from "./judge.js";
-export { MetricsCalculator } from "./metrics.js";
+export { CriteriaEvaluator } from "./criteria.js";
+export { RetrievalEvaluator } from "./retrieval.js";
+export { TraceEvaluator } from "./trace.js";
 export { ReportGenerator } from "./report.js";

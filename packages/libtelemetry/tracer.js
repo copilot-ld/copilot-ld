@@ -4,59 +4,6 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { Span } from "./span.js";
 
 /**
- * Metadata attribute mapping configuration
- * Maps gRPC metadata headers to span attributes with type handling
- * @typedef {object} AttributeConfig
- * @property {string} metadataKey - gRPC metadata header name (e.g., 'x-resource-id')
- * @property {string} spanAttribute - Span attribute name (e.g., 'request.resource_id')
- * @property {string} type - Type: 'string' for direct value, 'count' for array length
- * @property {string} [requestField] - Field name in request object for 'count' type
- */
-
-/**
- * Standard request attributes to parse from metadata and requests
- * @type {AttributeConfig[]}
- */
-const REQUEST_ATTRIBUTE_MAP = [
-  {
-    metadataKey: "x-identifiers-count",
-    spanAttribute: "request.identifiers",
-    requestField: "identifiers",
-    type: "count",
-  },
-  {
-    metadataKey: "x-messages-count",
-    spanAttribute: "request.messages",
-    requestField: "messages",
-    type: "count",
-  },
-  {
-    metadataKey: "x-resource-id",
-    spanAttribute: "request.resource_id",
-    requestField: "resource_id",
-    type: "string",
-  },
-  {
-    metadataKey: "x-resources-count",
-    spanAttribute: "request.resources",
-    requestField: "resources",
-    type: "count",
-  },
-  {
-    metadataKey: "x-tool-call-id",
-    spanAttribute: "request.tool_call_id",
-    requestField: "tool_call_id",
-    type: "string",
-  },
-  {
-    metadataKey: "x-tools-count",
-    spanAttribute: "request.tools",
-    requestField: "tools",
-    type: "count",
-  },
-];
-
-/**
  * Tracer for creating and managing spans
  */
 export class Tracer {
@@ -145,16 +92,9 @@ export class Tracer {
    * @param {string} method - Method name (e.g., 'ProcessRequest', 'QueryItems')
    * @param {import("@grpc/grpc-js").Metadata} [metadata] - gRPC Metadata object to populate with trace context
    * @param {object} [attributes] - Additional span attributes
-   * @param {object} [request] - Request object that may contain resource_id
    * @returns {Span} Started CLIENT span
    */
-  startClientSpan(
-    service,
-    method,
-    metadata = null,
-    attributes = {},
-    request = null,
-  ) {
+  startClientSpan(service, method, metadata = null, attributes = {}) {
     const parentSpan = this.#spanContext.getStore();
 
     const span = this.startSpan(`${service}.${method}`, {
@@ -171,16 +111,16 @@ export class Tracer {
 
     // Populate metadata with trace context if provided
     if (metadata) {
-      this.setMetadata(metadata, span, request);
+      this.setMetadata(metadata, span);
     }
 
     return span;
   }
 
   /**
-   * Extracts trace context and attributes from gRPC metadata
+   * Extracts trace context from gRPC metadata
    * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object containing trace context
-   * @param {Span} [span] - Optional span to apply trace context and resource ID to
+   * @param {Span} [span] - Optional span to apply trace context to
    */
   getMetadata(metadata, span = null) {
     if (!span) return;
@@ -190,61 +130,15 @@ export class Tracer {
 
     if (traceId) span.traceId = traceId;
     if (parentSpanId) span.parentSpanId = parentSpanId;
-
-    // Extract request attributes
-    this.#extractRequestAttributes(metadata, span);
   }
 
   /**
-   * Sets trace context and request attributes in gRPC metadata for outgoing calls
+   * Sets trace context in gRPC metadata for outgoing calls
    * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object to populate
    * @param {Span} span - Current span providing trace context
-   * @param {object} [request] - Request object that may contain request attributes
    */
-  setMetadata(metadata, span, request = null) {
+  setMetadata(metadata, span) {
     metadata.set("x-trace-id", span.traceId);
     metadata.set("x-span-id", span.spanId);
-
-    // Set request attributes
-    if (request) {
-      this.#setRequestAttributes(metadata, span, request);
-    }
-  }
-
-  /**
-   * Extracts request attributes from metadata
-   * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object
-   * @param {Span} span - Span to apply attributes to
-   */
-  #extractRequestAttributes(metadata, span) {
-    for (const config of REQUEST_ATTRIBUTE_MAP) {
-      const value = metadata?.get(config.metadataKey)?.[0];
-      if (value === undefined) continue;
-
-      const parsed = config.type === "count" ? parseInt(value, 10) : value;
-      span.setAttribute(config.spanAttribute, parsed);
-    }
-  }
-
-  /**
-   * Sets request attributes in metadata
-   * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object
-   * @param {Span} span - Current span
-   * @param {object} request - Request object containing attributes
-   */
-  #setRequestAttributes(metadata, span, request) {
-    for (const config of REQUEST_ATTRIBUTE_MAP) {
-      const value = request[config.requestField];
-      if (value === undefined || value === null) continue;
-
-      if (config.type === "count") {
-        const count = Array.isArray(value) ? value.length : 0;
-        metadata.set(config.metadataKey, count.toString());
-        span.setAttribute(config.spanAttribute, count);
-      } else {
-        metadata.set(config.metadataKey, value);
-        span.setAttribute(config.spanAttribute, value);
-      }
-    }
   }
 }

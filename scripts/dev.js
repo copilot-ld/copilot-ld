@@ -70,6 +70,21 @@ function cleanup() {
 }
 
 /**
+ * Check if a process is alive
+ * @param {number} pgid - Process group ID (negative value)
+ * @returns {boolean} True if process is alive
+ */
+function isProcessAlive(pgid) {
+  try {
+    // Signal 0 checks if process exists without killing it
+    process.kill(pgid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Start all dev servers in parallel and record their process group IDs
  * @returns {void}
  */
@@ -81,23 +96,26 @@ function start() {
 
   const pids = { ...readJson(PID_FILE, {}) };
 
-  // Check if all services are already running and return early
-  const allRunning = SERVICES.every((service) => pids[service]);
-  if (allRunning) {
-    output("All services are already running.");
-    return;
-  }
-
   // Open log file in append mode once for all children
   const logFd = openSync(LOG_FILE, "a");
 
   SERVICES.forEach((service) => {
-    if (pids[service]) {
+    const pgid = pids[service];
+    
+    // Check if PID exists and if process is still alive
+    if (pgid && isProcessAlive(pgid)) {
       logStatus(service, "already running");
       return;
     }
 
-    logStatus(service, "starting...");
+    // If PID exists but process is dead, clean it up
+    if (pgid) {
+      logStatus(service, "stale process, restarting...");
+      delete pids[service];
+    } else {
+      logStatus(service, "starting...");
+    }
+
     // Spawn directly without shell redirection; append stdout/stderr via file descriptor
     const child = spawn("bash", ["-c", `npm run dev -w ${service}`], {
       detached: true,

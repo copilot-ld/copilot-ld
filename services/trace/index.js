@@ -32,6 +32,17 @@ export class TraceService extends TraceBase {
    * @returns {Promise<import("@copilot-ld/libtype").trace.RecordSpanResponse>} Response
    */
   async RecordSpan(req) {
+    // Extract resource_id from events for easier querying
+    let resourceId = null;
+    if (req.events) {
+      for (const event of req.events) {
+        if (event.attributes && event.attributes["resource.id"]) {
+          resourceId = event.attributes["resource.id"];
+          break;
+        }
+      }
+    }
+
     const span = {
       id: req.span_id,
       trace_id: req.trace_id,
@@ -44,6 +55,7 @@ export class TraceService extends TraceBase {
       attributes: req.attributes,
       events: req.events,
       status: req.status,
+      resource_id: resourceId, // Add extracted resource_id for easier querying
     };
 
     // Add to buffered index (batched write)

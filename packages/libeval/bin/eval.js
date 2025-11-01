@@ -4,8 +4,9 @@ import { parseArgs } from "node:util";
 import yaml from "js-yaml";
 import {
   Evaluator,
-  Judge,
-  MetricsCalculator,
+  CriteriaEvaluator,
+  RetrievalEvaluator,
+  TraceEvaluator,
   ReportGenerator,
 } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
@@ -13,7 +14,7 @@ import { clients } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 
 // Extract generated clients
-const { LlmClient, AgentClient } = clients;
+const { LlmClient, AgentClient, MemoryClient, TraceClient } = clients;
 
 /**
  * Load test cases from config/eval.yml
@@ -76,14 +77,19 @@ async function main() {
   // Initialize storage
   const configStorage = createStorage("config");
   const resultsStorage = createStorage("eval");
+  const tempStorage = createStorage("tmp");
 
   // Initialize clients
   console.log("Initializing clients...");
   const llmConfig = await createServiceConfig("llm");
   const agentConfig = await createServiceConfig("agent");
+  const memoryConfig = await createServiceConfig("memory");
+  const traceConfig = await createServiceConfig("trace");
 
   const llmClient = new LlmClient(llmConfig);
   const agentClient = new AgentClient(agentConfig);
+  const memoryClient = new MemoryClient(memoryConfig);
+  const traceClient = new TraceClient(traceConfig);
 
   // Get GitHub token from environment
   const githubToken = process.env.GITHUB_TOKEN;
@@ -97,18 +103,23 @@ async function main() {
   const testCases = await loadTestCases(configStorage, args.case);
   console.log(`Loaded ${testCases.length} test case(s)\n`);
 
-  // Create dependencies
-  const judge = new Judge(llmClient, githubToken);
-  const metrics = new MetricsCalculator();
+  // Create evaluators
+  const criteriaEvaluator = new CriteriaEvaluator(llmClient, githubToken);
+  const retrievalEvaluator = new RetrievalEvaluator(memoryClient);
+  const traceEvaluator = new TraceEvaluator(traceClient, tempStorage);
+
+  // Create report generator
   const reporter = new ReportGenerator();
 
-  // Create evaluator with all dependencies
+  // Create main evaluator with all dependencies
   const evaluator = new Evaluator(
     agentClient,
+    memoryClient,
+    traceClient,
     githubToken,
-    judge,
-    metrics,
-    reporter,
+    criteriaEvaluator,
+    retrievalEvaluator,
+    traceEvaluator,
   );
 
   // Run evaluation
@@ -117,20 +128,43 @@ async function main() {
 
   // Generate reports
   console.log("\n");
-  await evaluator.report(results, resultsStorage);
+  await reporter.generate(results, resultsStorage);
 
   // Print summary
+  const passedCount = results.filter((r) => r.passed).length;
+  const totalCount = results.length;
+  const passRate = ((passedCount / totalCount) * 100).toFixed(1);
+
   console.log("\n📊 Evaluation Summary");
   console.log("=====================");
-  console.log(`Total Cases: ${results.totalCases}`);
-  console.log(`Average Relevance: ${results.averageScores.relevance}/10`);
-  console.log(`Average Accuracy: ${results.averageScores.accuracy}/10`);
-  console.log(`Average Completeness: ${results.averageScores.completeness}/10`);
-  console.log(`Average Coherence: ${results.averageScores.coherence}/10`);
-  console.log(
-    `Average Source Attribution: ${results.averageScores.sourceAttribution}/10`,
-  );
-  console.log(`\n✨ Overall Score: ${results.averageScores.overall}/10\n`);
+  console.log(`Total Cases: ${totalCount}`);
+  console.log(`Passed: ${passedCount}`);
+  console.log(`Failed: ${totalCount - passedCount}`);
+  console.log(`Pass Rate: ${passRate}%\n`);
+
+  // Print all test results
+  console.log("Test Results:");
+  console.log("-------------");
+  for (const result of results) {
+    const status = result.passed ? "✅ PASS" : "❌ FAIL";
+    console.log(`${status} - ${result.caseId} (${result.type})`);
+  }
+
+  // Print debugging information for failed tests
+  const failedTests = results.filter((r) => !r.passed);
+  if (failedTests.length > 0) {
+    console.log("\n🔍 Debug Failed Tests:");
+    console.log("=====================");
+    for (const result of failedTests) {
+      if (!result.conversationId) continue;
+      console.log(`\n${result.caseId}:`);
+      console.log(`  Conversation ID: ${result.conversationId}`);
+      console.log(`  Memory: data/memories/${result.conversationId}.jsonl`);
+      console.log(`  Resources: data/resources/${result.conversationId}/`);
+      console.log(`  Traces: jq 'select(.resource_id == "${result.conversationId}")' data/traces/*.jsonl`);
+    }
+  }
+  console.log("");
 }
 
 main().catch((error) => {

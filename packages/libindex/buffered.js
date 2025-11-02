@@ -72,12 +72,4 @@ export class BufferedIndex extends IndexBase {
 
     return batch.length;
   }
-
-  /**
-   * Graceful shutdown with final flush
-   * @returns {Promise<void>}
-   */
-  async shutdown() {
-    await this.flush();
-  }
 }

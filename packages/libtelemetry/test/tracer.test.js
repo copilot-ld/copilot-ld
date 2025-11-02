@@ -25,9 +25,9 @@ describe("Tracer", () => {
 
           // Verify we can still retrieve the correct span
           const currentSpan = context.getStore();
-          assert.strictEqual(currentSpan.spanId, span1.spanId);
-          assert.strictEqual(currentSpan.traceId, span1.traceId);
-          return span1.spanId;
+          assert.strictEqual(currentSpan.span_id, span1.span_id);
+          assert.strictEqual(currentSpan.trace_id, span1.trace_id);
+          return span1.span_id;
         });
       };
 
@@ -42,9 +42,9 @@ describe("Tracer", () => {
 
           // Verify we can still retrieve the correct span
           const currentSpan = context.getStore();
-          assert.strictEqual(currentSpan.spanId, span2.spanId);
-          assert.strictEqual(currentSpan.traceId, span2.traceId);
-          return span2.spanId;
+          assert.strictEqual(currentSpan.span_id, span2.span_id);
+          assert.strictEqual(currentSpan.trace_id, span2.trace_id);
+          return span2.span_id;
         });
       };
 
@@ -75,9 +75,9 @@ describe("Tracer", () => {
         const clientSpan = tracer.startClientSpan("test-service", "testMethod");
 
         // Verify client span was created and shares trace ID with parent
-        assert.strictEqual(clientSpan.traceId, parentSpan.traceId);
-        assert.ok(clientSpan.spanId);
-        assert.notStrictEqual(clientSpan.spanId, parentSpan.spanId);
+        assert.strictEqual(clientSpan.trace_id, parentSpan.trace_id);
+        assert.ok(clientSpan.span_id);
+        assert.notStrictEqual(clientSpan.span_id, parentSpan.span_id);
       });
     });
 
@@ -104,8 +104,8 @@ describe("Tracer", () => {
       );
 
       // Verify trace context was extracted (trace ID should match)
-      assert.strictEqual(serverSpan.traceId, "test-trace-id");
-      assert.ok(serverSpan.spanId);
+      assert.strictEqual(serverSpan.trace_id, "test-trace-id");
+      assert.ok(serverSpan.span_id);
     });
   });
 });

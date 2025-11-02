@@ -6,6 +6,7 @@ import { parseArgs } from "node:util";
 
 const PID_FILE = "data/dev.pid";
 const LOG_FILE = "data/dev.log";
+const SHUTDOWN_GRACE_PERIOD = 3000;
 
 const MATCH_PATTERNS = ["npm run dev", "node --watch"];
 
@@ -65,7 +66,9 @@ function cleanup() {
   MATCH_PATTERNS.forEach((m) => {
     spawn("bash", ["-c", `pkill -f '${m}' || true`], { stdio: "inherit" });
   });
-  writeFileSync(PID_FILE, "{}");
+  if (existsSync(PID_FILE)) {
+    writeFileSync(PID_FILE, "{}");
+  }
   output("Cleanup complete.");
 }
 
@@ -75,6 +78,9 @@ function cleanup() {
  * @returns {boolean} True if process is alive
  */
 function isProcessAlive(pgid) {
+  if (!pgid || typeof pgid !== "number") {
+    return false;
+  }
   try {
     // Signal 0 checks if process exists without killing it
     process.kill(pgid, 0);
@@ -150,6 +156,11 @@ function stop() {
     }
 
     entries.forEach(([service, pgid]) => {
+      if (!isProcessAlive(pgid)) {
+        logStatus(service, "already stopped");
+        return;
+      }
+
       try {
         process.kill(pgid, "SIGTERM");
         logStatus(service, "stopping...");
@@ -163,16 +174,19 @@ function stop() {
     });
 
     setTimeout(() => {
-      entries.forEach(([, pgid]) => {
-        try {
-          process.kill(pgid, "SIGKILL");
-        } catch {
-          /* ignore */
+      entries.forEach(([service, pgid]) => {
+        if (isProcessAlive(pgid)) {
+          try {
+            process.kill(pgid, "SIGKILL");
+            logStatus(service, "force stopped");
+          } catch {
+            /* ignore */
+          }
         }
       });
       writeFileSync(PID_FILE, "{}");
       output("All services stopped.");
-    }, 2000);
+    }, SHUTDOWN_GRACE_PERIOD);
   } catch (error) {
     console.error("Error reading PID file:", error.message);
   }

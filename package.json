@@ -37,6 +37,7 @@
     "dev:start": "npx env-cmd -- node scripts/dev.js --start",
     "dev:stop": "npx env-cmd -- node scripts/dev.js --stop",
     "dev:restart": "npm run dev:stop && npm run dev:start",
+    "dev:cleanup": "npx env-cmd -- node scripts/dev.js --cleanup",
     "docker": "npm run docker:build && npm run docker:up",
     "docker:build": "env-cmd -f .env.build -- docker compose build --no-cache",
     "docker:up": "docker compose up",
@@ -58,9 +59,9 @@
     "validate:html": "find eval/output -name '*.html' | node scripts/validate.js",
     "eval": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- npx --workspace=@copilot-ld/libeval evaluation",
     "eval:reset": "rm -rf data/eval && mkdir -p data/eval",
-    "chat": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/chat.js",
-    "search": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/search.js",
-    "query": "npx env-cmd -- node ./scripts/dev.js --start --quiet && npx env-cmd -- node ./scripts/query.js"
+    "chat": "npm run dev:start -- --quiet && npx env-cmd -- node ./scripts/chat.js",
+    "search": "npm run dev:start -- --quiet && npx env-cmd -- node ./scripts/search.js",
+    "query": "npm run dev:start -- --quiet && npx env-cmd -- node ./scripts/query.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

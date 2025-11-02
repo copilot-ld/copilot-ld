@@ -37,9 +37,9 @@ export class TraceEvaluator {
       throw new Error(`Test case ${testCase.id} missing trace_checks`);
     }
 
-    // Query traces for this resource_id (used as trace_id)
+    // Query traces for this resource_id
     const queryRequest = trace.QuerySpansRequest.fromObject({
-      trace_id: resourceId,
+      resource_id: resourceId,
       limit: 1000,
     });
     const traces = await this.#traceClient.QuerySpans(queryRequest);

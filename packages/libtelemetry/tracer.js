@@ -105,8 +105,8 @@ export class Tracer {
         ...attributes,
       },
       // Use parent span's trace context if available
-      traceId: parentSpan?.traceId,
-      parentSpanId: parentSpan?.spanId,
+      traceId: parentSpan?.trace_id,
+      parentSpanId: parentSpan?.span_id,
     });
 
     // Populate metadata with trace context if provided
@@ -128,8 +128,8 @@ export class Tracer {
     const traceId = metadata?.get("x-trace-id")?.[0];
     const parentSpanId = metadata?.get("x-span-id")?.[0];
 
-    if (traceId) span.traceId = traceId;
-    if (parentSpanId) span.parentSpanId = parentSpanId;
+    if (traceId) span.trace_id = traceId;
+    if (parentSpanId) span.parent_span_id = parentSpanId;
   }
 
   /**
@@ -138,7 +138,7 @@ export class Tracer {
    * @param {Span} span - Current span providing trace context
    */
   setMetadata(metadata, span) {
-    metadata.set("x-trace-id", span.traceId);
-    metadata.set("x-span-id", span.spanId);
+    metadata.set("x-trace-id", span.trace_id);
+    metadata.set("x-span-id", span.span_id);
   }
 }

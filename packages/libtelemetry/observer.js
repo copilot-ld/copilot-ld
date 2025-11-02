@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { REQUEST_ATTRIBUTE_MAP, RESPONSE_ATTRIBUTE_MAP } from "./attributes.js";
+import { TELEMETRY_ATTRIBUTES_MAP } from "./attributes.js";
 
 /**
  * Observer class that unifies logging and tracing for RPC operations
@@ -47,11 +47,14 @@ export class Observer {
    * @param {string} methodName - RPC method name
    * @param {object} request - Request object
    * @param {Function} callFn - Function that executes the gRPC call with metadata
+   * @param {Function} [metadataFn] - Optional factory function that creates gRPC Metadata
    * @returns {Promise<object>} Response object
    */
-  async observeClientCall(methodName, request, callFn) {
-    // Start CLIENT span - it will create metadata if tracer exists
-    const metadata = null; // Will be created by tracer if needed
+  async observeClientCall(methodName, request, callFn, metadataFn = null) {
+    // Create metadata object if factory is provided
+    const metadata = metadataFn ? metadataFn() : null;
+    
+    // Start CLIENT span and populate metadata with trace context
     const span = this.#tracer?.startClientSpan(
       this.#serviceName,
       methodName,
@@ -68,7 +71,7 @@ export class Observer {
     span?.addEvent("request.sent", this.#extractRequestAttributes(request));
 
     try {
-      // Execute the gRPC call - callFn will handle metadata creation
+      // Execute the gRPC call with populated metadata
       const response = await callFn(metadata);
 
       // Log response.received event
@@ -178,15 +181,22 @@ export class Observer {
   #extractRequestAttributes(request) {
     const attributes = {};
 
-    for (const config of REQUEST_ATTRIBUTE_MAP) {
-      const value = this.#getNestedValue(request, config.protobuf);
+    for (const config of TELEMETRY_ATTRIBUTES_MAP) {
+      const value = this.#getNestedValue(request, config.key);
       if (value === undefined || value === null) continue;
+
+      // Derive telemetry attribute name
+      const key = config.key === "resource_id" 
+        ? "resource.id" 
+        : `request.${config.key}`;
 
       if (config.type === "count") {
         const count = Array.isArray(value) ? value.length : 0;
-        attributes[config.telemetry] = count;
+        attributes[key] = count;
+      } else if (config.type === "number") {
+        attributes[key] = Number(value);
       } else {
-        attributes[config.telemetry] = value;
+        attributes[key] = value;
       }
     }
 
@@ -202,17 +212,22 @@ export class Observer {
   #extractResponseAttributes(response) {
     const attributes = {};
 
-    for (const config of RESPONSE_ATTRIBUTE_MAP) {
-      const value = this.#getNestedValue(response, config.protobuf);
+    for (const config of TELEMETRY_ATTRIBUTES_MAP) {
+      const value = this.#getNestedValue(response, config.key);
       if (value === undefined || value === null) continue;
+
+      // Derive telemetry attribute name
+      const key = config.key === "resource_id" 
+        ? "resource.id" 
+        : `response.${config.key}`;
 
       if (config.type === "count") {
         const count = Array.isArray(value) ? value.length : 0;
-        attributes[config.telemetry] = count;
+        attributes[key] = count;
       } else if (config.type === "number") {
-        attributes[config.telemetry] = Number(value);
+        attributes[key] = Number(value);
       } else {
-        attributes[config.telemetry] = value;
+        attributes[key] = value;
       }
     }
 

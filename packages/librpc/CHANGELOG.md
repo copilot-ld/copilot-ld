@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-11-02
+
+- Fixed `Client.callMethod()` to pass `metadataFactory` to `Observer.observeClientCall()`
+- gRPC metadata factory ensures metadata is created and populated with trace context before RPC calls
+- Updated parameter naming in `callMethod()` callback for clarity (`m` → `metadata` in signature)
+
 ## 2025-10-28
 
 - Updated `Tracer` import to use direct path

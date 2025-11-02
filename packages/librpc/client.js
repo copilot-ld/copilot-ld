@@ -75,11 +75,13 @@ export class Client extends Rpc {
     return await this.observer().observeClientCall(
       methodName,
       request,
-      async (m) => {
+      async (metadata) => {
         // If no metadata provided (no tracer), create one
-        const metadata = m || new (this.grpc().Metadata)();
-        return await this.#callMethod(methodName, request, metadata);
+        const m = metadata || new (this.grpc().Metadata)();
+        return await this.#callMethod(methodName, request, m);
       },
+      // Pass metadata factory so Observer can create and populate it before the call
+      () => new (this.grpc().Metadata)(),
     );
   }
 

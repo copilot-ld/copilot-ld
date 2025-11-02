@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-11-02
+
+- Fixed trace context propagation in `Observer.observeClientCall()` to accept `metadataFactory` parameter
+- gRPC metadata is now created before starting client span to ensure trace context is properly set
+- Updated `observeClientCall()` to pass populated metadata to `callFn` instead of null
+- All spans in a request trace now share the same trace_id and proper parent_span_id relationships
+
 ## 2025-10-28
 
 - Removed `Tracer` and `Span` from main exports to avoid circular dependency

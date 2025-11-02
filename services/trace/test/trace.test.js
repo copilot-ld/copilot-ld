@@ -55,11 +55,15 @@ describe("trace service", () => {
 
       mockTraceIndex = {
         index: new Map(),
+        loaded: false,
         add: async function (span) {
           this.index.set(span.id, span);
         },
         flush: async function () {
           return this.index.size;
+        },
+        loadData: async function () {
+          this.loaded = true;
         },
         shutdown: async function () {
           this.index.clear();
@@ -208,7 +212,7 @@ describe("trace service", () => {
         status: { code: "STATUS_CODE_OK", message: "" },
       });
 
-      const result = await service.QuerySpans({});
+      const result = await service.QuerySpans({ trace_id: "trace123" });
 
       assert.ok(result);
       assert.ok(Array.isArray(result.spans));
@@ -273,7 +277,7 @@ describe("trace service", () => {
         });
       }
 
-      const result = await service.QuerySpans({ limit: 3 });
+      const result = await service.QuerySpans({ trace_id: "trace123", limit: 3 });
 
       assert.ok(result);
       assert.ok(Array.isArray(result.spans));

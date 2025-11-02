@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-11-02
+
+- Updated `TraceEvaluator` to query spans by `resource_id` instead of `trace_id`
+- Fixed trace evaluation to work with new per-trace-ID storage model
+- Evaluator now correctly queries across all traces for a given conversation resource_id
+
 ## 2025-11-01
 
 - Simplified `RetrievalEvaluator` to use standard recall and precision metrics as minimum thresholds

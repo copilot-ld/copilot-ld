@@ -140,8 +140,14 @@ export class Server extends Rpc {
 
   /** Sets up graceful shutdown handlers */
   #setupShutdown() {
-    const shutdown = () => {
+    const shutdown = async () => {
       this.observer().logger()?.debug("Shutting down...");
+      
+      // Call service shutdown if it exists
+      if (typeof this.#service.shutdown === "function") {
+        await this.#service.shutdown();
+      }
+      
       this.#server.tryShutdown(() => process.exit(0));
     };
     process.on("SIGINT", shutdown);

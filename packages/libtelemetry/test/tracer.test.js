@@ -4,6 +4,20 @@ import assert from "node:assert";
 
 import { Tracer } from "../tracer.js";
 
+// Mock gRPC Metadata class for testing
+class MockMetadata {
+  constructor() {
+    this.data = new Map();
+  }
+  set(key, value) {
+    this.data.set(key, value);
+  }
+  get(key) {
+    const value = this.data.get(key);
+    return value !== undefined ? [value] : [];
+  }
+}
+
 describe("Tracer", () => {
   describe("AsyncLocalStorage context isolation", () => {
     test("maintains separate span contexts for concurrent operations", async () => {
@@ -11,6 +25,7 @@ describe("Tracer", () => {
       const tracer = new Tracer({
         serviceName: "test-service",
         traceClient: mockTraceClient,
+        grpcMetadata: MockMetadata,
       });
 
       // Simulate two concurrent operations
@@ -63,6 +78,7 @@ describe("Tracer", () => {
       const tracer = new Tracer({
         serviceName: "test-service",
         traceClient: mockTraceClient,
+        grpcMetadata: MockMetadata,
       });
       const context = tracer.getSpanContext();
 
@@ -72,12 +88,20 @@ describe("Tracer", () => {
       // Run within AsyncLocalStorage context
       context.run(parentSpan, () => {
         // Create a CLIENT span - should automatically use parent from storage
-        const clientSpan = tracer.startClientSpan("test-service", "testMethod");
+        const { span: clientSpan, metadata } = tracer.startClientSpan(
+          "test-service",
+          "testMethod",
+        );
 
         // Verify client span was created and shares trace ID with parent
         assert.strictEqual(clientSpan.trace_id, parentSpan.trace_id);
         assert.ok(clientSpan.span_id);
         assert.notStrictEqual(clientSpan.span_id, parentSpan.span_id);
+
+        // Verify metadata was created and populated
+        assert.ok(metadata instanceof MockMetadata);
+        assert.strictEqual(metadata.get("x-trace-id")[0], clientSpan.trace_id);
+        assert.strictEqual(metadata.get("x-span-id")[0], clientSpan.span_id);
       });
     });
 
@@ -86,6 +110,7 @@ describe("Tracer", () => {
       const tracer = new Tracer({
         serviceName: "test-service",
         traceClient: mockTraceClient,
+        grpcMetadata: MockMetadata,
       });
 
       // Mock gRPC metadata with trace context
@@ -100,6 +125,7 @@ describe("Tracer", () => {
       const serverSpan = tracer.startServerSpan(
         "test-service",
         "testMethod",
+        null, // request
         metadata,
       );
 

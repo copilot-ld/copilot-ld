@@ -104,9 +104,12 @@ export class TerminalFormatter {
     this.#markedTerminal = markedTerminal;
 
     // Initialize the terminal marked instance with plugin
-    this.#terminalMarked = new this.#marked.Marked().use(
-      this.#markedTerminal(),
-    );
+    // Pass showErrors: false to suppress warnings about unknown languages
+    this.#terminalMarked = new this.#marked.Marked()
+      .use(this.#markedTerminal({ showErrors: false }))
+      .setOptions({
+        silent: true,
+      });
   }
 
   /**

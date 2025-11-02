@@ -38,7 +38,8 @@ export class Span {
       end_time_unix_nano: "",
       attributes: { "service.name": serviceName, ...attributes },
       events: [],
-      status: { code: "STATUS_CODE_UNSET", message: "" },
+      status: { code: trace.Code.UNSET, message: "" },
+      resource: { attributes: {} },
     };
     this.#traceClient = traceClient;
   }
@@ -68,12 +69,12 @@ export class Span {
   /**
    * Sets the span status
    * @param {object} status - Status object
-   * @param {string} status.code - Status code: 'OK', 'ERROR', 'UNSET'
+   * @param {trace.Code} status.code - Status code from trace.Code enum (UNSET, OK, ERROR)
    * @param {string} [status.message] - Error message if code is ERROR
    */
   setStatus(status) {
     this.#object.status = {
-      code: status.code || "STATUS_CODE_UNSET",
+      code: status.code ?? trace.Code.UNSET,
       message: status.message || "",
     };
   }
@@ -140,5 +141,21 @@ export class Span {
    */
   set parent_span_id(parent_span_id) {
     this.#object.parent_span_id = parent_span_id;
+  }
+
+  /**
+   * Gets the resource ID
+   * @returns {string} Resource ID
+   */
+  get resource_id() {
+    return this.#object.resource.attributes.id;
+  }
+
+  /**
+   * Sets the resource ID
+   * @param {string} resource_id - New resource ID
+   */
+  set resource_id(resource_id) {
+    this.#object.resource.attributes.id = resource_id;
   }
 }

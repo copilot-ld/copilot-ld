@@ -15,9 +15,6 @@
  * @type {AttributeConfig[]}
  */
 export const TELEMETRY_ATTRIBUTES_MAP = [
-  // Main conversation ID
-  { key: "resource_id", type: "string" },
-
   // Tool usage
   { key: "function.name", type: "string" },
   { key: "tools", type: "count" },
@@ -39,5 +36,4 @@ export const TELEMETRY_ATTRIBUTES_MAP = [
   { key: "messages", type: "count" },
   { key: "context", type: "count" },
   { key: "conversation", type: "count" },
-  { key: "usage.total_tokens", type: "number" },
 ];

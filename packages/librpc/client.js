@@ -80,8 +80,6 @@ export class Client extends Rpc {
         const m = metadata || new (this.grpc().Metadata)();
         return await this.#callMethod(methodName, request, m);
       },
-      // Pass metadata factory so Observer can create and populate it before the call
-      () => new (this.grpc().Metadata)(),
     );
   }
 

@@ -2,6 +2,22 @@
 
 ## 2025-11-02
 
+- Added `TraceVisualizer` class for creating Mermaid sequence diagram visualizations of traces
+- Added `traceviz` binary at `bin/traceviz.js` for visualizing traces by `trace_id` or `resource_id`
+- Added `@copilot-ld/libformat` as devDependency for terminal markdown formatting
+- Added `--markdown` option to `traceviz` binary for plain markdown output without terminal formatting
+- Exported `TraceVisualizer` from main `index.js` for programmatic use
+- Visualizations output standard Mermaid sequence diagrams showing service interactions
+- Multiple traces for same resource_id are combined into single diagram with note separators between requests
+- Binary uses `TerminalFormatter` to render markdown output with ANSI formatting by default
+- Binary temporarily suppresses stderr during formatting to hide marked-terminal warnings
+- Reduced cognitive load by focusing on service-to-service call sequences without span attributes
+- **BREAKING**: `Tracer` constructor now requires `grpcMetadata` parameter (gRPC Metadata class) for dependency injection
+- **BREAKING**: `Tracer.startClientSpan()` now returns `{span, metadata}` object instead of just span
+- **BREAKING**: `Observer.observeClientCall()` no longer accepts `metadataFn` parameter - metadata is created by Tracer
+- Made `Tracer.getMetadata()` and `Tracer.setMetadata()` private (`#getMetadata`, `#setMetadata`) as they are implementation details
+- Tracer now fully owns metadata creation and trace context propagation for client calls
+- Simplified Observer interface by removing metadata factory pattern
 - Fixed trace context propagation in `Observer.observeClientCall()` to accept `metadataFactory` parameter
 - gRPC metadata is now created before starting client span to ensure trace context is properly set
 - Updated `observeClientCall()` to pass populated metadata to `callFn` instead of null

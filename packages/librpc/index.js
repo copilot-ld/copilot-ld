@@ -1,4 +1,6 @@
 /* eslint-env node */
+import grpc from "@grpc/grpc-js";
+
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { Tracer } from "@copilot-ld/libtelemetry/tracer.js";
 
@@ -25,7 +27,11 @@ export async function createTracer(serviceName) {
   const traceConfig = await createServiceConfig("trace");
   const { TraceClient } = clients;
   const traceClient = new TraceClient(traceConfig);
-  return new Tracer({ serviceName, traceClient });
+  return new Tracer({
+    serviceName,
+    traceClient,
+    grpcMetadata: grpc.Metadata,
+  });
 }
 
 /**

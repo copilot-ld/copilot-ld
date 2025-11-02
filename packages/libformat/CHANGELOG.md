@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-02
+
+- Added `silent: true` option to `TerminalFormatter` to suppress marked warnings
+- Added `showErrors: false` option to markedTerminal plugin in `TerminalFormatter`
+
 ## 2025-10-31
 
 - Bump version

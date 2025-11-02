@@ -47,28 +47,27 @@ export class Observer {
    * @param {string} methodName - RPC method name
    * @param {object} request - Request object
    * @param {Function} callFn - Function that executes the gRPC call with metadata
-   * @param {Function} [metadataFn] - Optional factory function that creates gRPC Metadata
    * @returns {Promise<object>} Response object
    */
-  async observeClientCall(methodName, request, callFn, metadataFn = null) {
-    // Create metadata object if factory is provided
-    const metadata = metadataFn ? metadataFn() : null;
-    
-    // Start CLIENT span and populate metadata with trace context
-    const span = this.#tracer?.startClientSpan(
-      this.#serviceName,
-      methodName,
-      metadata,
-      {},
-    );
+  async observeClientCall(methodName, request, callFn) {
+    // Start CLIENT span and get populated metadata
+    let span, metadata;
+
+    if (this.#tracer) {
+      ({ span, metadata } = this.#tracer.startClientSpan(
+        this.#serviceName,
+        methodName,
+        request
+      ));
+    }
 
     // Log request.sent event
     this.#logEvent(
       "request.sent",
       methodName,
-      this.#extractRequestAttributes(request),
+      this.#extractAttributes(request, "request"),
     );
-    span?.addEvent("request.sent", this.#extractRequestAttributes(request));
+    span?.addEvent("request.sent", this.#extractAttributes(request, "request"));
 
     try {
       // Execute the gRPC call with populated metadata
@@ -78,11 +77,11 @@ export class Observer {
       this.#logEvent(
         "response.received",
         methodName,
-        this.#extractResponseAttributes(response),
+        this.#extractAttributes(response, "response"),
       );
       span?.addEvent(
         "response.received",
-        this.#extractResponseAttributes(response),
+        this.#extractAttributes(response, "response"),
       );
 
       // Set span status and end
@@ -116,6 +115,7 @@ export class Observer {
     const span = this.#tracer?.startServerSpan(
       this.#serviceName,
       methodName,
+      call.request,
       call.metadata,
     );
 
@@ -123,11 +123,11 @@ export class Observer {
     this.#logEvent(
       "request.received",
       methodName,
-      this.#extractRequestAttributes(call.request),
+      this.#extractAttributes(call.request, "request"),
     );
     span?.addEvent(
       "request.received",
-      this.#extractRequestAttributes(call.request),
+      this.#extractAttributes(call.request, "request"),
     );
 
     // Get AsyncLocalStorage context if tracer is available
@@ -142,11 +142,11 @@ export class Observer {
         this.#logEvent(
           "response.sent",
           methodName,
-          this.#extractResponseAttributes(response),
+          this.#extractAttributes(response, "response"),
         );
         span?.addEvent(
           "response.sent",
-          this.#extractResponseAttributes(response),
+          this.#extractAttributes(response, "response"),
         );
 
         // Set span status
@@ -173,53 +173,20 @@ export class Observer {
   }
 
   /**
-   * Extracts attributes from request for span events
-   * @param {object} request - Request object
+   * Extracts attributes from request or response for span events
+   * @param {object} data - Request or response object
+   * @param {string} prefix - Prefix for attribute keys ('request' or 'response')
    * @returns {object} Extracted attributes
    * @private
    */
-  #extractRequestAttributes(request) {
+  #extractAttributes(data, prefix) {
     const attributes = {};
 
     for (const config of TELEMETRY_ATTRIBUTES_MAP) {
-      const value = this.#getNestedValue(request, config.key);
+      const value = this.#getNestedValue(data, config.key);
       if (value === undefined || value === null) continue;
 
-      // Derive telemetry attribute name
-      const key = config.key === "resource_id" 
-        ? "resource.id" 
-        : `request.${config.key}`;
-
-      if (config.type === "count") {
-        const count = Array.isArray(value) ? value.length : 0;
-        attributes[key] = count;
-      } else if (config.type === "number") {
-        attributes[key] = Number(value);
-      } else {
-        attributes[key] = value;
-      }
-    }
-
-    return attributes;
-  }
-
-  /**
-   * Extracts attributes from response for span events
-   * @param {object} response - Response object
-   * @returns {object} Extracted attributes
-   * @private
-   */
-  #extractResponseAttributes(response) {
-    const attributes = {};
-
-    for (const config of TELEMETRY_ATTRIBUTES_MAP) {
-      const value = this.#getNestedValue(response, config.key);
-      if (value === undefined || value === null) continue;
-
-      // Derive telemetry attribute name
-      const key = config.key === "resource_id" 
-        ? "resource.id" 
-        : `response.${config.key}`;
+      const key = `${prefix}.${config.key}`;
 
       if (config.type === "count") {
         const count = Array.isArray(value) ? value.length : 0;

@@ -2,6 +2,7 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { trace } from "@copilot-ld/libtype";
+import { EvaluationResult } from "./result.js";
 
 const execAsync = promisify(exec);
 
@@ -30,7 +31,7 @@ export class TraceEvaluator {
    * Evaluate traces with jq commands
    * @param {object} testCase - Test case with trace_checks
    * @param {string} resourceId - Resource ID from agent response
-   * @returns {Promise<object>} Evaluation result
+   * @returns {Promise<EvaluationResult>} Evaluation result
    */
   async evaluate(testCase, resourceId) {
     if (!testCase.trace_checks) {
@@ -64,14 +65,17 @@ export class TraceEvaluator {
 
     const passed = checkResults.every((r) => r.passed);
 
-    return {
-      caseId: testCase.id,
-      type: "trace",
+    return new EvaluationResult(
+      testCase.id,
+      "trace",
       passed,
-      checks: checkResults,
-      query: testCase.query,
-      traceCount: traces.spans?.length || 0,
-    };
+      testCase.query,
+      resourceId,
+      {
+        checks: checkResults,
+        traceCount: traces.spans?.length || 0,
+      },
+    );
   }
 
   /**

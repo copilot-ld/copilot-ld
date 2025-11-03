@@ -2,6 +2,10 @@
 import { common, agent } from "@copilot-ld/libtype";
 
 /**
+ * @typedef {import('./result.js').EvaluationResult} EvaluationResult
+ */
+
+/**
  * Main evaluator orchestrates the evaluation workflow
  * Dispatches to appropriate evaluator based on test case configuration
  */
@@ -50,7 +54,7 @@ export class Evaluator {
    * Evaluate all test cases with parallel processing
    * @param {object[]} testCases - Array of test cases to evaluate
    * @param {number} concurrency - Number of concurrent evaluations (default 5)
-   * @returns {Promise<object[]>} Array of evaluation results
+   * @returns {Promise<EvaluationResult[]>} Array of evaluation results
    */
   async evaluate(testCases, concurrency = 5) {
     if (!testCases || testCases.length === 0) {
@@ -83,7 +87,7 @@ export class Evaluator {
   /**
    * Evaluate a single test case
    * @param {object} testCase - Test case to evaluate
-   * @returns {Promise<object>} Evaluation result for this case
+   * @returns {Promise<EvaluationResult>} Evaluation result for this case
    */
   async #evaluateCase(testCase) {
     console.log(`Evaluating case: ${testCase.id}`);
@@ -102,7 +106,7 @@ export class Evaluator {
     // Determine evaluation type and dispatch
     let result;
     if (testCase.criteria) {
-      result = await this.#criteriaEvaluator.evaluate(testCase, response);
+      result = await this.#criteriaEvaluator.evaluate(testCase, response, resourceId);
     } else if (testCase.true_subjects) {
       result = await this.#retrievalEvaluator.evaluate(testCase, resourceId, response);
     } else if (testCase.trace_checks) {
@@ -111,8 +115,6 @@ export class Evaluator {
       throw new Error(`Invalid test case: ${testCase.id} - no evaluation method specified`);
     }
 
-    // Add conversation ID to result for debugging
-    result.conversationId = resourceId;
     return result;
   }
 }
@@ -120,4 +122,6 @@ export class Evaluator {
 export { CriteriaEvaluator } from "./criteria.js";
 export { RetrievalEvaluator } from "./retrieval.js";
 export { TraceEvaluator } from "./trace.js";
-export { ReportGenerator } from "./report.js";
+export { EvaluationResult } from "./result.js";
+export { TapReporter } from "./tap.js";
+export { MarkdownReporter } from "./markdown.js";

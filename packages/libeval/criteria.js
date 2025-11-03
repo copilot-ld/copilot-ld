@@ -1,5 +1,6 @@
 /* eslint-env node */
 import { common, llm } from "@copilot-ld/libtype";
+import { EvaluationResult } from "./result.js";
 
 /**
  * Criteria-based evaluator using LLM judge
@@ -26,9 +27,10 @@ export class CriteriaEvaluator {
    * Evaluate agent response against criteria
    * @param {object} testCase - Test case with criteria
    * @param {object} response - Agent response object
-   * @returns {Promise<object>} Evaluation result
+   * @param {string} resourceId - Resource ID from agent response
+   * @returns {Promise<EvaluationResult>} Evaluation result
    */
-  async evaluate(testCase, response) {
+  async evaluate(testCase, response, resourceId) {
     if (!testCase.criteria) {
       throw new Error(`Test case ${testCase.id} missing criteria`);
     }
@@ -59,13 +61,16 @@ Respond with only "PASS" or "FAIL" followed by a brief explanation.`;
     const cleanResult = result.trim().replace(/^\*\*|\*\*$/g, "").toUpperCase();
     const passed = cleanResult.startsWith("PASS");
 
-    return {
-      caseId: testCase.id,
-      type: "criteria",
+    return new EvaluationResult(
+      testCase.id,
+      "criteria",
       passed,
-      judgment: result,
-      query: testCase.query,
-      response: responseContent,
-    };
+      testCase.query,
+      resourceId,
+      {
+        judgment: result,
+        response: responseContent,
+      },
+    );
   }
 }

@@ -1,5 +1,6 @@
 /* eslint-env node */
 import { memory } from "@copilot-ld/libtype";
+import { EvaluationResult } from "./result.js";
 
 /**
  * Retrieval-based evaluator using metrics calculation
@@ -25,7 +26,7 @@ export class RetrievalEvaluator {
    * @param {object} testCase - Test case with true_subjects and retrieval thresholds
    * @param {string} resourceId - Resource ID from agent response
    * @param {object} agentResponse - Agent response containing the assistant message
-   * @returns {Promise<object>} Evaluation result
+   * @returns {Promise<EvaluationResult>} Evaluation result
    */
   async evaluate(testCase, resourceId, agentResponse) {
     if (!testCase.true_subjects) {
@@ -73,28 +74,31 @@ export class RetrievalEvaluator {
     // Extract response text from agent response
     const responseText = agentResponse?.choices?.[0]?.message?.content?.text || "";
 
-    return {
-      caseId: testCase.id,
-      type: "retrieval",
+    return new EvaluationResult(
+      testCase.id,
+      "retrieval",
       passed,
-      metrics: {
-        recall: {
-          value: recall,
-          threshold: minRecall,
-          passed: recallPassed,
-          found: foundSubjects,
-          missing: testCase.true_subjects.filter((s) => !retrievedSet.has(s)),
+      testCase.query,
+      resourceId,
+      {
+        metrics: {
+          recall: {
+            value: recall,
+            threshold: minRecall,
+            passed: recallPassed,
+            found: foundSubjects,
+            missing: testCase.true_subjects.filter((s) => !retrievedSet.has(s)),
+          },
+          precision: {
+            value: precision,
+            threshold: minPrecision,
+            passed: precisionPassed,
+          },
         },
-        precision: {
-          value: precision,
-          threshold: minPrecision,
-          passed: precisionPassed,
-        },
+        retrievedCount: retrievedSubjects.length,
+        uniqueCount: uniqueRetrieved.length,
+        response: responseText,
       },
-      query: testCase.query,
-      retrievedCount: retrievedSubjects.length,
-      uniqueCount: uniqueRetrieved.length,
-      response: responseText,
-    };
+    );
   }
 }

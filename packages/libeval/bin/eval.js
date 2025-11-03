@@ -7,7 +7,8 @@ import {
   CriteriaEvaluator,
   RetrievalEvaluator,
   TraceEvaluator,
-  ReportGenerator,
+  MarkdownReporter,
+  TapReporter,
 } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
 import { clients } from "@copilot-ld/librpc";
@@ -108,8 +109,9 @@ async function main() {
   const retrievalEvaluator = new RetrievalEvaluator(memoryClient);
   const traceEvaluator = new TraceEvaluator(traceClient, tempStorage);
 
-  // Create report generator
-  const reporter = new ReportGenerator();
+  // Create reporters
+  const markdownReporter = new MarkdownReporter();
+  const tapReporter = new TapReporter();
 
   // Create main evaluator with all dependencies
   const evaluator = new Evaluator(
@@ -128,7 +130,8 @@ async function main() {
 
   // Generate reports
   console.log("\n");
-  await reporter.generate(results, resultsStorage);
+  await markdownReporter.generate(results, resultsStorage);
+  await tapReporter.generate(results, resultsStorage);
 
   // Print summary
   const passedCount = results.filter((r) => r.passed).length;

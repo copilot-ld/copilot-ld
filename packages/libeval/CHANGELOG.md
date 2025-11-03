@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-11-03
+
+- Created `EvaluationResult` class with standardized contract for evaluation outcomes
+- Added `TapReporter` for TAP format output supporting CI/CD integration
+- Added `MarkdownReporter` using mustache templates for formatted evaluation reports
+- Created `ReporterInterface` JSDoc typedef for consistent reporter implementations
+- Refactored evaluators to return `EvaluationResult` instances instead of plain objects
+- Removed old `report.js` file in favor of specialized reporter classes
+- Updated `bin/eval.js` to generate both markdown and TAP reports
+- Simplified result management with clear separation of concerns
+- Removed backward compatibility code ensuring clean current-only API
+
 ## 2025-11-02
 
 - Updated `TraceEvaluator` to query spans by `resource_id` instead of `trace_id`
@@ -23,7 +35,7 @@
   natural language requirements
 - Added `RetrievalEvaluator` for metrics-based evaluation with `retrieval_at_k`
   and `precision_at_k` calculations
-- Added `TraceEvaluator` for trace analysis using jq command execution on span
+- Added `TraceEvaluator` for trace analysis using `jq` command execution on span
   data
 - Refactored main `Evaluator` class to dispatch to appropriate evaluator based
   on test case configuration

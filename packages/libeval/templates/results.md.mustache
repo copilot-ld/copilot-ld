@@ -1,0 +1,104 @@
+# Evaluation Report: {{runId}}
+
+**Generated**: {{timestamp}}
+
+## Summary
+
+- **Total Cases**: {{totalCount}}
+- **Passed**: {{passedCount}}
+- **Failed**: {{failedCount}}
+- **Pass Rate**: {{passRate}}%
+
+{{#typeGroups}}
+### {{typeName}} Cases
+
+- Total: {{count}}
+- Passed: {{passed}}
+- Failed: {{failed}}
+
+{{/typeGroups}}
+
+## Test Summary
+
+{{#results}}
+- {{status}} - `{{caseId}}` ({{type}})
+{{/results}}
+
+{{#hasFailedTests}}
+## Debugging Failed Tests
+
+Use the following information to debug failed test cases:
+
+{{#failedTests}}
+### {{caseId}}
+
+**Query**: {{query}}
+
+**Conversation ID**: `{{conversationId}}`
+
+**Resources**:
+- Memory: [`data/memories/{{conversationId}}.jsonl`](../memories/{{conversationId}}.jsonl)
+- Resource directory: [`data/resources/{{conversationId}}/`](../resources/{{conversationId}}/)
+
+**Trace Query**:
+```bash
+jq 'select(.resource_id == "{{conversationId}}")' data/traces/*.jsonl
+```
+
+{{/failedTests}}
+{{/hasFailedTests}}
+
+## Detailed Results
+
+{{#results}}
+### {{statusIcon}} {{caseId}}
+
+**Type**: {{type}}
+**Query**: {{query}}
+{{#conversationId}}
+**Conversation ID**: `{{conversationId}}`
+{{/conversationId}}
+
+{{#isCriteria}}
+**Judgment**:
+{{judgment}}
+
+{{/isCriteria}}
+{{#isRetrieval}}
+**Retrieved**: {{retrievedCount}} total, {{uniqueCount}} unique
+
+**Recall**: {{recallValue}}% (threshold: {{recallThreshold}}%) - {{recallStatus}}
+- Found: {{foundCount}} subjects
+{{#foundSubjects}}
+  - ✅ {{.}}
+{{/foundSubjects}}
+{{#hasMissing}}
+- Missing: {{missingCount}} subjects
+{{#missingSubjects}}
+  - ❌ {{.}}
+{{/missingSubjects}}
+{{/hasMissing}}
+
+**Precision**: {{precisionValue}}% (threshold: {{precisionThreshold}}%) - {{precisionStatus}}
+
+{{#hasResponse}}
+**Response**:
+```
+{{response}}
+```
+{{/hasResponse}}
+
+{{/isRetrieval}}
+{{#isTrace}}
+**Trace Span Count**: {{traceCount}}
+
+**Checks**:
+{{#checks}}
+- {{checkStatus}} `{{command}}`
+{{/checks}}
+
+{{/isTrace}}
+
+---
+
+{{/results}}

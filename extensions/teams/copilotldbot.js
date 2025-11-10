@@ -119,8 +119,8 @@ class CopilotLdBot extends ActivityHandler {
   async handleMembersAdded(context, next) {
     const membersAdded = context.activity.membersAdded;
     const welcomeText = "Hello and welcome!";
-    for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
-      if (membersAdded[cnt].id !== context.activity.recipient.id) {
+    for (const element of membersAdded) {
+      if (element.id !== context.activity.recipient.id) {
         await context.sendActivity(
           MessageFactory.text(welcomeText, welcomeText),
         );

@@ -18,9 +18,14 @@ const htmlFormatter = createHtmlFormatter();
 class CopilotLdBot extends ActivityHandler {
   /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
+   * You can override AgentClient, createExtensionConfig, createServiceConfig, or htmlFormatter by setting them as properties after construction.
    */
   constructor() {
     super();
+    this.AgentClient = AgentClient;
+    this.createExtensionConfig = createExtensionConfig;
+    this.createServiceConfig = createServiceConfig;
+    this.htmlFormatter = htmlFormatter;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
     /**
@@ -63,8 +68,10 @@ class CopilotLdBot extends ActivityHandler {
    * @returns {Promise<void>}
    */
   async handleMessage(context, next) {
-    const config = await createExtensionConfig("web");
-    const client = new AgentClient(await createServiceConfig("agent"));
+    const config = await this.createExtensionConfig("web");
+    const client = new this.AgentClient(
+      await this.createServiceConfig("agent"),
+    );
 
     const requestParams = agent.AgentRequest.fromObject({
       messages: [
@@ -93,7 +100,7 @@ class CopilotLdBot extends ActivityHandler {
 
     // Format HTML content if present
     if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
-      reply.content = htmlFormatter.format(
+      reply.content = this.htmlFormatter.format(
         String(response.choices[0].message.content),
       );
     }

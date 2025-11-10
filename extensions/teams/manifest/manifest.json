@@ -1,0 +1,50 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "e7a1c2b2-4f8a-4e2a-9b6e-2b7e8c1d9a3f",
+  "packageName": "com.pfizer.copilotld",
+  "developer": {
+    "name": "Pfizer",
+    "websiteUrl": "https://www.pfizer.com",
+    "privacyUrl": "https://www.pfizer.com/privacy",
+    "termsOfUseUrl": "https://www.pfizer.com/terms"
+  },
+  "name": {
+    "short": "Copilot LD Bot",
+    "full": "Pfizer Copilot LD Bot"
+  },
+  "description": {
+    "short": "A bot for Pfizer Copilot LD.",
+    "full": "This Microsoft Teams app provides a bot for Pfizer Copilot LD."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#0078d4",
+  "bots": [
+    {
+      "botId": "55b388f5-8b8e-4394-a311-48eb8c3d0563",
+      "scopes": ["personal", "team", "groupchat"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["illuminatingly-nonverminous-brandee.ngrok-free.dev"],
+  "staticTabs": [
+    {
+      "entityId": "9bca5f2f-9005-4dfb-a056-07a8a07c5cc0",
+      "name": "Messages",
+      "contentUrl": "https://illuminatingly-nonverminous-brandee.ngrok-free.dev/chat",
+      "scopes": ["personal", "team", "groupChat"]
+    },
+    {
+      "entityId": "ea9a72d4-c12c-443c-b1f0-3fa7f3d23342",
+      "name": "About",
+      "contentUrl": "https://illuminatingly-nonverminous-brandee.ngrok-free.dev/chat",
+      "scopes": ["personal"]
+    }
+  ]
+}

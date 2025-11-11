@@ -25,25 +25,25 @@
   "accentColor": "#0078d4",
   "bots": [
     {
-      "botId": "55b388f5-8b8e-4394-a311-48eb8c3d0563",
+      "botId": "${{TEAMS_BOT_ID}}",
       "scopes": ["personal", "team", "groupchat"],
       "supportsFiles": false,
       "isNotificationOnly": false
     }
   ],
   "permissions": ["identity", "messageTeamMembers"],
-  "validDomains": ["illuminatingly-nonverminous-brandee.ngrok-free.dev"],
+  "validDomains": ["${{TEAMS_BOT_DOMAIN}}"],
   "staticTabs": [
     {
       "entityId": "9bca5f2f-9005-4dfb-a056-07a8a07c5cc0",
       "name": "Messages",
-      "contentUrl": "https://illuminatingly-nonverminous-brandee.ngrok-free.dev/chat",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/chat",
       "scopes": ["personal", "team", "groupChat"]
     },
     {
       "entityId": "ea9a72d4-c12c-443c-b1f0-3fa7f3d23342",
       "name": "About",
-      "contentUrl": "https://illuminatingly-nonverminous-brandee.ngrok-free.dev/chat",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/chat",
       "scopes": ["personal"]
     }
   ]

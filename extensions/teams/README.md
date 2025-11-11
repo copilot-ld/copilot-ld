@@ -16,9 +16,6 @@ Set up environment variables and service configuration:
 cp .env{.example,}
 ```
 
-For detailed configuration options, see the
-[Configuration Guide](docs/configuration.html).
-
 ### 2. Install dependencies
 
 ```sh

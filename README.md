@@ -34,6 +34,9 @@ cp config/assistants{.example,}.yml
 cp config/tools{.example,}.yml
 ```
 
+For detailed configuration options, see the
+[Configuration Guide](docs/configuration.html).
+
 ### 2. Install dependencies
 
 ```sh

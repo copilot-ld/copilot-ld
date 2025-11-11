@@ -32,27 +32,22 @@ class MockContext {
 }
 
 test("handleMessage sends formatted reply and sets resourceId", async () => {
-  // Mock AgentClient
-  const mockProcessRequest = async () => ({
-    choices: [{ message: { content: "Hello from Copilot!" } }],
-    resource_id: "resource-xyz",
-  });
-  const mockAgentClient = function () {
-    return { ProcessRequest: mockProcessRequest };
+  // Mock AgentClient instance
+  const mockAgentClient = {
+    ProcessRequest: async () => ({
+      choices: [{ message: { content: "Hello from Copilot!" } }],
+      resource_id: "resource-xyz",
+    }),
   };
   // Mock config
-  const mockCreateExtensionConfig = async () => ({
+  const mockConfig = {
     githubToken: async () => "token",
-  });
-  const mockCreateServiceConfig = async () => ({});
+  };
   // Mock formatter
   const mockHtmlFormatter = { format: (x) => `**${x}**` };
 
-  // Set dependencies as properties after construction
-  const bot = new CopilotLdBot();
-  bot.AgentClient = mockAgentClient;
-  bot.createExtensionConfig = mockCreateExtensionConfig;
-  bot.createServiceConfig = mockCreateServiceConfig;
+  // Pass dependencies via constructor and property
+  const bot = new CopilotLdBot(mockAgentClient, mockConfig);
   bot.htmlFormatter = mockHtmlFormatter;
 
   const context = new MockContext("Hi Copilot!");

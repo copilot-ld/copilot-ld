@@ -1,14 +1,11 @@
 import { agent, common } from "@copilot-ld/libtype";
-import { clients } from "@copilot-ld/librpc";
 import { ActivityHandler, MessageFactory } from "botbuilder";
-import {
-  createServiceConfig,
-  createExtensionConfig,
-} from "@copilot-ld/libconfig";
 import { createHtmlFormatter } from "@copilot-ld/libformat";
-const { AgentClient } = clients;
 
 const htmlFormatter = createHtmlFormatter();
+/**
+ * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
+ */
 
 /**
  * CopilotLdBot is a Microsoft Teams bot that integrates with the Copilot-LD Agent service to process user messages, maintain conversation state, and provide intelligent responses.
@@ -18,13 +15,15 @@ const htmlFormatter = createHtmlFormatter();
 class CopilotLdBot extends ActivityHandler {
   /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
-   * You can override AgentClient, createExtensionConfig, createServiceConfig, or htmlFormatter by setting them as properties after construction.
+   * @param {AgentClient} agentClient - An instance of AgentClient for communicating with the Agent service.
+   * @param {object} config - The extension configuration object.
    */
-  constructor() {
+  constructor(agentClient, config) {
     super();
-    this.AgentClient = AgentClient;
-    this.createExtensionConfig = createExtensionConfig;
-    this.createServiceConfig = createServiceConfig;
+    if (!agentClient) throw new Error("agentClient is required");
+    if (!config) throw new Error("config is required");
+    this.agentClient = agentClient;
+    this.config = config;
     this.htmlFormatter = htmlFormatter;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
@@ -68,11 +67,6 @@ class CopilotLdBot extends ActivityHandler {
    * @returns {Promise<void>}
    */
   async handleMessage(context, next) {
-    const config = await this.createExtensionConfig("web");
-    const client = new this.AgentClient(
-      await this.createServiceConfig("agent"),
-    );
-
     const requestParams = agent.AgentRequest.fromObject({
       messages: [
         common.Message.fromObject({
@@ -80,7 +74,7 @@ class CopilotLdBot extends ActivityHandler {
           content: context.activity.text,
         }),
       ],
-      github_token: await config.githubToken(),
+      github_token: await this.config.githubToken(),
       resource_id: this.getResourceId(
         context.activity.conversation.tenantId,
         context.activity.recipient.id,
@@ -93,7 +87,7 @@ class CopilotLdBot extends ActivityHandler {
     console.log("Received message:", context.activity.text);
     console.log("Request parameters:", requestParams);
 
-    const response = await client.ProcessRequest(requestParams);
+    const response = await this.agentClient.ProcessRequest(requestParams);
     let reply = { role: "assistant", content: null };
 
     console.log("Agent response:", response);

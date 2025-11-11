@@ -2,15 +2,20 @@ import restify from "restify";
 import { configureAdapter } from "./configureAdapter.js";
 // import { EchoBot } from "./echobot.js";
 import { CopilotLdBot } from "./copilotldbot.js";
+import { clients } from "@copilot-ld/librpc";
+import {
+  createServiceConfig,
+  createExtensionConfig,
+} from "@copilot-ld/libconfig";
 import path from "path";
 import { fileURLToPath } from "url";
 
 /**
  * Creates and configures a Restify server for hosting a Microsoft Teams bot using Copilot-LD.
  * Sets up HTTP endpoints for chat UI, bot message processing, and streaming connections.
- * @returns {import('restify').Server} Configured Restify server instance.
+ * @returns {Promise<import('restify').Server>} Configured Restify server instance.
  */
-export default function createServer() {
+export default async function createServer() {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   // Create the Restify server instance
@@ -20,8 +25,13 @@ export default function createServer() {
   // Configure adapters for normal and streaming requests
   const adapter = configureAdapter();
   const streamingAdapter = configureAdapter();
-  // Instantiate the CopilotLdBot
-  const myBot = new CopilotLdBot();
+
+  // Instantiate the CopilotLdBot with required dependencies
+  const config = await createExtensionConfig("web");
+  const agentClient = new clients.AgentClient(
+    await createServiceConfig("agent"),
+  );
+  const myBot = new CopilotLdBot(agentClient, config);
 
   // Serve the chat UI HTML page at /chat
   server.get(

@@ -1,8 +1,6 @@
 import { agent, common } from "@copilot-ld/libtype";
 import { ActivityHandler, MessageFactory } from "botbuilder";
-import { createHtmlFormatter } from "@copilot-ld/libformat";
 
-const htmlFormatter = createHtmlFormatter();
 /**
  * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
  */
@@ -24,7 +22,6 @@ class CopilotLdBot extends ActivityHandler {
     if (!config) throw new Error("config is required");
     this.agentClient = agentClient;
     this.config = config;
-    this.htmlFormatter = htmlFormatter;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
     /**
@@ -92,11 +89,8 @@ class CopilotLdBot extends ActivityHandler {
 
     console.debug("Agent response:", response);
 
-    // Format HTML content if present
     if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
-      reply.content = this.htmlFormatter.format(
-        String(response.choices[0].message.content),
-      );
+      reply.content = String(response.choices[0].message.content);
     }
 
     this.setResourceId(

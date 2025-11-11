@@ -1,14 +1,18 @@
-const restify = require("restify");
-const { configureAdapter } = require("./configureAdapter");
-// const { EchoBot } = require('./echobot');
-const { CopilotLdBot } = require("./copilotldbot");
+import restify from "restify";
+import { configureAdapter } from "./configureAdapter.js";
+// import { EchoBot } from "./echobot.js";
+import { CopilotLdBot } from "./copilotldbot.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 /**
  * Creates and configures a Restify server for hosting a Microsoft Teams bot using Copilot-LD.
  * Sets up HTTP endpoints for chat UI, bot message processing, and streaming connections.
  * @returns {import('restify').Server} Configured Restify server instance.
  */
-function createServer() {
+export default function createServer() {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
   // Create the Restify server instance
   const server = restify.createServer();
   server.use(restify.plugins.bodyParser());
@@ -42,5 +46,3 @@ function createServer() {
 
   return server;
 }
-
-module.exports = createServer;

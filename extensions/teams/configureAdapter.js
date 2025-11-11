@@ -1,15 +1,15 @@
-const {
+import {
   CloudAdapter,
   ConfigurationServiceClientCredentialFactory,
   createBotFrameworkAuthenticationFromConfiguration,
-} = require("botbuilder");
+} from "botbuilder";
 
 /**
  * Configures and returns a Microsoft Bot Framework CloudAdapter for Teams bots.
  * Sets up authentication using environment variables and attaches a default error handler for turn errors.
  * @returns {CloudAdapter} Configured CloudAdapter instance for handling bot activities.
  */
-function configureAdapter() {
+export function configureAdapter() {
   // Create credentials factory from environment variables
   const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
     MicrosoftAppId: process.env.MicrosoftAppId,
@@ -50,5 +50,3 @@ function configureAdapter() {
 
   return adapter;
 }
-
-module.exports = { configureAdapter };

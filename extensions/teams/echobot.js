@@ -1,16 +1,15 @@
-const { ActivityHandler, MessageFactory } = require("botbuilder");
+import { ActivityHandler, MessageFactory } from "botbuilder";
 
 /**
- * Simple echo bot for Microsoft Bot Framework that replies with the same message it receives and welcomes new members.
+ * EchoBot is a simple Microsoft Bot Framework bot that replies with the same message it receives and welcomes new members.
  * @augments ActivityHandler
  */
-class EchoBot extends ActivityHandler {
+export class EchoBot extends ActivityHandler {
   /**
    * Creates a new EchoBot instance and sets up message and member event handlers.
    */
   constructor() {
     super();
-    // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
   }
@@ -46,5 +45,3 @@ class EchoBot extends ActivityHandler {
     await next();
   }
 }
-
-module.exports.EchoBot = EchoBot;

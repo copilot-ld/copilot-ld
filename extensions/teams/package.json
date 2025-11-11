@@ -27,7 +27,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "extensions/web"
+    "directory": "extensions/teams"
   },
   "publishConfig": {
     "access": "public",

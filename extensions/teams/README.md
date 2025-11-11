@@ -70,6 +70,15 @@ localhost or running remotely through a tunnel.
 - File -> Open Bot
 - Enter a Bot URL of `http://localhost:3978/api/messages`
 
+## Deploying
+
+To use the service as a Teams App there are some additional steps to perform:
+
+- Setup Azure Bot
+- Setup Teams App
+
+These steps will be automated at a later date.
+
 ## 📚 Documentation
 
 ### Human Documentation

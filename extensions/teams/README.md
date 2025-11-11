@@ -1,33 +1,61 @@
 # Copilot-LD MS Teams App
 
-This is a MS Teams Extension to the Copilot-LD platform.
+Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked data and
+retrieval-augmented generation.
 
-This bot has been created using [Bot Framework](https://dev.botframework.com).
+This is a MS Teams Extension to the Copilot-LD platform using
+[Bot Framework](https://dev.botframework.com).
 
-## Prerequisites
+## 🚀 Setup
 
-- [Node.js](https://nodejs.org) version 22 or higher
+### 1. Configuration
 
-  ```bash
-  # determine node version
-  node --version
-  ```
+Set up environment variables and service configuration:
 
-## To run the bot
+```sh
+cp .env{.example,}
+```
 
-- Install modules
+For detailed configuration options, see the
+[Configuration Guide](docs/configuration.html).
 
-  ```bash
-  npm install
-  ```
+### 2. Install dependencies
 
-- Start the bot
+```sh
+npm install
+```
 
-  ```bash
-  npm start
-  ```
+### 3. Start services
 
-## Testing the bot using Bot Framework Emulator
+#### Local Development Environment
+
+Start the service:
+
+```sh
+npm start
+```
+
+Expose the local service publicly:
+
+```sh
+ngrok http 3978
+```
+
+Access the services:
+
+- **Web Extension**: `http://localhost:3978/web`
+
+## 👨‍💻 Development
+
+### Testing
+
+Run unit tests:
+
+```sh
+npm test
+```
+
+### Testing the bot using Bot Framework Emulator
 
 [Bot Framework Emulator](https://github.com/microsoft/botframework-emulator) is
 a desktop application that allows bot developers to test and debug their bots on
@@ -42,13 +70,9 @@ localhost or running remotely through a tunnel.
 - File -> Open Bot
 - Enter a Bot URL of `http://localhost:3978/api/messages`
 
-## Deploy the bot to Azure
+## 📚 Documentation
 
-To learn more about deploying a bot to Azure, see
-[Deploy your bot to Azure](https://aka.ms/azuredeployment) for a complete list
-of deployment instructions.
-
-## Further reading
+### Human Documentation
 
 - [Bot Framework Documentation](https://docs.botframework.com)
 - [Bot Basics](https://docs.microsoft.com/azure/bot-service/bot-builder-basics?view=azure-bot-service-4.0)
@@ -59,3 +83,4 @@ of deployment instructions.
 - [Azure CLI](https://docs.microsoft.com/cli/azure/?view=azure-cli-latest)
 - [Azure Portal](https://portal.azure.com)
 - [Channels and Bot Connector Service](https://docs.microsoft.com/en-us/azure/bot-service/bot-concepts?view=azure-bot-service-4.0)
+- [Deploy your bot to Azure](https://aka.ms/azuredeployment)

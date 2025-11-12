@@ -82,12 +82,9 @@ class CopilotLdBot extends ActivityHandler {
     console.log("TenantId:", context.activity.conversation.tenantId);
     console.log("Recipient.id:", context.activity.recipient.id);
     console.log("Received message:", context.activity.text);
-    console.debug("Request parameters:", requestParams);
 
     const response = await this.agentClient.ProcessRequest(requestParams);
     let reply = { role: "assistant", content: null };
-
-    console.debug("Agent response:", response);
 
     if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
       reply.content = String(response.choices[0].message.content);

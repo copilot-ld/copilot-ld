@@ -1,7 +1,7 @@
-import http from "http";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { configureAdapter } from "./configureAdapter.js";
 import { CopilotLdBot } from "./copilotldbot.js";
 import { clients } from "@copilot-ld/librpc";
@@ -9,6 +9,35 @@ import {
   createServiceConfig,
   createExtensionConfig,
 } from "@copilot-ld/libconfig";
+
+/**
+ * Patches a native HTTP response object with minimal Express-like methods for botbuilder compatibility.
+ * @param {import('http').ServerResponse} res - The HTTP response object.
+ */
+function patchResponse(res) {
+  if (!res.status) {
+    res.statusCode = 200;
+    res.status = function (code) {
+      this.statusCode = code;
+      return this;
+    };
+  }
+  if (!res.send) {
+    res.send = function (body) {
+      if (!this.headersSent) {
+        this.writeHead(this.statusCode, {
+          "Content-Type": "application/json",
+        });
+      }
+      this.end(typeof body === "string" ? body : JSON.stringify(body));
+    };
+  }
+  if (!res.header) {
+    res.header = function (name, value) {
+      this.setHeader(name, value);
+    };
+  }
+}
 
 /**
  * Parses the JSON body from an incoming HTTP request.
@@ -72,29 +101,7 @@ export default async function createServer() {
     if (req.method === "POST" && req.url === "/api/messages") {
       // Patch req and res to look like Express/Restify for botbuilder
       req.body = await parseBody(req);
-      // Patch res with minimal Express-like API for botbuilder compatibility
-      if (!res.status) {
-        res.statusCode = 200;
-        res.status = function (code) {
-          this.statusCode = code;
-          return this;
-        };
-      }
-      if (!res.send) {
-        res.send = function (body) {
-          if (!this.headersSent) {
-            this.writeHead(this.statusCode, {
-              "Content-Type": "application/json",
-            });
-          }
-          this.end(typeof body === "string" ? body : JSON.stringify(body));
-        };
-      }
-      if (!res.header) {
-        res.header = function (name, value) {
-          this.setHeader(name, value);
-        };
-      }
+      patchResponse(res);
       try {
         await adapter.process(req, res, (context) => myBot.run(context));
       } catch (err) {

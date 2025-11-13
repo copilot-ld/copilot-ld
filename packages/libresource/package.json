@@ -7,7 +7,8 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "resources": "./bin/resources.js"
+    "resources": "./bin/resources.js",
+    "pdf_resources": "./bin/pdf_processor.js"
   },
   "engines": {
     "node": ">=22.0.0"

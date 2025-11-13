@@ -50,18 +50,20 @@ export default [
   {
     // Global ignores
     ignores: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/lib/**",
-      "**/build/**",
-      "**/*.js.map",
-      "**/coverage/**",
       "**/.env*",
+      "**/*.js.map",
+      "**/build/**",
+      "**/coverage/**",
       "**/data/**",
+      "**/dist/**",
+      "**/generated/types/types.js",
+      "**/.history/**",
+      "**/lib/**",
+      "**/node_modules/**",
       "**/package-lock.json",
+      "**/.vscode/**",
       "SCRATCHPAD*.md",
       // Ignore generated types with invalid JSDoc from protobufjs
-      "**/generated/types/types.js",
     ],
   },
 

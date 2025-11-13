@@ -27,6 +27,7 @@
     "process": "npm run process:assistants && npm run process:resources && npm run process:tools && npm run process:vectors && npm run process:graphs",
     "process:fast": "npm run process:assistants && npm run process:resources -- --fast && npm run process:tools && npm run process:vectors && npm run process:graphs",
     "process:assistants": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libagent assistants",
+    "process:pdf-resources": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libresource pdf_resources",
     "process:resources": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libresource resources",
     "process:tools": "npx env-cmd --silent -- node ./scripts/tools.js",
     "process:vectors": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libvector vectors",

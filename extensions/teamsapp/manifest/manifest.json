@@ -46,5 +46,12 @@
       "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/chat",
       "scopes": ["personal"]
     }
+  ],
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://${{TEAMS_BOT_DOMAIN}}/settings",
+      "canUpdateConfiguration": true,
+      "scopes": ["team"]
+    }
   ]
 }

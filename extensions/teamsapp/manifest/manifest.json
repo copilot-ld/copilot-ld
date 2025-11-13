@@ -37,7 +37,7 @@
     {
       "entityId": "9bca5f2f-9005-4dfb-a056-07a8a07c5cc0",
       "name": "Messages",
-      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/chat",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/messages",
       "scopes": ["personal", "team", "groupChat"]
     },
     {

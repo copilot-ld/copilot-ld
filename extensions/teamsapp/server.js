@@ -62,6 +62,65 @@ function parseBody(req) {
 }
 
 /**
+ * Serves the about.html static page for /about endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ * @param {string} dir - Directory path for static files
+ */
+function handleAbout(req, res, dir) {
+  const filePath = path.join(dir, "about.html");
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    }
+  });
+}
+
+/**
+ * Serves the messages.html static page for /messages endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ * @param {string} dir - Directory path for static files
+ */
+function handleMessages(req, res, dir) {
+  const filePath = path.join(dir, "messages.html");
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    }
+  });
+}
+
+/**
+ * Handles POST requests to /api/messages for Bot Framework protocol.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ * @param {object} adapter - Bot adapter instance
+ * @param {object} myBot - CopilotLdBot instance
+ */
+async function handleApiMessages(req, res, adapter, myBot) {
+  req.body = await parseBody(req);
+  patchResponse(res);
+  try {
+    await adapter.process(req, res, (context) => myBot.run(context));
+  } catch (err) {
+    console.error("Error in adapter.process:", err);
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+    }
+    res.end("Internal Server Error");
+  }
+}
+
+/**
  * Creates and configures a native HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
  * Sets up HTTP endpoints for chat UI, bot message processing, and streaming connections.
  * @returns {Promise<http.Server>} Configured HTTP server instance.
@@ -82,39 +141,18 @@ export default async function createServer() {
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {
-    // Serve the chat UI HTML page at /chat
-    if (req.method === "GET" && req.url === "/chat") {
-      const filePath = path.join(__dirname, "chat.html");
-      fs.readFile(filePath, (err, data) => {
-        if (err) {
-          res.writeHead(404, { "Content-Type": "text/plain" });
-          res.end("Not found");
-        } else {
-          res.writeHead(200, { "Content-Type": "text/html" });
-          res.end(data);
-        }
-      });
+    if (req.method === "GET" && req.url === "/about") {
+      handleAbout(req, res, __dirname);
       return;
     }
-
-    // Listen for incoming bot message requests (Bot Framework protocol)
+    if (req.method === "GET" && req.url === "/messages") {
+      handleMessages(req, res, __dirname);
+      return;
+    }
     if (req.method === "POST" && req.url === "/api/messages") {
-      // Patch req and res to look like Express/Restify for botbuilder
-      req.body = await parseBody(req);
-      patchResponse(res);
-      try {
-        await adapter.process(req, res, (context) => myBot.run(context));
-      } catch (err) {
-        console.error("Error in adapter.process:", err);
-        if (!res.headersSent) {
-          res.writeHead(500, { "Content-Type": "text/plain" });
-        }
-        res.end("Internal Server Error");
-      }
+      await handleApiMessages(req, res, adapter, myBot);
       return;
     }
-
-    // Fallback for other routes
     res.writeHead(404, { "Content-Type": "text/plain" });
     res.end("Not found");
   });

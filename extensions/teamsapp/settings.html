@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+  </head>
+  <body>
+    <h1>Settings</h1>
+    <p>Configure your Copilot-LD Teams app settings here.</p>
+    <form id="settings-form">
+      <div>
+        <label for="api_url">API URL:</label>
+        <input type="text" id="api_url" name="api_url" autocomplete="off" />
+      </div>
+      <div>
+        <label for="github_client_id">GitHub Client ID:</label>
+        <input
+          type="text"
+          id="github_client_id"
+          name="github_client_id"
+          autocomplete="off"
+        />
+      </div>
+      <div>
+        <label for="github_token">GitHub Token:</label>
+        <input
+          type="password"
+          id="github_token"
+          name="github_token"
+          autocomplete="off"
+        />
+      </div>
+      <div>
+        <label for="service_secret">Service Secret:</label>
+        <input
+          type="password"
+          id="service_secret"
+          name="service_secret"
+          autocomplete="off"
+        />
+      </div>
+      <button type="submit">Save Settings</button>
+    </form>
+  </body>
+</html>

@@ -1,3 +1,21 @@
+/**
+ * Serves the settings.html static page for /settings endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ * @param {string} dir - Directory path for static files
+ */
+function handleSettings(req, res, dir) {
+  const filePath = path.join(dir, "settings.html");
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    }
+  });
+}
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -147,6 +165,10 @@ export default async function createServer() {
     }
     if (req.method === "GET" && req.url === "/messages") {
       handleMessages(req, res, __dirname);
+      return;
+    }
+    if (req.method === "GET" && req.url === "/settings") {
+      handleSettings(req, res, __dirname);
       return;
     }
     if (req.method === "POST" && req.url === "/api/messages") {

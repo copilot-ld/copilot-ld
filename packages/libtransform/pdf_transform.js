@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { spawn, spawnSync } from "child_process";
 import { mkdtemp, writeFile, readdir } from "fs/promises";
 import { tmpdir } from "os";
@@ -5,19 +6,19 @@ import { join } from "path";
 import { ProcessorBase } from "@copilot-ld/libutil";
 
 /**
- * PdfProcessor converts PDF files in knowledge storage to HTML using Copilot vision.
+ * PdfTransform converts PDF files in knowledge storage to HTML using Copilot vision.
  * Each PDF is split into images, each image is sent to Copilot for HTML conversion,
  * and all HTML fragments are merged into a single HTML document.
  */
-export class PdfProcessor extends ProcessorBase {
+export class PdfTransform extends ProcessorBase {
   #knowledgeStorage;
   #llm;
   #logger;
 
   /**
-   * Creates a new PdfProcessor instance.
+   * Creates a new PdfTransform instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage backend for PDF files
-   * @param {object} llm - Copilot LLM client with createCompletions(messages) method
+   * @param {object} llm - Copilot LLM client with imageToText(image, systemPrompt, prompt, model, max_tokens) method
    * @param {object} logger - Logger instance with debug() method
    * @throws {Error} If pdftoppm is not available
    */
@@ -55,7 +56,7 @@ export class PdfProcessor extends ProcessorBase {
         continue;
       }
 
-      const html = await this.pdfToHtml(pdfBuffer, key);
+      const html = await this.#pdfToHtml(pdfBuffer, key);
 
       const htmlKey = key.replace(/\.pdf$/i, htmlExtension);
       await this.#knowledgeStorage.put(htmlKey, html);
@@ -71,7 +72,7 @@ export class PdfProcessor extends ProcessorBase {
    * @param {string} key - Storage key for logging
    * @returns {Promise<string>} Merged HTML document
    */
-  async pdfToHtml(pdfBuffer, key) {
+  async #pdfToHtml(pdfBuffer, key) {
     const images = await this.#pdfSplitter(pdfBuffer, key);
 
     this.#logger.debug("Split PDF into images", {
@@ -107,18 +108,12 @@ export class PdfProcessor extends ProcessorBase {
           page: i + 1,
         });
       }
-
-      if (i > 2) {
-        break;
-      }
     }
 
     const mergedHtml = [
       "<!DOCTYPE html>",
       "<html>",
-      '<head><meta charset="utf-8"><title>"',
-      key,
-      " - PDF to HTML</title></head>",
+      `<head><meta charset="utf-8"><title>${key} - PDF to HTML</title></head>`,
       "<body>",
       ...htmlFragments,
       "</body>",

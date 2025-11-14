@@ -5,11 +5,10 @@ import { createLlm } from "@copilot-ld/libcopilot";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libutil";
 
-import { PdfProcessor } from "@copilot-ld/libresource/pdf_processor.js";
+import { PdfTransform } from "@copilot-ld/libtransform/pdf_transform.js";
 
 /**
- * Process all PDF files in the knowledge base directory and generate resources
- * using the PdfProcessor
+ * Process all PDF files in the knowledge base directory and generate HTML files
  * @returns {Promise<void>}
  */
 async function main() {
@@ -21,9 +20,9 @@ async function main() {
   const logger = createLogger("resources");
 
   logger.debug("Starting PDF pre-processing");
-  // Process knowledge using PdfProcessor
-  const pdfProcessor = new PdfProcessor(knowledgeStorage, llm, logger);
-  await pdfProcessor.process();
+  // Process knowledge using PdfTransform
+  const pdfTransform = new PdfTransform(knowledgeStorage, llm, logger);
+  await pdfTransform.process();
 }
 
 main().catch((error) => {

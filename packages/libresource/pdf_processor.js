@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import { mkdtemp, writeFile, readdir } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -19,6 +19,7 @@ export class PdfProcessor extends ProcessorBase {
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage backend for PDF files
    * @param {object} llm - Copilot LLM client with createCompletions(messages) method
    * @param {object} logger - Logger instance with debug() method
+   * @throws {Error} If pdftoppm is not available
    */
   constructor(knowledgeStorage, llm, logger) {
     super(logger, 5);
@@ -26,6 +27,9 @@ export class PdfProcessor extends ProcessorBase {
     if (!knowledgeStorage) throw new Error("knowledgeStorage is required");
     if (!llm) throw new Error("llm is required");
     if (!logger) throw new Error("logger is required");
+    if (!this.#isPdftoppmAvailable()) {
+      throw new Error("pdftoppm is not installed or not available in PATH");
+    }
 
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
@@ -84,13 +88,14 @@ export class PdfProcessor extends ProcessorBase {
 
       const prompt = "What is in this image?";
       const model = "gpt-4o";
+      const max_tokens = 2000;
 
       const htmlContent = await this.#llm.imageToText(
         image,
         systemPrompt,
         prompt,
         model,
-        2000,
+        max_tokens,
       );
 
       if (htmlContent && htmlContent.length > 0) {
@@ -166,5 +171,17 @@ export class PdfProcessor extends ProcessorBase {
     this.#logger.debug("Generated images from PDF", { key, imageFiles });
 
     return imageFiles;
+  }
+
+  /**
+   * Checks that pdftoppm is installed and available in PATH.
+   * @returns {boolean} True if pdftoppm is available, false otherwise
+   */
+  #isPdftoppmAvailable() {
+    const result = spawnSync("pdftoppm", ["-v"], { encoding: "utf8" });
+    return (
+      result.status === 0 ||
+      (result.stdout && result.stdout.includes("pdftoppm"))
+    );
   }
 }

@@ -36,9 +36,9 @@ describe("PdfTransform", () => {
     llm = {
       imageToText: async (
         filePath,
-        systemPrompt,
         prompt,
         model,
+        systemPrompt,
         max_tokens,
       ) => {
         if (filePath && systemPrompt && prompt && model && max_tokens) {

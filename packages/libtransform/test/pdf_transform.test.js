@@ -100,12 +100,10 @@ describe("PdfTransform", () => {
   });
 
   test("constructor validates required dependencies", () => {
-    // Describer is optional; constructing without it should NOT throw
     assert.doesNotThrow(() => {
       new PdfTransform(knowledgeStorage, llm, logger);
     });
 
-    // Parser is required; constructing without it SHOULD throw
     assert.throws(
       () => {
         new PdfTransform(null, llm, logger);

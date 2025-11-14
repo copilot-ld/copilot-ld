@@ -100,7 +100,11 @@ export class PdfTransform extends ProcessorBase {
       );
 
       if (htmlContent && htmlContent.length > 0) {
-        this.#logger.debug("Got back ", htmlContent);
+        this.#logger.debug("Received HTML from Copilot", {
+          key,
+          page: i + 1,
+          contentLength: htmlContent.length,
+        });
         htmlFragments.push(htmlContent);
       } else {
         this.#logger.debug("Got an empty response from Copilot for image", {

@@ -209,8 +209,8 @@ export class Copilot {
    * @param {string} filePath - Path to the image file
    * @param {string} [prompt] - Optional text prompt to guide the description
    * @param {string} [model] - Model to use for image-to-text conversion, defaults to instance model
-   * @param {string} [systemPrompt] - System prompt to set context for the description*
-   * @param {number} [max_tokens] Maximum tokens to generate in the description
+   * @param {string} [systemPrompt] - System prompt to set context for the description
+   * @param {number} [max_tokens] - Maximum tokens to generate in the description
    * @returns {Promise<string>} Text description of the image
    */
   async imageToText(

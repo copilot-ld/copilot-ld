@@ -21,6 +21,10 @@ jobs:
       - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
+      - name: Install pdftoppm
+        shell: bash
+        run: sudo apt install -y poppler-utils
+
       - name: Process demo data
         id: data
         env:

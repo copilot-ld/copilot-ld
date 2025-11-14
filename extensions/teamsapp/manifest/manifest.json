@@ -1,22 +1,21 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
-  "manifestVersion": "1.16",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.24",
   "version": "1.0.0",
   "id": "e7a1c2b2-4f8a-4e2a-9b6e-2b7e8c1d9a3f",
-  "packageName": "com.pfizer.copilotld",
   "developer": {
-    "name": "Pfizer",
-    "websiteUrl": "https://www.pfizer.com",
-    "privacyUrl": "https://www.pfizer.com/privacy",
-    "termsOfUseUrl": "https://www.pfizer.com/terms"
+    "name": "Copilot LD Bot",
+    "websiteUrl": "https://www.copilot-ld.dev",
+    "privacyUrl": "https://www.copilot-ld.dev/privacy",
+    "termsOfUseUrl": "https://www.copilot-ld.dev/terms"
   },
   "name": {
     "short": "Copilot LD Bot",
-    "full": "Pfizer Copilot LD Bot"
+    "full": "Copilot LD Bot"
   },
   "description": {
-    "short": "A bot for Pfizer Copilot LD.",
-    "full": "This Microsoft Teams app provides a bot for Pfizer Copilot LD."
+    "short": "A bot for Copilot LD.",
+    "full": "This Microsoft Teams app provides a bot for Copilot LD."
   },
   "icons": {
     "outline": "outline.png",
@@ -43,12 +42,13 @@
     {
       "entityId": "ea9a72d4-c12c-443c-b1f0-3fa7f3d23342",
       "name": "About",
-      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/chat",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/about",
       "scopes": ["personal"]
     }
   ],
   "configurableTabs": [
     {
+      "id": "b2e7c1a4-5d3f-4c8e-9f2a-1e7b2c3d4f5a",
       "configurationUrl": "https://${{TEAMS_BOT_DOMAIN}}/settings",
       "canUpdateConfiguration": true,
       "scopes": ["team"]

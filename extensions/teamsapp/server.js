@@ -9,6 +9,7 @@ import {
   createServiceConfig,
   createExtensionConfig,
 } from "@copilot-ld/libconfig";
+import { authorize } from "./auth.js";
 
 /**
  * Patches a native HTTP response object with minimal Express-like methods for botbuilder compatibility.
@@ -126,7 +127,22 @@ async function handleApiMessages(req, res, adapter, myBot) {
  * @param {import('http').ServerResponse} res - HTTP response object
  * @param {string} dir - Directory path for static files
  */
-function handleGetSettings(req, res, dir) {
+/**
+ * Serves the settings.html static page for /settings endpoint, restricted to tenant-wide admins.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ * @param {string} dir - Directory path for static files
+ */
+async function handleGetSettings(req, res, dir) {
+  try {
+    authorize(req);
+  } catch (err) {
+    res.writeHead(err.statusCode || 401, { "Content-Type": "text/plain" });
+    res.end(err.message || "Unauthorized");
+    return;
+  }
+
+  // Serve settings.html if admin
   const filePath = path.join(dir, "settings.html");
   fs.readFile(filePath, (err, data) => {
     if (err) {

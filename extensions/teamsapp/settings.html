@@ -42,5 +42,20 @@
       </div>
       <button type="submit">Save Settings</button>
     </form>
+    <script
+      src="https://res.cdn.office.net/teams-js/2.47.0/js/MicrosoftTeams.min.js"
+      integrity="sha384-IkfULjDxwgKWYEYHErhDcuw+ahOQvmrcRFwgI3sm/uu7c0HWVjyYG3qp5z5SncxD"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      // Initialize Teams SDK and configuration flow
+      microsoftTeams.app.initialize().then(() => {
+        microsoftTeams.pages.config.setValidityState(true);
+        microsoftTeams.pages.config.registerOnSaveHandler((saveEvent) => {
+          // Optionally, collect settings from the form here
+          saveEvent.notifySuccess();
+        });
+      });
+    </script>
   </body>
 </html>

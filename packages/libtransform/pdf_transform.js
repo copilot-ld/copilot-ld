@@ -93,9 +93,9 @@ export class PdfTransform extends ProcessorBase {
 
       const htmlContent = await this.#llm.imageToText(
         image,
-        systemPrompt,
         prompt,
         model,
+        systemPrompt,
         max_tokens,
       );
 

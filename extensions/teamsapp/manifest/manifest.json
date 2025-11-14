@@ -44,6 +44,12 @@
       "name": "About",
       "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/about",
       "scopes": ["personal"]
+    },
+    {
+      "entityId": "c7f2e8b1-3a4d-4e6b-8c2f-9d1e5b7a6c3f",
+      "name": "Settings",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/settings",
+      "scopes": ["personal"]
     }
   ],
   "configurableTabs": [

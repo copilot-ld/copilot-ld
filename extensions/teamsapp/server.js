@@ -69,7 +69,7 @@ function parseBody(req) {
  * @param {string} dir - Directory path for static files
  */
 function handleAbout(req, res, dir) {
-  const filePath = path.join(dir, "about.html");
+  const filePath = path.join(dir, "public/about.html");
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { "Content-Type": "text/plain" });
@@ -88,7 +88,7 @@ function handleAbout(req, res, dir) {
  * @param {string} dir - Directory path for static files
  */
 function handleMessages(req, res, dir) {
-  const filePath = path.join(dir, "messages.html");
+  const filePath = path.join(dir, "public/messages.html");
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { "Content-Type": "text/plain" });
@@ -143,7 +143,7 @@ async function handleGetSettings(req, res, dir) {
   }
 
   // Serve settings.html if admin
-  const filePath = path.join(dir, "settings.html");
+  const filePath = path.join(dir, "public/settings.html");
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { "Content-Type": "text/plain" });

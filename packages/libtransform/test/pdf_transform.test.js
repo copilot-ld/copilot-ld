@@ -32,7 +32,7 @@ describe("PdfTransform", () => {
       },
     };
 
-    // Mock LLmL
+    // Mock LLM
     llm = {
       imageToText: async (
         filePath,

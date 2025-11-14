@@ -132,6 +132,7 @@ balancer
 boolean
 changelog
 charset
+chat
 chatbots
 chunking
 codebase

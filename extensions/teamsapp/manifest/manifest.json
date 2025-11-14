@@ -1,0 +1,63 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.24",
+  "version": "1.0.0",
+  "id": "e7a1c2b2-4f8a-4e2a-9b6e-2b7e8c1d9a3f",
+  "developer": {
+    "name": "Copilot LD Bot",
+    "websiteUrl": "https://www.copilot-ld.dev",
+    "privacyUrl": "https://www.copilot-ld.dev/privacy",
+    "termsOfUseUrl": "https://www.copilot-ld.dev/terms"
+  },
+  "name": {
+    "short": "Copilot LD Bot",
+    "full": "Copilot LD Bot"
+  },
+  "description": {
+    "short": "A bot for Copilot LD.",
+    "full": "This Microsoft Teams app provides a bot for Copilot LD."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#0078d4",
+  "bots": [
+    {
+      "botId": "${{TEAMS_BOT_ID}}",
+      "scopes": ["personal", "team", "groupchat"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["${{TEAMS_BOT_DOMAIN}}"],
+  "staticTabs": [
+    {
+      "entityId": "9bca5f2f-9005-4dfb-a056-07a8a07c5cc0",
+      "name": "Messages",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/messages",
+      "scopes": ["personal", "team", "groupChat"]
+    },
+    {
+      "entityId": "ea9a72d4-c12c-443c-b1f0-3fa7f3d23342",
+      "name": "About",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/about",
+      "scopes": ["personal"]
+    },
+    {
+      "entityId": "c7f2e8b1-3a4d-4e6b-8c2f-9d1e5b7a6c3f",
+      "name": "Settings",
+      "contentUrl": "https://${{TEAMS_BOT_DOMAIN}}/settings",
+      "scopes": ["personal"]
+    }
+  ],
+  "configurableTabs": [
+    {
+      "id": "b2e7c1a4-5d3f-4c8e-9f2a-1e7b2c3d4f5a",
+      "configurationUrl": "https://${{TEAMS_BOT_DOMAIN}}/settings",
+      "canUpdateConfiguration": true,
+      "scopes": ["team"]
+    }
+  ]
+}

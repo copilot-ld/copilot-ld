@@ -85,7 +85,7 @@ export class PdfTransform extends ProcessorBase {
       this.#logger.debug("Sending image to Copilot", { key, page: i + 1 });
 
       const systemPrompt =
-        "You are an expert in HTML and Schema.org microdata. Extract text from the provided image and convert it into valid class-less HTML with appropriate Schema.org microdata attributes. Assume the image is one of many, so create fragments of HTML that will be combined to produce a single HTML file at the end of the process. These images may contain gant charts and graphs. Use only valid Schema.org types and properties from https://schema.org. Output only the HTML without any explanation or markdown code blocks.";
+        "You are an expert in HTML and Schema.org microdata. Extract text from the provided image and convert it into valid class-less HTML with appropriate Schema.org microdata attributes. Assume the image is one of many, so create fragments of HTML that will be combined to produce a single HTML file at the end of the process. These images may contain Gantt charts and graphs. Use only valid Schema.org types and properties from https://schema.org. Output only the HTML without any explanation or markdown code blocks.";
 
       const prompt = "What is in this image?";
       const model = "gpt-4o";

@@ -35,7 +35,7 @@ jobs:
         with:
           retrieve: |
             {
-              "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ServiceDiscoveryNamespaceId"],
+              "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "PublicSubnetIds", "ServiceSecurityGroupId", "ServiceDiscoveryNamespaceId"],
               "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
               "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
             }

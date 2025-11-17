@@ -170,6 +170,12 @@ export class PdfTransform extends ProcessorBase {
       const files = await readdir(tempDir);
       const imageFiles = files
         .filter((f) => /^page-\d+\.png$/.test(f))
+        .sort((a, b) => {
+          // Extract page numbers from filenames
+          const aNum = parseInt(a.match(/^page-(\d+)\.png$/)[1], 10);
+          const bNum = parseInt(b.match(/^page-(\d+)\.png$/)[1], 10);
+          return aNum - bNum;
+        })
         .map((f) => join(tempDir, f));
 
       if (imageFiles.length === 0) {

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libmemory",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Memory management library for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libindex": "^0.1.3"
+    "@copilot-ld/libindex": "^0.1.4"
   },
   "devDependencies": {},
   "repository": {

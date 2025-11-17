@@ -10,12 +10,78 @@
       crossorigin="anonymous"
     ></script>
     <script type="module">
-      await microsoftTeams.app.initialize();
+      // Initialize Teams SDK with error handling
+      let context;
+      let teamsToken = null;
+
+      try {
+        await microsoftTeams.app.initialize();
+        try {
+          context = await microsoftTeams.app.getContext();
+        } catch (e) {
+          context = null;
+        }
+        // Try to get Teams auth token (SSO)
+        try {
+          teamsToken = await microsoftTeams.authentication.getAuthToken();
+
+          document.getElementById("logging").innerHTML = "Token: " + teamsToken;
+        } catch (e) {
+          document.getElementById("logging").innerHTML = "Token Error" + e;
+          teamsToken = null;
+        }
+      } catch (e) {
+        document.body.innerHTML =
+          "<p>Failed to initialize Microsoft Teams SDK. This page must be loaded in Microsoft Teams.</p>";
+        context = null;
+      }
+
+      // Optionally, check if running in Teams
+      if (!context) {
+        document.body.innerHTML =
+          "<p>This page must be loaded in Microsoft Teams.</p>";
+      }
+
+      // Handle form submission
+      const form = document.getElementById("settings-form");
+      if (form) {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          // Collect form data
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+
+          // Send to backend with bearer token if available
+          try {
+            const resp = await fetch("/api/settings", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(teamsToken
+                  ? { Authorization: `Bearer ${teamsToken}` }
+                  : {}),
+              },
+              body: JSON.stringify(data),
+            });
+            if (resp.ok) {
+              alert("Settings saved!");
+              // Optionally, notify Teams of success
+              // await microsoftTeams.app.notifySuccess();
+            } else {
+              const msg = await resp.text();
+              alert("Failed to save settings: " + msg);
+            }
+          } catch (err) {
+            alert("Error saving settings: " + err);
+          }
+        });
+      }
     </script>
   </head>
   <body>
     <h1>Settings</h1>
     <p>Configure your Copilot-LD Teams app settings here.</p>
+    <p id="logging"></p>
     <form id="settings-form">
       <div>
         <label for="api_url">API URL:</label>

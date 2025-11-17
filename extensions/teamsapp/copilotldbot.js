@@ -1,5 +1,5 @@
 import { agent, common } from "@copilot-ld/libtype";
-import { ActivityHandler, MessageFactory } from "botbuilder";
+import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
 
 /**
  * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
@@ -11,6 +11,29 @@ import { ActivityHandler, MessageFactory } from "botbuilder";
  * @augments ActivityHandler
  */
 class CopilotLdBot extends ActivityHandler {
+  /**
+   * Handles the 'configure' command by sending a settings page link to the user.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @returns {Promise<void>}
+   */
+  async handleConfigureCommand(context) {
+    // Use TEAMS_BOT_DOMAIN env variable for the settings URL
+    const tenantId = context?.activity?.conversation?.tenantId;
+    const settingsUrl = `https://${process.env.TEAMS_BOT_DOMAIN}/settings?tenantId=${encodeURIComponent(tenantId)}`;
+    const card = CardFactory.heroCard(
+      "Update Your Settings",
+      "Click the button below to open your settings page.",
+      null,
+      [
+        {
+          type: "openUrl",
+          title: "Open Settings",
+          value: settingsUrl,
+        },
+      ],
+    );
+    await context.sendActivity({ attachments: [card] });
+  }
   /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
    * @param {AgentClient} agentClient - An instance of AgentClient for communicating with the Agent service.
@@ -64,6 +87,14 @@ class CopilotLdBot extends ActivityHandler {
    * @returns {Promise<void>}
    */
   async handleMessage(context, next) {
+    const text = context.activity.text?.trim().toLowerCase();
+    // Check for configure command
+    if (text === "configure" || text === "/configure") {
+      await this.handleConfigureCommand(context);
+      await next();
+      return;
+    }
+
     const requestParams = agent.AgentRequest.fromObject({
       messages: [
         common.Message.fromObject({

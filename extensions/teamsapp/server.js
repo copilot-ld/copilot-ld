@@ -134,15 +134,8 @@ async function handleApiMessages(req, res, adapter, myBot) {
  * @param {string} dir - Directory path for static files
  */
 async function handleGetSettings(req, res, dir) {
-  try {
-    authorize(req);
-  } catch (err) {
-    res.writeHead(err.statusCode || 401, { "Content-Type": "text/plain" });
-    res.end(err.message || "Unauthorized");
-    return;
-  }
+  console.log("GET /settings");
 
-  // Serve settings.html if admin
   const filePath = path.join(dir, "public/settings.html");
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -152,6 +145,39 @@ async function handleGetSettings(req, res, dir) {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(data);
     }
+  });
+}
+
+/**
+ * Handles POST requests to /api/settings for saving settings with admin auth check.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ */
+function handleSaveSettings(req, res) {
+  console.log("POST /api/settings");
+  let body = "";
+  req.on("data", (chunk) => {
+    body += chunk;
+  });
+  req.on("end", () => {
+    try {
+      // Auth check
+      authorize(req);
+    } catch (err) {
+      console.error("Authorization error:", err);
+      res.writeHead(err.statusCode || 401, { "Content-Type": "text/plain" });
+      res.end(err.message || "Unauthorized");
+      return;
+    }
+    console.log("Settings data received:", body);
+    // TODO: Save settings logic here
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "ok", message: "Settings saved (TODO)" }));
+  });
+  req.on("error", () => {
+    console.error("Error reading request body");
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Error reading request body");
   });
 }
 
@@ -176,7 +202,7 @@ export default async function createServer() {
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {
-    if (req.method === "GET" && req.url === "/about") {
+    if (req.method === "GET" && req.url === "/aboutXXX") {
       handleAbout(req, res, __dirname);
       return;
     }
@@ -184,12 +210,16 @@ export default async function createServer() {
       handleMessages(req, res, __dirname);
       return;
     }
-    if (req.method === "GET" && req.url === "/settings") {
+    if (req.method === "GET" && req.url === "/about") {
       handleGetSettings(req, res, __dirname);
       return;
     }
     if (req.method === "POST" && req.url === "/api/messages") {
       await handleApiMessages(req, res, adapter, myBot);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/settings") {
+      handleSaveSettings(req, res);
       return;
     }
     res.writeHead(404, { "Content-Type": "text/plain" });

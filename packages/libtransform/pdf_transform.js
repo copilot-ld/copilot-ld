@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { spawn, spawnSync } from "child_process";
-import { mkdtemp, writeFile, readdir } from "fs/promises";
+import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { ProcessorBase } from "@copilot-ld/libutil";
@@ -143,6 +143,7 @@ export class PdfTransform extends ProcessorBase {
   /**
    * Splits a PDF buffer into an array of image file paths using pdftoppm.
    * Each page is converted to a PNG image in a temporary directory.
+   * Removes the temporary directory after processing completes or fails.
    * @param {Buffer} pdfBuffer - PDF file buffer
    * @param {string} key - Storage key for logging
    * @returns {Promise<string[]>} Array of PNG image file paths (one per page)
@@ -151,34 +152,35 @@ export class PdfTransform extends ProcessorBase {
   async #pdfSplitter(pdfBuffer, key) {
     // Create a temporary directory for images
     const tempDir = await mkdtemp(join(tmpdir(), "pdfsplit-"));
-    const pdfPath = join(tempDir, "input.pdf");
-    await writeFile(pdfPath, pdfBuffer);
+    try {
+      const pdfPath = join(tempDir, "input.pdf");
+      await writeFile(pdfPath, pdfBuffer);
 
-    // pdftoppm command: pdftoppm input.pdf page -png
-    const outputPrefix = join(tempDir, "page");
-    await new Promise((resolve, reject) => {
-      const proc = spawn("pdftoppm", [pdfPath, outputPrefix, "-png"]);
-      proc.on("error", reject);
-      proc.on("close", (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`pdftoppm exited with code ${code}`));
+      // pdftoppm command: pdftoppm input.pdf page -png
+      const outputPrefix = join(tempDir, "page");
+      await new Promise((resolve, reject) => {
+        const proc = spawn("pdftoppm", [pdfPath, outputPrefix, "-png"]);
+        proc.on("error", reject);
+        proc.on("close", (code) => {
+          if (code === 0) resolve();
+          else reject(new Error(`pdftoppm exited with code ${code}`));
+        });
       });
-    });
 
-    // Collect all generated PNG files (page-1.png, page-2.png, ...)
-    const files = await readdir(tempDir);
-    // Assumption: pdftoppm generates PNG files named with a page number, e.g. "page-1.png".
-    const imageFiles = files
-      .filter((f) => /^page-\d+\.png$/.test(f))
-      .map((f) => join(tempDir, f));
+      const files = await readdir(tempDir);
+      const imageFiles = files
+        .filter((f) => /^page-\d+\.png$/.test(f))
+        .map((f) => join(tempDir, f));
 
-    if (imageFiles.length === 0) {
-      throw new Error("No images generated from PDF");
+      if (imageFiles.length === 0) {
+        throw new Error("No images generated from PDF");
+      }
+
+      this.#logger.debug("Generated images from PDF", { key, imageFiles });
+      return imageFiles;
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
     }
-
-    this.#logger.debug("Generated images from PDF", { key, imageFiles });
-
-    return imageFiles;
   }
 
   /**

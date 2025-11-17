@@ -152,6 +152,6 @@ export function execLine(shift = 0) {
 export { Finder } from "./finder.js";
 export { Uploader } from "./uploader.js";
 export { Downloader } from "./downloader.js";
-export { TarExtractor } from "./extractor.js";
+export { TarExtractor, ZipExtractor } from "./extractor.js";
 export { ProcessorBase } from "./processor.js";
 export { Retry, createRetry } from "./retry.js";

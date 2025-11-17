@@ -2,7 +2,12 @@
 /* eslint-env node */
 import { execSync } from "child_process";
 import { createWriteStream } from "fs";
+import fs from "fs/promises";
+import path from "path";
 import { pipeline } from "stream/promises";
+
+import { createScriptConfig } from "@copilot-ld/libconfig";
+import { ZipExtractor } from "@copilot-ld/libutil";
 
 /**
  * Downloads demo-data artifact from the last successful workflow run
@@ -10,6 +15,8 @@ import { pipeline } from "stream/promises";
  */
 async function main() {
   try {
+    const config = await createScriptConfig("demo-data");
+
     // Get the last successful run of the demo-data workflow
     const runsJson = execSync(
       "gh api -X GET /repos/copilot-ld/copilot-ld/actions/workflows/demo-data.yml/runs -f status=success -f per_page=1",
@@ -43,9 +50,10 @@ async function main() {
 
     // Download the artifact
     const downloadUrl = demoDataArtifact.archive_download_url;
+    const githubToken = await config.githubToken();
     const response = await fetch(downloadUrl, {
       headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${githubToken}`,
         Accept: "application/vnd.github+json",
       },
     });
@@ -59,9 +67,12 @@ async function main() {
     const fileStream = createWriteStream(tempFile);
     await pipeline(response.body, fileStream);
 
-    // Unzip the artifact to current directory
-    execSync(`unzip -o ${tempFile}`, { stdio: "inherit" });
-    execSync(`rm ${tempFile}`);
+    // Extract the artifact using native ZipExtractor
+    const zipExtractor = new ZipExtractor(fs, path);
+    await zipExtractor.extract(tempFile, ".");
+
+    // Clean up temp file
+    await fs.unlink(tempFile);
 
     console.log("Demo data downloaded and extracted successfully");
   } catch (error) {

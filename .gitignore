@@ -38,3 +38,7 @@ SCRATCHPAD*.md
 **/*.zip
 **/*.log
 /temp/
+
+# Excplicit test fixtures
+!**/test/fixtures/sample.tar.gz
+!**/test/fixtures/sample.zip

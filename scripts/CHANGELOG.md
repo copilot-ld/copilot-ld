@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-11-17
+
+- Replaced `unzip` command with native `ZipExtractor` from `@copilot-ld/libutil`
+  in `demo-data.js`
+- Improved cross-platform compatibility by removing dependency on external
+  `unzip` command
+- Updated `demo-data.js` to use `createScriptConfig()` and
+  `await config.githubToken()` instead of directly accessing
+  `process.env.GITHUB_TOKEN`
+- Fixed `ZipExtractor` to use stream chunk collection instead of `.toArray()`
+  for better compatibility
+
 ## 2025-10-28
 
 - Simplified `analyze-traces.js` from 280 to 150 lines by removing unnecessary

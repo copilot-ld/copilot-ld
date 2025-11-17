@@ -1,5 +1,18 @@
 # Changelog
 
+## 2025-11-17
+
+- Added `ZipExtractor` class for native ZIP file extraction without external
+  dependencies
+- Refactored `TarExtractor` to extend shared `BaseExtractor` base class
+- Shared common functionality between extractors: file filtering, directory
+  creation, file writing, and buffer reading utilities
+- Exported `ZipExtractor` from `libutil` package
+- Added comprehensive tests for both `TarExtractor` and `ZipExtractor` with
+  fixture files
+- Fixed `ZipExtractor` to use stream chunk collection for better Node.js
+  compatibility
+
 ## 2025-10-28
 
 - Deprecated `Logger` class (moved to `@copilot-ld/libtelemetry`)

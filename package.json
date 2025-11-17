@@ -18,6 +18,7 @@
     "data:init": "mkdir -p generated data/eval data/memories data/policies data/resources data/graphs data/vectors",
     "data:clean": "rm -rf generated data/eval data/memories data/policies data/resources data/graphs data/vectors",
     "data:reset": "npm run data:clean && npm run data:init && npm run codegen",
+    "data:download": "npx env-cmd -- node ./scripts/demo-data.js",
     "codegen": "npx --workspace=@copilot-ld/libcodegen codegen --all",
     "codegen:type": "npx --workspace=@copilot-ld/libcodegen codegen --type",
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",

@@ -9,6 +9,10 @@ runs:
         cache: "npm"
         registry-url: "https://npm.pkg.github.com"
 
+    - name: Install pdftoppm
+      shell: bash
+      run: sudo apt install -y poppler-utils
+
     - name: Install dependencies
       shell: bash
       run: npm ci

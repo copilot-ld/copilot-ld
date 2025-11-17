@@ -12,7 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-node
-      - run: sudo apt install -y poppler-utils
       - run: npm test
 
   lint:

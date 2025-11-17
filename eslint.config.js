@@ -56,14 +56,13 @@ export default [
       "**/coverage/**",
       "**/data/**",
       "**/dist/**",
-      "**/generated/types/types.js",
+      "**/generated/types/types.js", // Ignore generated types with invalid JSDoc from protobufjs
       "**/.history/**",
       "**/lib/**",
       "**/node_modules/**",
       "**/package-lock.json",
       "**/.vscode/**",
       "SCRATCHPAD*.md",
-      // Ignore generated types with invalid JSDoc from protobufjs
     ],
   },
 

@@ -159,6 +159,7 @@ export class PdfTransform extends ProcessorBase {
 
     // Collect all generated PNG files (page-1.png, page-2.png, ...)
     const files = await readdir(tempDir);
+    // Assumption: pdftoppm generates PNG files named with a page number, e.g. "page-1.png".
     const imageFiles = files
       .filter((f) => /^page-\d+\.png$/.test(f))
       .map((f) => join(tempDir, f));

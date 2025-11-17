@@ -9,6 +9,7 @@ import {
   createServiceConfig,
   createExtensionConfig,
 } from "@copilot-ld/libconfig";
+import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { authorize } from "./auth.js";
 
 /**
@@ -172,7 +173,8 @@ export default async function createServer() {
   const agentClient = new clients.AgentClient(
     await createServiceConfig("agent"),
   );
-  const myBot = new CopilotLdBot(agentClient, config);
+  const htmlFormatter = createHtmlFormatter();
+  const myBot = new CopilotLdBot(agentClient, config, htmlFormatter);
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {

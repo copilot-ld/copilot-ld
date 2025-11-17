@@ -18,7 +18,7 @@
     "@copilot-ld/libconfig": "^0.1.31",
     "@copilot-ld/libgraph": "^0.1.19",
     "@copilot-ld/libresource": "^0.1.52",
-    "@copilot-ld/librpc": "^0.1.50",
+    "@copilot-ld/librpc": "^0.1.51",
     "n3": "^1.26.0"
   },
   "repository": {

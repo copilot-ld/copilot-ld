@@ -14,15 +14,24 @@ export class PdfTransform extends ProcessorBase {
   #knowledgeStorage;
   #llm;
   #logger;
+  #systemPrompt;
+  #userPrompt;
+  #model;
+  #maxTokens;
 
   /**
    * Creates a new PdfTransform instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage backend for PDF files
    * @param {object} llm - Copilot LLM client with imageToText(image, systemPrompt, prompt, model, max_tokens) method
    * @param {object} logger - Logger instance with debug() method
+   * @param {object} [options] - Optional configuration
+   * @param {string} [options.systemPrompt] - System prompt for Copilot
+   * @param {string} [options.userPrompt] - User prompt for Copilot
+   * @param {string} [options.model] - Model name for Copilot
+   * @param {number} [options.maxTokens] - Max tokens for Copilot response
    * @throws {Error} If pdftoppm is not available
    */
-  constructor(knowledgeStorage, llm, logger) {
+  constructor(knowledgeStorage, llm, logger, options = {}) {
     super(logger, 5);
 
     if (!knowledgeStorage) throw new Error("knowledgeStorage is required");
@@ -35,6 +44,12 @@ export class PdfTransform extends ProcessorBase {
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
     this.#logger = logger;
+    this.#systemPrompt =
+      options.systemPrompt ||
+      "You are an expert in HTML and Schema.org microdata. Extract text from the provided image and convert it into valid class-less HTML with appropriate Schema.org microdata attributes. Assume the image is one of many, so create fragments of HTML that will be combined to produce a single HTML file at the end of the process. These images may contain Gantt charts and graphs. Use only valid Schema.org types and properties from https://schema.org. Output only the HTML without any explanation or markdown code blocks.";
+    this.#userPrompt = options.userPrompt || "What is in this image?";
+    this.#model = options.model || "gpt-4o";
+    this.#maxTokens = options.maxTokens || 2000;
   }
 
   /**
@@ -84,19 +99,12 @@ export class PdfTransform extends ProcessorBase {
     for (const [i, image] of images.entries()) {
       this.#logger.debug("Sending image to Copilot", { key, page: i + 1 });
 
-      const systemPrompt =
-        "You are an expert in HTML and Schema.org microdata. Extract text from the provided image and convert it into valid class-less HTML with appropriate Schema.org microdata attributes. Assume the image is one of many, so create fragments of HTML that will be combined to produce a single HTML file at the end of the process. These images may contain Gantt charts and graphs. Use only valid Schema.org types and properties from https://schema.org. Output only the HTML without any explanation or markdown code blocks.";
-
-      const prompt = "What is in this image?";
-      const model = "gpt-4o";
-      const max_tokens = 2000;
-
       const htmlContent = await this.#llm.imageToText(
         image,
-        prompt,
-        model,
-        systemPrompt,
-        max_tokens,
+        this.#userPrompt,
+        this.#model,
+        this.#systemPrompt,
+        this.#maxTokens,
       );
 
       if (htmlContent && htmlContent.length > 0) {

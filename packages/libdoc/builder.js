@@ -18,7 +18,7 @@ export class DocsBuilder {
    * @param {object} fs - File system module
    * @param {object} path - Path module
    * @param {Function} markedParser - Marked parser function
-   * @param {Function} matterParser - Gray-matter parser function
+   * @param {Function} matterParser - Front matter parser function
    * @param {Function} mustacheRender - Mustache render function
    * @param {object} prettier - Prettier module for HTML formatting
    */

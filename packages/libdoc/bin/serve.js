@@ -6,11 +6,11 @@ import { parseArgs } from "node:util";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { marked } from "marked";
-import matter from "gray-matter";
 import mustache from "mustache";
 import prettier from "prettier";
 
 import { DocsBuilder, DocsServer } from "@copilot-ld/libdoc";
+import { parseFrontMatter } from "../frontmatter.js";
 
 /**
  * Main function to handle CLI execution
@@ -48,7 +48,7 @@ async function main() {
     fs,
     path,
     marked,
-    matter,
+    parseFrontMatter,
     mustache.render,
     prettier,
   );

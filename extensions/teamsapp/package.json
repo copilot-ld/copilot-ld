@@ -17,8 +17,8 @@
     "@copilot-ld/libconfig": "^0.1.32",
     "@copilot-ld/libformat": "^0.1.39",
     "@copilot-ld/librpc": "^0.1.51",
-    "@copilot-ld/libtype": "^0.1.39",
-    "@copilot-ld/libutil": "^0.1.37",
+    "@copilot-ld/libtype": "^0.1.40",
+    "@copilot-ld/libutil": "^0.1.38",
     "@copilot-ld/libweb": "^0.1.32",
     "botbuilder": "~4.23.3",
     "dotenv": "~17.2.3"

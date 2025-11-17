@@ -15,6 +15,10 @@ Parameters:
     Type: CommaDelimitedList
     Description: Private subnets for services (minimum two)
 
+  PublicSubnetIds:
+    Type: CommaDelimitedList
+    Description: Public subnets for egress proxy (minimum two)
+
   ServiceSecurityGroupId:
     Type: String
     Description: Security group ID for services
@@ -88,9 +92,40 @@ Resources:
     Properties:
       RetentionInDays: 7
 
+  EgressLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
   # ==========================================
   # TASK DEFINITIONS
   # ==========================================
+
+  # Egress proxy task definition for outbound internet access
+  EgressTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !Ref SecretsRoleArn
+      ContainerDefinitions:
+        - Name: egress
+          Image: ubuntu/squid:latest
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3128
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref EgressLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: egress
 
   # ECS task definitions for backend service containers
   AgentTaskDefinition:
@@ -192,6 +227,12 @@ Resources:
               Value: !Ref BucketName
             - Name: DEBUG
               Value: "*"
+            - Name: HTTPS_PROXY
+              Value: http://egress.copilot-ld.local:3128
+            - Name: HTTP_PROXY
+              Value: http://egress.copilot-ld.local:3128
+            - Name: NO_PROXY
+              Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -380,9 +421,36 @@ Resources:
             TTL: 300
       NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
+  EgressServiceDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: egress
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: 300
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
+
   # ==========================================
   # ECS SERVICES
   # ==========================================
+
+  # Egress proxy service on public subnet with public IP
+  EgressService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref EgressTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref ServiceSecurityGroupId
+          Subnets: !Ref PublicSubnetIds
+      ServiceRegistries:
+        - RegistryArn: !GetAtt EgressServiceDiscovery.Arn
 
   # ECS services for running backend containerized applications
   AgentService:
@@ -513,3 +581,7 @@ Outputs:
   ToolServiceArn:
     Description: ARN of the tool service
     Value: !Ref ToolService
+
+  EgressServiceArn:
+    Description: ARN of the egress proxy service
+    Value: !Ref EgressService

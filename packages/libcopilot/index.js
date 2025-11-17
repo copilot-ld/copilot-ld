@@ -2,6 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { common } from "@copilot-ld/libtype";
 import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 /**
  * @typedef {object} CompletionParams
@@ -268,6 +269,28 @@ function normalizeVector(vector) {
 }
 
 /**
+ * Creates a proxy-aware fetch function that respects HTTPS_PROXY environment variable
+ * @param {object} [process] - Process object for environment variable access
+ * @returns {(url: string, options?: object) => Promise<Response>} Fetch function with proxy support
+ */
+function createProxyAwareFetch(process = global.process) {
+  const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
+
+  if (!httpsProxy) {
+    return fetch;
+  }
+
+  const agent = new HttpsProxyAgent(httpsProxy);
+
+  return (url, options = {}) => {
+    return fetch(url, {
+      ...options,
+      dispatcher: agent,
+    });
+  };
+}
+
+/**
  * Factory function to create a Copilot instance with default dependencies
  * @param {string} token - GitHub Copilot token
  * @param {string} [model] - Default model to use
@@ -278,7 +301,7 @@ function normalizeVector(vector) {
 export function createLlm(
   token,
   model = "gpt-4o",
-  fetchFn = fetch,
+  fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
 ) {
   const retry = createRetry();

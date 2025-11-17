@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@copilot-ld/libtype": "^0.1.40",
-    "@copilot-ld/libutil": "^0.1.38"
+    "@copilot-ld/libutil": "^0.1.38",
+    "https-proxy-agent": "^7.0.6"
   },
   "repository": {
     "type": "git",

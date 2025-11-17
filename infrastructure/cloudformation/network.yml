@@ -58,19 +58,6 @@ Resources:
       AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: 10.0.4.0/24
 
-  # NAT Gateway (single instance for cost efficiency)
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnet1
-
   # Route Tables
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -101,13 +88,6 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
-
-  DefaultPrivateRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -155,6 +135,24 @@ Resources:
       FromPort: 50051
       ToPort: 50055
       SourceSecurityGroupId: !Ref ServiceSecurityGroup
+
+  ServiceSecurityGroupIngressProxy:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ServiceSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3128
+      ToPort: 3128
+      SourceSecurityGroupId: !Ref ServiceSecurityGroup
+
+  ServiceSecurityGroupEgressHTTPS:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ServiceSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
 
   # Security group for VPC endpoints
   VPCEndpointSecurityGroup:
@@ -293,6 +291,10 @@ Outputs:
   PrivateSubnetIds:
     Description: List of private subnet IDs
     Value: !Sub "${PrivateSubnet1},${PrivateSubnet2}"
+
+  PublicSubnetIds:
+    Description: List of public subnet IDs
+    Value: !Sub "${PublicSubnet1},${PublicSubnet2}"
 
   ServiceSecurityGroupId:
     Description: Security group ID for services

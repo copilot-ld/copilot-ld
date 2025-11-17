@@ -25,12 +25,18 @@ application load balancing, object storage, and all microservices.
 
 The Docker Compose stack includes:
 
+- **Egress Proxy**: Squid-based HTTP/HTTPS proxy for outbound internet access
 - **Application Load Balancer (ALB)**: nginx-based reverse proxy with SSL
   termination
 - **Object Storage**: MinIO S3-compatible storage for data persistence
 - **Extension Services**: Web API interface
 - **Core Services**: Agent, LLM, Memory, Vector, and Tool services
 - **Custom Tools**: Example Hash service demonstrating tool extensibility
+
+The egress proxy provides a centralized point for outbound internet
+connectivity, configured via the `HTTPS_PROXY` environment variable. Services
+that need external API access (such as the LLM service for GitHub Copilot API)
+route traffic through this proxy.
 
 ### SSL Certificate Setup
 
@@ -73,6 +79,23 @@ Once deployed, access the system via:
 
 Deploy Copilot-LD on AWS using ECS Fargate with CloudFormation for
 production-grade scalability and managed infrastructure.
+
+### Architecture Overview
+
+The AWS deployment uses an egress proxy container instead of a NAT Gateway for
+cost optimization:
+
+- **Egress Proxy**: Squid proxy container deployed on public subnet with public
+  IP for outbound internet access
+- **Private Services**: All backend services (Agent, LLM, Memory, Vector, Graph,
+  Tool) run on private subnets
+- **Proxy Configuration**: Services requiring external API access use the
+  `HTTPS_PROXY` environment variable to route traffic through the egress proxy
+- **Cost Benefit**: Eliminates the NAT Gateway hourly charge (approximately
+  $32/month per gateway) and data processing charges ($0.045/GB)
+
+This architecture maintains security isolation while reducing operational costs
+significantly compared to using AWS NAT Gateway.
 
 ### AWS OIDC Setup for GitHub Actions
 
@@ -192,8 +215,8 @@ variables → Actions**):
 
 The configured OIDC role enables secure access in four deployment workflows:
 
-- **demo-network.yml**: Deploys VPC network infrastructure including subnets,
-  NAT gateway, and routing tables
+- **demo-network.yml**: Deploys VPC network infrastructure including subnets and
+  routing tables (NAT gateway replaced with egress proxy for cost optimization)
 - **demo-secrets.yml**: Deploys AWS Secrets Manager secrets for GitHub tokens
   and service authentication
 - **demo-data.yml**: Generates demo data artifacts (configuration, knowledge
@@ -201,7 +224,7 @@ The configured OIDC role enables secure access in four deployment workflows:
 - **demo-storage.yml**: Creates S3 storage infrastructure and IAM roles for data
   access
 - **demo-services.yml**: Deploys the complete ECS service stack with load
-  balancing
+  balancing and egress proxy for outbound internet access
 
 For detailed CloudFormation deployment commands and parameters, refer to the
 actual workflow files in `.github/workflows/`. These workflows contain the most
@@ -223,7 +246,8 @@ Deploy the CloudFormation stacks in the following order using the GitHub Actions
 workflows:
 
 - **Network Infrastructure**: Deploy `demo-network.yml` workflow first to create
-  the VPC, subnets, NAT gateways, and routing infrastructure
+  the VPC, subnets, and routing infrastructure (uses egress proxy instead of NAT
+  Gateway for cost-effective outbound connectivity)
 - **Secrets Management**: Deploy `demo-secrets.yml` workflow to create AWS
   Secrets Manager resources for secure credential storage
 - **Data Generation**: Run `demo-data.yml` workflow to generate demo data

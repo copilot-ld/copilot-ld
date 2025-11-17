@@ -18,6 +18,8 @@ secrets:
 networks:
   internal:
     driver: bridge
+  egress:
+    driver: bridge
 
 #
 # Services
@@ -27,6 +29,22 @@ services:
   #
   # Infrastructure Services
   #
+
+  egress:
+    build:
+      context: ./infrastructure/docker/egress
+      dockerfile: Dockerfile
+    image: copilot-ld/egress:latest
+    container_name: egress.copilot-ld
+    networks:
+      internal:
+        aliases:
+          - egress.copilot-ld.local
+      egress:
+        aliases:
+          - egress.copilot-ld.external
+    ports:
+      - "3128:3128"
 
   alb:
     image: nginx:alpine

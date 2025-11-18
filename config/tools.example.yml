@@ -35,26 +35,7 @@ query_by_pattern:
     Returns array of content strings that match the specified subject-predicate-object
     pattern from the knowledge graph structure.
 
-# VECTOR SEARCH TOOLS: Use for semantic content discovery (recommended workflow: descriptor → content)
-query_by_descriptor:
-  purpose: |
-    Search for high-level summaries, overviews, and descriptive metadata using
-    semantic similarity to get a broad understanding of available resources.
-  applicability: |
-    SEQUENCING: Use as the FIRST STEP in content discovery workflows.
-    Perfect for initial exploration to understand what resources are available
-    before diving into detailed content. Provides summaries and abstracts that
-    help you identify the most relevant resources for detailed investigation.
-  instructions: |
-    Input: Text query in 'text' field describing what you're looking for.
-    Optional filters: 'limit' (default: reasonable subset), 'threshold' (similarity).
-    Output: Array of descriptive summaries and metadata strings.
-    Use results to guide subsequent query_by_content calls for detailed information.
-  evaluation: |
-    Returns array of high-level descriptor strings that provide overviews and
-    summaries semantically related to your query.
-
-query_by_content:
+search_content:
   purpose: |
     Search for detailed content in the knowledge base using semantic similarity
     to retrieve comprehensive information on specific topics.

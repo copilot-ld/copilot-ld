@@ -2,12 +2,7 @@
   "service": {
     "agent": {
       "assistant": "software_dev_expert",
-      "permanent_tools": [
-        "get_ontology",
-        "query_by_descriptor",
-        "query_by_content",
-        "query_by_pattern"
-      ],
+      "permanent_tools": ["get_ontology", "search_content", "query_by_pattern"],
       "threshold": 0.5,
       "temperature": 0.25,
       "budget": {
@@ -32,12 +27,8 @@
           "method": "graph.Graph.QueryByPattern",
           "request": "graph.PatternQuery"
         },
-        "query_by_content": {
-          "method": "vector.Vector.QueryByContent",
-          "request": "vector.TextQuery"
-        },
-        "query_by_descriptor": {
-          "method": "vector.Vector.QueryByDescriptor",
+        "search_content": {
+          "method": "vector.Vector.SearchContent",
           "request": "vector.TextQuery"
         }
       }

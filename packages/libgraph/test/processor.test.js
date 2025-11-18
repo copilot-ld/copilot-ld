@@ -69,7 +69,7 @@ describe("GraphProcessor", () => {
           type: "resource.Resource",
         }),
         resource: {
-          content: {},
+          content: "",
         },
       };
 
@@ -90,12 +90,10 @@ describe("GraphProcessor", () => {
         identifier: resource.Identifier.fromObject({
           name: "test",
           type: "resource.Resource",
+          tokens: 100,
         }),
         resource: {
-          content: {
-            nquads: nquads,
-            tokens: 100,
-          },
+          content: nquads,
         },
       };
 
@@ -127,12 +125,10 @@ describe("GraphProcessor", () => {
         identifier: resource.Identifier.fromObject({
           name: "test",
           type: "resource.Resource",
+          tokens: 100,
         }),
         resource: {
-          content: {
-            nquads: nquads,
-            tokens: 100,
-          },
+          content: nquads,
         },
       };
 
@@ -161,9 +157,7 @@ describe("GraphProcessor", () => {
           type: "resource.Resource",
         }),
         resource: {
-          content: {
-            nquads: nquads,
-          },
+          content: nquads,
         },
       };
 
@@ -179,12 +173,10 @@ describe("GraphProcessor", () => {
         identifier: resource.Identifier.fromObject({
           name: "test",
           type: "resource.Resource",
+          tokens: 250,
         }),
         resource: {
-          content: {
-            nquads: nquads,
-            tokens: 250,
-          },
+          content: nquads,
         },
       };
 
@@ -198,21 +190,17 @@ describe("GraphProcessor", () => {
       assert.strictEqual(identifierWithTokens.tokens, 250);
     });
 
-    test("uses descriptor tokens when content tokens are missing", async () => {
+    test("uses resource tokens from Message", async () => {
       const nquads = `<http://example.org/person/1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .`;
 
       const item = {
         identifier: resource.Identifier.fromObject({
           name: "test",
           type: "resource.Resource",
+          tokens: 150,
         }),
         resource: {
-          content: {
-            nquads: nquads,
-          },
-          descriptor: {
-            tokens: 150,
-          },
+          content: nquads,
         },
       };
 
@@ -231,12 +219,10 @@ describe("GraphProcessor", () => {
         identifier: resource.Identifier.fromObject({
           name: "test",
           type: "resource.Resource",
+          tokens: 100,
         }),
         resource: {
-          content: {
-            nquads: "",
-            tokens: 100,
-          },
+          content: "",
         },
       };
 

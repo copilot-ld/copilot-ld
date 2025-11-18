@@ -31,9 +31,7 @@ async function main() {
             type: "function",
             function: {
               name: "get_greeting",
-              descriptor: {
-                purpose: "Returns a simple greeting message",
-              },
+              content: "Returns a simple greeting message",
               parameters: {
                 type: "object",
                 properties: {

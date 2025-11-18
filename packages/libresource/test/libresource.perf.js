@@ -36,7 +36,6 @@ describe("LibResource Performance Tests", () => {
 
     for (const res of resources) {
       res.withIdentifier();
-      res.withTokens();
       resourceMap.set(`${res.id.name}.json`, JSON.stringify(res.toJSON()));
     }
 
@@ -152,7 +151,6 @@ describe("LibResource Performance Tests", () => {
         const index = new ResourceIndex(mockStorage, mockPolicy);
         const resource = generateMockResources(1)[0];
         resource.withIdentifier();
-        resource.withTokens();
         return { index, resource, iterations };
       },
       testFn: async ({ index, resource, iterations }) => {

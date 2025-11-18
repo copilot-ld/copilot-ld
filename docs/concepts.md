@@ -169,13 +169,9 @@ relevance while respecting model limits.
 
 ### Semantic Search
 
-The Vector service provides dual-index search capabilities:
-
-- **Content Search**: Find documents by their actual content
-- **Descriptor Search**: Find documents by their purpose and applicability
-
-This dual approach enables both "what does it say?" and "what is it for?"
-queries.
+The Vector service provides content-based semantic search to find documents by
+their actual content using vector embeddings. The service generates embeddings
+from text queries and searches against indexed document content.
 
 ### Policy-Based Access Control
 
@@ -221,11 +217,8 @@ searchable formats:
 
 1. **Resource Extraction**: HTML files with microdata are scanned and converted
    to individual resource documents
-2. **Descriptor Generation**: LLM generates descriptions of each resource's
-   purpose and applicability
-3. **Embedding Creation**: Both content and descriptors are converted to vector
-   embeddings
-4. **Index Building**: Vector databases are created for fast similarity search
+2. **Embedding Creation**: Content is converted to vector embeddings
+3. **Index Building**: Vector database is created for fast similarity search
 
 This offline pipeline ensures runtime queries are fast—no external API calls
 needed during search, just in-memory vector operations.

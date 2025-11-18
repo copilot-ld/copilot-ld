@@ -36,10 +36,9 @@ describe("LibAgent Performance Tests", () => {
 
     const assistant = new common.Assistant({
       role: "system",
-      content: { text: "You are a helpful assistant for testing" },
+      content: "You are a helpful assistant for testing",
     });
     assistant.withIdentifier();
-    assistant.withTokens();
 
     const config = {
       budget: {

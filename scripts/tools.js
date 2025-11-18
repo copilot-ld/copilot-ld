@@ -248,7 +248,7 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
       name: schema.function.name,
       type: "tool.ToolFunction",
     }),
-    descriptor: resource.Descriptor.fromObject(descriptor),
+    content: JSON.stringify(descriptor),
     parameters: toolParam,
   });
 

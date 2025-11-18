@@ -182,18 +182,9 @@ export class AgentHands {
         actor,
       );
 
-      // Determine which representation to use (default to "content")
-      const representation = result.representation || "content";
-
-      // Convert resources to strings based on representation
+      // Convert resources to content strings
       return resources
-        .map((resource) => {
-          const field =
-            representation === "descriptor"
-              ? resource.descriptor
-              : resource.content;
-          return String(field);
-        })
+        .map((resource) => resource.content)
         .filter((text) => text.length > 0);
     }
 

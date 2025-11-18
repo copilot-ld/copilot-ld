@@ -91,7 +91,7 @@ export class Copilot {
         if (!m) return null; // Skip null/undefined messages
         return {
           role: m.role || "user",
-          content: m.content?.text || String(m.content || ""),
+          content: m.content,
           ...(m.tool_calls && { tool_calls: m.tool_calls }),
           ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
         };
@@ -104,7 +104,7 @@ export class Copilot {
         type: t.type || "function",
         function: {
           name: t.function?.name,
-          description: String(t.function?.descriptor || ""),
+          description: t.function?.content,
           ...(t.function?.parameters && { parameters: t.function.parameters }),
         },
       };

@@ -44,7 +44,7 @@ parallel). Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
 
 - **Architecture**: `assistant` → `tasks` → `tools` → `context` → `conversation`
 - **Budgeting formula**:
-  `effective_budget = max(0, config.budget.tokens - assistant.content.tokens)`
+  `effective_budget = max(0, config.budget.tokens - assistant.id.tokens)`
 - **Allocation**: Optional shaping for `tools`, `context`, and `conversation`
   portions
 - **Autonomous decisions**: Agent decides which tools to call without hard-wired
@@ -95,18 +95,17 @@ Handles communication with external AI services (GitHub Copilot, OpenAI, etc.).
 
 #### Vector Service
 
-Performs text-based similarity search operations against dual vector indexes
-(content and descriptor). Returns content strings directly for immediate use.
+Performs text-based similarity search operations against a content vector index.
+Returns content strings directly for immediate use.
 
 **Key Operations**:
 
-- `QueryByContent`: Searches content index, returns matching content strings
-- `QueryByDescriptor`: Searches descriptor index, returns matching descriptors
+- `SearchContent`: Searches content index, returns matching content strings
 
 **Architecture**:
 
 - **Text-based interface**: Accepts text, handles embedding internally via LLM
-- **Dual-index system**: Separate content and descriptor indexes
+- **Single content index**: Vector embeddings of resource content
 - **Direct content return**: Returns strings, not just identifiers
 - **Resource integration**: Uses `ResourceIndex` internally
 - **In-memory operations**: Fast cosine similarity computation
@@ -411,7 +410,7 @@ multiple files.
 4. **Identify**: Generate deterministic hash-based identifiers from entity IRIs
 5. **Merge**: Check for existing resources and merge using RDF union
 6. **Format**: Convert merged RDF to JSON-LD format
-7. **Create**: Build Message resources with content and optional descriptors
+7. **Create**: Build Message resources with string content (JSON-LD format)
 8. **Store**: Persist resources in ResourceIndex
 
 **Merging Strategy (RDF Union Semantics)**:
@@ -461,7 +460,6 @@ await processor.process();
 - Uses SHA-256 hash of entity IRI for deterministic resource naming
 - Extends `ProcessorBase` for batch processing with error isolation
 - Separates parsing logic (`Parser`) from processing logic (`ResourceProcessor`)
-- Optional descriptor generation for semantic resource metadata
 - Stateless processing - no persistent connections between files
 
 ### Graph Processor (libgraph)

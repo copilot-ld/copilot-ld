@@ -55,9 +55,6 @@ export class ResourceIndex {
     // Ensure that the resource identifier is generated
     resource.withIdentifier();
 
-    // Ensure that tokens are counted
-    resource.withTokens();
-
     const id = resource.id;
     const object = resource.toJSON();
     const data = JSON.stringify(object);
@@ -206,7 +203,6 @@ export function createResourceIndex(prefix, policy = null) {
   return new ResourceIndex(storage, policyInstance);
 }
 
-export { Describer } from "./describer.js";
 export { Parser } from "./parser.js";
 export { ResourceProcessor } from "./processor.js";
 export { sanitizeDom } from "./sanitizer.js";

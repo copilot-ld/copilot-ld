@@ -43,7 +43,7 @@ function withIdentifier(parent, subject) {
       ? this.name
       : // Fallback to content hash if available
         this.content
-        ? generateHash(type, String(this.content))
+        ? generateHash(type, this.content)
         : // Fallback to UUID
           generateUUID();
 
@@ -53,29 +53,16 @@ function withIdentifier(parent, subject) {
   this.id.subject = subject ? String(subject) : this.id.subject || "";
 
   this.id.parent = parent ? String(parent) : this.id.parent || "";
-}
 
-/**
- * Ensure tokens are counted for each resource representation.
- */
-function withTokens() {
-  const representations = ["content", "descriptor"];
-  representations.forEach((r) => {
-    if (this?.[r]) {
-      this[r].tokens = countTokens(String(this[r]));
-    }
-  });
+  if (this.content && typeof this.content === "string") {
+    this.id.tokens = countTokens(this.content);
+  }
 }
 
 common.Assistant.prototype.withIdentifier = withIdentifier;
 common.Conversation.prototype.withIdentifier = withIdentifier;
 common.Message.prototype.withIdentifier = withIdentifier;
 tool.ToolFunction.prototype.withIdentifier = withIdentifier;
-
-common.Assistant.prototype.withTokens = withTokens;
-common.Conversation.prototype.withTokens = withTokens;
-common.Message.prototype.withTokens = withTokens;
-tool.ToolFunction.prototype.withTokens = withTokens;
 
 resource.Identifier.prototype.toString = function () {
   if (!this?.type)
@@ -105,58 +92,17 @@ resource.Identifier.prototype.toString = function () {
   return tree.join("/");
 };
 
-// Compiles a resource descriptor description
-resource.Descriptor.prototype.toString = function () {
-  const sections = [];
-
-  if (this.summary?.length > 0) sections.push(this.summary);
-  if (this.purpose?.length > 0) sections.push(`## Purpose\n\n${this.purpose}`);
-
-  if (this.instructions?.length > 0)
-    sections.push(`## Instructions\n\n${this.instructions}`);
-
-  if (this.applicability?.length > 0)
-    sections.push(`## Applicability\n\n${this.applicability}`);
-
-  if (this.evaluation?.length > 0)
-    sections.push(`## Evaluation\n\n${this.evaluation}`);
-
-  return sections.join("\n\n");
-};
-
-resource.Content.prototype.toString = function () {
-  if (this?.jsonld) {
-    return this.jsonld;
-  }
-  return this.text || "";
-};
-
 /**
  * Monkey-patches for common.Message
  */
 const MessageCtor = common.Message;
 const MessagefromObject = MessageCtor.fromObject;
 
-// Monkey-patch Message.fromObject to gracefully convert content to an object
+// Monkey-patch Message.fromObject to apply identifier
 common.Message.fromObject = function (object) {
-  if (typeof object.content === "string") {
-    const content = { text: object.content };
-    object = { ...object, content };
-  }
   const typed = MessagefromObject(object);
   typed.withIdentifier();
-  typed.withTokens();
   return typed;
-};
-
-// Patch .verify to handle convert string content to object
-const Messageverify = MessageCtor.verify;
-common.Message.verify = function (message) {
-  if (message && typeof message.content === "string") {
-    const content = { text: message.content };
-    message = { ...message, content };
-  }
-  return Messageverify(message);
 };
 
 /**
@@ -171,7 +117,6 @@ common.Assistant.fromObject = function (object) {
 
   const typed = AssistantfromObject(object);
   typed.withIdentifier();
-  typed.withTokens();
   return typed;
 };
 
@@ -196,7 +141,6 @@ tool.ToolFunction.fromObject = function (object) {
 
   const typed = ToolFunctionfromObject(object);
   typed.withIdentifier();
-  typed.withTokens();
   return typed;
 };
 

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libmemory",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Memory management library for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

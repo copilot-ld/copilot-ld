@@ -11,6 +11,10 @@ Parameters:
     Type: AWS::EC2::VPC::Id
     Description: VPC for deployment
 
+  ECSClusterName:
+    Type: String
+    Description: Name of the ECS cluster from network stack
+
   PrivateSubnetIds:
     Type: CommaDelimitedList
     Description: Private subnets for services (minimum two)
@@ -57,10 +61,6 @@ Resources:
   # ECS INFRASTRUCTURE
   # ==========================================
 
-  # ECS cluster for hosting Copilot-LD services
-  ECSCluster:
-    Type: AWS::ECS::Cluster
-
   # CloudWatch log groups for service logging
   AgentLogGroup:
     Type: AWS::Logs::LogGroup
@@ -92,42 +92,9 @@ Resources:
     Properties:
       RetentionInDays: 7
 
-  GatewayLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      RetentionInDays: 7
-
   # ==========================================
   # TASK DEFINITIONS
   # ==========================================
-
-  # Unified gateway task definition for ingress (ALB) and egress (proxy)
-  GatewayTaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-      Cpu: 512
-      Memory: 1024
-      ExecutionRoleArn: !Ref SecretsRoleArn
-      ContainerDefinitions:
-        - Name: gateway
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/gateway:${ContainerTag}"
-          Essential: true
-          PortMappings:
-            - ContainerPort: 80
-            - ContainerPort: 443
-            - ContainerPort: 3128
-          Environment:
-            - Name: NODE_ENV
-              Value: production
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: !Ref GatewayLogGroup
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: gateway
 
   # ECS task definitions for backend service containers
   AgentTaskDefinition:
@@ -423,42 +390,15 @@ Resources:
             TTL: 300
       NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
-  GatewayServiceDiscovery:
-    Type: AWS::ServiceDiscovery::Service
-    Properties:
-      Name: gateway
-      DnsConfig:
-        DnsRecords:
-          - Type: A
-            TTL: 300
-      NamespaceId: !Ref ServiceDiscoveryNamespaceId
-
   # ==========================================
   # ECS SERVICES
   # ==========================================
-
-  # Unified gateway service on public subnet with public IP for ingress and egress
-  GatewayService:
-    Type: AWS::ECS::Service
-    Properties:
-      Cluster: !Ref ECSCluster
-      TaskDefinition: !Ref GatewayTaskDefinition
-      DesiredCount: 1
-      LaunchType: FARGATE
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          SecurityGroups:
-            - !Ref ServiceSecurityGroupId
-          Subnets: !Ref PublicSubnetIds
-      ServiceRegistries:
-        - RegistryArn: !GetAtt GatewayServiceDiscovery.Arn
 
   # ECS services for running backend containerized applications
   AgentService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref AgentTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -474,7 +414,7 @@ Resources:
   MemoryService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref MemoryTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -490,7 +430,7 @@ Resources:
   LLMService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref LLMTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -506,7 +446,7 @@ Resources:
   VectorService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref VectorTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -522,7 +462,7 @@ Resources:
   GraphService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref GraphTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -538,7 +478,7 @@ Resources:
   ToolService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref ToolTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -552,14 +492,6 @@ Resources:
         - RegistryArn: !GetAtt ToolServiceDiscovery.Arn
 
 Outputs:
-  ECSClusterName:
-    Description: Name of the ECS cluster
-    Value: !Ref ECSCluster
-
-  ECSClusterArn:
-    Description: ARN of the ECS cluster
-    Value: !GetAtt ECSCluster.Arn
-
   AgentServiceArn:
     Description: ARN of the agent service
     Value: !Ref AgentService
@@ -583,7 +515,3 @@ Outputs:
   ToolServiceArn:
     Description: ARN of the tool service
     Value: !Ref ToolService
-
-  GatewayServiceArn:
-    Description: ARN of the unified gateway service
-    Value: !Ref GatewayService

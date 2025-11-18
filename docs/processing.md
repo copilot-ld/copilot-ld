@@ -137,7 +137,7 @@ data/resources/
 Each extracted resource contains:
 
 - **Identifier**: Unique resource ID based on content hash
-- **Content**: Extracted text content from the HTML element as JSON-LD string
+- **Content**: Extracted text content from the HTML element as RDF
 - **Metadata**: Schema.org type, source file, extraction timestamp
 
 ### Assistant Processing
@@ -254,16 +254,16 @@ when you run `npm run process`.
 The vector processor creates content embeddings:
 
 - **Purpose**: Direct semantic search of actual content
-- **Source**: Full text content extracted from HTML elements as JSON-LD
+- **Source**: Full text content extracted from HTML elements as RDF
 - **Use Case**: Finding specific information, facts, and detailed explanations
 
 ### Vector Storage
 
-Embeddings are stored in `data/vectors/content.jsonl` as a JSONL file:
+Embeddings are stored in `data/vectors/index.jsonl` as a JSONL file:
 
 ```bash
 data/vectors/
-└── content.jsonl
+└── index.jsonl
 ```
 
 Each vector entry contains:

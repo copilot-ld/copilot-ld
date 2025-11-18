@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-31
 
 - Fixed performance tests to use correct method names and allocation structure

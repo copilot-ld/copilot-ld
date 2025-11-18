@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-11-14
 
 - Added `PdfProcessor` class for converting PDF files in knowledge storage to

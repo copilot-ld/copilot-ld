@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-29
 
 - Fixed Mermaid diagram rendering by preventing HTML entity escaping in code

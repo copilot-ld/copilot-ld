@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-31
 
 - **BREAKING**: Extracted `HTML-to-RDF` parsing functionality into new `Parser`

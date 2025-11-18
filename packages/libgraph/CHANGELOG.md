@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-26
 
 - Added performance tests in `test/libgraph.perf.js` for `parseGraphQuery()`,

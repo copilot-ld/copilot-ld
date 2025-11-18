@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 import { sanitizeDom } from "./sanitizer.js";
 
 import { common } from "@copilot-ld/libtype";
-import { ProcessorBase, countTokens, generateHash } from "@copilot-ld/libutil";
+import { ProcessorBase, generateHash } from "@copilot-ld/libutil";
 
 /**
  * Batch processes HTML knowledge files into structured Message resources.
@@ -15,7 +15,6 @@ export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
   #knowledgeStorage;
   #parser;
-  #describer;
   #logger;
   #baseIri;
 
@@ -25,18 +24,10 @@ export class ResourceProcessor extends ProcessorBase {
    * @param {object} resourceIndex - Index for storing/retrieving Message resources
    * @param {object} knowledgeStorage - Storage backend for HTML knowledge files
    * @param {object} parser - Parser instance for HTML→RDF→JSON-LD conversions
-   * @param {object} describer - Optional descriptor generator for semantic metadata
    * @param {object} logger - Logger instance with debug() method
    * @throws {Error} If parser is null or undefined
    */
-  constructor(
-    baseIri,
-    resourceIndex,
-    knowledgeStorage,
-    parser,
-    describer,
-    logger,
-  ) {
+  constructor(baseIri, resourceIndex, knowledgeStorage, parser, logger) {
     super(logger, 5);
 
     if (!parser) throw new Error("parser is required");
@@ -45,7 +36,6 @@ export class ResourceProcessor extends ProcessorBase {
     this.#parser = parser;
     this.#resourceIndex = resourceIndex;
     this.#knowledgeStorage = knowledgeStorage;
-    this.#describer = describer || null;
     this.#logger = logger || { debug: () => {} };
   }
 
@@ -110,9 +100,8 @@ export class ResourceProcessor extends ProcessorBase {
 
       if (await this.#resourceIndex.has(resourceKey)) {
         const [existing] = await this.#resourceIndex.get([resourceKey]);
-        const existingQuads = await this.#parser.rdfToQuads(
-          existing.content.nquads,
-        );
+        // Content is N-Quads string
+        const existingQuads = await this.#parser.rdfToQuads(existing.content);
 
         const mergedQuads = this.#parser.unionQuads(
           existingQuads,
@@ -164,33 +153,17 @@ export class ResourceProcessor extends ProcessorBase {
    * @returns {Promise<object>} Typed Message resource stored in ResourceIndex
    */
   async processItem(item) {
-    const { name, subject } = item;
+    const { name, subject, rdf } = item;
 
-    const descriptor = this.#describer
-      ? await this.#describer.describe(item)
-      : undefined;
-
-    const content = await this.#createContent(item);
-
-    const message = { id: { name, subject }, role: "system", content };
-    if (descriptor) message.descriptor = descriptor;
+    const message = {
+      id: { name, subject },
+      role: "system",
+      content: rdf,
+    };
 
     const resource = common.Message.fromObject(message);
     await this.#resourceIndex.put(resource);
 
     return resource;
-  }
-
-  /**
-   * Creates message content object from item's RDF data
-   * @param {object} item - Item with rdf (N-Quads) and json (JSON-LD string) properties
-   * @returns {Promise<object>} Content object with nquads, jsonld, and tokens
-   */
-  async #createContent(item) {
-    return {
-      nquads: item.rdf,
-      jsonld: item.json,
-      tokens: countTokens(item.json),
-    };
   }
 }

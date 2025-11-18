@@ -29,9 +29,7 @@ describe("Universal Resource Identifier", () => {
 
   test("withIdentifier generates an identifier", () => {
     const message = common.Message.fromObject({
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier();
 
@@ -39,6 +37,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.type, "common.Message");
     assert.strictEqual(message.id.name, "499e2b89");
     assert.strictEqual(message.id.parent, "");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier sets a single parent", () => {
@@ -46,9 +45,7 @@ describe("Universal Resource Identifier", () => {
       id: {
         parent: "common.Conversation.hash0001",
       },
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier();
 
@@ -56,18 +53,16 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.type, "common.Message");
     assert.strictEqual(message.id.name, "499e2b89");
     assert.strictEqual(message.id.parent, "common.Conversation.hash0001");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier sets multiple parents", () => {
     const message = common.Message.fromObject({
-      id: {
-        parent: "common.Conversation.hash0001/common.Message.hash0002",
-      },
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
-    message.withIdentifier();
+    message.withIdentifier(
+      "common.Conversation.hash0001/common.Message.hash0002",
+    );
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
@@ -76,6 +71,8 @@ describe("Universal Resource Identifier", () => {
       message.id.parent,
       "common.Conversation.hash0001/common.Message.hash0002",
     );
+    assert.strictEqual(message.id.subject, "");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier preserves values", () => {
@@ -126,9 +123,7 @@ describe("Universal Resource Identifier", () => {
 
   test("Identifier generates a URI", () => {
     const message = common.Message.fromObject({
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier();
     assert.strictEqual(String(message.id), "common.Message.499e2b89");
@@ -179,9 +174,7 @@ describe("Universal Resource Identifier", () => {
 
   test("withIdentifier sets subject parameter", () => {
     const message = common.Message.fromObject({
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier(null, "#bob");
 
@@ -190,13 +183,12 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.name, "499e2b89");
     assert.strictEqual(message.id.parent, "");
     assert.strictEqual(message.id.subject, "#bob");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier sets both parent and subject parameters", () => {
     const message = common.Message.fromObject({
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier("common.Conversation.hash0001", "#alice");
 
@@ -205,6 +197,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.name, "499e2b89");
     assert.strictEqual(message.id.parent, "common.Conversation.hash0001");
     assert.strictEqual(message.id.subject, "#alice");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier preserves existing subject when no subject parameter", () => {
@@ -212,9 +205,7 @@ describe("Universal Resource Identifier", () => {
       id: {
         subject: "#existing",
       },
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier();
 
@@ -223,6 +214,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.name, "499e2b89");
     assert.strictEqual(message.id.parent, "");
     assert.strictEqual(message.id.subject, "#existing");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier overwrites existing subject when subject parameter provided", () => {
@@ -230,9 +222,7 @@ describe("Universal Resource Identifier", () => {
       id: {
         subject: "#old",
       },
-      content: {
-        text: "Hello, world!",
-      },
+      content: "Hello, world!",
     });
     message.withIdentifier(null, "#new");
 
@@ -241,6 +231,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.name, "499e2b89");
     assert.strictEqual(message.id.parent, "");
     assert.strictEqual(message.id.subject, "#new");
+    assert.strictEqual(message.id.tokens, 7);
   });
 
   test("withIdentifier handles complex JSON-LD subject URIs", () => {

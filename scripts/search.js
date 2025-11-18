@@ -13,29 +13,23 @@ const config = await createScriptConfig("search");
 
 // Global state
 /** @type {VectorIndex} */
-let contentIndex;
-/** @type {VectorIndex} */
-let descriptorIndex;
+let vectorIndex;
 /** @type {import("@copilot-ld/libresource").ResourceIndex} */
 let resourceIndex;
 
 /**
  * Performs a semantic search using embeddings
  * @param {string} prompt - The search query text
- * @param {object} state - REPL state containing limit, threshold, and representation settings
+ * @param {object} state - REPL state containing limit and threshold settings
  * @returns {Promise<string>} Formatted search results as markdown
  */
 async function performSearch(prompt, state) {
-  const { limit, threshold, representation } = state;
-
-  // Select the appropriate representation based on representation
-  const targetIndex =
-    representation === "descriptor" ? descriptorIndex : contentIndex;
+  const { limit, threshold } = state;
 
   const llm = createLlm(await config.githubToken());
   const embeddings = await llm.createEmbeddings([prompt]);
 
-  const identifiers = await targetIndex.queryItems(embeddings[0].embedding, {
+  const identifiers = await vectorIndex.queryItems(embeddings[0].embedding, {
     threshold: threshold,
     limit: limit > 0 ? limit : 0,
   });
@@ -43,15 +37,12 @@ async function performSearch(prompt, state) {
   const resources = await resourceIndex.get(identifiers, "common.System.root");
 
   let output = ``;
-  output += `Searching: ${representation} index\n\n`;
+  output += `Searching content index\n\n`;
   identifiers.forEach((identifier, i) => {
     const resource = resources.find((r) => r.id.name === identifier.name);
     if (!resource) return;
 
-    // Not all resources have content, fallback to descriptor
-    const text = resource[representation]
-      ? String(resource[representation])
-      : String(resource.descriptor);
+    const text = resource.content;
 
     output += `# ${i + 1}: ${identifier} (${identifier.score.toFixed(4)})\n\n`;
     output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;
@@ -66,8 +57,7 @@ const repl = new Repl(createTerminalFormatter(), {
 
   setup: async () => {
     const vectorStorage = createStorage("vectors");
-    contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
-    descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
+    vectorIndex = new VectorIndex(vectorStorage, "content.jsonl");
 
     resourceIndex = createResourceIndex("resources");
   },
@@ -75,7 +65,6 @@ const repl = new Repl(createTerminalFormatter(), {
   state: {
     limit: 0,
     threshold: 0,
-    representation: "content",
   },
 
   commands: {
@@ -98,16 +87,6 @@ const repl = new Repl(createTerminalFormatter(), {
         return `Error: threshold must be a number between 0.0 and 1.0`;
       }
       state.threshold = value;
-    },
-    representation: (args, state) => {
-      if (args.length === 0) {
-        return "Usage: /representation content|descriptor";
-      }
-      const value = args[0].toLowerCase();
-      if (value !== "content" && value !== "descriptor") {
-        return `Error: representation must be 'content' or 'descriptor'`;
-      }
-      state.representation = value;
     },
   },
 

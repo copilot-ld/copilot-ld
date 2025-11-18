@@ -95,12 +95,11 @@ This validates:
 ### Search Integration Testing
 
 The `npm run search` command tests vector search capabilities including
-embedding generation and similarity matching across content and descriptor
-indices.
+embedding generation and similarity matching.
 
 #### Basic Content Search Testing
 
-Test default content index search:
+Test content index search:
 
 ```bash
 echo "pharmaceutical research" | npm run search
@@ -112,20 +111,6 @@ This validates:
 - Vector index query execution
 - Content similarity matching
 - Resource retrieval and formatting
-
-#### Descriptor Search Testing
-
-Test descriptor index search with command-line option:
-
-```bash
-echo "clinical trials" | npm run search -- --index descriptor
-```
-
-This validates:
-
-- Index selection via --index
-- Descriptor-based similarity search
-- Alternative index querying
 
 #### Threshold Filtering Testing
 
@@ -360,15 +345,15 @@ echo "project:precision-medicine ? ?" | npm run query
 Test sequential configuration changes using command-line options:
 
 ```bash
-echo "drug formulation optimization" | npm run search -- --index descriptor --threshold 0.5
-echo "drug formulation optimization" | npm run search -- --index content --threshold 0.7
+echo "drug formulation optimization" | npm run search -- --threshold 0.5
+echo "drug formulation optimization" | npm run search -- --threshold 0.7
 ```
 
 **Expected Output Validation**:
 
-- First search uses descriptor index with 0.5 threshold
-- Second search uses content index with 0.7 threshold
-- Results differ based on index and threshold changes
+- First search uses 0.5 threshold
+- Second search uses 0.7 threshold
+- Results differ based on threshold changes
 - Each command is independent and stateless
 
 ### Complex Graph Pattern Test

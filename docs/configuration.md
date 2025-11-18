@@ -177,12 +177,7 @@ Defines service parameters and the available tools in JSON format.
   "service": {
     "agent": {
       "assistant": "software_dev_expert",
-      "permanent_tools": [
-        "get_ontology",
-        "query_by_descriptor",
-        "query_by_content",
-        "query_by_pattern"
-      ],
+      "permanent_tools": ["get_ontology", "search_content", "query_by_pattern"],
       "threshold": 0.25,
       "temperature": 0.25,
       "budget": {
@@ -204,12 +199,8 @@ Defines service parameters and the available tools in JSON format.
           "method": "graph.Graph.QueryByPattern",
           "request": "graph.PatternQuery"
         },
-        "query_by_content": {
-          "method": "vector.Vector.QueryByContent",
-          "request": "vector.TextQuery"
-        },
-        "query_by_descriptor": {
-          "method": "vector.Vector.QueryByDescriptor",
+        "search_content": {
+          "method": "vector.Vector.SearchContent",
           "request": "vector.TextQuery"
         }
       }
@@ -220,7 +211,7 @@ Defines service parameters and the available tools in JSON format.
 
 ### Tool Configuration (`tools.yml`)
 
-Defines tool descriptors in YAML format:
+Defines tool metadata in YAML format:
 
 ```yaml
 sha256_hash:
@@ -247,19 +238,6 @@ Defines AI assistant personas and their specialized behaviors.
 
 ```yaml
 software_dev_expert:
-  descriptor:
-    purpose: |
-      Provide expert guidance on software development practices, 
-      architecture patterns, and best practices
-    instructions: |
-      Analyze code structure, suggest improvements, provide 
-      architectural guidance, and help with implementation patterns.
-    applicability: |
-      Use for code review, architecture design, refactoring, and 
-      software engineering best practices
-    evaluation: |
-      Success measured by code quality improvements and architectural 
-      coherence
   content:
     text: |
       You are a software development expert with deep knowledge of:

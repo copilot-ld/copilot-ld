@@ -128,9 +128,6 @@ echo "Tell me about container security" | npm run chat
 
 # Search with CLI flags for precise testing
 echo "docker" | npm run search -- --limit 10 --threshold 0.25
-
-# Test descriptor-based search
-echo "kubernetes deployment" | npm run search -- --index descriptor --limit 5
 ```
 
 ### System Validation Scripts
@@ -241,6 +238,6 @@ cat data/traces/*.jsonl | \
 **Vector Search**:
 
 - `Llm.CreateEmbeddings` (generate query vector)
-- `Vector.QueryByContent` or `Vector.QueryByDescriptor` (similarity search)
+- `Vector.SearchContent` (similarity search)
 
 For detailed tracing implementation, see the [Reference Guide](/reference/).

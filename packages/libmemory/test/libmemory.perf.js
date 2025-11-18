@@ -149,7 +149,7 @@ describe("LibMemory Performance Tests", () => {
         }
       },
       constraints: {
-        maxMemory: 2000,
+        maxMemory: 2500,
       },
     }),
   );

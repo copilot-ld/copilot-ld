@@ -17,14 +17,12 @@ async function main() {
   const vectorStorage = createStorage("vectors");
 
   const resourceIndex = createResourceIndex("resources");
-  const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
-  const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
+  const vectorIndex = new VectorIndex(vectorStorage, "content.jsonl");
   const llm = createLlm(await config.githubToken());
   const logger = createLogger("vectors");
 
   const processor = new VectorProcessor(
-    contentIndex,
-    descriptorIndex,
+    vectorIndex,
     resourceIndex,
     llm,
     logger,
@@ -32,9 +30,8 @@ async function main() {
 
   const actor = "common.System.root";
 
-  // Process both content and descriptor representations
-  await processor.process(actor, "content");
-  await processor.process(actor, "descriptor");
+  // Process content representation
+  await processor.process(actor);
 }
 
 main().catch((error) => {

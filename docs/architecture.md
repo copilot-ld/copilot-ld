@@ -124,7 +124,7 @@ sequenceDiagram
     Agent->>ResourceIndex: Get/Create conversation
     Agent->>ResourceIndex: Put user message (scoped to conversation)
     Agent->>ResourceIndex: Get assistant by id (from config)
-    Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.content.tokens) and derive allocation
+    Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.id.tokens) and derive allocation
 
     Agent->>Memory: Get (for conversation, with budget/allocation)
     Memory-->>Agent: Window (tools, identifiers)
@@ -196,21 +196,13 @@ sequenceDiagram
         ResourceProc->>ResourceIndex: Store resource with URI identifier
     end
 
-    Note over Scripts: 3. Descriptor Generation
-    loop For each resource
-        Scripts->>LLM: Generate descriptor (batched)
-        LLM-->>Scripts: Descriptor text
-        Scripts->>ResourceIndex: Update resource with descriptor
-    end
-
-    Note over Scripts: 4. Vector Processing
+    Note over Scripts: 3. Vector Processing
     Scripts->>ResourceIndex: Load all resources
 
     loop Batch processing
-        ResourceProc->>LLM: Create embeddings (content + descriptors, batched)
+        ResourceProc->>LLM: Create embeddings (content, batched)
         LLM-->>VectorProc: Vector embeddings
         VectorProc->>VectorIndex: Add to content index
-        VectorProc->>VectorIndex: Add to descriptor index
     end
 
     VectorIndex-->>Scripts: Indexes persisted to disk
@@ -221,9 +213,8 @@ sequenceDiagram
 
 1. **Assistant Configuration**: Load assistant definitions from YAML
 2. **Resource Extraction**: Parse HTML microdata into individual resources
-3. **Descriptor Generation**: Generate AI descriptions of resource purpose
-4. **Embedding Creation**: Convert content and descriptors to vectors
-5. **Index Building**: Create dual indexes for similarity search
+3. **Embedding Creation**: Convert content to vector embeddings
+4. **Index Building**: Create content index for similarity search
 
 For detailed processing workflows, see the [Processing Guide](/processing/).
 

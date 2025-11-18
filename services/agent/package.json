@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/agent",
-  "version": "0.1.71",
+  "version": "0.1.72",
   "description": "Core orchestration service for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -15,7 +15,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libagent": "^0.1.11",
+    "@copilot-ld/libagent": "^0.1.12",
     "@copilot-ld/libconfig": "^0.1.32",
     "@copilot-ld/libresource": "^0.1.54",
     "@copilot-ld/librpc": "^0.1.51",

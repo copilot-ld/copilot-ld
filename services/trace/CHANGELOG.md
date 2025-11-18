@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-28
 
 - Updated `BufferedIndex` instantiation to use `config` parameter instead of

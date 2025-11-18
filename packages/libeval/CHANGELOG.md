@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-26
 
 - Moved evaluation script to `bin/eval.js` for `npx evaluation` execution

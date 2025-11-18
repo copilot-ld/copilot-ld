@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-11-17
 
 - Added `ZipExtractor` class for native ZIP file extraction without external

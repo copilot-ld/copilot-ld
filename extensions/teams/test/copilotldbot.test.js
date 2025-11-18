@@ -44,11 +44,10 @@ test("handleMessage sends formatted reply and sets resourceId", async () => {
     githubToken: async () => "token",
   };
   // Mock formatter
-  const mockHtmlFormatter = { format: (x) => `**${x}**` };
+  const mockHtmlFormatter = { format: (x) => `<p>${x}</p>` };
 
-  // Pass dependencies via constructor and property
-  const bot = new CopilotLdBot(mockAgentClient, mockConfig);
-  bot.htmlFormatter = mockHtmlFormatter;
+  // Pass all dependencies via constructor
+  const bot = new CopilotLdBot(mockAgentClient, mockConfig, mockHtmlFormatter);
 
   const context = new MockContext("Hi Copilot!");
   let nextCalled = false;
@@ -57,7 +56,7 @@ test("handleMessage sends formatted reply and sets resourceId", async () => {
   });
 
   assert.strictEqual(context.sent.length, 1);
-  assert.strictEqual(context.sent[0].text, "**Hello from Copilot!**");
+  assert.strictEqual(context.sent[0].text, "<p>Hello from Copilot!</p>");
   assert.strictEqual(bot.getResourceId("tenant1", "bot1"), "resource-xyz");
   assert.ok(nextCalled);
 });

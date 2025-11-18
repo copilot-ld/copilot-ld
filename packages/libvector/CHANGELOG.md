@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-24
 
 - **Fixed**: Token filtering in vector queries by ensuring identifiers include

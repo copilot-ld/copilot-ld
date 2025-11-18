@@ -1,7 +1,8 @@
 # Changelog
 
-## 2025-11-17
+## 2025-11-18
 
+- Bump version
 - Added HTTPS proxy support via `HTTPS_PROXY` environment variable
 - Added `https-proxy-agent` dependency for proxy configuration
 - Created `createProxyAwareFetch()` helper function to automatically configure

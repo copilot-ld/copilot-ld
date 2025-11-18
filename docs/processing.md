@@ -296,7 +296,13 @@ deployment environments. These commands require that the
 Upload all processed data from local storage to S3-compatible remote storage:
 
 ```bash
-npm run upload
+npx env-cmd -- upload
+```
+
+Alternatively, if you want to upload data to your local Docker environment:
+
+```bash
+npm run docker:upload
 ```
 
 #### Upload Process
@@ -309,8 +315,6 @@ The upload utility synchronizes these storage areas:
 - **resources/**: Processed knowledge base resources
 - **vectors/**: Embedding indices for semantic search
 
-#### S3 Configuration Requirements
-
 Upload requires S3-compatible storage configuration. See the
 [Storage Configuration](/configuration/) section in the Configuration Guide for
 complete setup details including environment variables and MinIO options.
@@ -320,7 +324,7 @@ complete setup details including environment variables and MinIO options.
 Download pre-processed data bundle from remote storage:
 
 ```bash
-npm run download
+npx env-cmd -- download
 ```
 
 #### Download Process
@@ -331,99 +335,6 @@ generated code and processed data. This is useful for:
 - **Quick Setup**: Skip processing steps with pre-processed data
 - **CI/CD Pipelines**: Download consistent data sets for automated deployments
 - **Team Synchronization**: Share processed knowledge base across team members
-
-#### Bundle Configuration
-
-Configure the download source in `config/config.json`:
-
-```yaml
-tool:
-  download:
-    owner: "your-organization"
-    repo: "your-knowledge-repository"
-```
-
-### Data Management Workflow
-
-Typical workflow for managing processed data across environments:
-
-#### Development Environment
-
-```bash
-# Process knowledge base locally
-npm run process
-
-# Upload processed data to S3
-npm run upload
-```
-
-#### Production Environment
-
-Download pre-processed data bundle or synchronize from S3 if using the
-upload/download pattern, then deploy with processed data available:
-
-```bash
-npm run download
-```
-
-### Storage Monitoring
-
-Monitor data storage usage and processing status:
-
-```bash
-# Check local storage sizes
-du -sh data/*/
-
-# Monitor S3 bucket usage (if using AWS)
-aws s3 ls s3://your-copilot-ld-bucket --recursive --human-readable --summarize
-
-# Check resource count by type
-ls data/resources/ | grep "Message" | wc -l
-ls data/resources/ | grep "ToolFunction" | wc -l
-ls data/resources/ | grep "Assistant" | wc -l
-```
-
-## 7. Querying Processed Data
-
-Query the extracted graph data using the query script. Queries use the format
-`<subject> <predicate> <object>` where any field can be replaced with `?` as a
-wildcard:
-
-```bash
-# Interactive mode
-npm run query
-
-# Pipe queries
-echo "? headline ?" | npm run query
-echo '? name "Agile Values"' | npm run query
-echo "#agile-manifesto ? ?" | npm run query
-```
-
-### Common Query Patterns
-
-Find resources of a certain type:
-
-```bash
-echo "? http://www.w3.org/1999/02/22-rdf-syntax-ns#type TechArticle" | npm run query
-```
-
-Find resources using the type shorthand:
-
-```bash
-echo "? type DefinedTerm" | npm run query
-```
-
-Find all resources with any title:
-
-```bash
-echo "? http://purl.org/dc/terms/title ?" | npm run query
-```
-
-### Query Tips
-
-- Use quotes for multi-word strings: `"Working software"`
-- Use `/limit 10` to control result count
-- Reference HTML element IDs directly: `#agile-manifesto`
 
 ## Next Steps
 

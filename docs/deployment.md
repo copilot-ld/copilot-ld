@@ -96,9 +96,6 @@ for optimal security and cost management:
   Tool) run on private subnets
 - **Proxy Configuration**: Services requiring external API access use the
   `HTTPS_PROXY` environment variable to route traffic through the gateway
-- **Cost Benefit**: Eliminates NAT Gateway (~$32/month + $0.045/GB data charges)
-  while maintaining professional SSL management via ALB (~$16/month) with AWS
-  Certificate Manager
 
 This architecture provides production-grade SSL certificate management through
 AWS Certificate Manager while eliminating the expensive NAT Gateway. The gateway

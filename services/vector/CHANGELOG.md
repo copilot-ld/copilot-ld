@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-29
 
 - Removed `resourceIndex` dependency from `VectorService` - resource loading now

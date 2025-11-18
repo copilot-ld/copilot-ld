@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-27
 
 - **BREAKING**: Replaced static `.create()` methods with factory functions for

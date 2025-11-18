@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-28
 
 - Changed `BufferedIndex` constructor to accept `config` parameter instead of

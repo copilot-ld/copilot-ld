@@ -19,7 +19,7 @@
     "@copilot-ld/libcopilot": "^0.1.45",
     "@copilot-ld/libpolicy": "^0.1.27",
     "@copilot-ld/libstorage": "^0.1.28",
-    "@copilot-ld/libtype": "^0.1.41",
+    "@copilot-ld/libtype": "^0.1.42",
     "@copilot-ld/libutil": "^0.1.39"
   },
   "devDependencies": {

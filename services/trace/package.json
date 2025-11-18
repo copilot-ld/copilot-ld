@@ -19,7 +19,7 @@
     "@copilot-ld/libindex": "^0.1.6",
     "@copilot-ld/librpc": "^0.1.52",
     "@copilot-ld/libstorage": "^0.1.28",
-    "@copilot-ld/libtype": "^0.1.41"
+    "@copilot-ld/libtype": "^0.1.42"
   },
   "repository": {
     "type": "git",

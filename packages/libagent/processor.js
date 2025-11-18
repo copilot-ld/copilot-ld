@@ -38,13 +38,15 @@ export class AssistantProcessor {
     const data = await this.#configStorage.get("assistants.yml");
     const objects = yaml.load(data);
 
-    for (const [name, object] of Object.entries(objects)) {
-      object.id = {
-        type: "common.Assistant",
-        name: `common.Assistant.${name}`,
-      };
-      object.descriptor = object.descriptor || {};
-      const assistant = common.Assistant.fromObject(object);
+    for (const [name, content] of Object.entries(objects)) {
+      const assistant = common.Assistant.fromObject({
+        id: {
+          type: "common.Assistant",
+          name,
+        },
+        content,
+        role: "system",
+      });
       await this.#resourceIndex.put(assistant);
 
       this.#logger.debug("Processed assistant", { name });

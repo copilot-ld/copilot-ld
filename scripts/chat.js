@@ -28,13 +28,10 @@ const messages = [];
  * @returns {Promise<string>} The assistant's response content
  */
 async function handlePrompt(prompt) {
-  // Create user message using Message structure with proper Content object
+  // Create user message - content is just a string, tokens calculated by withIdentifier
   const userMessage = common.Message.fromObject({
     role: "user",
-    content: {
-      text: prompt,
-      tokens: 0, // Will be calculated by the service
-    },
+    content: prompt,
   });
   messages.push(userMessage);
 
@@ -56,7 +53,7 @@ async function handlePrompt(prompt) {
   }
 
   messages.push(result.choices[0].message);
-  return result.choices[0].message.content.text;
+  return result.choices[0].message.content;
 }
 
 // Create REPL with dependency injection

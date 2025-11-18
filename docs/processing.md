@@ -137,10 +137,8 @@ data/resources/
 Each extracted resource contains:
 
 - **Identifier**: Unique resource ID based on content hash
-- **Content**: Extracted text content from the HTML element
+- **Content**: Extracted text content from the HTML element as JSON-LD string
 - **Metadata**: Schema.org type, source file, extraction timestamp
-- **Descriptor**: AI-generated description of the content's purpose and
-  applicability
 
 ### Assistant Processing
 
@@ -247,37 +245,25 @@ generated `sha256_hash` tool resource:
 
 ## 5. Vector Processing
 
-Vector processing creates embeddings of resource content and descriptors for
-efficient similarity search and retrieval-augmented generation. This happens
-automatically when you run `npm run process`.
+Vector processing creates embeddings of resource content for efficient
+similarity search and retrieval-augmented generation. This happens automatically
+when you run `npm run process`.
 
 ### Embedding Strategy
 
-The vector processor creates two types of embeddings:
-
-#### Content Embeddings
+The vector processor creates content embeddings:
 
 - **Purpose**: Direct semantic search of actual content
-- **Source**: Full text content extracted from HTML elements
+- **Source**: Full text content extracted from HTML elements as JSON-LD
 - **Use Case**: Finding specific information, facts, and detailed explanations
-
-#### Descriptor Embeddings
-
-- **Purpose**: Conceptual and categorical search
-- **Source**: AI-generated descriptions of content purpose and applicability
-- **Use Case**: Finding relevant content types, methodologies, and approaches
 
 ### Vector Storage
 
-Embeddings are stored in `data/vectors/` as JSONL files:
-
-- `content.jsonl`: Content-based embeddings
-- `descriptors.jsonl`: Descriptor-based embeddings
+Embeddings are stored in `data/vectors/content.jsonl` as a JSONL file:
 
 ```bash
 data/vectors/
-├── content.jsonl
-└── descriptors.jsonl
+└── content.jsonl
 ```
 
 Each vector entry contains:

@@ -41,7 +41,7 @@ agent.ProcessRequest (SERVER)
 │   └── llm.CreateCompletions (SERVER)
 ├── tool.CallTool (CLIENT)
 │   └── tool.CallTool (SERVER)
-│       └── vector.QueryByDescriptor (SERVER)
+│       └── vector.SearchContent (SERVER)
 │           └── llm.CreateEmbeddings (CLIENT)
 │               └── llm.CreateEmbeddings (SERVER)
 └── memory.AppendMemory (CLIENT)
@@ -524,7 +524,7 @@ Check:
 
 ```bash
 # Find all tool calls for specific function
-TOOL_NAME="query_by_descriptor"
+TOOL_NAME="search_content"
 cat data/traces/2025-10-29.jsonl | jq "
   select(.name == \"tool.CallTool\") |
   select(.events[].attributes.\"request.function.name\" == \"$TOOL_NAME\")

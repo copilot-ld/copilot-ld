@@ -17,17 +17,11 @@ const tracer = await createTracer("vector");
 // Initialize LLM client
 const llmClient = await createClient("llm", logger, tracer);
 
-// Initialize vector indices
+// Initialize vector index
 const vectorStorage = createStorage("vectors");
-const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
-const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
+const vectorIndex = new VectorIndex(vectorStorage);
 
-const service = new VectorService(
-  config,
-  contentIndex,
-  descriptorIndex,
-  llmClient,
-);
+const service = new VectorService(config, vectorIndex, llmClient);
 const server = new Server(service, config, logger, tracer);
 
 await server.start();

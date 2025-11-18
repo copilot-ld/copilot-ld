@@ -38,12 +38,12 @@ export class GraphProcessor extends ProcessorBase {
     const id = String(item.identifier);
 
     // Skip if no N-Quads content
-    if (!item.resource.content?.nquads) {
-      this.logger.debug("Skipping resource without N-Quads", { id });
+    if (!item.resource.content) {
+      this.logger.debug("Skipping resource without content", { id });
       return;
     }
 
-    const quads = this.#rdfToQuads(item.resource.content.nquads);
+    const quads = this.#rdfToQuads(item.resource.content);
     if (quads.length === 0) {
       this.logger.debug("No RDF found in N-Quads", { id });
       return;
@@ -64,15 +64,11 @@ export class GraphProcessor extends ProcessorBase {
     });
 
     // Add quads to the graph index
-    // Include token count in identifier for token filtering
-    const tokens =
-      item.resource.content?.tokens || item.resource.descriptor?.tokens;
-    if (!tokens) {
+    // Token count is already on identifier from withIdentifier()
+    if (!item.identifier.tokens) {
       throw new Error(`Resource missing tokens: ${String(item.identifier)}`);
     }
 
-    // Add tokens directly to the identifier object (protobuf instance)
-    item.identifier.tokens = tokens;
     await this.#targetIndex.add(item.identifier, quads);
 
     // Update ontology with quad information
@@ -145,9 +141,9 @@ export class GraphProcessor extends ProcessorBase {
     // Filter resources to only those that need processing
     const resourcesToProcess = [];
     for (const resource of resources) {
-      // Only process resources with N-Quads content
-      if (!resource.content?.nquads) {
-        continue; // Skip resources without N-Quads
+      // Only process resources with N-Quads content (content is now a string)
+      if (!resource.content || typeof resource.content !== "string") {
+        continue; // Skip resources without N-Quads content
       }
 
       // Skip if already exists

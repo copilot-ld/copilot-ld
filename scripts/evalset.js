@@ -5,14 +5,12 @@
  * Evaluation data set processing and validation
  *
  * This script processes the evaluation data set located in `data/evalset/` into:
- * 1. Resources (stored under storage prefix `evalresources`) WITHOUT descriptors
+ * 1. Resources (stored under storage prefix `evalresources`)
  * 2. RDF graph quads (stored under storage prefix `evalgraphs`)
  *
  * This script mirrors the patterns used in `packages/libresource/bin/resources.js`
- * and `packages/libgraph/bin/graphs.js`, but intentionally omits the Describer
- * so evaluation resources only include structural content (JSON-LD + N-Quads)
- * and token counts. This ensures objective downstream evaluation without LLM
- * generated descriptors to reduce unnecessary processing time.
+ * and `packages/libgraph/bin/graphs.js`. Evaluation resources include structural
+ * content (JSON-LD + N-Quads) and token counts for objective downstream evaluation.
  */
 
 import { createResourceIndex } from "@copilot-ld/libresource";
@@ -67,7 +65,6 @@ async function main() {
     resourceIndex,
     knowledgeStorage,
     parser,
-    null, // We don't need descriptors, so avoid calling out to the LLM
     logger,
   );
 

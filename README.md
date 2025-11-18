@@ -162,12 +162,10 @@ echo "What is Kanban?" | npm run search
 ```
 
 Command-line flags can be used for non-interactive runs to limit results and set
-a minimum similarity threshold, or target the descriptor index instead of
-content:
+a minimum similarity threshold:
 
 ```sh
 echo "testing" | npm run search -- --limit 10 --threshold 0.25
-echo "find pipeline tasks" | npm run search -- --index descriptor --limit 5
 ```
 
 ## 👨‍💻 Development

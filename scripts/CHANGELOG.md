@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-11-18
+
+- Fixed `chat.js` to use `content` as a string instead of object with `text`
+  property
+- Updated `handlePrompt()` to pass content directly to `Message.fromObject()`
+- Fixed response handling to return `message.content` instead of
+  `message.content.text`
+
 ## 2025-11-17
 
 - Replaced `unzip` command with native `ZipExtractor` from `@copilot-ld/libutil`

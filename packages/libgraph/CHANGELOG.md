@@ -2,6 +2,12 @@
 
 ## 2025-11-18
 
+- Fixed `GraphProcessor.processItem()` to expect `content` as string instead of
+  `content.nquads` object property
+- Fixed `GraphProcessor.process()` filtering to check for string content instead
+  of `content?.nquads`
+- Updated all processor tests to use `content` as string instead of object with
+  `nquads` property
 - Bump version
 
 ## 2025-10-26

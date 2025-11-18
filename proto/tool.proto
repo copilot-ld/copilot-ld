@@ -32,7 +32,7 @@ message ToolParam {
 
 message ToolFunction {
   resource.Identifier id = 1;
-  resource.Descriptor descriptor = 2;
+  string content = 2;
   optional string name = 3; // Passed by tool call requests
   oneof usage {
     ToolParam parameters = 4; // When declaring
@@ -55,7 +55,6 @@ message ToolCallMessage {
 }
 
 message ToolCallResult {
-  optional string representation = 1;
-  optional string content = 2;
-  repeated resource.Identifier identifiers = 3;
+  optional string content = 1;
+  repeated resource.Identifier identifiers = 2;
 }

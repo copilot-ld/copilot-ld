@@ -8,28 +8,7 @@ message Identifier {
   string parent = 3;
   string subject = 4;
 
-  // In vector searches, values will be populated from the representation (Descriptor or Content).
+  // In vector searches, values will be populated from the content.
   optional int32 tokens = 5;
   optional double score = 6;
-}
-
-/**
- * Resource descriptor representation
- */
-message Descriptor {
-  int32 tokens = 1;
-  string purpose = 2; // **What** the resource is meant to accomplish
-  string instructions = 3; // **How** to execute or work with the resource
-  string applicability = 4; // **When** or **when not** to use the resource
-  string evaluation = 5; // What successful execution looks like
-}
-
-/**
- * Resource content representation
- */
-message Content {
-  int32 tokens = 1;
-  optional string text = 2;
-  optional string nquads = 3;
-  optional string jsonld = 4;
 }

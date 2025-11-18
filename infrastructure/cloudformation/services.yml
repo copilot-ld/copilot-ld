@@ -92,7 +92,7 @@ Resources:
     Properties:
       RetentionInDays: 7
 
-  EgressLogGroup:
+  GatewayLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 7
@@ -101,21 +101,23 @@ Resources:
   # TASK DEFINITIONS
   # ==========================================
 
-  # Egress proxy task definition for outbound internet access
-  EgressTaskDefinition:
+  # Unified gateway task definition for ingress (ALB) and egress (proxy)
+  GatewayTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      Cpu: 256
-      Memory: 512
+      Cpu: 512
+      Memory: 1024
       ExecutionRoleArn: !Ref SecretsRoleArn
       ContainerDefinitions:
-        - Name: egress
-          Image: ubuntu/squid:latest
+        - Name: gateway
+          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/gateway:${ContainerTag}"
           Essential: true
           PortMappings:
+            - ContainerPort: 80
+            - ContainerPort: 443
             - ContainerPort: 3128
           Environment:
             - Name: NODE_ENV
@@ -123,9 +125,9 @@ Resources:
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-group: !Ref EgressLogGroup
+              awslogs-group: !Ref GatewayLogGroup
               awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: egress
+              awslogs-stream-prefix: gateway
 
   # ECS task definitions for backend service containers
   AgentTaskDefinition:
@@ -228,9 +230,9 @@ Resources:
             - Name: DEBUG
               Value: "*"
             - Name: HTTPS_PROXY
-              Value: http://egress.copilot-ld.local:3128
+              Value: http://gateway.copilot-ld.local:3128
             - Name: HTTP_PROXY
-              Value: http://egress.copilot-ld.local:3128
+              Value: http://gateway.copilot-ld.local:3128
             - Name: NO_PROXY
               Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
@@ -421,10 +423,10 @@ Resources:
             TTL: 300
       NamespaceId: !Ref ServiceDiscoveryNamespaceId
 
-  EgressServiceDiscovery:
+  GatewayServiceDiscovery:
     Type: AWS::ServiceDiscovery::Service
     Properties:
-      Name: egress
+      Name: gateway
       DnsConfig:
         DnsRecords:
           - Type: A
@@ -435,12 +437,12 @@ Resources:
   # ECS SERVICES
   # ==========================================
 
-  # Egress proxy service on public subnet with public IP
-  EgressService:
+  # Unified gateway service on public subnet with public IP for ingress and egress
+  GatewayService:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref ECSCluster
-      TaskDefinition: !Ref EgressTaskDefinition
+      TaskDefinition: !Ref GatewayTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
       NetworkConfiguration:
@@ -450,7 +452,7 @@ Resources:
             - !Ref ServiceSecurityGroupId
           Subnets: !Ref PublicSubnetIds
       ServiceRegistries:
-        - RegistryArn: !GetAtt EgressServiceDiscovery.Arn
+        - RegistryArn: !GetAtt GatewayServiceDiscovery.Arn
 
   # ECS services for running backend containerized applications
   AgentService:
@@ -582,6 +584,6 @@ Outputs:
     Description: ARN of the tool service
     Value: !Ref ToolService
 
-  EgressServiceArn:
-    Description: ARN of the egress proxy service
-    Value: !Ref EgressService
+  GatewayServiceArn:
+    Description: ARN of the unified gateway service
+    Value: !Ref GatewayService

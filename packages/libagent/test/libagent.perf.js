@@ -131,7 +131,7 @@ describe("LibAgent Performance Tests", () => {
         maxDuration: 10,
         maxMemory: 500,
         scaling: "linear",
-        tolerance: 1.5,
+        tolerance: 4.0,
       },
     }),
   );

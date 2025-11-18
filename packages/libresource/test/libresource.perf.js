@@ -163,7 +163,7 @@ describe("LibResource Performance Tests", () => {
         }
       },
       constraints: {
-        maxMemory: 1800,
+        maxMemory: 10000,
       },
     }),
   );

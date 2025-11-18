@@ -3,6 +3,7 @@ import { ActivityHandler, MessageFactory } from "botbuilder";
 
 /**
  * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
+ * @typedef {import("@copilot-ld/libformat").HtmlFormatter} HtmlFormatter
  */
 
 /**
@@ -15,13 +16,16 @@ class CopilotLdBot extends ActivityHandler {
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
    * @param {AgentClient} agentClient - An instance of AgentClient for communicating with the Agent service.
    * @param {object} config - The extension configuration object.
+   * @param {HtmlFormatter} htmlFormatter - Formatter for converting markdown to HTML.
    */
-  constructor(agentClient, config) {
+  constructor(agentClient, config, htmlFormatter) {
     super();
     if (!agentClient) throw new Error("agentClient is required");
     if (!config) throw new Error("config is required");
+    if (!htmlFormatter) throw new Error("htmlFormatter is required");
     this.agentClient = agentClient;
     this.config = config;
+    this.htmlFormatter = htmlFormatter;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
     /**
@@ -87,7 +91,8 @@ class CopilotLdBot extends ActivityHandler {
     let reply = { role: "assistant", content: null };
 
     if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
-      reply.content = String(response.choices[0].message.content);
+      const markdown = String(response.choices[0].message.content);
+      reply.content = this.htmlFormatter.format(markdown);
     }
 
     this.setResourceId(

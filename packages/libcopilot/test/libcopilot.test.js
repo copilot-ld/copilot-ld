@@ -292,4 +292,41 @@ describe("libcopilot", () => {
       assert(longCount > shortCount);
     });
   });
+
+  describe("Proxy Support", () => {
+    test("createLlm creates Copilot instance with default fetch", async () => {
+      // Import the function dynamically to test it
+      const { createLlm } = await import("../index.js");
+
+      // Create an LLM instance
+      const llm = createLlm("test-token", "gpt-4");
+
+      // Verify that the LLM was created successfully
+      assert.ok(llm instanceof Copilot);
+    });
+
+    test("createLlm works when HTTPS_PROXY environment variable is set", async () => {
+      // Set proxy environment variable for this test
+      const originalProxy = process.env.HTTPS_PROXY;
+      process.env.HTTPS_PROXY = "http://proxy.example.com:3128";
+
+      try {
+        // Import the function dynamically to test it
+        const { createLlm } = await import("../index.js");
+
+        // Create an LLM instance with proxy environment
+        const llm = createLlm("test-token", "gpt-4");
+
+        // Verify that the LLM was created successfully
+        assert.ok(llm instanceof Copilot);
+      } finally {
+        // Restore original environment
+        if (originalProxy) {
+          process.env.HTTPS_PROXY = originalProxy;
+        } else {
+          delete process.env.HTTPS_PROXY;
+        }
+      }
+    });
+  });
 });

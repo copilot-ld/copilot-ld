@@ -28,22 +28,23 @@ services:
   # Infrastructure Services
   #
 
-  alb:
-    image: nginx:alpine
-    container_name: alb.copilot-ld
+  gateway:
+    build:
+      context: ./infrastructure/docker/gateway
+      dockerfile: Dockerfile
+    image: copilot-ld/gateway:latest
+    container_name: gateway.copilot-ld
     ports:
       - "80:80"
       - "443:443"
+      - "3128:3128"
     volumes:
-      - ./infrastructure/docker/alb/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infrastructure/docker/alb/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./infrastructure/docker/alb/proxy_params:/etc/nginx/proxy_params:ro
       - ./data/cert/localhost.crt:/etc/ssl/certs/localhost.crt:ro
       - ./data/cert/localhost.key:/etc/ssl/private/localhost.key:ro
     networks:
       internal:
         aliases:
-          - alb.copilot-ld.local
+          - gateway.copilot-ld.local
     depends_on:
       - web
 

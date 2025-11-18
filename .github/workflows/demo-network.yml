@@ -33,7 +33,15 @@ jobs:
         id: parameters
         uses: ./.github/actions/stack-parameters
         with:
-          amend: '{"EnvironmentName": "${{ inputs.environment_name }}"}'
+          retrieve: |
+            {
+              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["SecretsRoleArn"]
+            }
+          amend: |
+            {
+              "EnvironmentName": "${{ inputs.environment_name }}",
+              "ContainerTag": "latest"
+            }
 
       - name: Deploy
         uses: aws-actions/aws-cloudformation-github-deploy@v1

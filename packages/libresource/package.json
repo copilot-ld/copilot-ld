@@ -20,7 +20,7 @@
     "@copilot-ld/libpolicy": "^0.1.27",
     "@copilot-ld/libstorage": "^0.1.28",
     "@copilot-ld/libtype": "^0.1.40",
-    "@copilot-ld/libutil": "^0.1.38",
+    "@copilot-ld/libutil": "^0.1.39",
     "html-minifier-terser": "^7.2.0"
   },
   "devDependencies": {

@@ -83,24 +83,27 @@ production-grade scalability and managed infrastructure.
 
 ### Architecture Overview
 
-The AWS deployment uses a unified gateway container instead of separate ALB and
-NAT Gateway resources for cost optimization and architectural consistency:
+The AWS deployment uses Application Load Balancer with unified gateway container
+for optimal security and cost management:
 
-- **Unified Gateway**: Single nginx container deployed on public subnet with
-  single public IP, using http module for ingress and stream module for egress
-- **Single Public IP**: Gateway handles both inbound web traffic (ports 80/443)
-  and outbound HTTPS proxy traffic (port 3128)
+- **Application Load Balancer**: Handles SSL termination with AWS Certificate
+  Manager certificates (free, auto-renewal) and routes traffic to gateway
+- **Unified Gateway**: Single nginx container on public subnet providing HTTP
+  ingress (port 80) and HTTPS egress proxy (port 3128)
+- **SSL Management**: ALB manages SSL with AWS Certificate Manager, gateway
+  serves HTTP internally
 - **Private Services**: All backend services (Agent, LLM, Memory, Vector, Graph,
   Tool) run on private subnets
 - **Proxy Configuration**: Services requiring external API access use the
   `HTTPS_PROXY` environment variable to route traffic through the gateway
-- **Cost Benefit**: Eliminates both ALB (~$16/month) and NAT Gateway (~$32/month
-  - $0.045/GB) charges, replacing with single Fargate task
+- **Cost Benefit**: Eliminates NAT Gateway (~$32/month + $0.045/GB data charges)
+  while maintaining professional SSL management via ALB (~$16/month) with AWS
+  Certificate Manager
 
-This architecture maintains security isolation while significantly reducing
-operational costs and simplifying infrastructure management. The unified gateway
-approach also ensures Docker Compose and AWS CloudFormation deployments use
-identical configurations.
+This architecture provides production-grade SSL certificate management through
+AWS Certificate Manager while eliminating the expensive NAT Gateway. The gateway
+handles egress proxy functionality, keeping backend services isolated on private
+subnets.
 
 ### AWS OIDC Setup for GitHub Actions
 

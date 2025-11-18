@@ -3,6 +3,11 @@
 ## 2025-11-18
 
 - Bump version
+- Added HTTPS proxy support via `HTTPS_PROXY` environment variable
+- Added `https-proxy-agent` dependency for proxy configuration
+- Created `createProxyAwareFetch()` helper function to automatically configure
+  proxy when `HTTPS_PROXY` or `https_proxy` environment variables are set
+- Updated `createLlm()` factory to use proxy-aware fetch by default
 
 ## 2025-10-19
 

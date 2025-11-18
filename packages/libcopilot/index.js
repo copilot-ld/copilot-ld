@@ -208,17 +208,30 @@ export class Copilot {
    * Converts an image to text description using vision capabilities
    * @param {string} filePath - Path to the image file
    * @param {string} [prompt] - Optional text prompt to guide the description
+   * @param {string} [model] - Model to use for image-to-text conversion, defaults to instance model
+   * @param {string} [systemPrompt] - System prompt to set context for the description
+   * @param {number} [max_tokens] - Maximum tokens to generate in the description
    * @returns {Promise<string>} Text description of the image
    */
-  async imageToText(filePath, prompt = "Describe this image in detail.") {
+  async imageToText(
+    filePath,
+    prompt = "Describe this image in detail.",
+    model = this.#model,
+    systemPrompt = "You are an AI assistant that describes images accurately and in detail.",
+    max_tokens = 1000,
+  ) {
     const buffer = await readFile(filePath);
     const base64 = buffer.toString("base64");
     const extension = filePath.split(".").pop().toLowerCase();
     const mimeType = `image/${extension === "jpg" ? "jpeg" : extension}`;
 
     const body = {
-      model: this.#model,
+      model: model,
       messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
         {
           role: "user",
           content: [
@@ -235,7 +248,7 @@ export class Copilot {
           ],
         },
       ],
-      max_tokens: 1000,
+      max_tokens,
     };
 
     const response = await this.#retry.execute(() =>

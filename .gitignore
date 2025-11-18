@@ -33,11 +33,13 @@ SCRATCHPAD*.md
 
 # Other files
 **/.DS_Store
+**/.history
 **/*.tar
 **/*.tar.gz
 **/*.zip
 **/*.log
 /temp/
+/tmp/
 
 # Excplicit test fixtures
 !**/test/fixtures/sample.tar.gz

@@ -40,7 +40,7 @@
     "@grpc/proto-loader": "^0.8.0",
     "@octokit/auth-oauth-device": "^8.0.1",
     "@octokit/core": "^7.0.3",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "linkedom": "^0.18.5",
     "n3": "^1.26.0",
     "protobufjs": "^7.4.0"

@@ -24,6 +24,8 @@
     "codegen:client": "npx --workspace=@copilot-ld/libcodegen codegen --client",
     "codegen:service": "npx --workspace=@copilot-ld/libcodegen codegen --service",
     "codegen:definition": "npx --workspace=@copilot-ld/libcodegen codegen --definition",
+    "transform": "npm run transform:pdf",
+    "transform:pdf": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libtransform pdf_transform",
     "process": "npm run process:assistants && npm run process:resources && npm run process:tools && npm run process:vectors && npm run process:graphs",
     "process:fast": "npm run process:assistants && npm run process:resources -- --fast && npm run process:tools && npm run process:vectors && npm run process:graphs",
     "process:assistants": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libagent assistants",
@@ -71,14 +73,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^52.0.4",
     "globals": "^16.3.0",
-    "html-minifier-terser": "^7.2.0",
-    "marked": "^14.1.0",
-    "marked-gfm-heading-id": "^4.1.0",
-    "marked-highlight": "^2.1.0",
-    "mustache": "^4.2.0",
     "prettier": "^3.6.2",
-    "protobufjs": "^7.4.0",
-    "protobufjs-cli": "^1.1.1",
     "simple-git-hooks": "^2.13.1",
     "spellchecker-cli": "^7.0.0"
   },
@@ -92,8 +87,5 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
-  },
-  "dependencies": {
-    "n3": "^1.26.0"
   }
 }

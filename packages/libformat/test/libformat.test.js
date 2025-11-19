@@ -107,25 +107,34 @@ describe("libformat", () => {
       // Mock marked-terminal
       mockMarkedTerminal = () => ({});
 
-      // Mock Marked
-      const mockMarkedInstance = {
-        use: () => mockMarkedInstance,
-        parse: (markdown) => {
-          // Simple mock that adds ANSI codes for terminal formatting
-          return markdown
-            .replace(/^# (.*$)/gm, "\x1b[1m$1\x1b[0m") // Bold for headers
-            .replace(/\*\*(.*?)\*\*/g, "\x1b[1m$1\x1b[0m") // Bold
-            .replace(/\*(.*?)\*/g, "\x1b[3m$1\x1b[0m"); // Italic
-        },
-      };
+      // Mock Marked - should behave like the real Marked class
       mockMarked = {
         Marked: class {
           /**
+           * Constructor for Marked
+           * @param {object} _options - Marked options
+           */
+          constructor(_options) {
+            // Instance methods that mimic real Marked behavior
+          }
+          /**
            * Use marked extensions
-           * @returns {object} Mock marked instance
+           * @returns {this} Returns this for method chaining
            */
           use() {
-            return mockMarkedInstance;
+            return this; // Return this for method chaining like real Marked
+          }
+          /**
+           * Parse markdown to formatted output
+           * @param {string} markdown - Markdown to parse
+           * @returns {string} Formatted output
+           */
+          parse(markdown) {
+            // Simple mock that adds ANSI codes for terminal formatting
+            return markdown
+              .replace(/^# (.*$)/gm, "\x1b[1m$1\x1b[0m") // Bold for headers
+              .replace(/\*\*(.*?)\*\*/g, "\x1b[1m$1\x1b[0m") // Bold
+              .replace(/\*(.*?)\*/g, "\x1b[3m$1\x1b[0m"); // Italic
           }
         },
       };

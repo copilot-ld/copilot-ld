@@ -9,7 +9,7 @@ import { LlmService } from "./index.js";
 const config = await createServiceConfig("llm");
 
 // Initialize observability
-const logger = await createLogger("llm");
+const logger = createLogger("llm");
 const tracer = await createTracer("llm");
 
 const service = new LlmService(config);

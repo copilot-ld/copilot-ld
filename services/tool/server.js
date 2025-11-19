@@ -9,10 +9,10 @@ import { ToolService } from "./index.js";
 const config = await createServiceConfig("tool");
 
 // Initialize observability
-const logger = await createLogger("tool");
+const logger = createLogger("tool");
 const tracer = await createTracer("tool");
 
-const service = new ToolService(config);
+const service = new ToolService(config, logger, tracer);
 const server = new Server(service, config, logger, tracer);
 
 await server.start();

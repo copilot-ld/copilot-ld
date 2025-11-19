@@ -128,9 +128,11 @@ export class Server extends Rpc {
         uri,
         this.grpc().ServerCredentials.createInsecure(),
         (error, port) => {
-          if (error) reject(error);
-          else {
-            this.observer().logger()?.debug("Server listening", { uri });
+          if (error) {
+            this.observer().logger()?.error("Server", error);
+            reject(error);
+          } else {
+            this.observer().logger()?.debug("Server", "Listening", { uri });
             resolve(port);
           }
         },
@@ -140,8 +142,14 @@ export class Server extends Rpc {
 
   /** Sets up graceful shutdown handlers */
   #setupShutdown() {
-    const shutdown = () => {
-      this.observer().logger()?.debug("Shutting down...");
+    const shutdown = async () => {
+      this.observer().logger()?.debug("Server", "Shutting down...");
+
+      // Call service shutdown if it exists
+      if (typeof this.#service.shutdown === "function") {
+        await this.#service.shutdown();
+      }
+
       this.#server.tryShutdown(() => process.exit(0));
     };
     process.on("SIGINT", shutdown);

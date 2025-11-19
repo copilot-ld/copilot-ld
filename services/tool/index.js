@@ -13,17 +13,22 @@ const { ToolBase } = services;
 export class ToolService extends ToolBase {
   #clients;
   #endpoints;
+  #logger;
+  #tracer;
 
   /**
    * Creates a new Tool service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
+   * @param {import("@copilot-ld/libtelemetry").Logger} [logger] - Optional logger instance
+   * @param {import("@copilot-ld/libtelemetry").Tracer} [tracer] - Optional tracer instance
    */
-  constructor(config, logFn) {
-    super(config, logFn);
+  constructor(config, logger = null, tracer = null) {
+    super(config);
 
     this.#clients = new Map();
     this.#endpoints = config.endpoints || {};
+    this.#logger = logger;
+    this.#tracer = tracer;
   }
 
   /**
@@ -132,7 +137,10 @@ export class ToolService extends ToolBase {
     }
 
     const ClientClass = clients[clientClassName];
-    return new ClientClass(await createServiceConfig(servicePackage));
+    const config = await createServiceConfig(servicePackage);
+
+    // Pass logger and tracer to ensure trace context propagation
+    return new ClientClass(config, this.#logger, this.#tracer);
   }
 
   /**

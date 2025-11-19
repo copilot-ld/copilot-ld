@@ -2,6 +2,17 @@
 
 ## 2025-11-18
 
+- Enhanced `Retry` class to detect gRPC `UNAVAILABLE` and `INTERNAL` errors that
+  wrap connection failures
+- Added retry support for gRPC status code `14 UNAVAILABLE` errors
+- Added retry support for `"fetch failed"` errors from gRPC `INTERNAL` status
+- Added retry support for HTTP status codes embedded in gRPC error messages
+  (499, 502, 503, 504)
+- Added HTTP 499 (client closed request) to retryable status codes
+- Improved `#isRetryableError()` to extract and check HTTP status codes from
+  error messages
+- Improved `#isRetryableError()` to handle gRPC error messages containing
+  connection issues
 - Bump version
 
 ## 2025-11-17

@@ -13,7 +13,7 @@ import { AgentService } from "./index.js";
 const agentConfig = await createServiceConfig("agent");
 
 // Initialize observability
-const logger = await createLogger("agent");
+const logger = createLogger("agent");
 const tracer = await createTracer("agent");
 
 const memoryClient = await createClient("memory", logger, tracer);

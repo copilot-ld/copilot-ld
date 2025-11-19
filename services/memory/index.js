@@ -1,6 +1,7 @@
 /* eslint-env node */
 import { services } from "@copilot-ld/librpc";
-import { MemoryWindow, MemoryIndex } from "@copilot-ld/libmemory";
+import { MemoryWindow } from "@copilot-ld/libmemory";
+import { MemoryIndex } from "@copilot-ld/libmemory/index/memory.js";
 
 const { MemoryBase } = services;
 
@@ -16,10 +17,9 @@ export class MemoryService extends MemoryBase {
    * Creates a new Memory service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage instance for memories
-   * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional log factory
    */
-  constructor(config, storage, logFn) {
-    super(config, logFn);
+  constructor(config, storage) {
+    super(config);
     if (!storage) throw new Error("storage is required");
 
     this.#storage = storage;

@@ -54,8 +54,12 @@ function withIdentifier(parent, subject) {
 
   this.id.parent = parent ? String(parent) : this.id.parent || "";
 
+  // Always set tokens field to ensure memory filtering works correctly
   if (this.content && typeof this.content === "string") {
     this.id.tokens = countTokens(this.content);
+  } else {
+    // Set to 0 for empty, null, undefined, or non-string content
+    this.id.tokens = 0;
   }
 }
 

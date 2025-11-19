@@ -16,7 +16,7 @@ export class VectorService extends VectorBase {
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libvector").VectorIndexInterface} vectorIndex - Pre-initialized vector index
    * @param {object} llmClient - LLM service client for embeddings
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
+   * @param {Function} logFn - Optional logging function
    */
   constructor(config, vectorIndex, llmClient, logFn) {
     super(config, logFn);

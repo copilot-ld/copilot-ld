@@ -13,6 +13,7 @@ service Llm {
 message EmbeddingsRequest {
   repeated string chunks = 1;
   string github_token = 2;
+  optional string model = 3;
 }
 
 message EmbeddingsResponse {
@@ -24,6 +25,7 @@ message CompletionsRequest {
   repeated tool.ToolDefinition tools = 2;
   optional float temperature = 3;
   string github_token = 4;
+  optional string model = 5;
 }
 
 message CompletionsResponse {

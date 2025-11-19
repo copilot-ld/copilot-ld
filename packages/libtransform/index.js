@@ -1,3 +1,3 @@
 /* eslint-env node */
 
-export { PdfTransform } from "./pdf_transform.js";
+export { PdfTransformer } from "./transformer/pdf.js";

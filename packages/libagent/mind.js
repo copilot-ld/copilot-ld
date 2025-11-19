@@ -93,6 +93,7 @@ export class AgentMind {
         budget * this.#config.budget?.allocation?.context,
       );
       const githubToken = req.github_token;
+      const model = req.model;
 
       // Use AgentHands for tool execution
       const completions = await this.#hands.executeToolLoop(
@@ -101,6 +102,7 @@ export class AgentMind {
         tools,
         maxTokens,
         githubToken,
+        model,
       );
 
       // Save the response
@@ -138,7 +140,10 @@ export class AgentMind {
     // Step 1: Initiate the conversation
     if (req.resource_id) {
       [conversation] = await this.#resourceIndex.get([req.resource_id], actor);
-    } else {
+    }
+
+    // Create new conversation if none exists or none was found
+    if (!conversation) {
       conversation = common.Conversation.fromObject({
         id: {
           name: generateUUID(),

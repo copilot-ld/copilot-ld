@@ -15,16 +15,16 @@ export class LlmService extends LlmBase {
    * Creates a new LLM service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {(config: object) => import("@copilot-ld/libcopilot").Copilot} [llmFn] - Factory function to create LLM client
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
    */
-  constructor(config, llmFn = createLlm, logFn) {
-    super(config, logFn);
+  constructor(config, llmFn = createLlm) {
+    super(config);
     this.#llmFactory = llmFn;
   }
 
   /** @inheritdoc */
   async CreateCompletions(req) {
-    const copilot = this.#llmFactory(req.github_token, this.config.model);
+    const model = req.model || this.config.model;
+    const copilot = this.#llmFactory(req.github_token, model);
 
     const completion = await copilot.createCompletions(
       req.messages,
@@ -38,7 +38,8 @@ export class LlmService extends LlmBase {
 
   /** @inheritdoc */
   async CreateEmbeddings(req) {
-    const copilot = this.#llmFactory(req.github_token, this.config.model);
+    const model = req.model || this.config.model;
+    const copilot = this.#llmFactory(req.github_token, model);
     const data = await copilot.createEmbeddings(req.chunks);
 
     return {

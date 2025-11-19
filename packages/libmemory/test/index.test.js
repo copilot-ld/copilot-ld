@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { describe, it, beforeEach, mock } from "node:test";
 import assert from "node:assert";
-import { MemoryIndex } from "../index.js";
+import { MemoryIndex } from "../index/memory.js";
 import { resource } from "@copilot-ld/libtype";
 
 describe("MemoryIndex - IndexBase Functionality", () => {

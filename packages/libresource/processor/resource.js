@@ -1,7 +1,7 @@
 /* eslint-env node */
 
 import { JSDOM } from "jsdom";
-import { sanitizeDom } from "./sanitizer.js";
+import { sanitizeDom } from "../sanitizer.js";
 
 import { common } from "@copilot-ld/libtype";
 import { ProcessorBase, generateHash } from "@copilot-ld/libutil";
@@ -24,7 +24,7 @@ export class ResourceProcessor extends ProcessorBase {
    * @param {object} resourceIndex - Index for storing/retrieving Message resources
    * @param {object} knowledgeStorage - Storage backend for HTML knowledge files
    * @param {object} parser - Parser instance for HTML→RDF→JSON-LD conversions
-   * @param {object} logger - Logger instance with debug() method
+   * @param {object} logger - Logger instance
    * @throws {Error} If parser is null or undefined
    */
   constructor(baseIri, resourceIndex, knowledgeStorage, parser, logger) {
@@ -93,14 +93,31 @@ export class ResourceProcessor extends ProcessorBase {
     }
 
     const items = [];
+    const seenInCurrentFile = new Map(); // Track entities seen in this file
 
     for (const parsedItem of parsedItems) {
-      const itemName = generateHash(parsedItem.iri);
-      const resourceKey = `common.Message.${itemName}`;
+      const name = generateHash(parsedItem.iri);
+      const id = `common.Message.${name}`;
 
-      if (await this.#resourceIndex.has(resourceKey)) {
-        const [existing] = await this.#resourceIndex.get([resourceKey]);
-        // Content is N-Quads string
+      // Check if we've already processed this entity in the current file
+      if (seenInCurrentFile.has(id)) {
+        const currentItem = seenInCurrentFile.get(id);
+
+        // Merge quads directly without conversion to/from RDF
+        currentItem.quads = this.#parser.unionQuads(
+          currentItem.quads,
+          parsedItem.quads,
+        );
+
+        this.#logger.debug("Processor", "Deduplicating within file", { id });
+        continue;
+      }
+
+      // Check if entity exists in the persistent index
+      if (await this.#resourceIndex.has(id)) {
+        const [existing] = await this.#resourceIndex.get([id]);
+
+        // Parse RDF from storage only once
         const existingQuads = await this.#parser.rdfToQuads(existing.content);
 
         const mergedQuads = this.#parser.unionQuads(
@@ -109,39 +126,34 @@ export class ResourceProcessor extends ProcessorBase {
         );
 
         if (mergedQuads.length > existingQuads.length) {
-          this.#logger.debug(
-            `Merging resource ${itemName}: ${existingQuads.length} -> ${mergedQuads.length} quads`,
-          );
+          this.#logger.debug("Processor", "Merging resource", { id });
 
-          const mergedRdf = await this.#parser.quadsToRdf(mergedQuads);
-          const mergedJsonArray = await this.#parser.rdfToJson(mergedRdf);
-          const mergedItem =
-            mergedJsonArray.find((item) => item["@id"] === parsedItem.iri) ||
-            mergedJsonArray[0];
-
-          if (mergedItem) {
-            items.push({
-              name: itemName,
+          if (this.#parser.isMainItem(parsedItem.iri, mergedQuads)) {
+            const item = {
+              name,
               subject: parsedItem.iri,
-              rdf: mergedRdf,
-              json: JSON.stringify(mergedItem),
-            });
+              quads: mergedQuads,
+            };
+            items.push(item);
+            seenInCurrentFile.set(id, item);
           }
         } else {
-          this.#logger.debug(
-            `Skipping duplicate resource ${itemName}: no new information`,
-          );
+          this.#logger.debug("Processor", "Skipping duplicate resource", {
+            id,
+          });
         }
 
         continue;
       }
 
-      items.push({
-        name: itemName,
+      // New entity - add to items and track
+      const item = {
+        name,
         subject: parsedItem.iri,
-        rdf: parsedItem.rdf,
-        json: parsedItem.json,
-      });
+        quads: parsedItem.quads,
+      };
+      items.push(item);
+      seenInCurrentFile.set(id, item);
     }
 
     return items;
@@ -149,16 +161,16 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Processes an extracted item into a complete Message resource
-   * @param {object} item - Item object with name, subject, rdf, and json properties
+   * @param {object} item - Item object with name, subject, and quads properties
    * @returns {Promise<object>} Typed Message resource stored in ResourceIndex
    */
   async processItem(item) {
-    const { name, subject, rdf } = item;
+    const { name, subject, quads } = item;
 
     const message = {
       id: { name, subject },
       role: "system",
-      content: rdf,
+      content: await this.#parser.quadsToRdf(quads),
     };
 
     const resource = common.Message.fromObject(message);

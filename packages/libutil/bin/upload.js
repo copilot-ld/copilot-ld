@@ -3,7 +3,8 @@
 
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
-import { Logger, Uploader } from "@copilot-ld/libutil";
+import { Uploader } from "@copilot-ld/libutil";
+import { Logger } from "@copilot-ld/libtelemetry";
 import { parseArgs } from "node:util";
 
 /**

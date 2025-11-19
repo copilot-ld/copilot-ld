@@ -23,6 +23,7 @@ DDoS
 DI
 DevOps
 DNS-based
+deserialized
 Docker
 Dockerfile
 Dockerfiles
@@ -48,6 +49,8 @@ Hono
 IAM
 IRI
 Integrations
+JavaScript
+JMESPath
 JSDoc
 JSON
 JSON-LD
@@ -233,6 +236,7 @@ pre-calculated
 pre-compile
 pre-compiled
 pre-computed
+pre-created
 pre-processed
 preloaded
 prod
@@ -321,3 +325,9 @@ Copilot-LD's
 copilot-ld's
 OpenTelemetry-compatible
 opentelemetry-compatible
+protobuf-serialized
+retryable
+1000ms
+JSON-structured
+non-RDF
+RDF-containing

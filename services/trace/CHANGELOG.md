@@ -4,6 +4,15 @@
 
 - Bump version
 
+## 2025-11-13
+
+- **BREAKING**: Updated `QuerySpans` to support JMESPath query expressions for
+  flexible trace filtering
+- Simplified service implementation by moving span storage and querying logic to
+  `TraceIndex`
+
+## 2025-11-02
+
 ## 2025-10-28
 
 - Updated `BufferedIndex` instantiation to use `config` parameter instead of

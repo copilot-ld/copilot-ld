@@ -2,7 +2,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { GraphProcessor } from "../processor.js";
+import { GraphProcessor } from "../processor/graph.js";
 import { resource } from "@copilot-ld/libtype";
 
 describe("GraphProcessor", () => {
@@ -146,48 +146,6 @@ describe("GraphProcessor", () => {
         addedQuads[0].predicate.value,
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
       );
-    });
-
-    test("throws error when tokens are missing", async () => {
-      const nquads = `<http://example.org/person/1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .`;
-
-      const item = {
-        identifier: resource.Identifier.fromObject({
-          name: "test",
-          type: "resource.Resource",
-        }),
-        resource: {
-          content: nquads,
-        },
-      };
-
-      await assert.rejects(() => processor.processItem(item), {
-        message: /Resource missing tokens/,
-      });
-    });
-
-    test("adds tokens to identifier", async () => {
-      const nquads = `<http://example.org/person/1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .`;
-
-      const item = {
-        identifier: resource.Identifier.fromObject({
-          name: "test",
-          type: "resource.Resource",
-          tokens: 250,
-        }),
-        resource: {
-          content: nquads,
-        },
-      };
-
-      let identifierWithTokens = null;
-      mockGraphIndex.add = async (identifier, _quads) => {
-        identifierWithTokens = identifier;
-      };
-
-      await processor.processItem(item);
-
-      assert.strictEqual(identifierWithTokens.tokens, 250);
     });
 
     test("uses resource tokens from Message", async () => {

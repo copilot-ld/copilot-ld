@@ -4,7 +4,7 @@ import { Parser } from "n3";
 import { ProcessorBase } from "@copilot-ld/libutil";
 
 import { OntologyProcessor } from "./ontology.js";
-import { ShaclSerializer } from "./serializer.js";
+import { ShaclSerializer } from "../serializer.js";
 
 /**
  * GraphProcessor class for processing resources with N-Quads into graph index
@@ -37,15 +37,28 @@ export class GraphProcessor extends ProcessorBase {
   async processItem(item) {
     const id = String(item.identifier);
 
-    // Skip if no N-Quads content
+    // Skip if no content
     if (!item.resource.content) {
-      this.logger.debug("Skipping resource without content", { id });
+      this.logger.debug("Processor", "Skipping resource without N-Quads", {
+        id,
+      });
       return;
     }
 
-    const quads = this.#rdfToQuads(item.resource.content);
+    // Try to parse RDF content, skip if it fails
+    let quads;
+    try {
+      quads = this.#rdfToQuads(item.resource.content);
+    } catch (error) {
+      this.logger.debug("Processor", "Skipping non-RDF content", {
+        id,
+        error: error.message,
+      });
+      return;
+    }
+
     if (quads.length === 0) {
-      this.logger.debug("No RDF found in N-Quads", { id });
+      this.logger.debug("Processor", "No RDF found in content", { id });
       return;
     }
 
@@ -88,13 +101,13 @@ export class GraphProcessor extends ProcessorBase {
   }
 
   /**
-   * Parse N-Quads string into RDF quads
-   * @param {string} rdf - N-Quads string
+   * Parse RDF string into RDF quads
+   * @param {string} rdf - RDF string
    * @returns {Array} Array of RDF quads
    * @private
    */
   #rdfToQuads(rdf) {
-    const parser = new Parser({ format: "N-Quads" });
+    const parser = new Parser({ format: "Turtle" });
     return parser.parse(rdf);
   }
 
@@ -118,10 +131,16 @@ export class GraphProcessor extends ProcessorBase {
     // 1. Get all resource identifiers
     const identifiers = await this.#resourceIndex.findAll();
 
-    // 2. Filter out conversations and their child resources
-    const filteredIdentifiers = identifiers.filter(
-      (id) => !String(id).startsWith("common.Conversation"),
-    );
+    // 2. Filter out resources that don't contain RDF content
+    // Only common.Message resources (from HTML knowledge sources) contain RDF
+    const filteredIdentifiers = identifiers.filter((identifier) => {
+      const id = String(identifier);
+      return (
+        !id.startsWith("common.Conversation") &&
+        !id.startsWith("common.Assistant") &&
+        !id.startsWith("tool.ToolFunction")
+      );
+    });
 
     // 3. Load the full resources using the identifiers
     const resources = await this.#resourceIndex.get(filteredIdentifiers, actor);
@@ -141,9 +160,9 @@ export class GraphProcessor extends ProcessorBase {
     // Filter resources to only those that need processing
     const resourcesToProcess = [];
     for (const resource of resources) {
-      // Only process resources with N-Quads content (content is now a string)
-      if (!resource.content || typeof resource.content !== "string") {
-        continue; // Skip resources without N-Quads content
+      // Only process resources with content
+      if (!resource.content) {
+        continue; // Skip resources without content
       }
 
       // Skip if already exists

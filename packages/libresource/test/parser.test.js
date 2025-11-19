@@ -191,12 +191,15 @@ describe("Parser", () => {
   });
 
   test("quadsToRdf converts quads to N-Quads format", async () => {
+    const { DataFactory } = await import("n3");
+    const { namedNode, quad } = DataFactory;
+
     const quads = [
-      {
-        subject: { value: "https://example.com/test" },
-        predicate: { value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
-        object: { value: "https://schema.org/Article", termType: "NamedNode" },
-      },
+      quad(
+        namedNode("https://example.com/test"),
+        namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        namedNode("https://schema.org/Article"),
+      ),
     ];
 
     const nquads = await parser.quadsToRdf(quads);
@@ -240,19 +243,19 @@ describe("Parser", () => {
   test("round-trip conversion preserves data (quads → N-Quads → quads)", async () => {
     // Create properly formatted N3 quads
     const { DataFactory } = await import("n3");
-    const { namedNode, literal } = DataFactory;
+    const { namedNode, literal, quad } = DataFactory;
 
     const originalQuads = [
-      {
-        subject: namedNode("https://example.com/test"),
-        predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        object: namedNode("https://schema.org/Article"),
-      },
-      {
-        subject: namedNode("https://example.com/test"),
-        predicate: namedNode("https://schema.org/name"),
-        object: literal("Test Article"),
-      },
+      quad(
+        namedNode("https://example.com/test"),
+        namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        namedNode("https://schema.org/Article"),
+      ),
+      quad(
+        namedNode("https://example.com/test"),
+        namedNode("https://schema.org/name"),
+        literal("Test Article"),
+      ),
     ];
 
     const nquads = await parser.quadsToRdf(originalQuads);

@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "graphs": "./bin/graphs.js"
+    "process-graphs": "./bin/graphs.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -23,6 +23,7 @@
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.7",
     "@copilot-ld/libstorage": "^0.1.29",
+    "@copilot-ld/libtelemetry": "^0.2.1",
     "@copilot-ld/libtype": "^0.1.43",
     "n3": "^1.21.0"
   },

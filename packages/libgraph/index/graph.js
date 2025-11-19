@@ -3,7 +3,7 @@
 import { Store, DataFactory } from "n3";
 import { resource } from "@copilot-ld/libtype";
 import { IndexBase } from "@copilot-ld/libindex";
-import { isWildcard } from "./index.js";
+import { isWildcard } from "../index.js";
 
 const { namedNode, literal } = DataFactory;
 
@@ -133,6 +133,34 @@ export class GraphIndex extends IndexBase {
     }
 
     return literal(term);
+  }
+
+  /**
+   * Retrieves all subjects and their types from the graph
+   * @param {string|null} [type] - Optional type URI to filter subjects by (wildcards: *, ?, _, null, NULL, or empty)
+   * @returns {Promise<Map<string, string>>} Map of subject URIs to their type URIs
+   */
+  async getSubjects(type = null) {
+    if (!this.loaded) await this.loadData();
+
+    const typeTerm = namedNode(
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    );
+    const subjects = new Map();
+
+    // Query for all rdf:type triples, optionally filtered by object type
+    // Use isWildcard to normalize wildcard values to null
+    const normalizedType = isWildcard(type) ? null : type;
+    const objectTerm = normalizedType
+      ? this.#patternTermToN3Term(normalizedType)
+      : null;
+    const quads = this.#graph.getQuads(null, typeTerm, objectTerm);
+
+    for (const quad of quads) {
+      subjects.set(quad.subject.value, quad.object.value);
+    }
+
+    return subjects;
   }
 
   /**

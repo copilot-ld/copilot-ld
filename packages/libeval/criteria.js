@@ -1,0 +1,119 @@
+/* eslint-env node */
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+import mustache from "mustache";
+import { common, llm } from "@copilot-ld/libtype";
+
+/**
+ * Criteria-based evaluator using LLM judge
+ * Evaluates agent responses against natural language criteria
+ */
+export class CriteriaEvaluator {
+  #llmClient;
+  #githubToken;
+  #criteriaTemplate;
+
+  /**
+   * Create a new CriteriaEvaluator instance
+   * @param {import('@copilot-ld/librpc').LlmClient} llmClient - LLM client for evaluation
+   * @param {string} githubToken - GitHub token for API access
+   */
+  constructor(llmClient, githubToken) {
+    if (!llmClient) throw new Error("llmClient is required");
+    if (!githubToken) throw new Error("githubToken is required");
+
+    this.#llmClient = llmClient;
+    this.#githubToken = githubToken;
+
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const templatePath = join(__dirname, "./prompts/criteria.md.mustache");
+    this.#criteriaTemplate = readFileSync(templatePath, "utf8");
+  }
+
+  /**
+   * Evaluate agent response against criteria
+   * @param {object} scenario - Scenario with evaluations array
+   * @param {object} response - Agent response object
+   * @returns {Promise<object>} Evaluation result
+   */
+  async evaluate(scenario, response) {
+    if (!scenario.evaluations || scenario.evaluations.length === 0) {
+      throw new Error(`Scenario ${scenario.name} missing evaluations`);
+    }
+
+    if (!response.choices || response.choices.length === 0) {
+      throw new Error(`No choices in agent response for ${scenario.id}`);
+    }
+
+    const responseContent = response.choices[0].message.content;
+
+    // Add indices to evaluations for template rendering
+    const evaluationsWithIndex = scenario.evaluations.map(
+      (evaluation, index) => ({
+        ...evaluation,
+        index,
+      }),
+    );
+
+    // Render evaluation prompt with all criteria
+    const evaluationPrompt = mustache.render(this.#criteriaTemplate, {
+      prompt: scenario.prompt,
+      response: responseContent,
+      evaluations: evaluationsWithIndex,
+    });
+
+    const request = llm.CompletionsRequest.fromObject({
+      messages: [
+        common.Message.fromObject({
+          role: "user",
+          content: evaluationPrompt,
+        }),
+      ],
+      temperature: 0.0,
+      github_token: this.#githubToken,
+    });
+
+    const judgment = await this.#llmClient.CreateCompletions(request);
+    const judgmentContent = judgment.choices[0].message.content.trim();
+
+    // Parse JSON response
+    let parsedJudgment;
+    try {
+      parsedJudgment = JSON.parse(judgmentContent);
+    } catch (error) {
+      throw new Error(
+        `Failed to parse judgment JSON for ${scenario.name}: ${error.message}`,
+      );
+    }
+
+    // Build evaluation results from parsed JSON
+    const evaluationResults = scenario.evaluations.map((evaluation, index) => {
+      const result = parsedJudgment[index.toString()];
+      if (!result) {
+        throw new Error(
+          `Missing judgment for criteria index ${index} ("${evaluation.label}") in scenario ${scenario.name}`,
+        );
+      }
+
+      return {
+        label: evaluation.label,
+        data: evaluation.data,
+        passed: result.passed,
+        detail: result.judgement,
+      };
+    });
+
+    const passed = evaluationResults.every((r) => r.passed);
+
+    return {
+      scenario: scenario.name,
+      type: "criteria",
+      passed,
+      prompt: scenario.prompt,
+      response: responseContent,
+      evaluations: evaluationResults,
+    };
+  }
+}

@@ -4,46 +4,51 @@ import { parseArgs } from "node:util";
 import yaml from "js-yaml";
 import {
   Evaluator,
-  Judge,
-  MetricsCalculator,
-  ReportGenerator,
+  EvaluationIndex,
+  CriteriaEvaluator,
+  RecallEvaluator,
+  TraceEvaluator,
 } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
-import { clients } from "@copilot-ld/librpc";
+import { clients, createTracer } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
 // Extract generated clients
-const { LlmClient, AgentClient } = clients;
+const { LlmClient, AgentClient, MemoryClient, TraceClient } = clients;
+
+// Initialize logger
+const logger = createLogger("eval");
 
 /**
- * Load test cases from config/eval.yml
+ * Load scenarios from config/eval.yml
  * @param {object} storage - Config storage instance
- * @param {string} caseId - Optional specific case ID to load
- * @returns {Promise<object[]>} Array of test cases
+ * @param {string} scenario - Optional specific scenario ID to load
+ * @returns {Promise<object[]>} Array of scenarios
  */
-async function loadTestCases(storage, caseId = null) {
-  const evalYml = await storage.get("eval.yml");
-  if (!evalYml) {
+async function loadScenarios(storage, scenario = null) {
+  const yamlString = await storage.get("eval.yml");
+  if (!yamlString) {
     throw new Error("config/eval.yml not found");
   }
 
-  const testCaseObjects = yaml.load(evalYml);
+  const yamlObjects = yaml.load(yamlString);
 
   // Convert to array with IDs
-  let cases = Object.entries(testCaseObjects).map(([id, testCase]) => ({
-    id,
-    ...testCase,
+  let scenarios = Object.entries(yamlObjects).map(([name, data]) => ({
+    name,
+    ...data,
   }));
 
-  // Filter to specific case if requested
-  if (caseId) {
-    cases = cases.filter((c) => c.id === caseId);
-    if (cases.length === 0) {
-      throw new Error(`Test case not found: ${caseId}`);
+  // Filter to specific scenario if requested
+  if (scenario) {
+    scenarios = scenarios.filter((s) => s.name === scenario);
+    if (scenarios.length === 0) {
+      throw new Error(`Scenario not found: ${scenario}`);
     }
   }
 
-  return cases;
+  return scenarios;
 }
 
 /**
@@ -56,84 +61,134 @@ async function main() {
       concurrency: {
         type: "string",
         short: "c",
+        default: "8",
+      },
+      scenario: {
+        type: "string",
+        short: "s",
+      },
+      iterations: {
+        type: "string",
+        short: "i",
         default: "5",
       },
-      case: {
+      model: {
         type: "string",
-        short: "t",
+        short: "m",
       },
     },
   });
 
   const args = {
     concurrency: parseInt(values.concurrency, 10),
-    case: values.case || null,
+    scenario: values.scenario || null,
+    iterations: parseInt(values.iterations, 10),
+    model: values.model || null,
   };
-
-  console.log("🔬 Evaluation System");
-  console.log("====================\n");
 
   // Initialize storage
   const configStorage = createStorage("config");
-  const resultsStorage = createStorage("eval");
+  const evalStorage = createStorage("eval");
 
-  // Initialize clients
-  console.log("Initializing clients...");
+  // Load config.json to get model matrix
+  const config = await configStorage.get("config.json");
+  if (!config) {
+    throw new Error("config/config.json not found");
+  }
+
+  // Get models list - use CLI arg if provided, otherwise use config matrix
+  const models = args.model ? [args.model] : config.evals?.models || [];
+  if (models.length === 0) {
+    throw new Error(
+      "No models specified in config.json evals.models or via --model flag",
+    );
+  }
+
+  // Initialize utility clients, without tracing
   const llmConfig = await createServiceConfig("llm");
-  const agentConfig = await createServiceConfig("agent");
+  const memoryConfig = await createServiceConfig("memory");
+  const traceConfig = await createServiceConfig("trace");
 
   const llmClient = new LlmClient(llmConfig);
-  const agentClient = new AgentClient(agentConfig);
+  const memoryClient = new MemoryClient(memoryConfig);
+  const traceClient = new TraceClient(traceConfig);
+
+  // Initialize evaluation index for storing results
+  const evaluationIndex = new EvaluationIndex(evalStorage);
+
+  // The agent client is the one doing evaluations, so this gets tracing
+  const tracer = await createTracer("agent");
+  const agentConfig = await createServiceConfig("agent");
+  const agentClient = new AgentClient(agentConfig, null, tracer);
 
   // Get GitHub token from environment
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
-    console.error("Error: GITHUB_TOKEN environment variable is required");
+    logger.error(
+      "main",
+      new Error("GITHUB_TOKEN environment variable is required"),
+    );
     process.exit(1);
   }
 
-  // Load test cases
-  console.log("Loading test cases...");
-  const testCases = await loadTestCases(configStorage, args.case);
-  console.log(`Loaded ${testCases.length} test case(s)\n`);
+  // Load scenarios
+  const scenarios = await loadScenarios(configStorage, args.scenario);
 
-  // Create dependencies
-  const judge = new Judge(llmClient, githubToken);
-  const metrics = new MetricsCalculator();
-  const reporter = new ReportGenerator();
+  // Create evaluators
+  const criteriaEvaluator = new CriteriaEvaluator(llmClient, githubToken);
+  const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
+  const traceEvaluator = new TraceEvaluator(traceClient);
 
-  // Create evaluator with all dependencies
-  const evaluator = new Evaluator(
-    agentClient,
-    githubToken,
-    judge,
-    metrics,
-    reporter,
-  );
+  // Plan all runs in a flat array - iterate over models, then iterations, then scenarios
+  const runs = [];
+  for (const model of models) {
+    // Create evaluator with specific model
+    const evaluator = new Evaluator(
+      agentClient,
+      memoryClient,
+      traceClient,
+      githubToken,
+      model,
+      evaluationIndex,
+      criteriaEvaluator,
+      recallEvaluator,
+      traceEvaluator,
+    );
 
-  // Run evaluation
-  console.log("Starting evaluation...\n");
-  const results = await evaluator.evaluate(testCases, args.concurrency);
+    for (let iteration = 1; iteration <= args.iterations; iteration++) {
+      for (const scenario of scenarios) {
+        runs.push({
+          name: scenario.name,
+          scenario,
+          iteration,
+          model,
+          evaluator,
+        });
+      }
+    }
+  }
 
-  // Generate reports
-  console.log("\n");
-  await evaluator.report(results, resultsStorage);
+  // Process runs in concurrent batches
+  for (let i = 0; i < runs.length; i += args.concurrency) {
+    const batch = runs.slice(i, i + args.concurrency);
 
-  // Print summary
-  console.log("\n📊 Evaluation Summary");
-  console.log("=====================");
-  console.log(`Total Cases: ${results.totalCases}`);
-  console.log(`Average Relevance: ${results.averageScores.relevance}/10`);
-  console.log(`Average Accuracy: ${results.averageScores.accuracy}/10`);
-  console.log(`Average Completeness: ${results.averageScores.completeness}/10`);
-  console.log(`Average Coherence: ${results.averageScores.coherence}/10`);
-  console.log(
-    `Average Source Attribution: ${results.averageScores.sourceAttribution}/10`,
-  );
-  console.log(`\n✨ Overall Score: ${results.averageScores.overall}/10\n`);
+    await Promise.all(
+      batch.map(async ({ name, scenario, iteration, model, evaluator }) => {
+        logger.debug("Evaluator", "Evaluating scenario", {
+          name,
+          iteration,
+          model,
+        });
+        await evaluator.evaluate(scenario);
+      }),
+    );
+  }
+
+  // Flush remaining buffered results to storage
+  await evaluationIndex.shutdown();
 }
 
 main().catch((error) => {
-  console.error("Error:", error.message);
+  logger.error("Evaluator", error);
   process.exit(1);
 });

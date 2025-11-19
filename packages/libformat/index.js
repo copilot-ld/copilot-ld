@@ -104,8 +104,15 @@ export class TerminalFormatter {
     this.#markedTerminal = markedTerminal;
 
     // Initialize the terminal marked instance with plugin
-    this.#terminalMarked = new this.#marked.Marked().use(
-      this.#markedTerminal(),
+    // Pass ignoreIllegals to suppress highlight.js warnings about unknown languages
+    // Disable colors if stdout is not a TTY to prevent broken ANSI codes
+    this.#terminalMarked = new this.#marked.Marked({
+      silent: true,
+    });
+    this.#terminalMarked.use(
+      this.#markedTerminal({
+        ignoreIllegals: true,
+      }),
     );
   }
 
@@ -115,7 +122,9 @@ export class TerminalFormatter {
    * @returns {string} Terminal-formatted text with ANSI escape codes
    */
   format(markdown) {
-    return this.#terminalMarked.parse(markdown);
+    const formatted = this.#terminalMarked.parse(markdown);
+    // Reduce the length of horizontal lines by replacing long sequences of dashes
+    return formatted.replace(/-{73,}/g, "-".repeat(72));
   }
 }
 

@@ -6,6 +6,10 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./index/graph.js": "./index/graph.js"
+  },
   "bin": {
     "process-graphs": "./bin/graphs.js"
   },

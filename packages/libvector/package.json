@@ -6,6 +6,10 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./index/vector.js": "./index/vector.js"
+  },
   "bin": {
     "process-vectors": "./bin/vectors.js"
   },

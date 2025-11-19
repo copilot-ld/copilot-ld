@@ -227,19 +227,6 @@ describe("Parser", () => {
     assert.strictEqual(quads[0].object.value, "https://schema.org/Article");
   });
 
-  test("rdfToJson converts N-Quads to JSON-LD array", async () => {
-    const nquads = `<https://example.com/test> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Article> .
-<https://example.com/test> <https://schema.org/name> "Test Article" .
-`;
-
-    const jsonArray = await parser.rdfToJson(nquads);
-
-    assert.ok(Array.isArray(jsonArray), "Should return array");
-    assert.ok(jsonArray.length > 0, "Should have at least one JSON-LD object");
-    assert.strictEqual(jsonArray[0]["@id"], "https://example.com/test");
-    assert.ok(jsonArray[0]["@type"], "Should have @type");
-  });
-
   test("round-trip conversion preserves data (quads → N-Quads → quads)", async () => {
     // Create properly formatted N3 quads
     const { DataFactory } = await import("n3");

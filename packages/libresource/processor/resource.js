@@ -23,7 +23,7 @@ export class ResourceProcessor extends ProcessorBase {
    * @param {string} baseIri - Base IRI for resource identification (fallback if HTML lacks <base>)
    * @param {object} resourceIndex - Index for storing/retrieving Message resources
    * @param {object} knowledgeStorage - Storage backend for HTML knowledge files
-   * @param {object} parser - Parser instance for HTML→RDF→JSON-LD conversions
+   * @param {object} parser - Parser instance for HTML→RDF conversions
    * @param {object} logger - Logger instance
    * @throws {Error} If parser is null or undefined
    */

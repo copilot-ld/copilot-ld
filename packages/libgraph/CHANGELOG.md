@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-19
+
+- Added `exports` field to `package.json` to properly expose `index/graph.js`
+  path for Docker container module resolution
+
 ## 2025-11-17
 
 - Fixed `GraphProcessor` to skip non-RDF resources (`common.Assistant`,

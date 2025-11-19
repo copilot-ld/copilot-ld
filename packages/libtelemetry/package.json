@@ -6,6 +6,12 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./tracer.js": "./tracer.js",
+    "./visualizer.js": "./visualizer.js",
+    "./index/trace.js": "./index/trace.js"
+  },
   "bin": {
     "visualize": "./bin/visualize.js"
   },

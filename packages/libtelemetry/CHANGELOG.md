@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-19
+
+- Added `exports` field to `package.json` to properly expose all paths
+
 ## 2025-11-18
 
 - Enhanced error messages with trace context by adding `trace_id`, `span_id`,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-19
+
+- Added `exports` field to `package.json` to properly expose `index/vector.js`
+  path for Docker container module resolution
+
 ## 2025-11-18
 
 - Bump version

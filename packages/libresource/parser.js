@@ -1,7 +1,6 @@
 /* eslint-env node */
 
 import { minify } from "html-minifier-terser";
-import jsonld from "jsonld";
 import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 import { Writer, Parser as N3Parser } from "n3";
 
@@ -25,7 +24,7 @@ export class Parser {
    * Parses HTML DOM and extracts structured items
    * @param {object} dom - JSDOM instance
    * @param {string} baseIri - Base IRI for parsing
-   * @returns {Promise<Array>} Array of extracted items with RDF and JSON-LD
+   * @returns {Promise<Array>} Array of extracted items with RDF quads
    */
   async parseHTML(dom, baseIri) {
     const minifiedHtml = await this.#minifyHTML(dom.serialize());
@@ -123,15 +122,6 @@ export class Parser {
    */
   unionQuads(existingQuads, newQuads) {
     return this.#deduplicateQuads([...existingQuads, ...newQuads]);
-  }
-
-  /**
-   * Converts RDF to JSON-LD format
-   * @param {string} rdf - RDF in N-Quads format
-   * @returns {Promise<Array>} Array of JSON-LD objects
-   */
-  async rdfToJson(rdf) {
-    return this.#rdfToJson(rdf);
   }
 
   /**
@@ -238,24 +228,5 @@ export class Parser {
     });
 
     return Array.from(quadMap.values());
-  }
-
-  /**
-   * Converts RDF to JSON-LD format
-   * @param {string} rdf - RDF in N-Quads format
-   * @returns {Promise<Array>} Array of JSON-LD objects
-   */
-  async #rdfToJson(rdf) {
-    const jsonldArray = await jsonld.fromRDF(rdf, {
-      format: "application/n-quads",
-    });
-    const context = {
-      "@vocab": "https://schema.org/",
-      rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-      rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-    };
-    return Promise.all(
-      jsonldArray.map((item) => jsonld.compact(item, context)),
-    );
   }
 }

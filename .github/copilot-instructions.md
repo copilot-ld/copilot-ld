@@ -57,8 +57,14 @@ domain-specific instructions:
 
 ### Test Files (`**/*.test.js`)
 
-- **Follow**: `.github/instructions/testing.instructions.md` for testing
+- **Follow**: `.github/instructions/jstest.instructions.md` for testing
   standards
+- **Additional**: All JavaScript and universal file instructions also apply
+
+### CLI Tools (`scripts/*.js`)
+
+- **Follow**: `.github/instructions/cli-tools.instructions.md` for CLI tool
+  usage and patterns
 - **Additional**: All JavaScript and universal file instructions also apply
 
 ### Performance Files (`**/*.perf.js`)

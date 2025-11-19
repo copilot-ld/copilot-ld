@@ -83,51 +83,61 @@ npm run search
 npm run query
 > ? rdf:type schema:Person
 > person:john ? ?
+
+# Trace visualization with Mermaid diagrams
+npm run cli:visualize
+> [?kind==`2`]  # Show all SERVER spans
+> [?contains(name, 'llm')]  # Show LLM-related operations
 ```
 
 ### Evaluation Testing
 
 The evaluation system assesses agent response quality using `LLM-as-a-judge`
-methodology:
+methodology with a two-step workflow:
 
 ```bash
-# Run full evaluation suite (default 5 parallel)
+# Step 1: Run evaluation tests (stores results in EvaluationIndex)
 npm run eval
 
-# Run with custom concurrency
-npm run eval -- --concurrency 10
+# Run with custom concurrency and iterations
+npm run eval -- --concurrency 10 --iterations 3
 
-# Run specific test case
-npm run eval -- --case vector_drug_formulation
-
-# Generate report from existing results
-npm run eval -- --report-only --input run-2025-10-23-001.json
+# Step 2: Generate reports from stored results
+npm run eval:report
 ```
 
-**Evaluation Metrics** (0-10 scale):
+**Evaluation System**:
 
-- **Relevance**: Does the response address the user's question?
-- **Accuracy**: Are the facts and information correct?
-- **Completeness**: Does the response cover all aspects?
-- **Coherence**: Is the response well-structured and organized?
-- **Source Attribution**: Does the response properly cite sources?
+- **Recall-focused metrics**: Each test case defines required facts that must
+  appear in responses
+- **100% recall requirement**: All test cases must achieve perfect recall to
+  pass
+- **Criteria-based evaluation**: Uses template-based prompts with structured
+  verdict parsing
+- **Memory integration**: Reports include full conversation context for each
+  test case
+- **Persistent storage**: Results stored in `EvaluationIndex` for incremental
+  reporting
 
 Test cases are defined in `config/eval.yml` based on the BioNova pharmaceutical
-demo scenarios in `eval/EVAL.md`.
+demo scenarios.
 
-Evaluation reports are written to:
+Reports are written to:
 
-- `data/evalresults/run-YYYY-MM-DD-XXX.md` - Human-readable markdown report
-- `data/evalresults/run-YYYY-MM-DD-XXX.json` - Machine-readable JSON results
+- `data/eval/SUMMARY.md` - Aggregate statistics across all test cases
+- `data/eval/[case-id].md` - Detailed report for each individual test case
 
 ### Scripted Testing
 
 ```bash
 # Pipe input for automated testing
-echo "Tell me about container security" | npm run chat
+echo "Tell me about container security" | npm run cli:chat
 
 # Search with CLI flags for precise testing
-echo "docker" | npm run search -- --limit 10 --threshold 0.25
+echo "docker" | npm run cli:search -- --limit 10 --threshold 0.25
+
+# Test descriptor-based search
+echo "kubernetes deployment" | npm run cli:search -- --index descriptor --limit 5
 ```
 
 ### System Validation Scripts
@@ -191,7 +201,33 @@ Access the development interfaces:
 All system operations are automatically traced and stored in `data/traces/` as
 daily JSONL files.
 
-### Viewing Traces
+### Interactive Trace Visualization
+
+The `visualize` CLI tool generates Mermaid sequence diagrams with JMESPath query
+support:
+
+```bash
+# Launch interactive REPL
+npm run cli:visualize
+
+# Query traces with JMESPath expressions
+> [?kind==`2`]  # All SERVER spans
+> [?contains(name, 'llm')]  # LLM operations
+> [?attributes."resource_id"=='common.Conversation.abc123']  # Specific conversation
+
+# Filter by trace or resource ID
+--trace f6a4a4d0d3e91
+--resource common.Conversation.abc123
+```
+
+Visualization output shows:
+
+- Service interaction sequence with timing
+- Request/response attributes
+- Error status and messages
+- Complete trace context with all service calls
+
+### Viewing Raw Traces
 
 ```bash
 # View today's traces

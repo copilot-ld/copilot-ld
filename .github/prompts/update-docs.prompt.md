@@ -9,7 +9,8 @@ synchronized.
 ## 1. Change Analysis
 
 - Generate a git diff against the `main` branch to identify all modifications
-- Search the codebase to understand the broader context and impact of changes
+- Search the codebase to fully understand the broader context and impact of
+  changes
 - Identify which components (services, packages, extensions, tools) are affected
 
 ## 2. Documentation Updates
@@ -27,6 +28,7 @@ summaries
 
 **Consolidation Rules:**
 
+- Only consolidate changelog entires that were added as part of this branch
 - Group related changes into single, descriptive bullet points
 - Focus on user-impact and functional changes, not implementation details
 - Maximum 3-5 bullet points per component per date
@@ -48,10 +50,10 @@ method changes:
 ## Implementation Checklist
 
 - [ ] Analyze git diff against main branch
-- [ ] Search codebase for affected components
+- [ ] Search codebase to fully understand affected components
 - [ ] Apply documentation standards from
       `.github/instructions/documentation.instructions.md`
 - [ ] Consolidate verbose changelog entries into 3-5 meaningful bullet points
       per component
-- [ ] Use today's date (2025-08-28) for new changelog entries
+- [ ] Use today's date for new changelog entries
 - [ ] Verify all cross-references remain accurate after changes

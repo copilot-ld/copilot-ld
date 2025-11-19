@@ -154,12 +154,18 @@ daily JSONL files for analysis.
 **Key Operations**:
 
 - `RecordSpan`: Receives and stores individual trace spans
-- `QuerySpans`: Retrieves spans for analysis and debugging
+- `QuerySpans`: Retrieves spans with JMESPath query support for flexible
+  filtering
 - `FlushTraces`: Forces buffered spans to disk
 
 **Architecture**:
 
-- **Buffered writes**: Uses `BufferedIndex` for efficient batched I/O
+- **JMESPath queries**: Filter traces by complex conditions (e.g.,
+  `[?kind==\`2\`]` for SERVER spans)
+- **Complete trace retrieval**: Returns all spans from matching traces, not
+  individual spans
+- **Buffered writes**: Uses `BufferedIndex` for efficient batched I/O via
+  `TraceIndex`
 - **Daily rotation**: Stores traces in `data/traces/YYYY-MM-DD.jsonl` format
 - **Self-instrumentation**: Does NOT trace itself to avoid infinite recursion
 - **OTLP export**: Optional export to OpenTelemetry Protocol endpoints
@@ -1001,6 +1007,20 @@ const request = trace.QuerySpansRequest.fromObject({
 const response = await client.QuerySpans(request);
 
 console.log(`Found ${response.spans.length} spans`);
+
+// Query with JMESPath expression to filter traces
+const queryRequest = trace.QuerySpansRequest.fromObject({
+  query: "[?kind==`2`]", // All SERVER spans
+  limit: 1000,
+});
+const queryResponse = await client.QuerySpans(queryRequest);
+
+// Query by resource ID (returns complete traces)
+const resourceRequest = trace.QuerySpansRequest.fromObject({
+  resource_id: "common.Conversation.abc123",
+  limit: 1000,
+});
+const resourceResponse = await client.QuerySpans(resourceRequest);
 
 // Force flush buffered spans to disk
 const flushRequest = trace.FlushTracesRequest.fromObject({});

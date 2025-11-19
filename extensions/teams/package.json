@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/teams",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
   "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
   "license": "MIT",
@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.33",
     "@copilot-ld/libformat": "^0.1.41",
-    "@copilot-ld/librpc": "^0.1.52",
+    "@copilot-ld/librpc": "^0.1.53",
     "@copilot-ld/libtype": "^0.1.42",
     "@copilot-ld/libutil": "^0.1.39",
     "@copilot-ld/libweb": "^0.1.33",

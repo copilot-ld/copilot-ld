@@ -10,10 +10,9 @@ export class HashService extends HashBase {
   /**
    * Creates a new Hash service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, logFn) {
-    super(config, logFn);
+  constructor(config) {
+    super(config);
   }
 
   /** @inheritdoc */

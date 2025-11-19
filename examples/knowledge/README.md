@@ -1,4 +1,4 @@
-# BioNova Pharmaceutical Company - Story Overview
+# BioNova Pharmaceutical Company - Overview
 
 ## Company Identity
 
@@ -48,11 +48,12 @@ BioNova's operations span the pharmaceutical value chain:
 
 BioNova develops and manufactures various therapeutic categories:
 
-- **Oncology**: Cancer treatment medications
-- **Cardiovascular**: Heart disease therapies
-- **Immunology**: Immune system treatments
-- **Neuroscience**: Neurological disorder medications
-- **Rare Diseases**: Orphan drug programs
+- **Oncology**: Cancer treatment medications (Oncora, OncoVex, Oncora-XR)
+- **Cardiovascular**: Heart disease therapies (CardioZen)
+- **Immunology**: Immune system treatments (Immunex, Immunex-Plus)
+- **Neuroscience**: Neurological disorder medications (Neurova, Neurogenex)
+- **General Therapeutics**: Additional drug development programs (NovaMed,
+  Vitalis)
 
 ## Technology Integration
 
@@ -93,20 +94,25 @@ BioNova employs diverse talent across all departments:
 BioNova invests in cross-functional projects that span multiple departments:
 
 - **Precision Medicine Programs**: Personalized therapies using genetic data
-- **Manufacturing Modernization**: Continuous manufacturing and automation
-- **Digital Therapeutics**: Software-based treatment modalities
-- **AI Drug Discovery**: Machine learning for compound optimization
-- **Supply Chain Optimization**: Predictive analytics for distribution
+- **AI Drug Discovery**: Machine learning for compound optimization and target
+  validation
+- **Supply Chain Optimization**: Predictive analytics for distribution and
+  adaptive logistics
+- **Immunotherapy Development**: Advanced biologic therapies for autoimmune
+  conditions
+- **Cross-Functional Integration**: Platform-driven collaboration across R&D,
+  Manufacturing, Commercial, and IT
 
 ## Educational Programs
 
 BioNova offers certification programs for professional development:
 
-- **Pharmaceutical Sciences**: Drug development and formulation
-- **Clinical Operations**: Trial design and patient safety
-- **Regulatory Affairs**: FDA submission and compliance
-- **Quality Assurance**: GMP and validation practices
-- **Bioinformatics**: Computational biology and data analysis
+- **Pharmaceutical Sciences**: Therapeutic lifecycle from mechanistic design
+  through regulatory submission
+- **Manufacturing Operations**: GMP operational excellence with predictive
+  analytics and quality management
+- **Data and AI Platforms**: Regulated AI platform stewardship covering ML
+  operations and compliance integration
 
 ## Compliance Framework
 
@@ -127,8 +133,3 @@ BioNova fosters innovation through:
 - **Continuous Improvement**: Agile methodologies applied to pharmaceutical
   operations
 - **Patient-Centric Focus**: Technology serving better patient outcomes
-
-This storyline provides the narrative context for all evaluation content. All
-entity definitions, relationships, and scenarios should align with this
-pharmaceutical industry setting while maintaining the technical complexity
-needed to test vector search and graph traversal capabilities.

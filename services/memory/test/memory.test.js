@@ -26,7 +26,7 @@ describe("memory service", () => {
 
     test("MemoryService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(MemoryService.length, 3); // config, storage, logFn
+      assert.strictEqual(MemoryService.length, 2); // config, storage
     });
 
     test("MemoryService has proper method signatures", () => {

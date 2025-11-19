@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-11-17
+
+- Fixed `GraphProcessor` to skip non-RDF resources (`common.Assistant`,
+  `tool.ToolFunction`) and only process RDF-containing resources like
+  `common.Message`
+- Added try-catch in `GraphProcessor.processItem()` to gracefully handle non-RDF
+  content instead of throwing errors
+- Enhanced resource filtering to explicitly exclude non-RDF resource types
+
 ## 2025-11-18
 
 - Fixed `GraphProcessor.processItem()` to expect `content` as string instead of

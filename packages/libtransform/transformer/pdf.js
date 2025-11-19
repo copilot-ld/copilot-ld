@@ -6,11 +6,11 @@ import { join } from "path";
 import { ProcessorBase } from "@copilot-ld/libutil";
 
 /**
- * PdfTransform converts PDF files in knowledge storage to HTML using Copilot vision.
+ * PdfTransformer converts PDF files in knowledge storage to HTML using Copilot vision.
  * Each PDF is split into images, each image is sent to Copilot for HTML conversion,
  * and all HTML fragments are merged into a single HTML document.
  */
-export class PdfTransform extends ProcessorBase {
+export class PdfTransformer extends ProcessorBase {
   #knowledgeStorage;
   #llm;
   #logger;
@@ -20,7 +20,7 @@ export class PdfTransform extends ProcessorBase {
   #maxTokens;
 
   /**
-   * Creates a new PdfTransform instance.
+   * Creates a new PdfTransformer instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage backend for PDF files
    * @param {object} llm - Copilot LLM client with imageToText(image, systemPrompt, prompt, model, max_tokens) method
    * @param {object} logger - Logger instance with debug() method

@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { test, describe } from "node:test";
 
-import { VectorIndex } from "../index.js";
+import { VectorIndex } from "../index/vector.js";
 import { createPerformanceTest } from "@copilot-ld/libperf";
 
 describe("LibVector Performance Tests", () => {

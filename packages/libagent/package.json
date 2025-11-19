@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "assistants": "./bin/assistants.js"
+    "process-assistants": "./bin/assistants.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -16,6 +16,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "@copilot-ld/libtelemetry": "^0.2.1",
     "@copilot-ld/libtype": "^0.1.43",
     "@copilot-ld/libutil": "^0.1.40",
     "js-yaml": "^4.1.1"

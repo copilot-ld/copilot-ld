@@ -2,7 +2,7 @@
 
 import { Store } from "n3";
 import { createStorage } from "@copilot-ld/libstorage";
-import { GraphIndex } from "./graph.js";
+import { GraphIndex } from "./index/graph.js";
 
 /**
  * Standard RDF namespace prefixes used throughout the graph system
@@ -76,6 +76,6 @@ export function createGraphIndex(prefix) {
   return new GraphIndex(storage, n3Store, RDF_PREFIXES, "index.jsonl");
 }
 
-export { GraphIndex };
-export { OntologyProcessor } from "./ontology.js";
+// GraphIndex is NOT exported to avoid circular dependency - import from ./index/graph.js
+// OntologyProcessor is NOT exported to avoid unnecessary dependencies - import from ./processor/ontology.js
 export { ShaclSerializer } from "./serializer.js";

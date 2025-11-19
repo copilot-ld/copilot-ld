@@ -7,11 +7,14 @@ import { createDownloader } from "../index.js";
 
 describe("libutil", () => {
   describe("downloadFactory", () => {
-    test("creates Download instance with correct dependencies", () => {
+    test("creates Download instance with correct dependencies", async () => {
       const mockStorageFactory = mock.fn();
       const mockProcess = { env: { STORAGE_TYPE: "local" } };
 
-      const downloader = createDownloader(mockStorageFactory, mockProcess);
+      const downloader = await createDownloader(
+        mockStorageFactory,
+        mockProcess,
+      );
 
       assert.ok(downloader);
       // Check that it's a Download instance by checking if it has the expected methods
@@ -19,16 +22,16 @@ describe("libutil", () => {
       assert.ok(typeof downloader.download === "function");
     });
 
-    test("validates storageFactory parameter", () => {
-      assert.throws(() => createDownloader(null), {
+    test("validates storageFactory parameter", async () => {
+      await assert.rejects(() => createDownloader(null), {
         message: /createStorage is required/,
       });
     });
 
-    test("uses global process when not provided", () => {
+    test("uses global process when not provided", async () => {
       const mockStorageFactory = mock.fn();
 
-      const downloader = createDownloader(mockStorageFactory);
+      const downloader = await createDownloader(mockStorageFactory);
 
       assert.ok(downloader);
     });

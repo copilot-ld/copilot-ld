@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "pdf_transform": "./bin/pdf_transform.js"
+    "transform-pdf": "./bin/pdf.js"
   },
   "engines": {
     "node": ">=22.0.0"

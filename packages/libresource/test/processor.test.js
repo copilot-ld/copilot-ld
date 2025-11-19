@@ -2,7 +2,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { ResourceProcessor } from "../processor.js";
+import { ResourceProcessor } from "../processor/resource.js";
 import { Parser } from "../parser.js";
 import { Skolemizer } from "../skolemizer.js";
 

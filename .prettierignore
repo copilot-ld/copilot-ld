@@ -4,7 +4,6 @@
 
 # Environment files
 **/*.env*
-**/.ghtoken
 
 # Data files
 **/data/

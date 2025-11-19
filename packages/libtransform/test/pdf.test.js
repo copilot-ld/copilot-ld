@@ -3,15 +3,15 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import fs from "fs";
 
-import { PdfTransform } from "../pdf_transform.js";
+import { PdfTransformer } from "../transformer/pdf.js";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
-describe("PdfTransform", () => {
+describe("PdfTransformer", () => {
   let knowledgeStorage;
   let llm;
   let logger;
-  let transformer;
+  let processor;
 
   const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -20,13 +20,13 @@ describe("PdfTransform", () => {
     knowledgeStorage = {
       findByExtension: async (extension) => {
         if (extension === ".pdf") {
-          return ["test.pdf"];
+          return ["fixtures/test.pdf"];
         }
         return [];
       },
       get: async (key) => {
-        if (key === "test.pdf") {
-          return await fs.promises.readFile(__dirname + "/test.pdf");
+        if (key === "fixtures/test.pdf") {
+          return await fs.promises.readFile(__dirname + "/fixtures/test.pdf");
         }
         return "";
       },
@@ -55,12 +55,12 @@ describe("PdfTransform", () => {
       debug: () => {},
     };
 
-    // Create transformer instance
-    transformer = new PdfTransform(knowledgeStorage, llm, logger);
+    // Create processor instance
+    processor = new PdfTransformer(knowledgeStorage, llm, logger);
   });
 
-  test("creates PdfTransform instance", () => {
-    assert.ok(transformer instanceof PdfTransform);
+  test("creates PdfTransformer instance", () => {
+    assert.ok(processor instanceof PdfTransformer);
   });
 
   test("handles empty PDF file list", async () => {
@@ -72,7 +72,7 @@ describe("PdfTransform", () => {
       putCallCount++;
     };
 
-    await transformer.process(".pdf");
+    await processor.process(".pdf");
 
     // Should not call put when no files to process
     assert.strictEqual(putCallCount, 0);
@@ -88,25 +88,25 @@ describe("PdfTransform", () => {
       capturedHtml.push(html);
     };
 
-    await transformer.process();
+    await processor.process();
     assert.ok(true, "Processing completed without errors");
     assert.strictEqual(capturedKey.length, 1);
     assert.strictEqual(capturedHtml.length, 1);
-    assert.strictEqual(capturedKey[0], "test.html");
+    assert.strictEqual(capturedKey[0], "fixtures/test.html");
     assert.strictEqual(
       capturedHtml[0],
-      '<!DOCTYPE html>\n<html>\n<head><meta charset="utf-8"><title>test.pdf - PDF to HTML</title></head>\n<body>\n<div>page-1.png</div>\n<div>page-2.png</div>\n</body>\n</html>',
+      '<!DOCTYPE html>\n<html>\n<head><meta charset="utf-8"><title>fixtures/test.pdf - PDF to HTML</title></head>\n<body>\n<div>page-1.png</div>\n<div>page-2.png</div>\n</body>\n</html>',
     );
   });
 
   test("constructor validates required dependencies", () => {
     assert.doesNotThrow(() => {
-      new PdfTransform(knowledgeStorage, llm, logger);
+      new PdfTransformer(knowledgeStorage, llm, logger);
     });
 
     assert.throws(
       () => {
-        new PdfTransform(null, llm, logger);
+        new PdfTransformer(null, llm, logger);
       },
       {
         message: "knowledgeStorage is required",
@@ -115,7 +115,7 @@ describe("PdfTransform", () => {
 
     assert.throws(
       () => {
-        new PdfTransform(knowledgeStorage, null, logger);
+        new PdfTransformer(knowledgeStorage, null, logger);
       },
       {
         message: "llm is required",
@@ -124,7 +124,7 @@ describe("PdfTransform", () => {
 
     assert.throws(
       () => {
-        new PdfTransform(knowledgeStorage, llm, null);
+        new PdfTransformer(knowledgeStorage, llm, null);
       },
       {
         message: "logger is required",

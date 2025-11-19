@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import yaml from "js-yaml";
-import { createResourceIndex } from "@copilot-ld/libresource";
-import { createStorage } from "@copilot-ld/libstorage";
-import { createLogger } from "@copilot-ld/libutil";
-import { resource, tool } from "@copilot-ld/libtype";
 import pkg from "protobufjs";
 import { access } from "node:fs/promises";
+
+import { createResourceIndex } from "@copilot-ld/libresource";
+import { createStorage } from "@copilot-ld/libstorage";
+import { createLogger } from "@copilot-ld/libtelemetry";
+import { resource, tool } from "@copilot-ld/libtype";
 
 const { Root } = pkg;
 
@@ -201,7 +202,7 @@ async function generateToolSchemas(endpoints, logger) {
       },
     };
 
-    logger.debug("Generated tool schema", { name: toolName });
+    logger.debug("Processor", "Generated tool schema", { name: toolName });
 
     tools.push(tool);
   }
@@ -253,7 +254,7 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
   });
 
   await resourceIndex.put(func);
-  logger.debug("Saved tool resource", { id: func.id });
+  logger.debug("Processor", "Saved tool resource", { id: func.id });
 }
 
 /**
@@ -270,7 +271,7 @@ async function main() {
   ]);
 
   if (Object.keys(endpoints).length === 0) {
-    logger.debug("No tool endpoints configured");
+    logger.debug("Processor", "No tool endpoints configured");
     return;
   }
 
@@ -286,7 +287,9 @@ async function main() {
     await storeToolResource(resourceIndex, tool, descriptor, logger);
   }
 
-  logger.debug("Tool resources created successfully", { count: tools.length });
+  logger.debug("Processor", "Tool resources created successfully", {
+    count: tools.length,
+  });
 }
 
 main();

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /* eslint-env node */
+import { parseArgs } from "node:util";
+
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createLogger } from "@copilot-ld/libutil";
-import { parseArgs } from "node:util";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
-import { ResourceProcessor } from "@copilot-ld/libresource/processor.js";
+import { ResourceProcessor } from "@copilot-ld/libresource/processor/resource.js";
 import { Parser } from "@copilot-ld/libresource/parser.js";
 import { Skolemizer } from "@copilot-ld/libresource/skolemizer.js";
 

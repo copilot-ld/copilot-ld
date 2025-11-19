@@ -2,7 +2,7 @@
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
-import { VectorIndex } from "../index.js";
+import { VectorIndex } from "../index/vector.js";
 import { resource } from "@copilot-ld/libtype";
 
 // Helper function to normalize vectors

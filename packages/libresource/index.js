@@ -204,6 +204,6 @@ export function createResourceIndex(prefix, policy = null) {
 }
 
 export { Parser } from "./parser.js";
-export { ResourceProcessor } from "./processor.js";
+// ResourceProcessor is NOT exported to avoid unnecessary dependencies - import from ./processor/resource.js
 export { sanitizeDom } from "./sanitizer.js";
 export { Skolemizer } from "./skolemizer.js";

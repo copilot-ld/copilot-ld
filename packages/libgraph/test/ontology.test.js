@@ -3,7 +3,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import { DataFactory } from "n3";
 
-import { OntologyProcessor } from "../ontology.js";
+import { OntologyProcessor } from "../processor/ontology.js";
 import { ShaclSerializer } from "../serializer.js";
 
 const { namedNode, literal } = DataFactory;

@@ -6,7 +6,8 @@ import { join } from "path";
 import { S3Client } from "@aws-sdk/client-s3";
 import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
-import { generateUUID, Finder, Logger } from "@copilot-ld/libutil";
+import { generateUUID, Finder } from "@copilot-ld/libutil";
+import { Logger } from "@copilot-ld/libtelemetry";
 
 import { LocalStorage } from "./local.js";
 import { S3Storage } from "./s3.js";

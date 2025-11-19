@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { REQUEST_ATTRIBUTE_MAP, RESPONSE_ATTRIBUTE_MAP } from "./attributes.js";
+import { extractAttributes } from "./attributes.js";
 
 /**
  * Observer class that unifies logging and tracing for RPC operations
@@ -8,7 +8,6 @@ import { REQUEST_ATTRIBUTE_MAP, RESPONSE_ATTRIBUTE_MAP } from "./attributes.js";
 export class Observer {
   #logger;
   #tracer;
-  #serviceName;
 
   /**
    * Creates a new Observer instance
@@ -21,7 +20,6 @@ export class Observer {
       throw new Error("serviceName must be a non-empty string");
     }
 
-    this.#serviceName = serviceName;
     this.#logger = logger;
     this.#tracer = tracer;
   }
@@ -50,54 +48,26 @@ export class Observer {
    * @returns {Promise<object>} Response object
    */
   async observeClientCall(methodName, request, callFn) {
-    // Start CLIENT span - it will create metadata if tracer exists
-    const metadata = null; // Will be created by tracer if needed
-    const span = this.#tracer?.startClientSpan(
-      this.#serviceName,
-      methodName,
-      metadata,
-      {},
-      request,
-    );
-
-    // Log request.sent event
-    this.#logEvent(
-      "request.sent",
-      methodName,
-      this.#extractRequestAttributes(request),
-    );
-    span?.addEvent("request.sent", this.#extractRequestAttributes(request));
+    this.#logEvent(methodName, "Request sent", request);
 
     try {
-      // Execute the gRPC call - callFn will handle metadata creation
-      const response = await callFn(metadata);
+      // Delegate to tracer if available
+      if (this.#tracer) {
+        return await this.#tracer.observeClientCall(
+          methodName,
+          request,
+          callFn,
+          this.#logger,
+        );
+      }
 
-      // Log response.received event
-      this.#logEvent(
-        "response.received",
-        methodName,
-        this.#extractResponseAttributes(response),
-      );
-      span?.addEvent(
-        "response.received",
-        this.#extractResponseAttributes(response),
-      );
-
-      // Set span status and end
-      span?.setStatus({ code: "OK" });
-      await this.#endSpan(span);
+      // Fallback without tracing
+      const response = await callFn();
+      this.#logEvent(methodName, "Response received", response);
 
       return response;
     } catch (error) {
-      // Log error and set span status
-      const errorMessage = error?.message || String(error);
-      if (this.#logger) {
-        this.#logger.debug(`gRPC call failed: ${methodName}`, {
-          error: errorMessage,
-        });
-      }
-      span?.setStatus({ code: "ERROR", message: errorMessage });
-      await this.#endSpan(span);
+      this.#logger?.error(methodName, error);
       throw error;
     }
   }
@@ -110,158 +80,46 @@ export class Observer {
    * @returns {Promise<object>} Response object
    */
   async observeServerCall(methodName, call, handlerFn) {
-    // Start SERVER span with metadata extraction
-    const span = this.#tracer?.startServerSpan(
-      this.#serviceName,
-      methodName,
-      call.metadata,
-    );
-
-    // Log request.received event
-    this.#logEvent(
-      "request.received",
-      methodName,
-      this.#extractRequestAttributes(call.request),
-    );
-    span?.addEvent(
-      "request.received",
-      this.#extractRequestAttributes(call.request),
-    );
-
-    // Get AsyncLocalStorage context if tracer is available
-    const spanContext = span ? this.#tracer.getSpanContext() : null;
-
-    // Execute handler within span context
-    const executeHandler = async () => {
-      try {
-        const response = await handlerFn(call);
-
-        // Log response.sent event
-        this.#logEvent(
-          "response.sent",
-          methodName,
-          this.#extractResponseAttributes(response),
-        );
-        span?.addEvent(
-          "response.sent",
-          this.#extractResponseAttributes(response),
-        );
-
-        // Set span status
-        span?.setStatus({ code: "OK" });
-
-        return response;
-      } catch (handlerError) {
-        const errorMessage = handlerError?.message || String(handlerError);
-        if (this.#logger) {
-          this.#logger.debug("RPC handler error", { error: errorMessage });
-        }
-        span?.setStatus({ code: "ERROR", message: errorMessage });
-        throw handlerError;
-      } finally {
-        // End span before returning
-        await this.#endSpan(span);
-      }
-    };
-
-    // Run within span context if available
-    return spanContext
-      ? await spanContext.run(span, executeHandler)
-      : await executeHandler();
-  }
-
-  /**
-   * Extracts attributes from request for span events
-   * @param {object} request - Request object
-   * @returns {object} Extracted attributes
-   * @private
-   */
-  #extractRequestAttributes(request) {
-    const attributes = {};
-
-    for (const config of REQUEST_ATTRIBUTE_MAP) {
-      const value = this.#getNestedValue(request, config.protobuf);
-      if (value === undefined || value === null) continue;
-
-      if (config.type === "count") {
-        const count = Array.isArray(value) ? value.length : 0;
-        attributes[config.telemetry] = count;
-      } else {
-        attributes[config.telemetry] = value;
-      }
-    }
-
-    return attributes;
-  }
-
-  /**
-   * Extracts attributes from response for span events
-   * @param {object} response - Response object
-   * @returns {object} Extracted attributes
-   * @private
-   */
-  #extractResponseAttributes(response) {
-    const attributes = {};
-
-    for (const config of RESPONSE_ATTRIBUTE_MAP) {
-      const value = this.#getNestedValue(response, config.protobuf);
-      if (value === undefined || value === null) continue;
-
-      if (config.type === "count") {
-        const count = Array.isArray(value) ? value.length : 0;
-        attributes[config.telemetry] = count;
-      } else if (config.type === "number") {
-        attributes[config.telemetry] = Number(value);
-      } else {
-        attributes[config.telemetry] = value;
-      }
-    }
-
-    return attributes;
-  }
-
-  /**
-   * Helper to get nested object values (e.g., "usage.total_tokens")
-   * @param {object} obj - Object to extract value from
-   * @param {string} path - Dot-separated path to value
-   * @returns {*} Value at path or undefined
-   * @private
-   */
-  #getNestedValue(obj, path) {
-    if (!obj || !path) return undefined;
-    return path.split(".").reduce((current, key) => current?.[key], obj);
-  }
-
-  /**
-   * Logs an event with attributes
-   * @param {string} eventName - Event name
-   * @param {string} methodName - Method name
-   * @param {object} attributes - Event attributes
-   * @private
-   */
-  #logEvent(eventName, methodName, attributes) {
-    if (!this.#logger || !this.#logger.enabled) return;
-    this.#logger.debug(`${eventName}: ${methodName}`, attributes);
-  }
-
-  /**
-   * Ends a span with error handling
-   * @param {object|null} span - Span instance or null
-   * @returns {Promise<void>}
-   * @private
-   */
-  async #endSpan(span) {
-    if (!span) return;
+    this.#logEvent(methodName, "Request received", call.request);
 
     try {
-      await span.end();
-    } catch (endError) {
-      if (this.#logger) {
-        this.#logger.debug("Error ending span", {
-          error: endError?.message || String(endError),
-        });
+      // Delegate to tracer if available
+      if (this.#tracer) {
+        return await this.#tracer.observeServerCall(
+          methodName,
+          call,
+          handlerFn,
+          this.#logger,
+        );
       }
+
+      // Fallback without tracing
+      const response = await handlerFn(call);
+      this.#logEvent(methodName, "Response sent", response);
+
+      return response;
+    } catch (error) {
+      this.#logger?.error(methodName, error);
+      throw error;
     }
+  }
+
+  /**
+   * Logs an event with extracted attributes
+   * @param {string} methodName - Method name
+   * @param {string} eventName - Event name
+   * @param {object} data - Event data (request or response)
+   * @private
+   */
+  #logEvent(methodName, eventName, data) {
+    if (!this.#logger || !this.#logger.enabled) return;
+    const attributes = extractAttributes(data);
+
+    // Resource ID has special meaning for tracing and therefore not part of
+    // common attributes. Add it explicitly if present.
+    if (data?.resource_id) attributes["resource_id"] = data.resource_id;
+
+    this.#logger.debug(methodName, eventName, attributes);
   }
 }
 

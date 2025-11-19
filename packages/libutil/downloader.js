@@ -75,34 +75,33 @@ export class Downloader {
     const storageType = this.#process.env.STORAGE_TYPE || "local";
 
     if (storageType === "local") {
-      this.#logger.debug("Download skipped, using local storage");
+      this.#logger.debug("Downloader", "Download skipped, using local storage");
       return;
     }
 
-    const bundleKey = "bundle.tar.gz";
+    const key = "bundle.tar.gz";
 
     // Check if bundle exists in remote storage
-    const exists = await this.#remote.exists(bundleKey);
+    const exists = await this.#remote.exists(key);
     if (!exists) throw new Error(`Bundle not found`);
 
-    const bundleData = await this.#remote.get(bundleKey);
-    await this.#local.put(bundleKey, bundleData);
-    await this.#extractBundle(bundleKey);
-    await this.#local.delete(bundleKey);
+    const data = await this.#remote.get(key);
+    await this.#local.put(key, data);
+    await this.#extractBundle(key);
+    await this.#local.delete(key);
 
-    this.#logger.debug("Download completed", { key: bundleKey });
+    this.#logger.debug("Downloader", "Download completed", { key });
   }
 
   /**
    * Extract bundle.tar.gz to local storage using TarExtractor
-   * @param {string} bundleKey - Bundle file key in local storage
+   * @param {string} key - Bundle file key in local storage
    * @returns {Promise<void>}
    * @private
    */
-  async #extractBundle(bundleKey) {
-    const bundlePath = this.#local.path(bundleKey);
-    const extractDir = this.#local.path();
-
-    await this.#extractor.extract(bundlePath, extractDir);
+  async #extractBundle(key) {
+    const path = this.#local.path(key);
+    const dir = this.#local.path();
+    await this.#extractor.extract(path, dir);
   }
 }

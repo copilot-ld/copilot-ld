@@ -15,10 +15,9 @@ export class AgentService extends AgentBase {
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {import("@copilot-ld/libagent").AgentMind} agentMind - AgentMind instance for request orchestration
    * @param {(token: string) => import("@octokit/rest").Octokit} octokitFn - Factory function to create Octokit instances
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
    */
-  constructor(config, agentMind, octokitFn, logFn) {
-    super(config, logFn);
+  constructor(config, agentMind, octokitFn) {
+    super(config);
     if (!agentMind) throw new Error("agentMind is required");
     if (!octokitFn) throw new Error("octokitFn is required");
 

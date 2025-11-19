@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { createLogger } from "@copilot-ld/libutil";
 import { createResourceIndex } from "@copilot-ld/libresource";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
 import { createGraphIndex } from "@copilot-ld/libgraph";
-import { GraphProcessor } from "@copilot-ld/libgraph/processor.js";
+import { GraphProcessor } from "@copilot-ld/libgraph/processor/graph.js";
 
 /**
  * Processes resources into RDF graphs

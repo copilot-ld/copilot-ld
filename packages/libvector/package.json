@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "vectors": "./bin/vectors.js"
+    "process-vectors": "./bin/vectors.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.7",
+    "@copilot-ld/libtelemetry": "^0.2.1",
     "@copilot-ld/libtype": "^0.1.43"
   },
   "devDependencies": {

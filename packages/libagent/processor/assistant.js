@@ -33,8 +33,6 @@ export class AssistantProcessor {
    * @returns {Promise<void>}
    */
   async process() {
-    this.#logger.debug("Processing assistant configurations");
-
     const data = await this.#configStorage.get("assistants.yml");
     const objects = yaml.load(data);
 
@@ -48,11 +46,9 @@ export class AssistantProcessor {
         role: "system",
       });
       await this.#resourceIndex.put(assistant);
-
-      this.#logger.debug("Processed assistant", { name });
     }
 
-    this.#logger.debug("Assistant processing complete", {
+    this.#logger.debug("Processor", "Processing complete", {
       count: Object.keys(objects).length,
     });
   }

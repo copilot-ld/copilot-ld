@@ -18,7 +18,7 @@ describe("tool service", () => {
 
     test("ToolService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(ToolService.length, 2); // config, logFn
+      assert.strictEqual(ToolService.length, 1); // config (logger and tracer are optional)
     });
 
     test("ToolService has proper method signatures", () => {

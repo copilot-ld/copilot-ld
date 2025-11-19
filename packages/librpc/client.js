@@ -1,4 +1,6 @@
 /* eslint-env node */
+import { createRetry } from "@copilot-ld/libutil";
+
 import {
   Rpc,
   createGrpc,
@@ -12,6 +14,7 @@ import {
  */
 export class Client extends Rpc {
   #client;
+  #retry;
 
   /**
    * Creates a new Client instance
@@ -21,6 +24,7 @@ export class Client extends Rpc {
    * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string) => object} authFn - Auth factory
+   * @param {import("@copilot-ld/libutil").Retry} [retry] - Optional retry instance for handling transient errors
    */
   constructor(
     config,
@@ -29,8 +33,10 @@ export class Client extends Rpc {
     observerFn = createObserver,
     grpcFn = createGrpc,
     authFn = createAuth,
+    retry = null,
   ) {
     super(config, logger, tracer, observerFn, grpcFn, authFn);
+    this.#retry = retry || createRetry({ retries: 10, delay: 1000 });
     this.#setupClient();
   }
 
@@ -75,16 +81,16 @@ export class Client extends Rpc {
     return await this.observer().observeClientCall(
       methodName,
       request,
-      async (m) => {
+      async (metadata) => {
         // If no metadata provided (no tracer), create one
-        const metadata = m || new (this.grpc().Metadata)();
-        return await this.#callMethod(methodName, request, metadata);
+        const m = metadata || new (this.grpc().Metadata)();
+        return await this.#callMethod(methodName, request, m);
       },
     );
   }
 
   /**
-   * Internal call handler
+   * Internal call handler with retry logic
    * @param {string} methodName - The name of the method
    * @param {object} request - Request object
    * @param {object} metadata - gRPC Metadata instance
@@ -92,13 +98,15 @@ export class Client extends Rpc {
    * @private
    */
   async #callMethod(methodName, request, metadata) {
-    return new Promise((resolve, reject) => {
-      this.#client[methodName](request, metadata, (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response);
-        }
+    return await this.#retry.execute(() => {
+      return new Promise((resolve, reject) => {
+        this.#client[methodName](request, metadata, (error, response) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(response);
+          }
+        });
       });
     });
   }

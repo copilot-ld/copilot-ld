@@ -2,6 +2,22 @@
 
 ## 2025-11-18
 
+- Extracted tool description formatting logic into dedicated `formatter.js`
+  helper file
+- Created `formatToolDescription()` function for reusable tool description
+  parsing and formatting
+
+## 2025-11-17
+
+- Fixed tool description formatting in `createCompletions()` to properly parse
+  and format JSON-structured content fields
+- Tool descriptions are now parsed from JSON format and formatted with clear
+  sections (PURPOSE, WHEN TO USE, HOW TO USE, RETURNS)
+- Ensures LLM receives properly formatted tool descriptions instead of raw JSON
+  strings
+
+## 2025-11-18
+
 - Bump version
 - Added HTTPS proxy support via `HTTPS_PROXY` environment variable
 - Added `https-proxy-agent` dependency for proxy configuration

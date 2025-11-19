@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { common } from "@copilot-ld/libtype";
 import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { formatToolDescription, normalizeVector } from "./format.js";
 
 /**
  * @typedef {object} CompletionParams
@@ -105,7 +106,7 @@ export class Copilot {
         type: t.type || "function",
         function: {
           name: t.function?.name,
-          description: t.function?.content,
+          description: formatToolDescription(t.function?.content),
           ...(t.function?.parameters && { parameters: t.function.parameters }),
         },
       };
@@ -268,17 +269,6 @@ export class Copilot {
     const json = await response.json();
     return json.choices[0]?.message?.content || "";
   }
-}
-
-/**
- * Normalizes a vector to unit length
- * @param {number[]} vector - Vector to normalize
- * @returns {number[]} Normalized vector
- */
-function normalizeVector(vector) {
-  const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-  if (magnitude === 0) return vector.slice(); // Return copy of zero vector
-  return vector.map((val) => val / magnitude);
 }
 
 /**

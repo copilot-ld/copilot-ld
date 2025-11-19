@@ -16,7 +16,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.42",
+    "@copilot-ld/libtype": "^0.1.43",
     "@copilot-ld/libutil": "^0.1.40",
     "js-yaml": "^4.1.1"
   },

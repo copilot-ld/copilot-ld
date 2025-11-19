@@ -60,6 +60,35 @@ Each span includes:
 
 ## Accessing Traces
 
+### Interactive Trace Visualization
+
+The `visualize` CLI tool provides interactive trace analysis with Mermaid
+sequence diagrams:
+
+```bash
+# Launch visualization REPL
+npm run cli:visualize
+
+# Visualize specific trace by ID
+--trace f6a4a4d0d3e91
+
+# Visualize all traces for a conversation
+--resource common.Conversation.abc123
+
+# Query traces with JMESPath expressions
+> [?kind==`2`]  # All SERVER spans
+> [?contains(name, 'llm')]  # LLM operations
+> [?attributes."service.name"=='agent']  # Agent service spans
+```
+
+**Visualization Features**:
+
+- **Mermaid sequence diagrams**: Shows service interaction timelines
+- **Request/response attributes**: Displays parameters and results
+- **Error highlighting**: Shows error status and messages
+- **Complete trace context**: Includes all related service calls
+- **JMESPath filtering**: Powerful query language for complex conditions
+
 ### Local File Access
 
 Traces are stored in `data/traces/` with daily rotation:

@@ -389,7 +389,7 @@ await new VectorService(config, index).start();
 - For quick similarity tests during development:
 
 ```bash
-echo "testing" | npm run search -- --limit 10 --threshold 0.25
+echo "testing" | npm run cli:search -- --limit 10 --threshold 0.25
 ```
 
 ### Package with Factory

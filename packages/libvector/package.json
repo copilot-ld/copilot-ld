@@ -17,10 +17,10 @@
   },
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.7",
-    "@copilot-ld/libtype": "^0.1.42"
+    "@copilot-ld/libtype": "^0.1.43"
   },
   "devDependencies": {
-    "@copilot-ld/libutil": "^0.1.39"
+    "@copilot-ld/libutil": "^0.1.40"
   },
   "repository": {
     "type": "git",

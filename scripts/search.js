@@ -4,9 +4,19 @@ import { createLlm } from "@copilot-ld/libcopilot";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createResourceIndex } from "@copilot-ld/libresource";
-import { createTerminalFormatter } from "@copilot-ld/libformat";
 import { createStorage } from "@copilot-ld/libstorage";
-import { VectorIndex } from "@copilot-ld/libvector";
+import { VectorIndex } from "@copilot-ld/libvector/index/vector.js";
+
+const usage = `**Usage:** <search query>
+
+Perform semantic vector search over indexed resources using embeddings.
+Search either content or descriptor representations with configurable thresholds and limits.
+
+**Examples:**
+
+    echo "pharmaceutical research" | npm -s run cli:search
+    echo "regulatory compliance" | npm -s run cli:search -- --threshold 0.7 --limit 10
+    echo "clinical trials" | npm -s run cli:search -- --representation descriptor --threshold 0.5`;
 
 // Configuration
 const config = await createScriptConfig("search");
@@ -52,14 +62,14 @@ async function performSearch(prompt, state) {
 }
 
 // Create REPL with dependency injection
-const repl = new Repl(createTerminalFormatter(), {
-  help: `Usage: <search query>`,
+const repl = new Repl({
+  usage,
 
-  setup: async () => {
+  setup: async (state) => {
     const vectorStorage = createStorage("vectors");
-    vectorIndex = new VectorIndex(vectorStorage, "content.jsonl");
+    vectorIndex = new VectorIndex(vectorStorage);
 
-    resourceIndex = createResourceIndex("resources");
+    state.resourceIndex = createResourceIndex("resources");
   },
 
   state: {
@@ -68,25 +78,31 @@ const repl = new Repl(createTerminalFormatter(), {
   },
 
   commands: {
-    limit: (args, state) => {
-      if (args.length === 0) {
-        return "Usage: /limit <number>";
-      }
-      const value = parseInt(args[0]);
-      if (isNaN(value) || value < 0) {
-        return `Error: limit must be a non-negative number`;
-      }
-      state.limit = value;
+    limit: {
+      usage: "Set maximum number of results to return (0 for unlimited)",
+      handler: (args, state) => {
+        if (args.length === 0) {
+          return "Usage: /limit <number>";
+        }
+        const value = parseInt(args[0]);
+        if (isNaN(value) || value < 0) {
+          return `Error: limit must be a non-negative number`;
+        }
+        state.limit = value;
+      },
     },
-    threshold: (args, state) => {
-      if (args.length === 0) {
-        return "Usage: /threshold <number>";
-      }
-      const value = parseFloat(args[0]);
-      if (isNaN(value) || value < 0 || value > 1) {
-        return `Error: threshold must be a number between 0.0 and 1.0`;
-      }
-      state.threshold = value;
+    threshold: {
+      usage: "Set similarity threshold (0.0 to 1.0)",
+      handler: (args, state) => {
+        if (args.length === 0) {
+          return "Usage: /threshold <number>";
+        }
+        const value = parseFloat(args[0]);
+        if (isNaN(value) || value < 0 || value > 1) {
+          return `Error: threshold must be a number between 0.0 and 1.0`;
+        }
+        state.threshold = value;
+      },
     },
   },
 

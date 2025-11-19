@@ -10,7 +10,7 @@ import { GraphService } from "./index.js";
 const config = await createServiceConfig("graph");
 
 // Initialize observability
-const logger = await createLogger("graph");
+const logger = createLogger("graph");
 const tracer = await createTracer("graph");
 
 const graphIndex = createGraphIndex("graphs");

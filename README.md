@@ -158,14 +158,15 @@ npm run search
 Piping for scripted testing:
 
 ```sh
-echo "What is Kanban?" | npm run search
+echo "What is Kanban?" | npm run cli:search
 ```
 
 Command-line flags can be used for non-interactive runs to limit results and set
 a minimum similarity threshold:
 
 ```sh
-echo "testing" | npm run search -- --limit 10 --threshold 0.25
+echo "testing" | npm run cli:search -- --limit 10 --threshold 0.25
+echo "find pipeline tasks" | npm run cli:search -- --index descriptor --limit 5
 ```
 
 ## 👨‍💻 Development
@@ -190,8 +191,8 @@ npm test
 Manual integration testing by using scripts:
 
 ```sh
-echo "test prompt" | npm run chat
-echo "search query" | npm run search -- --limit 3 --threshold 0.2
+echo "test prompt" | npm run cli:chat
+echo "search query" | npm run cli:search -- --limit 3 --threshold 0.2
 ```
 
 ### Adding New Features
@@ -223,6 +224,9 @@ AI instructions for specific domains:
 - [Architecture Instructions](.github/instructions/architecture.instructions.md):
   Microservices-based, gRPC-enabled platform design with service organization
   patterns
+- [CLI Tools Instructions](.github/instructions/cli-tools.instructions.md):
+  Development utilities for interacting with platform capabilities through
+  command-line interfaces
 - [Documentation Instructions](.github/instructions/documentation.instructions.md):
   JSDoc standards for interface-based documentation contracts with IDE support
 - [Performance Instructions](.github/instructions/performance.instructions.md):
@@ -230,5 +234,3 @@ AI instructions for specific domains:
 - [Security Instructions](.github/instructions/security.instructions.md):
   Security architecture for defense-in-depth through network isolation and
   secure communication
-- [Testing Instructions](.github/instructions/testing.instructions.md): Testing
-  standards using Node.js built-in framework for maintainable tests

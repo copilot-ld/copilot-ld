@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libweb",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "description": "Shared web extension utilities and security middleware",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.35",
+    "@copilot-ld/libconfig": "^0.1.36",
     "hono": "^4.8.12"
   },
   "devDependencies": {},

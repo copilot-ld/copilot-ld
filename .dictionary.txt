@@ -331,3 +331,14 @@ retryable
 JSON-structured
 non-RDF
 RDF-containing
+Docling
+docling
+PPTX
+pptx
+PNG
+png
+WEBP
+webp
+AsciiDoc
+asciidoc
+uv

@@ -8,6 +8,9 @@
 # Data files
 **/data/
 
+# Python services
+services/document-processor-docling/
+
 # Editor files
 SCRATCHPAD.md
 .vscode/

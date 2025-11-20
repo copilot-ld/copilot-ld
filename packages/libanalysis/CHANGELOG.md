@@ -1,6 +1,10 @@
 # Changelog
 
-## 2025-11-16
+## 2025-11-19
+
+- Bump version
+
+## 2025-11-18
 
 - Created `@copilot-ld/libanalysis` package with `formatForAnalysis()` helper
   function

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-19
+
+- Bump version
+
 ## 2025-11-18
 
 - Added automatic retry logic to `Client` class for handling transient gRPC

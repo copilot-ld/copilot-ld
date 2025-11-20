@@ -21,7 +21,7 @@
     "@copilot-ld/libstorage": "^0.1.29",
     "@copilot-ld/libtelemetry": "^0.2.3",
     "@copilot-ld/libtype": "^0.1.43",
-    "@copilot-ld/libutil": "^0.1.40",
+    "@copilot-ld/libutil": "^0.1.41",
     "html-minifier-terser": "^7.2.0"
   },
   "devDependencies": {

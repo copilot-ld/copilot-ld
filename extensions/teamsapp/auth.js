@@ -50,12 +50,16 @@ export function decodeJwt(token) {
  * @returns {boolean} True if user is a tenant admin
  */
 export function isTenantAdmin(claims) {
-  // CompanyAdministrator: 62e90394-69f5-4237-9190-012177145e10
-  // TeamsServiceAdministrator: 29232cdf-9323-42fd-ade2-1d097af3e4de
-  const adminRoleIds = [
-    "62e90394-69f5-4237-9190-012177145e10",
-    "29232cdf-9323-42fd-ade2-1d097af3e4de",
-  ];
-  const userRoles = [].concat(claims.roles || [], claims.wids || []);
-  return userRoles.some((role) => adminRoleIds.includes(role));
+  /**
+   * Checks if the claims object contains the required scope for admin actions.
+   * @param {object} claims - Decoded JWT claims
+   * @returns {boolean} True if user has the required scope
+   */
+  const requiredScope = "Settings:Update";
+  // Azure AD v2 tokens use 'scp' (space-delimited string) for scopes
+  if (typeof claims.scp === "string") {
+    const scopes = claims.scp.split(" ");
+    return scopes.includes(requiredScope);
+  }
+  return false;
 }

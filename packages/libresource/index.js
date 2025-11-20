@@ -202,8 +202,3 @@ export function createResourceIndex(prefix, policy = null) {
   const policyInstance = policy || createPolicy();
   return new ResourceIndex(storage, policyInstance);
 }
-
-export { Parser } from "./parser.js";
-// ResourceProcessor is NOT exported to avoid unnecessary dependencies - import from ./processor/resource.js
-export { sanitizeDom } from "./sanitizer.js";
-export { Skolemizer } from "./skolemizer.js";

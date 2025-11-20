@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-19
+
+- Bump version
+
 ## 2025-11-18
 
 - Extracted tool description formatting logic into dedicated `formatter.js`

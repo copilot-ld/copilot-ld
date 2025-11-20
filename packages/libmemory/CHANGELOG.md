@@ -2,6 +2,10 @@
 
 ## 2025-11-19
 
+- Bump version
+
+## 2025-11-18
+
 - Added `exports` field to `package.json` to properly expose `index/memory.js`
   path for Docker container module resolution
 

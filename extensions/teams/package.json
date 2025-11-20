@@ -15,12 +15,12 @@
     "watch": "node --watch ./index.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.35",
+    "@copilot-ld/libconfig": "^0.1.36",
     "@copilot-ld/libformat": "^0.1.42",
     "@copilot-ld/librpc": "^0.1.55",
     "@copilot-ld/libtype": "^0.1.44",
     "@copilot-ld/libutil": "^0.1.41",
-    "@copilot-ld/libweb": "^0.1.35",
+    "@copilot-ld/libweb": "^0.1.36",
     "botbuilder": "~4.23.3",
     "dotenv": "~17.2.3"
   },

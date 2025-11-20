@@ -79,22 +79,15 @@ async function main() {
         },
         file: {
           type: "string",
-          default: null,
         },
       },
     });
 
-    const args = {
-      retrieve: values.retrieve,
-      amend: values.amend,
-      file: values.file,
-    };
-
-    if (!args.retrieve && !args.amend) {
+    if (!values.retrieve && !values.amend) {
       throw new Error("Must specify either --retrieve or --amend");
     }
 
-    if (args.retrieve && args.amend) {
+    if (values.retrieve && values.amend) {
       throw new Error("Cannot specify both --retrieve and --amend");
     }
 
@@ -104,11 +97,11 @@ async function main() {
     });
     const stackParameters = new StackParameters(client);
 
-    const parameters = args.retrieve
+    const parameters = values.retrieve
       ? await stackParameters.retrieve(input)
       : stackParameters.amend(input);
 
-    outputParameters(parameters, args.file);
+    outputParameters(parameters, values.file);
   } catch (error) {
     console.error("Error:", error.message);
     process.exit(1);

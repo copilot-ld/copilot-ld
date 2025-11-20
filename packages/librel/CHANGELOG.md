@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-20
+
+- Fixed `rel-parameters` to remove invalid `default: null` from `file` option in
+  `parseArgs()` which caused "options.file.default must be string" error
+
 ## 2025-11-19
 
 - Bump version

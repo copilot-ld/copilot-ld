@@ -17,10 +17,10 @@
   },
   "dependencies": {
     "@copilot-ld/libcopilot": "^0.1.47",
-    "@copilot-ld/libpolicy": "^0.1.28",
-    "@copilot-ld/libstorage": "^0.1.29",
+    "@copilot-ld/libpolicy": "^0.1.29",
+    "@copilot-ld/libstorage": "^0.1.30",
     "@copilot-ld/libtype": "^0.1.43",
-    "@copilot-ld/libutil": "^0.1.40"
+    "@copilot-ld/libutil": "^0.1.41"
   },
   "devDependencies": {
     "jsdom": "^27.0.0",

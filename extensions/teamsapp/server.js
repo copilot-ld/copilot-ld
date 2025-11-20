@@ -202,7 +202,7 @@ export default async function createServer() {
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {
-    if (req.method === "GET" && req.url === "/aboutXXX") {
+    if (req.method === "GET" && req.url === "/about") {
       handleAbout(req, res, __dirname);
       return;
     }
@@ -210,7 +210,7 @@ export default async function createServer() {
       handleMessages(req, res, __dirname);
       return;
     }
-    if (req.method === "GET" && req.url === "/about") {
+    if (req.method === "GET" && req.url === "/settings") {
       handleGetSettings(req, res, __dirname);
       return;
     }

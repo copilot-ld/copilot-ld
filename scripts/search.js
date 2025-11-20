@@ -65,11 +65,10 @@ async function performSearch(prompt, state) {
 const repl = new Repl({
   usage,
 
-  setup: async (state) => {
+  setup: async (_state) => {
     const vectorStorage = createStorage("vectors");
     vectorIndex = new VectorIndex(vectorStorage);
-
-    state.resourceIndex = createResourceIndex("resources");
+    resourceIndex = createResourceIndex("resources");
   },
 
   state: {

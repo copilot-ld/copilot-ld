@@ -77,7 +77,7 @@ jobs:
       - name: Bump versions and tag
         id: bump
         run: |
-          # Pull latest changes to avoid conflicts
+          git status
           git pull --rebase origin main
           VERSIONS=$(npx --workspace=@copilot-ld/librel rel-bump --force \
             ${{ needs.prepare.outputs.bump-type }} \

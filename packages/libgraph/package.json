@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libgraph",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "RDF graph index and processing utilities",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -32,7 +32,7 @@
     "n3": "^1.21.0"
   },
   "devDependencies": {
-    "@copilot-ld/libutil": "^0.1.41"
+    "@copilot-ld/libutil": "^0.1.42"
   },
   "repository": {
     "type": "git",

@@ -11,7 +11,7 @@ import { createDownloader, execLine } from "@copilot-ld/libutil";
  */
 async function main() {
   await createScriptConfig("download");
-  const downloader = createDownloader(createStorage);
+  const downloader = await createDownloader(createStorage);
   await downloader.download();
 
   // If additional arguments provided, execute them after download

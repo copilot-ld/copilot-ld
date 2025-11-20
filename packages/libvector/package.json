@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libvector",
-  "version": "0.1.47",
+  "version": "0.1.48",
   "description": "Vector operations and index management library for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.8",
-    "@copilot-ld/libtelemetry": "^0.2.3",
+    "@copilot-ld/libtelemetry": "^0.2.4",
     "@copilot-ld/libtype": "^0.1.44"
   },
   "devDependencies": {

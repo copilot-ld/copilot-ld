@@ -6,6 +6,10 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./processor/resource.js": "./processor/resource.js"
+  },
   "bin": {
     "process-resources": "./bin/resources.js"
   },

@@ -8,7 +8,8 @@
   "main": "index.js",
   "exports": {
     ".": "./index.js",
-    "./index/graph.js": "./index/graph.js"
+    "./index/graph.js": "./index/graph.js",
+    "./processor/graph.js": "./processor/graph.js"
   },
   "bin": {
     "process-graphs": "./bin/graphs.js"

@@ -8,7 +8,8 @@
   "main": "index.js",
   "exports": {
     ".": "./index.js",
-    "./index/vector.js": "./index/vector.js"
+    "./index/vector.js": "./index/vector.js",
+    "./processor/vector.js": "./processor/vector.js"
   },
   "bin": {
     "process-vectors": "./bin/vectors.js"

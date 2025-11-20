@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.35",
-    "@copilot-ld/libformat": "^0.1.41",
+    "@copilot-ld/libformat": "^0.1.42",
     "@copilot-ld/librpc": "^0.1.54",
     "@copilot-ld/libtelemetry": "^0.2.1",
     "@copilot-ld/libtype": "^0.1.43",

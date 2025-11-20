@@ -3,6 +3,7 @@
 ## 2025-11-19
 
 - Bump version
+- Bump version
 
 ## 2025-11-07
 

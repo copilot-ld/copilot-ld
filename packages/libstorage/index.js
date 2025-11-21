@@ -155,6 +155,9 @@ function _createS3Storage(prefix, process) {
         RoleSessionName: `copilot-ld-${generateUUID()}`,
         DurationSeconds: 3600, // 1 hour
       },
+      clientConfig: {
+        region: process.env.S3_REGION,
+      },
     });
   } else if (
     process.env.AWS_ACCESS_KEY_ID &&

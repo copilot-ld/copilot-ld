@@ -12,7 +12,7 @@ import {
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientRepository } from "./tenant-client-repository.js";
 import { HtmlRenderer } from "./htmlRenderer.js";
-import { patchResponse } from "./patchResponse.js";
+import { patchResponse } from "./http.js";
 
 const tenantClientRepository = new TenantClientRepository();
 
@@ -21,27 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const htmlRenderer = new HtmlRenderer(__dirname);
 
-/**
- * Parses the JSON body from an incoming HTTP request.
- * @param {import('http').IncomingMessage} req - The HTTP request object.
- * @returns {Promise<object>} The parsed JSON object, or an empty object if parsing fails.
- */
-function parseBody(req) {
-  return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => {
-      try {
-        resolve(JSON.parse(body));
-      } catch {
-        resolve({});
-      }
-    });
-    req.on("error", reject);
-  });
-}
+import { parseBody } from "./http.js";
 
 /**
  * Serves the about.html static page for /about endpoint.

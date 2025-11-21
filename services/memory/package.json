@@ -13,7 +13,7 @@
     "@copilot-ld/libconfig": "^0.1.38",
     "@copilot-ld/libmemory": "^0.1.14",
     "@copilot-ld/librpc": "^0.1.57",
-    "@copilot-ld/libstorage": "^0.1.32"
+    "@copilot-ld/libstorage": "^0.1.33"
   },
   "repository": {
     "type": "git",

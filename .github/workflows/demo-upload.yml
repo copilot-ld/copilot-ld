@@ -58,6 +58,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
 
+      - name: Debug environment variables
+        run: |
+          echo "S3_BUCKET_NAME=${{ steps.upload-params.outputs.s3_bucket_name }}"
+          echo "S3_BUCKET_ROLE_ARN=${{ steps.upload-params.outputs.s3_bucket_role_arn }}"
+          echo "S3_REGION=${{ steps.upload-params.outputs.s3_region }}"
+          echo "AWS_REGION=${AWS_REGION:-not set}"
+
       - name: Upload data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}

@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libagent": "^0.1.16",
     "@copilot-ld/libconfig": "^0.1.38",
-    "@copilot-ld/libresource": "^0.1.64",
+    "@copilot-ld/libresource": "^0.1.65",
     "@copilot-ld/librpc": "^0.1.57",
     "@octokit/core": "^7.0.3"
   },

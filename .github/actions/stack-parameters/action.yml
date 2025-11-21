@@ -58,7 +58,17 @@ runs:
         fi
 
         if [ -n "$RETRIEVE_INPUT" ]; then
+          echo "Retrieving parameters from CloudFormation stacks..."
           echo "$RETRIEVE_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="$OUTPUT_FILE"
+          
+          # Verify parameters were retrieved
+          PARAM_COUNT=$(jq 'length' "$OUTPUT_FILE")
+          echo "Retrieved $PARAM_COUNT parameters"
+          
+          if [ "$PARAM_COUNT" -eq 0 ]; then
+            echo "Warning: No parameters were retrieved from CloudFormation stacks"
+            echo "Check that the stack names and output keys are correct"
+          fi
         fi
 
         if [ -n "$AMEND_INPUT" ]; then

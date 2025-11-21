@@ -95,13 +95,26 @@ export class StackParameters {
    * @returns {object} Parsed outputs with keys as camelCase
    */
   async #getOutputs(stackName) {
-    const command = new DescribeStacksCommand({ StackName: stackName });
-    const response = await this.#client.send(command);
+    try {
+      const command = new DescribeStacksCommand({ StackName: stackName });
+      const response = await this.#client.send(command);
 
-    if (response.Stacks && response.Stacks[0]) {
-      return response.Stacks[0].Outputs || [];
+      if (response.Stacks && response.Stacks[0]) {
+        const outputs = response.Stacks[0].Outputs || [];
+        console.error(
+          `Retrieved ${outputs.length} outputs from stack '${stackName}'`,
+        );
+        return outputs;
+      }
+
+      console.error(`Stack '${stackName}' found but has no outputs`);
+      return [];
+    } catch (error) {
+      console.error(
+        `Failed to retrieve outputs from stack '${stackName}':`,
+        error.message,
+      );
+      throw error;
     }
-
-    return [];
   }
 }

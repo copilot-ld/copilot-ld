@@ -59,6 +59,9 @@ runs:
 
         if [ -n "$RETRIEVE_INPUT" ]; then
           echo "Retrieving parameters from CloudFormation stacks..."
+          echo "AWS_REGION: ${AWS_REGION}"
+          echo "Stacks to query: $RETRIEVE_INPUT"
+          
           echo "$RETRIEVE_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="$OUTPUT_FILE"
           
           # Verify parameters were retrieved

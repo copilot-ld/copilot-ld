@@ -45,15 +45,21 @@ export class StackParameters {
     const parameters = [];
 
     for (const [stackName, outputKeys] of Object.entries(map)) {
+      console.error(
+        `Querying stack '${stackName}' for outputs: ${outputKeys.join(", ")}`,
+      );
       const outputs = await this.#getOutputs(stackName);
 
       for (const key of outputKeys) {
         const output = outputs.find((o) => o.OutputKey === key);
         if (output) {
+          console.error(`  ✓ Found ${key} = ${output.OutputValue}`);
           parameters.push({
             ParameterKey: key,
             ParameterValue: output.OutputValue,
           });
+        } else {
+          console.error(`  ✗ Output key '${key}' not found in stack outputs`);
         }
       }
     }

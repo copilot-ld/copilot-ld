@@ -47,22 +47,23 @@ describe("CopilotLdBot", () => {
     };
   });
 
-  test("handleMessage sends formatted reply and sets resourceId", async () => {
-    // Pass dependencies via constructor and property
+  test("given a configured CopilotLdBot, when handleMessage is called, then it sends a reply and sets resourceId", async () => {
+    // Given: a CopilotLdBot with mocked dependencies and a context
     const bot = new CopilotLdBot(mockAgentClient, mockConfig);
-    // tenantClientRepository mock returns mockAgentClient
     bot.tenantClientRepository = {
       get: () => mockAgentClient,
       save: () => {},
       delete: () => {},
     };
-
     const context = new MockContext("Hi Copilot!");
     let nextCalled = false;
+
+    // When: handleMessage is called
     await bot.handleMessage(context, () => {
       nextCalled = true;
     });
 
+    // Then: the reply is sent, resourceId is set, and next is called
     assert.strictEqual(context.sent.length, 1);
     assert.strictEqual(context.sent[0].text, "Hello from Copilot!");
     assert.strictEqual(bot.getResourceId("tenant1", "bot1"), "resource-xyz");

@@ -59,3 +59,7 @@ Outputs:
   BucketRoleArn:
     Description: IAM role ARN for accessing the data storage
     Value: !GetAtt BucketRole.Arn
+
+  BucketRegion:
+    Description: AWS region where the bucket is deployed
+    Value: !Ref AWS::Region

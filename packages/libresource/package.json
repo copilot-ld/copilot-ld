@@ -8,7 +8,9 @@
   "main": "index.js",
   "exports": {
     ".": "./index.js",
-    "./processor/resource.js": "./processor/resource.js"
+    "./processor/resource.js": "./processor/resource.js",
+    "./parser.js": "./parser.js",
+    "./skolemizer.js": "./skolemizer.js"
   },
   "bin": {
     "process-resources": "./bin/resources.js"

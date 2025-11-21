@@ -1,4 +1,17 @@
 /**
+ * Extracts the tenant ID (tid) from the JWT in the request.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @returns {string|null} Tenant ID (tid) or null if not found
+ */
+export function getTenantId(req) {
+  const authHeader =
+    req.headers["authorization"] || req.headers["Authorization"];
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const token = authHeader.slice(7);
+  const claims = decodeJwt(token);
+  return claims?.tid || null;
+}
+/**
  * Authorizes a request for tenant admin access.
  * Throws on failure.
  * @param {import('http').IncomingMessage} req - HTTP request object

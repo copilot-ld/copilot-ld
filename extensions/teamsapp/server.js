@@ -9,7 +9,10 @@ import {
   createServiceConfig,
   createExtensionConfig,
 } from "@copilot-ld/libconfig";
-import { authorize } from "./auth.js";
+import { authorize, getTenantId } from "./auth.js";
+import { TenantClientRepository } from "./tenant-client-repository.js";
+
+const tenantClientRepository = new TenantClientRepository();
 
 /**
  * Patches a native HTTP response object with minimal Express-like methods for botbuilder compatibility.
@@ -169,7 +172,18 @@ function handleSaveSettings(req, res) {
       res.end(err.message || "Unauthorized");
       return;
     }
-    console.log("Settings data received:", body);
+    const tenantId = getTenantId(req);
+
+    buildClient(body.host, body.port, body.secret)
+      .then((client) => {
+        tenantClientRepository.save(tenantId, client);
+        console.log(
+          `AgentClient rebuilt for tenant ${tenantId} with new settings`,
+        );
+      })
+      .catch((err) => {
+        console.error("Error rebuilding AgentClient:", err);
+      });
     // TODO: Save settings logic here
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "ok", message: "Settings saved (TODO)" }));
@@ -195,10 +209,7 @@ export default async function createServer() {
 
   // Instantiate the CopilotLdBot with required dependencies
   const config = await createExtensionConfig("web");
-  const agentClient = new clients.AgentClient(
-    await createServiceConfig("agent"),
-  );
-  const myBot = new CopilotLdBot(agentClient, config);
+  const myBot = new CopilotLdBot(tenantClientRepository, config);
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {
@@ -227,4 +238,19 @@ export default async function createServer() {
   });
 
   return server;
+}
+
+/**
+ * Builds and returns an AgentClient with overridden config values.
+ * @param {string} host - The agent service host
+ * @param {number} port - The agent service port
+ * @param {string} secret - The agent service secret
+ * @returns {Promise<import("@copilot-ld/librpc").AgentClient>} Initialized AgentClient instance
+ */
+async function buildClient(host, port, secret) {
+  const serviceConfig = await createServiceConfig("agent");
+  if (host !== undefined) serviceConfig.host = host;
+  if (port !== undefined) serviceConfig.port = port;
+  if (secret !== undefined) serviceConfig.secret = secret;
+  return new clients.AgentClient(serviceConfig);
 }

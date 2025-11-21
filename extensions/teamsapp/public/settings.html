@@ -84,35 +84,28 @@
     <p id="logging"></p>
     <form id="settings-form">
       <div>
-        <label for="api_url">API URL:</label>
-        <input type="text" id="api_url" name="api_url" autocomplete="off" />
-      </div>
-      <div>
-        <label for="github_client_id">GitHub Client ID:</label>
+        <label for="host">Agent Host:</label>
         <input
           type="text"
-          id="github_client_id"
-          name="github_client_id"
+          id="host"
+          name="host"
           autocomplete="off"
+          placeholder="e.g. localhost"
         />
       </div>
       <div>
-        <label for="github_token">GitHub Token:</label>
+        <label for="port">Agent Port:</label>
         <input
-          type="password"
-          id="github_token"
-          name="github_token"
+          type="number"
+          id="port"
+          name="port"
           autocomplete="off"
+          placeholder="e.g. 3001"
         />
       </div>
       <div>
-        <label for="service_secret">Service Secret:</label>
-        <input
-          type="password"
-          id="service_secret"
-          name="service_secret"
-          autocomplete="off"
-        />
+        <label for="secret">Agent Secret:</label>
+        <input type="password" id="secret" name="secret" autocomplete="off" />
       </div>
       <button type="submit">Save Settings</button>
     </form>

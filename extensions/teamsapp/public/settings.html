@@ -11,6 +11,14 @@
     ></script>
     <script type="module">
       // Initialize Teams SDK with error handling
+
+      const RUN_IN_TEAMS_WARNING_HTML =
+        "<p>This page must be loaded in Microsoft Teams.</p>";
+      const MICROSCOFT_TEAMS_SDK_WARNING_HTML =
+        "<p>Failed to load Microsoft Teams SDK. This page must be loaded in Microsoft Teams.</p>";
+
+      const ENFORCE_TEAMS_CONTAINER = true;
+
       let context;
       let teamsToken = null;
 
@@ -31,15 +39,15 @@
           teamsToken = null;
         }
       } catch (e) {
-        document.body.innerHTML =
-          "<p>Failed to initialize Microsoft Teams SDK. This page must be loaded in Microsoft Teams.</p>";
-        context = null;
+        if (ENFORCE_TEAMS_CONTAINER) {
+          document.body.innerHTML = RUN_IN_TEAMS_WARNING_HTML;
+          context = null;
+        }
       }
 
       // Optionally, check if running in Teams
-      if (!context) {
-        document.body.innerHTML =
-          "<p>This page must be loaded in Microsoft Teams.</p>";
+      if (!context && ENFORCE_TEAMS_CONTAINER) {
+        document.body.innerHTML = RUN_IN_TEAMS_WARNING_HTML;
       }
 
       // Handle form submission
@@ -90,6 +98,7 @@
           id="host"
           name="host"
           autocomplete="off"
+          value="{{HOST}}"
           placeholder="e.g. localhost"
         />
       </div>
@@ -100,6 +109,7 @@
           id="port"
           name="port"
           autocomplete="off"
+          value="{{PORT}}"
           placeholder="e.g. 3001"
         />
       </div>

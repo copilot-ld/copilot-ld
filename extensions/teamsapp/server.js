@@ -138,15 +138,29 @@ async function handleApiMessages(req, res, adapter, myBot) {
  */
 async function handleGetSettings(req, res, dir) {
   console.log("GET /settings");
+  const tenantId = getTenantId(req);
+  // Try to get current settings for this tenant (mocked for now)
+  let host = "";
+  let port = "";
+  // If you have a settings store, fetch here. For now, try to get from client if available
+  const client = tenantClientRepository.get(tenantId);
+  if (client && client.config) {
+    host = client.config.host || "";
+    port = client.config.port || "";
+  }
 
   const filePath = path.join(dir, "public/settings.html");
-  fs.readFile(filePath, (err, data) => {
+  fs.readFile(filePath, "utf8", (err, html) => {
     if (err) {
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("Not found");
     } else {
+      // Replace placeholders in HTML
+      html = html
+        .replace(/value="\{\{HOST\}\}"/, `value="${host}"`)
+        .replace(/value="\{\{PORT\}\}"/, `value="${port}"`);
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
+      res.end(html);
     }
   });
 }

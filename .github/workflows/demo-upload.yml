@@ -40,7 +40,7 @@ jobs:
         with:
           retrieve: |
             {
-              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
+              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn", "BucketRegion"]
             }
 
       - name: Extract parameters for upload
@@ -48,6 +48,7 @@ jobs:
         run: |
           echo "s3_bucket_name=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
           echo "s3_bucket_role_arn=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
+          echo "s3_region=$(jq -r '.[] | select(.ParameterKey == "BucketRegion") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
 
       - name: Download artifact
         uses: actions/download-artifact@v5
@@ -63,5 +64,6 @@ jobs:
           S3_BUCKET_NAME: ${{ steps.upload-params.outputs.s3_bucket_name }}
           S3_BUCKET_ROLE_ARN:
             ${{ steps.upload-params.outputs.s3_bucket_role_arn }}
+          S3_REGION: ${{ steps.upload-params.outputs.s3_region }}
         run: |
           npx --workspace=@copilot-ld/libutil upload

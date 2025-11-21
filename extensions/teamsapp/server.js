@@ -12,6 +12,7 @@ import {
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientRepository } from "./tenant-client-repository.js";
 import { HtmlRenderer } from "./htmlRenderer.js";
+import { patchResponse } from "./patchResponse.js";
 
 const tenantClientRepository = new TenantClientRepository();
 
@@ -19,35 +20,6 @@ const tenantClientRepository = new TenantClientRepository();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const htmlRenderer = new HtmlRenderer(__dirname);
-
-/**
- * Patches a native HTTP response object with minimal Express-like methods for botbuilder compatibility.
- * @param {import('http').ServerResponse} res - The HTTP response object.
- */
-function patchResponse(res) {
-  if (!res.status) {
-    res.statusCode = 200;
-    res.status = function (code) {
-      this.statusCode = code;
-      return this;
-    };
-  }
-  if (!res.send) {
-    res.send = function (body) {
-      if (!this.headersSent) {
-        this.writeHead(this.statusCode, {
-          "Content-Type": "application/json",
-        });
-      }
-      this.end(typeof body === "string" ? body : JSON.stringify(body));
-    };
-  }
-  if (!res.header) {
-    res.header = function (name, value) {
-      this.setHeader(name, value);
-    };
-  }
-}
 
 /**
  * Parses the JSON body from an incoming HTTP request.

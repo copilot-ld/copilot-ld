@@ -1,5 +1,4 @@
 import http from "node:http";
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configureAdapter } from "./configureAdapter.js";
@@ -12,7 +11,7 @@ import {
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientRepository } from "./tenant-client-repository.js";
 import { HtmlRenderer } from "./htmlRenderer.js";
-import { patchResponse } from "./http.js";
+import { patchResponse, parseBody } from "./http.js";
 
 const tenantClientRepository = new TenantClientRepository();
 
@@ -21,14 +20,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const htmlRenderer = new HtmlRenderer(__dirname);
 
-import { parseBody } from "./http.js";
-
 /**
  * Serves the about.html static page for /about endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
  */
 function handleAbout(req, res) {
+  console.log("GET /about");
   htmlRenderer.serveHtml("public/about.html", res);
 }
 
@@ -38,6 +36,7 @@ function handleAbout(req, res) {
  * @param {import('http').ServerResponse} res - HTTP response object
  */
 function handleMessages(req, res) {
+  console.log("GET /messages");
   htmlRenderer.serveHtml("public/messages.html", res);
 }
 
@@ -49,6 +48,7 @@ function handleMessages(req, res) {
  * @param {object} myBot - CopilotLdBot instance
  */
 async function handleApiMessages(req, res, adapter, myBot) {
+  console.log("POST /api/messages");
   req.body = await parseBody(req);
   patchResponse(res);
   try {
@@ -66,41 +66,10 @@ async function handleApiMessages(req, res, adapter, myBot) {
  * Serves the settings.html static page for /settings endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
-/**
- * Serves the settings.html static page for /settings endpoint, restricted to tenant-wide admins.
- * @param {import('http').IncomingMessage} req - HTTP request object
- * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
- */
-async function handleGetSettings(req, res, dir) {
+async function handleGetSettings(req, res) {
   console.log("GET /settings");
-  const tenantId = getTenantId(req);
-  // Try to get current settings for this tenant (mocked for now)
-  let host = "";
-  let port = "";
-  // If you have a settings store, fetch here. For now, try to get from client if available
-  const client = tenantClientRepository.get(tenantId);
-  if (client && client.config) {
-    host = client.config.host || "";
-    port = client.config.port || "";
-  }
-
-  const filePath = path.join(dir, "public/settings.html");
-  fs.readFile(filePath, "utf8", (err, html) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    } else {
-      // Replace placeholders in HTML
-      html = html
-        .replace(/value="\{\{HOST\}\}"/, `value="${host}"`)
-        .replace(/value="\{\{PORT\}\}"/, `value="${port}"`);
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(html);
-    }
-  });
+  htmlRenderer.serveHtml("public/settings.html", res);
 }
 
 /**
@@ -124,9 +93,18 @@ function handleSaveSettings(req, res) {
       res.end(err.message || "Unauthorized");
       return;
     }
+    let parsed = {};
+    try {
+      parsed = JSON.parse(body);
+    } catch (err) {
+      console.error("Error parsing JSON body:", err);
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid JSON" }));
+      return;
+    }
     const tenantId = getTenantId(req);
 
-    buildClient(body.host, body.port, body.secret)
+    buildClient(parsed.host, parsed.port, parsed.secret)
       .then((client) => {
         tenantClientRepository.save(tenantId, client);
         console.log(
@@ -134,9 +112,9 @@ function handleSaveSettings(req, res) {
         );
       })
       .catch((err) => {
+        //TODO throw error back to user
         console.error("Error rebuilding AgentClient:", err);
       });
-    // TODO: Save settings logic here
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "ok", message: "Settings saved (TODO)" }));
   });
@@ -148,48 +126,27 @@ function handleSaveSettings(req, res) {
 }
 
 /**
- * Creates and configures a native HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
- * Sets up HTTP endpoints for chat UI, bot message processing, and streaming connections.
- * @returns {Promise<http.Server>} Configured HTTP server instance.
+ * Handles GET requests to /api/settings
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
  */
-export default async function createServer() {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
-  // Configure adapters for normal and streaming requests
-  const adapter = configureAdapter();
-
-  // Instantiate the CopilotLdBot with required dependencies
-  const config = await createExtensionConfig("web");
-  const myBot = new CopilotLdBot(tenantClientRepository, config);
-
-  // Create the HTTP server
-  const server = http.createServer(async (req, res) => {
-    if (req.method === "GET" && req.url === "/about") {
-      handleAbout(req, res, __dirname);
-      return;
-    }
-    if (req.method === "GET" && req.url === "/messages") {
-      handleMessages(req, res, __dirname);
-      return;
-    }
-    if (req.method === "GET" && req.url === "/settings") {
-      handleGetSettings(req, res, __dirname);
-      return;
-    }
-    if (req.method === "POST" && req.url === "/api/messages") {
-      await handleApiMessages(req, res, adapter, myBot);
-      return;
-    }
-    if (req.method === "POST" && req.url === "/api/settings") {
-      handleSaveSettings(req, res);
-      return;
-    }
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not found");
-  });
-
-  return server;
+function handleGetApiSettings(req, res) {
+  console.log("GET /api/settings");
+  try {
+    authorize(req);
+  } catch (err) {
+    res.writeHead(err.statusCode || 401, {
+      "Content-Type": "application/json",
+    });
+    res.end(JSON.stringify({ error: err.message || "Unauthorized" }));
+    return;
+  }
+  const tenantId = getTenantId(req);
+  const client = tenantClientRepository.get(tenantId);
+  const host = client?.config?.host || "";
+  const port = client?.config?.port || "";
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ host, port }));
 }
 
 /**
@@ -205,4 +162,50 @@ async function buildClient(host, port, secret) {
   if (port !== undefined) serviceConfig.port = port;
   if (secret !== undefined) serviceConfig.secret = secret;
   return new clients.AgentClient(serviceConfig);
+}
+
+/**
+ * Creates and configures a native HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
+ * Sets up HTTP endpoints for chat UI, bot message processing, and streaming connections.
+ * @returns {Promise<http.Server>} Configured HTTP server instance.
+ */
+export default async function createServer() {
+  // Configure adapters for normal and streaming requests
+  const adapter = configureAdapter();
+
+  // Instantiate the CopilotLdBot with required dependencies
+  const config = await createExtensionConfig("web");
+  const myBot = new CopilotLdBot(tenantClientRepository, config);
+
+  // Create the HTTP server
+  const server = http.createServer(async (req, res) => {
+    if (req.method === "GET" && req.url === "/about") {
+      handleAbout(req, res);
+      return;
+    }
+    if (req.method === "GET" && req.url === "/messages") {
+      handleMessages(req, res);
+      return;
+    }
+    if (req.method === "GET" && req.url === "/settings") {
+      handleGetSettings(req, res);
+      return;
+    }
+    if (req.method === "GET" && req.url === "/api/settings") {
+      handleGetApiSettings(req, res);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/messages") {
+      await handleApiMessages(req, res, adapter, myBot);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/settings") {
+      handleSaveSettings(req, res);
+      return;
+    }
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end("Not found");
+  });
+
+  return server;
 }

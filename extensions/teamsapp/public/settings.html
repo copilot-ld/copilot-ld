@@ -28,18 +28,20 @@
         try {
           context = await microsoftTeams.app.getContext();
         } catch (e) {
+          console.error("Failed to get Teams context:", e);
           context = null;
         }
         // Try to get Teams auth token (SSO)
         try {
           teamsToken = await microsoftTeams.authentication.getAuthToken();
-
-          document.getElementById("logging").innerHTML = "Token: " + teamsToken;
+          document.getElementById("logging").innerHTML = "Got Token ✅";
         } catch (e) {
-          document.getElementById("logging").innerHTML = "Token Error: " + e;
+          document.getElementById("logging").innerHTML =
+            "Token Error ❌ : " + e;
           teamsToken = null;
         }
       } catch (e) {
+        console.error("Failed to get Teams context, container missing", e);
         if (ENFORCE_TEAMS_CONTAINER) {
           document.body.innerHTML = RUN_IN_TEAMS_WARNING_HTML;
           context = null;
@@ -50,6 +52,36 @@
       if (!context && ENFORCE_TEAMS_CONTAINER) {
         document.body.innerHTML = RUN_IN_TEAMS_WARNING_HTML;
       }
+
+      // On page load, fetch current settings and populate form
+      async function fetchAndPopulateSettings() {
+        try {
+          const resp = await fetch("/api/settings", {
+            method: "GET",
+            headers: {
+              ...(teamsToken ? { Authorization: `Bearer ${teamsToken}` } : {}),
+            },
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.host !== undefined) {
+              document.getElementById("host").value = data.host;
+            }
+            if (data.port !== undefined) {
+              document.getElementById("port").value = data.port;
+            }
+            document.getElementById("logging").innerHTML = "Got Settings ✅";
+          } else {
+            document.getElementById("logging").innerHTML =
+              "Failed to load settings.";
+          }
+        } catch (err) {
+          document.getElementById("logging").innerHTML =
+            "Error loading settings: " + err;
+        }
+      }
+
+      await fetchAndPopulateSettings();
 
       // Handle form submission
       const form = document.getElementById("settings-form");
@@ -99,7 +131,6 @@
           id="host"
           name="host"
           autocomplete="off"
-          value="{{HOST}}"
           placeholder="e.g. localhost"
         />
       </div>
@@ -110,7 +141,6 @@
           id="port"
           name="port"
           autocomplete="off"
-          value="{{PORT}}"
           placeholder="e.g. 3001"
         />
       </div>

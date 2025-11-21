@@ -48,20 +48,21 @@ runs:
         AWS_REGION: ${{ inputs.aws-region }}
         RETRIEVE_INPUT: ${{ inputs.retrieve }}
         AMEND_INPUT: ${{ inputs.amend }}
+        OUTPUT_FILE: ${{ inputs.output-file }}
       run: |
         cd $GITHUB_WORKSPACE
 
         # Initialize empty parameters file if it doesn't exist
-        if [ ! -f "${{ inputs.output-file }}" ]; then
-          echo '[]' > "${{ inputs.output-file }}"
+        if [ ! -f "$OUTPUT_FILE" ]; then
+          echo '[]' > "$OUTPUT_FILE"
         fi
 
         if [ -n "$RETRIEVE_INPUT" ]; then
-          echo "$RETRIEVE_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="${{ inputs.output-file }}"
+          echo "$RETRIEVE_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="$OUTPUT_FILE"
         fi
 
         if [ -n "$AMEND_INPUT" ]; then
-          echo "$AMEND_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --amend --file="${{ inputs.output-file }}"
+          echo "$AMEND_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --amend --file="$OUTPUT_FILE"
         fi
 
-        echo "parameters-file=$(pwd)/${{ inputs.output-file }}" >> $GITHUB_OUTPUT
+        echo "parameters-file=$(pwd)/$OUTPUT_FILE" >> $GITHUB_OUTPUT

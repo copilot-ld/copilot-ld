@@ -46,6 +46,8 @@ runs:
       shell: bash
       env:
         AWS_REGION: ${{ inputs.aws-region }}
+        RETRIEVE_INPUT: ${{ inputs.retrieve }}
+        AMEND_INPUT: ${{ inputs.amend }}
       run: |
         cd $GITHUB_WORKSPACE
 
@@ -54,12 +56,12 @@ runs:
           echo '[]' > "${{ inputs.output-file }}"
         fi
 
-        if [ -n "${{ inputs.retrieve }}" ] && [ "${{ inputs.retrieve }}" != "" ]; then
-          echo '${{ inputs.retrieve }}' | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="${{ inputs.output-file }}"
+        if [ -n "$RETRIEVE_INPUT" ]; then
+          echo "$RETRIEVE_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --retrieve --file="${{ inputs.output-file }}"
         fi
 
-        if [ -n "${{ inputs.amend }}" ] && [ "${{ inputs.amend }}" != "" ]; then
-          echo '${{ inputs.amend }}' | npx --workspace=@copilot-ld/librel rel-parameters --amend --file="${{ inputs.output-file }}"
+        if [ -n "$AMEND_INPUT" ]; then
+          echo "$AMEND_INPUT" | npx --workspace=@copilot-ld/librel rel-parameters --amend --file="${{ inputs.output-file }}"
         fi
 
         echo "parameters-file=$(pwd)/${{ inputs.output-file }}" >> $GITHUB_OUTPUT

@@ -11,8 +11,14 @@ import {
 } from "@copilot-ld/libconfig";
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientRepository } from "./tenant-client-repository.js";
+import { HtmlRenderer } from "./htmlRenderer.js";
 
 const tenantClientRepository = new TenantClientRepository();
+
+// HtmlRenderer instance for serving static HTML files
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const htmlRenderer = new HtmlRenderer(__dirname);
 
 /**
  * Patches a native HTTP response object with minimal Express-like methods for botbuilder compatibility.
@@ -69,38 +75,18 @@ function parseBody(req) {
  * Serves the about.html static page for /about endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
-function handleAbout(req, res, dir) {
-  const filePath = path.join(dir, "public/about.html");
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    } else {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
-    }
-  });
+function handleAbout(req, res) {
+  htmlRenderer.serveHtml("public/about.html", res);
 }
 
 /**
  * Serves the messages.html static page for /messages endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
-function handleMessages(req, res, dir) {
-  const filePath = path.join(dir, "public/messages.html");
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    } else {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
-    }
-  });
+function handleMessages(req, res) {
+  htmlRenderer.serveHtml("public/messages.html", res);
 }
 
 /**

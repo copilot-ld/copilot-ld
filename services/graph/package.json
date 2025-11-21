@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/graph",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "Graph query service for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -18,7 +18,7 @@
     "@copilot-ld/libconfig": "^0.1.36",
     "@copilot-ld/libgraph": "^0.1.25",
     "@copilot-ld/libresource": "^0.1.63",
-    "@copilot-ld/librpc": "^0.1.55",
+    "@copilot-ld/librpc": "^0.1.56",
     "n3": "^1.26.0"
   },
   "repository": {

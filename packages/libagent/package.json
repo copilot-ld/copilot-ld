@@ -16,7 +16,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtelemetry": "^0.2.5",
+    "@copilot-ld/libtelemetry": "^0.2.6",
     "@copilot-ld/libtype": "^0.1.46",
     "@copilot-ld/libutil": "^0.1.43",
     "js-yaml": "^4.1.1"

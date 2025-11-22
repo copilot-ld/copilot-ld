@@ -98,6 +98,14 @@ Resources:
     Properties:
       VpcId: !Ref VPC
 
+  # Route to VPC endpoints via local gateway
+  PrivateRouteToEndpoints:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 10.0.0.0/16
+      GatewayId: local
+
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -186,6 +194,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -218,6 +227,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.ecr.api"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -231,6 +241,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.ecr.dkr"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -244,6 +255,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2

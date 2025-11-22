@@ -28,6 +28,25 @@ services:
   # Infrastructure Services
   #
 
+  alb:
+    build:
+      context: ./infrastructure/docker/alb
+      dockerfile: Dockerfile
+    image: copilot-ld/alb:latest
+    container_name: alb.copilot-ld
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./data/cert/localhost.crt:/etc/ssl/certs/localhost.crt:ro
+      - ./data/cert/localhost.key:/etc/ssl/private/localhost.key:ro
+    networks:
+      internal:
+        aliases:
+          - alb.copilot-ld.local
+    depends_on:
+      - web
+
   gateway:
     build:
       context: ./infrastructure/docker/gateway
@@ -35,18 +54,11 @@ services:
     image: copilot-ld/gateway:latest
     container_name: gateway.copilot-ld
     ports:
-      - "80:80"
-      - "443:443"
       - "3128:3128"
-    volumes:
-      - ./data/cert/localhost.crt:/etc/ssl/certs/localhost.crt:ro
-      - ./data/cert/localhost.key:/etc/ssl/private/localhost.key:ro
     networks:
       internal:
         aliases:
           - gateway.copilot-ld.local
-    depends_on:
-      - web
 
   storage:
     image: minio/minio:latest

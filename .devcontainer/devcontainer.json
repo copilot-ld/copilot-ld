@@ -5,7 +5,11 @@
   "remoteUser": "node",
   "customizations": {
     "vscode": {
-      "extensions": ["bierner.markdown-mermaid"]
+      "extensions": [
+        "bierner.markdown-mermaid",
+        "amazonwebservices.aws-toolkit-vscode",
+        "ms-azuretools.vscode-containers"
+      ]
     }
   }
 }

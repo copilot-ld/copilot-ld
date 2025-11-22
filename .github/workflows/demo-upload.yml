@@ -43,41 +43,6 @@ jobs:
               "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn", "BucketRegion"]
             }
 
-      - name: Extract parameters for upload
-        id: upload-params
-        run: |
-          PARAMS_FILE="${{ steps.parameters.outputs.parameters-file }}"
-
-          # Debug: Show contents of parameters file
-          echo "Parameters file contents:"
-          cat "$PARAMS_FILE"
-
-          # Extract parameters with validation
-          BUCKET_NAME=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' "$PARAMS_FILE")
-          BUCKET_ROLE_ARN=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' "$PARAMS_FILE")
-          BUCKET_REGION=$(jq -r '.[] | select(.ParameterKey == "BucketRegion") | .ParameterValue' "$PARAMS_FILE")
-
-          # Validate required parameters
-          if [ -z "$BUCKET_NAME" ] || [ "$BUCKET_NAME" = "null" ]; then
-            echo "Error: BucketName parameter not found or empty"
-            exit 1
-          fi
-
-          if [ -z "$BUCKET_ROLE_ARN" ] || [ "$BUCKET_ROLE_ARN" = "null" ]; then
-            echo "Error: BucketRoleArn parameter not found or empty"
-            exit 1
-          fi
-
-          if [ -z "$BUCKET_REGION" ] || [ "$BUCKET_REGION" = "null" ]; then
-            echo "Error: BucketRegion parameter not found or empty"
-            exit 1
-          fi
-
-          # Set outputs
-          echo "s3_bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
-          echo "s3_bucket_role_arn=$BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "s3_region=$BUCKET_REGION" >> $GITHUB_OUTPUT
-
       - name: Download artifact
         uses: actions/download-artifact@v5
         with:
@@ -86,19 +51,29 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
 
-      - name: Debug environment variables
+      - name: Debug parameters file location
+        env:
+          PARAMS_FILE: ${{ steps.parameters.outputs.parameters-file }}
         run: |
-          echo "S3_BUCKET_NAME=${{ steps.upload-params.outputs.s3_bucket_name }}"
-          echo "S3_BUCKET_ROLE_ARN=${{ steps.upload-params.outputs.s3_bucket_role_arn }}"
-          echo "S3_REGION=${{ steps.upload-params.outputs.s3_region }}"
-          echo "AWS_REGION=${AWS_REGION:-not set}"
+          echo "Expected parameters file: $PARAMS_FILE"
+          echo "Current directory: $(pwd)"
+          echo "Searching for parameters.json files:"
+          find . -name "parameters.json" -type f
+          echo "Parameters file exists check:"
+          if [ -f "$PARAMS_FILE" ]; then
+            echo "✓ File exists at expected location"
+            cat "$PARAMS_FILE"
+          else
+            echo "✗ File NOT found at expected location"
+          fi
 
       - name: Upload data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
-          S3_BUCKET_NAME: ${{ steps.upload-params.outputs.s3_bucket_name }}
-          S3_BUCKET_ROLE_ARN:
-            ${{ steps.upload-params.outputs.s3_bucket_role_arn }}
-          S3_REGION: ${{ steps.upload-params.outputs.s3_region }}
+          PARAMS_FILE: ${{ steps.parameters.outputs.parameters-file }}
         run: |
+          export S3_BUCKET_NAME=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' "$PARAMS_FILE")
+          export S3_BUCKET_ROLE_ARN=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' "$PARAMS_FILE")
+          export S3_REGION=$(jq -r '.[] | select(.ParameterKey == "BucketRegion") | .ParameterValue' "$PARAMS_FILE")
+
           npx --workspace=@copilot-ld/libutil upload

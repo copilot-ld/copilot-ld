@@ -1,4 +1,4 @@
-name: Demo Deployment of Network Infrastructure
+name: Demo Deployment of Network
 
 on:
   workflow_dispatch:

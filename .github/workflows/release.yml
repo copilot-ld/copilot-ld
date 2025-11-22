@@ -175,7 +175,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push container
+      - name: Build and push app container
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
         run: |
           set -e
@@ -193,12 +193,48 @@ jobs:
           docker push $IMAGE:$VERSION
           docker push $IMAGE:latest
 
+  publish-infrastructure:
+    needs: bump
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.ref }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push infra containers
+        run: |
+          set -e
+          export DOCKER_BUILDKIT=1
+          for dockerfile in infrastructure/docker/*/Dockerfile; do
+            NAME=$(basename $(dirname "$dockerfile"))
+            IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+            echo "Building $NAME from $dockerfile"
+            docker build \
+              -f "$dockerfile" \
+              -t $IMAGE:latest \
+              $(dirname "$dockerfile")
+            docker push $IMAGE:latest
+          done
+
   create-releases:
-    needs: [bump, publish-packages, publish-containers]
+    needs: [bump, publish-packages, publish-containers, publish-infrastructure]
     if:
       always() && needs.bump.result == 'success' &&
       needs.publish-packages.result == 'success' &&
-      needs.publish-containers.result == 'success'
+      needs.publish-containers.result == 'success' &&
+      needs.publish-infrastructure.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -18,7 +18,7 @@
     "@copilot-ld/libagent": "^0.1.17",
     "@copilot-ld/libconfig": "^0.1.38",
     "@copilot-ld/libresource": "^0.1.65",
-    "@copilot-ld/librpc": "^0.1.57",
+    "@copilot-ld/librpc": "^0.1.58",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

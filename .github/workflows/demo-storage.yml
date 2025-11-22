@@ -1,4 +1,4 @@
-name: Demo Storage Deployment
+name: Demo Deployment of Storage
 
 on:
   workflow_dispatch:
@@ -33,7 +33,10 @@ jobs:
         id: parameters
         uses: ./.github/actions/stack-parameters
         with:
-          amend: '{"EnvironmentName": "${{ inputs.environment_name }}"}'
+          amend: |
+            {
+              "EnvironmentName": "${{ inputs.environment_name }}"
+            }
 
       - name: Deploy
         uses: aws-actions/aws-cloudformation-github-deploy@v1

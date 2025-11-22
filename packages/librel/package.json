@@ -18,7 +18,8 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.0.0"
+    "@aws-sdk/client-cloudformation": "^3.0.0",
+    "@copilot-ld/libtelemetry": "^0.2.4"
   },
   "repository": {
     "type": "git",

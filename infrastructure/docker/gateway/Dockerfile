@@ -1,16 +1,10 @@
-# Unified gateway container with nginx for both ingress and egress
-FROM nginx:alpine
+# Gateway container for egress proxy using Tinyproxy
+FROM alpine:3.19
 
-# Copy nginx configurations
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY default.conf /etc/nginx/conf.d/default.conf
-COPY proxy_params /etc/nginx/proxy_params
+RUN apk add --no-cache tinyproxy
 
-# Create necessary directories
-RUN mkdir -p /var/log/nginx /etc/nginx/conf.d
+COPY tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 
-# Expose ports: 80/443 for ingress, 3128 for egress proxy
-EXPOSE 80 443 3128
+EXPOSE 3128
 
-# Start nginx in foreground
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["tinyproxy", "-d"]

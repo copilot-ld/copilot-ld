@@ -14,16 +14,19 @@ import {
  */
 export class StackParameters {
   #client;
+  #logger;
 
   /**
    * Creates a new StackParameters instance
    * @param {CloudFormationClient} client - CloudFormation client dependency
+   * @param {import("@copilot-ld/libtelemetry").Logger} logger - Logger instance for debug output
    */
-  constructor(client) {
+  constructor(client, logger) {
     if (!client) {
       throw new Error("CloudFormation client is required");
     }
     this.#client = client;
+    this.#logger = logger || { debug: () => {}, error: () => {} };
   }
 
   /**
@@ -45,7 +48,7 @@ export class StackParameters {
     const parameters = [];
 
     for (const [stackName, outputKeys] of Object.entries(map)) {
-      console.error(
+      this.#logger.debug(
         `Querying stack '${stackName}' for outputs: ${outputKeys.join(", ")}`,
       );
       const outputs = await this.#getOutputs(stackName);
@@ -53,13 +56,16 @@ export class StackParameters {
       for (const key of outputKeys) {
         const output = outputs.find((o) => o.OutputKey === key);
         if (output) {
-          console.error(`  ✓ Found ${key} = ${output.OutputValue}`);
+          this.#logger.debug("Retrieve", "Found", {
+            key,
+            value: output.OutputValue,
+          });
           parameters.push({
             ParameterKey: key,
             ParameterValue: output.OutputValue,
           });
         } else {
-          console.error(`  ✗ Output key '${key}' not found in stack outputs`);
+          this.#logger.error("Retrieve", "Not found", { key });
         }
       }
     }
@@ -107,18 +113,17 @@ export class StackParameters {
 
       if (response.Stacks && response.Stacks[0]) {
         const outputs = response.Stacks[0].Outputs || [];
-        console.error(
+        this.#logger.debug(
           `Retrieved ${outputs.length} outputs from stack '${stackName}'`,
         );
         return outputs;
       }
 
-      console.error(`Stack '${stackName}' found but has no outputs`);
+      this.#logger.debug(`Stack '${stackName}' found but has no outputs`);
       return [];
     } catch (error) {
-      console.error(
-        `Failed to retrieve outputs from stack '${stackName}':`,
-        error.message,
+      this.#logger.debug(
+        `Failed to retrieve outputs from stack '${stackName}': ${error.message}`,
       );
       throw error;
     }

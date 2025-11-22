@@ -29,7 +29,11 @@ async function main() {
     }
 
     const runId = runs.workflow_runs[0].id;
-    console.log(`Found workflow run: ${runId}`);
+
+    if (process.argv.includes("--last")) {
+      console.log(runId);
+      return;
+    }
 
     // List artifacts for the run
     const artifactsJson = execSync(
@@ -45,8 +49,6 @@ async function main() {
     if (!demoDataArtifact) {
       throw new Error("demo-data artifact not found");
     }
-
-    console.log(`Downloading artifact: ${demoDataArtifact.name}`);
 
     // Download the artifact
     const downloadUrl = demoDataArtifact.archive_download_url;
@@ -73,8 +75,6 @@ async function main() {
 
     // Clean up temp file
     await fs.unlink(tempFile);
-
-    console.log("Demo data downloaded and extracted successfully");
   } catch (error) {
     console.error("Error:", error.message);
     process.exit(1);

@@ -2,7 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { common } from "@copilot-ld/libtype";
 import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import { ProxyAgent } from "undici";
 import { formatToolDescription, normalizeVector } from "./format.js";
 
 /**
@@ -283,7 +283,7 @@ function createProxyAwareFetch(process = global.process) {
     return fetch;
   }
 
-  const agent = new HttpsProxyAgent(httpsProxy);
+  const agent = new ProxyAgent(httpsProxy);
 
   return (url, options = {}) => {
     return fetch(url, {

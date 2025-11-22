@@ -70,6 +70,7 @@ Microservices-based
 MinIO
 N3
 NACLs
+Nginx
 Node.js
 NPM
 OAuth

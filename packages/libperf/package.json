@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libperf",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Performance testing and benchmarking utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

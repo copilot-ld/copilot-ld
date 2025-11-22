@@ -46,9 +46,37 @@ jobs:
       - name: Extract parameters for upload
         id: upload-params
         run: |
-          echo "s3_bucket_name=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
-          echo "s3_bucket_role_arn=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
-          echo "s3_region=$(jq -r '.[] | select(.ParameterKey == "BucketRegion") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
+          PARAMS_FILE="${{ steps.parameters.outputs.parameters-file }}"
+
+          # Debug: Show contents of parameters file
+          echo "Parameters file contents:"
+          cat "$PARAMS_FILE"
+
+          # Extract parameters with validation
+          BUCKET_NAME=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' "$PARAMS_FILE")
+          BUCKET_ROLE_ARN=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' "$PARAMS_FILE")
+          BUCKET_REGION=$(jq -r '.[] | select(.ParameterKey == "BucketRegion") | .ParameterValue' "$PARAMS_FILE")
+
+          # Validate required parameters
+          if [ -z "$BUCKET_NAME" ] || [ "$BUCKET_NAME" = "null" ]; then
+            echo "Error: BucketName parameter not found or empty"
+            exit 1
+          fi
+
+          if [ -z "$BUCKET_ROLE_ARN" ] || [ "$BUCKET_ROLE_ARN" = "null" ]; then
+            echo "Error: BucketRoleArn parameter not found or empty"
+            exit 1
+          fi
+
+          if [ -z "$BUCKET_REGION" ] || [ "$BUCKET_REGION" = "null" ]; then
+            echo "Error: BucketRegion parameter not found or empty"
+            exit 1
+          fi
+
+          # Set outputs
+          echo "s3_bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "s3_bucket_role_arn=$BUCKET_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "s3_region=$BUCKET_REGION" >> $GITHUB_OUTPUT
 
       - name: Download artifact
         uses: actions/download-artifact@v5

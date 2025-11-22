@@ -33,7 +33,7 @@
     "n3": "^1.21.0"
   },
   "devDependencies": {
-    "@copilot-ld/libutil": "^0.1.42"
+    "@copilot-ld/libutil": "^0.1.43"
   },
   "repository": {
     "type": "git",

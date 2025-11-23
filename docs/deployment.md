@@ -265,10 +265,14 @@ workflows:
 - **Secrets Management**: Deploy `demo-secrets.yml` workflow first to create AWS
   Secrets Manager resources for secure credential storage
 - **Container Registry**: Deploy `demo-registry.yml` workflow to create ECR
-  repositories for storing container images internally
+  repositories for storing container images internally. This stack creates
+  repositories for all services (agent, memory, llm, vector, graph, tool), web
+  extension, and infrastructure containers (gateway, alb) with lifecycle
+  policies to automatically clean up old images
 - **Network Infrastructure**: Deploy `demo-network.yml` workflow to create the
   VPC, subnets, routing infrastructure, ECS cluster, and nginx gateway for
-  egress proxy (NAT Gateway eliminated for cost optimization)
+  egress proxy (NAT Gateway eliminated for cost optimization). The gateway
+  container will be pulled from the ECR registry created in the previous step
 - **Data Generation**: Run `demo-data.yml` workflow to generate demo data
   artifacts including processed knowledge base, configuration, and tools
 - **Storage Infrastructure**: Deploy `demo-storage.yml` workflow to create S3
@@ -281,8 +285,38 @@ workflows:
   and configure ALB routing
 
 Each stack outputs the necessary parameters for the next stack in the deployment
-chain. The network stack provides VPC and subnet IDs required by the services
-stack.
+chain. The registry stack provides the ECR registry URL used by network,
+services, and extensions stacks. The network stack provides VPC and subnet IDs
+required by the services stack.
+
+**Note**: Container images must be available in ECR before deploying services.
+During initial deployment, you can either:
+
+1. Use the release workflow to build and push images to ECR automatically
+2. Manually push images to ECR repositories using `docker tag` and `docker push`
+   commands after authenticating with `aws ecr get-login-password`
+
+### Container Registry Management
+
+The ECR registry stack creates repositories for all platform components with
+automatic lifecycle policies:
+
+- **Image Retention**: Each repository keeps the 10 most recent images and
+  automatically deletes older images to manage storage costs
+- **Image Scanning**: All images are scanned for vulnerabilities on push
+- **Repository Naming**: Images are stored as
+  `{AWS_ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/{ENVIRONMENT_NAME}/{SERVICE_NAME}:{TAG}`
+
+To manually push images to ECR:
+
+```bash
+# Authenticate Docker with ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+
+# Tag and push an image
+docker tag copilot-ld/agent:latest {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
+docker push {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
+```
 
 ### Data Upload
 

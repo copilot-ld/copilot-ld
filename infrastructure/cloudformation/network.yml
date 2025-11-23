@@ -16,6 +16,10 @@ Parameters:
     Default: latest
     Description: Container image tag for gateway
 
+  RegistryUrl:
+    Type: String
+    Description: ECR registry URL from registry stack
+
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -323,7 +327,7 @@ Resources:
       ExecutionRoleArn: !Ref SecretsRoleArn
       ContainerDefinitions:
         - Name: gateway
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/gateway:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/gateway:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 80

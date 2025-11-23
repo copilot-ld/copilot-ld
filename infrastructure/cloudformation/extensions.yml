@@ -33,6 +33,10 @@ Parameters:
     Default: latest
     Description: Container image tag
 
+  RegistryUrl:
+    Type: String
+    Description: ECR registry URL from registry stack
+
   GitHubTokenArn:
     Type: String
     Description: ARN of the GitHub token secret in AWS Secrets Manager
@@ -122,7 +126,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: web
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/web:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/web:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000

@@ -35,7 +35,8 @@ jobs:
         with:
           retrieve: |
             {
-              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["SecretsRoleArn"]
+              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["SecretsRoleArn"],
+              "${{ inputs.environment_name }}-cld-registry-stack-cf": ["RegistryUrl"]
             }
           amend: |
             {

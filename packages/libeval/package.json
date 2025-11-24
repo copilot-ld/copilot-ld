@@ -22,6 +22,6 @@
   "license": "MIT",
   "dependencies": {
     "@copilot-ld/librpc": "^0.1.60",
-    "@copilot-ld/libtype": "^0.1.47"
+    "@copilot-ld/libtype": "^0.1.48"
   }
 }

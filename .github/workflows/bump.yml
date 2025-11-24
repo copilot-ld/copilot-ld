@@ -9,9 +9,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-node
-      - run:
-          npx --workspace=@copilot-ld/librel rel-bump minor agent graph libagent
-          libanalysis libcodegen libconfig libcopilot libdoc libeval libformat
-          libgraph libindex libmemory libperf libpolicy librel librepl
-          libresource librpc libstorage libtelemetry libtransform libtype
-          libutil libvector libweb llm memory teams tool trace vector web
+      - run: |
+          npx --workspace=@copilot-ld/librel rel-bump minor \
+            agent graph libagent libanalysis libcodegen libconfig libcopilot \
+            libdoc libeval libformat libgraph libindex libmemory libperf \
+            libpolicy librel librepl libresource librpc libstorage \
+            libtelemetry libtransform libtype libutil libvector libweb \
+            llm memory teams tool trace vector web

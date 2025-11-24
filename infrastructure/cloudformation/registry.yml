@@ -7,6 +7,27 @@ Parameters:
     Default: copilot-ld-demo
     Description: Environment name for resource naming
 
+# YAML anchor for shared lifecycle policy
+x-lifecycle-policy: &lifecycle-policy
+  LifecyclePolicy:
+    LifecyclePolicyText: |
+      {
+        "rules": [
+          {
+            "rulePriority": 1,
+            "description": "Keep last 10 images",
+            "selection": {
+              "tagStatus": "any",
+              "countType": "imageCountMoreThan",
+              "countNumber": 10
+            },
+            "action": {
+              "type": "expire"
+            }
+          }
+        ]
+      }
+
 Resources:
   # ==========================================
   # ECR REPOSITORIES FOR SERVICES
@@ -18,24 +39,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/agent"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   MemoryRepository:
     Type: AWS::ECR::Repository
@@ -43,24 +47,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/memory"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   LLMRepository:
     Type: AWS::ECR::Repository
@@ -68,24 +55,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/llm"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   VectorRepository:
     Type: AWS::ECR::Repository
@@ -93,24 +63,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/vector"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   GraphRepository:
     Type: AWS::ECR::Repository
@@ -118,24 +71,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/graph"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   ToolRepository:
     Type: AWS::ECR::Repository
@@ -143,24 +79,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/tool"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   # ==========================================
   # ECR REPOSITORIES FOR EXTENSIONS
@@ -172,24 +91,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/web"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   # ==========================================
   # ECR REPOSITORIES FOR INFRASTRUCTURE
@@ -201,24 +103,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/gateway"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
   ALBRepository:
     Type: AWS::ECR::Repository
@@ -226,24 +111,7 @@ Resources:
       RepositoryName: !Sub "${EnvironmentName}/alb"
       ImageScanningConfiguration:
         ScanOnPush: true
-      LifecyclePolicy:
-        LifecyclePolicyText: |
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep last 10 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 10
-                },
-                "action": {
-                  "type": "expire"
-                }
-              }
-            ]
-          }
+      <<: *lifecycle-policy
 
 Outputs:
   RegistryUrl:

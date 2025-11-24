@@ -156,6 +156,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     strategy:
       matrix:
         item: ${{ fromJson(needs.bump.outputs.versions) }}
@@ -175,6 +176,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Configure AWS credentials
+        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Build and push app container
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
         run: |
@@ -182,16 +195,22 @@ jobs:
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
           VERSION="${{ matrix.item.version }}"
-          IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
           export DOCKER_BUILDKIT=1
           cd "$TYPE/$NAME"
           echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
             --secret id=github_token,src=/dev/stdin \
             -f ../../Dockerfile \
-            -t $IMAGE:$VERSION \
-            -t $IMAGE:latest .
-          docker push $IMAGE:$VERSION
-          docker push $IMAGE:latest
+            -t $GHCR_IMAGE:$VERSION \
+            -t $GHCR_IMAGE:latest \
+            -t $ECR_IMAGE:$VERSION \
+            -t $ECR_IMAGE:latest .
+          docker push $GHCR_IMAGE:$VERSION
+          docker push $GHCR_IMAGE:latest
+          docker push $ECR_IMAGE:$VERSION
+          docker push $ECR_IMAGE:latest
 
   publish-infrastructure:
     needs: bump
@@ -199,6 +218,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -213,19 +233,33 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Build and push infra containers
         run: |
           set -e
           export DOCKER_BUILDKIT=1
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
           for dockerfile in infrastructure/docker/*/Dockerfile; do
             NAME=$(basename $(dirname "$dockerfile"))
-            IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+            GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+            ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
             echo "Building $NAME from $dockerfile"
             docker build \
               -f "$dockerfile" \
-              -t $IMAGE:latest \
+              -t $GHCR_IMAGE:latest \
+              -t $ECR_IMAGE:latest \
               $(dirname "$dockerfile")
-            docker push $IMAGE:latest
+            docker push $GHCR_IMAGE:latest
+            docker push $ECR_IMAGE:latest
           done
 
   create-releases:

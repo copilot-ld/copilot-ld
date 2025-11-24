@@ -198,12 +198,17 @@ aws iam attach-role-policy \
 aws iam attach-role-policy \
   --role-name GitHubActions-CopilotLD-Demo-Deploy \
   --policy-arn arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+aws iam attach-role-policy \
+  --role-name GitHubActions-CopilotLD-Demo-Deploy \
+  --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
 ```
 
 These attach CloudFormation permissions, `EC2` permissions for network
 infrastructure deployment, `ECS` permissions for service deployment, `IAM`
 permissions for role creation, `S3` permissions for data management, Secrets
-Manager permissions, and CloudWatch Logs permissions for log group management.
+Manager permissions, CloudWatch Logs permissions for log group management, and
+`ECR` permissions for container registry management.
 
 **Security Note:** For production environments, replace `*FullAccess` policies
 with more restrictive, principle-of-least-privilege policies tailored to your
@@ -221,19 +226,22 @@ variables → Actions**):
 
 #### 4. Workflow Usage
 
-The configured OIDC role enables secure access in four deployment workflows:
+The configured OIDC role enables secure access in deployment workflows:
 
+- **demo-secrets.yml**: Deploys AWS Secrets Manager secrets for GitHub tokens
+  and service authentication
+- **demo-registry.yml**: Deploys ECR container registry infrastructure for
+  storing container images internally
 - **demo-network.yml**: Deploys VPC network infrastructure including subnets,
   routing tables, ECS cluster, and nginx gateway for egress proxy (replaces NAT
   Gateway for cost optimization)
-- **demo-secrets.yml**: Deploys AWS Secrets Manager secrets for GitHub tokens
-  and service authentication
 - **demo-data.yml**: Generates demo data artifacts (configuration, knowledge
   base, tools) for deployment
 - **demo-storage.yml**: Creates S3 storage infrastructure and IAM roles for data
   access
 - **demo-services.yml**: Deploys the complete ECS service stack (backend
   services only, gateway deployed with network)
+- **demo-extensions.yml**: Deploys web extension and ALB routing
 
 For detailed CloudFormation deployment commands and parameters, refer to the
 actual workflow files in `.github/workflows/`. These workflows contain the most
@@ -254,11 +262,17 @@ current deployment procedures.
 Deploy the CloudFormation stacks in the following order using the GitHub Actions
 workflows:
 
-- **Network Infrastructure**: Deploy `demo-network.yml` workflow first to create
-  the VPC, subnets, routing infrastructure, ECS cluster, and nginx gateway for
-  egress proxy (NAT Gateway eliminated for cost optimization)
-- **Secrets Management**: Deploy `demo-secrets.yml` workflow to create AWS
+- **Secrets Management**: Deploy `demo-secrets.yml` workflow first to create AWS
   Secrets Manager resources for secure credential storage
+- **Container Registry**: Deploy `demo-registry.yml` workflow to create ECR
+  repositories for storing container images internally. This stack creates
+  repositories for all services (agent, memory, llm, vector, graph, tool), web
+  extension, and infrastructure containers (gateway, alb) with lifecycle
+  policies to automatically clean up old images
+- **Network Infrastructure**: Deploy `demo-network.yml` workflow to create the
+  VPC, subnets, routing infrastructure, ECS cluster, and nginx gateway for
+  egress proxy (NAT Gateway eliminated for cost optimization). The gateway
+  container will be pulled from the ECR registry created in the previous step
 - **Data Generation**: Run `demo-data.yml` workflow to generate demo data
   artifacts including processed knowledge base, configuration, and tools
 - **Storage Infrastructure**: Deploy `demo-storage.yml` workflow to create S3
@@ -267,10 +281,42 @@ workflows:
   data to the storage infrastructure
 - **Services**: Deploy `demo-services.yml` workflow to create backend ECS
   services and application infrastructure
+- **Extensions**: Deploy `demo-extensions.yml` workflow to create web extension
+  and configure ALB routing
 
 Each stack outputs the necessary parameters for the next stack in the deployment
-chain. The network stack provides VPC and subnet IDs required by the services
-stack.
+chain. The registry stack provides the ECR registry URL used by network,
+services, and extensions stacks. The network stack provides VPC and subnet IDs
+required by the services stack.
+
+**Note**: Container images must be available in ECR before deploying services.
+During initial deployment, you can either:
+
+1. Use the release workflow to build and push images to ECR automatically
+2. Manually push images to ECR repositories using `docker tag` and `docker push`
+   commands after authenticating with `aws ecr get-login-password`
+
+### Container Registry Management
+
+The ECR registry stack creates repositories for all platform components with
+automatic lifecycle policies:
+
+- **Image Retention**: Each repository keeps the 10 most recent images and
+  automatically deletes older images to manage storage costs
+- **Image Scanning**: All images are scanned for vulnerabilities on push
+- **Repository Naming**: Images are stored as
+  `{AWS_ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/{ENVIRONMENT_NAME}/{SERVICE_NAME}:{TAG}`
+
+To manually push images to ECR:
+
+```bash
+# Authenticate Docker with ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+
+# Tag and push an image
+docker tag copilot-ld/agent:latest {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
+docker push {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
+```
 
 ### Data Upload
 

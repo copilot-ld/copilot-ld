@@ -1,4 +1,4 @@
-name: Demo Deployment of Services
+name: Demo Deployment of Registry
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
         type: string
 
 jobs:
-  deploy-services:
+  deploy-registry:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -33,24 +33,16 @@ jobs:
         id: parameters
         uses: ./.github/actions/stack-parameters
         with:
-          retrieve: |
-            {
-              "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "PublicSubnetIds", "ServiceSecurityGroupId", "ServiceDiscoveryNamespaceId", "ECSClusterName"],
-              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["GitHubTokenArn", "ServiceSecretArn", "SecretsRoleArn"],
-              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"],
-              "${{ inputs.environment_name }}-cld-registry-stack-cf": ["RegistryUrl"]
-            }
           amend: |
             {
-              "EnvironmentName": "${{ inputs.environment_name }}",
-              "ContainerTag": "latest"
+              "EnvironmentName": "${{ inputs.environment_name }}"
             }
 
       - name: Deploy
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: "${{ inputs.environment_name }}-cld-services-stack-cf"
-          template: infrastructure/cloudformation/services.yml
+          name: "${{ inputs.environment_name }}-cld-registry-stack-cf"
+          template: infrastructure/cloudformation/registry.yml
           parameter-overrides:
             "file://${{ steps.parameters.outputs.parameters-file }}"
           capabilities: CAPABILITY_IAM

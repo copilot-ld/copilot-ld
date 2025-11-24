@@ -305,17 +305,17 @@ automatic lifecycle policies:
   automatically deletes older images to manage storage costs
 - **Image Scanning**: All images are scanned for vulnerabilities on push
 - **Repository Naming**: Images are stored as
-  `{AWS_ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/{ENVIRONMENT_NAME}/{SERVICE_NAME}:{TAG}`
+  `$AWS_ACCOUNT_ID.dkr.ecr.{REGION}.amazonaws.com/{ENVIRONMENT_NAME}/{SERVICE_NAME}:{TAG}`
 
 To manually push images to ECR:
 
 ```bash
 # Authenticate Docker with ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
 
 # Tag and push an image
-docker tag copilot-ld/agent:latest {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
-docker push {AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
+docker tag copilot-ld/agent:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/demo/agent:latest
 ```
 
 ### Data Upload

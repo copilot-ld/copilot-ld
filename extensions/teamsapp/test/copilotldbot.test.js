@@ -33,6 +33,7 @@ class MockContext {
 
 describe("CopilotLdBot", () => {
   let mockAgentClient;
+  let mockTenantClientService;
   let mockConfig;
 
   beforeEach(() => {
@@ -42,6 +43,9 @@ describe("CopilotLdBot", () => {
         resource_id: "resource-xyz",
       }),
     };
+    mockTenantClientService = {
+      getTenantClient: () => mockAgentClient,
+    };
     mockConfig = {
       githubToken: async () => "token",
     };
@@ -49,12 +53,7 @@ describe("CopilotLdBot", () => {
 
   test("given a configured CopilotLdBot, when handleMessage is called, then it sends a reply and sets resourceId", async () => {
     // Given: a CopilotLdBot with mocked dependencies and a context
-    const bot = new CopilotLdBot(mockAgentClient, mockConfig);
-    bot.tenantClientRepository = {
-      get: () => mockAgentClient,
-      save: () => {},
-      delete: () => {},
-    };
+    const bot = new CopilotLdBot(mockTenantClientService, mockConfig);
     const context = new MockContext("Hi Copilot!");
     let nextCalled = false;
 

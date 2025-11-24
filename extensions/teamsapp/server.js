@@ -3,17 +3,25 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configureAdapter } from "./configureAdapter.js";
 import { CopilotLdBot } from "./copilotldbot.js";
-import { clients, Interceptor, HmacAuth } from "@copilot-ld/librpc";
-import {
-  createServiceConfig,
-  createExtensionConfig,
-} from "@copilot-ld/libconfig";
+import { createExtensionConfig } from "@copilot-ld/libconfig";
 import { authorize, getTenantId } from "./auth.js";
-import { TenantClientRepository } from "./tenant-client-repository.js";
+import { TenantClientService } from "./tenant-client-service.js";
+import { TenantConfigRepository } from "./tenant-config-repository.js";
+import { TenantSecretEncryption } from "./tenant-secret-encryption.js";
 import { HtmlRenderer } from "./htmlRenderer.js";
 import { patchResponse, parseBody } from "./http.js";
 
-const tenantClientRepository = new TenantClientRepository();
+// Initialize tenant management dependencies
+const tenantConfigRepository = new TenantConfigRepository();
+const masterKey = process.env.SERVICE_MASTER_KEY;
+if (!masterKey) {
+  throw new Error("SERVICE_MASTER_KEY environment variable is required");
+}
+const tenantSecretEncryption = new TenantSecretEncryption({ masterKey });
+const tenantClientService = new TenantClientService(
+  tenantConfigRepository,
+  tenantSecretEncryption,
+);
 
 // HtmlRenderer instance for serving static HTML files
 const __filename = fileURLToPath(import.meta.url);
@@ -104,19 +112,15 @@ function handleSaveSettings(req, res) {
     }
     const tenantId = getTenantId(req);
 
-    buildClient(parsed.host, parsed.port, parsed.secret)
-      .then((client) => {
-        tenantClientRepository.save(tenantId, client);
-        console.log(
-          `AgentClient rebuilt for tenant ${tenantId} with new settings`,
-        );
-      })
-      .catch((err) => {
-        //TODO throw error back to user
-        console.error("Error rebuilding AgentClient:", err);
-      });
+    tenantClientService.saveTenantConfig(
+      tenantId,
+      parsed.host,
+      parsed.port,
+      parsed.secret,
+    );
+    console.log(`Tenant config saved for tenant ${tenantId} with new settings`);
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", message: "Settings saved (TODO)" }));
+    res.end(JSON.stringify({ status: "ok", message: "Settings saved" }));
   });
   req.on("error", () => {
     console.error("Error reading request body");
@@ -142,30 +146,11 @@ function handleGetApiSettings(req, res) {
     return;
   }
   const tenantId = getTenantId(req);
-  const client = tenantClientRepository.get(tenantId);
-  const host = client?.config?.host || "";
-  const port = client?.config?.port || "";
+  const config = tenantClientService.getTenantConfig(tenantId);
+  const host = config?.host || "";
+  const port = config?.port || "";
   res.writeHead(200, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ host, port }));
-}
-
-/**
- * Builds and returns an AgentClient with overridden config values.
- * @param {string} host - The agent service host
- * @param {number} port - The agent service port
- * @param {string} secret - The agent service secret
- * @returns {Promise<import("@copilot-ld/librpc").AgentClient>} Initialized AgentClient instance
- */
-async function buildClient(host, port, secret) {
-  const serviceConfig = await createServiceConfig("agent");
-  if (host !== undefined) serviceConfig.host = host;
-  if (port !== undefined) serviceConfig.port = port;
-
-  const createAuth = () => {
-    return new Interceptor(new HmacAuth(secret), serviceConfig.name);
-  };
-
-  return new clients.AgentClient(serviceConfig, null, null, createAuth);
 }
 
 /**
@@ -179,7 +164,7 @@ export default async function createServer() {
 
   // Instantiate the CopilotLdBot with required dependencies
   const config = await createExtensionConfig("web");
-  const myBot = new CopilotLdBot(tenantClientRepository, config);
+  const myBot = new CopilotLdBot(tenantClientService, config);
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {

@@ -37,15 +37,15 @@ class CopilotLdBot extends ActivityHandler {
 
   /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
-   * @param {import('./tenant-client-repository.js').TenantClientRepository} tenantClientRepository - Repository for managing tenant-specific AgentClient instances.
+   * @param {import('./tenant-client-service.js').TenantClientService} tenantClientService - Service for managing tenant-specific AgentClient instances.
    * @param {import('@copilot-ld/libconfig').Config} config - The extension configuration object.
    */
-  constructor(tenantClientRepository, config) {
+  constructor(tenantClientService, config) {
     super();
-    if (!tenantClientRepository)
-      throw new Error("tenantClientRepository is required");
+    if (!tenantClientService)
+      throw new Error("tenantClientService is required");
     if (!config) throw new Error("config is required");
-    this.tenantClientRepository = tenantClientRepository;
+    this.tenantClientService = tenantClientService;
     this.config = config;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
@@ -118,9 +118,8 @@ class CopilotLdBot extends ActivityHandler {
     console.log("Recipient.id:", context.activity.recipient.id);
     console.log("Received message:", context.activity.text);
 
-    const response = await this.tenantClientRepository
-      .get(tenantId)
-      .ProcessRequest(requestParams);
+    const client = await this.tenantClientService.getTenantClient(tenantId);
+    const response = await client.ProcessRequest(requestParams);
     let reply = { role: "assistant", content: null };
 
     if (response.choices?.length > 0 && response.choices[0]?.message?.content) {

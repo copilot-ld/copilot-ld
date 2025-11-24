@@ -1,11 +1,11 @@
 import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
-import { TenantClientRepository } from "../tenant-client-repository.js";
+import { TenantConfigRepository } from "../tenant-config-repository.js";
 
-describe("TenantClientRepository", () => {
+describe("TenantConfigRepository", () => {
   let repo;
   beforeEach(() => {
-    repo = new TenantClientRepository();
+    repo = new TenantConfigRepository();
   });
 
   // Given/When/Then: Save and get a client by tenant id

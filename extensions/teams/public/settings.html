@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings</title>
     <link rel="stylesheet" href="/main.css" />
+    <style>
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #107c10;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast.toast-success {
+        background-color: #107c10;
+      }
+      .toast.toast-error {
+        background-color: #d13438;
+      }
+    </style>
     <script
       src="https://res.cdn.office.net/teams-js/2.47.0/js/MicrosoftTeams.min.js"
       integrity="sha384-IkfULjDxwgKWYEYHErhDcuw+ahOQvmrcRFwgI3sm/uu7c0HWVjyYG3qp5z5SncxD"
@@ -84,6 +110,20 @@
 
       await fetchAndPopulateSettings();
 
+      // Toast notification helper
+      function showToast(message, type = "success") {
+        const toast = document.createElement("div");
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add("show"), 10);
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
       // Handle form submission
       const form = document.getElementById("settings-form");
       if (form) {
@@ -106,15 +146,38 @@
               body: JSON.stringify(data),
             });
             if (resp.ok) {
-              alert("Settings saved!");
-              // Optionally, notify Teams of success
-              // await microsoftTeams.app.notifySuccess();
+              // Show toast notification
+              showToast("Settings saved successfully!");
+
+              // Update inline feedback
+              const logging = document.getElementById("logging");
+              logging.innerHTML = "✅ Settings saved!";
+              logging.style.color = "green";
+              setTimeout(() => {
+                logging.innerHTML = "";
+                logging.style.color = "";
+              }, 3000);
+
+              // Teams native notification
+              try {
+                await microsoftTeams.app.notifySuccess();
+              } catch (e) {
+                console.log("Teams notification not available", e);
+              }
             } else {
               const msg = await resp.text();
-              alert("Failed to save settings: " + msg);
+              showToast("Failed to save settings: " + msg, "error");
+
+              const logging = document.getElementById("logging");
+              logging.innerHTML = "❌ Failed to save settings";
+              logging.style.color = "red";
             }
           } catch (err) {
-            alert("Error saving settings: " + err);
+            showToast("Error saving settings: " + err, "error");
+
+            const logging = document.getElementById("logging");
+            logging.innerHTML = "❌ Error saving settings";
+            logging.style.color = "red";
           }
         });
       }

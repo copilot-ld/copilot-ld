@@ -3,12 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configureAdapter } from "./configureAdapter.js";
 import { CopilotLdBot } from "./copilotldbot.js";
-import { clients } from "@copilot-ld/librpc";
+import { clients, Interceptor, HmacAuth } from "@copilot-ld/librpc";
 import {
   createServiceConfig,
   createExtensionConfig,
 } from "@copilot-ld/libconfig";
-import { Interceptor, HmacAuth } from "@copilot-ld/librpc";
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientRepository } from "./tenant-client-repository.js";
 import { HtmlRenderer } from "./htmlRenderer.js";

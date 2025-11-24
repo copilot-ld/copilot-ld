@@ -21,12 +21,12 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libindex": "^0.1.11",
-    "@copilot-ld/libtelemetry": "^0.2.6",
+    "@copilot-ld/libindex": "^0.1.12",
+    "@copilot-ld/libtelemetry": "^0.2.7",
     "@copilot-ld/libtype": "^0.1.48"
   },
   "devDependencies": {
-    "@copilot-ld/libutil": "^0.1.44"
+    "@copilot-ld/libutil": "^0.1.45"
   },
   "repository": {
     "type": "git",

@@ -18,7 +18,7 @@
     "@copilot-ld/libconfig": "^0.1.41",
     "@copilot-ld/libcopilot": "^0.1.51",
     "@copilot-ld/librpc": "^0.1.60",
-    "@copilot-ld/libtype": "^0.1.47"
+    "@copilot-ld/libtype": "^0.1.48"
   },
   "repository": {
     "type": "git",

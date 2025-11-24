@@ -21,16 +21,17 @@ export class HtmlRenderer {
    * Reads and serves an HTML file with the correct content type.
    * @param {string} relativePath - Relative path to the HTML file from baseDir
    * @param {import('http').ServerResponse} res - HTTP response object
+   * @param {string} [contentType] - Content-Type header value
    * @returns {void}
    */
-  serveHtml(relativePath, res) {
+  serve(relativePath, res, contentType = "text/html") {
     const filePath = path.join(this.baseDir, relativePath);
     fs.readFile(filePath, (err, data) => {
       if (err) {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Not found");
       } else {
-        res.writeHead(200, { "Content-Type": "text/html" });
+        res.writeHead(200, { "Content-Type": contentType });
         res.end(data);
       }
     });

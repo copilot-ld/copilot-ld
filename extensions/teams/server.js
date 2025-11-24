@@ -29,13 +29,23 @@ const __dirname = path.dirname(__filename);
 const htmlRenderer = new HtmlRenderer(__dirname);
 
 /**
+ * Serves the main.css static file for /main.css endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ */
+function handleCss(req, res) {
+  console.log("GET /main.css");
+  htmlRenderer.serve("public/main.css", res, "text/css");
+}
+
+/**
  * Serves the about.html static page for /about endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
  */
 function handleAbout(req, res) {
   console.log("GET /about");
-  htmlRenderer.serveHtml("public/about.html", res);
+  htmlRenderer.serve("public/about.html", res);
 }
 
 /**
@@ -45,7 +55,7 @@ function handleAbout(req, res) {
  */
 function handleMessages(req, res) {
   console.log("GET /messages");
-  htmlRenderer.serveHtml("public/messages.html", res);
+  htmlRenderer.serve("public/messages.html", res);
 }
 
 /**
@@ -77,7 +87,7 @@ async function handleApiMessages(req, res, adapter, myBot) {
  */
 async function handleGetSettings(req, res) {
   console.log("GET /settings");
-  htmlRenderer.serveHtml("public/settings.html", res);
+  htmlRenderer.serve("public/settings.html", res);
 }
 
 /**
@@ -166,34 +176,29 @@ export default async function createServer() {
   const config = await createExtensionConfig("web");
   const myBot = new CopilotLdBot(tenantClientService, config);
 
+  // Route map for all endpoints
+  const routes = {
+    "GET /main.css": handleCss,
+    "GET /about": handleAbout,
+    "GET /messages": handleMessages,
+    "GET /settings": handleGetSettings,
+    "GET /api/settings": handleGetApiSettings,
+    "POST /api/messages": (req, res) =>
+      handleApiMessages(req, res, adapter, myBot),
+    "POST /api/settings": handleSaveSettings,
+  };
+
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {
-    if (req.method === "GET" && req.url === "/about") {
-      handleAbout(req, res);
-      return;
+    const routeKey = `${req.method} ${req.url}`;
+    const handler = routes[routeKey];
+
+    if (handler) {
+      await handler(req, res);
+    } else {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
     }
-    if (req.method === "GET" && req.url === "/messages") {
-      handleMessages(req, res);
-      return;
-    }
-    if (req.method === "GET" && req.url === "/settings") {
-      handleGetSettings(req, res);
-      return;
-    }
-    if (req.method === "GET" && req.url === "/api/settings") {
-      handleGetApiSettings(req, res);
-      return;
-    }
-    if (req.method === "POST" && req.url === "/api/messages") {
-      await handleApiMessages(req, res, adapter, myBot);
-      return;
-    }
-    if (req.method === "POST" && req.url === "/api/settings") {
-      handleSaveSettings(req, res);
-      return;
-    }
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not found");
   });
 
   return server;

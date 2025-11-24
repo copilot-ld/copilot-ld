@@ -16,8 +16,11 @@ Parameters:
     Default: latest
     Description: Container image tag for gateway
 
+  RegistryUrl:
+    Type: String
+    Description: ECR registry URL from registry stack
+
 Resources:
-  # VPC
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -25,7 +28,6 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
 
-  # Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
 
@@ -35,7 +37,6 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
-  # Public Subnets
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -52,7 +53,6 @@ Resources:
       CidrBlock: 10.0.2.0/24
       MapPublicIpOnLaunch: true
 
-  # Private Subnets
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -67,7 +67,6 @@ Resources:
       AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: 10.0.4.0/24
 
-  # Route Tables
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -186,6 +185,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -218,6 +218,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.ecr.api"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -231,6 +232,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.ecr.dkr"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -244,6 +246,7 @@ Resources:
       VpcId: !Ref VPC
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -310,7 +313,9 @@ Resources:
     Properties:
       RetentionInDays: 7
 
-  # Unified gateway task definition for ingress (ALB) and egress (proxy)
+  # Gateway task definition for egress (proxy)
+  # This is deployed in place of a NAT gateway to mirror a local Docker deployment
+  # and for cost efficiency.
   GatewayTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -322,7 +327,7 @@ Resources:
       ExecutionRoleArn: !Ref SecretsRoleArn
       ContainerDefinitions:
         - Name: gateway
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/gateway:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/gateway:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 80
@@ -349,7 +354,7 @@ Resources:
             TTL: 300
       NamespaceId: !Ref ServiceDiscoveryNamespace
 
-  # Unified gateway service on public subnet with public IP for ingress and egress
+  # Gateway service on public subnet with public IP for egress
   GatewayService:
     Type: AWS::ECS::Service
     Properties:

@@ -36,6 +36,10 @@ Parameters:
     Default: latest
     Description: Container image tag
 
+  RegistryUrl:
+    Type: String
+    Description: ECR registry URL from registry stack
+
   GitHubTokenArn:
     Type: String
     Description: ARN of the GitHub token secret in AWS Secrets Manager
@@ -109,7 +113,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: agent
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/agent:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/agent:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -146,7 +150,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: memory
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/memory:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/memory:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -183,7 +187,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: llm
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/llm:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/llm:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -226,7 +230,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: vector
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/vector:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/vector:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -263,7 +267,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: graph
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/graph:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/graph:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -300,7 +304,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: tool
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/tool:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/tool:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000

@@ -8,6 +8,7 @@ import {
   createServiceConfig,
   createExtensionConfig,
 } from "@copilot-ld/libconfig";
+import { Interceptor, HmacAuth } from "@copilot-ld/librpc";
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientRepository } from "./tenant-client-repository.js";
 import { HtmlRenderer } from "./htmlRenderer.js";
@@ -160,8 +161,12 @@ async function buildClient(host, port, secret) {
   const serviceConfig = await createServiceConfig("agent");
   if (host !== undefined) serviceConfig.host = host;
   if (port !== undefined) serviceConfig.port = port;
-  if (secret !== undefined) serviceConfig.secret = secret;
-  return new clients.AgentClient(serviceConfig);
+
+  const createAuth = () => {
+    return new Interceptor(new HmacAuth(secret), serviceConfig.name);
+  };
+
+  return new clients.AgentClient(serviceConfig, null, null, createAuth);
 }
 
 /**

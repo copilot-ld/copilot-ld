@@ -1,6 +1,8 @@
 /* eslint-env node */
 import { Client } from "@copilot-ld/librpc/client.js";
 import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
+import { createObserver } from "@copilot-ld/libtelemetry";
+import { createAuth, createGrpc } from "@copilot-ld/librpc";
 
 /**
  * Typed client for the {{serviceName}} gRPC service.
@@ -12,9 +14,10 @@ export class {{className}} extends Client {
    * @param {object} config - Service configuration
    * @param {import("@copilot-ld/libtelemetry").Logger} [logger] - Optional logger instance
    * @param {import("@copilot-ld/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
+   * @param {Function} [authFn] - Optional authentication function
    */
-  constructor(config, logger = null, tracer = null) {
-    super(config, logger, tracer);
+  constructor(config, logger = null, tracer = null, authFn = createAuth) {
+    super(config, logger, tracer, createObserver, createGrpc, authFn);
   }
 
 {{#methods}}

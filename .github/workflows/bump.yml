@@ -12,9 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-node
       - run: |
-          npx --workspace=@copilot-ld/librel rel-bump minor \
-            agent graph libagent libanalysis libcodegen libconfig libcopilot \
-            libdoc libeval libformat libgraph libindex libmemory libperf \
-            libpolicy librel librepl libresource librpc libstorage \
-            libtelemetry libtransform libtype libutil libvector libweb \
-            llm memory teams tool trace vector web
+          ITEMS=$(for dir in extensions packages services; do \
+            ls -1d $dir/*/ 2>/dev/null | sed 's|/$||'; \
+          done | sort | paste -sd ' ' -)
+          npx --workspace=@copilot-ld/librel rel-bump minor $ITEMS

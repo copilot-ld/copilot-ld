@@ -11,7 +11,7 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "dev": "npm run dev:start",
-    "dev:start": "npx env-cmd -- node index.js",
+    "dev:start": "npx env-cmd -f ../../.env -- node index.js",
     "ngrok": "ngrok http 3978",
     "watch": "node --watch ./index.js"
   },

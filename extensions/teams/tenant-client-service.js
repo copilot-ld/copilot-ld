@@ -34,7 +34,7 @@ export class TenantClientService {
    * @returns {Promise<import("@copilot-ld/librpc").clients.AgentClient|null>} The client instance or null if not found
    */
   async getTenantClient(id) {
-    const config = this.#configRepository.get(id);
+    const config = await this.#configRepository.get(id);
     if (!config) return null;
 
     const secret = this.#encryption.decrypt(id, config.encryptedSecret);
@@ -47,26 +47,27 @@ export class TenantClientService {
    * @param {string} host - Tenant host
    * @param {number} port - Tenant port
    * @param {string} secret - Tenant secret (if empty, existing secret is preserved)
+   * @returns {Promise<void>}
    */
-  saveTenantConfig(tenantId, host, port, secret) {
+  async saveTenantConfig(tenantId, host, port, secret) {
     let encryptedSecret;
     if (!secret) {
-      const existingConfig = this.#configRepository.get(tenantId);
+      const existingConfig = await this.#configRepository.get(tenantId);
       encryptedSecret = existingConfig?.encryptedSecret || "";
     } else {
       encryptedSecret = this.#encryption.encrypt(tenantId, secret);
     }
     const config = new TenantConfig(host, port, encryptedSecret);
-    this.#configRepository.save(tenantId, config);
+    await this.#configRepository.save(tenantId, config);
   }
 
   /**
    * Get tenant configuration (host and port only, without secret).
    * @param {string} tenantId - Tenant identifier
-   * @returns {BasicTenantConfig|null} Object with host and port, or null if not found
+   * @returns {Promise<BasicTenantConfig|null>} Object with host and port, or null if not found
    */
-  getTenantConfig(tenantId) {
-    const config = this.#configRepository.get(tenantId);
+  async getTenantConfig(tenantId) {
+    const config = await this.#configRepository.get(tenantId);
     if (!config) return null;
 
     return {

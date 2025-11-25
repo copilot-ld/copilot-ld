@@ -1,3 +1,5 @@
+import { createStorage } from "@copilot-ld/libstorage";
+
 /* eslint-env node */
 
 /**
@@ -53,23 +55,30 @@ export class TenantConfig {
  * Repository for managing tenant configurations in memory.
  */
 export class TenantConfigRepository {
-  #configs;
+  #storage;
 
   /**
    * Creates a new TenantConfigRepository instance.
-   * Initializes an internal Map to store tenant configurations in memory.
+   * Initializes an internal storage to store tenant configurations.
    */
   constructor() {
-    this.#configs = new Map();
+    this.#storage = createStorage("tenants");
   }
 
   /**
    * Get a configuration by tenant id.
    * @param {string} id - Tenant identifier
-   * @returns {TenantConfig|null} The configuration instance or null if not found
+   * @returns {Promise<TenantConfig|null>} The configuration instance or null if not found
    */
-  get(id) {
-    return this.#configs.get(id) || null;
+  async get(id) {
+    try {
+      const data = await this.#storage.get(`${id}.json`);
+      if (!data) return null;
+      return new TenantConfig(data.host, data.port, data.encryptedSecret);
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      throw error;
+    }
   }
 
   /**
@@ -77,15 +86,25 @@ export class TenantConfigRepository {
    * @param {string} id - Tenant identifier
    * @param {TenantConfig} config - Configuration instance to save
    */
-  save(id, config) {
-    this.#configs.set(id, config);
+  async save(id, config) {
+    const data = {
+      host: config.host,
+      port: config.port,
+      encryptedSecret: config.encryptedSecret,
+    };
+    await this.#storage.put(`${id}.json`, data);
   }
 
   /**
    * Delete a configuration by tenant id.
    * @param {string} id - Tenant identifier
    */
-  delete(id) {
-    this.#configs.delete(id);
+  async delete(id) {
+    try {
+      await this.#storage.delete(`${id}.json`);
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
   }
 }

@@ -37,15 +37,15 @@ describe("TenantClientService", () => {
   });
 
   describe("saveTenantConfig", () => {
-    test("should save tenant configuration with encrypted secret", () => {
+    test("should save tenant configuration with encrypted secret", async () => {
       const tenantId = "tenant-123";
       const host = "localhost";
       const port = 3001;
       const secret = "my-secret-token-that-is-at-least-32-characters-long";
 
-      tenantClientService.saveTenantConfig(tenantId, host, port, secret);
+      await tenantClientService.saveTenantConfig(tenantId, host, port, secret);
 
-      const config = configRepository.get(tenantId);
+      const config = await configRepository.get(tenantId);
       assert.ok(config);
       assert.strictEqual(config.host, host);
       assert.strictEqual(config.port, port);
@@ -53,35 +53,45 @@ describe("TenantClientService", () => {
       assert.ok(config.encryptedSecret.ciphertext);
     });
 
-    test("should overwrite existing configuration", () => {
+    test("should overwrite existing configuration", async () => {
       const tenantId = "tenant-123";
 
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenantId,
         "host1",
         3001,
         "secret1-that-is-at-least-32-chars",
       );
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenantId,
         "host2",
         3002,
         "secret2-that-is-at-least-32-chars",
       );
 
-      const config = configRepository.get(tenantId);
+      const config = await configRepository.get(tenantId);
       assert.strictEqual(config.host, "host2");
       assert.strictEqual(config.port, 3002);
     });
 
-    test("should encrypt secrets for different tenants independently", () => {
+    test("should encrypt secrets for different tenants independently", async () => {
       const secret = "shared-secret-that-is-at-least-32-characters-long";
 
-      tenantClientService.saveTenantConfig("tenant-1", "host1", 3001, secret);
-      tenantClientService.saveTenantConfig("tenant-2", "host2", 3002, secret);
+      await tenantClientService.saveTenantConfig(
+        "tenant-1",
+        "host1",
+        3001,
+        secret,
+      );
+      await tenantClientService.saveTenantConfig(
+        "tenant-2",
+        "host2",
+        3002,
+        secret,
+      );
 
-      const config1 = configRepository.get("tenant-1");
-      const config2 = configRepository.get("tenant-2");
+      const config1 = await configRepository.get("tenant-1");
+      const config2 = await configRepository.get("tenant-2");
 
       assert.notEqual(
         config1.encryptedSecret.ciphertext,
@@ -91,14 +101,14 @@ describe("TenantClientService", () => {
   });
 
   describe("getTenantConfig", () => {
-    test("should return host and port without secret", () => {
+    test("should return host and port without secret", async () => {
       const tenantId = "tenant-123";
       const host = "localhost";
       const port = 3001;
       const secret = "my-secret-token-that-is-at-least-32-characters-long";
 
-      tenantClientService.saveTenantConfig(tenantId, host, port, secret);
-      const config = tenantClientService.getTenantConfig(tenantId);
+      await tenantClientService.saveTenantConfig(tenantId, host, port, secret);
+      const config = await tenantClientService.getTenantConfig(tenantId);
 
       assert.ok(config);
       assert.strictEqual(config.host, host);
@@ -107,8 +117,9 @@ describe("TenantClientService", () => {
       assert.strictEqual(config.encryptedSecret, undefined);
     });
 
-    test("should return null for unknown tenant", () => {
-      const config = tenantClientService.getTenantConfig("unknown-tenant");
+    test("should return null for unknown tenant", async () => {
+      const config =
+        await tenantClientService.getTenantConfig("unknown-tenant");
       assert.strictEqual(config, null);
     });
   });
@@ -120,7 +131,7 @@ describe("TenantClientService", () => {
       const port = 3001;
       const secret = "my-secret-token-that-is-at-least-32-characters-long";
 
-      tenantClientService.saveTenantConfig(tenantId, host, port, secret);
+      await tenantClientService.saveTenantConfig(tenantId, host, port, secret);
       const client = await tenantClientService.getTenantClient(tenantId);
 
       assert.ok(client);
@@ -139,7 +150,7 @@ describe("TenantClientService", () => {
       const port = 3001;
       const secret = "my-secret-token-that-is-at-least-32-characters-long";
 
-      tenantClientService.saveTenantConfig(tenantId, host, port, secret);
+      await tenantClientService.saveTenantConfig(tenantId, host, port, secret);
 
       // Should not throw error during decryption
       const client = await tenantClientService.getTenantClient(tenantId);
@@ -147,13 +158,13 @@ describe("TenantClientService", () => {
     });
 
     test("should create different clients for different tenants", async () => {
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         "tenant-1",
         "host1",
         3001,
         "secret1-that-is-at-least-32-chars",
       );
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         "tenant-2",
         "host2",
         3002,
@@ -172,7 +183,7 @@ describe("TenantClientService", () => {
       const tenantId = "tenant-123";
 
       // Save initial config
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenantId,
         "host1",
         3001,
@@ -182,7 +193,7 @@ describe("TenantClientService", () => {
       assert.ok(client1);
 
       // Update config
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenantId,
         "host2",
         3002,
@@ -204,10 +215,10 @@ describe("TenantClientService", () => {
       const secret = "super-secret-token-that-is-at-least-32-characters-long";
 
       // Save configuration
-      tenantClientService.saveTenantConfig(tenantId, host, port, secret);
+      await tenantClientService.saveTenantConfig(tenantId, host, port, secret);
 
       // Retrieve non-sensitive config
-      const basicConfig = tenantClientService.getTenantConfig(tenantId);
+      const basicConfig = await tenantClientService.getTenantConfig(tenantId);
       assert.strictEqual(basicConfig.host, host);
       assert.strictEqual(basicConfig.port, port);
 
@@ -232,13 +243,13 @@ describe("TenantClientService", () => {
       };
 
       // Save both tenants
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenant1.id,
         tenant1.host,
         tenant1.port,
         tenant1.secret,
       );
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenant2.id,
         tenant2.host,
         tenant2.port,
@@ -246,11 +257,11 @@ describe("TenantClientService", () => {
       );
 
       // Retrieve tenant 1
-      const config1 = tenantClientService.getTenantConfig(tenant1.id);
+      const config1 = await tenantClientService.getTenantConfig(tenant1.id);
       const client1 = await tenantClientService.getTenantClient(tenant1.id);
 
       // Retrieve tenant 2
-      const config2 = tenantClientService.getTenantConfig(tenant2.id);
+      const config2 = await tenantClientService.getTenantConfig(tenant2.id);
       const client2 = await tenantClientService.getTenantClient(tenant2.id);
 
       // Verify isolation

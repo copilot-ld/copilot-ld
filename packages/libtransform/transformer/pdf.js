@@ -63,11 +63,11 @@ export class PdfTransformer extends ProcessorBase {
 
     this.#logger.debug(`Found ${keys.length} PDF files to process`);
     for (const key of keys) {
-      this.#logger.debug("Processing PDF", { key });
+      this.#logger.debug(`Processing PDF ${key}`);
 
       const pdfBuffer = await this.#knowledgeStorage.get(key);
       if (!Buffer.isBuffer(pdfBuffer)) {
-        this.#logger.debug("Skipping non-buffer PDF", { key });
+        this.#logger.debug(`Skipping non-buffer PDF ${key}`);
         continue;
       }
 
@@ -76,7 +76,7 @@ export class PdfTransformer extends ProcessorBase {
       const htmlKey = key.replace(/\.pdf$/i, htmlExtension);
       await this.#knowledgeStorage.put(htmlKey, html);
 
-      this.#logger.debug("Converted PDF to HTML", { key, htmlKey });
+      this.#logger.debug(`Converted PDF ${key} to HTML ${htmlKey}`);
     }
   }
 
@@ -88,105 +88,100 @@ export class PdfTransformer extends ProcessorBase {
    * @returns {Promise<string>} Merged HTML document
    */
   async #pdfToHtml(pdfBuffer, key) {
-    const images = await this.#pdfSplitter(pdfBuffer, key);
+    const tempDir = await mkdtemp(join(tmpdir(), "pdfsplit-"));
+    try {
+      const images = await this.#pdfSplitter(pdfBuffer, tempDir);
 
-    this.#logger.debug("Split PDF into images", {
-      key,
-      imageCount: images.length,
-    });
+      this.#logger.debug(`Split PDF ${key} into images ${images.length}`);
 
-    const htmlFragments = [];
-    for (const [i, image] of images.entries()) {
-      this.#logger.debug("Sending image to Copilot", { key, page: i + 1 });
+      const htmlFragments = [];
+      for (const [i, image] of images.entries()) {
+        this.#logger.debug(`Sending image ${i + 1} to Copilot - ${image}`);
 
-      const htmlContent = await this.#llm.imageToText(
-        image,
-        this.#userPrompt,
-        this.#model,
-        this.#systemPrompt,
-        this.#maxTokens,
-      );
+        const htmlContent = await this.#llm.imageToText(
+          image,
+          this.#userPrompt,
+          this.#model,
+          this.#systemPrompt,
+          this.#maxTokens,
+        );
 
-      if (htmlContent && htmlContent.length > 0) {
-        this.#logger.debug("Received HTML from Copilot", {
-          key,
-          page: i + 1,
-          contentLength: htmlContent.length,
-        });
-        htmlFragments.push(htmlContent);
-      } else {
-        this.#logger.debug("Got an empty response from Copilot for image", {
-          key,
-          page: i + 1,
-        });
+        if (htmlContent && htmlContent.length > 0) {
+          this.#logger.debug(
+            `Received HTML from Copilot, page: ${i + 1}, contentLength: ${htmlContent.length}`,
+          );
+          htmlFragments.push(htmlContent);
+        } else {
+          this.#logger.debug(
+            `Got an empty response from Copilot for image, page: ${i + 1} `,
+          );
+        }
       }
+
+      const mergedHtml = [
+        "<!DOCTYPE html>",
+        "<html>",
+        `<head><meta charset="utf-8"><title>${key} - PDF to HTML</title></head>`,
+        "<body>",
+        ...htmlFragments,
+        "</body>",
+        "</html>",
+      ].join("\n");
+
+      this.#logger.debug(`Merged HTML ${htmlFragments.length} fragments`);
+      return mergedHtml;
+    } finally {
+      // Clean up tempDir after all processing is complete
+      this.#logger.debug(`Removing tempDir ${tempDir}`);
+      await rm(tempDir, { recursive: true, force: true });
     }
-
-    const mergedHtml = [
-      "<!DOCTYPE html>",
-      "<html>",
-      `<head><meta charset="utf-8"><title>${key} - PDF to HTML</title></head>`,
-      "<body>",
-      ...htmlFragments,
-      "</body>",
-      "</html>",
-    ].join("\n");
-
-    this.#logger.debug("Merged HTML fragments", {
-      key,
-      fragmentCount: htmlFragments.length,
-    });
-
-    return mergedHtml;
   }
 
   /**
    * Splits a PDF buffer into an array of image file paths using pdftoppm.
-   * Each page is converted to a PNG image in a temporary directory.
-   * Removes the temporary directory after processing completes or fails.
+   * Returns both the image file paths and the temp directory for later cleanup.
    * @param {Buffer} pdfBuffer - PDF file buffer
-   * @param {string} key - Storage key for logging
-   * @returns {Promise<string[]>} Array of PNG image file paths (one per page)
+   * @param {string} tempDir - location to store temporary image files
+   * @returns {Promise<string[]>} Array of image file paths
    * @throws {Error} If pdftoppm fails or images cannot be generated
    */
-  async #pdfSplitter(pdfBuffer, key) {
+  async #pdfSplitter(pdfBuffer, tempDir) {
     // Create a temporary directory for images
-    const tempDir = await mkdtemp(join(tmpdir(), "pdfsplit-"));
-    try {
-      const pdfPath = join(tempDir, "input.pdf");
-      await writeFile(pdfPath, pdfBuffer);
 
-      // pdftoppm command: pdftoppm input.pdf page -png
-      const outputPrefix = join(tempDir, "page");
-      await new Promise((resolve, reject) => {
-        const proc = spawn("pdftoppm", [pdfPath, outputPrefix, "-png"]);
-        proc.on("error", reject);
-        proc.on("close", (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`pdftoppm exited with code ${code}`));
-        });
+    this.#logger.debug(`Created temp directory ${tempDir} `);
+    const pdfPath = join(tempDir, "input.pdf");
+    await writeFile(pdfPath, pdfBuffer);
+    this.#logger.debug(`Wrote pdf to  ${pdfPath} `);
+
+    // pdftoppm command: pdftoppm input.pdf page -png
+    const outputPrefix = join(tempDir, "page");
+    this.#logger.debug(`outputPrefix  ${outputPrefix} `);
+    await new Promise((resolve, reject) => {
+      const proc = spawn("pdftoppm", [pdfPath, outputPrefix, "-png"]);
+      proc.on("error", reject);
+      proc.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`pdftoppm exited with code ${code}`));
       });
+    });
 
-      const files = await readdir(tempDir);
-      const imageFiles = files
-        .filter((f) => /^page-\d+\.png$/.test(f))
-        .sort((a, b) => {
-          // Extract page numbers from filenames
-          const aNum = parseInt(a.match(/^page-(\d+)\.png$/)[1], 10);
-          const bNum = parseInt(b.match(/^page-(\d+)\.png$/)[1], 10);
-          return aNum - bNum;
-        })
-        .map((f) => join(tempDir, f));
+    const files = await readdir(tempDir);
+    const imageFiles = files
+      .filter((f) => /^page-\d+\.png$/.test(f))
+      .sort((a, b) => {
+        // Extract page numbers from filenames
+        const aNum = parseInt(a.match(/^page-(\d+)\.png$/)[1], 10);
+        const bNum = parseInt(b.match(/^page-(\d+)\.png$/)[1], 10);
+        return aNum - bNum;
+      })
+      .map((f) => join(tempDir, f));
 
-      if (imageFiles.length === 0) {
-        throw new Error("No images generated from PDF");
-      }
-
-      this.#logger.debug("Generated images from PDF", { key, imageFiles });
-      return imageFiles;
-    } finally {
-      await rm(tempDir, { recursive: true, force: true });
+    if (imageFiles.length === 0) {
+      throw new Error("No images generated from PDF");
     }
+
+    this.#logger.debug(`Generated images from PDF - ${imageFiles}`);
+    return imageFiles;
   }
 
   /**

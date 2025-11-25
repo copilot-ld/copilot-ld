@@ -4,6 +4,31 @@ html {
   padding: 2rem;
 }
 
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #107c10;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.toast-success {
+  background-color: #107c10;
+}
+.toast.toast-error {
+  background-color: #d13438;
+}
+
 /* 
 :root {
   --gradient: linear-gradient(

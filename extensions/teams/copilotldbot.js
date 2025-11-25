@@ -12,30 +12,6 @@ import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
  */
 class CopilotLdBot extends ActivityHandler {
   /**
-   * Handles the 'configure' command by sending a settings page link to the user.
-   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
-   * @returns {Promise<void>}
-   */
-  async handleConfigureCommand(context) {
-    // Use TEAMS_BOT_DOMAIN env variable for the settings URL
-    const tenantId = context?.activity?.conversation?.tenantId;
-    const settingsUrl = `https://${process.env.TEAMS_BOT_DOMAIN}/settings?tenantId=${encodeURIComponent(tenantId)}`;
-    const card = CardFactory.heroCard(
-      "Update Your Settings",
-      "Click the button below to open your settings page.",
-      null,
-      [
-        {
-          type: "openUrl",
-          title: "Open Settings",
-          value: settingsUrl,
-        },
-      ],
-    );
-    await context.sendActivity({ attachments: [card] });
-  }
-
-  /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
    * @param {import('./tenant-client-service.js').TenantClientService} tenantClientService - Service for managing tenant-specific AgentClient instances.
    * @param {import('@copilot-ld/libconfig').Config} config - The extension configuration object.
@@ -54,31 +30,6 @@ class CopilotLdBot extends ActivityHandler {
      * @type {Map<string, string>}
      */
     this.resourceIds = new Map();
-  }
-
-  /**
-   * Retrieves the resourceId for a given tenantId and recipientId combination.
-   * Used to maintain conversation context across messages.
-   * @param {string} tenantId - The tenant ID for the conversation.
-   * @param {string} recipientId - The recipient (bot) ID.
-   * @returns {string|null} The resourceId if found, otherwise null.
-   */
-  getResourceId(tenantId, recipientId) {
-    const key = `${tenantId}:${recipientId}`;
-    return this.resourceIds.has(key) ? this.resourceIds.get(key) : null;
-  }
-
-  /**
-   * Stores the resourceId for a given tenantId and recipientId combination.
-   * Used to track conversation state for each user/bot pair.
-   * @param {string} tenantId - The tenant ID for the conversation.
-   * @param {string} recipientId - The recipient (bot) ID.
-   * @param {string} resourceId - The resource ID to associate with this conversation.
-   * @returns {void}
-   */
-  setResourceId(tenantId, recipientId, resourceId) {
-    const key = `${tenantId}:${recipientId}`;
-    this.resourceIds.set(key, resourceId);
   }
 
   /**
@@ -105,7 +56,7 @@ class CopilotLdBot extends ActivityHandler {
         }),
       ],
       github_token: await this.config.githubToken(),
-      resource_id: this.getResourceId(
+      resource_id: this.#getResourceId(
         context.activity.conversation.tenantId,
         context.activity.recipient.id,
       ),
@@ -126,7 +77,7 @@ class CopilotLdBot extends ActivityHandler {
       reply.content = String(response.choices[0].message.content);
     }
 
-    this.setResourceId(
+    this.#setResourceId(
       context.activity.conversation.tenantId,
       context.activity.recipient.id,
       response.resource_id,
@@ -136,6 +87,97 @@ class CopilotLdBot extends ActivityHandler {
       MessageFactory.text(reply.content, reply.content),
     );
     await next();
+  }
+
+  /**
+   * Retrieves the resourceId for a given tenantId and recipientId combination.
+   * Used to maintain conversation context across messages.
+   * @param {string} tenantId - The tenant ID for the conversation.
+   * @param {string} recipientId - The recipient (bot) ID.
+   * @returns {string|null} The resourceId if found, otherwise null.
+   */
+  #getResourceId(tenantId, recipientId) {
+    const key = `${tenantId}:${recipientId}`;
+    return this.resourceIds.has(key) ? this.resourceIds.get(key) : null;
+  }
+
+  /**
+   * Stores the resourceId for a given tenantId and recipientId combination.
+   * Used to track conversation state for each user/bot pair.
+   * @param {string} tenantId - The tenant ID for the conversation.
+   * @param {string} recipientId - The recipient (bot) ID.
+   * @param {string} resourceId - The resource ID to associate with this conversation.
+   * @returns {void}
+   */
+  #setResourceId(tenantId, recipientId, resourceId) {
+    const key = `${tenantId}:${recipientId}`;
+    this.resourceIds.set(key, resourceId);
+  }
+
+  /**
+   * Handles the 'configure' command by sending a settings page link to the user.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @returns {Promise<void>}
+   */
+  async handleConfigureCommand(context) {
+    const tenantId = context?.activity?.conversation?.tenantId;
+    const card = CardFactory.heroCard(
+      "Update Your Settings",
+      "Click the button below to open your settings page.",
+      null,
+      [
+        {
+          type: "invoke",
+          title: "Open Settings",
+          value: {
+            type: "task/fetch",
+            tenantId: tenantId,
+          },
+        },
+      ],
+    );
+    await context.sendActivity({ attachments: [card] });
+  }
+
+  /**
+   * Handles task module fetch requests to open the settings page in a dialog.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @returns {Promise<import('botbuilder').InvokeResponse>} The invoke response with task module configuration.
+   */
+  async handleTaskModuleFetch(context) {
+    const tenantId =
+      context.activity.value?.tenantId ||
+      context?.activity?.conversation?.tenantId;
+    console.log("Handling task/fetch for tenantId:", tenantId);
+
+    const settingsUrl = `https://${process.env.TEAMS_BOT_DOMAIN}/settings`;
+
+    return {
+      status: 200,
+      body: {
+        task: {
+          type: "continue",
+          value: {
+            title: "Settings",
+            height: 600,
+            width: 500,
+            url: settingsUrl,
+          },
+        },
+      },
+    };
+  }
+
+  /**
+   * Handles incoming invoke activities, including task module fetch requests.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @returns {Promise<import('botbuilder').InvokeResponse>} The invoke response.
+   */
+  async onInvokeActivity(context) {
+    if (context.activity.name === "task/fetch") {
+      return await this.handleTaskModuleFetch(context);
+    }
+    return await super.onInvokeActivity(context);
   }
 
   /**

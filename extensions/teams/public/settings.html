@@ -5,32 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings</title>
     <link rel="stylesheet" href="/main.css" />
-    <style>
-      .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: #107c10;
-        color: white;
-        padding: 16px 24px;
-        border-radius: 4px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: all 0.3s ease;
-        z-index: 1000;
-      }
-      .toast.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      .toast.toast-success {
-        background-color: #107c10;
-      }
-      .toast.toast-error {
-        background-color: #d13438;
-      }
-    </style>
     <script
       src="https://res.cdn.office.net/teams-js/2.47.0/js/MicrosoftTeams.min.js"
       integrity="sha384-IkfULjDxwgKWYEYHErhDcuw+ahOQvmrcRFwgI3sm/uu7c0HWVjyYG3qp5z5SncxD"
@@ -185,7 +159,17 @@
   </head>
   <body>
     <h1>Settings</h1>
-    <p>Configure your Copilot-LD Teams app settings here.</p>
+    <p>
+      This MS Teams app assumes that you have a Copilot-LD Agent deployed and
+      accessible. The app connects to your agent to provide intelligent
+      assistance directly within Microsoft Teams.
+    </p>
+
+    <p>
+      Before you can use the Copilot-LD Teams app you need to configure it you
+      point to your organisations Copilot-LD Agent. Please enter the Agent Host,
+      Port, and Secret below. They secret will be encrypted and stored securely.
+    </p>
     <p id="logging"></p>
     <form id="settings-form">
       <div>
@@ -210,7 +194,13 @@
       </div>
       <div>
         <label for="secret">Agent Secret:</label>
-        <input type="password" id="secret" name="secret" autocomplete="off" />
+        <input
+          type="password"
+          id="secret"
+          name="secret"
+          autocomplete="off"
+          placeholder="Leave blank to keep existing secret"
+        />
       </div>
       <button type="submit">Save Settings</button>
     </form>

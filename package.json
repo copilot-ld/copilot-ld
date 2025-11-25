@@ -42,7 +42,7 @@
     "dev:cleanup": "npx env-cmd -- node scripts/dev.js --cleanup",
     "docker": "npm run docker:build && npm run docker:up",
     "docker:build": "env-cmd -f .env.build -- docker --log-level debug compose build --no-cache",
-    "docker:upload": "docker compose up -d storage && npx env-cmd -- npx --workspace=@copilot-ld/libutil upload && docker compose down",
+    "docker:upload": "docker compose up -d storage && npx env-cmd -- env MINIO_ENDPOINT=http://localhost:9000 npx --workspace=@copilot-ld/libutil upload && docker compose down",
     "docker:up": "docker compose up",
     "docker:down": "docker compose down",
     "docs": "npm run docs:serve",

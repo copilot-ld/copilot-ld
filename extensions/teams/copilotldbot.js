@@ -56,7 +56,7 @@ class CopilotLdBot extends ActivityHandler {
         }),
       ],
       github_token: await this.config.githubToken(),
-      resource_id: this.#getResourceId(
+      resource_id: this.getResourceId(
         context.activity.conversation.tenantId,
         context.activity.recipient.id,
       ),
@@ -96,7 +96,7 @@ class CopilotLdBot extends ActivityHandler {
    * @param {string} recipientId - The recipient (bot) ID.
    * @returns {string|null} The resourceId if found, otherwise null.
    */
-  #getResourceId(tenantId, recipientId) {
+  getResourceId(tenantId, recipientId) {
     const key = `${tenantId}:${recipientId}`;
     return this.resourceIds.has(key) ? this.resourceIds.get(key) : null;
   }

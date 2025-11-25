@@ -44,7 +44,7 @@ describe("CopilotLdBot", () => {
       }),
     };
     mockTenantClientService = {
-      getTenantClient: () => mockAgentClient,
+      getTenantClient: async () => mockAgentClient,
     };
     mockConfig = {
       githubToken: async () => "token",

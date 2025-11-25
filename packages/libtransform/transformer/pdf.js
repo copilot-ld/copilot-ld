@@ -142,7 +142,7 @@ export class PdfTransformer extends ProcessorBase {
    * Returns both the image file paths and the temp directory for later cleanup.
    * @param {Buffer} pdfBuffer - PDF file buffer
    * @param {string} tempDir - location to store temporary image files
-   * @returns {Promise<{ images: string[] }>} Image file paths
+   * @returns {Promise<string[]>} Array of image file paths
    * @throws {Error} If pdftoppm fails or images cannot be generated
    */
   async #pdfSplitter(pdfBuffer, tempDir) {

@@ -39,6 +39,16 @@ function handleCss(req, res) {
 }
 
 /**
+ * Serves the settings.js static file for /settings.js endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ */
+function handleSettingsJs(req, res) {
+  console.log("GET /settings.js");
+  htmlRenderer.serve("public/settings.js", res, "application/javascript");
+}
+
+/**
  * Serves the about.html static page for /about endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
@@ -179,6 +189,7 @@ export default async function createServer() {
   // Route map for all endpoints
   const routes = {
     "GET /main.css": handleCss,
+    "GET /settings.js": handleSettingsJs,
     "GET /about": handleAbout,
     "GET /messages": handleMessages,
     "GET /settings": handleGetSettings,

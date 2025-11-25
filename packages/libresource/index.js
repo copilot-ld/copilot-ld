@@ -190,15 +190,13 @@ export function toIdentifier(uri) {
 
 /**
  * Creates a ResourceIndex instance with configurable storage prefix.
- * BREAKING CHANGE: Signature changed from (storageType?, policy?) to (prefix, policy?)
  * @param {string} prefix - Storage prefix (bucket name) used to create the underlying storage
  * @param {import("@copilot-ld/libpolicy").Policy} [policy] - Optional policy instance (defaults to createPolicy())
  * @returns {ResourceIndex} Configured ResourceIndex instance
  */
 export function createResourceIndex(prefix, policy = null) {
   if (!prefix) throw new Error("prefix is required");
-  // Always use local storage type per new requirement while allowing custom prefix
-  const storage = createStorage(prefix, "local");
+  const storage = createStorage(prefix);
   const policyInstance = policy || createPolicy();
   return new ResourceIndex(storage, policyInstance);
 }

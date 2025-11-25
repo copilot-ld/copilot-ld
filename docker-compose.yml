@@ -109,9 +109,6 @@ services:
     image: copilot-ld/agent:latest
     container_name: agent.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/policies:/app/data/policies
-      - ./data/resources:/app/data/resources
     networks:
       internal:
         aliases:
@@ -133,9 +130,6 @@ services:
     image: copilot-ld/memory:latest
     container_name: memory.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/policies:/app/data/policies
-      - ./data/resources:/app/data/resources
     networks:
       internal:
         aliases:
@@ -216,8 +210,6 @@ services:
     image: copilot-ld/trace:latest
     container_name: trace.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/traces:/app/data/traces
     networks:
       internal:
         aliases:

@@ -67,7 +67,7 @@ export class PdfTransformer extends ProcessorBase {
 
       const pdfBuffer = await this.#knowledgeStorage.get(key);
       if (!Buffer.isBuffer(pdfBuffer)) {
-        this.#logger.debug(`Skipping non-buffer PDF`);
+        this.#logger.debug(`Skipping non-buffer PDF ${key}`);
         continue;
       }
 

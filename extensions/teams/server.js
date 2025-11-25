@@ -132,15 +132,23 @@ function handleSaveSettings(req, res) {
     }
     const tenantId = getTenantId(req);
 
-    tenantClientService.saveTenantConfig(
-      tenantId,
-      parsed.host,
-      parsed.port,
-      parsed.secret,
-    );
-    console.log(`Tenant config saved for tenant ${tenantId} with new settings`);
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", message: "Settings saved" }));
+    try {
+      tenantClientService.saveTenantConfig(
+        tenantId,
+        parsed.host,
+        parsed.port,
+        parsed.secret,
+      );
+      console.log(
+        `Tenant config saved for tenant ${tenantId} with new settings`,
+      );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "ok", message: "Settings saved" }));
+    } catch (err) {
+      console.error("Error saving tenant config:", err);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Failed to save settings" }));
+    }
   });
   req.on("error", () => {
     console.error("Error reading request body");

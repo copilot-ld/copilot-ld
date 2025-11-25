@@ -46,10 +46,16 @@ export class TenantClientService {
    * @param {string} tenantId - Tenant identifier
    * @param {string} host - Tenant host
    * @param {number} port - Tenant port
-   * @param {string} secret - Tenant secret
+   * @param {string} secret - Tenant secret (if empty, existing secret is preserved)
    */
   saveTenantConfig(tenantId, host, port, secret) {
-    const encryptedSecret = this.#encryption.encrypt(tenantId, secret);
+    let encryptedSecret;
+    if (!secret) {
+      const existingConfig = this.#configRepository.get(tenantId);
+      encryptedSecret = existingConfig?.encryptedSecret || "";
+    } else {
+      encryptedSecret = this.#encryption.encrypt(tenantId, secret);
+    }
     const config = new TenantConfig(host, port, encryptedSecret);
     this.#configRepository.save(tenantId, config);
   }

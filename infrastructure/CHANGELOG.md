@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-11-25
+
+- Added `UiService` and related resources to `extensions.yml`
+- Configured ALB routing for `/ui/*` to `UiService`
+- Reverted `WebTargetGroup` health check to `/web/health`
+
 ## 2025-11-21
 
 - **BREAKING**: Separated ALB and gateway containers to mirror AWS architecture

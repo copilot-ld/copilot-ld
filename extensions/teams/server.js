@@ -111,7 +111,7 @@ function handleSaveSettings(req, res) {
   req.on("data", (chunk) => {
     body += chunk;
   });
-  req.on("end", () => {
+  req.on("end", async () => {
     try {
       // Auth check
       authorize(req);
@@ -133,7 +133,7 @@ function handleSaveSettings(req, res) {
     const tenantId = getTenantId(req);
 
     try {
-      tenantClientService.saveTenantConfig(
+      await tenantClientService.saveTenantConfig(
         tenantId,
         parsed.host,
         parsed.port,
@@ -162,7 +162,7 @@ function handleSaveSettings(req, res) {
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
  */
-function handleGetApiSettings(req, res) {
+async function handleGetApiSettings(req, res) {
   console.log("GET /api/settings");
   try {
     authorize(req);
@@ -174,7 +174,7 @@ function handleGetApiSettings(req, res) {
     return;
   }
   const tenantId = getTenantId(req);
-  const config = tenantClientService.getTenantConfig(tenantId);
+  const config = await tenantClientService.getTenantConfig(tenantId);
   const host = config?.host || "";
   const port = config?.port || "";
   res.writeHead(200, { "Content-Type": "application/json" });

@@ -1,6 +1,5 @@
 /* eslint-env node */
 import { Hono } from "hono";
-import { serveStatic } from "@hono/node-server/serve-static";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { agent, common } from "@copilot-ld/libtype";
@@ -40,10 +39,6 @@ export async function createWebExtension(client, config, logger = null) {
   app.get("/web/health", (c) => {
     return c.json({ status: "ok" });
   });
-
-  // Serve static files
-  // TODO: Decouple the web extension from the example at extensions/web/public
-  app.use("/web/*", serveStatic({ root: "public" }));
 
   // Route handlers with input validation
   app.post(

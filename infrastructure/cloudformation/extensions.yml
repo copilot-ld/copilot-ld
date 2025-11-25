@@ -84,6 +84,27 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
+
+  # Target group for ui extension load balancer routing
+  UiTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckPath: /ui/health
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
 
   # Listener rule for web extension
   WebListenerRule:
@@ -99,12 +120,32 @@ Resources:
       ListenerArn: !Ref ALBListenerArn
       Priority: 100
 
+  # Listener rule for ui extension
+  UiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref UiTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - "/ui/*"
+      ListenerArn: !Ref ALBListenerArn
+      Priority: 110
+
   # ==========================================
   # LOGGING
   # ==========================================
 
   # CloudWatch log group for web extension logging
   WebLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
+  # CloudWatch log group for ui extension logging
+  UiLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 7
@@ -151,6 +192,44 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: web
 
+  # ECS task definition for ui extension container
+  UiTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !Ref SecretsRoleArn
+      TaskRoleArn: !Ref BucketRoleArn
+      ContainerDefinitions:
+        - Name: ui
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/ui:${ContainerTag}"
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: STORAGE_TYPE
+              Value: s3
+            - Name: S3_BUCKET_NAME
+              Value: !Ref BucketName
+            - Name: DEBUG
+              Value: "*"
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref UiLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ui
+
   # ==========================================
   # ECS SERVICE
   # ==========================================
@@ -175,6 +254,26 @@ Resources:
           ContainerPort: 3000
           TargetGroupArn: !Ref WebTargetGroup
 
+  # ECS service for running ui extension container
+  UiService:
+    Type: AWS::ECS::Service
+    DependsOn: UiListenerRule
+    Properties:
+      Cluster: !Ref ExtensionsCluster
+      TaskDefinition: !Ref UiTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ServiceSecurityGroupId
+          Subnets: !Ref PrivateSubnetIds
+      LoadBalancers:
+        - ContainerName: ui
+          ContainerPort: 3000
+          TargetGroupArn: !Ref UiTargetGroup
+
 Outputs:
   ExtensionsClusterName:
     Description: Name of the extensions ECS cluster
@@ -191,3 +290,11 @@ Outputs:
   WebTargetGroupArn:
     Description: ARN of the web target group
     Value: !Ref WebTargetGroup
+
+  UiServiceArn:
+    Description: ARN of the ui service
+    Value: !Ref UiService
+
+  UiTargetGroupArn:
+    Description: ARN of the ui target group
+    Value: !Ref UiTargetGroup

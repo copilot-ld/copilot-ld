@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-25
+
+- Removed static file serving (moved to `ui` extension)
+- Reverted health check to `/web/health`
+
 ## 2025-11-24
 
 - Bump version

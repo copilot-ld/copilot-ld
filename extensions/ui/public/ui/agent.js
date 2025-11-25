@@ -13,9 +13,11 @@ class AgentChat extends HTMLElement {
   }
 
   connectedCallback() {
-    // Get API URL from data attribute, default to current origin + /web/api
+    // Get API URL from data attribute, env config, or default to current origin + /web/api
     this.apiUrl =
-      this.getAttribute("data-api") || `${window.location.origin}/web/api`;
+      this.getAttribute("data-api") ||
+      window.ENV?.API_URL ||
+      `${window.location.origin}/web/api`;
     this.update();
     setTimeout(() => this.scrollToBottom(), 0);
   }

@@ -11,6 +11,7 @@ const SHUTDOWN_GRACE_PERIOD = 3000;
 const MATCH_PATTERNS = ["npm run dev", "node --watch"];
 
 const SERVICES = [
+  "@copilot-ld/ui",
   "@copilot-ld/web",
   "@copilot-ld/agent",
   "@copilot-ld/memory",

@@ -13,19 +13,34 @@ export class GraphService extends GraphBase {
    * Creates a new Graph service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {import("@copilot-ld/libgraph").GraphIndex} graphIndex - Pre-initialized graph index
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory function
    */
-  constructor(config, graphIndex, logFn) {
-    super(config, logFn);
+  constructor(config, graphIndex) {
+    super(config);
     if (!graphIndex) throw new Error("graphIndex is required");
 
     this.#graphIndex = graphIndex;
   }
 
   /**
+   * Retrieve all subjects from the graph index
+   * @param {import("@copilot-ld/libtype").graph.SubjectsQuery} req - Subjects query request
+   * @returns {Promise<import("@copilot-ld/libtype").tool.ToolCallResult>} Tool call result object
+   */
+  async GetSubjects(req) {
+    const subjects = await this.#graphIndex.getSubjects(req.type || null);
+
+    const lines = Array.from(subjects.entries())
+      .map(([subject, type]) => `${subject}\t${type}`)
+      .sort();
+
+    const content = lines.join("\n");
+    return { content };
+  }
+
+  /**
    * Query graph index using pattern matching
    * @param {import("@copilot-ld/libtype").graph.PatternQuery} req - Pattern query request
-   * @returns {Promise<import("@copilot-ld/libtype").tool.QueryResults>} Query results with resource strings
+   * @returns {Promise<import("@copilot-ld/libtype").tool.ToolCallResult>} Tool call result object
    */
   async QueryByPattern(req) {
     const pattern = {
@@ -38,7 +53,11 @@ export class GraphService extends GraphBase {
     return { identifiers };
   }
 
-  /** @inheritdoc */
+  /**
+   * Retrieve the ontology content from storage
+   * @param {import("@copilot-ld/libtype").common.Empty} _req - Empty request
+   * @returns {Promise<import("@copilot-ld/libtype").tool.ToolCallResult>} Tool call result object
+   */
   async GetOntology(_req) {
     const storage = this.#graphIndex.storage();
 

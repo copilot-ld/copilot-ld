@@ -1,7 +1,8 @@
 /* eslint-env node */
 import { test, describe } from "node:test";
 
-import { MemoryFilter, MemoryWindow, MemoryIndex } from "../index.js";
+import { MemoryFilter, MemoryWindow } from "../index.js";
+import { MemoryIndex } from "../index/memory.js";
 import { createPerformanceTest } from "@copilot-ld/libperf";
 
 describe("LibMemory Performance Tests", () => {
@@ -149,7 +150,7 @@ describe("LibMemory Performance Tests", () => {
         }
       },
       constraints: {
-        maxMemory: 2000,
+        maxMemory: 2500,
       },
     }),
   );

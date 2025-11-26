@@ -2,7 +2,8 @@
 import { test, describe } from "node:test";
 import { Store, DataFactory } from "n3";
 
-import { GraphIndex, parseGraphQuery } from "../index.js";
+import { GraphIndex } from "../index/graph.js";
+import { parseGraphQuery } from "../index.js";
 import { createPerformanceTest } from "@copilot-ld/libperf";
 
 const { namedNode, literal } = DataFactory;

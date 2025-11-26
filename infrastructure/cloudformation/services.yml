@@ -11,9 +11,17 @@ Parameters:
     Type: AWS::EC2::VPC::Id
     Description: VPC for deployment
 
+  ECSClusterName:
+    Type: String
+    Description: Name of the ECS cluster from network stack
+
   PrivateSubnetIds:
     Type: CommaDelimitedList
     Description: Private subnets for services (minimum two)
+
+  PublicSubnetIds:
+    Type: CommaDelimitedList
+    Description: Public subnets for egress proxy (minimum two)
 
   ServiceSecurityGroupId:
     Type: String
@@ -27,6 +35,10 @@ Parameters:
     Type: String
     Default: latest
     Description: Container image tag
+
+  RegistryUrl:
+    Type: String
+    Description: ECR registry URL from registry stack
 
   GitHubTokenArn:
     Type: String
@@ -52,10 +64,6 @@ Resources:
   # ==========================================
   # ECS INFRASTRUCTURE
   # ==========================================
-
-  # ECS cluster for hosting Copilot-LD services
-  ECSCluster:
-    Type: AWS::ECS::Cluster
 
   # CloudWatch log groups for service logging
   AgentLogGroup:
@@ -105,7 +113,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: agent
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/agent:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/agent:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -142,7 +150,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: memory
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/memory:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/memory:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -179,7 +187,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: llm
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/llm:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/llm:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -192,6 +200,12 @@ Resources:
               Value: !Ref BucketName
             - Name: DEBUG
               Value: "*"
+            - Name: HTTPS_PROXY
+              Value: http://gateway.copilot-ld.local:3128
+            - Name: HTTP_PROXY
+              Value: http://gateway.copilot-ld.local:3128
+            - Name: NO_PROXY
+              Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -216,7 +230,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: vector
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/vector:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/vector:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -253,7 +267,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: graph
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/graph:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/graph:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -290,7 +304,7 @@ Resources:
       TaskRoleArn: !Ref BucketRoleArn
       ContainerDefinitions:
         - Name: tool
-          Image: !Sub "ghcr.io/copilot-ld/copilot-ld/tool:${ContainerTag}"
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/tool:${ContainerTag}"
           Essential: true
           PortMappings:
             - ContainerPort: 3000
@@ -388,7 +402,7 @@ Resources:
   AgentService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref AgentTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -404,7 +418,7 @@ Resources:
   MemoryService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref MemoryTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -420,7 +434,7 @@ Resources:
   LLMService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref LLMTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -436,7 +450,7 @@ Resources:
   VectorService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref VectorTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -452,7 +466,7 @@ Resources:
   GraphService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref GraphTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -468,7 +482,7 @@ Resources:
   ToolService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !Ref ECSCluster
+      Cluster: !Ref ECSClusterName
       TaskDefinition: !Ref ToolTaskDefinition
       DesiredCount: 1
       LaunchType: FARGATE
@@ -482,14 +496,6 @@ Resources:
         - RegistryArn: !GetAtt ToolServiceDiscovery.Arn
 
 Outputs:
-  ECSClusterName:
-    Description: Name of the ECS cluster
-    Value: !Ref ECSCluster
-
-  ECSClusterArn:
-    Description: ARN of the ECS cluster
-    Value: !GetAtt ECSCluster.Arn
-
   AgentServiceArn:
     Description: ARN of the agent service
     Value: !Ref AgentService

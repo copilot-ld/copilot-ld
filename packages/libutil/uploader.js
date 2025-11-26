@@ -52,7 +52,7 @@ export class Uploader {
         await this.#remote[prefix].ensureBucket();
       }
     }
-    this.#logger.debug("Upload storage initialized", {
+    this.#logger.debug("Uploader", "Upload storage initialized", {
       prefixes: this.#prefixes,
       localOnly,
     });
@@ -126,7 +126,7 @@ export class Uploader {
       await remote.put(key, data);
     }
 
-    this.#logger.debug("Upload completed", {
+    this.#logger.debug("Uploader", "Upload completed", {
       prefix,
       uploaded: keys.length,
     });

@@ -1,17 +1,17 @@
 {
   "service": {
     "agent": {
-      "assistant": "software_dev_expert",
+      "assistant": "knowledge_graph_agent",
       "permanent_tools": [
         "get_ontology",
-        "query_by_descriptor",
-        "query_by_content",
+        "get_subjects",
+        "search_content",
         "query_by_pattern"
       ],
-      "threshold": 0.5,
-      "temperature": 0.25,
+      "threshold": 0.48,
+      "temperature": 0.1,
       "budget": {
-        "tokens": 90000,
+        "tokens": 60000,
         "allocation": {
           "tools": 0.1,
           "context": 0.8,
@@ -28,16 +28,16 @@
           "method": "graph.Graph.GetOntology",
           "request": "common.Empty"
         },
+        "get_subjects": {
+          "method": "graph.Graph.GetSubjects",
+          "request": "graph.SubjectsQuery"
+        },
         "query_by_pattern": {
           "method": "graph.Graph.QueryByPattern",
           "request": "graph.PatternQuery"
         },
-        "query_by_content": {
-          "method": "vector.Vector.QueryByContent",
-          "request": "vector.TextQuery"
-        },
-        "query_by_descriptor": {
-          "method": "vector.Vector.QueryByDescriptor",
+        "search_content": {
+          "method": "vector.Vector.SearchContent",
           "request": "vector.TextQuery"
         }
       }

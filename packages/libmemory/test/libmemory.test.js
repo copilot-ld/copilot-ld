@@ -1,7 +1,8 @@
 /* eslint-env node */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
-import { MemoryFilter, MemoryWindow, MemoryIndex } from "../index.js";
+import { MemoryFilter, MemoryWindow } from "../index.js";
+import { MemoryIndex } from "../index/memory.js";
 import { resource } from "@copilot-ld/libtype";
 
 // Mock storage for testing

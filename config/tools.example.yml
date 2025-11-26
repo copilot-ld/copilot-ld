@@ -1,78 +1,54 @@
-# GRAPH SEARCH TOOLS: Use to explore knowledge graph relationships
 get_ontology:
   purpose: |
-    Retrieve the complete ontology structure from the knowledge graph to understand
-    available entities, relationships, and schema before performing graph queries.
+    Returns the complete schema vocabulary showing all entity types and 
+    relationship predicates that exist in the knowledge graph.
   applicability: |
-    SEQUENCING: Use as the FIRST STEP in any graph exploration workflow.
-    Call this tool before query_by_pattern to discover what subjects, predicates,
-    and objects are available for querying. Essential for understanding the
-    knowledge graph structure and building effective queries.
+    Required before constructing structured queries with get_subjects or
+    query_by_pattern to learn the correct vocabulary.
   instructions: |
-    Input: Optional 'comment' field (can be left empty for discovery).
-    Output: JSON string containing the complete ontology with all available
-    subjects, predicates, and objects that can be used in subsequent graph queries.
-    Use this data to construct effective query_by_pattern calls.
+    No input parameters. Returns a SHACL ontology with types (schema:Drug,
+    schema:Person, schema:SoftwareApplication, etc.) and predicates
+    (schema:member, schema:clinicalPharmacology, schema:softwareRequirements, etc.).
   evaluation: |
-    Returns comprehensive JSON ontology showing the complete schema of queryable
-    entities and relationships in the knowledge graph.
+    Complete schema showing available types and predicates.
+
+get_subjects:
+  purpose: |
+    Lists entity URIs in the graph, optionally filtered by type.
+  applicability: |
+    Use after get_ontology to find URIs for entities of a specific type.
+    Provides the subject URIs needed for query_by_pattern.
+  instructions: |
+    Input: Optional 'type' field (e.g., "schema:Organization", "schema:Drug").
+    Output: Tab-separated list of entity URIs and their types.
+  evaluation: |
+    List of all entities matching the type filter.
 
 query_by_pattern:
   purpose: |
-    Query the knowledge graph using subject-predicate-object patterns to find
-    specific relationships and structured content based on graph connections.
+    Retrieves structured data by traversing graph relationships using RDF
+    triple patterns (subject-predicate-object).
   applicability: |
-    SEQUENCING: Use as the SECOND STEP after get_ontology.
-    Perfect for finding specific relationships, exploring entity connections,
-    and retrieving structured data. Use when you need precise graph-based
-    queries rather than semantic similarity searches.
+    Use after get_ontology and get_subjects to query relationships between
+    specific entities. Retrieves factual structured data.
   instructions: |
-    PREREQUISITE: MUST call get_ontology first to discover valid entities.
-    Input: Optional 'subject', 'predicate', and 'object' fields from ontology data.
-    Use exact values from the ontology or leave fields empty to match any value.
-    Output: Array of matching content strings that satisfy the pattern.
+    Input: Optional 'subject', 'predicate', 'object' fields. Use '?' for wildcards.
+    Example: (subject=entity-uri, predicate="schema:member", object=?)
+    Output: Array of matching content.
   evaluation: |
-    Returns array of content strings that match the specified subject-predicate-object
-    pattern from the knowledge graph structure.
+    Structured facts matching the triple pattern.
 
-# VECTOR SEARCH TOOLS: Use for semantic content discovery (recommended workflow: descriptor → content)
-query_by_descriptor:
+search_content:
   purpose: |
-    Search for high-level summaries, overviews, and descriptive metadata using
-    semantic similarity to get a broad understanding of available resources.
+    Find detailed content using semantic similarity search.
   applicability: |
-    SEQUENCING: Use as the FIRST STEP in content discovery workflows.
-    Perfect for initial exploration to understand what resources are available
-    before diving into detailed content. Provides summaries and abstracts that
-    help you identify the most relevant resources for detailed investigation.
+    Use for "what is X", "how does Y work", or when graph queries insufficient.
   instructions: |
-    Input: Text query in 'text' field describing what you're looking for.
-    Optional filters: 'limit' (default: reasonable subset), 'threshold' (similarity).
-    Output: Array of descriptive summaries and metadata strings.
-    Use results to guide subsequent query_by_content calls for detailed information.
+    Input: Text query in 'text' field.
+    Optional: 'limit' and 'threshold' for filtering.
   evaluation: |
-    Returns array of high-level descriptor strings that provide overviews and
-    summaries semantically related to your query.
+    Array of detailed content strings matching your query.
 
-query_by_content:
-  purpose: |
-    Search for detailed content in the knowledge base using semantic similarity
-    to retrieve comprehensive information on specific topics.
-  applicability: |
-    SEQUENCING: Use as the SECOND STEP after query_by_descriptor.
-    Best for finding detailed documents, articles, and comprehensive content
-    when you know what specific topics or resources you want to explore in depth.
-    Use descriptor results to refine your content queries.
-  instructions: |
-    Input: Text query in 'text' field (often refined based on descriptor results).
-    Optional filters: 'limit' (default: reasonable subset), 'threshold' (similarity).
-    Output: Array of detailed content strings from the knowledge base.
-    Combine with descriptor insights for comprehensive understanding.
-  evaluation: |
-    Returns array of detailed content strings that are semantically similar
-    to your query, providing comprehensive information on the topic.
-
-# HASH TOOLS: Cryptographic utilities (use only when explicitly requested)
 sha256_hash:
   purpose: |
     Generate a deterministic SHA-256 cryptographic hash of input text for

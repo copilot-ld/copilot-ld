@@ -2,6 +2,8 @@
 import { readFile } from "node:fs/promises";
 import { common } from "@copilot-ld/libtype";
 import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
+import { ProxyAgent } from "undici";
+import { formatToolDescription, normalizeVector } from "./format.js";
 
 /**
  * @typedef {object} CompletionParams
@@ -91,7 +93,7 @@ export class Copilot {
         if (!m) return null; // Skip null/undefined messages
         return {
           role: m.role || "user",
-          content: m.content?.text || String(m.content || ""),
+          content: m.content,
           ...(m.tool_calls && { tool_calls: m.tool_calls }),
           ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
         };
@@ -104,7 +106,7 @@ export class Copilot {
         type: t.type || "function",
         function: {
           name: t.function?.name,
-          description: String(t.function?.descriptor || ""),
+          description: formatToolDescription(t.function?.content),
           ...(t.function?.parameters && { parameters: t.function.parameters }),
         },
       };
@@ -208,17 +210,30 @@ export class Copilot {
    * Converts an image to text description using vision capabilities
    * @param {string} filePath - Path to the image file
    * @param {string} [prompt] - Optional text prompt to guide the description
+   * @param {string} [model] - Model to use for image-to-text conversion, defaults to instance model
+   * @param {string} [systemPrompt] - System prompt to set context for the description
+   * @param {number} [max_tokens] - Maximum tokens to generate in the description
    * @returns {Promise<string>} Text description of the image
    */
-  async imageToText(filePath, prompt = "Describe this image in detail.") {
+  async imageToText(
+    filePath,
+    prompt = "Describe this image in detail.",
+    model = this.#model,
+    systemPrompt = "You are an AI assistant that describes images accurately and in detail.",
+    max_tokens = 1000,
+  ) {
     const buffer = await readFile(filePath);
     const base64 = buffer.toString("base64");
     const extension = filePath.split(".").pop().toLowerCase();
     const mimeType = `image/${extension === "jpg" ? "jpeg" : extension}`;
 
     const body = {
-      model: this.#model,
+      model: model,
       messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
         {
           role: "user",
           content: [
@@ -235,7 +250,7 @@ export class Copilot {
           ],
         },
       ],
-      max_tokens: 1000,
+      max_tokens,
     };
 
     const response = await this.#retry.execute(() =>
@@ -257,14 +272,25 @@ export class Copilot {
 }
 
 /**
- * Normalizes a vector to unit length
- * @param {number[]} vector - Vector to normalize
- * @returns {number[]} Normalized vector
+ * Creates a proxy-aware fetch function that respects HTTPS_PROXY environment variable
+ * @param {object} [process] - Process object for environment variable access
+ * @returns {(url: string, options?: object) => Promise<Response>} Fetch function with proxy support
  */
-function normalizeVector(vector) {
-  const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-  if (magnitude === 0) return vector.slice(); // Return copy of zero vector
-  return vector.map((val) => val / magnitude);
+function createProxyAwareFetch(process = global.process) {
+  const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
+
+  if (!httpsProxy) {
+    return fetch;
+  }
+
+  const agent = new ProxyAgent(httpsProxy);
+
+  return (url, options = {}) => {
+    return fetch(url, {
+      ...options,
+      dispatcher: agent,
+    });
+  };
 }
 
 /**
@@ -278,7 +304,7 @@ function normalizeVector(vector) {
 export function createLlm(
   token,
   model = "gpt-4o",
-  fetchFn = fetch,
+  fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
 ) {
   const retry = createRetry();

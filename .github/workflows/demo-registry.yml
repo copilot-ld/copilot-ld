@@ -1,0 +1,48 @@
+name: Demo Deployment of Registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        description: "Environment name prefix for resources"
+        required: true
+        default: "demo"
+        type: string
+
+jobs:
+  deploy-registry:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Parameters
+        id: parameters
+        uses: ./.github/actions/stack-parameters
+        with:
+          amend: |
+            {
+              "EnvironmentName": "${{ inputs.environment_name }}"
+            }
+
+      - name: Deploy
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: "${{ inputs.environment_name }}-cld-registry-stack-cf"
+          template: infrastructure/cloudformation/registry.yml
+          parameter-overrides:
+            "file://${{ steps.parameters.outputs.parameters-file }}"
+          capabilities: CAPABILITY_IAM

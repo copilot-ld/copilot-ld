@@ -77,7 +77,7 @@ jobs:
       - name: Bump versions and tag
         id: bump
         run: |
-          # Pull latest changes to avoid conflicts
+          git status
           git pull --rebase origin main
           VERSIONS=$(npx --workspace=@copilot-ld/librel rel-bump --force \
             ${{ needs.prepare.outputs.bump-type }} \
@@ -156,6 +156,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     strategy:
       matrix:
         item: ${{ fromJson(needs.bump.outputs.versions) }}
@@ -175,30 +176,99 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push container
+      - name: Configure AWS credentials
+        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push app container
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
         run: |
           set -e
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
           VERSION="${{ matrix.item.version }}"
-          IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
           export DOCKER_BUILDKIT=1
           cd "$TYPE/$NAME"
           echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
             --secret id=github_token,src=/dev/stdin \
             -f ../../Dockerfile \
-            -t $IMAGE:$VERSION \
-            -t $IMAGE:latest .
-          docker push $IMAGE:$VERSION
-          docker push $IMAGE:latest
+            -t $GHCR_IMAGE:$VERSION \
+            -t $GHCR_IMAGE:latest \
+            -t $ECR_IMAGE:$VERSION \
+            -t $ECR_IMAGE:latest .
+          docker push $GHCR_IMAGE:$VERSION
+          docker push $GHCR_IMAGE:latest
+          docker push $ECR_IMAGE:$VERSION
+          docker push $ECR_IMAGE:latest
+
+  publish-infrastructure:
+    needs: bump
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.ref }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push infra containers
+        run: |
+          set -e
+          export DOCKER_BUILDKIT=1
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          for dockerfile in infrastructure/docker/*/Dockerfile; do
+            NAME=$(basename $(dirname "$dockerfile"))
+            GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+            ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
+            echo "Building $NAME from $dockerfile"
+            docker build \
+              -f "$dockerfile" \
+              -t $GHCR_IMAGE:latest \
+              -t $ECR_IMAGE:latest \
+              $(dirname "$dockerfile")
+            docker push $GHCR_IMAGE:latest
+            docker push $ECR_IMAGE:latest
+          done
 
   create-releases:
-    needs: [bump, publish-packages, publish-containers]
+    needs: [bump, publish-packages, publish-containers, publish-infrastructure]
     if:
       always() && needs.bump.result == 'success' &&
       needs.publish-packages.result == 'success' &&
-      needs.publish-containers.result == 'success'
+      needs.publish-containers.result == 'success' &&
+      needs.publish-infrastructure.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write

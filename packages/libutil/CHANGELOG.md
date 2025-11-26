@@ -1,5 +1,47 @@
 # Changelog
 
+## 2025-11-24
+
+- Bump version
+
+## 2025-11-22
+
+- Bump version
+- Bump version
+
+## 2025-11-19
+
+- Bump version
+- Bump version
+
+## 2025-11-18
+
+- Enhanced `Retry` class to detect gRPC `UNAVAILABLE` and `INTERNAL` errors that
+  wrap connection failures
+- Added retry support for gRPC status code `14 UNAVAILABLE` errors
+- Added retry support for `"fetch failed"` errors from gRPC `INTERNAL` status
+- Added retry support for HTTP status codes embedded in gRPC error messages
+  (499, 502, 503, 504)
+- Added HTTP 499 (client closed request) to retryable status codes
+- Improved `#isRetryableError()` to extract and check HTTP status codes from
+  error messages
+- Improved `#isRetryableError()` to handle gRPC error messages containing
+  connection issues
+- Bump version
+
+## 2025-11-17
+
+- Added `ZipExtractor` class for native ZIP file extraction without external
+  dependencies
+- Refactored `TarExtractor` to extend shared `BaseExtractor` base class
+- Shared common functionality between extractors: file filtering, directory
+  creation, file writing, and buffer reading utilities
+- Exported `ZipExtractor` from `libutil` package
+- Added comprehensive tests for both `TarExtractor` and `ZipExtractor` with
+  fixture files
+- Fixed `ZipExtractor` to use stream chunk collection for better Node.js
+  compatibility
+
 ## 2025-10-28
 
 - Deprecated `Logger` class (moved to `@copilot-ld/libtelemetry`)

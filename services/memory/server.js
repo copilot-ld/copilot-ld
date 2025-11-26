@@ -11,7 +11,7 @@ import { MemoryService } from "./index.js";
 const config = await createServiceConfig("memory");
 
 // Initialize observability
-const logger = await createLogger("memory");
+const logger = createLogger("memory");
 const tracer = await createTracer("memory");
 
 const memoryStorage = createStorage("memories");

@@ -25,8 +25,14 @@ export class Retry {
    * @private
    */
   #isRetryableStatus(status) {
-    // Retry on rate limits and transient server errors
-    return status === 429 || status === 502 || status === 503 || status === 504;
+    // Retry on rate limits, transient server errors, and client timeouts
+    return (
+      status === 429 ||
+      status === 499 ||
+      status === 502 ||
+      status === 503 ||
+      status === 504
+    );
   }
 
   /**
@@ -37,12 +43,24 @@ export class Retry {
    */
   #isRetryableError(error) {
     const message = error.message.toLowerCase();
+
+    // Check for HTTP status codes in error messages (e.g., "HTTP 499: status code 499")
+    const httpStatusMatch = message.match(/http (\d{3})/);
+    if (httpStatusMatch) {
+      const statusCode = parseInt(httpStatusMatch[1], 10);
+      if (this.#isRetryableStatus(statusCode)) {
+        return true;
+      }
+    }
+
     return (
       message.includes("network") ||
       message.includes("timeout") ||
       message.includes("econnrefused") ||
       message.includes("econnreset") ||
-      message.includes("etimedout")
+      message.includes("etimedout") ||
+      message.includes("unavailable") ||
+      message.includes("fetch failed")
     );
   }
 

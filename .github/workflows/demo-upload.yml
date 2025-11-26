@@ -40,14 +40,8 @@ jobs:
         with:
           retrieve: |
             {
-              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"]
+              "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn", "BucketRegion"]
             }
-
-      - name: Extract parameters for upload
-        id: upload-params
-        run: |
-          echo "s3_bucket_name=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
-          echo "s3_bucket_role_arn=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' ${{ steps.parameters.outputs.parameters-file }})" >> $GITHUB_OUTPUT
 
       - name: Download artifact
         uses: actions/download-artifact@v5
@@ -57,11 +51,29 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
 
+      - name: Debug parameters file location
+        env:
+          PARAMS_FILE: ${{ steps.parameters.outputs.parameters-file }}
+        run: |
+          echo "Expected parameters file: $PARAMS_FILE"
+          echo "Current directory: $(pwd)"
+          echo "Searching for parameters.json files:"
+          find . -name "parameters.json" -type f
+          echo "Parameters file exists check:"
+          if [ -f "$PARAMS_FILE" ]; then
+            echo "✓ File exists at expected location"
+            cat "$PARAMS_FILE"
+          else
+            echo "✗ File NOT found at expected location"
+          fi
+
       - name: Upload data
         env:
           GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
-          S3_BUCKET_NAME: ${{ steps.upload-params.outputs.s3_bucket_name }}
-          S3_BUCKET_ROLE_ARN:
-            ${{ steps.upload-params.outputs.s3_bucket_role_arn }}
+          PARAMS_FILE: ${{ steps.parameters.outputs.parameters-file }}
         run: |
+          export S3_BUCKET_NAME=$(jq -r '.[] | select(.ParameterKey == "BucketName") | .ParameterValue' "$PARAMS_FILE")
+          export S3_BUCKET_ROLE_ARN=$(jq -r '.[] | select(.ParameterKey == "BucketRoleArn") | .ParameterValue' "$PARAMS_FILE")
+          export S3_REGION=$(jq -r '.[] | select(.ParameterKey == "BucketRegion") | .ParameterValue' "$PARAMS_FILE")
+
           npx --workspace=@copilot-ld/libutil upload

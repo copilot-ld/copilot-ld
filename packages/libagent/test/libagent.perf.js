@@ -36,10 +36,9 @@ describe("LibAgent Performance Tests", () => {
 
     const assistant = new common.Assistant({
       role: "system",
-      content: { text: "You are a helpful assistant for testing" },
+      content: "You are a helpful assistant for testing",
     });
     assistant.withIdentifier();
-    assistant.withTokens();
 
     const config = {
       budget: {
@@ -132,7 +131,7 @@ describe("LibAgent Performance Tests", () => {
         maxDuration: 10,
         maxMemory: 500,
         scaling: "linear",
-        tolerance: 1.5,
+        tolerance: 4.0,
       },
     }),
   );

@@ -7,7 +7,7 @@ import { Repl } from "../index.js";
 
 describe("librepl", () => {
   describe("Repl", () => {
-    let mockReadline, mockProcess, mockFormatter;
+    let mockReadline, mockProcess, mockFormatter, mockOs, mockStorage;
 
     beforeEach(() => {
       // Mock readline
@@ -42,62 +42,217 @@ describe("librepl", () => {
         _exitCode: null,
       };
 
-      // Mock formatter
-      mockFormatter = {
+      // Mock formatter factory function
+      mockFormatter = () => ({
         format: (text) => `formatted: ${text}`,
+      });
+
+      // Mock OS module
+      mockOs = {
+        userInfo: () => ({ uid: 1000 }),
+      };
+
+      // Mock storage interface
+      mockStorage = {
+        exists: async () => false,
+        get: async () => ({}),
+        put: async () => {},
       };
     });
 
-    test("creates repl with minimal configuration", () => {
-      const repl = new Repl(mockFormatter);
+    test("creates repl with minimal app configuration", () => {
+      const repl = new Repl(
+        {},
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
       assert(repl instanceof Repl);
     });
 
-    test("creates repl with handlers configuration", () => {
-      const repl = new Repl(mockFormatter, {
+    test("creates repl with complete app configuration", () => {
+      const app = {
         prompt: "test> ",
         onLine: async (input) => `You said: ${input}`,
+        beforeLine: async () => {},
+        afterLine: async () => {},
+        setup: async () => {},
         commands: {
-          test: () => "Test executed",
+          test: async () => "Test executed",
         },
+        help: "Custom help text",
         state: {
           testVar: "default",
         },
-      });
+        storage: mockStorage,
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
       assert(repl instanceof Repl);
+      assert.strictEqual(repl.state.testVar, "default");
     });
 
     test("requires formatter dependency", () => {
       assert.throws(() => {
-        new Repl(null);
+        new Repl({}, null, mockReadline, mockProcess, mockOs);
       }, /formatter dependency is required/);
     });
 
-    test("handles command line argument parsing for state", () => {
-      mockProcess.argv = ["node", "script.js", "--testVar", "fromArgs"];
+    test("handles command line argument parsing for state", async () => {
+      mockProcess.argv = [
+        "node",
+        "script.js",
+        "--testVar",
+        "fromArgs",
+        "--numVar",
+        "42",
+      ];
 
-      const repl = new Repl(
-        mockFormatter,
-        {
-          state: {
-            testVar: "default",
+      const app = {
+        state: {
+          testVar: "default",
+          numVar: 0,
+        },
+        commands: {
+          testVar: {
+            usage: "Set test variable",
+            handler: (args, state) => {
+              state.testVar = args[0];
+            },
+          },
+          numVar: {
+            usage: "Set number variable",
+            handler: (args, state) => {
+              state.numVar = parseInt(args[0]);
+            },
           },
         },
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
         mockReadline,
         mockProcess,
+        mockOs,
       );
 
-      // State should be initialized with command line value
+      // Arguments are parsed during start()
+      await repl.start();
+
+      assert.strictEqual(repl.state.testVar, "fromArgs");
+      assert.strictEqual(repl.state.numVar, 42);
+    });
+
+    test("handles numeric command line arguments", async () => {
+      mockProcess.argv = [
+        "node",
+        "script.js",
+        "--intVal",
+        "100",
+        "--floatVal",
+        "0.75",
+      ];
+
+      const app = {
+        state: {
+          intVal: 0,
+          floatVal: 0.0,
+        },
+        commands: {
+          intVal: {
+            usage: "Set integer value",
+            handler: (args, state) => {
+              state.intVal = parseInt(args[0]);
+            },
+          },
+          floatVal: {
+            usage: "Set float value",
+            handler: (args, state) => {
+              state.floatVal = parseFloat(args[0]);
+            },
+          },
+        },
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
+
+      // Arguments are parsed during start()
+      await repl.start();
+
+      assert.strictEqual(repl.state.intVal, 100);
+      assert.strictEqual(repl.state.floatVal, 0.75);
+    });
+
+    test("initializes with storage interface", () => {
+      const app = {
+        storage: mockStorage,
+        state: {
+          testVar: "default",
+        },
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
+
       assert(repl instanceof Repl);
     });
 
-    // Simplified tests that don't involve async stdin processing
     test("handles interactive mode initialization", () => {
       mockProcess.stdin.isTTY = true;
 
-      const repl = new Repl(mockFormatter, {}, mockReadline, mockProcess);
+      const app = {
+        prompt: "custom> ",
+        onLine: async (input) => `Response: ${input}`,
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
 
       // Just test that it can be created in interactive mode
+      assert(repl instanceof Repl);
+    });
+
+    test("merges default app configuration with provided app", () => {
+      const app = {
+        prompt: "custom> ",
+        commands: {
+          custom: async () => "custom output",
+        },
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
+
+      // Should have custom prompt but other defaults
       assert(repl instanceof Repl);
     });
   });

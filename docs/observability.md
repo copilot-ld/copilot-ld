@@ -41,7 +41,7 @@ agent.ProcessRequest (SERVER)
 │   └── llm.CreateCompletions (SERVER)
 ├── tool.CallTool (CLIENT)
 │   └── tool.CallTool (SERVER)
-│       └── vector.QueryByDescriptor (SERVER)
+│       └── vector.SearchContent (SERVER)
 │           └── llm.CreateEmbeddings (CLIENT)
 │               └── llm.CreateEmbeddings (SERVER)
 └── memory.AppendMemory (CLIENT)
@@ -59,6 +59,35 @@ Each span includes:
 - **Status**: Success (OK) or failure (ERROR)
 
 ## Accessing Traces
+
+### Interactive Trace Visualization
+
+The `visualize` CLI tool provides interactive trace analysis with Mermaid
+sequence diagrams:
+
+```bash
+# Launch visualization REPL
+npm run cli:visualize
+
+# Visualize specific trace by ID
+--trace f6a4a4d0d3e91
+
+# Visualize all traces for a conversation
+--resource common.Conversation.abc123
+
+# Query traces with JMESPath expressions
+> [?kind==`2`]  # All SERVER spans
+> [?contains(name, 'llm')]  # LLM operations
+> [?attributes."service.name"=='agent']  # Agent service spans
+```
+
+**Visualization Features**:
+
+- **Mermaid sequence diagrams**: Shows service interaction timelines
+- **Request/response attributes**: Displays parameters and results
+- **Error highlighting**: Shows error status and messages
+- **Complete trace context**: Includes all related service calls
+- **JMESPath filtering**: Powerful query language for complex conditions
 
 ### Local File Access
 
@@ -524,7 +553,7 @@ Check:
 
 ```bash
 # Find all tool calls for specific function
-TOOL_NAME="query_by_descriptor"
+TOOL_NAME="search_content"
 cat data/traces/2025-10-29.jsonl | jq "
   select(.name == \"tool.CallTool\") |
   select(.events[].attributes.\"request.function.name\" == \"$TOOL_NAME\")

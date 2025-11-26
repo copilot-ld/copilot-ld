@@ -1,14 +1,12 @@
 /* eslint-env node */
 import { Hono } from "hono";
-import { serveStatic } from "@hono/node-server/serve-static";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
+import { agent, common } from "@copilot-ld/libtype";
 import {
   createValidationMiddleware,
   createCorsMiddleware,
 } from "@copilot-ld/libweb";
-import { createLogger } from "@copilot-ld/libutil";
-import { agent, common } from "@copilot-ld/libtype";
 
 // Create HTML formatter with factory function
 const htmlFormatter = createHtmlFormatter();
@@ -17,12 +15,11 @@ const htmlFormatter = createHtmlFormatter();
  * Creates a web extension with configurable dependencies
  * @param {import("@copilot-ld/librpc").clients.AgentClient} client - Agent service gRPC client
  * @param {import("@copilot-ld/libconfig").ExtensionConfig} config - Extension configuration
- * @param {(namespace: string) => import("@copilot-ld/libutil").Logger} [logFn] - Optional logger factory
+ * @param {(namespace: string) => import("@copilot-ld/libtelemetry").Logger} [logger] - Optional logger
  * @returns {Promise<Hono>} Configured Hono application
  */
-export async function createWebExtension(client, config, logFn = createLogger) {
+export async function createWebExtension(client, config, logger = null) {
   const app = new Hono();
-  const logger = logFn("web");
 
   // Create middleware instances
   const validationMiddleware = createValidationMiddleware(config);
@@ -42,10 +39,6 @@ export async function createWebExtension(client, config, logFn = createLogger) {
   app.get("/web/health", (c) => {
     return c.json({ status: "ok" });
   });
-
-  // Serve static files
-  // TODO: Decouple the web extension from the example at extensions/web/public
-  app.use("/web/*", serveStatic({ root: "public" }));
 
   // Route handlers with input validation
   app.post(
@@ -93,10 +86,7 @@ export async function createWebExtension(client, config, logFn = createLogger) {
           status: "success",
         });
       } catch (error) {
-        logger.debug("Web extension error", {
-          error: error.message,
-          path: c.req.path,
-        });
+        logger?.error("API", error, { path: c.req.path });
 
         // Return sanitized error response
         return c.json(

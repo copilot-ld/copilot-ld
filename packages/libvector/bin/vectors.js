@@ -4,9 +4,9 @@ import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createLlm } from "@copilot-ld/libcopilot";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createLogger } from "@copilot-ld/libutil";
-import { VectorIndex } from "@copilot-ld/libvector";
-import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
+import { createLogger } from "@copilot-ld/libtelemetry";
+import { VectorIndex } from "@copilot-ld/libvector/index/vector.js";
+import { VectorProcessor } from "@copilot-ld/libvector/processor/vector.js";
 
 /**
  * Processes resources into vector embeddings
@@ -14,17 +14,16 @@ import { VectorProcessor } from "@copilot-ld/libvector/processor.js";
  */
 async function main() {
   const config = await createScriptConfig("vectors");
+
   const vectorStorage = createStorage("vectors");
 
   const resourceIndex = createResourceIndex("resources");
-  const contentIndex = new VectorIndex(vectorStorage, "content.jsonl");
-  const descriptorIndex = new VectorIndex(vectorStorage, "descriptors.jsonl");
+  const vectorIndex = new VectorIndex(vectorStorage);
   const llm = createLlm(await config.githubToken());
   const logger = createLogger("vectors");
 
   const processor = new VectorProcessor(
-    contentIndex,
-    descriptorIndex,
+    vectorIndex,
     resourceIndex,
     llm,
     logger,
@@ -32,9 +31,8 @@ async function main() {
 
   const actor = "common.System.root";
 
-  // Process both content and descriptor representations
-  await processor.process(actor, "content");
-  await processor.process(actor, "descriptor");
+  // Process content representation
+  await processor.process(actor);
 }
 
 main().catch((error) => {

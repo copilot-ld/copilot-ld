@@ -6,10 +6,12 @@ import { parseArgs } from "node:util";
 
 const PID_FILE = "data/dev.pid";
 const LOG_FILE = "data/dev.log";
+const SHUTDOWN_GRACE_PERIOD = 3000;
 
 const MATCH_PATTERNS = ["npm run dev", "node --watch"];
 
 const SERVICES = [
+  "@copilot-ld/ui",
   "@copilot-ld/web",
   "@copilot-ld/agent",
   "@copilot-ld/memory",
@@ -20,8 +22,8 @@ const SERVICES = [
   "@copilot-ld/trace",
 ];
 
-// Quiet mode flag
-let quietMode = false;
+// Silent mode flag
+let silentMode = false;
 
 // Small helpers for IO and patterns
 const readJson = (path, fallback = {}) =>
@@ -31,12 +33,12 @@ const writeJson = (path, obj) =>
 const matchPattern = () => `(${MATCH_PATTERNS.join("|")})`;
 
 /**
- * Output helper that respects quiet mode
+ * Output helper that respects silent mode
  * @param {string} message - Message to output
  * @returns {void}
  */
 const output = (message) => {
-  if (!quietMode) {
+  if (!silentMode) {
     console.log(message);
   }
 };
@@ -65,8 +67,28 @@ function cleanup() {
   MATCH_PATTERNS.forEach((m) => {
     spawn("bash", ["-c", `pkill -f '${m}' || true`], { stdio: "inherit" });
   });
-  writeFileSync(PID_FILE, "{}");
+  if (existsSync(PID_FILE)) {
+    writeFileSync(PID_FILE, "{}");
+  }
   output("Cleanup complete.");
+}
+
+/**
+ * Check if a process is alive
+ * @param {number} pgid - Process group ID (negative value)
+ * @returns {boolean} True if process is alive
+ */
+function isProcessAlive(pgid) {
+  if (!pgid || typeof pgid !== "number") {
+    return false;
+  }
+  try {
+    // Signal 0 checks if process exists without killing it
+    process.kill(pgid, 0);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -81,23 +103,26 @@ function start() {
 
   const pids = { ...readJson(PID_FILE, {}) };
 
-  // Check if all services are already running and return early
-  const allRunning = SERVICES.every((service) => pids[service]);
-  if (allRunning) {
-    output("All services are already running.");
-    return;
-  }
-
   // Open log file in append mode once for all children
   const logFd = openSync(LOG_FILE, "a");
 
   SERVICES.forEach((service) => {
-    if (pids[service]) {
+    const pgid = pids[service];
+
+    // Check if PID exists and if process is still alive
+    if (pgid && isProcessAlive(pgid)) {
       logStatus(service, "already running");
       return;
     }
 
-    logStatus(service, "starting...");
+    // If PID exists but process is dead, clean it up
+    if (pgid) {
+      logStatus(service, "stale process, restarting...");
+      delete pids[service];
+    } else {
+      logStatus(service, "starting...");
+    }
+
     // Spawn directly without shell redirection; append stdout/stderr via file descriptor
     const child = spawn("bash", ["-c", `npm run dev -w ${service}`], {
       detached: true,
@@ -132,6 +157,11 @@ function stop() {
     }
 
     entries.forEach(([service, pgid]) => {
+      if (!isProcessAlive(pgid)) {
+        logStatus(service, "already stopped");
+        return;
+      }
+
       try {
         process.kill(pgid, "SIGTERM");
         logStatus(service, "stopping...");
@@ -145,16 +175,19 @@ function stop() {
     });
 
     setTimeout(() => {
-      entries.forEach(([, pgid]) => {
-        try {
-          process.kill(pgid, "SIGKILL");
-        } catch {
-          /* ignore */
+      entries.forEach(([service, pgid]) => {
+        if (isProcessAlive(pgid)) {
+          try {
+            process.kill(pgid, "SIGKILL");
+            logStatus(service, "force stopped");
+          } catch {
+            /* ignore */
+          }
         }
       });
       writeFileSync(PID_FILE, "{}");
       output("All services stopped.");
-    }, 2000);
+    }, SHUTDOWN_GRACE_PERIOD);
   } catch (error) {
     console.error("Error reading PID file:", error.message);
   }
@@ -190,9 +223,9 @@ const { values } = parseArgs({
       type: "boolean",
       default: false,
     },
-    quiet: {
+    silent: {
       type: "boolean",
-      short: "q",
+      short: "s",
       default: false,
     },
     help: {
@@ -203,7 +236,7 @@ const { values } = parseArgs({
   },
 });
 
-quietMode = values.quiet;
+silentMode = values.silent;
 
 if (values.help) {
   help();

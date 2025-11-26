@@ -37,14 +37,18 @@ synchronized with all code changes across the platform.
    be complete, valid, and pass ES linting with strict configuration
 9. **🚨 CRITICAL: Spellcheck Strategy 🚨**: Use different approaches for
    different types of terms:
-   - **Code Elements**: Format programming symbols (variable names, class names,
-     method names, property names), file names, directory names, and API/service
-     names with inline markdown code blocks using backticks (`` `symbol` ``)
-   - **Real Words**: Add proper nouns (company names like "OpenAI"), standard
-     English words (like "proxying"), and established technical terminology to
-     `.dictionary.txt`
-   - **Never mix approaches**: Don't add code elements to dictionary, don't use
-     backticks for real words
+   - **Code Elements Only**: Format ONLY programming symbols (variable names,
+     class names, method names, property names, function names), file paths,
+     directory paths, and specific service/API names with inline markdown code
+     blocks using backticks (`` `symbol` ``). Examples:
+     `` `ProcessRequest()` ``, `` `VectorService` ``, `` `config.yml` ``,
+     `` `@copilot-ld/libconfig` ``
+   - **Everything Else**: Add ALL other terms to `.dictionary.txt` including:
+     proper nouns (company/product names), technical terminology (microservices,
+     gRPC, protobuf), domain concepts (embeddings, ontology), and standard
+     English words
+   - **Never mix approaches**: Don't add code symbols to dictionary, don't use
+     backticks for technical concepts or terminology
 
 ## Implementation Requirements
 
@@ -169,12 +173,13 @@ Each component in `extensions/`, `packages/`, and `services/` must maintain a
 - Simple bullet points for each change
 - Descending chronological order (newest first)
 - Updates must be added when component code changes
-- **🚨 CRITICAL: Spellcheck Strategy 🚨**: All programming symbols (classes,
-  methods, variables, properties), file names, service names, and technical
-  identifiers must be formatted with backticks: `` `ClassName` ``,
-  `` `methodName()` ``, `` `fileName.js` ``, `` `ServiceName` `` - **NEVER add
-  programming symbols to `.dictionary.txt`**. Real words (company names,
-  standard English terms) should be added to `.dictionary.txt` instead.
+- **🚨 CRITICAL: Spellcheck Strategy 🚨**: ONLY programming symbols (classes,
+  methods, variables, properties, functions), file paths, and specific
+  service/API identifiers must be formatted with backticks: `` `ClassName` ``,
+  `` `methodName()` ``, `` `fileName.js` ``, `` `VectorService` `` - **NEVER add
+  code symbols to `.dictionary.txt`**. ALL other terms including technical
+  terminology, domain concepts, proper nouns, and standard English words should
+  be added to `.dictionary.txt` instead.
 
 ### Update Requirements
 

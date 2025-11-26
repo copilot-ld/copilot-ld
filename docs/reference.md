@@ -44,7 +44,7 @@ parallel). Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
 
 - **Architecture**: `assistant` → `tasks` → `tools` → `context` → `conversation`
 - **Budgeting formula**:
-  `effective_budget = max(0, config.budget.tokens - assistant.content.tokens)`
+  `effective_budget = max(0, config.budget.tokens - assistant.id.tokens)`
 - **Allocation**: Optional shaping for `tools`, `context`, and `conversation`
   portions
 - **Autonomous decisions**: Agent decides which tools to call without hard-wired
@@ -95,18 +95,17 @@ Handles communication with external AI services (GitHub Copilot, OpenAI, etc.).
 
 #### Vector Service
 
-Performs text-based similarity search operations against dual vector indexes
-(content and descriptor). Returns content strings directly for immediate use.
+Performs text-based similarity search operations against a content vector index.
+Returns content strings directly for immediate use.
 
 **Key Operations**:
 
-- `QueryByContent`: Searches content index, returns matching content strings
-- `QueryByDescriptor`: Searches descriptor index, returns matching descriptors
+- `SearchContent`: Searches content index, returns matching content strings
 
 **Architecture**:
 
 - **Text-based interface**: Accepts text, handles embedding internally via LLM
-- **Dual-index system**: Separate content and descriptor indexes
+- **Single content index**: Vector embeddings of resource content
 - **Direct content return**: Returns strings, not just identifiers
 - **Resource integration**: Uses `ResourceIndex` internally
 - **In-memory operations**: Fast cosine similarity computation
@@ -155,12 +154,18 @@ daily JSONL files for analysis.
 **Key Operations**:
 
 - `RecordSpan`: Receives and stores individual trace spans
-- `QuerySpans`: Retrieves spans for analysis and debugging
+- `QuerySpans`: Retrieves spans with JMESPath query support for flexible
+  filtering
 - `FlushTraces`: Forces buffered spans to disk
 
 **Architecture**:
 
-- **Buffered writes**: Uses `BufferedIndex` for efficient batched I/O
+- **JMESPath queries**: Filter traces by complex conditions (e.g.,
+  `[?kind==\`2\`]` for SERVER spans)
+- **Complete trace retrieval**: Returns all spans from matching traces, not
+  individual spans
+- **Buffered writes**: Uses `BufferedIndex` for efficient batched I/O via
+  `TraceIndex`
 - **Daily rotation**: Stores traces in `data/traces/YYYY-MM-DD.jsonl` format
 - **Self-instrumentation**: Does NOT trace itself to avoid infinite recursion
 - **OTLP export**: Optional export to OpenTelemetry Protocol endpoints
@@ -411,7 +416,7 @@ multiple files.
 4. **Identify**: Generate deterministic hash-based identifiers from entity IRIs
 5. **Merge**: Check for existing resources and merge using RDF union
 6. **Format**: Convert merged RDF to JSON-LD format
-7. **Create**: Build Message resources with content and optional descriptors
+7. **Create**: Build Message resources with string content (JSON-LD format)
 8. **Store**: Persist resources in ResourceIndex
 
 **Merging Strategy (RDF Union Semantics)**:
@@ -461,7 +466,6 @@ await processor.process();
 - Uses SHA-256 hash of entity IRI for deterministic resource naming
 - Extends `ProcessorBase` for batch processing with error isolation
 - Separates parsing logic (`Parser`) from processing logic (`ResourceProcessor`)
-- Optional descriptor generation for semantic resource metadata
 - Stateless processing - no persistent connections between files
 
 ### Graph Processor (libgraph)
@@ -1003,6 +1007,20 @@ const request = trace.QuerySpansRequest.fromObject({
 const response = await client.QuerySpans(request);
 
 console.log(`Found ${response.spans.length} spans`);
+
+// Query with JMESPath expression to filter traces
+const queryRequest = trace.QuerySpansRequest.fromObject({
+  query: "[?kind==`2`]", // All SERVER spans
+  limit: 1000,
+});
+const queryResponse = await client.QuerySpans(queryRequest);
+
+// Query by resource ID (returns complete traces)
+const resourceRequest = trace.QuerySpansRequest.fromObject({
+  resource_id: "common.Conversation.abc123",
+  limit: 1000,
+});
+const resourceResponse = await client.QuerySpans(resourceRequest);
 
 // Force flush buffered spans to disk
 const flushRequest = trace.FlushTracesRequest.fromObject({});

@@ -4,15 +4,10 @@ import fs from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
 
-import { Logger, createLogger } from "@copilot-ld/libtelemetry";
 import { Tokenizer, ranks } from "./tokenizer.js";
 import { Finder } from "./finder.js";
 import { Downloader } from "./downloader.js";
 import { TarExtractor } from "./extractor.js";
-
-// Re-export Logger from libtelemetry for backward compatibility
-// Note: Logger has been moved to @copilot-ld/libtelemetry
-export { Logger, createLogger };
 
 /**
  * Updates or creates an environment variable in .env file
@@ -101,11 +96,13 @@ export function createTokenizer() {
  * Creates a Download instance configured for generated code management
  * This is the new API that services should use instead of ensureGeneratedCode
  * @param {Function} createStorage - Storage factory function from libstorage
- * @returns {Downloader} Configured Downloader instance
+ * @returns {Promise<Downloader>} Configured Downloader instance
  */
-export function createDownloader(createStorage) {
+export async function createDownloader(createStorage) {
   if (!createStorage) throw new Error("createStorage is required");
 
+  // Dynamic import to avoid circular dependency with libtelemetry
+  const { createLogger } = await import("@copilot-ld/libtelemetry");
   const logger = createLogger("generated");
   const finder = new Finder(fs, logger);
   const extractor = new TarExtractor(fs, path);
@@ -152,6 +149,6 @@ export function execLine(shift = 0) {
 export { Finder } from "./finder.js";
 export { Uploader } from "./uploader.js";
 export { Downloader } from "./downloader.js";
-export { TarExtractor } from "./extractor.js";
+export { TarExtractor, ZipExtractor } from "./extractor.js";
 export { ProcessorBase } from "./processor.js";
 export { Retry, createRetry } from "./retry.js";

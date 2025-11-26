@@ -74,7 +74,7 @@ export class BufferedIndex extends IndexBase {
   }
 
   /**
-   * Graceful shutdown with final flush
+   * Shuts down the index by flushing remaining buffer and clearing timer
    * @returns {Promise<void>}
    */
   async shutdown() {

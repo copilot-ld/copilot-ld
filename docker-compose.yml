@@ -29,15 +29,15 @@ services:
   #
 
   alb:
-    image: nginx:alpine
+    build:
+      context: ./infrastructure/docker/alb
+      dockerfile: Dockerfile
+    image: copilot-ld/alb:latest
     container_name: alb.copilot-ld
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./infrastructure/docker/alb/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infrastructure/docker/alb/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./infrastructure/docker/alb/proxy_params:/etc/nginx/proxy_params:ro
       - ./data/cert/localhost.crt:/etc/ssl/certs/localhost.crt:ro
       - ./data/cert/localhost.key:/etc/ssl/private/localhost.key:ro
     networks:
@@ -46,6 +46,19 @@ services:
           - alb.copilot-ld.local
     depends_on:
       - web
+
+  gateway:
+    build:
+      context: ./infrastructure/docker/gateway
+      dockerfile: Dockerfile
+    image: copilot-ld/gateway:latest
+    container_name: gateway.copilot-ld
+    ports:
+      - "3128:3128"
+    networks:
+      internal:
+        aliases:
+          - gateway.copilot-ld.local
 
   storage:
     image: minio/minio:latest
@@ -96,9 +109,6 @@ services:
     image: copilot-ld/agent:latest
     container_name: agent.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/policies:/app/data/policies
-      - ./data/resources:/app/data/resources
     networks:
       internal:
         aliases:
@@ -120,9 +130,6 @@ services:
     image: copilot-ld/memory:latest
     container_name: memory.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/policies:/app/data/policies
-      - ./data/resources:/app/data/resources
     networks:
       internal:
         aliases:
@@ -203,8 +210,6 @@ services:
     image: copilot-ld/trace:latest
     container_name: trace.copilot-ld
     env_file: .env
-    volumes:
-      - ./data/traces:/app/data/traces
     networks:
       internal:
         aliases:

@@ -32,16 +32,14 @@ message Conversation {
 
 message Message {
   resource.Identifier id = 1;
-  resource.Descriptor descriptor = 2;
-  resource.Content content = 3;
-  string role = 4;
-  repeated tool.ToolDefinition tool_calls = 5;
-  optional string tool_call_id = 6;
+  string content = 2;
+  string role = 3;
+  repeated tool.ToolDefinition tool_calls = 4;
+  optional string tool_call_id = 5;
 }
 
 message Assistant {
   resource.Identifier id = 1;
-  resource.Descriptor descriptor = 2;
-  resource.Content content = 3;
-  string role = 4;
+  string content = 2;
+  string role = 3;
 }

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2025-11-25
+
+- Added `UiService` and related resources to `extensions.yml`
+- Configured ALB routing for `/ui/*` to `UiService`
+- Reverted `WebTargetGroup` health check to `/web/health`
+
+## 2025-11-21
+
+- **BREAKING**: Separated ALB and gateway containers to mirror AWS architecture
+  where SSL offloading happens at ALB level, not gateway
+- **NEW**: Created `infrastructure/docker/alb/` with dedicated nginx container
+  for SSL termination and HTTP/HTTPS routing (ports 80/443)
+- **SIMPLIFIED**: Updated `infrastructure/docker/gateway/` to handle only egress
+  proxy functionality (port 3128), removing SSL and ingress routing
+- **NEW**: Created `infrastructure/docker/shared/` for common nginx
+  configuration files shared between ALB and gateway
+- **UPDATED**: Modified `docker-compose.yml` to include separate `alb` and
+  `gateway` services
+- **IMPROVED**: Local Docker Compose setup now mirrors AWS deployment
+  architecture more closely
+- **FIXED**: Resolved issue where AWS infrastructure was incorrectly using
+  unified gateway image that included SSL offloading
+
 ## 2025-10-08
 
 - **FIXED**: Service discovery namespace in `network.yml` now uses simple

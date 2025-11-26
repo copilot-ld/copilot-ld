@@ -8,22 +8,31 @@ import {
   RDF_PREFIXES,
 } from "@copilot-ld/libgraph";
 import { Repl } from "@copilot-ld/librepl";
-import { createTerminalFormatter } from "@copilot-ld/libformat";
 
-// Global state
-/** @type {import("@copilot-ld/libgraph").GraphIndex} */
-let graphIndex;
+const usage = `**Usage:** <subject> <predicate> <object>
+
+Query the graph database using RDF triple patterns with wildcard support.
+Use ? as wildcard for any field. Quote strings containing spaces.
+
+**Examples:**
+
+    echo "person:john ? ?" | npm -s run cli:query
+    echo "? foaf:name ?" | npm -s run cli:query
+    echo '? ? "John Doe"' | npm -s run cli:query
+    echo "? rdf:type schema:Person" | npm -s run cli:query
+    echo "? ? ?" | npm -s run cli:query`;
 
 /**
  * Performs a graph query using the parsed pattern
  * @param {string} prompt - The graph query string (e.g., "person:john ? ?")
+ * @param {object} state - The REPL state object
  * @returns {Promise<string>} Formatted query results as markdown
  */
-async function performQuery(prompt) {
+async function performQuery(prompt, state) {
   try {
     // Parse and execute the query
     const pattern = parseGraphQuery(prompt);
-    const identifiers = await graphIndex.queryItems(pattern);
+    const identifiers = await state.graphIndex.queryItems(pattern);
 
     let output = ``;
 
@@ -32,7 +41,7 @@ async function performQuery(prompt) {
     } else {
       identifiers.forEach((identifier, i) => {
         // Get the graph item directly from the GraphIndex internal index
-        const item = graphIndex.index.get(String(identifier));
+        const item = state.graphIndex.index.get(String(identifier));
 
         if (!item || !item.quads) {
           output += `# ${i + 1}\n\n`;
@@ -43,7 +52,7 @@ async function performQuery(prompt) {
 
         // Convert quads to a readable format using N3 Writer
         const tempStore = new Store();
-        item.quads.slice(0, 10).forEach((quad) => tempStore.addQuad(quad));
+        item.quads.forEach((quad) => tempStore.addQuad(quad));
 
         const writer = new Writer({
           format: "turtle",
@@ -52,10 +61,8 @@ async function performQuery(prompt) {
 
         const quadsText = writer.quadsToString(tempStore.getQuads());
 
-        const hasMore = item.quads.length > 10;
-
         output += `# ${i + 1}: ${identifier}\n\n`;
-        output += `\n\`\`\`turtle\n${quadsText}${hasMore ? "\n  # ... and " + (item.quads.length - 10) + " more triples" : ""}\n\`\`\`\n\n`;
+        output += `\n\`\`\`turtle\n${quadsText}\n\`\`\`\n\n`;
       });
     }
 
@@ -71,20 +78,11 @@ async function performQuery(prompt) {
 }
 
 // Create REPL with dependency injection
-const repl = new Repl(createTerminalFormatter(), {
-  help: `Usage: <subject> <predicate> <object>
+const repl = new Repl({
+  usage,
 
-Use ? as wildcard for any field and quote strings with spaces.
-
-Examples:
-
-person:john ? ?         # Find all about person:john
-? foaf:name "John Doe"  # Find entities named "John Doe"
-? type Person           # Find all Person instances
-? ? ?                   # Find all graphs`,
-
-  setup: async () => {
-    graphIndex = createGraphIndex("graphs");
+  setup: async (state) => {
+    state.graphIndex = createGraphIndex("graphs");
   },
 
   onLine: performQuery,

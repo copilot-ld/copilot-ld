@@ -3,11 +3,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
-import matter from "gray-matter";
 import mustache from "mustache";
 import prettier from "prettier";
 
 import { DocsBuilder } from "@copilot-ld/libdoc";
+import { parseFrontMatter } from "../frontmatter.js";
 
 /**
  * Main function to handle CLI execution
@@ -28,7 +28,7 @@ async function main() {
     fs,
     path,
     marked,
-    matter,
+    parseFrontMatter,
     mustache.render,
     prettier,
   );

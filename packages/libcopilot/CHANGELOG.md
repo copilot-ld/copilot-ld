@@ -1,5 +1,44 @@
 # Changelog
 
+## 2025-11-24
+
+- Bump version
+
+## 2025-11-22
+
+- Bump version
+- Bump version
+
+## 2025-11-19
+
+- Bump version
+- Bump version
+
+## 2025-11-18
+
+- Extracted tool description formatting logic into dedicated `formatter.js`
+  helper file
+- Created `formatToolDescription()` function for reusable tool description
+  parsing and formatting
+
+## 2025-11-17
+
+- Fixed tool description formatting in `createCompletions()` to properly parse
+  and format JSON-structured content fields
+- Tool descriptions are now parsed from JSON format and formatted with clear
+  sections (PURPOSE, WHEN TO USE, HOW TO USE, RETURNS)
+- Ensures LLM receives properly formatted tool descriptions instead of raw JSON
+  strings
+
+## 2025-11-18
+
+- Bump version
+- Added HTTPS proxy support via `HTTPS_PROXY` environment variable
+- Added `https-proxy-agent` dependency for proxy configuration
+- Created `createProxyAwareFetch()` helper function to automatically configure
+  proxy when `HTTPS_PROXY` or `https_proxy` environment variables are set
+- Updated `createLlm()` factory to use proxy-aware fetch by default
+
 ## 2025-10-19
 
 - Bump version

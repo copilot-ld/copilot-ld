@@ -1,0 +1,91 @@
+#!/usr/bin/env node
+/* eslint-env node */
+import { Repl } from "@copilot-ld/librepl";
+import { createStorage } from "@copilot-ld/libstorage";
+
+import { TraceIndex } from "../index/trace.js";
+import { TraceVisualizer } from "../visualizer.js";
+
+const usage = `**Usage:** <JMESPath expression>
+
+Query and visualize traces from the trace index using JMESPath expressions.
+Apply filters to narrow down traces before querying.
+
+**Examples:**
+
+    echo "[?name=='ProcessRequest']" | npm -s run cli:visualize
+    echo "[]" | npm -s run cli:visualize -- --trace 0f53069dbc62d
+    echo "[?kind==\`2\`]" | npm -s run cli:visualize
+    echo "[?contains(name, 'QueryByPattern')]" | npm -s run cli:visualize -- --resource common.Conversation.abc123`;
+
+/**
+ * Queries and visualizes traces using JMESPath
+ * @param {string} prompt - The JMESPath query expression
+ * @param {object} state - REPL state containing trace filters and indices
+ * @returns {Promise<string>} Trace visualization wrapped in mermaid code block
+ */
+async function queryTraces(prompt, state) {
+  const { trace_id, resource_id, visualizer } = state;
+
+  const filter = {};
+  if (trace_id) {
+    filter.trace_id = trace_id;
+  }
+  if (resource_id) {
+    filter.resource_id = resource_id;
+  }
+
+  // If prompt is empty, visualize without JMESPath query
+  const query = prompt.trim() || null;
+
+  const visualization = await visualizer.visualize(query, filter);
+
+  // If no spans found, return as-is
+  if (visualization.startsWith("No spans found")) {
+    return visualization;
+  }
+
+  // Wrap raw Mermaid syntax in code block
+  return `\`\`\`mermaid\n${visualization}\n\`\`\``;
+}
+
+// Create REPL with dependency injection
+const repl = new Repl({
+  usage,
+
+  setup: async (state) => {
+    const traceStorage = createStorage("traces");
+    state.traceIndex = new TraceIndex(traceStorage, "index.jsonl");
+    state.visualizer = new TraceVisualizer(state.traceIndex);
+  },
+
+  state: {
+    trace_id: null,
+    resource_id: null,
+  },
+
+  commands: {
+    trace: {
+      usage: "Filter traces by trace ID",
+      handler: (args, state) => {
+        if (args.length === 0) {
+          return "Usage: /trace <id>";
+        }
+        state.trace_id = args[0];
+      },
+    },
+    resource: {
+      usage: "Filter traces by resource ID",
+      handler: (args, state) => {
+        if (args.length === 0) {
+          return "Usage: /resource <id>";
+        }
+        state.resource_id = args[0];
+      },
+    },
+  },
+
+  onLine: queryTraces,
+});
+
+repl.start();

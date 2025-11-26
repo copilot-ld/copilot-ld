@@ -34,11 +34,11 @@ export class ProcessorBase {
     }
 
     if (items.length === 0) {
-      this.#logger.debug("No items to process", { context });
+      this.#logger.debug("Processor", "No items to process", { context });
       return;
     }
 
-    this.#logger.debug("Starting batch processing", {
+    this.#logger.debug("Processor", "Starting batch", {
       total: items.length,
       context,
     });
@@ -82,7 +82,7 @@ export class ProcessorBase {
   async processBatch(batch, processed, total, context) {
     const batchSize = batch.length;
 
-    this.#logger.debug("Processing batch", {
+    this.#logger.debug("Processor", "Processing batch", {
       items:
         batchSize > 1
           ? `${processed + 1}-${processed + batchSize}/${total}`
@@ -95,7 +95,7 @@ export class ProcessorBase {
       try {
         return await this.processItem(item);
       } catch (error) {
-        this.#logger.debug("Skipping, failed to process item", {
+        this.#logger.debug("Processor", "Skipping, failed to process item", {
           item: `${globalIndex + 1}/${total}`,
           context,
           error: error.message,

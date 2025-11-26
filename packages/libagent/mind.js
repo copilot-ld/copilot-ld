@@ -64,15 +64,10 @@ export class AgentMind {
 
     if (message?.id) {
       // Append message to memory with token count for filtering
-      const messageIdentifier = {
-        ...message.id.toJSON(),
-        tokens: message.content?.tokens || 0,
-      };
-
       await this.#callbacks.memory.append(
         memory.AppendRequest.fromObject({
           resource_id,
-          identifiers: [messageIdentifier],
+          identifiers: [message.id],
         }),
       );
 
@@ -98,6 +93,7 @@ export class AgentMind {
         budget * this.#config.budget?.allocation?.context,
       );
       const githubToken = req.github_token;
+      const model = req.model;
 
       // Use AgentHands for tool execution
       const completions = await this.#hands.executeToolLoop(
@@ -106,24 +102,19 @@ export class AgentMind {
         tools,
         maxTokens,
         githubToken,
+        model,
       );
 
       // Save the response
       if (completions?.choices?.length > 0) {
         completions.choices[0].message.withIdentifier(conversation.id);
-        completions.choices[0].message.withTokens();
         this.#resourceIndex.put(completions.choices[0].message);
 
         // Append response to memory with token count for filtering
-        const responseIdentifier = {
-          ...completions.choices[0].message.id.toJSON(),
-          tokens: completions.choices[0].message.content?.tokens || 0,
-        };
-
         await this.#callbacks.memory.append(
           memory.AppendRequest.fromObject({
             resource_id,
-            identifiers: [responseIdentifier],
+            identifiers: [completions.choices[0].message.id],
           }),
         );
       }
@@ -149,7 +140,10 @@ export class AgentMind {
     // Step 1: Initiate the conversation
     if (req.resource_id) {
       [conversation] = await this.#resourceIndex.get([req.resource_id], actor);
-    } else {
+    }
+
+    // Create new conversation if none exists or none was found
+    if (!conversation) {
       conversation = common.Conversation.fromObject({
         id: {
           name: generateUUID(),
@@ -164,7 +158,6 @@ export class AgentMind {
       throw new Error("No user message found in request");
     }
     message.withIdentifier(conversation.id);
-    message.withTokens();
     this.#resourceIndex.put(message);
 
     // Step 2: Load assistant and tasks, subtract from token budget
@@ -267,18 +260,16 @@ export class AgentMind {
     let budget = this.#config.budget?.tokens;
 
     // Subtract tokens used by assistant configuration
-    budget = Math.max(0, budget - assistant.content.tokens);
+    budget = Math.max(0, budget - (assistant.id?.tokens || 0));
 
     // Subtract tokens used by permanent tools
-    // Tools only have a token count on their descriptor as the "content"
-    // is the function definition
     for (const tool of permanentTools) {
-      budget = Math.max(0, budget - (tool.descriptor?.tokens || 0));
+      budget = Math.max(0, budget - (tool.id?.tokens || 0));
     }
 
     // Subtract tokens used by tasks
     for (const task of tasks) {
-      budget = Math.max(0, budget - (task.descriptor?.tokens || 0));
+      budget = Math.max(0, budget - (task.id?.tokens || 0));
     }
 
     return budget;

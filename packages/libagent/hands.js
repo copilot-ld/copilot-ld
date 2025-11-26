@@ -33,9 +33,17 @@ export class AgentHands {
    * @param {object[]} tools - Array of available tools
    * @param {number} maxTokens - Maximum tokens for tool calls
    * @param {string} githubToken - GitHub token for LLM calls
+   * @param {string} [model] - Optional model override for LLM service
    * @returns {Promise<object>} LLM completions response
    */
-  async executeToolLoop(resourceId, messages, tools, maxTokens, githubToken) {
+  async executeToolLoop(
+    resourceId,
+    messages,
+    tools,
+    maxTokens,
+    githubToken,
+    model,
+  ) {
     let completions = {};
     let maxIterations = 10;
     let currentIteration = 0;
@@ -48,6 +56,7 @@ export class AgentHands {
         tools,
         temperature: this.#config.temperature,
         github_token: githubToken,
+        model,
       });
 
       completions =
@@ -73,6 +82,7 @@ export class AgentHands {
         messages,
         maxTokens,
         githubToken,
+        model,
       );
       currentIteration++;
     }
@@ -86,9 +96,10 @@ export class AgentHands {
    * @param {object} toolCall - Tool call object
    * @param {number} maxTokens - Maximum tokens for tool call
    * @param {string} githubToken - GitHub token for LLM calls
+   * @param {string} [_model] - Optional model override (unused in tool calls)
    * @returns {Promise<import("./index.js").ToolExecutionResult>} Tool result
    */
-  async executeToolCall(resourceId, toolCall, maxTokens, githubToken) {
+  async executeToolCall(resourceId, toolCall, maxTokens, githubToken, _model) {
     try {
       // Create proper ToolDefinition for the service call
       const toolDefinition = tool.ToolDefinition.fromObject({
@@ -182,18 +193,9 @@ export class AgentHands {
         actor,
       );
 
-      // Determine which representation to use (default to "content")
-      const representation = result.representation || "content";
-
-      // Convert resources to strings based on representation
+      // Convert resources to content strings
       return resources
-        .map((resource) => {
-          const field =
-            representation === "descriptor"
-              ? resource.descriptor
-              : resource.content;
-          return String(field);
-        })
+        .map((resource) => resource.content)
         .filter((text) => text.length > 0);
     }
 
@@ -208,6 +210,7 @@ export class AgentHands {
    * @param {object[]} messages - Array of messages
    * @param {number} maxTokens - Maximum tokens for tool calls
    * @param {string} githubToken - GitHub token for LLM calls
+   * @param {string} [model] - Optional model override for LLM service
    * @returns {Promise<void>}
    */
   async processToolCalls(
@@ -216,6 +219,7 @@ export class AgentHands {
     messages,
     maxTokens,
     githubToken,
+    model,
   ) {
     // Add the assistant's message with tool calls to conversation
     messages.push(choiceWithToolCalls.message);
@@ -232,6 +236,7 @@ export class AgentHands {
         toolCall,
         perToolLimit,
         githubToken,
+        model,
       );
 
       messages.push(toolResult.message);

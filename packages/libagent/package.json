@@ -1,13 +1,13 @@
 {
   "name": "@copilot-ld/libagent",
-  "version": "0.1.9",
+  "version": "0.1.19",
   "description": "Agent orchestration library for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
   "bin": {
-    "assistants": "./bin/assistants.js"
+    "process-assistants": "./bin/assistants.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -16,9 +16,10 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.39",
-    "@copilot-ld/libutil": "^0.1.37",
-    "js-yaml": "^4.1.0"
+    "@copilot-ld/libtelemetry": "^0.2.7",
+    "@copilot-ld/libtype": "^0.1.48",
+    "@copilot-ld/libutil": "^0.1.45",
+    "js-yaml": "^4.1.1"
   },
   "devDependencies": {},
   "repository": {

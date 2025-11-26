@@ -121,7 +121,7 @@ export class Finder {
 
     // Create the symlink
     await fsAsync.symlink(sourcePath, targetPath, "dir");
-    this.#logger.debug("Created symlink", {
+    this.#logger.debug("Finder", "Created symlink", {
       source: sourcePath,
       target: targetPath,
     });

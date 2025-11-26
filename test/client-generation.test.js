@@ -47,7 +47,7 @@ describe("Generated client locations", () => {
   test("Vector client class shape", () => {
     assert.ok(VectorClient);
     assert.ok(VectorClient.prototype instanceof Client);
-    ["QueryByContent", "QueryByDescriptor"].forEach((m) =>
+    ["SearchContent"].forEach((m) =>
       assert.strictEqual(typeof VectorClient.prototype[m], "function"),
     );
   });

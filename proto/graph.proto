@@ -8,6 +8,7 @@ import "tool.proto";
 service Graph {
   rpc QueryByPattern(PatternQuery) returns (tool.ToolCallResult);
   rpc GetOntology(common.Empty) returns (tool.ToolCallResult);
+  rpc GetSubjects(SubjectsQuery) returns (tool.ToolCallResult);
 }
 
 message PatternQuery {
@@ -15,4 +16,8 @@ message PatternQuery {
   string predicate = 2;
   string object = 3;
   optional tool.QueryFilter filter = 4;
+}
+
+message SubjectsQuery {
+  optional string type = 1;
 }

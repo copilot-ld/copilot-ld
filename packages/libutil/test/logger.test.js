@@ -3,7 +3,7 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { Logger, createLogger } from "../index.js";
+import { Logger, createLogger } from "@copilot-ld/libtelemetry";
 
 describe("Logger", () => {
   let originalDebug;
@@ -22,22 +22,22 @@ describe("Logger", () => {
     console.error = originalConsoleError;
   });
 
-  test("creates Logger with namespace", () => {
+  test("creates Logger with domain", () => {
     const logger = new Logger("test");
 
     assert.ok(logger instanceof Logger);
-    assert.strictEqual(logger.namespace, "test");
+    assert.strictEqual(logger.domain, "test");
   });
 
   test("validates constructor parameters", () => {
     assert.throws(() => new Logger(), {
-      message: /namespace must be a non-empty string/,
+      message: /domain must be a non-empty string/,
     });
     assert.throws(() => new Logger(""), {
-      message: /namespace must be a non-empty string/,
+      message: /domain must be a non-empty string/,
     });
     assert.throws(() => new Logger(null), {
-      message: /namespace must be a non-empty string/,
+      message: /domain must be a non-empty string/,
     });
   });
 
@@ -55,7 +55,7 @@ describe("Logger", () => {
     assert.strictEqual(logger.enabled, false);
   });
 
-  test("enables logging for exact namespace match", () => {
+  test("enables logging for exact domain match", () => {
     process.env.DEBUG = "test,other";
     const logger = new Logger("test");
 
@@ -69,7 +69,7 @@ describe("Logger", () => {
     assert.strictEqual(logger.enabled, true);
   });
 
-  test("disables logging for non-matching namespace", () => {
+  test("disables logging for non-matching domain", () => {
     process.env.DEBUG = "other";
     const logger = new Logger("test");
 
@@ -80,17 +80,20 @@ describe("Logger", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test");
 
-    logger.debug("Test message");
+    logger.debug("TestApp", "Test message");
 
     assert.strictEqual(consoleOutput.length, 1);
-    assert.ok(consoleOutput[0].includes("test: Test message"));
+    assert.ok(consoleOutput[0].includes("DEBUG"));
+    assert.ok(consoleOutput[0].includes("test"));
+    assert.ok(consoleOutput[0].includes("TestApp"));
+    assert.ok(consoleOutput[0].includes("Test message"));
   });
 
   test("does not log when disabled", () => {
     process.env.DEBUG = "other";
     const logger = new Logger("test");
 
-    logger.debug("Test message");
+    logger.debug("TestApp", "Test message");
 
     assert.strictEqual(consoleOutput.length, 0);
   });
@@ -99,46 +102,115 @@ describe("Logger", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test");
 
-    logger.debug("Processing", { items: "50/200", retry: "2/3" });
+    logger.debug("ProcessMethod", "Processing", {
+      items: "50/200",
+      retry: "2/3",
+    });
 
     assert.strictEqual(consoleOutput.length, 1);
-    assert.ok(
-      consoleOutput[0].includes("test: Processing items=50/200 retry=2/3"),
-    );
+    assert.ok(consoleOutput[0].includes("DEBUG"));
+    assert.ok(consoleOutput[0].includes("test"));
+    assert.ok(consoleOutput[0].includes("ProcessMethod"));
+    assert.ok(consoleOutput[0].includes("Processing"));
+    assert.ok(consoleOutput[0].includes("items=50/200"));
+    assert.ok(consoleOutput[0].includes("retry=2/3"));
   });
 
   test("handles empty data object", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test");
 
-    logger.debug("Test message", {});
+    logger.debug("TestApp", "Test message", {});
 
     assert.strictEqual(consoleOutput.length, 1);
-    assert.ok(consoleOutput[0].includes("test: Test message"));
+    assert.ok(consoleOutput[0].includes("DEBUG"));
+    assert.ok(consoleOutput[0].includes("Test message"));
   });
 
   test("includes timestamp in log output", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test");
 
-    logger.debug("Test message");
+    logger.debug("TestApp", "Test message");
 
     assert.strictEqual(consoleOutput.length, 1);
-    assert.ok(consoleOutput[0].match(/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/));
+    assert.ok(consoleOutput[0].match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/));
+  });
+
+  test("extracts trace context from error objects", () => {
+    process.env.DEBUG = "test";
+    const logger = new Logger("test");
+
+    // Create error with trace context (as added by Tracer)
+    const error = new Error("Test error");
+    Object.defineProperties(error, {
+      trace_id: {
+        value: "abc123def456",
+        enumerable: false,
+        writable: false,
+      },
+      span_id: {
+        value: "789xyz012",
+        enumerable: false,
+        writable: false,
+      },
+      service_name: {
+        value: "test-service",
+        enumerable: false,
+        writable: false,
+      },
+    });
+
+    logger.error("TestMethod", error);
+
+    assert.strictEqual(consoleOutput.length, 1);
+    assert.ok(consoleOutput[0].includes("ERROR"));
+    assert.ok(consoleOutput[0].includes("Test error"));
+    assert.ok(
+      consoleOutput[0].includes("trace_id=abc123def456"),
+      "Should include trace_id in structured data",
+    );
+    assert.ok(
+      consoleOutput[0].includes("span_id=789xyz012"),
+      "Should include span_id in structured data",
+    );
+    assert.ok(
+      consoleOutput[0].includes("service_name=test-service"),
+      "Should include service_name in structured data",
+    );
+  });
+
+  test("merges trace context with provided attributes", () => {
+    process.env.DEBUG = "test";
+    const logger = new Logger("test");
+
+    const error = new Error("Test error");
+    Object.defineProperty(error, "trace_id", {
+      value: "trace123",
+      enumerable: false,
+      writable: false,
+    });
+
+    logger.error("TestMethod", error, { retry: "1/3", status: "500" });
+
+    assert.strictEqual(consoleOutput.length, 1);
+    assert.ok(consoleOutput[0].includes("trace_id=trace123"));
+    assert.ok(consoleOutput[0].includes("retry=1/3"));
+    assert.ok(consoleOutput[0].includes("status=500"));
   });
 });
 
-describe("logFactory", () => {
+describe("createLogger", () => {
   test("creates Logger instance", () => {
     const logger = createLogger("test");
 
     assert.ok(logger instanceof Logger);
-    assert.strictEqual(logger.namespace, "test");
+    assert.strictEqual(logger.domain, "test");
   });
 
-  test("passes through namespace validation", () => {
+  test("passes through domain validation", () => {
     assert.throws(() => createLogger(""), {
-      message: /namespace must be a non-empty string/,
+      message: /domain must be a non-empty string/,
     });
   });
 });

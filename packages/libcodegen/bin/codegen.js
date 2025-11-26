@@ -11,7 +11,8 @@ import { parseArgs } from "node:util";
 import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
-import { Finder, Logger } from "@copilot-ld/libutil";
+import { Finder } from "@copilot-ld/libutil";
+import { Logger } from "@copilot-ld/libtelemetry";
 import {
   CodegenBase,
   CodegenTypes,

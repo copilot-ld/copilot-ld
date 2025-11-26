@@ -5,16 +5,7 @@ import { trace } from "@copilot-ld/libtype";
  * Represents a single span in a trace
  */
 export class Span {
-  #traceId;
-  #spanId;
-  #parentSpanId;
-  #name;
-  #kind;
-  #startTime;
-  #endTime;
-  #attributes;
-  #events;
-  #status;
+  #object;
   #traceClient;
 
   /**
@@ -37,15 +28,18 @@ export class Span {
     parentSpanId,
     traceClient,
   }) {
-    this.#traceId = traceId || this.#generateId();
-    this.#spanId = this.#generateId();
-    this.#parentSpanId = parentSpanId || "";
-    this.#name = name;
-    this.#kind = kind;
-    this.#startTime = process.hrtime.bigint();
-    this.#attributes = { "service.name": serviceName, ...attributes };
-    this.#events = [];
-    this.#status = { code: "STATUS_CODE_UNSET", message: "" };
+    this.#object = {
+      trace_id: traceId || this.#generateId(),
+      span_id: this.#generateId(),
+      parent_span_id: parentSpanId || "",
+      name,
+      kind,
+      start_time_unix_nano: String(process.hrtime.bigint()),
+      end_time_unix_nano: "",
+      attributes: { "service.name": serviceName, ...attributes },
+      events: [],
+      status: { code: trace.Code.UNSET, message: "" },
+    };
     this.#traceClient = traceClient;
   }
 
@@ -55,7 +49,7 @@ export class Span {
    * @param {object} [attributes] - Event attributes
    */
   addEvent(name, attributes = {}) {
-    this.#events.push({
+    this.#object.events.push({
       name,
       time_unix_nano: String(process.hrtime.bigint()),
       attributes,
@@ -68,19 +62,28 @@ export class Span {
    * @param {string} value - Attribute value
    */
   setAttribute(key, value) {
-    this.#attributes[key] = String(value);
+    this.#object.attributes[key] = String(value);
   }
 
   /**
-   * Sets the span status
-   * @param {object} status - Status object
-   * @param {string} status.code - Status code: 'OK', 'ERROR', 'UNSET'
-   * @param {string} [status.message] - Error message if code is ERROR
+   * Sets the status to ERROR
+   * @param {Error} error - Error object
+   * @returns {void}
    */
-  setStatus(status) {
-    this.#status = {
-      code: status.code || "STATUS_CODE_UNSET",
-      message: status.message || "",
+  setError(error) {
+    this.#object.status = {
+      code: trace.Code.ERROR,
+      message: error?.message || String(error),
+    };
+  }
+
+  /**
+   * Sets the status to OK
+   * @returns {void}
+   */
+  setOk() {
+    this.#object.status = {
+      code: trace.Code.OK,
     };
   }
 
@@ -89,27 +92,10 @@ export class Span {
    * @returns {Promise<void>}
    */
   async end() {
-    this.#endTime = process.hrtime.bigint();
+    this.#object.end_time_unix_nano = String(process.hrtime.bigint());
 
-    try {
-      const span = trace.Span.fromObject({
-        trace_id: this.#traceId,
-        span_id: this.#spanId,
-        parent_span_id: this.#parentSpanId,
-        name: this.#name,
-        kind: this.#kind,
-        start_time_unix_nano: String(this.#startTime),
-        end_time_unix_nano: String(this.#endTime),
-        attributes: this.#attributes,
-        events: this.#events,
-        status: this.#status,
-      });
-
-      await this.#traceClient.RecordSpan(span);
-    } catch (error) {
-      // Don't throw - tracing should never break the application
-      console.error(`Failed to record span: ${error.message}`);
-    }
+    const span = trace.Span.fromObject(this.#object);
+    await this.#traceClient.RecordSpan(span);
   }
 
   /**
@@ -124,39 +110,58 @@ export class Span {
    * Gets the trace ID
    * @returns {string} Trace ID
    */
-  get traceId() {
-    return this.#traceId;
+  get trace_id() {
+    return this.#object.trace_id;
   }
 
   /**
    * Sets the trace ID
-   * @param {string} traceId - New trace ID
+   * @param {string} trace_id - New trace ID
    */
-  set traceId(traceId) {
-    this.#traceId = traceId;
+  set trace_id(trace_id) {
+    this.#object.trace_id = trace_id;
   }
 
   /**
    * Gets the span ID
    * @returns {string} Span ID
    */
-  get spanId() {
-    return this.#spanId;
+  get span_id() {
+    return this.#object.span_id;
   }
 
   /**
    * Gets the parent span ID
    * @returns {string} Parent span ID
    */
-  get parentSpanId() {
-    return this.#parentSpanId;
+  get parent_span_id() {
+    return this.#object.parent_span_id;
   }
 
   /**
    * Sets the parent span ID
-   * @param {string} parentSpanId - New parent span ID
+   * @param {string} parent_span_id - New parent span ID
    */
-  set parentSpanId(parentSpanId) {
-    this.#parentSpanId = parentSpanId;
+  set parent_span_id(parent_span_id) {
+    this.#object.parent_span_id = parent_span_id;
+  }
+
+  /**
+   * Gets the resource ID
+   * @returns {string} Resource ID
+   */
+  get resource_id() {
+    return this.#object?.resource?.attributes?.id;
+  }
+
+  /**
+   * Sets the resource ID
+   * @param {string} resource_id - New resource ID
+   */
+  set resource_id(resource_id) {
+    if (!this.#object.resource) {
+      this.#object.resource = { attributes: {} };
+    }
+    this.#object.resource.attributes.id = resource_id;
   }
 }

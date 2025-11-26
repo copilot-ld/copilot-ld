@@ -1,5 +1,23 @@
 # Changelog
 
+## 2025-11-24
+
+- Bump version
+
+## 2025-11-22
+
+- Bump version
+- Bump version
+
+## 2025-11-19
+
+- Bump version
+- Bump version
+
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-27
 
 - **BREAKING**: Replaced static `.create()` methods with factory functions for

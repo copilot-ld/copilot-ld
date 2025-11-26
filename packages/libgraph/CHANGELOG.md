@@ -1,5 +1,43 @@
 # Changelog
 
+## 2025-11-24
+
+- Bump version
+
+## 2025-11-22
+
+- Bump version
+- Bump version
+
+## 2025-11-19
+
+- Bump version
+- Bump version
+
+## 2025-11-18
+
+- Added `exports` field to `package.json` to properly expose `index/graph.js`
+  path for Docker container module resolution
+
+## 2025-11-17
+
+- Fixed `GraphProcessor` to skip non-RDF resources (`common.Assistant`,
+  `tool.ToolFunction`) and only process RDF-containing resources like
+  `common.Message`
+- Added try-catch in `GraphProcessor.processItem()` to gracefully handle non-RDF
+  content instead of throwing errors
+- Enhanced resource filtering to explicitly exclude non-RDF resource types
+
+## 2025-11-18
+
+- Fixed `GraphProcessor.processItem()` to expect `content` as string instead of
+  `content.nquads` object property
+- Fixed `GraphProcessor.process()` filtering to check for string content instead
+  of `content?.nquads`
+- Updated all processor tests to use `content` as string instead of object with
+  `nquads` property
+- Bump version
+
 ## 2025-10-26
 
 - Added performance tests in `test/libgraph.perf.js` for `parseGraphQuery()`,

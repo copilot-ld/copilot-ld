@@ -1,0 +1,41 @@
+name: Bump
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generate release token
+        id: release-manager
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.RELEASE_MANAGER_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.release-manager.outputs.token }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Bump versions and tag
+        run: |
+          git status
+          git pull --rebase origin main
+          ITEMS=$(for dir in extensions packages services; do \
+            ls -1d $dir/*/ 2>/dev/null | sed 's|/$||'; \
+          done | sort | paste -sd ' ' -)
+          npx --workspace=@copilot-ld/librel rel-bump --force minor $ITEMS
+          git push origin main --tags

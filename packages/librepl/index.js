@@ -1,5 +1,22 @@
 /* eslint-env node */
+import os from "os";
 import readline from "readline";
+
+import { createTerminalFormatter } from "@copilot-ld/libformat";
+
+/**
+ * REPL application configuration
+ * @typedef {object} ReplApp
+ * @property {string} [prompt="> "] - Prompt string displayed to the user
+ * @property {(line: string, state: object) => Promise<string>} [onLine] - Handler for input lines that returns response text
+ * @property {(state: object) => Promise<void>} [beforeLine] - Handler called before each line is processed
+ * @property {(state: object) => Promise<void>} [afterLine] - Handler called after each line is processed
+ * @property {(state: object) => Promise<void>} [setup] - Setup function to run before starting the REPL
+ * @property {{[key: string]: {usage: string, handler: (args: string[], state: object) => Promise<string|false>, type?: string, cli?: boolean}}} [commands] - Custom command definitions with usage, handler (returns false to exit early in CLI mode), optional type ("boolean" for no args), and optional cli flag (false to hide from CLI usage)
+ * @property {string} [usage] - Static help text to show before the command list
+ * @property {{[key: string]: any}} [state] - Definition of state and its initial values
+ * @property {import("@copilot-ld/libstorage").StorageInterface} [storage] - Storage interface for state persistence
+ */
 
 /**
  * Simple REPL with dependency injection
@@ -8,73 +25,162 @@ export class Repl {
   #readline;
   #process;
   #formatter;
-  #config;
+  #app;
   #rl;
+  #uid;
 
   /**
    * Creates a REPL instance with injected dependencies
-   * @param {import("@copilot-ld/libformat").FormatterInterface} formatter - Formatter instance for output formatting
-   * @param {object} config - REPL configuration
-   * @param {string} config.prompt - Prompt string
-   * @param {Function} config.onLine - Handler for input lines
-   * @param {Function} config.setup - Setup function to run before starting
-   * @param {{[key: string]: Function}} config.commands - Custom command handlers
-   * @param {string} config.help - Static help text to show before command list
-   * @param {{[key: string]: any}} config.state - State variables that can be set via command line args
+   * @param {ReplApp} app - REPL application configuration
+   * @param {Function} formatterFn - Factory function that creates a formatter instance
    * @param {object} readlineModule - Readline module for creating interfaces
-   * @param {object} processObj - Process object for stdin/stdout and exit
+   * @param {object} processModule - Process object for stdin/stdout and exit
+   * @param {object} osModule - OS module for system information
    */
   constructor(
-    formatter,
-    config = {},
+    app = {},
+    formatterFn = createTerminalFormatter,
     readlineModule = readline,
-    processObj = process,
+    processModule = global.process,
+    osModule = os,
   ) {
-    if (!formatter) throw new Error("formatter dependency is required");
+    if (!formatterFn) throw new Error("formatter dependency is required");
+    if (!readlineModule) throw new Error("readline dependency is required");
+    if (!processModule) throw new Error("process dependency is required");
+    if (!osModule) throw new Error("os dependency is required");
 
-    this.#formatter = formatter;
+    this.#formatter = formatterFn();
     this.#readline = readlineModule;
-    this.#process = processObj;
-    this.#config = {
+    this.#process = processModule;
+
+    // Define default commands
+    const defaultCommands = {
+      clear: {
+        usage: "Clear state to initial values",
+        type: "boolean",
+        handler: async () => {
+          await this.#clearState();
+          return false; // Early exit
+        },
+      },
+      help: {
+        usage: "Show this help message",
+        type: "boolean",
+        handler: async () => {
+          await this.#showHelp();
+          return false; // Early exit
+        },
+      },
+      exit: {
+        usage: "Exit the application",
+        type: "boolean",
+        cli: false,
+        handler: async () => {
+          this.#process.exit(0);
+          return false; // Early exit
+        },
+      },
+    };
+
+    this.#app = {
       prompt: "> ",
       onLine: null,
+      beforeLine: null,
+      afterLine: null,
       setup: null,
-      commands: {},
       state: {},
-      ...config,
+      ...app,
+      // Merge built-in commands with custom commands, allowing custom commands to override
+      commands: {
+        ...defaultCommands,
+        ...(app.commands || {}),
+      },
     };
     this.#rl = null;
 
-    // Initialize state from config and parse command line arguments
-    this.state = { ...this.#config.state };
-    this.#parseCommandLineArgs();
+    // Get system UID for state persistence
+    this.#uid = osModule.userInfo().uid;
+
+    // Initialize state from app configuration
+    this.state = { ...this.#app.state };
+
+    // Sort commands alphabetically for consistent help display
+    this.#app.commands = Object.fromEntries(
+      Object.entries(this.#app.commands).sort(([a], [b]) => a.localeCompare(b)),
+    );
   }
 
   /**
-   * Parses command line arguments to override state values
+   * Resets state to initial values from app configuration
+   * @returns {Promise<void>}
    */
-  #parseCommandLineArgs() {
+  async #clearState() {
+    // Only reset keys that are defined in the app's initial state
+    for (const key of Object.keys(this.#app.state)) {
+      this.state[key] = this.#app.state[key];
+    }
+    await this.#saveState();
+  }
+
+  /**
+   * Parses command line arguments to override state values and returns whether to exit early
+   * @returns {Promise<boolean>} True if the process should exit after parsing
+   */
+  async #parseArgs() {
     const args = this.#process.argv.slice(2);
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      if (arg.startsWith("--") && i + 1 < args.length) {
-        const stateName = arg.slice(2);
-        const value = args[i + 1];
+      if (arg.startsWith("--")) {
+        const commandName = arg.slice(2).replace(/-/g, "_");
+        const command = this.#app.commands[commandName];
 
-        if (Object.prototype.hasOwnProperty.call(this.state, stateName)) {
-          // Try to parse as number if it looks like one
-          if (/^\d+$/.test(value)) {
-            this.state[stateName] = parseInt(value);
-          } else if (/^\d*\.\d+$/.test(value)) {
-            this.state[stateName] = parseFloat(value);
-          } else {
-            this.state[stateName] = value;
+        if (command && command.handler) {
+          let result;
+          // Boolean type commands don't consume an argument
+          if (command.type === "boolean") {
+            result = await command.handler([], this.state);
+          } else if (i + 1 < args.length) {
+            // Non-boolean commands consume the next argument
+            const value = args[i + 1];
+            result = await command.handler([value], this.state);
+            i++; // Skip the value argument
           }
-          i++; // Skip the value argument
+          // If handler returns explicit false, exit early
+          if (result === false) {
+            return true;
+          }
         }
       }
     }
+    return false;
+  }
+
+  /**
+   * Loads state from storage if available
+   * @returns {Promise<void>}
+   */
+  async #loadState() {
+    if (!this.#app.storage) return;
+
+    const key = `${this.#uid}.json`;
+    const exists = await this.#app.storage.exists(key);
+
+    if (exists) {
+      const data = await this.#app.storage.get(key);
+      this.state = { ...this.state, ...data };
+    }
+  }
+
+  /**
+   * Saves current state to storage if available
+   * @returns {Promise<void>}
+   */
+  async #saveState() {
+    if (!this.#app.storage) return;
+
+    const key = `${this.#uid}.json`;
+    await this.#app.storage.put(key, this.state);
   }
 
   /**
@@ -104,69 +210,97 @@ export class Repl {
     const trimmed = line.trim();
     if (!trimmed) return;
 
+    // Call beforeLine handler if provided
+    if (this.#app.beforeLine) {
+      await this.#app.beforeLine(this.state);
+    }
+
     // Handle commands
     if (trimmed.startsWith("/")) {
-      const parts = trimmed.slice(1).split(/\s+/);
-      const command = parts[0].toLowerCase();
-      const args = parts.slice(1);
-
-      // Built-in commands
-      if (command === "help") {
-        await this.#showHelp();
-        return;
+      await this.#handleCommand(trimmed);
+      if (this.#app.afterLine) {
+        await this.#app.afterLine(this.state);
       }
-      if (command === "exit") {
-        this.#process.exit(0);
-      }
-
-      // Custom commands
-      const handler = this.#config.commands[command];
-      if (handler) {
-        try {
-          const result = await handler(args, this.state);
-          await this.#output(result);
-        } catch (error) {
-          this.#process.stderr.write(`Error: ${error.message}\n`);
-        }
-      } else {
-        await this.#showHelp();
-      }
+      await this.#saveState();
       return;
     }
 
     // Handle regular input
-    if (this.#config.onLine) {
+    if (this.#app.onLine) {
       try {
-        const result = await this.#config.onLine(trimmed, this.state);
+        const result = await this.#app.onLine(trimmed, this.state);
         await this.#output(result);
-      } catch (error) {
-        this.#process.stderr.write(`Error: ${error.message}\n`);
+      } catch {
+        // Error is already logged by libtelemetry logger in the service layer
+        // Don't duplicate error output to stderr
       }
+    }
+
+    // Call afterLine handler if provided
+    if (this.#app.afterLine) {
+      await this.#app.afterLine(this.state);
+    }
+
+    // Save state after processing the line
+    await this.#saveState();
+  }
+
+  /**
+   * Handles command input
+   * @param {string} trimmed - Trimmed command line
+   * @returns {Promise<void>}
+   */
+  async #handleCommand(trimmed) {
+    const parts = trimmed.slice(1).split(/\s+/);
+    const commandName = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    const command = this.#app.commands[commandName];
+    if (command && command.handler) {
+      try {
+        const result = await command.handler(args, this.state);
+        await this.#output(result);
+      } catch {
+        // Error is already logged by libtelemetry logger if handler uses it
+        // Don't duplicate error output to stderr
+      }
+    } else {
+      await this.#showHelp();
     }
   }
 
   /**
-   * Shows help message with available commands
+   * Shows usage message with available commands
    * @returns {Promise<void>}
    */
   async #showHelp() {
     let output = "";
 
-    // Add custom help message if provided
-    if (this.#config.help) {
-      output += this.#config.help + "\n\n";
+    // Add custom usage message if provided
+    if (this.#app.usage) {
+      output += this.#app.usage + "\n\n";
     }
 
-    const commands = [
-      "`/help` - Show this help message",
-      "`/exit` - Exit the application",
-    ];
+    // Non-interactive usage section
+    output += "**Non-interactive usage:**\n\n";
 
-    for (const [name] of Object.entries(this.#config.commands)) {
-      commands.push(`\`/${name}\` - Custom command`);
+    for (const [name, command] of Object.entries(this.#app.commands)) {
+      // Skip commands that have cli: false
+      if (command.cli === false) continue;
+
+      const usage = command.usage || "Custom command";
+      const cliName = name.replace(/_/g, "-");
+      output += `\`--${cliName}\` ${usage}\n`;
     }
 
-    output += "Available commands:\n\n" + commands.join("\n");
+    // Interactive usage section
+    output += "\n**Interactive usage:**\n\n";
+
+    for (const [name, command] of Object.entries(this.#app.commands)) {
+      const usage = command.usage || "Custom command";
+      output += `\`/${name}\` ${usage}\n`;
+    }
+
     await this.#output(output);
   }
 
@@ -175,9 +309,17 @@ export class Repl {
    * @returns {Promise<void>}
    */
   async start() {
+    // Load state from storage first
+    await this.#loadState();
+
+    // Parse command line arguments (exits early if any command returns false)
+    // These override loaded state values
+    const shouldExit = await this.#parseArgs();
+    if (shouldExit) return;
+
     // Run setup if provided
-    if (this.#config.setup) {
-      await this.#config.setup();
+    if (this.#app.setup) {
+      await this.#app.setup(this.state);
     }
 
     // Non-interactive mode - process stdin
@@ -192,7 +334,7 @@ export class Repl {
       const lines = input.trim().split("\n");
       for (const line of lines) {
         // Print the prompt and user input before processing
-        this.#process.stdout.write(`${this.#config.prompt}${line}\n`);
+        this.#process.stdout.write(`${this.#app.prompt}${line}\n`);
         await this.#handleLine(line);
       }
 
@@ -204,7 +346,7 @@ export class Repl {
     this.#rl = this.#readline.createInterface({
       input: this.#process.stdin,
       output: this.#process.stdout,
-      prompt: this.#config.prompt,
+      prompt: this.#app.prompt,
     });
 
     this.#rl.on("line", async (line) => {

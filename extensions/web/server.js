@@ -1,18 +1,21 @@
 /* eslint-env node */
 import { serve } from "@hono/node-server";
-import {
-  createExtensionConfig,
-  createServiceConfig,
-} from "@copilot-ld/libconfig";
-import { createLogger } from "@copilot-ld/libutil";
-import { clients } from "@copilot-ld/librpc";
+
+import { createExtensionConfig } from "@copilot-ld/libconfig";
+import { createClient, createTracer } from "@copilot-ld/librpc";
+import { createLogger } from "@copilot-ld/libtelemetry";
+
 import { createWebExtension } from "./index.js";
 
-const { AgentClient } = clients;
+// Initialize observability
+const logger = createLogger("web");
+const tracer = await createTracer("web");
 
+// Extension configuration
 const config = await createExtensionConfig("web");
-const client = new AgentClient(await createServiceConfig("agent"));
-const app = await createWebExtension(client, config);
+
+const client = await createClient("agent", logger, tracer);
+const app = await createWebExtension(client, config, logger);
 
 serve(
   {
@@ -21,7 +24,8 @@ serve(
     hostname: config.host,
   },
   () => {
-    const logger = createLogger("web");
-    logger.debug("Listening on", { host: config.host, port: config.port });
+    logger.debug("Server", "Listening", {
+      uri: `${config.host}:${config.port}`,
+    });
   },
 );

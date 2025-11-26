@@ -1,5 +1,45 @@
 # Changelog
 
+## 2025-11-24
+
+- Bump version
+
+## 2025-11-22
+
+- Bump version
+- Bump version
+
+## 2025-11-19
+
+- Bump version
+- Bump version
+
+## 2025-11-18
+
+- Added automatic retry logic to `Client` class for handling transient gRPC
+  connection failures
+- Integrated `Retry` instance from `@copilot-ld/libutil` with default
+  configuration (10 retries, 1000ms initial delay)
+- Updated `Client` constructor to accept optional `retry` parameter for custom
+  retry configuration
+- Wrapped `#callMethod()` with `#retry.execute()` to automatically retry on
+  `ECONNREFUSED` and `UNAVAILABLE` errors
+- Bump version
+
+## 2025-11-02
+
+- **BREAKING**: `createTracer()` now injects `grpc.Metadata` class into Tracer
+  for dependency injection
+- Updated `Client.callMethod()` to remove `metadataFn` parameter from
+  `observeClientCall()` call
+- Simplified metadata handling - metadata is now created by Tracer, not Client
+- Fixed `Client.callMethod()` to pass `metadataFactory` to
+  `Observer.observeClientCall()`
+- gRPC metadata factory ensures metadata is created and populated with trace
+  context before RPC calls
+- Updated parameter naming in `callMethod()` callback for clarity (`m` →
+  `metadata` in signature)
+
 ## 2025-10-28
 
 - Updated `Tracer` import to use direct path

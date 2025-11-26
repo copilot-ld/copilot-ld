@@ -3,7 +3,8 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import { Store, DataFactory } from "n3";
 
-import { GraphIndex, parseGraphQuery } from "../index.js";
+import { GraphIndex } from "../index/graph.js";
+import { parseGraphQuery } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
 
 const { namedNode, literal } = DataFactory;

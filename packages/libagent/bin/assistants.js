@@ -2,9 +2,9 @@
 /* eslint-env node */
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createLogger } from "@copilot-ld/libutil";
+import { createLogger } from "@copilot-ld/libtelemetry";
 
-import { AssistantProcessor } from "../processor.js";
+import { AssistantProcessor } from "../processor/assistant.js";
 
 /**
  * Process assistant configurations from assistants.yml and generate Assistant resources

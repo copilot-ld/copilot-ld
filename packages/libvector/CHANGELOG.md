@@ -1,5 +1,28 @@
 # Changelog
 
+## 2025-11-24
+
+- Bump version
+
+## 2025-11-22
+
+- Bump version
+- Bump version
+
+## 2025-11-19
+
+- Bump version
+- Bump version
+
+## 2025-11-18
+
+- Added `exports` field to `package.json` to properly expose `index/vector.js`
+  path for Docker container module resolution
+
+## 2025-11-18
+
+- Bump version
+
 ## 2025-10-24
 
 - **Fixed**: Token filtering in vector queries by ensuring identifiers include

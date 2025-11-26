@@ -161,7 +161,7 @@ describe("Finder", () => {
       assert.ok(fs.lstatSync(targetPath).isSymbolicLink());
       assert.strictEqual(mockLogger.debug.mock.calls.length, 1);
       assert.ok(
-        mockLogger.debug.mock.calls[0].arguments[0].includes("Created symlink"),
+        mockLogger.debug.mock.calls[0].arguments[1].includes("Created symlink"),
       );
     });
 
@@ -249,7 +249,7 @@ describe("Finder", () => {
 
       assert.ok(
         mockLogger.debug.mock.calls.some((call) =>
-          call.arguments[0].includes("Created symlink"),
+          call.arguments[1].includes("Created symlink"),
         ),
       );
 

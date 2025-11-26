@@ -1,48 +1,49 @@
 #!/usr/bin/env node
 /* eslint-env node */
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
-import { createTerminalFormatter } from "@copilot-ld/libformat";
-import { createServiceConfig } from "@copilot-ld/libconfig";
+import { createClient, createTracer } from "@copilot-ld/librpc";
+import { createLogger } from "@copilot-ld/libtelemetry";
 import { agent, common } from "@copilot-ld/libtype";
+import { createStorage } from "@copilot-ld/libstorage";
 
-import { clients } from "@copilot-ld/librpc";
+const usage = `**Usage:** <message>
 
-// Extract generated clients
-const { AgentClient } = clients;
+Send conversational messages to the Agent service for processing.
+The agent maintains conversation context across multiple turns.
 
-/** @typedef {import("@copilot-ld/libtype").common.Message} Message */
+**Examples:**
 
-const config = await createServiceConfig("agent");
-const agentClient = new AgentClient(config);
+    echo "Tell me about the company" | npm -s run cli:chat
+    printf "What is microservices?\\nWhat are the benefits?\\n" | npm -s run cli:chat`;
 
-// Global state
-/** @type {string|null} */
-let conversationId = null;
-/** @type {Message[]} */
-const messages = [];
+const config = await createScriptConfig("cli");
+const logger = createLogger("cli");
+const tracer = await createTracer("cli");
+const agentClient = await createClient("agent", logger, tracer);
+
+// Create storage for persisting REPL state
+const storage = createStorage("cli");
 
 /**
  * Handles user prompts by adding them to message history,
  * sending to the Agent service, and returning the response
  * @param {string} prompt - The user's input prompt
+ * @param {object} state - The REPL state object
  * @returns {Promise<string>} The assistant's response content
  */
-async function handlePrompt(prompt) {
-  // Create user message using Message structure with proper Content object
+async function handlePrompt(prompt, state) {
+  // Create user message - content is just a string
   const userMessage = common.Message.fromObject({
     role: "user",
-    content: {
-      text: prompt,
-      tokens: 0, // Will be calculated by the service
-    },
+    content: prompt,
   });
-  messages.push(userMessage);
 
   // Create typed request using agent.AgentRequest
   const request = new agent.AgentRequest({
-    messages: messages,
+    messages: [userMessage],
     github_token: await config.githubToken(),
-    resource_id: conversationId || undefined,
+    resource_id: state.resource_id,
   });
 
   const result = await agentClient.ProcessRequest(request);
@@ -52,25 +53,25 @@ async function handlePrompt(prompt) {
   }
 
   if (result.resource_id) {
-    conversationId = result.resource_id;
+    state.resource_id = result.resource_id;
   }
 
-  messages.push(result.choices[0].message);
-  return result.choices[0].message.content.text;
+  return result.choices[0].message.content;
 }
 
 // Create REPL with dependency injection
-const repl = new Repl(createTerminalFormatter(), {
-  help: `Usage: <message>`,
-
-  commands: {
-    clear: (_args, _state) => {
-      messages.length = 0;
-      conversationId = null;
-    },
+const repl = new Repl({
+  usage,
+  storage,
+  state: {
+    resource_id: null,
   },
-
   onLine: handlePrompt,
+  afterLine: (state) => {
+    return logger.debug("ProcessRequest", "Response received", {
+      resource_id: state.resource_id,
+    });
+  },
 });
 
 repl.start();

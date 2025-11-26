@@ -1,5 +1,4 @@
 /* eslint-env node */
-import { createLogger } from "@copilot-ld/libutil";
 import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
 
 /**
@@ -7,26 +6,14 @@ import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespace
  */
 export class {{className}} {
   config;
-  #logger;
 
   /**
    * Creates a new {{serviceName}} service instance
    * @param {object} config - Service configuration
-   * @param {(namespace: string) => import("@copilot-ld/libutil").LoggerInterface} [logFn] - Optional log factory
    */
-  constructor(config, logFn = createLogger) {
+  constructor(config) {
     if (!config) throw new Error("config is required");
     this.config = config;
-    this.#logger = logFn(config.name);
-  }
-
-  /**
-   * Logs a debug message.
-   * @param { string } message - The message to log
-   * @param { object } context - Additional context to include in the log
-   */
-  debug(message, context) {
-    this.#logger.debug(message, context);
   }
 
 {{#methods}}

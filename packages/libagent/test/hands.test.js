@@ -63,7 +63,6 @@ describe("AgentHands", () => {
         {
           id: { name: "test-resource" },
           content: "Test content",
-          descriptor: "Test descriptor",
         },
       ],
       put: () => {},

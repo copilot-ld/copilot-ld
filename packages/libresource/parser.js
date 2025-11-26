@@ -1,7 +1,6 @@
 /* eslint-env node */
 
 import { minify } from "html-minifier-terser";
-import jsonld from "jsonld";
 import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 import { Writer, Parser as N3Parser } from "n3";
 
@@ -25,14 +24,14 @@ export class Parser {
    * Parses HTML DOM and extracts structured items
    * @param {object} dom - JSDOM instance
    * @param {string} baseIri - Base IRI for parsing
-   * @returns {Promise<Array>} Array of extracted items with RDF and JSON-LD
+   * @returns {Promise<Array>} Array of extracted items with RDF quads
    */
   async parseHTML(dom, baseIri) {
     const minifiedHtml = await this.#minifyHTML(dom.serialize());
     const allQuads = await this.#extractQuads(minifiedHtml, baseIri);
 
     if (!allQuads || allQuads.length === 0) {
-      this.#logger.debug("No RDF data found in HTML content");
+      this.#logger.debug("Parser", "No RDF data found in HTML content");
       return [];
     }
 
@@ -40,18 +39,13 @@ export class Parser {
     const items = [];
 
     for (const [itemIri, itemQuads] of itemGroups) {
-      const itemRdf = await this.quadsToRdf(itemQuads);
-      const itemJsonArray = await this.#rdfToJson(itemRdf);
-      const mainItem =
-        itemJsonArray.find((item) => item["@id"] === itemIri) ||
-        itemJsonArray[0];
+      // Deduplicate quads for this item (same entity may appear multiple times in HTML)
+      const deduplicatedQuads = this.#deduplicateQuads(itemQuads);
 
-      if (mainItem) {
+      if (this.isMainItem(itemIri, deduplicatedQuads)) {
         items.push({
           iri: itemIri,
-          quads: itemQuads,
-          rdf: itemRdf,
-          json: JSON.stringify(mainItem),
+          quads: deduplicatedQuads,
         });
       }
     }
@@ -59,9 +53,25 @@ export class Parser {
   }
 
   /**
-   * Converts RDF quads to N-Quads format string
+   * Validates that an item is a main item with a schema.org type
+   * @param {string} itemIri - The IRI of the item to validate
+   * @param {Array} itemQuads - Array of RDF quads for the item
+   * @returns {boolean} True if the item has an rdf:type with a schema.org value
+   */
+  isMainItem(itemIri, itemQuads) {
+    return itemQuads.some(
+      (quad) =>
+        quad.subject.value === itemIri &&
+        quad.predicate.value ===
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+        quad.object.value.startsWith("https://schema.org/"),
+    );
+  }
+
+  /**
+   * Converts RDF quads to an RDF serialization format
    * @param {Array} quads - Array of RDF quads
-   * @returns {Promise<string>} RDF in N-Quads format
+   * @returns {Promise<string>} RDF serialization
    */
   async quadsToRdf(quads) {
     const typeUri = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -72,29 +82,29 @@ export class Parser {
     });
 
     return new Promise((resolve, reject) => {
-      const writer = new Writer({ format: "N-Quads" });
+      const writer = new Writer({ format: "Turtle" });
       writer.addQuads(sortedQuads);
       writer.end((error, result) => {
         if (error)
-          reject(new Error(`N-Quads serialization failed: ${error.message}`));
+          reject(new Error(`RDF serialization failed: ${error.message}`));
         else resolve(result);
       });
     });
   }
 
   /**
-   * Parses N-Quads string back into quad objects
-   * @param {string} nquads - N-Quads format RDF string
+   * Parses RDF string back into quad objects
+   * @param {string} rdf - RDF serialization string
    * @returns {Promise<Array>} Array of RDF quads
    */
-  async rdfToQuads(nquads) {
+  async rdfToQuads(rdf) {
     return new Promise((resolve, reject) => {
-      const parser = new N3Parser({ format: "N-Quads" });
+      const parser = new N3Parser({ format: "Turtle" });
       const quads = [];
 
-      parser.parse(nquads, (error, quad) => {
+      parser.parse(rdf, (error, quad) => {
         if (error) {
-          reject(new Error(`N-Quads parsing failed: ${error.message}`));
+          reject(new Error(`RDF parsing failed: ${error.message}`));
         } else if (quad) {
           quads.push(quad);
         } else {
@@ -111,31 +121,7 @@ export class Parser {
    * @returns {Array} Merged array of unique quads
    */
   unionQuads(existingQuads, newQuads) {
-    const quadMap = new Map();
-
-    const addQuad = (quad) => {
-      // Build a complete key that uniquely identifies the quad
-      let objectKey = quad.object.value;
-      if (quad.object.termType === "Literal") {
-        objectKey += `|${quad.object.datatype?.value || ""}|${quad.object.language || ""}`;
-      }
-      const key = `${quad.subject.value}|${quad.predicate.value}|${objectKey}|${quad.object.termType}`;
-      quadMap.set(key, quad);
-    };
-
-    existingQuads.forEach(addQuad);
-    newQuads.forEach(addQuad);
-
-    return Array.from(quadMap.values());
-  }
-
-  /**
-   * Converts RDF to JSON-LD format
-   * @param {string} rdf - RDF in N-Quads format
-   * @returns {Promise<Array>} Array of JSON-LD objects
-   */
-  async rdfToJson(rdf) {
-    return this.#rdfToJson(rdf);
+    return this.#deduplicateQuads([...existingQuads, ...newQuads]);
   }
 
   /**
@@ -204,27 +190,9 @@ export class Parser {
 
     const itemGroups = new Map();
     for (const itemIri of typedItems) {
-      const visited = new Set();
-      const toProcess = [itemIri];
-      const relevantQuads = [];
-
-      while (toProcess.length > 0) {
-        const current = toProcess.shift();
-        if (visited.has(current)) continue;
-        visited.add(current);
-
-        for (const quad of allQuads) {
-          if (quad.subject.value === current) {
-            relevantQuads.push(quad);
-            if (
-              quad.object.termType === "NamedNode" &&
-              !visited.has(quad.object.value)
-            ) {
-              toProcess.push(quad.object.value);
-            }
-          }
-        }
-      }
+      const relevantQuads = allQuads.filter(
+        (quad) => quad.subject.value === itemIri,
+      );
 
       if (relevantQuads.length > 0) {
         itemGroups.set(itemIri, relevantQuads);
@@ -234,21 +202,31 @@ export class Parser {
   }
 
   /**
-   * Converts RDF to JSON-LD format
-   * @param {string} rdf - RDF in N-Quads format
-   * @returns {Promise<Array>} Array of JSON-LD objects
+   * Builds a unique key for a quad based on its components
+   * @param {object} quad - RDF quad object
+   * @returns {string} Unique key identifying the quad
    */
-  async #rdfToJson(rdf) {
-    const jsonldArray = await jsonld.fromRDF(rdf, {
-      format: "application/n-quads",
+  #buildQuadKey(quad) {
+    let objectKey = quad.object.value;
+    if (quad.object.termType === "Literal") {
+      objectKey += `|${quad.object.datatype?.value || ""}|${quad.object.language || ""}`;
+    }
+    return `${quad.subject.value}|${quad.predicate.value}|${objectKey}|${quad.object.termType}`;
+  }
+
+  /**
+   * Deduplicates an array of quads using the same logic as unionQuads
+   * @param {Array} quads - Array of quads that may contain duplicates
+   * @returns {Array} Array of unique quads
+   */
+  #deduplicateQuads(quads) {
+    const quadMap = new Map();
+
+    quads.forEach((quad) => {
+      const key = this.#buildQuadKey(quad);
+      quadMap.set(key, quad);
     });
-    const context = {
-      "@vocab": "https://schema.org/",
-      rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-      rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-    };
-    return Promise.all(
-      jsonldArray.map((item) => jsonld.compact(item, context)),
-    );
+
+    return Array.from(quadMap.values());
   }
 }

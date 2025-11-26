@@ -23,6 +23,7 @@ DDoS
 DI
 DevOps
 DNS-based
+deserialized
 Docker
 Dockerfile
 Dockerfiles
@@ -48,6 +49,8 @@ Hono
 IAM
 IRI
 Integrations
+JavaScript
+JMESPath
 JSDoc
 JSON
 JSON-LD
@@ -67,6 +70,7 @@ Microservices-based
 MinIO
 N3
 NACLs
+Nginx
 Node.js
 NPM
 OAuth
@@ -233,6 +237,7 @@ pre-calculated
 pre-compile
 pre-compiled
 pre-computed
+pre-created
 pre-processed
 preloaded
 prod
@@ -327,3 +332,9 @@ Organisations
 organisations
 organisation's
 Organisation's
+protobuf-serialized
+retryable
+1000ms
+JSON-structured
+non-RDF
+RDF-containing

@@ -162,6 +162,15 @@ Resources:
       ToPort: 443
       CidrIp: 0.0.0.0/0
 
+  ServiceSecurityGroupEgressAppPorts:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ServiceSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3000
+      ToPort: 3000
+      CidrIp: 0.0.0.0/0
+
   # Security group for VPC endpoints
   VPCEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup

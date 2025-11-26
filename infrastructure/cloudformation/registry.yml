@@ -191,6 +191,31 @@ Resources:
             ]
           }
 
+  UiRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${EnvironmentName}/ui"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
   # ==========================================
   # ECR REPOSITORIES FOR INFRASTRUCTURE
   # ==========================================
@@ -277,6 +302,10 @@ Outputs:
   WebRepositoryUri:
     Description: ECR repository URI for web extension
     Value: !GetAtt WebRepository.RepositoryUri
+
+  UiRepositoryUri:
+    Description: ECR repository URI for ui extension
+    Value: !GetAtt UiRepository.RepositoryUri
 
   GatewayRepositoryUri:
     Description: ECR repository URI for gateway infrastructure

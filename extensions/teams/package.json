@@ -1,26 +1,27 @@
 {
-  "name": "@copilot-ld/teams",
-  "version": "1.0.14",
+  "name": "copilot-ld",
+  "version": "1.0.1",
   "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
   "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
   "license": "MIT",
-  "type": "module",
   "main": "index.js",
   "engines": {
     "node": ">=22.0.0"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "start": "node ./index.js",
+    "dev": "npm run dev:start",
+    "dev:start": "npx env-cmd -f ../../.env -- node index.js",
+    "ngrok": "ngrok http 3978",
     "watch": "node --watch ./index.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.41",
-    "@copilot-ld/libformat": "^0.1.45",
-    "@copilot-ld/librpc": "^0.1.60",
-    "@copilot-ld/libtype": "^0.1.48",
-    "@copilot-ld/libutil": "^0.1.45",
-    "@copilot-ld/libweb": "^0.1.41",
+    "@copilot-ld/libconfig": "^0.1.31",
+    "@copilot-ld/libformat": "^0.1.39",
+    "@copilot-ld/librpc": "^0.1.50",
+    "@copilot-ld/libtype": "^0.1.39",
+    "@copilot-ld/libutil": "^0.1.37",
+    "@copilot-ld/libweb": "^0.1.31",
     "botbuilder": "~4.23.3",
     "dotenv": "~17.2.3"
   },

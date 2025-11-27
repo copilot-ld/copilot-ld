@@ -1,9 +1,8 @@
 import { agent, common } from "@copilot-ld/libtype";
-import { ActivityHandler, MessageFactory } from "botbuilder";
+import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
 
 /**
  * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
- * @typedef {import("@copilot-ld/libformat").HtmlFormatter} HtmlFormatter
  */
 
 /**
@@ -14,18 +13,16 @@ import { ActivityHandler, MessageFactory } from "botbuilder";
 class CopilotLdBot extends ActivityHandler {
   /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
-   * @param {AgentClient} agentClient - An instance of AgentClient for communicating with the Agent service.
-   * @param {object} config - The extension configuration object.
-   * @param {HtmlFormatter} htmlFormatter - Formatter for converting markdown to HTML.
+   * @param {import('./tenant-client-service.js').TenantClientService} tenantClientService - Service for managing tenant-specific AgentClient instances.
+   * @param {import('@copilot-ld/libconfig').Config} config - The extension configuration object.
    */
-  constructor(agentClient, config, htmlFormatter) {
+  constructor(tenantClientService, config) {
     super();
-    if (!agentClient) throw new Error("agentClient is required");
+    if (!tenantClientService)
+      throw new Error("tenantClientService is required");
     if (!config) throw new Error("config is required");
-    if (!htmlFormatter) throw new Error("htmlFormatter is required");
-    this.agentClient = agentClient;
+    this.tenantClientService = tenantClientService;
     this.config = config;
-    this.htmlFormatter = htmlFormatter;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
     /**
@@ -33,6 +30,63 @@ class CopilotLdBot extends ActivityHandler {
      * @type {Map<string, string>}
      */
     this.resourceIds = new Map();
+  }
+
+  /**
+   * Handles incoming message activities, sends user input to the Copilot-LD Agent service, and replies with the agent's response.
+   * Maintains conversation state using resource IDs and formats responses for Teams.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @param {Function} next - The next middleware function in the pipeline.
+   * @returns {Promise<void>}
+   */
+  async handleMessage(context, next) {
+    const text = context.activity.text?.trim().toLowerCase();
+    // Check for configure command
+    if (text === "configure" || text === "/configure") {
+      await this.handleConfigureCommand(context);
+      await next();
+      return;
+    }
+
+    const requestParams = agent.AgentRequest.fromObject({
+      messages: [
+        common.Message.fromObject({
+          role: "user",
+          content: context.activity.text,
+        }),
+      ],
+      github_token: await this.config.githubToken(),
+      resource_id: this.getResourceId(
+        context.activity.conversation.tenantId,
+        context.activity.recipient.id,
+      ),
+    });
+
+    const tenantId = context.activity.conversation.tenantId;
+
+    // Debug logging for context and request
+    console.log("TenantId:", tenantId);
+    console.log("Recipient.id:", context.activity.recipient.id);
+    console.log("Received message:", context.activity.text);
+
+    const client = await this.tenantClientService.getTenantClient(tenantId);
+    const response = await client.ProcessRequest(requestParams);
+    let reply = { role: "assistant", content: null };
+
+    if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
+      reply.content = String(response.choices[0].message.content);
+    }
+
+    this.#setResourceId(
+      context.activity.conversation.tenantId,
+      context.activity.recipient.id,
+      response.resource_id,
+    );
+
+    await context.sendActivity(
+      MessageFactory.text(reply.content, reply.content),
+    );
+    await next();
   }
 
   /**
@@ -55,56 +109,75 @@ class CopilotLdBot extends ActivityHandler {
    * @param {string} resourceId - The resource ID to associate with this conversation.
    * @returns {void}
    */
-  setResourceId(tenantId, recipientId, resourceId) {
+  #setResourceId(tenantId, recipientId, resourceId) {
     const key = `${tenantId}:${recipientId}`;
     this.resourceIds.set(key, resourceId);
   }
 
   /**
-   * Handles incoming message activities, sends user input to the Copilot-LD Agent service, and replies with the agent's response.
-   * Maintains conversation state using resource IDs and formats responses for Teams.
+   * Handles the 'configure' command by sending a settings page link to the user.
    * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
-   * @param {Function} next - The next middleware function in the pipeline.
    * @returns {Promise<void>}
    */
-  async handleMessage(context, next) {
-    const requestParams = agent.AgentRequest.fromObject({
-      messages: [
-        common.Message.fromObject({
-          role: "user",
-          content: context.activity.text,
-        }),
+  async handleConfigureCommand(context) {
+    const tenantId = context?.activity?.conversation?.tenantId;
+    const card = CardFactory.heroCard(
+      "Update Your Settings",
+      "Click the button below to open your settings page.",
+      null,
+      [
+        {
+          type: "invoke",
+          title: "Open Settings",
+          value: {
+            type: "task/fetch",
+            tenantId: tenantId,
+          },
+        },
       ],
-      github_token: await this.config.githubToken(),
-      resource_id: this.getResourceId(
-        context.activity.conversation.tenantId,
-        context.activity.recipient.id,
-      ),
-    });
+    );
+    await context.sendActivity({ attachments: [card] });
+  }
 
-    // Debug logging for context and request
-    console.log("TenantId:", context.activity.conversation.tenantId);
-    console.log("Recipient.id:", context.activity.recipient.id);
-    console.log("Received message:", context.activity.text);
+  /**
+   * Handles task module fetch requests to open the settings page in a dialog.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @returns {Promise<import('botbuilder').InvokeResponse>} The invoke response with task module configuration.
+   */
+  async handleTaskModuleFetch(context) {
+    const tenantId =
+      context.activity.value?.tenantId ||
+      context?.activity?.conversation?.tenantId;
+    console.log("Handling task/fetch for tenantId:", tenantId);
 
-    const response = await this.agentClient.ProcessRequest(requestParams);
-    let reply = { role: "assistant", content: null };
+    const settingsUrl = `https://${process.env.TEAMS_BOT_DOMAIN}/settings`;
 
-    if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
-      const markdown = String(response.choices[0].message.content);
-      reply.content = this.htmlFormatter.format(markdown);
+    return {
+      status: 200,
+      body: {
+        task: {
+          type: "continue",
+          value: {
+            title: "Settings",
+            height: 600,
+            width: 500,
+            url: settingsUrl,
+          },
+        },
+      },
+    };
+  }
+
+  /**
+   * Handles incoming invoke activities, including task module fetch requests.
+   * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
+   * @returns {Promise<import('botbuilder').InvokeResponse>} The invoke response.
+   */
+  async onInvokeActivity(context) {
+    if (context.activity.name === "task/fetch") {
+      return await this.handleTaskModuleFetch(context);
     }
-
-    this.setResourceId(
-      context.activity.conversation.tenantId,
-      context.activity.recipient.id,
-      response.resource_id,
-    );
-
-    await context.sendActivity(
-      MessageFactory.text(reply.content, reply.content),
-    );
-    await next();
+    return await super.onInvokeActivity(context);
   }
 
   /**

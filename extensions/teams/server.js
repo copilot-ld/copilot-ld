@@ -1,104 +1,71 @@
 import http from "node:http";
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configureAdapter } from "./configureAdapter.js";
 import { CopilotLdBot } from "./copilotldbot.js";
-import { clients } from "@copilot-ld/librpc";
-import {
-  createServiceConfig,
-  createExtensionConfig,
-} from "@copilot-ld/libconfig";
-import { createHtmlFormatter } from "@copilot-ld/libformat";
-import { authorize } from "./auth.js";
+import { createExtensionConfig } from "@copilot-ld/libconfig";
+import { authorize, getTenantId } from "./auth.js";
+import { TenantClientService } from "./tenant-client-service.js";
+import { TenantConfigRepository } from "./tenant-config-repository.js";
+import { TenantSecretEncryption } from "./tenant-secret-encryption.js";
+import { HtmlRenderer } from "./htmlRenderer.js";
+import { patchResponse, parseBody } from "./http.js";
+
+// Initialize tenant management dependencies
+const tenantConfigRepository = new TenantConfigRepository();
+const masterKey = process.env.SERVICE_MASTER_KEY;
+if (!masterKey) {
+  throw new Error("SERVICE_MASTER_KEY environment variable is required");
+}
+const tenantSecretEncryption = new TenantSecretEncryption({ masterKey });
+const tenantClientService = new TenantClientService(
+  tenantConfigRepository,
+  tenantSecretEncryption,
+);
+
+// HtmlRenderer instance for serving static HTML files
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const htmlRenderer = new HtmlRenderer(__dirname);
 
 /**
- * Patches a native HTTP response object with minimal Express-like methods for botbuilder compatibility.
- * @param {import('http').ServerResponse} res - The HTTP response object.
+ * Serves the main.css static file for /main.css endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
  */
-function patchResponse(res) {
-  if (!res.status) {
-    res.statusCode = 200;
-    res.status = function (code) {
-      this.statusCode = code;
-      return this;
-    };
-  }
-  if (!res.send) {
-    res.send = function (body) {
-      if (!this.headersSent) {
-        this.writeHead(this.statusCode, {
-          "Content-Type": "application/json",
-        });
-      }
-      this.end(typeof body === "string" ? body : JSON.stringify(body));
-    };
-  }
-  if (!res.header) {
-    res.header = function (name, value) {
-      this.setHeader(name, value);
-    };
-  }
+function handleCss(req, res) {
+  console.log("GET /main.css");
+  htmlRenderer.serve("public/main.css", res, "text/css");
 }
 
 /**
- * Parses the JSON body from an incoming HTTP request.
- * @param {import('http').IncomingMessage} req - The HTTP request object.
- * @returns {Promise<object>} The parsed JSON object, or an empty object if parsing fails.
+ * Serves the settings.js static file for /settings.js endpoint.
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
  */
-function parseBody(req) {
-  return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => {
-      try {
-        resolve(JSON.parse(body));
-      } catch {
-        resolve({});
-      }
-    });
-    req.on("error", reject);
-  });
+function handleSettingsJs(req, res) {
+  console.log("GET /settings.js");
+  htmlRenderer.serve("public/settings.js", res, "application/javascript");
 }
 
 /**
  * Serves the about.html static page for /about endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
-function handleAbout(req, res, dir) {
-  const filePath = path.join(dir, "public/about.html");
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    } else {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
-    }
-  });
+function handleAbout(req, res) {
+  console.log("GET /about");
+  htmlRenderer.serve("public/about.html", res);
 }
 
 /**
  * Serves the messages.html static page for /messages endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
-function handleMessages(req, res, dir) {
-  const filePath = path.join(dir, "public/messages.html");
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    } else {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
-    }
-  });
+function handleMessages(req, res) {
+  console.log("GET /messages");
+  htmlRenderer.serve("public/messages.html", res);
 }
 
 /**
@@ -109,6 +76,7 @@ function handleMessages(req, res, dir) {
  * @param {object} myBot - CopilotLdBot instance
  */
 async function handleApiMessages(req, res, adapter, myBot) {
+  console.log("POST /api/messages");
   req.body = await parseBody(req);
   patchResponse(res);
   try {
@@ -126,34 +94,91 @@ async function handleApiMessages(req, res, adapter, myBot) {
  * Serves the settings.html static page for /settings endpoint.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
+async function handleGetSettings(req, res) {
+  console.log("GET /settings");
+  htmlRenderer.serve("public/settings.html", res);
+}
+
 /**
- * Serves the settings.html static page for /settings endpoint, restricted to tenant-wide admins.
+ * Handles POST requests to /api/settings for saving settings with admin auth check.
  * @param {import('http').IncomingMessage} req - HTTP request object
  * @param {import('http').ServerResponse} res - HTTP response object
- * @param {string} dir - Directory path for static files
  */
-async function handleGetSettings(req, res, dir) {
+function handleSaveSettings(req, res) {
+  console.log("POST /api/settings");
+  let body = "";
+  req.on("data", (chunk) => {
+    body += chunk;
+  });
+  req.on("end", async () => {
+    try {
+      // Auth check
+      authorize(req);
+    } catch (err) {
+      console.error("Authorization error:", err);
+      res.writeHead(err.statusCode || 401, { "Content-Type": "text/plain" });
+      res.end(err.message || "Unauthorized");
+      return;
+    }
+    let parsed = {};
+    try {
+      parsed = JSON.parse(body);
+    } catch (err) {
+      console.error("Error parsing JSON body:", err);
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid JSON" }));
+      return;
+    }
+    const tenantId = getTenantId(req);
+
+    try {
+      await tenantClientService.saveTenantConfig(
+        tenantId,
+        parsed.host,
+        parsed.port,
+        parsed.secret,
+      );
+      console.log(
+        `Tenant config saved for tenant ${tenantId} with new settings`,
+      );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "ok", message: "Settings saved" }));
+    } catch (err) {
+      console.error("Error saving tenant config:", err);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Failed to save settings" }));
+    }
+  });
+  req.on("error", () => {
+    console.error("Error reading request body");
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Error reading request body");
+  });
+}
+
+/**
+ * Handles GET requests to /api/settings
+ * @param {import('http').IncomingMessage} req - HTTP request object
+ * @param {import('http').ServerResponse} res - HTTP response object
+ */
+async function handleGetApiSettings(req, res) {
+  console.log("GET /api/settings");
   try {
     authorize(req);
   } catch (err) {
-    res.writeHead(err.statusCode || 401, { "Content-Type": "text/plain" });
-    res.end(err.message || "Unauthorized");
+    res.writeHead(err.statusCode || 401, {
+      "Content-Type": "application/json",
+    });
+    res.end(JSON.stringify({ error: err.message || "Unauthorized" }));
     return;
   }
-
-  // Serve settings.html if admin
-  const filePath = path.join(dir, "public/settings.html");
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    } else {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
-    }
-  });
+  const tenantId = getTenantId(req);
+  const config = await tenantClientService.getTenantConfig(tenantId);
+  const host = config?.host || "";
+  const port = config?.port || "";
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ host, port }));
 }
 
 /**
@@ -162,40 +187,37 @@ async function handleGetSettings(req, res, dir) {
  * @returns {Promise<http.Server>} Configured HTTP server instance.
  */
 export default async function createServer() {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
   // Configure adapters for normal and streaming requests
   const adapter = configureAdapter();
 
   // Instantiate the CopilotLdBot with required dependencies
   const config = await createExtensionConfig("web");
-  const agentClient = new clients.AgentClient(
-    await createServiceConfig("agent"),
-  );
-  const htmlFormatter = createHtmlFormatter();
-  const myBot = new CopilotLdBot(agentClient, config, htmlFormatter);
+  const myBot = new CopilotLdBot(tenantClientService, config);
+
+  // Route map for all endpoints
+  const routes = {
+    "GET /main.css": handleCss,
+    "GET /settings.js": handleSettingsJs,
+    "GET /about": handleAbout,
+    "GET /messages": handleMessages,
+    "GET /settings": handleGetSettings,
+    "GET /api/settings": handleGetApiSettings,
+    "POST /api/messages": (req, res) =>
+      handleApiMessages(req, res, adapter, myBot),
+    "POST /api/settings": handleSaveSettings,
+  };
 
   // Create the HTTP server
   const server = http.createServer(async (req, res) => {
-    if (req.method === "GET" && req.url === "/about") {
-      handleAbout(req, res, __dirname);
-      return;
+    const routeKey = `${req.method} ${req.url}`;
+    const handler = routes[routeKey];
+
+    if (handler) {
+      await handler(req, res);
+    } else {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
     }
-    if (req.method === "GET" && req.url === "/messages") {
-      handleMessages(req, res, __dirname);
-      return;
-    }
-    if (req.method === "GET" && req.url === "/settings") {
-      handleGetSettings(req, res, __dirname);
-      return;
-    }
-    if (req.method === "POST" && req.url === "/api/messages") {
-      await handleApiMessages(req, res, adapter, myBot);
-      return;
-    }
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not found");
   });
 
   return server;

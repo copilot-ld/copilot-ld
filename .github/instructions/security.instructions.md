@@ -4,380 +4,78 @@ applyTo: "**/*.js"
 
 # Security Instructions
 
-## Purpose Declaration
+Defense-in-depth security through network isolation, input validation, and
+secure error handling.
 
-This file defines comprehensive security architecture and implementation
-requirements for all files in this platform to ensure defense-in-depth security
-through network isolation, service authentication, and secure communication
-channels.
+## Principles
 
-## Core Principles
+1. **Network Isolation**: Backend services run on internal Docker networks only;
+   extensions bridge internal/external
+2. **Input Validation**: All user input is validated and sanitized before
+   processing
+3. **Secure Errors**: Error messages are sanitized to prevent information
+   leakage
+4. **No Secrets in Code**: Credentials use environment variables, never source
+   files
 
-1. **Network Isolation**: Backend services must be completely isolated on
-   internal Docker networks with no direct external access
-2. **Defense in Depth**: Multiple security layers must be implemented including
-   network segmentation, authentication, and input validation
-3. **Service Authentication**: All service-to-service communication must use
-   HMAC-based authentication when enabled
-4. **Minimal Attack Surface**: Only extensions should expose external ports, all
-   backend services must remain internal
-5. **Security by Default**: All security mechanisms must be enabled by default
-   with opt-out rather than opt-in configuration
+## Requirements
 
-## Implementation Requirements
-
-### Network Configuration Requirements
-
-#### Docker Network Architecture
+### Network Architecture
 
 ```yaml
-# docker-compose.yml - Required network structure
+# docker-compose.yml
 networks:
-  copilot-ld.external:
-    driver: bridge
-  copilot-ld.internal:
-    driver: bridge
-    internal: true
+  app.external: { driver: bridge }
+  app.internal: { driver: bridge, internal: true }
 
 services:
-  # Extensions - bridge both networks
-  web-extension:
-    networks:
-      - copilot-ld.external
-      - copilot-ld.internal
-    ports:
-      - "3000:3000"
-
-  # Backend services - internal network only
-  agent-service:
-    networks:
-      - copilot-ld.internal
-    # NO ports section - internal only
+  extension: # bridges both networks, exposes ports
+    networks: [app.external, app.internal]
+    ports: ["3000:3000"]
+  backend-service: # internal only, NO ports section
+    networks: [app.internal]
 ```
 
-#### Service Port Exposure Rules
+### Input Validation
+
+Validate all request fields before processing:
 
 ```javascript
-import grpc from "@grpc/grpc-js";
-
-// FORBIDDEN - Backend service port exposure
-// ports:
-//   - "3001:3000"  // Never expose backend ports
-
-// REQUIRED - Internal network communication only
-const grpcServer = new grpc.Server();
-grpcServer.bindAsync(
-  "0.0.0.0:3000", // Internal container port only
-  grpc.ServerCredentials.createInsecure(),
-);
-```
-
-### Input Validation Requirements
-
-#### gRPC Message Validation
-
-```javascript
-function validateRequest(request, schema) {
-  const errors = [];
-  // Validation logic here
-  if (errors.length > 0) {
-    throw new Error(`Validation failed: ${errors.join(", ")}`);
+async RpcMethod(req) {
+  if (!req.query || typeof req.query !== "string") {
+    throw new Error("query required");
   }
-}
-
-// Mock function for example
-async function processRequest(request) {
-  return { result: "processed" };
-}
-
-// Usage in service methods
-async function serviceMethod(request, callback) {
-  try {
-    validateRequest(request, {
-      required: ["query", "userId"],
-      types: { query: "string", userId: "string", limit: "number" },
-      maxLengths: { query: 1000, userId: 100 },
-    });
-
-    const result = await processRequest(request);
-    callback(null, result);
-  } catch (error) {
-    callback(error);
+  if (req.query.length > 5000) {
+    throw new Error("query too long");
   }
+  return this.#process(req.query);
 }
 ```
 
-## Best Practices
+### Error Sanitization
 
-### Extension Security Patterns
-
-#### Input Validation and Rate Limiting
+Strip sensitive data from error messages and logs:
 
 ```javascript
-/* eslint-env node */
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import {
-  createValidationMiddleware,
-  createCorsMiddleware,
-} from "@copilot-ld/libweb";
+#sanitizeError(error) {
+  return error.message
+    .replace(/\b\d{1,3}(\.\d{1,3}){3}\b/g, "[IP]")
+    .replace(/[a-zA-Z0-9]{32,}/g, "[TOKEN]");
+}
 
-const app = new Hono();
-const validationMiddleware = createValidationMiddleware();
-const corsMiddleware = createCorsMiddleware();
-
-// CORS middleware
-app.use(
-  "/api/*",
-  corsMiddleware.create({
-    origin: ["http://localhost:3000"],
-    allowMethods: ["GET", "POST"],
-  }),
-);
-
-// Validation example
-app.post(
-  "/api/query",
-  validationMiddleware.create({
-    required: ["query", "userId"],
-    types: { query: "string", userId: "string", limit: "number" },
-    maxLengths: { query: 5000, userId: 100 },
-  }),
-  async (c) => {
-    const data = c.get("validatedData");
-    // process request using validated data
-    return c.json({ status: "success", data });
-  },
-);
-```
-
-#### CORS Configuration
-
-```javascript
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-
-const app = new Hono();
-
-app.use(
-  "/api/*",
-  cors({
-    origin: ["http://localhost:3000", "https://yourdomain.com"],
-    allowMethods: ["GET", "POST"],
-    allowHeaders: ["Content-Type"],
-  }),
-);
-```
-
-### Service Security Patterns
-
-#### Secure Error Handling
-
-```javascript
-class SecureServiceImplementation {
-  async processRequest(request, callback) {
-    try {
-      const result = await this.businessLogic(request);
-      callback(null, result);
-    } catch (error) {
-      console.error("Service error:", {
-        error: error.message,
-        request: this.#sanitizeForLogging(request),
-      });
-
-      callback(this.#sanitizeError(error));
-    }
-  }
-
-  #sanitizeError(error) {
-    const message = error.message
-      .replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, "[IP]")
-      .replace(/[a-zA-Z0-9]{32,}/g, "[TOKEN]");
-    return new Error(message);
-  }
-
-  #sanitizeForLogging(request) {
-    const sanitized = { ...request };
-    delete sanitized.authToken;
-    delete sanitized.apiKey;
-    return sanitized;
-  }
+#sanitizeForLogging(request) {
+  const copy = { ...request };
+  delete copy.authToken;
+  delete copy.apiKey;
+  return copy;
 }
 ```
 
-#### Resource Limiting
+## Prohibitions
 
-```javascript
-class ResourceLimitedService {
-  #activeRequests;
-  #maxConcurrentRequests;
-
-  constructor() {
-    this.#activeRequests = new Map();
-    this.#maxConcurrentRequests = 100;
-  }
-
-  async processRequest(request, callback) {
-    const requestId = this.#generateRequestId();
-
-    if (this.#activeRequests.size >= this.#maxConcurrentRequests) {
-      return callback(new Error("Server overloaded"));
-    }
-
-    this.#activeRequests.set(requestId, Date.now());
-
-    try {
-      const result = await this.businessLogic(request);
-      callback(null, result);
-    } finally {
-      this.#activeRequests.delete(requestId);
-    }
-  }
-
-  #generateRequestId() {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-}
-```
-
-## Explicit Prohibitions
-
-### Forbidden Security Practices
-
-1. **DO NOT** expose backend service ports to the host network under any
-   circumstances
-2. **DO NOT** use unencrypted communication channels for sensitive data
-   transmission
-3. **DO NOT** store secrets or credentials in source code or configuration files
-4. **DO NOT** trust user input without validation and sanitization
-5. **DO NOT** log sensitive information (tokens, passwords, personal data)
-6. **DO NOT** implement custom cryptographic functions
-7. **DO NOT** ignore SSL certificate validation in production environments
-
-### Alternative Approaches
-
-- Instead of exposed backend ports → Use network bridges through extensions only
-- Instead of unencrypted channels → Use secure gRPC communication
-- Instead of hardcoded secrets → Use environment variables and secret management
-- Instead of trusting input → Implement comprehensive validation and
-  sanitization
-- Instead of sensitive logging → Sanitize all logged data
-- Instead of custom crypto → Use established libraries and patterns
-
-## Comprehensive Examples
-
-### Secure Service Pattern
-
-```javascript
-import grpc from "@grpc/grpc-js";
-import { Config } from "@copilot-ld/libconfig";
-
-const VectorServiceDefinition = {
-  QueryItems: {
-    path: "/vector.VectorService/QueryItems",
-    requestType: "vector.QueryRequest",
-    responseType: "vector.QueryResponse",
-  },
-};
-
-class SecureVectorService {
-  #server;
-
-  constructor(config) {
-    if (!config) throw new Error("config is required");
-    this.#server = new grpc.Server();
-  }
-
-  async queryItems(call, callback) {
-    try {
-      const { embedding, threshold, limit } = call.request;
-
-      if (!embedding || embedding.length === 0) {
-        throw new Error("Invalid embedding");
-      }
-
-      const result = await this.#performQuery(embedding, threshold, limit);
-      callback(null, result);
-    } catch (error) {
-      console.error("Query error:", error.message);
-      callback(error);
-    }
-  }
-
-  async #performQuery(embedding, threshold, limit) {
-    // Mock implementation
-    return { items: [], total: 0 };
-  }
-
-  async start() {
-    this.#server.addService(VectorServiceDefinition, {
-      QueryItems: this.queryItems.bind(this),
-    });
-
-    this.#server.bindAsync(
-      "0.0.0.0:3000",
-      grpc.ServerCredentials.createInsecure(),
-      (error, port) => {
-        if (error) {
-          console.error("Failed to start server:", error);
-          process.exit(1);
-        }
-        console.log(`Service listening on internal port ${port}`);
-        this.#server.start();
-      },
-    );
-  }
-}
-```
-
-### Secure Hono Extension Pattern
-
-```javascript
-import { Hono } from "hono";
-import { serve } from "@hono/node-server";
-import { cors } from "hono/cors";
-import validator from "validator";
-
-// Mock function for example
-async function processRequest(data) {
-  return { result: "processed" };
-}
-
-const app = new Hono();
-
-// Security middleware
-app.use(
-  "/api/*",
-  cors({
-    origin: ["http://localhost:3000"],
-    allowMethods: ["GET", "POST"],
-  }),
-);
-
-// Input validation
-async function validateInput(c, next) {
-  const { query, userId } = await c.req.json();
-
-  if (!query || !userId) {
-    return c.json({ error: "Missing required fields" }, 400);
-  }
-
-  c.set("validatedData", {
-    query: validator.escape(query),
-    userId: validator.escape(userId),
-  });
-
-  await next();
-}
-
-app.post("/api/query", validateInput, async (c) => {
-  try {
-    const data = c.get("validatedData");
-    const response = await processRequest(data);
-    return c.json({ status: "success", data: response });
-  } catch (error) {
-    console.error("Processing error:", error.message);
-    return c.json({ error: "Processing failed" }, 500);
-  }
-});
-```
+1. **DO NOT** expose backend service ports to host network
+2. **DO NOT** store secrets in source code or config files
+3. **DO NOT** trust user input without validation
+4. **DO NOT** log sensitive data (tokens, passwords, PII)
+5. **DO NOT** implement custom cryptographic functions
+6. **DO NOT** skip SSL certificate validation in production

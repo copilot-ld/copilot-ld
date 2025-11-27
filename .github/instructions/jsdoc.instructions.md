@@ -4,572 +4,113 @@ applyTo: "**/*.js"
 
 # JSDoc Instructions
 
-## Purpose Declaration
+Defines JSDoc documentation standards for JavaScript files to ensure consistent,
+linting-compliant documentation with IDE support.
 
-This file defines comprehensive JSDoc documentation standards for all JavaScript
-files in this project to ensure consistent, accurate, and linting-compliant
-documentation that provides excellent IDE support.
+## Principles
 
-## Core Principles
+1. **Complete Coverage**: All public functions, methods, and classes require
+   full JSDoc with description, `@param`, `@returns`, and `@throws`
+2. **Private Method Documentation**: All `#private` methods require at least a
+   description comment
+3. **Interface Types**: Use interface types from packages, not concrete class
+   unions
+4. **Accuracy**: JSDoc must match implementation exactly - no outdated types
 
-1. **Complete Documentation**: All documentation must be written directly on
-   implementation classes with full JSDoc comments
-2. **Single Responsibility**: Each class and method has clear, focused
-   documentation describing its purpose and behavior
-3. **Accuracy Requirement**: JSDoc must match implementation exactly - no
-   outdated or incorrect documentation allowed
-4. **Consistent Format**: Follow standardized patterns across all files for
-   uniform developer experience
-5. **Complete Coverage**: All public functions, methods, and classes must have
-   comprehensive JSDoc documentation
-6. **Private Method Documentation**: All private methods (prefixed with `#`)
-   must have at least a description comment block explaining their purpose
+## Requirements
 
-## Implementation Requirements
+### JSDoc Structure
 
-### Class Documentation Requirements
-
-All classes must have complete JSDoc documentation on their implementation:
+All public functions include in order: description, `@param`, `@returns`,
+`@throws`:
 
 ```javascript
 /**
- * Storage class for managing data persistence
+ * Performs operation on input data
+ * @param {string} id - Unique identifier
+ * @param {Object} options - Configuration options
+ * @returns {Promise<Result>} Operation result
+ * @throws {Error} When validation fails
  */
-export class Storage {
+async function process(id, options) {
+  /* ... */
+}
+```
+
+### Private Methods
+
+Private methods require at least a single-line description:
+
+```javascript
+class Service {
+  /** Validates input before processing */
+  #validate(input) {
+    /* ... */
+  }
+
   /**
-   * Store data with the given key
-   * @param {string} key - Storage key identifier
-   * @param {string|Buffer} data - Data to store
-   * @returns {Promise<void>}
-   * @throws {Error} When storage operation fails
+   * Complex private method with full docs (optional but recommended)
+   * @param {string[]} items - Items to process
+   * @returns {Map<string, Object>} Processed items
    */
-  async put(key, data) {
-    // Implementation
+  #processItems(items) {
+    /* ... */
   }
 }
 ```
 
-### Implementation Class Requirements
+### Interface Types
 
-Implementation classes must have full documentation directly on methods:
+Use `import("@package").Interface` syntax for dependency types:
 
 ```javascript
 /**
- * File system storage implementation
+ * @param {import("@pkg/storage").StorageInterface} storage - Storage backend
  */
-export class FileStorage {
-  /**
-   * Store data with a key
-   * @param {string} key - The storage key
-   * @param {any} data - The data to store
-   * @returns {Promise<void>}
-   */
-  async put(key, data) {
-    // implementation
-  }
-}
+constructor(storage) { /* ... */ }
 ```
 
-### Private Method Documentation Requirements
-
-All private methods (those starting with `#`) must have at least a description
-explaining their purpose. While `@param` and `@returns` annotations are optional
-for private methods, the description is mandatory:
-
-**✅ CORRECT - Private method with description only:**
+For frequently-used interfaces, use file-level `@typedef`:
 
 ```javascript
-/* eslint-disable no-unused-private-class-members */
-class ResourceProcessor {
-  #baseIri;
-
-  /** Extracts the base IRI from DOM or uses fallback */
-  #extractBaseIri(dom, key) {
-    const baseElement = dom.window.document.querySelector("base[href]");
-    return baseElement?.getAttribute("href") || this.#baseIri;
-  }
-
-  /** Calculates cosine similarity between two vectors */
-  #calculateSimilarity(a, b) {
-    // Implementation
-    return 0.5;
-  }
-}
+/** @typedef {import("@pkg/storage").StorageInterface} StorageInterface */
 ```
 
-**✅ ALSO CORRECT - Private method with full documentation:**
+### Function Parameters
 
-```javascript
-/* eslint-disable no-unused-private-class-members */
-class ResourceProcessor {
-  /**
-   * Groups RDF quads by their schema.org typed items
-   * @param {Array} allQuads - Complete set of RDF quads from HTML
-   * @returns {Map<string, Array>} Map of item IRIs to their related quads
-   */
-  #groupQuadsByItem(allQuads) {
-    // Implementation
-    return new Map();
-  }
-}
-```
-
-**❌ INCORRECT - Missing documentation:**
-
-```javascript
-/* eslint-disable no-unused-private-class-members */
-class ResourceProcessor {
-  #extractBaseIri(dom, key) {
-    // No JSDoc comment - ESLint will error
-    const baseElement = dom.window.document.querySelector("base[href]");
-    return baseElement?.getAttribute("href");
-  }
-}
-```
-
-### Required JSDoc Structure
-
-All functions must include these elements in exact order:
-
-1. **Clear description** - Single sentence explaining function purpose
-2. **@param annotations** - With types for all parameters
-3. **@returns annotations** - With types for return values
-4. **@throws annotations** - For error conditions where applicable
-
-**Function Parameter Signatures**: All function parameters must include detailed
-signatures showing input parameters, return types, and optional parameters using
-TypeScript-style syntax.
+Function parameters use TypeScript-style signatures:
 
 ```javascript
 /**
- * Retrieves chunks by their IDs
- * @param {string[]} ids - Array of chunk IDs to retrieve
- * @returns {Promise<Object<string, ChunkInterface>>} Object with chunk IDs as keys
- * @throws {Error} When chunk retrieval fails
+ * @param {(key: string, opts?: Object) => Promise<Data>} fetchFn - Data fetcher
  */
-async function getChunks(ids) {
-  // implementation
-  return {};
-}
 ```
 
-### @typedef Usage Rules
+### @typedef Placement
 
-Place @typedef statements according to scope:
+- **File level**: Imported interfaces and complex types used multiple times
+- **Inline**: Types used only once, adjacent to the function
 
 ```javascript
-// Top of file - for imported interfaces used throughout the file
-/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
-
-// Top of file - for complex object types used throughout the file
-/** @typedef {object} ProcessRequestParams
- * @property {Array} messages - Array of conversation messages
- * @property {string} session_id - Optional session ID
- * @property {string} github_token - GitHub authentication token
+// File level - used throughout
+/** @typedef {Object} Config
+ * @property {string} name
+ * @property {number} port
  */
 
-// Function-level - only if used in one place
-/**
- * Creates a new service
- * @typedef {Object} ServiceOptions
- * @property {string} name - Service name
- * @property {number} port - Service port
- * @param {ServiceOptions} options - Service configuration
- */
-function createService(options) {
-  return { name: options.name, port: options.port };
+// Inline - single use only
+/** @param {{ id: string, value: number }} item */
+function process(item) {
+  /* ... */
 }
 ```
 
-## Best Practices
+## Prohibitions
 
-### Documentation Guidelines
-
-1. **Complete Documentation**: All public methods must have complete JSDoc with
-   descriptions, @param, @returns, and @throws annotations
-2. **Constructor Documentation**: Constructors must document all parameters with
-   types and descriptions
-3. **Private Methods**: Private methods must have at least a description
-   explaining their purpose. Full `@param` and `@returns` annotations are
-   optional but recommended for complex private methods
-4. **Consistency**: Use consistent terminology and patterns across similar
-   methods
-
-### Type Documentation Best Practices
-
-- Use specific types rather than generic Object when possible
-- Import interfaces from packages using `import("@package").InterfaceName`
-  syntax
-- Prefer interface types over concrete class unions (e.g., `StorageInterface`
-  not `LocalStorage|S3Storage`)
-- Include property descriptions for complex object types
-- Specify array element types: `string[]` not `Array`
-- Use union types sparingly and only when necessary: `string|number`
-- Use @typedef at file level for frequently used imported interfaces
-- **Function Parameter Signatures**: Always declare complete function signatures
-  for function parameters including input parameters, return types, and optional
-  parameters using TypeScript-style syntax
-
-### Interface Import Patterns
-
-When documenting parameters that accept interfaces from shared packages:
-
-**✅ CORRECT - Use interface types:**
-
-```javascript
-/* eslint-disable no-unused-private-class-members */
-/**
- * Creates a new ResourceIndex
- * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for persistence
- * @param {import("@copilot-ld/libpolicy").Policy} policy - Policy engine for access control
- */
-class ResourceIndex {
-  #storage;
-  #policy;
-
-  constructor(storage, policy) {
-    if (!storage) throw new Error("storage is required");
-    if (!policy) throw new Error("policy is required");
-    this.#storage = storage;
-    this.#policy = policy;
-  }
-}
-```
-
-**❌ INCORRECT - Concrete class unions:**
-
-```javascript
-/**
- * Creates a new ResourceIndex
- * @param {import("@copilot-ld/libstorage").LocalStorage|import("@copilot-ld/libstorage").S3Storage} storage - Storage backend
- */
-class ResourceIndex {
-  constructor(storage) {
-    // This is outdated - use interface type instead
-  }
-}
-```
-
-For frequently used interfaces, use @typedef at file level:
-
-```javascript
-/* eslint-disable no-unused-private-class-members */
-/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
-
-class Cache {
-  #storage;
-  constructor(storage) {
-    this.#storage = storage;
-  }
-}
-
-/**
- * Creates a cache instance
- * @param {StorageInterface} storage - Storage backend
- * @returns {Cache} Cache instance
- */
-function createCache(storage) {
-  return new Cache(storage);
-}
-```
-
-## Explicit Prohibitions
-
-### Forbidden Documentation Practices
-
-1. **DO NOT** use outdated or incorrect parameter types in JSDoc
-2. **DO NOT** omit @param annotations for any parameter
-3. **DO NOT** omit @returns annotations for non-void functions
-4. **DO NOT** use vague descriptions like "does something" or "handles stuff"
-5. **DO NOT** use generic Function types without detailed signatures
-6. **DO NOT** place @typedef at function level if used in multiple places
+1. **DO NOT** omit `@param` or `@returns` annotations on public functions
+2. **DO NOT** leave `#private` methods without at least a description
+3. **DO NOT** use concrete class unions (`ClassA|ClassB`) when interface exists
+4. **DO NOT** use vague descriptions ("handles stuff", "does things")
+5. **DO NOT** use bare `Function` type - specify full signature
+6. **DO NOT** place file-level `@typedef` inline if used multiple times
 7. **DO NOT** commit code with ESLint JSDoc warnings
-8. **DO NOT** use concrete class unions (like `LocalStorage|S3Storage`) when an
-   interface is available (use `StorageInterface` instead)
-9. **DO NOT** leave private methods undocumented - all private methods must have
-   at least a description comment
-
-### Alternative Approaches
-
-- Instead of missing docs → Write complete JSDoc for all public methods
-- Instead of generic types → Use specific interface types from libtype or
-  libstorage
-- Instead of concrete class unions → Use interface types like `StorageInterface`
-- Instead of missing annotations → Complete all required JSDoc elements
-- Instead of vague descriptions → Write clear, specific behavior descriptions
-- Instead of generic Function types → Use detailed function signatures with
-  TypeScript-style syntax
-- Instead of undocumented private methods → Add at least a description comment
-  explaining the method's purpose
-
-## Comprehensive Examples
-
-### Complete Class Documentation
-
-```javascript
-/**
- * Vector index for similarity search operations
- */
-export class VectorIndex {
-  /**
-   * Performs similarity search across vector embeddings
-   * @param {number[]} embedding - Query vector embedding array
-   * @param {number} threshold - Minimum similarity score (0-1)
-   * @param {number} limit - Maximum number of results to return
-   * @returns {Promise<object[]>} Array of similarity results ordered by score
-   * @throws {Error} When embedding is invalid or search fails
-   */
-  async queryItems(embedding, threshold, limit) {
-    // Implementation
-  }
-
-  /**
-   * Adds or updates a vector item in the index
-   * @param {string} id - Unique identifier for the vector
-   * @param {number[]} embedding - Vector embedding array
-   * @param {object} metadata - Additional metadata for the vector
-   * @returns {Promise<void>}
-   * @throws {Error} When vector data is invalid
-   */
-  async addItem(id, embedding, metadata) {
-    throw new Error("Not implemented");
-  }
-}
-```
-
-### Complete Implementation Example
-
-```javascript
-/**
- * In-memory vector index implementation
- */
-export class VectorIndex {
-  #storage;
-  #vectors;
-
-  /**
-   * Creates a new vector index with storage backend
-   * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage backend for persistence
-   */
-  constructor(storage) {
-    if (!storage) throw new Error("storage is required");
-    this.#storage = storage;
-    this.#vectors = new Map();
-  }
-
-  /**
-   * Performs similarity search across vector embeddings
-   * @param {number[]} embedding - Query vector embedding array
-   * @param {number} threshold - Minimum similarity score (0-1)
-   * @param {number} limit - Maximum number of results to return
-   * @returns {Promise<object[]>} Array of similarity results ordered by score
-   */
-  async queryItems(embedding, threshold, limit) {
-    const results = [];
-    for (const [id, vector] of this.#vectors) {
-      const similarity = this.#calculateSimilarity(embedding, vector.embedding);
-      if (similarity >= threshold) {
-        results.push({ id, similarity });
-      }
-    }
-    return results.slice(0, limit);
-  }
-
-  /**
-   * Loads vector data from storage
-   * @returns {Promise<void>}
-   */
-  async loadData() {
-    const data = await this.#storage.get("vectors.json");
-    // Process loaded data
-  }
-
-  /**
-   * Adds or updates a vector item in the index
-   * @param {string} id - Unique identifier for the vector
-   * @param {number[]} embedding - Vector embedding array
-   * @param {object} metadata - Additional metadata for the vector
-   * @returns {Promise<void>}
-   */
-  async addItem(id, embedding, metadata) {
-    this.#vectors.set(id, { embedding, metadata });
-  }
-
-  /** Calculates cosine similarity between two vectors */
-  #calculateSimilarity(a, b) {
-    // Calculate cosine similarity
-    return 0.5;
-  }
-}
-```
-
-### Private Method Documentation Example
-
-```javascript
-/* eslint-env node */
-/* eslint-disable no-unused-private-class-members */
-import { minify } from "html-minifier-terser";
-
-/**
- * Resource processor for batch processing HTML files
- */
-export class ResourceProcessor {
-  #resourceIndex;
-  #knowledgeStorage;
-  #baseIri;
-
-  constructor(baseIri, resourceIndex, knowledgeStorage) {
-    this.#baseIri = baseIri;
-    this.#resourceIndex = resourceIndex;
-    this.#knowledgeStorage = knowledgeStorage;
-  }
-
-  /**
-   * Process all HTML files in knowledge storage
-   * @param {string} extension - File extension to filter by
-   * @returns {Promise<void>}
-   */
-  async process(extension = ".html") {
-    const keys = await this.#knowledgeStorage.findByExtension(extension);
-    for (const key of keys) {
-      const items = await this.#parseHTML(key);
-      await this.#processItems(items);
-    }
-  }
-
-  /** Extracts base IRI from DOM or uses configured fallback */
-  #extractBaseIri(dom, key) {
-    const baseElement = dom.window.document.querySelector("base[href]");
-    return baseElement?.getAttribute("href") || this.#baseIri;
-  }
-
-  /**
-   * Minifies HTML content for efficient processing
-   * @param {string} html - Raw HTML content
-   * @returns {Promise<string>} Minified HTML
-   */
-  async #minifyHTML(html) {
-    return await minify(html, {
-      collapseWhitespace: true,
-      removeComments: true,
-    });
-  }
-
-  /** Parses HTML and extracts RDF items */
-  async #parseHTML(key) {
-    const html = await this.#knowledgeStorage.get(key);
-    const minified = await this.#minifyHTML(html);
-    return this.#extractItems(minified);
-  }
-
-  /** Extracts structured items from HTML content */
-  #extractItems(html) {
-    return [];
-  }
-
-  /** Processes extracted items and stores in index */
-  async #processItems(items) {
-    for (const item of items) {
-      await this.#resourceIndex.put(item);
-    }
-  }
-}
-```
-
-### Complex Parameter Documentation
-
-```javascript
-/**
- * Processes agent request with multiple service integrations
- * @param {object} request - Complete request object
- * @param {string} request.query - User query text
- * @param {string} request.userId - Unique user identifier
- * @param {string} request.sessionId - Session identifier for context
- * @param {object[]} request.messages - Conversation history
- * @param {Object} request.options - Additional processing options
- * @param {number} request.options.limit - Maximum results to return
- * @param {number} request.options.threshold - Similarity threshold
- * @returns {Promise<Object>} Response object with results and metadata
- * @returns {Promise<Object>} response - Response container
- * @returns {Promise<string>} response.status - Processing status
- * @returns {Promise<Chunk[]>} response.chunks - Retrieved chunks
- * @returns {Promise<Usage>} response.usage - Token usage information
- * @throws {Error} When request validation fails
- * @throws {Error} When service communication fails
- */
-async function processRequest(request) {
-  // Implementation...
-}
-```
-
-### Function Parameter Signature Documentation
-
-All function parameters must include detailed signatures with TypeScript-style
-syntax:
-
-```javascript
-/**
- * Creates a service instance with dependency injection
- * @param {string} name - Service name identifier
- * @param {object} config - Configuration object
- * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Storage factory function
- * @param {(token: string, model?: string, fetchFn?: Function, tokenizerFn?: Function) => object} llmFactory - LLM client factory
- * @param {(token: string) => object} octokitFactory - Octokit client factory function
- * @param {(namespace: string) => LoggerInterface} logFn - Logger factory function
- * @returns {Promise<ServiceInterface>} Configured service instance
- * @throws {Error} When configuration is invalid
- */
-async function createService(
-  name,
-  config,
-  storageFn,
-  llmFactory,
-  octokitFactory,
-  logFn,
-) {
-  // Implementation...
-}
-```
-
-### @typedef Complex Types
-
-```javascript
-// Imported interface typedef for reuse throughout file
-/** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
-
-/**
- * Configuration for agent service initialization
- * @typedef {Object} AgentConfig
- * @property {string} name - Service instance name
- * @property {number} port - gRPC server port
- * @property {Object} services - Dependent service configurations
- * @property {string} services.vector - Vector service endpoint
- * @property {string} services.history - History service endpoint
- * @property {Object} auth - Authentication configuration
- * @property {string} auth.secret - HMAC authentication secret
- * @property {number} auth.timeout - Token timeout in seconds
- */
-
-/**
- * Creates configured agent service instance
- * @param {AgentConfig} config - Service configuration
- * @param {StorageInterface} storage - Storage backend for persistence
- * @returns {Promise<AgentService>} Configured agent service
- * @throws {Error} When configuration is invalid
- */
-async function createAgentService(config, storage) {
-  // Implementation...
-}
-```
-
-### ESLint Integration Notes
-
-ESLint validates:
-
-- All functions have complete JSDoc documentation
-- @param and @returns annotations are present and accurate
-- Interface types are used consistently in JSDoc
-- @typedef statements follow placement rules
-
-All linting warnings must be fixed before committing code to ensure consistent
-documentation quality across the codebase.

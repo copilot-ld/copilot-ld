@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
 import { CopilotLdBot } from "../copilotldbot.js";
 
@@ -31,32 +31,41 @@ class MockContext {
   }
 }
 
-test("handleMessage sends formatted reply and sets resourceId", async () => {
-  // Mock AgentClient instance
-  const mockAgentClient = {
-    ProcessRequest: async () => ({
-      choices: [{ message: { content: "Hello from Copilot!" } }],
-      resource_id: "resource-xyz",
-    }),
-  };
-  // Mock config
-  const mockConfig = {
-    githubToken: async () => "token",
-  };
-  // Mock formatter
-  const mockHtmlFormatter = { format: (x) => `<p>${x}</p>` };
+describe("CopilotLdBot", () => {
+  let mockAgentClient;
+  let mockTenantClientService;
+  let mockConfig;
 
-  // Pass all dependencies via constructor
-  const bot = new CopilotLdBot(mockAgentClient, mockConfig, mockHtmlFormatter);
-
-  const context = new MockContext("Hi Copilot!");
-  let nextCalled = false;
-  await bot.handleMessage(context, () => {
-    nextCalled = true;
+  beforeEach(() => {
+    mockAgentClient = {
+      ProcessRequest: async () => ({
+        choices: [{ message: { content: "Hello from Copilot!" } }],
+        resource_id: "resource-xyz",
+      }),
+    };
+    mockTenantClientService = {
+      getTenantClient: async () => mockAgentClient,
+    };
+    mockConfig = {
+      githubToken: async () => "token",
+    };
   });
 
-  assert.strictEqual(context.sent.length, 1);
-  assert.strictEqual(context.sent[0].text, "<p>Hello from Copilot!</p>");
-  assert.strictEqual(bot.getResourceId("tenant1", "bot1"), "resource-xyz");
-  assert.ok(nextCalled);
+  test("given a configured CopilotLdBot, when handleMessage is called, then it sends a reply and sets resourceId", async () => {
+    // Given: a CopilotLdBot with mocked dependencies and a context
+    const bot = new CopilotLdBot(mockTenantClientService, mockConfig);
+    const context = new MockContext("Hi Copilot!");
+    let nextCalled = false;
+
+    // When: handleMessage is called
+    await bot.handleMessage(context, () => {
+      nextCalled = true;
+    });
+
+    // Then: the reply is sent, resourceId is set, and next is called
+    assert.strictEqual(context.sent.length, 1);
+    assert.strictEqual(context.sent[0].text, "Hello from Copilot!");
+    assert.strictEqual(bot.getResourceId("tenant1", "bot1"), "resource-xyz");
+    assert.ok(nextCalled);
+  });
 });

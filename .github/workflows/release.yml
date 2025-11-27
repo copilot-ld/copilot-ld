@@ -50,6 +50,9 @@ jobs:
       contents: write
     outputs:
       versions: ${{ steps.bump.outputs.versions }}
+      packages: ${{ steps.filter.outputs.packages }}
+      services: ${{ steps.filter.outputs.services }}
+      extensions: ${{ steps.filter.outputs.extensions }}
       ref: ${{ steps.bump.outputs.ref }}
 
     steps:
@@ -86,14 +89,21 @@ jobs:
           echo "ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           git push origin main --tags
 
-  validate-packages:
+      - name: Filter versions by type
+        id: filter
+        run: |
+          VERSIONS='${{ steps.bump.outputs.versions }}'
+          PACKAGES=$(echo "$VERSIONS" | jq -c '[.[] | select(.type == "packages")]')
+          SERVICES=$(echo "$VERSIONS" | jq -c '[.[] | select(.type == "services")]')
+          EXTENSIONS=$(echo "$VERSIONS" | jq -c '[.[] | select(.type == "extensions")]')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+
+  test:
     needs: bump
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        item: ${{ fromJson(needs.bump.outputs.versions) }}
-      fail-fast: false
 
     steps:
       - name: Checkout code
@@ -104,28 +114,19 @@ jobs:
       - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
-      - name: Validate package
-        run: |
-          set -e
-          TYPE="${{ matrix.item.type }}"
-          NAME="${{ matrix.item.name }}"
-          if [[ -f "$TYPE/$NAME/package.json" ]]; then
-            cd "$TYPE/$NAME"
-            npm test
-          else
-            exit 1
-          fi
+      - name: Run test suite
+        run: npm test
 
   publish-packages:
-    needs: [bump, validate-packages]
-    if: needs.bump.outputs.versions != ''
+    needs: [bump, test]
+    if: needs.bump.outputs.packages != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     strategy:
       matrix:
-        item: ${{ fromJson(needs.bump.outputs.versions) }}
+        item: ${{ fromJson(needs.bump.outputs.packages) }}
       fail-fast: false
 
     steps:
@@ -144,14 +145,12 @@ jobs:
           set -e
           TYPE="${{ matrix.item.type }}"
           NAME="${{ matrix.item.name }}"
-          if [[ -f "$TYPE/$NAME/package.json" ]]; then
-            cd "$TYPE/$NAME"
-            npm publish --verbose
-          fi
+          cd "$TYPE/$NAME"
+          npm publish --verbose
 
-  publish-containers:
-    needs: [bump, validate-packages, publish-packages]
-    if: needs.bump.outputs.versions != ''
+  publish-services:
+    needs: [bump, publish-packages]
+    if: needs.bump.outputs.services != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -159,7 +158,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        item: ${{ fromJson(needs.bump.outputs.versions) }}
+        item: ${{ fromJson(needs.bump.outputs.services) }}
       fail-fast: false
 
     steps:
@@ -168,8 +167,20 @@ jobs:
         with:
           ref: ${{ needs.bump.outputs.ref }}
 
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Publish service package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TYPE="${{ matrix.item.type }}"
+          NAME="${{ matrix.item.name }}"
+          cd "$TYPE/$NAME"
+          npm publish --verbose
+
       - name: Login to GitHub Container Registry
-        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -177,19 +188,88 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure AWS credentials
-        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Login to Amazon ECR
-        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push app container
-        if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
+      - name: Build and push service container
+        run: |
+          set -e
+          TYPE="${{ matrix.item.type }}"
+          NAME="${{ matrix.item.name }}"
+          VERSION="${{ matrix.item.version }}"
+          GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
+          export DOCKER_BUILDKIT=1
+          cd "$TYPE/$NAME"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
+            --secret id=github_token,src=/dev/stdin \
+            -f ../../Dockerfile \
+            -t $GHCR_IMAGE:$VERSION \
+            -t $GHCR_IMAGE:latest \
+            -t $ECR_IMAGE:$VERSION \
+            -t $ECR_IMAGE:latest .
+          docker push $GHCR_IMAGE:$VERSION
+          docker push $GHCR_IMAGE:latest
+          docker push $ECR_IMAGE:$VERSION
+          docker push $ECR_IMAGE:latest
+
+  publish-extensions:
+    needs: [bump, publish-packages]
+    if: needs.bump.outputs.extensions != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      matrix:
+        item: ${{ fromJson(needs.bump.outputs.extensions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.ref }}
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Publish extension package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TYPE="${{ matrix.item.type }}"
+          NAME="${{ matrix.item.name }}"
+          cd "$TYPE/$NAME"
+          npm publish --verbose
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push extension container
         run: |
           set -e
           TYPE="${{ matrix.item.type }}"
@@ -263,11 +343,19 @@ jobs:
           done
 
   create-releases:
-    needs: [bump, publish-packages, publish-containers, publish-infrastructure]
-    if:
+    needs:
+      [
+        bump,
+        publish-packages,
+        publish-services,
+        publish-extensions,
+        publish-infrastructure,
+      ]
+    if: |
       always() && needs.bump.result == 'success' &&
-      needs.publish-packages.result == 'success' &&
-      needs.publish-containers.result == 'success' &&
+      (needs.publish-packages.result == 'success' || needs.publish-packages.result == 'skipped') &&
+      (needs.publish-services.result == 'success' || needs.publish-services.result == 'skipped') &&
+      (needs.publish-extensions.result == 'success' || needs.publish-extensions.result == 'skipped') &&
       needs.publish-infrastructure.result == 'success'
     runs-on: ubuntu-latest
     permissions:

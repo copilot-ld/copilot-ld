@@ -276,7 +276,7 @@ export class Copilot {
  * @param {object} [process] - Process object for environment variable access
  * @returns {(url: string, options?: object) => Promise<Response>} Fetch function with proxy support
  */
-function createProxyAwareFetch(process = global.process) {
+export function createProxyAwareFetch(process = global.process) {
   const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
 
   if (!httpsProxy) {

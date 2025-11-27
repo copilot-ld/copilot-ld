@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/trace",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Trace service for receiving and storing OpenTelemetry spans in Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

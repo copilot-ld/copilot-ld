@@ -133,6 +133,7 @@ export default [
   {
     // Markdown files MUST be valid
     files: ["**/*.md"],
+    ignores: [".github/instructions/**/*.md"],
     plugins: { markdown },
     processor: "markdown/markdown",
     language: "markdown/commonmark",
@@ -146,14 +147,48 @@ export default [
   },
 
   {
+    // Instruction files contain illustrative code examples - skip JS extraction
+    files: [".github/instructions/**/*.md"],
+    plugins: { markdown },
+    language: "markdown/commonmark",
+    languageOptions: {
+      frontmatter: "yaml",
+    },
+    rules: {
+      "no-irregular-whitespace": "off",
+    },
+  },
+
+  {
     // JavaScript MUST be valid inside Markdown files
     files: ["**/*.md/*.js"],
+    ignores: [".github/instructions/**/*.md/*.js"],
     languageOptions: {
       globals: { ...globals.node },
     },
     rules: {
       "no-unused-vars": "off", // The ONLY rule that relaxes JS in Markdown
       // Disable all JSDoc rules for documentation examples
+      ...Object.fromEntries(
+        Object.keys(jsdoc.configs["flat/recommended"].rules).map((key) => [
+          key,
+          "off",
+        ]),
+      ),
+    },
+  },
+
+  {
+    // Instruction files contain illustrative code examples, not complete programs
+    files: [".github/instructions/**/*.md/*.js"],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+    rules: {
+      // Disable all rules - instruction examples are illustrative, not executable
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "no-unused-private-class-members": "off",
       ...Object.fromEntries(
         Object.keys(jsdoc.configs["flat/recommended"].rules).map((key) => [
           key,

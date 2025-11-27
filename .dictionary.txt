@@ -326,6 +326,12 @@ Copilot-LD's
 copilot-ld's
 OpenTelemetry-compatible
 opentelemetry-compatible
+organisation
+Organisation
+Organisations
+organisations
+organisation's
+Organisation's
 protobuf-serialized
 retryable
 1000ms

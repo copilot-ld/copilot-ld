@@ -162,6 +162,31 @@ Resources:
             ]
           }
 
+  TraceRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${EnvironmentName}/trace"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
   # ==========================================
   # ECR REPOSITORIES FOR EXTENSIONS
   # ==========================================
@@ -298,6 +323,10 @@ Outputs:
   ToolRepositoryUri:
     Description: ECR repository URI for tool service
     Value: !GetAtt ToolRepository.RepositoryUri
+
+  TraceRepositoryUri:
+    Description: ECR repository URI for trace service
+    Value: !GetAtt TraceRepository.RepositoryUri
 
   WebRepositoryUri:
     Description: ECR repository URI for web extension

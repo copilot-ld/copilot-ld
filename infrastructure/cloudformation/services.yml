@@ -96,6 +96,11 @@ Resources:
     Properties:
       RetentionInDays: 7
 
+  TraceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
   # ==========================================
   # TASK DEFINITIONS
   # ==========================================
@@ -126,6 +131,12 @@ Resources:
               Value: !Ref BucketName
             - Name: DEBUG
               Value: "*"
+            - Name: HTTPS_PROXY
+              Value: http://gateway.copilot-ld.local:3128
+            - Name: HTTP_PROXY
+              Value: http://gateway.copilot-ld.local:3128
+            - Name: NO_PROXY
+              Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
@@ -329,6 +340,43 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: tool
 
+  TraceTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !Ref SecretsRoleArn
+      TaskRoleArn: !Ref BucketRoleArn
+      ContainerDefinitions:
+        - Name: trace
+          Image: !Sub "${RegistryUrl}/${EnvironmentName}/trace:${ContainerTag}"
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: STORAGE_TYPE
+              Value: s3
+            - Name: S3_BUCKET_NAME
+              Value: !Ref BucketName
+            - Name: DEBUG
+              Value: "*"
+          Secrets:
+            - Name: GITHUB_TOKEN
+              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: SERVICE_SECRET
+              ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref TraceLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: trace
+
   # ==========================================
   # SERVICE DISCOVERY
   # ==========================================
@@ -388,6 +436,16 @@ Resources:
     Type: AWS::ServiceDiscovery::Service
     Properties:
       Name: tool
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: 300
+      NamespaceId: !Ref ServiceDiscoveryNamespaceId
+
+  TraceServiceDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: trace
       DnsConfig:
         DnsRecords:
           - Type: A
@@ -495,6 +553,22 @@ Resources:
       ServiceRegistries:
         - RegistryArn: !GetAtt ToolServiceDiscovery.Arn
 
+  TraceService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSClusterName
+      TaskDefinition: !Ref TraceTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref ServiceSecurityGroupId
+          Subnets: !Ref PrivateSubnetIds
+      ServiceRegistries:
+        - RegistryArn: !GetAtt TraceServiceDiscovery.Arn
+
 Outputs:
   AgentServiceArn:
     Description: ARN of the agent service
@@ -519,3 +593,7 @@ Outputs:
   ToolServiceArn:
     Description: ARN of the tool service
     Value: !Ref ToolService
+
+  TraceServiceArn:
+    Description: ARN of the trace service
+    Value: !Ref TraceService

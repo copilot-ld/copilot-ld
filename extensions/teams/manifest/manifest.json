@@ -22,6 +22,10 @@
     "color": "color.png"
   },
   "accentColor": "#0078d4",
+  "webApplicationInfo": {
+    "id": "894f9cb1-7538-45cb-857c-024eba772f82",
+    "resource": "api://illuminatingly-nonverminous-brandee.ngrok-free.dev/894f9cb1-7538-45cb-857c-024eba772f82"
+  },
   "bots": [
     {
       "botId": "${{TEAMS_BOT_ID}}",
@@ -31,7 +35,7 @@
     }
   ],
   "permissions": ["identity", "messageTeamMembers"],
-  "validDomains": ["${{TEAMS_BOT_DOMAIN}}"],
+  "validDomains": ["${{TEAMS_BOT_DOMAIN}}", "token.botframework.com"],
   "staticTabs": [
     {
       "entityId": "9bca5f2f-9005-4dfb-a056-07a8a07c5cc0",

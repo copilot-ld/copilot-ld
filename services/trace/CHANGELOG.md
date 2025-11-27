@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-11-27
+
+- Added trace service to CloudFormation deployment stack for distributed tracing
+  support
+- Fixed name resolution issues by registering trace service in service discovery
+  namespace
+
 ## 2025-11-24
 
 - Bump version

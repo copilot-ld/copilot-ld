@@ -126,6 +126,12 @@ Resources:
               Value: !Ref BucketName
             - Name: DEBUG
               Value: "*"
+            - Name: HTTPS_PROXY
+              Value: http://gateway.copilot-ld.local:3128
+            - Name: HTTP_PROXY
+              Value: http://gateway.copilot-ld.local:3128
+            - Name: NO_PROXY
+              Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
             - Name: GITHUB_TOKEN
               ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"

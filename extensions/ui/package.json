@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.45",
     "@copilot-ld/librpc": "^0.1.64",
-    "@copilot-ld/libtelemetry": "^0.1.10",
+    "@copilot-ld/libtelemetry": "^0.1.11",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"
   },

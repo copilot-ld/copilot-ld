@@ -42,8 +42,22 @@ jobs:
             ${{ github.event.pull_request.head.sha }})
           echo "items=$ITEMS" >> $GITHUB_OUTPUT
 
-  bump:
+  test:
     needs: prepare
+    if: needs.prepare.outputs.changed-items != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Run tests
+        run: npm test
+
+  bump:
+    needs: [prepare, test]
     if: needs.prepare.outputs.changed-items != '[]'
     runs-on: ubuntu-latest
     permissions:
@@ -86,24 +100,8 @@ jobs:
           echo "ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           git push origin main --tags
 
-  test:
-    needs: bump
-    if: needs.bump.outputs.versions != ''
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.bump.outputs.ref }}
-
-      - name: Setup Node.js and install dependencies
-        uses: ./.github/actions/setup-node
-
-      - name: Run tests
-        run: npm test
-
   release-code:
-    needs: [bump, test]
+    needs: bump
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
     permissions:
@@ -192,7 +190,7 @@ jobs:
             --target main
 
   release-infrastructure:
-    needs: [bump, test]
+    needs: bump
     runs-on: ubuntu-latest
     permissions:
       contents: read

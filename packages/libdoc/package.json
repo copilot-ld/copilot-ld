@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libdoc",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Documentation build and serve tools for static site generation from Markdown",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

@@ -15,7 +15,7 @@
     "test": "echo 'No tests specified for this extension'"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.43",
+    "@copilot-ld/libconfig": "^0.1.44",
     "@copilot-ld/librpc": "^0.1.63",
     "@copilot-ld/libtelemetry": "^0.1.9",
     "@hono/node-server": "^1.18.1",

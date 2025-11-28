@@ -15,13 +15,13 @@
     "test": "echo 'No tests specified for this extension'"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.43",
+    "@copilot-ld/libconfig": "^0.1.44",
     "@copilot-ld/libformat": "^0.1.47",
     "@copilot-ld/librpc": "^0.1.63",
     "@copilot-ld/libtelemetry": "^0.1.9",
     "@copilot-ld/libtype": "^0.1.50",
     "@copilot-ld/libutil": "^0.1.47",
-    "@copilot-ld/libweb": "^0.1.43",
+    "@copilot-ld/libweb": "^0.1.44",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"
   },

@@ -191,6 +191,31 @@ Resources:
   # ECR REPOSITORIES FOR EXTENSIONS
   # ==========================================
 
+  UiRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${EnvironmentName}/ui"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
   WebRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -216,10 +241,10 @@ Resources:
             ]
           }
 
-  UiRepository:
+  TeamsRepository:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: !Sub "${EnvironmentName}/ui"
+      RepositoryName: !Sub "${EnvironmentName}/teams"
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -335,6 +360,10 @@ Outputs:
   UiRepositoryUri:
     Description: ECR repository URI for ui extension
     Value: !GetAtt UiRepository.RepositoryUri
+
+  TeamsRepositoryUri:
+    Description: ECR repository URI for teams extension
+    Value: !GetAtt TeamsRepository.RepositoryUri
 
   GatewayRepositoryUri:
     Description: ECR repository URI for gateway infrastructure

@@ -81,8 +81,10 @@ services:
 
   web:
     build:
-      context: ./extensions/web
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: extensions/web
       secrets:
         - github_token
     image: copilot-ld/web:latest
@@ -102,8 +104,10 @@ services:
 
   agent:
     build:
-      context: ./services/agent
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/agent
       secrets:
         - github_token
     image: copilot-ld/agent:latest
@@ -123,8 +127,10 @@ services:
 
   memory:
     build:
-      context: ./services/memory
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/memory
       secrets:
         - github_token
     image: copilot-ld/memory:latest
@@ -139,8 +145,10 @@ services:
 
   llm:
     build:
-      context: ./services/llm
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/llm
       secrets:
         - github_token
     image: copilot-ld/llm:latest
@@ -155,8 +163,10 @@ services:
 
   vector:
     build:
-      context: ./services/vector
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/vector
       secrets:
         - github_token
     image: copilot-ld/vector:latest
@@ -171,8 +181,10 @@ services:
 
   graph:
     build:
-      context: ./services/graph
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/graph
       secrets:
         - github_token
     image: copilot-ld/graph:latest
@@ -187,8 +199,10 @@ services:
 
   tool:
     build:
-      context: ./services/tool
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/tool
       secrets:
         - github_token
     image: copilot-ld/tool:latest
@@ -203,8 +217,10 @@ services:
 
   trace:
     build:
-      context: ./services/trace
-      dockerfile: ../../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/trace
       secrets:
         - github_token
     image: copilot-ld/trace:latest
@@ -216,23 +232,24 @@ services:
           - trace.copilot-ld.local
     depends_on:
       - storage
-
   #
   # Example Tool Services
   #
 
-  hash:
-    build:
-      context: ./tools/hash
-      dockerfile: ../../Dockerfile
-      secrets:
-        - github_token
-    image: copilot-ld/hash:latest
-    container_name: hash.copilot-ld
-    env_file: .env
-    networks:
-      internal:
-        aliases:
-          - hash.copilot-ld.local
-    depends_on:
-      - storage
+  # hash:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       TARGET_PATH: tools/hash
+  #     secrets:
+  #       - github_token
+  #   image: copilot-ld/hash:latest
+  #   container_name: hash.copilot-ld
+  #   env_file: .env
+  #   networks:
+  #     internal:
+  #       aliases:
+  #         - hash.copilot-ld.local
+  #   depends_on:
+  #     - storage

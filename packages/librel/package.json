@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.0.0",
-    "@copilot-ld/libtelemetry": "^0.2.8"
+    "@copilot-ld/libtelemetry": "0.1.8"
   },
   "repository": {
     "type": "git",

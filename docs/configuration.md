@@ -42,9 +42,13 @@ these variables to use container networking:
 #### Extension Services
 
 ```bash
-# Web Extension (User Interface)
+# UI Extension (User Interface)
+EXTENSION_UI_HOST=localhost
+EXTENSION_UI_PORT=3000
+
+# Web API Extension
 EXTENSION_WEB_HOST=localhost
-EXTENSION_WEB_PORT=3000
+EXTENSION_WEB_PORT=3001
 
 # GitHub API Token for repository operations
 ```
@@ -54,37 +58,41 @@ EXTENSION_WEB_PORT=3000
 ```bash
 # Agent Service (Main Orchestrator)
 SERVICE_AGENT_HOST=localhost
-SERVICE_AGENT_PORT=3001
+SERVICE_AGENT_PORT=3002
 
 # Memory Service (Conversation Storage)
 SERVICE_MEMORY_HOST=localhost
-SERVICE_MEMORY_PORT=3002
+SERVICE_MEMORY_PORT=3003
 
 # LLM Service (Language Model Interface)
 SERVICE_LLM_HOST=localhost
-SERVICE_LLM_PORT=3003
+SERVICE_LLM_PORT=3004
 
 # Vector Service (Embedding Search)
 SERVICE_VECTOR_HOST=localhost
-SERVICE_VECTOR_PORT=3004
+SERVICE_VECTOR_PORT=3005
 
 # Graph Service (RDF Graph Queries)
 SERVICE_GRAPH_HOST=localhost
-SERVICE_GRAPH_PORT=3005
+SERVICE_GRAPH_PORT=3006
 
 # Tool Service (Function Calls)
 SERVICE_TOOL_HOST=localhost
-SERVICE_TOOL_PORT=3006
+SERVICE_TOOL_PORT=3007
+
+# Trace Service (Observability Endpoints)
+SERVICE_TRACE_HOST=localhost
+SERVICE_TRACE_PORT=3008
 ```
 
-#### Tool Services
+#### Example Services
 
 Example tool service configuration:
 
 ```bash
 # Hash Tool Service (Example)
 SERVICE_HASH_HOST=localhost
-SERVICE_HASH_PORT=3007
+SERVICE_HASH_PORT=3009
 ```
 
 ### GitHub Authentication

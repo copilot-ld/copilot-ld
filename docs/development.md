@@ -70,17 +70,17 @@ The `scripts/` directory contains utilities for development and testing:
 
 ```bash
 # Interactive chat with the system
-npm run chat
+npm run cli:chat
 > What are Docker security best practices?
 > How do I implement rolling updates in Kubernetes?
 
 # Semantic search testing
-npm run search
+npm run cli:search
 > docker security
 > kubernetes deployment
 
 # Graph query testing
-npm run query
+npm run cli:query
 > ? rdf:type schema:Person
 > person:john ? ?
 
@@ -90,13 +90,13 @@ npm run cli:visualize
 > [?contains(name, 'llm')]  # Show LLM-related operations
 ```
 
-### Evaluation Testing
+### Evaluation Utilities
 
 The evaluation system assesses agent response quality using `LLM-as-a-judge`
 methodology with a two-step workflow:
 
 ```bash
-# Step 1: Run evaluation tests (stores results in EvaluationIndex)
+# Step 1: Run evaluations (stores results in data/eval/)
 npm run eval
 
 # Run with custom concurrency and iterations
@@ -135,22 +135,16 @@ echo "Tell me about container security" | npm run cli:chat
 
 # Search with CLI flags for precise testing
 echo "docker" | npm run cli:search -- --limit 10 --threshold 0.25
-
-# Test descriptor-based search
-echo "kubernetes deployment" | npm run cli:search -- --index descriptor --limit 5
 ```
 
 ### System Validation Scripts
 
 ```bash
-# Test vector embeddings and similarity
-node scripts/cosine.js "first text" "second text"
-
-# Validate model configurations
-npx env-cmd -- node scripts/models.js
-
 # Test embedding generation
 echo "sample text" | npx env-cmd -- node scripts/embed.js
+
+# Test cosine similarity search
+echo "other text" | npx env-cmd -- node scripts/embed.js | node scripts/cosine.js
 ```
 
 ### Development Utilities
@@ -193,7 +187,7 @@ respectively.
 
 Access the development interfaces:
 
-- **Web Extension**: `http://localhost:3000/web`
+- **UI Extension**: `http://localhost:3000/ui/`
 - **Documentation Server**: `npm run docs` serves on `http://localhost:8080`
 
 ## Trace Analysis
@@ -213,11 +207,10 @@ npm run cli:visualize
 # Query traces with JMESPath expressions
 > [?kind==`2`]  # All SERVER spans
 > [?contains(name, 'llm')]  # LLM operations
-> [?attributes."resource_id"=='common.Conversation.abc123']  # Specific conversation
 
 # Filter by trace or resource ID
---trace f6a4a4d0d3e91
---resource common.Conversation.abc123
+> /trace f6a4a4d0d3e91
+> /resource common.Conversation.abc123
 ```
 
 Visualization output shows:
@@ -257,23 +250,3 @@ cat data/traces/*.jsonl | \
   jq -r '{trace_id, name, parent: .parent_span_id}' | \
   jq -s 'group_by(.trace_id) | map({trace: .[0].trace_id, depth: length})'
 ```
-
-### Common Trace Patterns
-
-**Agent Request Trace**:
-
-- Root span: `Agent.ProcessRequest`
-- Child spans: `Memory.GetWindow`, `Llm.CreateEmbeddings`,
-  `Vector.QueryByContent`, `Tool.CallTool`, etc.
-
-**Tool Execution Chain**:
-
-- Root span: `Tool.CallTool`
-- May have nested `Tool.CallTool` spans for recursive tool execution
-
-**Vector Search**:
-
-- `Llm.CreateEmbeddings` (generate query vector)
-- `Vector.SearchContent` (similarity search)
-
-For detailed tracing implementation, see the [Reference Guide](/reference/).

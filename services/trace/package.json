@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/trace",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Trace service for receiving and storing OpenTelemetry spans in Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.45",
     "@copilot-ld/libindex": "^0.1.16",
-    "@copilot-ld/librpc": "^0.1.64",
+    "@copilot-ld/librpc": "^0.1.65",
     "@copilot-ld/libstorage": "^0.1.40",
     "@copilot-ld/libtype": "^0.1.52"
   },

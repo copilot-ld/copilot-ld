@@ -56,12 +56,22 @@ printf "line1\nline2\n" | npm -s run cli:chat
 
 ### Common Workflows
 
+Discover entities → explore relationships → search → test agent:
+
 ```bash
-# Discover entities → explore relationships → search → test agent
 echo "*" | npm -s run cli:subjects
 echo "prefix:entity ? ?" | npm -s run cli:query
 echo "search terms" | npm -s run cli:search
 echo "natural language question" | npm -s run cli:chat
+```
+
+Discover traces → filter spans → visualize:
+
+```bash
+echo "[]" | npm -s run cli:visualize # All spans
+echo '[?kind==`2`]' | npm -s run cli:visualize # SERVER spans, pay attention to string and numeric quoting
+echo '[?kind==`3`]' | npm -s run cli:visualize # CLIENT spans, pay attention to string and numeric quoting
+echo "[?contains(name, 'llm')]" | npm -s run cli:visualize # LLM spans
 ```
 
 ## Prohibitions

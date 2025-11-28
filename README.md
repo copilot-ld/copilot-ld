@@ -12,7 +12,7 @@ retrieval-augmented generation.
 
 - **/services/**: gRPC microservices (`agent`, `graph`, `llm`, `memory`, `tool`,
   `vector`)
-- **/extensions/**: Application adapters (teams, web)
+- **/extensions/**: Application adapters (teams, ui, web)
 - **/packages/**: Reusable, framework-agnostic libraries
 - **/scripts/**: Development and operational utilities
 - **/proto/**: Authoritative Protocol Buffer source schemas (copied into
@@ -93,7 +93,7 @@ npm run dev
 
 Access the services:
 
-- **Web Extension**: `http://localhost:3001/web`
+- **UI Extension**: `http://localhost:3000/ui`
 
 #### Option B: Production-Like Environment
 
@@ -114,7 +114,7 @@ options.
 
 Access the services:
 
-- **Web Extension**: `https://localhost/web`
+- **UI Extension**: `https://localhost/ui`
 - **MinIO Console**: `http://localhost:9001`
 
 ## 📖 Detailed Guides
@@ -136,14 +136,14 @@ using available scripts.
 Interactive mode:
 
 ```sh
-npm run chat
+npm run cli:chat
 > Hello
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "Hello" | npm run chat
+echo "Hello" | npm run cli:chat
 ```
 
 ### Search Script
@@ -151,7 +151,7 @@ echo "Hello" | npm run chat
 Interactive mode:
 
 ```sh
-npm run search
+npm run cli:search
 > What is Kanban?
 ```
 

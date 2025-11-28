@@ -19,6 +19,9 @@ jobs:
     permissions:
       contents: write
       packages: read
+    outputs:
+      versions: ${{ steps.bump.outputs.versions }}
+      ref: ${{ steps.bump.outputs.ref }}
     steps:
       - name: Generate release token
         id: release-manager
@@ -42,6 +45,7 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Bump versions and tag
+        id: bump
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -50,5 +54,43 @@ jobs:
           ITEMS=$(for dir in extensions packages services; do \
             ls -1d $dir/*/ 2>/dev/null | sed 's|/$||'; \
           done | sort | paste -sd ' ' -)
-          npx --workspace=@copilot-ld/librel rel-bump --force ${{ inputs.type }} $ITEMS
+          VERSIONS=$(npx --workspace=@copilot-ld/librel rel-bump --force ${{ inputs.type }} $ITEMS)
+          echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           git push origin main --tags
+
+  release-code:
+    needs: bump
+    if: needs.bump.outputs.versions != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    strategy:
+      matrix:
+        item: ${{ fromJson(needs.bump.outputs.versions) }}
+      fail-fast: false
+    steps:
+      - uses: ./.github/actions/release-code
+        with:
+          name: ${{ matrix.item.name }}
+          type: ${{ matrix.item.type }}
+          version: ${{ matrix.item.version }}
+          ref: ${{ needs.bump.outputs.ref }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          aws-role-arn: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
+
+  release-infrastructure:
+    needs: bump
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: ./.github/actions/release-infrastructure
+        with:
+          ref: ${{ needs.bump.outputs.ref }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          aws-role-arn: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}

@@ -1,0 +1,96 @@
+name: Release Code
+description: Publishes code artifacts (npm, docker) and creates GitHub release
+inputs:
+  name:
+    required: true
+  type:
+    required: true
+  version:
+    required: true
+  ref:
+    required: true
+  github-token:
+    required: true
+  aws-role-arn:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.ref }}
+
+    - name: Setup Node.js and install dependencies
+      uses: ./.github/actions/setup-node
+
+    - name: Publish package
+      shell: bash
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -e
+        TYPE="${{ inputs.type }}"
+        NAME="${{ inputs.name }}"
+        if [[ -f "$TYPE/$NAME/package.json" ]]; then
+          cd "$TYPE/$NAME"
+          npm publish --verbose
+        fi
+
+    - name: Login to GitHub Container Registry
+      if: inputs.type == 'services' || inputs.type == 'extensions'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github-token }}
+
+    - name: Configure AWS credentials
+      if: inputs.type == 'services' || inputs.type == 'extensions'
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: us-east-1
+
+    - name: Login to Amazon ECR
+      if: inputs.type == 'services' || inputs.type == 'extensions'
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and push app container
+      if: inputs.type == 'services' || inputs.type == 'extensions'
+      shell: bash
+      run: |
+        set -e
+        TYPE="${{ inputs.type }}"
+        NAME="${{ inputs.name }}"
+        VERSION="${{ inputs.version }}"
+        GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+        ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+        ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
+        export DOCKER_BUILDKIT=1
+        # Build from root context
+        echo "${{ inputs.github-token }}" | docker build \
+          --secret id=github_token,src=/dev/stdin \
+          -f Dockerfile \
+          --build-arg TARGET_PATH="$TYPE/$NAME" \
+          -t $GHCR_IMAGE:$VERSION \
+          -t $GHCR_IMAGE:latest \
+          -t $ECR_IMAGE:$VERSION \
+          -t $ECR_IMAGE:latest .
+        docker push $GHCR_IMAGE:$VERSION
+        docker push $GHCR_IMAGE:latest
+        docker push $ECR_IMAGE:$VERSION
+        docker push $ECR_IMAGE:latest
+
+    - name: Create GitHub release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        NAME="${{ inputs.name }}"
+        VERSION="${{ inputs.version }}"
+        gh release create "$NAME@v$VERSION" \
+          --title "$NAME v$VERSION" \
+          --target main

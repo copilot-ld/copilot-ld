@@ -26,7 +26,7 @@
     "linked-data"
   ],
   "dependencies": {
-    "@copilot-ld/libindex": "^0.1.12",
+    "@copilot-ld/libindex": "^0.1.13",
     "@copilot-ld/libstorage": "^0.1.36",
     "@copilot-ld/libtelemetry": "^0.2.7",
     "@copilot-ld/libtype": "^0.1.48",

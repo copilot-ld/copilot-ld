@@ -1,0 +1,54 @@
+name: Release Infrastructure
+description: Builds and pushes infrastructure containers
+inputs:
+  ref:
+    required: true
+  github-token:
+    required: true
+  aws-role-arn:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.ref }}
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github-token }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: us-east-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and push infra containers
+      shell: bash
+      run: |
+        set -e
+        export DOCKER_BUILDKIT=1
+        ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+        for dockerfile in infrastructure/docker/*/Dockerfile; do
+          NAME=$(basename $(dirname "$dockerfile"))
+          GHCR_IMAGE="ghcr.io/${{ github.repository }}/$NAME"
+          ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
+          echo "Building $NAME from $dockerfile"
+          docker build \
+            -f "$dockerfile" \
+            -t $GHCR_IMAGE:latest \
+            -t $ECR_IMAGE:latest \
+            $(dirname "$dockerfile")
+          docker push $GHCR_IMAGE:latest
+          docker push $ECR_IMAGE:latest
+        done

@@ -113,12 +113,16 @@ jobs:
         item: ${{ fromJson(needs.bump.outputs.versions) }}
       fail-fast: false
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.ref }}
+
       - uses: ./.github/actions/release-code
         with:
           name: ${{ matrix.item.name }}
           type: ${{ matrix.item.type }}
           version: ${{ matrix.item.version }}
-          ref: ${{ needs.bump.outputs.ref }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           aws-role-arn: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}
 
@@ -130,8 +134,12 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: ./.github/actions/release-infrastructure
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.bump.outputs.ref }}
+
+      - uses: ./.github/actions/release-infrastructure
+        with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           aws-role-arn: ${{ secrets.DEMO_AWS_DEPLOY_ROLE_ARN }}

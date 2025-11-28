@@ -7,8 +7,6 @@ inputs:
     required: true
   version:
     required: true
-  ref:
-    required: true
   github-token:
     required: true
   aws-role-arn:
@@ -17,11 +15,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.ref }}
-
     - name: Setup Node.js and install dependencies
       uses: ./.github/actions/setup-node
 

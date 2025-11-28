@@ -29,7 +29,7 @@
     "@copilot-ld/libindex": "^0.1.14",
     "@copilot-ld/libstorage": "^0.1.38",
     "@copilot-ld/libtelemetry": "^0.1.9",
-    "@copilot-ld/libtype": "^0.1.49",
+    "@copilot-ld/libtype": "^0.1.50",
     "n3": "^1.21.0"
   },
   "devDependencies": {

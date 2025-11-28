@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/ui",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "UI extension for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

@@ -19,7 +19,7 @@
     "@copilot-ld/libconfig": "^0.1.41",
     "@copilot-ld/libcopilot": "^0.1.54",
     "@copilot-ld/libresource": "^0.1.72",
-    "@copilot-ld/librpc": "^0.1.60",
+    "@copilot-ld/librpc": "^0.1.61",
     "@octokit/core": "^7.0.3"
   },
   "repository": {

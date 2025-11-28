@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libanalysis",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Code analysis and formatting utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

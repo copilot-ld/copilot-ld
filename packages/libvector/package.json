@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.13",
-    "@copilot-ld/libtelemetry": "^0.2.8",
+    "@copilot-ld/libtelemetry": "0.1.8",
     "@copilot-ld/libtype": "^0.1.49"
   },
   "devDependencies": {

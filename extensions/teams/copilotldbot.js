@@ -42,11 +42,23 @@ class CopilotLdBot extends ActivityHandler {
   async handleMessage(context, next) {
     const text = context.activity.text?.trim().toLowerCase();
     // Check for configure command
-    if (text === "configure" || text === "/configure") {
+    if (
+      text === "configure" ||
+      text === "/configure" ||
+      text === "settings" ||
+      text === "/settings"
+    ) {
       await this.handleConfigureCommand(context);
       await next();
       return;
     }
+
+    const tenantRecipientKey = `${context.activity.conversation.tenantId}:${context.activity.recipient.id}`;
+
+    const resourceId = this.getResourceId(
+      context.activity.conversation.tenantId,
+      context.activity.recipient.id,
+    );
 
     const requestParams = agent.AgentRequest.fromObject({
       messages: [
@@ -56,36 +68,64 @@ class CopilotLdBot extends ActivityHandler {
         }),
       ],
       github_token: await this.config.githubToken(),
-      resource_id: this.getResourceId(
-        context.activity.conversation.tenantId,
-        context.activity.recipient.id,
-      ),
+      resource_id: resourceId,
     });
 
     const tenantId = context.activity.conversation.tenantId;
 
-    // Debug logging for context and request
-    console.log("TenantId:", tenantId);
-    console.log("Recipient.id:", context.activity.recipient.id);
-    console.log("Received message:", context.activity.text);
+    console.log(
+      `New message recieved: TenantId: ${tenantId}, RecipientId: ${context.activity.recipient.id}, ResourceId: ${resourceId}`,
+    );
+    console.log(`Message: ${context.activity.text}`);
 
     const client = await this.tenantClientService.getTenantClient(tenantId);
-    const response = await client.ProcessRequest(requestParams);
-    let reply = { role: "assistant", content: null };
 
-    if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
-      reply.content = String(response.choices[0].message.content);
+    if (!client) {
+      console.error("No configuration found for tenant:", tenantId);
+      await context.sendActivity(
+        MessageFactory.text(
+          "I am not configured to talk to your Copilot-LD agent yet. Please contact your administrator to configure me using the /configure command.",
+        ),
+      );
+      await next();
+      return;
     }
 
-    this.#setResourceId(
-      context.activity.conversation.tenantId,
-      context.activity.recipient.id,
-      response.resource_id,
-    );
+    console.log(`Client found for tenant: ${tenantId}`);
 
-    await context.sendActivity(
-      MessageFactory.text(reply.content, reply.content),
-    );
+    try {
+      const response = await client.ProcessRequest(requestParams);
+      console.log(
+        `ProcessRequest completed for tenant/recipient: ${tenantRecipientKey}`,
+      );
+      let reply = { role: "assistant", content: null };
+
+      if (
+        response.choices?.length > 0 &&
+        response.choices[0]?.message?.content
+      ) {
+        reply.content = String(response.choices[0].message.content);
+      }
+
+      this.#setResourceId(
+        context.activity.conversation.tenantId,
+        context.activity.recipient.id,
+        response.resource_id,
+      );
+
+      await context.sendActivity(
+        MessageFactory.text(reply.content, reply.content),
+      );
+    } catch (error) {
+      console.error("Error processing request:", error);
+      console.error("Error stack:", error.stack);
+      await context.sendActivity(
+        MessageFactory.text(
+          "Sorry, I encountered an error processing your request. Please try again.",
+        ),
+      );
+    }
+
     await next();
   }
 

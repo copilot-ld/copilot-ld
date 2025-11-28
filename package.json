@@ -1,7 +1,7 @@
 {
   "name": "copilot-ld",
   "version": "0.1.0",
-  "description": "Intelligent chat agent built GitHub Copilot and Linked Data",
+  "description": "Intelligent chat agent built with GitHub Copilot and Linked Data",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
@@ -12,6 +12,7 @@
     "packages/*",
     "services/*",
     "extensions/*",
+    "tools/*",
     "scripts"
   ],
   "scripts": {
@@ -80,11 +81,7 @@
     "eslint-plugin-jsdoc": "^52.0.4",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
-    "simple-git-hooks": "^2.13.1",
     "spellchecker-cli": "^7.0.0"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "npm run check:fix && git add -u"
   },
   "repository": {
     "type": "git",

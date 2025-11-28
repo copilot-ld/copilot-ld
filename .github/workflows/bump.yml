@@ -2,6 +2,16 @@ name: Bump
 
 on:
   workflow_dispatch:
+    inputs:
+      type:
+        description: "Bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   bump:
@@ -37,5 +47,5 @@ jobs:
           ITEMS=$(for dir in extensions packages services; do \
             ls -1d $dir/*/ 2>/dev/null | sed 's|/$||'; \
           done | sort | paste -sd ' ' -)
-          npx --workspace=@copilot-ld/librel rel-bump --force minor $ITEMS
+          npx --workspace=@copilot-ld/librel rel-bump --force ${{ inputs.type }} $ITEMS
           git push origin main --tags

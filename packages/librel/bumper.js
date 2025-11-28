@@ -52,7 +52,7 @@ export class ReleaseBumper {
     }
 
     if (results.length > 0) {
-      this.#execSync("npm install", { cwd: this.#workingDir });
+      this.#execSync("npm install --ignore-scripts", { cwd: this.#workingDir });
 
       if (this.#hasChanges("package-lock.json")) {
         this.#execSync("git add package-lock.json", { cwd: this.#workingDir });

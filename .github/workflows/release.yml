@@ -15,7 +15,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     outputs:
-      bump-type: ${{ steps.get-bump-type.outputs.type }}
+      bump-type: ${{ steps.detect-type.outputs.type }}
       changed-items: ${{ steps.detect-changes.outputs.items }}
 
     steps:
@@ -27,8 +27,8 @@ jobs:
       - name: Setup Node.js and Install dependencies
         uses: ./.github/actions/setup-node
 
-      - name: Get bump type from labels
-        id: get-bump-type
+      - name: Detect bump type
+        id: detect-type
         run: |
           LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
           TYPE=$(echo "$LABELS" | grep -o -E "(major|minor)" | head -1)
@@ -86,15 +86,10 @@ jobs:
           echo "ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           git push origin main --tags
 
-  validate-packages:
+  test:
     needs: bump
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        item: ${{ fromJson(needs.bump.outputs.versions) }}
-      fail-fast: false
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -104,25 +99,17 @@ jobs:
       - name: Setup Node.js and install dependencies
         uses: ./.github/actions/setup-node
 
-      - name: Validate package
-        run: |
-          set -e
-          TYPE="${{ matrix.item.type }}"
-          NAME="${{ matrix.item.name }}"
-          if [[ -f "$TYPE/$NAME/package.json" ]]; then
-            cd "$TYPE/$NAME"
-            npm test
-          else
-            exit 1
-          fi
+      - name: Run tests
+        run: npm test
 
-  publish-packages:
-    needs: [bump, validate-packages]
+  release-code:
+    needs: [bump, test]
     if: needs.bump.outputs.versions != ''
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
+      id-token: write
     strategy:
       matrix:
         item: ${{ fromJson(needs.bump.outputs.versions) }}
@@ -148,25 +135,6 @@ jobs:
             cd "$TYPE/$NAME"
             npm publish --verbose
           fi
-
-  publish-containers:
-    needs: [bump, validate-packages, publish-packages]
-    if: needs.bump.outputs.versions != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    strategy:
-      matrix:
-        item: ${{ fromJson(needs.bump.outputs.versions) }}
-      fail-fast: false
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.bump.outputs.ref }}
 
       - name: Login to GitHub Container Registry
         if: matrix.item.type == 'services' || matrix.item.type == 'extensions'
@@ -199,10 +167,11 @@ jobs:
           ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
           ECR_IMAGE="${ECR_REGISTRY}/demo/$NAME"
           export DOCKER_BUILDKIT=1
-          cd "$TYPE/$NAME"
+          # Build from root context
           echo "${{ secrets.GITHUB_TOKEN }}" | docker build \
             --secret id=github_token,src=/dev/stdin \
-            -f ../../Dockerfile \
+            -f Dockerfile \
+            --build-arg TARGET_PATH="$TYPE/$NAME" \
             -t $GHCR_IMAGE:$VERSION \
             -t $GHCR_IMAGE:latest \
             -t $ECR_IMAGE:$VERSION \
@@ -212,8 +181,18 @@ jobs:
           docker push $ECR_IMAGE:$VERSION
           docker push $ECR_IMAGE:latest
 
-  publish-infrastructure:
-    needs: bump
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NAME="${{ matrix.item.name }}"
+          VERSION="${{ matrix.item.version }}"
+          gh release create "$NAME@v$VERSION" \
+            --title "$NAME v$VERSION" \
+            --target main
+
+  release-infrastructure:
+    needs: [bump, test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -260,31 +239,4 @@ jobs:
               $(dirname "$dockerfile")
             docker push $GHCR_IMAGE:latest
             docker push $ECR_IMAGE:latest
-          done
-
-  create-releases:
-    needs: [bump, publish-packages, publish-containers, publish-infrastructure]
-    if:
-      always() && needs.bump.result == 'success' &&
-      needs.publish-packages.result == 'success' &&
-      needs.publish-containers.result == 'success' &&
-      needs.publish-infrastructure.result == 'success'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.bump.outputs.ref }}
-
-      - name: Create GitHub releases
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo '${{ needs.bump.outputs.versions }}' | jq -r '.[] | "\(.type) \(.name) \(.version)"' | while read TYPE NAME VERSION; do
-            gh release create "$NAME@v$VERSION" \
-              --title "$NAME v$VERSION" \
-              --target main
           done

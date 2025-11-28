@@ -172,7 +172,11 @@ describe("ReleaseBumper", () => {
     );
     await releaseBumper.bump("patch", ["packages/libconfig"]);
 
-    assert(capturedCommands.some((c) => c.command === "npm install"));
+    assert(
+      capturedCommands.some(
+        (c) => c.command === "npm install --ignore-scripts",
+      ),
+    );
     assert(
       capturedCommands.some((c) => c.command === "git add package-lock.json"),
     );
@@ -212,7 +216,11 @@ describe("ReleaseBumper", () => {
   test("handles empty packages array", async () => {
     const results = await releaseBumper.bump("patch", []);
     assert.strictEqual(results.length, 0);
-    assert(!capturedCommands.some((c) => c.command === "npm install"));
+    assert(
+      !capturedCommands.some(
+        (c) => c.command === "npm install --ignore-scripts",
+      ),
+    );
   });
 
   test("handles command failures with proper error context", async () => {

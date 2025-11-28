@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libstorage": "^0.1.40"
+    "@copilot-ld/libstorage": "^0.1.41"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,8 @@
 {
+  "evals": {
+    "models": ["gpt-4o"],
+    "judge_model": "gpt-5"
+  },
   "service": {
     "agent": {
       "assistant": "knowledge_graph_agent",

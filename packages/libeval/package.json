@@ -7,7 +7,8 @@
     ".": "./index.js"
   },
   "bin": {
-    "evaluation": "./bin/eval.js"
+    "evaluation": "./bin/eval.js",
+    "eval-report": "./bin/report.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js"
@@ -22,6 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "@copilot-ld/librpc": "^0.1.65",
+    "@copilot-ld/libtelemetry": "^0.1.12",
     "@copilot-ld/libtype": "^0.1.53"
   }
 }

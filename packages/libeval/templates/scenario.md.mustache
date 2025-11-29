@@ -1,0 +1,77 @@
+# Evaluation Report: {{{scenario}}}
+
+## Abstract 
+
+This report evaluates an AI agent using the scenario `{{{scenario}}}`.
+
+{{{rationale}}}
+
+**Pass Rate:** {{total.rate}}%
+
+## Method
+
+The scenario `{{{scenario}}}` has {{{complexity}}} complexity,
+using the `{{{type}}}` evaluator with the prompt:
+
+```markdown
+{{{prompt}}}
+```
+
+The scenario contains {{{stats.evaluations}}} evaluation(s):
+
+{{#evaluations}}
+{{{index}}}. {{{label}}}
+{{/evaluations}}
+
+The scenario passes if all evaluations pass.
+
+The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluations.
+{{total.passed}} passed, {{total.failed}} failed.
+
+## Results
+{{#results}}
+
+### {{#passed}}✅{{/passed}}{{^passed}}❌{{/passed}} Run {{{index}}}
+
+- **Passed:** {{#passed}}yes{{/passed}}{{^passed}}no{{/passed}}
+- **Model:** {{{model}}}
+- **Resource:** `{{{resource}}}`
+
+#### Execution Trace
+
+```mermaid
+{{{trace}}}
+```
+
+#### Context Retrieval
+
+{{#memories}}
+1. [{{{subject}}}][{{{resource}}}] {{#score}}Score: {{{score}}}{{/score}}
+{{/memories}}
+
+{{#memories}}
+[{{{resource}}}]: ../resources/{{{resource}}}.json
+{{/memories}}
+
+#### Agent Response
+
+```markdown
+{{{response}}}
+```
+
+#### Evaluations
+{{#evaluations}}
+
+##### {{#passed}}✅{{/passed}}{{^passed}}❌{{/passed}} Evaluation {{{index}}}: {{{label}}}
+
+**Passed:** {{#passed}}yes{{/passed}}{{^passed}}no{{/passed}}
+
+**Expected:** {{{data}}}
+
+{{#detail}}
+**Detail:** {{{detail}}}
+
+{{/detail}}
+{{/evaluations}}
+---
+{{/results}}

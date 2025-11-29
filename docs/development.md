@@ -108,24 +108,23 @@ npm run eval:report
 
 **Evaluation System**:
 
-- **Recall-focused metrics**: Each test case defines required facts that must
+- **Recall-focused metrics**: Each scenario defines required facts that must
   appear in responses
-- **100% recall requirement**: All test cases must achieve perfect recall to
-  pass
+- **100% recall requirement**: All scenarios must achieve perfect recall to pass
 - **Criteria-based evaluation**: Uses template-based prompts with structured
   verdict parsing
 - **Memory integration**: Reports include full conversation context for each
-  test case
+  scenario
 - **Persistent storage**: Results stored in `EvaluationIndex` for incremental
   reporting
 
-Test cases are defined in `config/eval.yml` based on the BioNova pharmaceutical
-demo scenarios.
+Scenarios are defined in `config/eval.yml` based on the BioNova pharmaceutical
+demo data.
 
 Reports are written to:
 
-- `data/eval/SUMMARY.md` - Aggregate statistics across all test cases
-- `data/eval/[case-id].md` - Detailed report for each individual test case
+- `data/eval/SUMMARY.md` - Aggregate statistics across all scenarios
+- `data/eval/[scenario].md` - Detailed report for each individual scenario
 
 ### Scripted Testing
 

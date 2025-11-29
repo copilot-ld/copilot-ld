@@ -1,0 +1,30 @@
+# Evaluation Summary
+
+## Overview
+
+- **Total Scenarios**: {{{total.scenarios}}}
+- **Total Runs**: {{{total.runs}}}
+- **Average Pass Rate**: {{{total.rate}}}%
+
+## Model Pass Rates
+{{#modelRates}}
+- **{{{model}}}**: {{{rate}}}% ({{{passed}}}/{{{total}}})
+{{/modelRates}}
+
+## Scenarios
+{{#scenarios}}
+
+### [{{{scenario}}}](./{{{scenario}}}.md)
+
+- **Type**: {{{type}}}
+- **Complexity**: {{{complexity}}}
+- **Pass Rate**: {{{total.rate}}}% ({{{total.passed}}}/{{{total.runs}}})
+
+{{{rationale}}}
+
+|{{#models}} {{{model}}} |{{/models}}
+|{{#models}}--------|{{/models}}
+|{{#models}} {{{indicators}}} |{{/models}}
+
+---
+{{/scenarios}}

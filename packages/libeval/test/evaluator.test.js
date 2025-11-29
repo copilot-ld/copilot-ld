@@ -7,81 +7,210 @@ import { Evaluator } from "../index.js";
 describe("Evaluator", () => {
   test("constructor validates required dependencies", () => {
     const mockAgent = {};
+    const mockMemory = {};
+    const mockTrace = {};
     const mockToken = "test-token";
-    const mockJudge = {};
-    const mockMetrics = {};
-    const mockReporter = {};
+    const mockIndex = {};
+    const mockCriteria = {};
+    const mockRetrieval = {};
+    const mockTraceEval = {};
 
     assert.throws(
       () =>
-        new Evaluator(null, mockToken, mockJudge, mockMetrics, mockReporter),
+        new Evaluator(
+          null,
+          mockMemory,
+          mockTrace,
+          mockToken,
+          null,
+          mockIndex,
+          mockCriteria,
+          mockRetrieval,
+          mockTraceEval,
+        ),
       /agentClient is required/,
     );
 
     assert.throws(
       () =>
-        new Evaluator(mockAgent, null, mockJudge, mockMetrics, mockReporter),
+        new Evaluator(
+          mockAgent,
+          null,
+          mockTrace,
+          mockToken,
+          null,
+          mockIndex,
+          mockCriteria,
+          mockRetrieval,
+          mockTraceEval,
+        ),
+      /memoryClient is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Evaluator(
+          mockAgent,
+          mockMemory,
+          null,
+          mockToken,
+          null,
+          mockIndex,
+          mockCriteria,
+          mockRetrieval,
+          mockTraceEval,
+        ),
+      /traceClient is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Evaluator(
+          mockAgent,
+          mockMemory,
+          mockTrace,
+          null,
+          null,
+          mockIndex,
+          mockCriteria,
+          mockRetrieval,
+          mockTraceEval,
+        ),
       /githubToken is required/,
     );
 
     assert.throws(
       () =>
-        new Evaluator(mockAgent, mockToken, null, mockMetrics, mockReporter),
-      /judge is required/,
+        new Evaluator(
+          mockAgent,
+          mockMemory,
+          mockTrace,
+          mockToken,
+          null,
+          null,
+          mockCriteria,
+          mockRetrieval,
+          mockTraceEval,
+        ),
+      /evaluationIndex is required/,
     );
 
     assert.throws(
-      () => new Evaluator(mockAgent, mockToken, mockJudge, null, mockReporter),
-      /metrics is required/,
+      () =>
+        new Evaluator(
+          mockAgent,
+          mockMemory,
+          mockTrace,
+          mockToken,
+          null,
+          mockIndex,
+          null,
+          mockRetrieval,
+          mockTraceEval,
+        ),
+      /judgeEvaluator is required/,
     );
 
     assert.throws(
-      () => new Evaluator(mockAgent, mockToken, mockJudge, mockMetrics, null),
-      /reporter is required/,
+      () =>
+        new Evaluator(
+          mockAgent,
+          mockMemory,
+          mockTrace,
+          mockToken,
+          null,
+          mockIndex,
+          mockCriteria,
+          null,
+          mockTraceEval,
+        ),
+      /recallEvaluator is required/,
+    );
+
+    assert.throws(
+      () =>
+        new Evaluator(
+          mockAgent,
+          mockMemory,
+          mockTrace,
+          mockToken,
+          null,
+          mockIndex,
+          mockCriteria,
+          mockRetrieval,
+          null,
+        ),
+      /traceEvaluator is required/,
     );
   });
 
   test("constructor creates evaluator with all dependencies", () => {
     const mockAgent = {};
+    const mockMemory = {};
+    const mockTrace = {};
     const mockToken = "test-token";
-    const mockJudge = {};
-    const mockMetrics = {};
-    const mockReporter = {};
+    const mockIndex = {};
+    const mockCriteria = {};
+    const mockRetrieval = {};
+    const mockTraceEval = {};
 
     const evaluator = new Evaluator(
       mockAgent,
+      mockMemory,
+      mockTrace,
       mockToken,
-      mockJudge,
-      mockMetrics,
-      mockReporter,
+      null,
+      mockIndex,
+      mockCriteria,
+      mockRetrieval,
+      mockTraceEval,
     );
 
     assert.ok(evaluator instanceof Evaluator);
   });
 
-  test("evaluate throws error for empty test cases", async () => {
-    const mockAgent = {};
+  test("evaluate throws error for invalid scenario type", async () => {
+    const mockAgent = {
+      ProcessRequest: mock.fn(() =>
+        Promise.resolve({
+          resource_id: "test-123",
+          choices: [{ message: { content: { text: "Response" } } }],
+        }),
+      ),
+    };
+    const mockMemory = {};
+    const mockTrace = {};
     const mockToken = "test-token";
-    const mockJudge = {};
-    const mockMetrics = {};
-    const mockReporter = {};
+    const mockIndex = { add: mock.fn(() => Promise.resolve()) };
+    const mockCriteria = {};
+    const mockRetrieval = {};
+    const mockTraceEval = {};
 
     const evaluator = new Evaluator(
       mockAgent,
+      mockMemory,
+      mockTrace,
       mockToken,
-      mockJudge,
-      mockMetrics,
-      mockReporter,
+      null,
+      mockIndex,
+      mockCriteria,
+      mockRetrieval,
+      mockTraceEval,
     );
 
     await assert.rejects(
-      async () => await evaluator.evaluate([]),
-      /testCases array is required/,
+      async () =>
+        await evaluator.evaluate({
+          name: "test",
+          type: "invalid",
+          prompt: "Test",
+        }),
+      /unknown type: invalid/,
     );
   });
-
-  test("evaluate processes single test case successfully", async () => {
+  test("evaluate processes single scenario successfully", async () => {
     const mockResponse = {
+      resource_id: "test-resource-123",
       choices: [
         {
           message: {
@@ -95,59 +224,63 @@ describe("Evaluator", () => {
       ProcessRequest: mock.fn(() => Promise.resolve(mockResponse)),
     };
 
-    const mockScores = {
-      relevance: 8,
-      accuracy: 9,
-      completeness: 7,
-      coherence: 8,
-      sourceAttribution: 6,
-      average: 7.6,
+    const mockMemory = {};
+    const mockTrace = {};
+
+    const mockCriteriaResult = {
+      scenario: "test-1",
+      type: "criteria",
+      passed: true,
+      judgment: "PASS: Response meets all criteria",
+      prompt: "What is the meaning of life?",
+      response: "This is a test response",
     };
 
-    const mockJudge = {
-      evaluateAll: mock.fn(() => Promise.resolve(mockScores)),
+    const mockCriteria = {
+      evaluate: mock.fn(() => Promise.resolve(mockCriteriaResult)),
     };
 
-    const mockAggregatedResults = {
-      totalCases: 1,
-      averageScores: mockScores,
-      results: [],
-    };
-
-    const mockMetrics = {
-      aggregate: mock.fn(() => mockAggregatedResults),
-    };
-
-    const mockReporter = {};
+    const mockRetrieval = {};
+    const mockTraceEval = {};
     const mockToken = "test-token";
+    const mockIndex = { add: mock.fn(() => Promise.resolve()) };
 
     const evaluator = new Evaluator(
       mockAgent,
+      mockMemory,
+      mockTrace,
       mockToken,
-      mockJudge,
-      mockMetrics,
-      mockReporter,
+      null,
+      mockIndex,
+      mockCriteria,
+      mockRetrieval,
+      mockTraceEval,
     );
 
-    const testCases = [
-      {
-        id: "test-1",
-        query: "What is the meaning of life?",
-        groundTruth: "42",
-        expectedTopics: ["philosophy", "humor"],
-      },
-    ];
+    const scenario = {
+      name: "test-1",
+      type: "criteria",
+      prompt: "What is the meaning of life?",
+      evaluations: [
+        {
+          label: "Verifies response is helpful and accurate",
+          data: "Response should be helpful and accurate",
+        },
+      ],
+    };
 
-    const results = await evaluator.evaluate(testCases, 1);
+    const result = await evaluator.evaluate(scenario);
 
     assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 1);
-    assert.strictEqual(mockJudge.evaluateAll.mock.callCount(), 1);
-    assert.strictEqual(mockMetrics.aggregate.mock.callCount(), 1);
-    assert.strictEqual(results.totalCases, 1);
+    assert.strictEqual(mockCriteria.evaluate.mock.callCount(), 1);
+
+    assert.strictEqual(result.passed, true);
+    assert.strictEqual(result.scenario, "test-1");
   });
 
-  test("evaluate processes multiple test cases with concurrency", async () => {
+  test("evaluate processes multiple scenarios with concurrency", async () => {
     const mockResponse = {
+      resource_id: "test-resource-123",
       choices: [
         {
           message: {
@@ -161,99 +294,81 @@ describe("Evaluator", () => {
       ProcessRequest: mock.fn(() => Promise.resolve(mockResponse)),
     };
 
-    const mockScores = {
-      relevance: 8,
-      accuracy: 9,
-      completeness: 7,
-      coherence: 8,
-      sourceAttribution: 6,
-      average: 7.6,
+    const mockMemory = {};
+    const mockTrace = {};
+
+    const mockCriteriaResult = {
+      scenario: "test-1",
+      type: "criteria",
+      passed: true,
+      judgment: "PASS",
+      prompt: "Query",
+      response: "Test response",
     };
 
-    const mockJudge = {
-      evaluateAll: mock.fn(() => Promise.resolve(mockScores)),
+    const mockCriteria = {
+      evaluate: mock.fn(() => Promise.resolve(mockCriteriaResult)),
     };
 
-    const mockAggregatedResults = {
-      totalCases: 3,
-      averageScores: mockScores,
-      results: [],
-    };
-
-    const mockMetrics = {
-      aggregate: mock.fn(() => mockAggregatedResults),
-    };
-
-    const mockReporter = {};
+    const mockRetrieval = {};
+    const mockTraceEval = {};
     const mockToken = "test-token";
+    const mockIndex = { add: mock.fn(() => Promise.resolve()) };
 
     const evaluator = new Evaluator(
       mockAgent,
+      mockMemory,
+      mockTrace,
       mockToken,
-      mockJudge,
-      mockMetrics,
-      mockReporter,
+      null,
+      mockIndex,
+      mockCriteria,
+      mockRetrieval,
+      mockTraceEval,
     );
 
-    const testCases = [
+    const scenarios = [
       {
-        id: "test-1",
-        query: "Query 1",
-        groundTruth: "Answer 1",
-        expectedTopics: [],
+        name: "test-1",
+        type: "criteria",
+        prompt: "Query 1",
+        evaluations: [
+          {
+            label: "Verifies response is helpful",
+            data: "Should be helpful",
+          },
+        ],
       },
       {
-        id: "test-2",
-        query: "Query 2",
-        groundTruth: "Answer 2",
-        expectedTopics: [],
+        name: "test-2",
+        type: "criteria",
+        prompt: "Query 2",
+        evaluations: [
+          {
+            label: "Verifies response is accurate",
+            data: "Should be accurate",
+          },
+        ],
       },
       {
-        id: "test-3",
-        query: "Query 3",
-        groundTruth: "Answer 3",
-        expectedTopics: [],
+        name: "test-3",
+        type: "criteria",
+        prompt: "Query 3",
+        evaluations: [
+          {
+            label: "Verifies response is complete",
+            data: "Should be complete",
+          },
+        ],
       },
     ];
 
-    const results = await evaluator.evaluate(testCases, 2);
-
-    assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 3);
-    assert.strictEqual(mockJudge.evaluateAll.mock.callCount(), 3);
-    assert.strictEqual(mockMetrics.aggregate.mock.callCount(), 1);
-    assert.strictEqual(results.totalCases, 3);
-  });
-
-  test("report generates markdown and JSON reports", async () => {
-    const mockReporter = {
-      generateMarkdown: mock.fn(() => Promise.resolve()),
-      generateJSON: mock.fn(() => Promise.resolve()),
-    };
-
-    const mockAgent = {};
-    const mockToken = "test-token";
-    const mockJudge = {};
-    const mockMetrics = {};
-
-    const evaluator = new Evaluator(
-      mockAgent,
-      mockToken,
-      mockJudge,
-      mockMetrics,
-      mockReporter,
+    const results = await Promise.all(
+      scenarios.map((scenario) => evaluator.evaluate(scenario)),
     );
 
-    const mockResults = {
-      totalCases: 1,
-      averageScores: {},
-      results: [],
-    };
-
-    const mockStorage = {};
-
-    await evaluator.report(mockResults, mockStorage);
-
-    assert.strictEqual(mockReporter.generateMarkdown.mock.callCount(), 1);
-    assert.strictEqual(mockReporter.generateJSON.mock.callCount(), 1);
+    assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 3);
+    assert.strictEqual(mockCriteria.evaluate.mock.callCount(), 3);
+    assert.strictEqual(results.length, 3);
   });
 });

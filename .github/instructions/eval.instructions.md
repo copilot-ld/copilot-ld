@@ -82,9 +82,15 @@ echo "[?name==\`tool.CallTool\`]" | npm -s run cli:visualize -- --resource commo
 ### Running Evals
 
 ```bash
-npm run eval                    # All evals
-npm run eval -- --case name     # Specific eval
-npm run eval -- --concurrency 3 # Parallel execution
+npm run eval                        # All evals
+npm run eval -- --scenario name     # Specific eval
+npm run eval -- --concurrency 3     # Parallel execution
+```
+
+### Reset Eval Results
+
+```bash
+npm run eval:reset                  # Reset all eval results
 ```
 
 ## Explicit Prohibitions

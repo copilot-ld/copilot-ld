@@ -1,31 +1,35 @@
-import { createLogger } from "@copilot-ld/libtelemetry";
-
-const logger = createLogger("teamsagent");
-
 /**
  * Authorizes incoming requests by validating the authorization token.
- * @param {import('http').IncomingMessage} req - HTTP request object
- * @returns {boolean} True if authorized, false otherwise
  */
-export function authorize(req) {
-  const authHeader = req.headers.authorization;
-  const secret = process.env.TEAMS_AGENT_SECRET;
+export class Authorizer {
+  #secret;
 
-  if (!secret) {
-    logger.error(
-      "authorize",
-      "TEAMS_AGENT_SECRET environment variable not set",
-    );
-    return false;
+  /**
+   * Creates a new Authorizer instance
+   * @param {string} secret - The secret token for authorization
+   */
+  constructor(secret) {
+    if (!secret) throw new Error("secret is required");
+
+    this.#secret = secret;
   }
 
-  if (!authHeader) {
-    return false;
+  /**
+   * Authorizes incoming requests by validating the authorization token.
+   * @param {import('http').IncomingMessage} req - HTTP request object
+   * @returns {boolean} True if authorized, false otherwise
+   */
+  authorize(req) {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return false;
+    }
+
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : authHeader;
+
+    return token === this.#secret;
   }
-
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : authHeader;
-
-  return token === secret;
 }

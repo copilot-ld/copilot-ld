@@ -265,9 +265,11 @@ export class TeamsServer {
 export default async function createServer() {
   // Initialize tenant management dependencies
   const tenantConfigRepository = new TenantConfigRepository();
-  const masterKey = process.env.SERVICE_MASTER_KEY;
+  const masterKey = process.env.EXTENSION_TEAMS_MASTER_KEY;
   if (!masterKey) {
-    throw new Error("SERVICE_MASTER_KEY environment variable is required");
+    throw new Error(
+      "EXTENSION_TEAMS_MASTER_KEY environment variable is required",
+    );
   }
   const tenantSecretEncryption = new TenantSecretEncryption({ masterKey });
   const tenantClientService = new TenantClientService(
@@ -282,7 +284,7 @@ export default async function createServer() {
   const adapter = configureAdapter();
 
   // Instantiate the CopilotLdBot with required dependencies
-  const config = await createExtensionConfig("web");
+  const config = await createExtensionConfig("teams");
   const bot = new CopilotLdBot(
     config,
     tenantConfigRepository,

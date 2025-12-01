@@ -22,8 +22,7 @@
     "@copilot-ld/libtype": "^0.1.39",
     "@copilot-ld/libutil": "^0.1.37",
     "@copilot-ld/libweb": "^0.1.31",
-    "botbuilder": "~4.23.3",
-    "dotenv": "~17.2.3"
+    "botbuilder": "~4.23.3"
   },
   "repository": {
     "type": "git",

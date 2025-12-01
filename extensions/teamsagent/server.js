@@ -2,31 +2,35 @@ import http from "node:http";
 import { clients } from "@copilot-ld/librpc";
 import { agent, common } from "@copilot-ld/libtype";
 import { createLogger } from "@copilot-ld/libtelemetry";
-import { authorize } from "./auth.js";
+import { Authorizer } from "./auth.js";
 import { parseBody } from "./http.js";
 
 /**
  * HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
  */
 export class AgentServer {
-  #config;
+  #agentConfig;
   #agentClient;
+  #authorizer;
   #logger;
   #server;
 
   /**
    * Creates a new TeamsAgentServer instance
-   * @param {object} config - Service configuration
+   * @param {object} agentConfig - Service configuration
    * @param {object} agentClient - Agent client for processing requests
+   * @param {import('./auth.js').Authorizer} authorizer - Authorizer instance
    * @param {object} logger - Logger instance
    */
-  constructor(config, agentClient, logger) {
-    if (!config) throw new Error("config is required");
+  constructor(agentConfig, agentClient, authorizer, logger) {
+    if (!agentConfig) throw new Error("agentConfig is required");
     if (!agentClient) throw new Error("agentClient is required");
+    if (!authorizer) throw new Error("authorizer is required");
     if (!logger) throw new Error("logger is required");
 
-    this.#config = config;
+    this.#agentConfig = agentConfig;
     this.#agentClient = agentClient;
+    this.#authorizer = authorizer;
     this.#logger = logger;
     this.#server = this.#createHttpServer();
   }
@@ -53,7 +57,7 @@ export class AgentServer {
           content: message,
         }),
       ],
-      github_token: await this.#config.githubToken(),
+      github_token: await this.#agentConfig.githubToken(),
       resource_id: resourceId,
     });
   }
@@ -64,7 +68,7 @@ export class AgentServer {
    * @param {import('http').ServerResponse} res - HTTP response object
    */
   async #handleApiMessages(req, res) {
-    this.#logger.info("handleApiMessages", "POST /api/messages");
+    this.#logger.debug("handleApiMessages", "POST /api/messages");
 
     req.body = await parseBody(req);
 
@@ -72,8 +76,8 @@ export class AgentServer {
     const resourceId = req.body.resourceId;
     const message = req.body.message;
 
-    if (!authorize(req)) {
-      this.#logger.warn(
+    if (!this.#authorizer.authorize(req)) {
+      this.#logger.debug(
         "handleApiMessages",
         "Unauthorized request to /api/messages for correlationId",
         { correlationId },
@@ -87,7 +91,7 @@ export class AgentServer {
       const requestParams = await this.#buildAgentRequest(message, resourceId);
       const response = await this.#agentClient.ProcessRequest(requestParams);
 
-      this.#logger.info("handleApiMessages", "Request completed", {
+      this.#logger.debug("handleApiMessages", "Request completed", {
         correlationId,
         resourceId,
       });
@@ -95,13 +99,7 @@ export class AgentServer {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ reply: response }));
     } catch (err) {
-      this.#logger.error(
-        "handleApiMessages",
-        "Error in agentClient.ProcessRequest",
-        {
-          error: err.message,
-        },
-      );
+      this.#logger.error("handleApiMessages", err);
       if (!res.headersSent) {
         res.writeHead(500, { "Content-Type": "text/plain" });
       }
@@ -151,17 +149,28 @@ export class AgentServer {
 
 /**
  * Creates and configures a new TeamsAgentServer instance
- * @param {object} config - Service configuration
+ * @param {object} agentConfig - Service configuration
+ * @param {object} extensionConfig - Extension configuration
  * @param {object} agentClient - Agent client for processing requests
+ * @param {import('./auth.js').Authorizer} authorizer - Authorizer instance
  * @param {object} logger - Logger instance (optional, creates default if not provided)
  * @returns {AgentServer} Configured server instance
  */
-export default function createServer(config, agentClient, logger) {
+export default function createServer(
+  agentConfig,
+  extensionConfig,
+  agentClient,
+  authorizer,
+  logger,
+) {
   if (!logger) {
     logger = createLogger("teamsagent");
   }
   if (!agentClient) {
-    agentClient = new clients.AgentClient(config);
+    agentClient = new clients.AgentClient(agentConfig);
   }
-  return new AgentServer(config, agentClient, logger);
+  if (!authorizer) {
+    authorizer = new Authorizer(extensionConfig.secret);
+  }
+  return new AgentServer(agentConfig, agentClient, authorizer, logger);
 }

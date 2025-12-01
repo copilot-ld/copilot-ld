@@ -1,4 +1,9 @@
 {
+  "extension": {
+    "teamsagent": {
+      "secret": null
+    }
+  },
   "service": {
     "agent": {
       "assistant": "knowledge_graph_agent",

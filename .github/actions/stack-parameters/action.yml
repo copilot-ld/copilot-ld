@@ -29,18 +29,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: "22"
-        cache: "npm"
-
-    - name: Install dependencies
-      shell: bash
-      run: |
-        cd $GITHUB_WORKSPACE
-        npm ci
-
     - name: Process stack parameters
       id: process
       shell: bash

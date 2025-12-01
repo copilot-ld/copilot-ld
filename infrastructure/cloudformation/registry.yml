@@ -162,9 +162,59 @@ Resources:
             ]
           }
 
+  TraceRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${EnvironmentName}/trace"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
   # ==========================================
   # ECR REPOSITORIES FOR EXTENSIONS
   # ==========================================
+
+  UiRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${EnvironmentName}/ui"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
 
   WebRepository:
     Type: AWS::ECR::Repository
@@ -191,10 +241,10 @@ Resources:
             ]
           }
 
-  UiRepository:
+  TeamsRepository:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: !Sub "${EnvironmentName}/ui"
+      RepositoryName: !Sub "${EnvironmentName}/teams"
       ImageScanningConfiguration:
         ScanOnPush: true
       LifecyclePolicy:
@@ -299,6 +349,10 @@ Outputs:
     Description: ECR repository URI for tool service
     Value: !GetAtt ToolRepository.RepositoryUri
 
+  TraceRepositoryUri:
+    Description: ECR repository URI for trace service
+    Value: !GetAtt TraceRepository.RepositoryUri
+
   WebRepositoryUri:
     Description: ECR repository URI for web extension
     Value: !GetAtt WebRepository.RepositoryUri
@@ -306,6 +360,10 @@ Outputs:
   UiRepositoryUri:
     Description: ECR repository URI for ui extension
     Value: !GetAtt UiRepository.RepositoryUri
+
+  TeamsRepositoryUri:
+    Description: ECR repository URI for teams extension
+    Value: !GetAtt TeamsRepository.RepositoryUri
 
   GatewayRepositoryUri:
     Description: ECR repository URI for gateway infrastructure

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libcopilot",
-  "version": "0.1.53",
+  "version": "0.1.59",
   "description": "GitHub Copilot API client and integration utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,8 +13,8 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtype": "^0.1.48",
-    "@copilot-ld/libutil": "^0.1.45",
+    "@copilot-ld/libtype": "^0.1.53",
+    "@copilot-ld/libutil": "^0.1.50",
     "undici": "^5.29.0"
   },
   "repository": {

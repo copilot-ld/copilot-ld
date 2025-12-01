@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/llm",
-  "version": "0.1.73",
+  "version": "0.1.80",
   "description": "Language model service providing embeddings and completions for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -15,10 +15,10 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.41",
-    "@copilot-ld/libcopilot": "^0.1.53",
-    "@copilot-ld/librpc": "^0.1.60",
-    "@copilot-ld/libtype": "^0.1.48"
+    "@copilot-ld/libconfig": "^0.1.46",
+    "@copilot-ld/libcopilot": "^0.1.59",
+    "@copilot-ld/librpc": "^0.1.65",
+    "@copilot-ld/libtype": "^0.1.53"
   },
   "repository": {
     "type": "git",

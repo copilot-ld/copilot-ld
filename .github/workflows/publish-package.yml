@@ -1,0 +1,30 @@
+name: Publish Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      dir:
+        description: "Package directory (e.g., packages/libtelemetry)"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node
+
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd "${{ inputs.dir }}"
+          npm publish --verbose --access public

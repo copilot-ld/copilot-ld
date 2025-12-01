@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { createScriptConfig } from "@copilot-ld/libconfig";
 import { PerformanceMonitor } from "@copilot-ld/libperf";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createLogger } from "@copilot-ld/libutil";
-import { VectorIndex } from "@copilot-ld/libvector";
-
-// Just call config to have it load environment etc.
-await createScriptConfig("cosine");
+import { createLogger } from "@copilot-ld/libtelemetry";
+import { VectorIndex } from "@copilot-ld/libvector/index/vector.js";
 
 /**
  * Main function to query vector index with cosine similarity

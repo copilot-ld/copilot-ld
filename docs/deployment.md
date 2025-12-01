@@ -74,7 +74,7 @@ stack, and the third checks service status.
 
 Once deployed, access the system via:
 
-- **Web Extension**: `https://localhost/web`
+- **UI Extension**: `https://localhost/ui/`
 - **MinIO Console**: `http://localhost:9001`
 
 ## AWS CloudFormation Deployment
@@ -89,7 +89,7 @@ security and cost management:
 
 - **Application Load Balancer**: AWS ALB handles SSL termination with AWS
   Certificate Manager certificates (free, auto-renewal) and routes traffic to
-  web extension service
+  extensions
 - **Gateway**: Nginx container on public subnet providing HTTPS egress proxy
   (port 3128) for outbound internet access
 - **SSL Management**: ALB manages SSL with AWS Certificate Manager, backend
@@ -232,16 +232,15 @@ The configured OIDC role enables secure access in deployment workflows:
   and service authentication
 - **demo-registry.yml**: Deploys ECR container registry infrastructure for
   storing container images internally
-- **demo-network.yml**: Deploys VPC network infrastructure including subnets,
-  routing tables, ECS cluster, and nginx gateway for egress proxy (replaces NAT
-  Gateway for cost optimization)
+- **demo-network.yml**: Deploys VPC, network infrastructure including subnets,
+  routing tables, ECS cluster, gateway and ALB
 - **demo-data.yml**: Generates demo data artifacts (configuration, knowledge
   base, tools) for deployment
 - **demo-storage.yml**: Creates S3 storage infrastructure and IAM roles for data
   access
 - **demo-services.yml**: Deploys the complete ECS service stack (backend
   services only, gateway deployed with network)
-- **demo-extensions.yml**: Deploys web extension and ALB routing
+- **demo-extensions.yml**: Deploys extensions
 
 For detailed CloudFormation deployment commands and parameters, refer to the
 actual workflow files in `.github/workflows/`. These workflows contain the most
@@ -266,9 +265,7 @@ workflows:
   Secrets Manager resources for secure credential storage
 - **Container Registry**: Deploy `demo-registry.yml` workflow to create ECR
   repositories for storing container images internally. This stack creates
-  repositories for all services (agent, memory, llm, vector, graph, tool), web
-  extension, and infrastructure containers (gateway, alb) with lifecycle
-  policies to automatically clean up old images
+  repositories for all services, extensions, and infrastructure containers
 - **Network Infrastructure**: Deploy `demo-network.yml` workflow to create the
   VPC, subnets, routing infrastructure, ECS cluster, and nginx gateway for
   egress proxy (NAT Gateway eliminated for cost optimization). The gateway
@@ -281,8 +278,8 @@ workflows:
   data to the storage infrastructure
 - **Services**: Deploy `demo-services.yml` workflow to create backend ECS
   services and application infrastructure
-- **Extensions**: Deploy `demo-extensions.yml` workflow to create web extension
-  and configure ALB routing
+- **Extensions**: Deploy `demo-extensions.yml` workflow to create UI and Web API
+  extensions and configure ALB routing
 
 Each stack outputs the necessary parameters for the next stack in the deployment
 chain. The registry stack provides the ECR registry URL used by network,

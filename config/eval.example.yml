@@ -1,437 +1,433 @@
-# BioNova Evaluation Cases
-
 # ==============================================================================
-# Scenario 1: Scientific Knowledge Base (Vector Search)
+# Search Scenarios
 # ==============================================================================
 
-vector_drug_formulation:
-  query: "How to optimize drug formulation"
-  expectedTopics:
-    - pharmaceutical development processes
-    - bioavailability optimization techniques
-    - drug delivery system design
-    - formulation chemistry concepts
-  groundTruth: |
-    Drug formulation optimization involves several key aspects: developing effective 
-    pharmaceutical formulations that maximize bioavailability, designing appropriate 
-    drug delivery systems to ensure therapeutic efficacy, and applying formulation 
-    chemistry principles to create stable and effective medications.
+search_drug_discovery_platform:
+  type: criteria
+  complexity: medium
+  rationale: |
+    Tests semantic understanding of comprehensive platform capabilities, 
+    technical features, advanced AI/ML integration, and ecosystem positioning 
+    within the broader computational drug discovery infrastructure
+  prompt: |
+    What is MolecularForge and what computational chemistry capabilities does it
+    provide?
+  evaluations:
+    - label:
+        Response identifies MolecularForge as computational chemistry platform
+      data: |
+        Response is identifying MolecularForge as a computational chemistry platform 
+        for drug discovery and development, and providing an overview of its purpose 
+        in the drug development workflow.
+    - label: Response describes core molecular modeling capabilities
+      data: |
+        Response is describing at least two of MolecularForge's core molecular 
+        modeling capabilities from: (1) structure-based docking for predicting small 
+        molecule-target interactions, (2) multi-target scoring to optimize efficacy 
+        across multiple targets while minimizing off-target effects, or 
+        (3) resistance pathway simulations for modeling secondary pathway activation 
+        and combination therapy strategies. Response is providing descriptions of 
+        how these capabilities support drug design and development.
+    - label: Response describes platform integrations
+      data: |
+        Response is identifying integration with complementary platforms like 
+        DrugDesignStudio, BioAnalyzer, and AnalyticsHub. Response is explaining 
+        how these dependencies or integrations enable or enhance MolecularForge's 
+        computational chemistry capabilities.
 
-vector_clinical_trial_safety:
-  query: "Managing adverse events in clinical trials"
-  expectedTopics:
-    - pharmacovigilance procedures
-    - patient safety protocols
-    - clinical trial monitoring
-    - adverse event reporting requirements
-  groundTruth: |
-    Managing adverse events in clinical trials requires comprehensive pharmacovigilance 
-    procedures, strict patient safety protocols, continuous clinical trial monitoring, 
-    and timely adverse event reporting to regulatory authorities. Patient safety is 
-    the primary concern in all clinical trial conduct.
+search_gmp_compliance:
+  type: criteria
+  complexity: medium
+  rationale: |
+    Tests understanding of regulatory compliance requirements and their 
+    technological implementation. Validates retrieval across policy documents, 
+    platform descriptions, and manufacturing procedures. Different domain from 
+    drug discovery focus.
+  prompt: |
+    What are the key components of GMP compliance and what systems support it?
+  evaluations:
+    - label: Response identifies GMP compliance components
+      data: |
+        Response is identifying at least 4 GMP (Good Manufacturing Practice) compliance 
+        components from: (1) batch record documentation and digital batch records, 
+        (2) deviation management and tracking, (3) contamination prevention protocols 
+        and control, (4) environmental monitoring, (5) release approval workflows, or 
+        (6) process validation.
+    - label: Response identifies supporting systems and platforms
+      data: |
+        Response is identifying at least two supporting systems or platforms such as: 
+        GMP360 platform, ManufacturingOS, ComplianceMonitor, or related manufacturing 
+        systems.
+    - label: Response explains system integration with GMP compliance
+      data: |
+        Response is explaining how the identified systems enable GMP compliance through 
+        automation, tracking, quality assurance, or other mechanisms. Response is 
+        demonstrating understanding of how technology supports compliance requirements.
 
-vector_cancer_treatment:
-  query: "cancer treatment options"
-  expectedTopics:
-    - oncology therapies and medications
-    - tumor treatment approaches
-    - cancer drug development
-    - therapeutic interventions
-  groundTruth: |
-    Cancer treatment encompasses various oncology therapies including chemotherapy, 
-    immunotherapy, and targeted therapies. Tumor treatment approaches vary based on 
-    cancer type and stage. Modern cancer drug development focuses on precision medicine 
-    and personalized therapeutic interventions.
+search_biomarker_trials:
+  type: criteria
+  complexity: high
+  rationale: |
+    Tests ability to synthesize information across multiple clinical trials, 
+    identify domain-specific biomarkers, and understand biomarker applications 
+    in different therapeutic contexts. More challenging than simple drug mechanism 
+    queries.
+  prompt: |
+    What clinical trials involve biomarker analysis and what specific biomarkers 
+    are being studied?
+  evaluations:
+    - label: Response identifies biomarker-focused clinical trials
+      data: |
+        Response is identifying at least 3 clinical trials involving biomarker analysis 
+        from: (1) Immunex autoimmune biomarkers trial, (2) Neurova neurodegeneration 
+        biomarkers trial, (3) Neurova cognitive biomarker trial, or (4) Immunex 
+        biomarker extension cohort.
+    - label: Response specifies biomarker types being studied
+      data: |
+        Response is specifying at least 4 distinct biomarker types such as: ANA titers, 
+        tau pathology markers, CSF biomarkers, digital cognitive endpoints, or 
+        autoimmune panel markers. Response is providing sufficient detail about the 
+        biomarkers being measured or validated.
+    - label: Response explains biomarker applications
+      data: |
+        Response is demonstrating understanding of how biomarkers are used across 
+        different therapeutic areas, such as: patient stratification, efficacy 
+        assessment, disease progression monitoring, or treatment response prediction. 
+        Response is showing awareness of biomarker applications in autoimmune and/or 
+        neurodegenerative contexts.
 
-vector_drug_mechanisms:
-  query: "How do drugs work in the body?"
-  expectedTopics:
-    - drug mechanisms of action
-    - pharmacokinetics
-    - pharmacodynamics
-    - therapeutic effects
-  groundTruth: |
-    Drugs work in the body through specific mechanisms of action that produce therapeutic 
-    effects. Pharmacokinetics describes how the body processes drugs (absorption, 
-    distribution, metabolism, excretion), while pharmacodynamics explains how drugs 
-    affect the body at molecular and cellular levels.
-
-# ==============================================================================
-# Scenario 2: Organizational Intelligence (Graph Traversal)
-# ==============================================================================
-
-graph_cso_reports:
-  query: "Find all people who report to the Chief Scientific Officer"
-  expectedTopics:
-    - CSO direct reports
-    - R&D department heads
-    - organizational reporting chain
-    - research leadership
-  groundTruth: |
-    The Chief Scientific Officer oversees the Research & Development department, 
-    including direct reports who lead various R&D teams such as Drug Discovery, 
-    Preclinical Research, and Clinical Development. The organizational structure 
-    includes multiple levels of research leadership.
-
-graph_rd_projects:
-  query: "Find all projects involving the R&D Drug Discovery team"
-  expectedTopics:
-    - drug discovery projects
-    - cross-functional project relationships
-    - R&D team involvement
-    - project membership
-  groundTruth: |
-    The R&D Drug Discovery team participates in multiple projects including drug 
-    development initiatives, research collaborations, and cross-functional programs 
-    that span discovery, preclinical, and clinical phases of pharmaceutical development.
-
-graph_gmp_training:
-  query: "Find attendees of GMP Training who work in Manufacturing"
-  expectedTopics:
-    - manufacturing department personnel
-    - GMP certification participants
-    - training attendance records
-    - quality assurance roles
-  groundTruth: |
-    Manufacturing department personnel regularly attend GMP (Good Manufacturing Practice) 
-    Training as part of compliance requirements. Attendees include manufacturing 
-    technicians, quality assurance specialists, and production managers who must 
-    maintain GMP certification.
-
-graph_platform_dependencies:
-  query:
-    "Find all people involved in projects that depend on the MolecularForge
-    platform"
-  expectedTopics:
-    - MolecularForge users
-    - dependent platforms
-    - project team members
-    - technology dependencies
-  groundTruth: |
-    MolecularForge is a foundational AI platform for drug discovery. Multiple teams 
-    use this platform across R&D projects, and several other technology platforms 
-    depend on MolecularForge capabilities. Project teams span multiple departments 
-    including drug discovery, preclinical research, and computational chemistry.
-
-graph_bionova_services:
-  query: "What services does BioNova offer to external clients?"
-  expectedTopics:
-    - contract manufacturing services
-    - clinical trial conduct services
-    - regulatory consulting
-    - CRO and CMO capabilities
-  groundTruth: |
-    BioNova offers external services including Contract Manufacturing Organization (CMO) 
-    capabilities for pharmaceutical production, Clinical Research Organization (CRO) 
-    services for clinical trial conduct, and regulatory consulting services to help 
-    other companies navigate FDA approval processes.
-
-graph_platform_users:
-  query: "Which teams use the MolecularForge platform?"
-  expectedTopics:
-    - R&D Drug Discovery team
-    - computational chemistry teams
-    - AI platform users
-    - cross-department technology usage
-  groundTruth: |
-    MolecularForge is primarily used by the R&D Drug Discovery team for AI-powered 
-    molecular modeling and compound screening. Additional teams across computational 
-    chemistry and preclinical research also utilize the platform's capabilities.
-
-graph_clinical_sites:
-  query: "List all clinical trial sites and their locations"
-  expectedTopics:
-    - medical organizations
-    - trial site locations
-    - clinical trial conduct
-    - geographic distribution
-  groundTruth: |
-    BioNova conducts clinical trials at multiple medical organization sites across 
-    various geographic locations. These sites include academic medical centers, 
-    community hospitals, and specialized research facilities that participate in 
-    Phase I, II, and III clinical trials.
+search_multi_drug_comparison:
+  type: criteria
+  complexity: high
+  rationale: |
+    Tests ability to retrieve and synthesize information about multiple drugs 
+    simultaneously, compare different therapeutic mechanisms, and organize 
+    comparative information coherently. More challenging than single-drug queries.
+  prompt: |
+    Compare the mechanisms of action for Oncora, Immunex, and Neurova. Explicitly 
+    note key differences in their therapeutic approaches.
+  evaluations:
+    - label: Response describes mechanisms of action for all three drugs
+      data: |
+        Response is describing the mechanism of action for all three drugs: 
+        (1) Oncora - targeted kinase inhibitor for solid tumors, (2) Immunex - 
+        immunomodulatory biologic for autoimmune conditions, and (3) Neurova - 
+        neurodegenerative disease treatment. Response is providing sufficient 
+        mechanistic detail for each drug.
+    - label: Response identifies therapeutic areas and targets
+      data: |
+        Response is identifying the therapeutic area for each drug (oncology, 
+        autoimmune, neurodegenerative) and describing target types or pathways 
+        such as: kinases, immune cells, T-cell activation, or neurological pathways.
+    - label: Response explicitly compares and contrasts approaches
+      data: |
+        Response is demonstrating comparative understanding by explicitly describing 
+        differences in their approaches such as: different target types, different 
+        therapeutic modalities (small molecule vs biologic), or different disease 
+        contexts. Response is organizing information comparatively, not just listing 
+        separate facts about each drug.
 
 # ==============================================================================
-# Scenario 3: Drug Development Pipeline (Hybrid Approach)
+# Recall Scenarios
 # ==============================================================================
 
-hybrid_cardiovascular_drug:
-  query: "How does the drug work for cardiovascular disease"
-  expectedTopics:
-    - cardiovascular drug mechanisms
-    - therapeutic effects on heart disease
-    - clinical efficacy
-    - pharmacological action
-  groundTruth: |
-    Cardiovascular drugs work through various mechanisms to treat heart disease, 
-    including modulating blood pressure, improving cardiac contractility, reducing 
-    cholesterol, and preventing blood clots. Therapeutic effects target specific 
-    pathways to improve cardiovascular outcomes and patient survival.
+recall_drug_discovery_team:
+  type: recall
+  complexity: low
+  rationale: |
+    Tests entity-level retrieval for organizational units. The Drug Discovery Team 
+    entity should be the principal definition containing team membership information. 
+    Note: Current knowledge base uses schema:employee predicate which may cause 
+    semantic confusion - team members worksFor BioNova R&D (parent org), not the 
+    team itself. Consider changing to schema:member for semantic consistency.
+  prompt: |
+    Who are the members of the Drug Discovery Team?
+  evaluations:
+    - label: Retrieves Drug Discovery Team item
+      data: https://bionova.example/id/org/drug-discovery-team
 
-hybrid_oncora_pipeline:
-  query: "What drugs depend on successful Phase III trials of Oncora?"
-  expectedTopics:
-    - drug pipeline dependencies
-    - clinical development stages
-    - oncology drug relationships
-    - development sequencing
-  groundTruth: |
-    Several drugs in the BioNova pipeline have dependencies on Oncora's Phase III 
-    trial success, particularly combination therapies and next-generation oncology 
-    treatments. Pipeline dependencies ensure that promising therapeutic approaches 
-    build on validated mechanisms and clinical evidence.
-
-hybrid_oncology_docs:
-  query: "Find clinical documentation for drugs in the oncology pipeline"
-  expectedTopics:
-    - oncology clinical trials
-    - drug development documents
-    - cancer treatment protocols
-    - clinical study reports
-  groundTruth: |
-    The oncology pipeline includes comprehensive clinical documentation covering 
-    trial protocols, investigator brochures, clinical study reports, and regulatory 
-    submissions. Documentation spans multiple development stages from early clinical 
-    trials through late-phase pivotal studies.
-
-hybrid_immunex_dependencies:
-  query:
-    "What clinical evidence supports drugs required for Immunex-Plus
-    development?"
-  expectedTopics:
-    - combination therapy evidence
-    - drug dependency relationships
-    - clinical trial data
-    - therapeutic rationale
-  groundTruth: |
-    Immunex-Plus development depends on clinical evidence from both Immunex and 
-    Cardiozen trials. The combination therapy rationale is supported by preclinical 
-    data showing synergistic effects and clinical evidence demonstrating complementary 
-    mechanisms of action. Both component drugs require successful clinical validation.
+recall_manufacturing_projects:
+  type: recall
+  complexity: medium
+  rationale: |
+    Tests retrieval of manufacturing-focused entities which differ from the 
+    drug discovery focus of most other queries. Validates cross-domain entity 
+    retrieval including both projects and platforms.
+  prompt: |
+    What projects and platforms are focused on manufacturing, GMP, or production scaling?
+  evaluations:
+    - label: Retrieves Project Gamma item
+      data: https://bionova.example/id/project/gamma
+    - label: Retrieves GMP360 platform item
+      data: https://bionova.example/id/platform/gmp360
+    - label: Retrieves ManufacturingOS platform item
+      data: https://bionova.example/id/platform/manufacturingos
 
 # ==============================================================================
-# Scenario 4: Certification Learning Paths (Graph Traversal)
+# Traversal Scenarios
 # ==============================================================================
 
-graph_regulatory_prerequisites:
-  query:
-    "What courses must I complete before Regulatory Affairs and FDA Submissions?"
-  expectedTopics:
-    - prerequisite courses
-    - certification path requirements
-    - regulatory training sequence
-    - foundation courses
-  groundTruth: |
-    Before taking Regulatory Affairs and FDA Submissions, learners must complete 
-    prerequisite courses including foundation-level pharmaceutical regulations, 
-    quality management systems fundamentals, and good documentation practices. 
-    The certification path follows a structured sequence from basic to advanced topics.
+traverse_project_team:
+  type: criteria
+  complexity: medium
+  rationale: |
+    Tests multi-hop relationship queries across person, project, and 
+    organization entities, validating the ability to traverse organizational 
+    hierarchies and discover reporting relationships.
+  prompt: |
+    Who leads Project Alpha and what team are they on?
+  evaluations:
+    - label: Response identifies Project Alpha leadership
+      data: |
+        Response is identifying Thoth as the Project Alpha lead or key member.
+    - label: Response provides organizational context and team affiliation
+      data: |
+        Response is providing organizational context including at least one of: 
+        (1) Thoth's affiliation with BioNova R&D or a specific team like the Drug 
+        Discovery Team, (2) at least one level of reporting structure (e.g., Thoth 
+        reports to Minerva as R&D Director), or (3) context about BioNova R&D as 
+        the parent organization for Project Alpha.
 
-graph_manufacturing_certification:
-  query: "Find all courses in the Manufacturing Excellence certification track"
-  expectedTopics:
-    - manufacturing certification courses
-    - GMP training
-    - quality assurance courses
-    - production excellence path
-  groundTruth: |
-    The Manufacturing Excellence certification track includes courses on Good 
-    Manufacturing Practices (GMP), quality systems, process validation, equipment 
-    qualification, and continuous improvement. The complete track prepares personnel 
-    for manufacturing leadership roles.
+traverse_platform_dependencies:
+  type: criteria
+  complexity: high
+  rationale: |
+    Tests graph traversal to find dependency relationships between platforms and 
+    validates the agent can identify dependencies and provide basic functional 
+    context.
+  prompt: |
+    What platforms does MolecularForge depend on?
+  evaluations:
+    - label: Response identifies all platform dependencies
+      data: |
+        Response is identifying all three platform dependencies of MolecularForge: 
+        (1) BioAnalyzer, (2) DrugDesignStudio, and (3) AnalyticsHub.
+    - label: Response describes dependent platform capabilities
+      data: |
+        Response is providing description of what at least two of these platforms do, 
+        such as: biological data analysis, drug design, molecular modeling, data 
+        analytics, or visualization. Response is indicating how these dependencies 
+        enable or support MolecularForge's capabilities.
 
-graph_gmp_content:
-  query: "Find content about GMP compliance training"
-  expectedTopics:
-    - Good Manufacturing Practices
-    - compliance requirements
-    - quality standards
-    - regulatory guidelines
-  groundTruth: |
-    GMP compliance training covers Good Manufacturing Practice requirements, quality 
-    standards for pharmaceutical production, regulatory guidelines from FDA and other 
-    authorities, and practical application of GMP principles in manufacturing operations. 
-    Training ensures personnel understand and follow quality requirements.
+traverse_course_progression:
+  type: criteria
+  complexity: high
+  rationale: |
+    Tests ability to synthesize comprehensive learning pathways from course 
+    relationships and content, validating graph traversal of prerequisite 
+    chains, understanding of course content and objectives, and ability to 
+    explain educational progression logic from foundational to advanced mastery 
+    levels.
+  prompt: |
+    What courses should I take to learn pharmaceutical development?
+  evaluations:
+    - label: Response identifies core pharmaceutical development courses
+      data: |
+        Response is identifying at least 4 specific courses from the pharmaceutical 
+        learning track including: (1) Pharm 101 (Principles of Therapeutic Mechanisms) 
+        as foundational course, (2) Pharm 201 (Advanced Drug Design Strategies) as 
+        intermediate course, (3) Pharm 301 (Regulatory & Submission Readiness), and 
+        at least one additional course from: Precision Medicine, Regulatory Affairs 
+        Workshop, or Pharm Certification.
+    - label: Response explains prerequisite sequencing and progression
+      data: |
+        Response is explicitly describing the prerequisite relationships (Pharm 101 → 
+        Pharm 201 → Pharm 301) and explaining the progression from basic principles 
+        through intermediate strategies to advanced regulatory expertise. Response is 
+        demonstrating understanding of learning pathway structure.
+    - label: Response describes course content and credentials
+      data: |
+        Response is providing description of what at least 2-3 courses cover, such as: 
+        pharmacodynamics, pharmacokinetics, ADME, multi-target optimization, 
+        formulation stability, regulatory submissions, or compliance. Response may 
+        mention credentials awarded (Foundations Badge, Intermediate Certificate, 
+        Advanced Credential) to show understanding of the learning progression.
 
-# ==============================================================================
-# Scenario 5: Regulatory Compliance (Hybrid Approach)
-# ==============================================================================
-
-hybrid_fda_policies:
-  query: "Find all policies required for FDA compliance"
-  expectedTopics:
-    - FDA regulatory requirements
-    - quality management policies
-    - compliance procedures
-    - regulatory submissions
-  groundTruth: |
-    FDA compliance requires comprehensive quality management policies covering drug 
-    development, manufacturing, and distribution. Key policies include quality systems, 
-    current Good Manufacturing Practices (cGMP), clinical trial conduct, pharmacovigilance, 
-    and regulatory submission procedures.
-
-hybrid_clinical_trial_policy:
-  query: "What policies does Clinical Trial Policy depend on?"
-  expectedTopics:
-    - policy dependencies
-    - regulatory framework
-    - quality management system
-    - compliance hierarchy
-  groundTruth: |
-    Clinical Trial Policy depends on foundational policies including the Master Quality 
-    Management System Policy, Human Subjects Protection Policy, Data Integrity Policy, 
-    and Pharmacovigilance Policy. These dependencies ensure comprehensive compliance 
-    across all clinical research activities.
-
-hybrid_patient_data:
-  query: "Find content about patient data protection requirements"
-  expectedTopics:
-    - HIPAA compliance
-    - data privacy
-    - patient confidentiality
-    - information security
-  groundTruth: |
-    Patient data protection requires HIPAA compliance for privacy and security of 
-    protected health information (PHI). Requirements include secure data storage, 
-    access controls, encryption, audit trails, breach notification procedures, and 
-    training for all personnel handling patient information.
-
-# ==============================================================================
-# Scenario 6: Technology Platform Ecosystem (Hybrid Approach)
-# ==============================================================================
-
-hybrid_ai_molecular_modeling:
-  query: "How to use AI for molecular modeling"
-  expectedTopics:
-    - MolecularForge capabilities
-    - AI drug discovery
-    - computational chemistry
-    - machine learning applications
-  groundTruth: |
-    AI molecular modeling uses machine learning to predict molecular properties, 
-    optimize drug candidates, and simulate molecular interactions. MolecularForge 
-    platform provides AI-powered capabilities for compound screening, structure-activity 
-    relationship prediction, and computational chemistry workflows in drug discovery.
-
-hybrid_molecularforge_deps:
-  query: "What platforms depend on MolecularForge?"
-  expectedTopics:
-    - platform dependencies
-    - technology integration
-    - system architecture
-    - dependent systems
-  groundTruth: |
-    Several platforms depend on MolecularForge including compound screening systems, 
-    preclinical modeling tools, and integrated drug discovery platforms. These 
-    dependencies reflect MolecularForge's role as a foundational AI capability that 
-    enables advanced computational chemistry across the technology ecosystem.
-
-hybrid_clinical_platforms:
-  query: "Find documentation for platforms supporting clinical trial management"
-  expectedTopics:
-    - clinical trial systems
-    - patient management
-    - data collection platforms
-    - trial operations technology
-  groundTruth: |
-    Clinical trial management platforms support patient recruitment, data collection, 
-    study monitoring, and regulatory compliance. Documentation covers system capabilities, 
-    integration points, user workflows, and compliance features for managing all 
-    aspects of clinical trial operations.
+traverse_drug_trial_timeline:
+  type: criteria
+  complexity: high
+  rationale: |
+    Tests ability to synthesize information across multiple related trials, 
+    understand clinical development progression, and organize trial information 
+    coherently. Requires connecting drug entity with multiple trial entities 
+    through both semantic search and graph traversal. The criteria focuses on 
+    demonstrating understanding of the clinical program rather than exact recall 
+    of specific patient counts or trial names, which better aligns with the 
+    open-ended nature of the prompt.
+  prompt: |
+    What clinical trials have been conducted for Oncora and what is the 
+    current development status?
+  evaluations:
+    - label: Response identifies Oncora clinical trials
+      data: |
+        Response is identifying at least 2-3 major clinical trial phases or types for 
+        Oncora such as: Phase II trials, Phase III trials/efficacy studies, Dose 
+        Optimization studies, or Oncora-XR variant studies.
+    - label: Response indicates current development status
+      data: |
+        Response is indicating current development status such as: Phase III near 
+        submission, Phase III recruiting, or other accurate status information about 
+        where Oncora is in the clinical development pipeline.
+    - label: Response demonstrates understanding of clinical development
+      data: |
+        Response is demonstrating understanding of clinical development through at least 
+        one of: (1) specific trial characteristics (patient populations, enrollment 
+        numbers, trial status), (2) clinical endpoints or outcome measures 
+        (progression-free survival, tumor response), (3) trial objectives or design 
+        features (dose optimization, biomarker stratification), or (4) regulatory 
+        context (submission readiness). Response organizes information coherently.
 
 # ==============================================================================
-# Scenario 7: Error Handling and Edge Cases
+# Edge Case Scenarios
 # ==============================================================================
 
-edge_nonexistent_drug:
-  query: "Find information about drug XYZ-999"
-  expectedTopics:
-    - drug not found response
-    - knowledge base limitations
-    - no fabricated information
-  groundTruth: |
-    The system should indicate that drug XYZ-999 is not found in the knowledge base 
-    without fabricating information. If similar drugs exist, the system may suggest 
-    them, but should clearly state that the requested drug is not available in the 
-    current dataset.
+edge_empty_results:
+  type: criteria
+  complexity: low
+  rationale: |
+    Tests handling of queries with no matching results and validates no 
+    hallucination occurs, ensuring the system maintains integrity by explicitly 
+    acknowledging knowledge gaps rather than generating plausible-sounding but 
+    fabricated information about non-existent entities.
+  prompt: |
+    Find information about drug ABC-999-XYZ
+  evaluations:
+    - label: Response acknowledges missing information without hallucination
+      data: |
+        Response is clearly and explicitly acknowledging that the specific drug 
+        ABC-999-XYZ is not found in the available knowledge base or that no 
+        information about ABC-999-XYZ is available. The response is not fabricating 
+        or inventing any details about ABC-999-XYZ including its mechanism of action, 
+        indication, formulation, development status, or any other characteristics. 
+        The response is optionally offering to help with related topics, listing 
+        available drugs in the knowledge base, or providing general information about 
+        drug discovery processes, but is maintaining clear distinction between the 
+        unavailable ABC-999-XYZ and any actual entities or general information 
+        provided. The response is demonstrating appropriate uncertainty handling and 
+        avoiding confidently presenting information that does not exist in the 
+        knowledge base.
 
-edge_ambiguous_apollo:
-  query: "Find all connections to Apollo"
-  expectedTopics:
-    - multiple relationship types
-    - organizational connections
-    - comprehensive results
-    - role relationships
-  groundTruth: |
-    Apollo has multiple types of connections including CEO role relationships, 
-    organizational structure connections, and project involvement. The system should 
-    return comprehensive results covering different connection types and clearly 
-    categorize them without omitting valid relationships.
+edge_negative_relationship:
+  type: criteria
+  complexity: medium
+  rationale: |
+    Tests ability to distinguish between different platform types, understand 
+    domain boundaries, and avoid incorrectly inferring relationships between 
+    unrelated entities. Validates that agent doesn't over-connect disparate 
+    information.
+  prompt: |
+    What are the key differences between MolecularForge and ManufacturingOS 
+    platforms?
+  evaluations:
+    - label: Response identifies distinct platform purposes
+      data: |
+        Response is identifying MolecularForge and ManufacturingOS as serving different 
+        purposes: MolecularForge for computational chemistry, drug discovery, and 
+        molecular modeling vs. ManufacturingOS for production, GMP compliance, and 
+        manufacturing operations.
+    - label: Response demonstrates understanding of domain boundaries
+      data: |
+        Response is describing differences in user bases (research scientists vs. 
+        manufacturing operators) and/or different stages of drug lifecycle 
+        (discovery/development vs. production). Response is avoiding stating they are 
+        directly related or dependent on each other, demonstrating understanding that 
+        they serve different domains.
 
-edge_empty_query:
-  query: ""
-  expectedTopics:
-    - error handling
-    - helpful guidance
-    - no fabrication
-  groundTruth: |
-    Empty queries should be handled gracefully with helpful error messages that guide 
-    users on how to formulate valid queries. The system should not crash, timeout, 
-    or fabricate placeholder responses. Clear guidance helps users understand expected 
-    input formats.
+edge_complex_relationship:
+  type: criteria
+  complexity: high
+  rationale: |
+    Tests ability to retrieve and synthesize specific documented connections 
+    between entities through semantic search and relationship traversal. Knowledge 
+    base contains multiple explicit connections (blog posts, articles, Project 
+    Alpha events) that link Oncora development to specific MolecularForge 
+    capabilities and improvements.
+  prompt: |
+    How are the Oncora drug and MolecularForge platform connected?
+  evaluations:
+    - label: Response identifies connection between Oncora and MolecularForge
+      data: |
+        Response is identifying the connection between Oncora drug and MolecularForge 
+        platform through at least one of: (1) Use of MolecularForge in Oncora 
+        development workflow (lead optimization, scaffold refinement, analog ranking, 
+        compound analysis), (2) Connection through Project Alpha which integrates 
+        molecular modeling with Oncora screening and optimization, or (3) Reference 
+        to specific applications in blog posts, articles, or events.
+    - label: Response explains how the platform supports drug development
+      data: |
+        Response is explaining how MolecularForge supports Oncora development through 
+        specific examples such as: technical improvements (embedding upgrades, vector 
+        cache optimization), computational capabilities (deep learning for structure 
+        prediction, reinforcement learning), or workflow integration (lead 
+        prioritization, scaffold queries, formulation adjustment). Response 
+        demonstrates understanding beyond generic statements about computational 
+        platforms.
 
-edge_person_vs_drug:
-  query: "What drugs does Chronos work on?"
-  expectedTopics:
-    - entity type disambiguation
-    - person-to-project relationships
-    - indirect drug connections
-    - relationship traversal
-  groundTruth: |
-    Chronos is a person, not a drug. The system should correctly identify the entity 
-    type and find projects that Chronos works on, then identify drugs related to 
-    those projects. This requires proper entity typing and multi-hop relationship 
-    traversal from person to projects to drugs.
+# ==============================================================================
+# Trace Scenarios
+# ==============================================================================
 
-edge_nonexistent_relationship:
-  query: "Find all people who report to Demeter"
-  expectedTopics:
-    - manager role identification
-    - direct reports
-    - no fabricated relationships
-    - accurate hierarchy
-  groundTruth: |
-    Demeter should be correctly identified by role (Manager vs Director) and the 
-    system should return actual team members if they exist, or clearly state if 
-    there are no direct reports. The system must not create non-existent reporting 
-    relationships to fill gaps.
+trace_efficient_tool_sequence:
+  type: trace
+  complexity: low
+  rationale: |
+    Validates agent uses efficient tool calling patterns without excessive 
+    queries for a straightforward prerequisite relationship query. A 
+    well-optimized agent should answer this question using a minimal sequence 
+    of tool calls: typically get_ontology and get_subjects to understand course
+    relationship predicates (schema:coursePrerequisites), followed by
+    query_by_pattern to directly traverse the prerequisite relationship from
+    Pharm 201 backwards to discover Pharm 101. The 4-call limit ensures the
+    agent is not making redundant queries, unnecessary semantic searches when
+    graph queries would suffice, or inefficient trial-and-error patterns. This
+    tests the agent's query planning and optimization capabilities for simple
+    relationship traversal tasks.
+  prompt: |
+    What courses are prerequisites for Pharm 201?
+  evaluations:
+    - label: Agent uses efficient tool sequence
+      data: "[?name==`tool.CallTool`] | length(@) <= `4`"
 
-edge_circular_deps:
-  query:
-    "What platforms depend on ManufacturingOS and what does ManufacturingOS
-    depend on?"
-  expectedTopics:
-    - dependency direction
-    - no circular references
-    - correct dependency graph
-    - bidirectional query handling
-  groundTruth: |
-    ManufacturingOS has dependencies on other platforms like ProcessControl and 
-    BioAnalyzer. The system should maintain correct dependency direction and not 
-    show circular dependencies. Bidirectional queries should be handled without 
-    confusion, showing what ManufacturingOS requires and what requires ManufacturingOS.
+trace_graph_discovery_workflow:
+  type: trace
+  complexity: medium
+  rationale: |
+    Verifies agent uses the recommended two-phase workflow for relationship
+    discovery: (1) get_subjects to understand all subjects and their IRIs,
+    available predicates, and entity types for context, followed by
+    (2) query_by_pattern to traverse specific relationships and retrieve
+    platform dependency information. This workflow ensures the agent understands
+    the graph structure before executing queries, leading to more accurate and
+    complete relationship discovery for structured data queries requiring graph
+    traversal rather than semantic search.
+  prompt: |
+    What platforms does MolecularForge depend on?
+  evaluations:
+    - label: Agent calls get_subjects tool
+      data:
+        "[?name==`tool.CallTool` &&
+        events[0].attributes.function_name==`get_subjects`]"
+    - label: Agent calls query_by_pattern tool
+      data:
+        "[?name==`tool.CallTool` &&
+        events[0].attributes.function_name==`query_by_pattern`]"
 
-edge_self_referential:
-  query:
-    "What are the prerequisites for the Master Quality Management System Policy?"
-  expectedTopics:
-    - root policy identification
-    - no self-reference
-    - hierarchy clarity
-    - dependent policies
-  groundTruth: |
-    The Master Quality Management System Policy is the top-level root policy with 
-    no prerequisites. The system should correctly identify it as the root of the 
-    policy hierarchy and not return itself as a prerequisite. It may show what 
-    policies depend on it (reverse relationship) but should never show circular or 
-    self-referential relationships.
+trace_mixed_query_strategy:
+  type: trace
+  complexity: high
+  rationale: |
+    Tests ability to synthesize comprehensive information about a drug candidate 
+    requiring both descriptive content (mechanism of action) and structured 
+    relationships (clinical trials, projects). Validates that the agent makes 
+    sufficient tool calls (at least 3) to gather comprehensive information. This 
+    complex query requires multiple information sources and should trigger 
+    multiple tool invocations to retrieve mechanism details, clinical trial data, 
+    and project relationships. The trace validation ensures the agent is actively 
+    gathering information rather than relying solely on existing context or making 
+    assumptions.
+  prompt: |
+    Tell me about Immunex development including its clinical trials, mechanism 
+    of action, and related projects and their team members
+  evaluations:
+    - label: Agent makes sufficient tool calls
+      data: "[?name==`tool.CallTool`] | length(@) >= `3`"

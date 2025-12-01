@@ -250,18 +250,19 @@ local filesystem and S3-compatible storage.
 import { createStorage } from "@copilot-ld/libstorage";
 
 // Automatically uses local or S3 based on config
-const storage = createStorage();
+const storage = createStorage("namespace");
 
 // Write operations
-await storage.write("path/to/file.json", data);
-await storage.write("path/to/file.txt", "text content");
+await storage.put("path/to/file.json", data);
+await storage.put("path/to/file.txt", "text content");
 
 // Read operations
-const data = await storage.read("path/to/file.json");
-const text = await storage.read("path/to/file.txt");
+const data = await storage.get("path/to/file.json");
+const text = await storage.get("path/to/file.txt");
 
 // List operations
-const files = await storage.list("path/to/directory/");
+const allFiles = await storage.list();
+const dirFiles = await storage.findByPrefix("path/to/directory/");
 
 // Delete operations
 await storage.delete("path/to/file.json");

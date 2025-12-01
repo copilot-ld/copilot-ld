@@ -2,135 +2,127 @@
 import { common, agent } from "@copilot-ld/libtype";
 
 /**
+ * @typedef {object} ReporterInterface
+ * @property {function(object[]): Promise<string>} generate - Generate report from evaluation results array
+ */
+
+/**
  * Main evaluator orchestrates the evaluation workflow
- * Coordinates judge, metrics, and reporting
+ * Dispatches to appropriate evaluator based on scenario configuration
  */
 export class Evaluator {
-  #judge;
-  #metrics;
-  #reporter;
   #agentClient;
   #githubToken;
+  #model;
+  #judgeEvaluator;
+  #recallEvaluator;
+  #traceEvaluator;
+  #evaluationIndex;
 
   /**
    * Create a new Evaluator instance
-   * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for testing
+   * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
+   * @param {import('@copilot-ld/librpc').MemoryClient} memoryClient - Memory client for recall evaluation
+   * @param {import('@copilot-ld/librpc').TraceClient} traceClient - Trace client for trace evaluation
    * @param {string} githubToken - GitHub token for API access
-   * @param {import('./judge.js').Judge} judge - Judge instance for evaluation
-   * @param {import('./metrics.js').MetricsCalculator} metrics - Metrics calculator for aggregation
-   * @param {import('./report.js').ReportGenerator} reporter - Report generator for output
+   * @param {string} [model] - Optional model override for LLM service
+   * @param {import('./index/evaluation.js').EvaluationIndex} evaluationIndex - Evaluation index for storing results
+   * @param {import('./criteria.js').JudgeEvaluator} judgeEvaluator - Judge evaluator instance
+   * @param {import('./recall.js').RecallEvaluator} recallEvaluator - Recall evaluator instance
+   * @param {import('./trace.js').TraceEvaluator} traceEvaluator - Trace evaluator instance
    */
-  constructor(agentClient, githubToken, judge, metrics, reporter) {
+  constructor(
+    agentClient,
+    memoryClient,
+    traceClient,
+    githubToken,
+    model,
+    evaluationIndex,
+    judgeEvaluator,
+    recallEvaluator,
+    traceEvaluator,
+  ) {
     if (!agentClient) throw new Error("agentClient is required");
+    if (!memoryClient) throw new Error("memoryClient is required");
+    if (!traceClient) throw new Error("traceClient is required");
     if (!githubToken) throw new Error("githubToken is required");
-    if (!judge) throw new Error("judge is required");
-    if (!metrics) throw new Error("metrics is required");
-    if (!reporter) throw new Error("reporter is required");
+    if (!evaluationIndex) throw new Error("evaluationIndex is required");
+    if (!judgeEvaluator) throw new Error("judgeEvaluator is required");
+    if (!recallEvaluator) throw new Error("recallEvaluator is required");
+    if (!traceEvaluator) throw new Error("traceEvaluator is required");
 
     this.#agentClient = agentClient;
     this.#githubToken = githubToken;
-    this.#judge = judge;
-    this.#metrics = metrics;
-    this.#reporter = reporter;
+    this.#model = model;
+    this.#evaluationIndex = evaluationIndex;
+    this.#judgeEvaluator = judgeEvaluator;
+    this.#recallEvaluator = recallEvaluator;
+    this.#traceEvaluator = traceEvaluator;
   }
 
   /**
-   * Evaluate all test cases with parallel processing
-   * @param {object[]} testCases - Array of test cases to evaluate
-   * @param {number} concurrency - Number of concurrent evaluations (default 5)
-   * @returns {Promise<object>} Aggregated evaluation results
+   * Evaluate a single scenario
+   * @param {object} scenario - Scenario to evaluate
+   * @returns {Promise<object>} Evaluation result for this scenario
    */
-  async evaluate(testCases, concurrency = 5) {
-    if (!testCases || testCases.length === 0) {
-      throw new Error("testCases array is required");
-    }
-
-    console.log(
-      `Starting evaluation of ${testCases.length} test cases with concurrency ${concurrency}`,
-    );
-
-    const results = [];
-
-    // Process test cases in parallel batches
-    for (let i = 0; i < testCases.length; i += concurrency) {
-      const batch = testCases.slice(i, i + concurrency);
-      console.log(
-        `Processing batch ${Math.floor(i / concurrency) + 1}/${Math.ceil(testCases.length / concurrency)}`,
-      );
-
-      const batchResults = await Promise.all(
-        batch.map((testCase) => this.#evaluateCase(testCase)),
-      );
-      results.push(...batchResults);
-    }
-
-    console.log(`Evaluation complete. Aggregating results...`);
-    return this.#metrics.aggregate(results);
-  }
-
-  /**
-   * Evaluate a single test case
-   * @param {object} testCase - Test case to evaluate
-   * @returns {Promise<object>} Evaluation result for this case
-   */
-  async #evaluateCase(testCase) {
-    console.log(`Evaluating case: ${testCase.id}`);
-
-    // Get agent response
+  async evaluate(scenario) {
+    // Execute prompt against agent
     const request = agent.AgentRequest.fromObject({
       messages: [
-        common.Message.fromObject({ role: "user", content: testCase.query }),
+        common.Message.fromObject({ role: "user", content: scenario.prompt }),
       ],
       github_token: this.#githubToken,
+      model: this.#model,
     });
 
     const response = await this.#agentClient.ProcessRequest(request);
+    const resource = response.resource_id;
 
-    // Extract message content from first choice
-    if (!response.choices || response.choices.length === 0) {
-      throw new Error("No choices in agent response");
-    }
-
-    if (!response.choices[0].message?.content?.text) {
+    // Determine evaluation type and dispatch based on scenario.type
+    let result;
+    if (scenario.type === "criteria") {
+      result = await this.#judgeEvaluator.evaluate(scenario, response);
+    } else if (scenario.type === "recall") {
+      result = await this.#recallEvaluator.evaluate(
+        scenario,
+        resource,
+        response,
+      );
+    } else if (scenario.type === "trace") {
+      result = await this.#traceEvaluator.evaluate(
+        scenario,
+        resource,
+        response,
+      );
+    } else {
       throw new Error(
-        `No content in agent response for test case: ${testCase.id}`,
+        `Invalid scenario: ${scenario.name} - unknown type: ${scenario.type}`,
       );
     }
 
-    const responseContent = response.choices[0].message.content.text;
+    // Add resource ID to result for debugging
+    result.resource = resource;
 
-    // Evaluate with LLM judge
-    const scores = await this.#judge.evaluateAll(
-      testCase.query,
-      responseContent,
-      testCase.groundTruth,
-      testCase.expectedTopics,
-    );
+    // Add model to result
+    result.model = this.#model || "default";
 
-    return {
-      caseId: testCase.id,
-      query: testCase.query,
-      response: responseContent,
-      scores,
-      timestamp: new Date().toISOString(),
-    };
-  }
+    // Add metadata to result (if present in scenario)
+    if (scenario.complexity || scenario.rationale) {
+      result.metadata = {
+        complexity: scenario.complexity || null,
+        rationale: scenario.rationale || null,
+      };
+    }
 
-  /**
-   * Generate reports from evaluation results
-   * @param {object} results - Aggregated evaluation results
-   * @param {object} storage - Storage instance for output
-   * @returns {Promise<void>} Resolves when reports are written
-   */
-  async report(results, storage) {
-    console.log("Generating reports...");
-    await Promise.all([
-      this.#reporter.generateMarkdown(results, storage),
-      this.#reporter.generateJSON(results, storage),
-    ]);
+    // Store result in evaluation index
+    await this.#evaluationIndex.add(result);
+
+    return result;
   }
 }
 
-export { Judge } from "./judge.js";
-export { MetricsCalculator } from "./metrics.js";
-export { ReportGenerator } from "./report.js";
+export { EvaluationIndex } from "./index/evaluation.js";
+export { EvaluationReporter } from "./reporter.js";
+export { JudgeEvaluator } from "./judge.js";
+export { RecallEvaluator } from "./recall.js";
+export { TraceEvaluator } from "./trace.js";

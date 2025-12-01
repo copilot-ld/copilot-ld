@@ -1,13 +1,14 @@
 {
   "name": "@copilot-ld/libeval",
-  "version": "1.0.14",
+  "version": "1.0.20",
   "description": "Evaluation system for RAG agent quality assessment",
   "type": "module",
   "exports": {
     ".": "./index.js"
   },
   "bin": {
-    "evaluation": "./bin/eval.js"
+    "evaluation": "./bin/eval.js",
+    "eval-report": "./bin/report.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js"
@@ -21,7 +22,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@copilot-ld/librpc": "^0.1.60",
-    "@copilot-ld/libtype": "^0.1.48"
+    "@copilot-ld/librpc": "^0.1.65",
+    "@copilot-ld/libtelemetry": "^0.1.12",
+    "@copilot-ld/libtype": "^0.1.53"
   }
 }

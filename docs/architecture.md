@@ -251,13 +251,15 @@ npm run dev
 
 Services available at:
 
-- **Web Extension**: `http://localhost:3000/web/`
-- **Agent**: `localhost:3001` (gRPC, internal)
-- **Memory**: `localhost:3002` (gRPC, internal)
-- **LLM**: `localhost:3003` (gRPC, internal)
-- **Vector**: `localhost:3004` (gRPC, internal)
-- **Graph**: `localhost:3005` (gRPC, internal)
-- **Tool**: `localhost:3006` (gRPC, internal)
+- **UI Extension**: `http://localhost:3000/ui/`
+- **Web API Extension**: `http://localhost:3001/web/`
+- **Agent**: `localhost:3002` (gRPC, internal)
+- **Memory**: `localhost:3003` (gRPC, internal)
+- **LLM**: `localhost:3004` (gRPC, internal)
+- **Vector**: `localhost:3005` (gRPC, internal)
+- **Graph**: `localhost:3006` (gRPC, internal)
+- **Tool**: `localhost:3007` (gRPC, internal)
+- **Trace**: `localhost:3008` (gRPC, internal)
 
 ### Docker Compose
 
@@ -266,7 +268,8 @@ extension is exposed externally, while backend services are isolated in the
 Docker network:
 
 ```bash
-docker-compose up
+npm run docker:build
+npm run docker:up
 ```
 
 ### Production (AWS/Cloud)

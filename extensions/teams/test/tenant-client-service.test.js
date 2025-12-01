@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { describe, test, beforeEach } from "node:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import { TenantClientService } from "../tenant-client-service.js";
 import { TenantConfigRepository } from "../tenant-config-repository.js";
@@ -10,12 +10,27 @@ describe("TenantClientService", () => {
   let configRepository;
   let encryption;
   let masterKey;
+  let originalServiceSecret;
 
   beforeEach(() => {
+    // Save and set SERVICE_SECRET for tests that create clients
+    originalServiceSecret = process.env.SERVICE_SECRET;
+    process.env.SERVICE_SECRET =
+      "test-secret-that-is-at-least-32-characters-long";
+
     configRepository = new TenantConfigRepository();
     masterKey = TenantSecretEncryption.generateMasterKey();
     encryption = new TenantSecretEncryption({ masterKey });
     tenantClientService = new TenantClientService(configRepository, encryption);
+  });
+
+  afterEach(() => {
+    // Restore original environment
+    if (originalServiceSecret !== undefined) {
+      process.env.SERVICE_SECRET = originalServiceSecret;
+    } else {
+      delete process.env.SERVICE_SECRET;
+    }
   });
 
   describe("constructor", () => {

@@ -75,7 +75,6 @@ function createMockTenantClientService(overrides = {}) {
   return {
     getTenantConfig: async () => ({ host: "localhost", port: 3979 }),
     saveTenantConfig: async () => {},
-    getTenantClient: async () => ({}),
     ...overrides,
   };
 }

@@ -51,13 +51,13 @@ class CopilotLdBot extends ActivityHandler {
 
     const tenantId = context.activity.conversation.tenantId;
     const recipientId = context.activity.recipient.id;
-    const tenantRecipientKey = `${tenantId}:${recipientId}`;
-
     const resourceId = this.getResourceId(tenantId, recipientId);
 
-    console.log(
-      `New message received (API): TenantId: ${tenantId}, RecipientId: ${recipientId}, ResourceId: ${resourceId}`,
-    );
+    const correlationId = resourceId
+      ? `${tenantId}:${recipientId}:${resourceId}`
+      : `${tenantId}:${recipientId}`;
+
+    console.log(`New message received for correlationId: ${correlationId}`);
     console.log(`Message: ${context.activity.text}`);
 
     try {
@@ -81,6 +81,7 @@ class CopilotLdBot extends ActivityHandler {
 
       const response = await this.#callTeamsAgent(
         context.activity.text,
+        correlationId,
         resourceId,
         tenantConfig.host,
         tenantConfig.port,
@@ -88,7 +89,7 @@ class CopilotLdBot extends ActivityHandler {
       );
 
       console.log(
-        `Teams Agent request completed for tenant/recipient: ${tenantRecipientKey}`,
+        `Teams Agent request completed for correlationId: ${correlationId}`,
       );
 
       const replyContent = response.reply?.choices?.[0]?.message?.content;
@@ -165,17 +166,26 @@ class CopilotLdBot extends ActivityHandler {
   /**
    * Calls the Teams Agent service with a message and authentication.
    * @param {string} message - The user message to send.
+   * @param {string|null} correlationId - The correlation ID for conversation tracking.
    * @param {string|null} resourceId - The resource ID for conversation tracking.
    * @param {string} host - The host address of the Teams Agent service.
    * @param {number} port - The port number of the Teams Agent service.
    * @param {string} authToken - The authentication token for the Teams Agent service.
    * @returns {Promise<object>} The response from the Teams Agent service.
    */
-  async #callTeamsAgent(message, resourceId, host, port, authToken) {
+  async #callTeamsAgent(
+    message,
+    correlationId,
+    resourceId,
+    host,
+    port,
+    authToken,
+  ) {
     const url = `http://${host}:${port}/api/messages`;
 
     const requestBody = {
       message,
+      correlationId,
       resourceId,
     };
 

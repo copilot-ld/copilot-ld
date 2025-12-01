@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import createServer from "./server.js";
 
-const server = await createServer();
+const config = await createServiceConfig("agent");
+const server = createServer(config);
 
 server.listen(
   process.env.teams_agent_port || process.env.TEAMS_AGENT_PORT || 3979,

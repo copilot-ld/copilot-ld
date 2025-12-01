@@ -1,112 +1,167 @@
 import http from "node:http";
 import { clients } from "@copilot-ld/librpc";
 import { agent, common } from "@copilot-ld/libtype";
-import { createServiceConfig } from "@copilot-ld/libconfig";
+import { createLogger } from "@copilot-ld/libtelemetry";
+import { authorize } from "./auth.js";
 import { parseBody } from "./http.js";
 
-const config = await createServiceConfig("agent");
-const agentClient = new clients.AgentClient(config);
-
 /**
- * Authorizes incoming requests by validating the authorization token.
- * @param {import('http').IncomingMessage} req - HTTP request object
- * @returns {boolean} True if authorized, false otherwise
+ * HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
  */
-function authorize(req) {
-  const authHeader = req.headers.authorization;
-  const secret = process.env.TEAMS_AGENT_SECRET;
+export class AgentServer {
+  #config;
+  #agentClient;
+  #logger;
+  #server;
 
-  if (!secret) {
-    console.error("TEAMS_AGENT_SECRET environment variable not set");
-    return false;
+  /**
+   * Creates a new TeamsAgentServer instance
+   * @param {object} config - Service configuration
+   * @param {object} agentClient - Agent client for processing requests
+   * @param {object} logger - Logger instance
+   */
+  constructor(config, agentClient, logger) {
+    if (!config) throw new Error("config is required");
+    if (!agentClient) throw new Error("agentClient is required");
+    if (!logger) throw new Error("logger is required");
+
+    this.#config = config;
+    this.#agentClient = agentClient;
+    this.#logger = logger;
+    this.#server = this.#createHttpServer();
   }
 
-  if (!authHeader) {
-    return false;
+  /**
+   * Gets the underlying HTTP server instance
+   * @returns {http.Server} The HTTP server
+   */
+  get server() {
+    return this.#server;
   }
 
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : authHeader;
-
-  return token === secret;
-}
-
-/**
- * Handles POST requests to /api/messages for Bot Framework protocol.
- * @param {import('http').IncomingMessage} req - HTTP request object
- * @param {import('http').ServerResponse} res - HTTP response object
- */
-async function handleApiMessages(req, res) {
-  if (!authorize(req)) {
-    console.warn("Unauthorized request to /api/messages");
-    res.writeHead(401, { "Content-Type": "text/plain" });
-    res.end("Unauthorized");
-    return;
-  }
-  console.log("POST /api/messages");
-  req.body = await parseBody(req);
-
-  const tenantId = req.body.tenantId;
-  const recipientId = req.body.recipientId;
-  const tenantRecipientKey = `${tenantId}:${recipientId}`;
-  const resourceId = req.body.resourceId;
-  const message = req.body.message;
-
-  try {
-    const requestParams = agent.AgentRequest.fromObject({
+  /**
+   * Builds an AgentRequest object from the provided message and resource ID
+   * @param {string} message - The user message content
+   * @param {string|undefined} resourceId - The resource ID for conversation tracking
+   * @returns {Promise<agent.AgentRequest>} The constructed agent request
+   */
+  async #buildAgentRequest(message, resourceId) {
+    return agent.AgentRequest.fromObject({
       messages: [
         common.Message.fromObject({
           role: "user",
           content: message,
         }),
       ],
-      github_token: await config.githubToken(),
+      github_token: await this.#config.githubToken(),
       resource_id: resourceId,
     });
+  }
 
-    console.log(
-      "Processing request with agentClient for recipient:",
-      tenantRecipientKey,
-    );
+  /**
+   * Handles POST requests to /api/messages for Bot Framework protocol
+   * @param {import('http').IncomingMessage} req - HTTP request object
+   * @param {import('http').ServerResponse} res - HTTP response object
+   */
+  async #handleApiMessages(req, res) {
+    this.#logger.info("handleApiMessages", "POST /api/messages");
 
-    const response = await agentClient.ProcessRequest(requestParams);
-    console.log(`Request completed for recipient: ${tenantRecipientKey}`);
+    req.body = await parseBody(req);
 
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ reply: response }));
-  } catch (err) {
-    console.error("Error in agentClient.ProcessRequest:", err);
-    if (!res.headersSent) {
-      res.writeHead(500, { "Content-Type": "text/plain" });
+    const correlationId = req.body.correlationId || "unknown";
+    const resourceId = req.body.resourceId;
+    const message = req.body.message;
+
+    if (!authorize(req)) {
+      this.#logger.warn(
+        "handleApiMessages",
+        "Unauthorized request to /api/messages for correlationId",
+        { correlationId },
+      );
+      res.writeHead(401, { "Content-Type": "text/plain" });
+      res.end("Unauthorized");
+      return;
     }
-    res.end("Internal Server Error");
+
+    try {
+      const requestParams = await this.#buildAgentRequest(message, resourceId);
+      const response = await this.#agentClient.ProcessRequest(requestParams);
+
+      this.#logger.info("handleApiMessages", "Request completed", {
+        correlationId,
+        resourceId,
+      });
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ reply: response }));
+    } catch (err) {
+      this.#logger.error(
+        "handleApiMessages",
+        "Error in agentClient.ProcessRequest",
+        {
+          error: err.message,
+        },
+      );
+      if (!res.headersSent) {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+      }
+      res.end("Internal Server Error");
+    }
+  }
+
+  /**
+   * Creates and configures the HTTP server with route handling
+   * @returns {http.Server} The configured HTTP server
+   */
+  #createHttpServer() {
+    const routes = {
+      "POST /api/messages": (req, res) => this.#handleApiMessages(req, res),
+    };
+
+    return http.createServer(async (req, res) => {
+      const routeKey = `${req.method} ${req.url}`;
+      const handler = routes[routeKey];
+
+      if (handler) {
+        await handler(req, res);
+      } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not found");
+      }
+    });
+  }
+
+  /**
+   * Starts the server listening on the specified port
+   * @param {number} port - Port number to listen on
+   * @param {Function} callback - Callback function when server starts
+   */
+  listen(port, callback) {
+    this.#server.listen(port, callback);
+  }
+
+  /**
+   * Closes the server
+   * @param {Function} callback - Callback function when server closes
+   */
+  close(callback) {
+    this.#server.close(callback);
   }
 }
 
 /**
- * Creates and configures a native HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
- * Sets up HTTP endpoints for chat UI, bot message processing, and streaming connections.
- * @returns {Promise<http.Server>} Configured HTTP server instance.
+ * Creates and configures a new TeamsAgentServer instance
+ * @param {object} config - Service configuration
+ * @param {object} agentClient - Agent client for processing requests
+ * @param {object} logger - Logger instance (optional, creates default if not provided)
+ * @returns {AgentServer} Configured server instance
  */
-export default async function createServer() {
-  // Route map for all endpoints
-  const routes = {
-    "POST /api/messages": (req, res) => handleApiMessages(req, res),
-  };
-
-  // Create the HTTP server
-  const server = http.createServer(async (req, res) => {
-    const routeKey = `${req.method} ${req.url}`;
-    const handler = routes[routeKey];
-
-    if (handler) {
-      await handler(req, res);
-    } else {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-    }
-  });
-
-  return server;
+export default function createServer(config, agentClient, logger) {
+  if (!logger) {
+    logger = createLogger("teamsagent");
+  }
+  if (!agentClient) {
+    agentClient = new clients.AgentClient(config);
+  }
+  return new AgentServer(config, agentClient, logger);
 }

@@ -4,6 +4,15 @@ import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
  * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
  */
 
+const NOT_CONFIGURED_MESSAGE =
+  "I am not configured to talk to your private Copilot-LD agent yet. Please contact your administrator to configure me using the /configure command.";
+
+const NO_RESPONSE_MESSAGE =
+  "I received your message but couldn't generate a response.";
+
+const ERROR_MESSAGE =
+  "Sorry, I encountered an error processing your request. Please try again.";
+
 /**
  * CopilotLdBot is a Microsoft Teams bot that integrates with the Copilot-LD Agent service to process user messages, maintain conversation state, and provide intelligent responses.
  * Handles message and member events, manages resource IDs for conversation tracking, and formats responses for Teams.
@@ -65,11 +74,7 @@ class CopilotLdBot extends ActivityHandler {
 
       if (!tenantConfig) {
         console.error("No configuration found for tenant:", tenantId);
-        await context.sendActivity(
-          MessageFactory.text(
-            "I am not configured to talk to your private Copilot-LD agent yet. Please contact your administrator to configure me using the /configure command.",
-          ),
-        );
+        await context.sendActivity(MessageFactory.text(NOT_CONFIGURED_MESSAGE));
         await next();
         return;
       }
@@ -104,20 +109,12 @@ class CopilotLdBot extends ActivityHandler {
           MessageFactory.text(String(replyContent), String(replyContent)),
         );
       } else {
-        await context.sendActivity(
-          MessageFactory.text(
-            "I received your message but couldn't generate a response.",
-          ),
-        );
+        await context.sendActivity(MessageFactory.text(NO_RESPONSE_MESSAGE));
       }
     } catch (error) {
       console.error("Error calling Teams Agent:", error);
       console.error("Error stack:", error.stack);
-      await context.sendActivity(
-        MessageFactory.text(
-          "Sorry, I encountered an error processing your request. Please try again.",
-        ),
-      );
+      await context.sendActivity(MessageFactory.text(ERROR_MESSAGE));
     }
 
     await next();

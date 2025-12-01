@@ -1,5 +1,5 @@
 {
-  "name": "@copilot-ld/teams",
+  "name": "@copilot-ld/teamsagent",
   "version": "1.0.2",
   "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
   "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
@@ -12,7 +12,7 @@
     "test": "node --test test/*.test.js",
     "dev": "npm run dev:start",
     "dev:start": "npx env-cmd -f ../../.env -- node index.js",
-    "ngrok": "ngrok http 3978",
+    "ngrok": "ngrok http 3979",
     "watch": "node --watch ./index.js"
   },
   "dependencies": {
@@ -28,7 +28,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "extensions/teams"
+    "directory": "extensions/teamsagent"
   },
   "publishConfig": {
     "access": "public",

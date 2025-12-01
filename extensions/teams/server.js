@@ -192,7 +192,11 @@ export default async function createServer() {
 
   // Instantiate the CopilotLdBot with required dependencies
   const config = await createExtensionConfig("web");
-  const myBot = new CopilotLdBot(tenantClientService, config);
+  const myBot = new CopilotLdBot(
+    config,
+    tenantConfigRepository,
+    tenantSecretEncryption,
+  );
 
   // Route map for all endpoints
   const routes = {

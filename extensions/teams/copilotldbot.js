@@ -1,4 +1,3 @@
-import { agent, common } from "@copilot-ld/libtype";
 import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
 
 /**
@@ -13,16 +12,20 @@ import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
 class CopilotLdBot extends ActivityHandler {
   /**
    * Creates a new CopilotLdBot instance and sets up event handlers for messages and member additions.
-   * @param {import('./tenant-client-service.js').TenantClientService} tenantClientService - Service for managing tenant-specific AgentClient instances.
    * @param {import('@copilot-ld/libconfig').Config} config - The extension configuration object.
+   * @param {import('./tenant-config-repository.js').TenantConfigRepository} tenantConfigRepository - Repository for tenant configuration lookup.
+   * @param {import('./tenant-secret-encryption.js').TenantSecretEncryption} tenantSecretEncryption - Encryption service for decrypting tenant secrets.
    */
-  constructor(tenantClientService, config) {
+  constructor(config, tenantConfigRepository, tenantSecretEncryption) {
     super();
-    if (!tenantClientService)
-      throw new Error("tenantClientService is required");
     if (!config) throw new Error("config is required");
-    this.tenantClientService = tenantClientService;
+    if (!tenantConfigRepository)
+      throw new Error("tenantConfigRepository is required");
+    if (!tenantSecretEncryption)
+      throw new Error("tenantSecretEncryption is required");
     this.config = config;
+    this.tenantConfigRepository = tenantConfigRepository;
+    this.tenantSecretEncryption = tenantSecretEncryption;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
     /**
@@ -33,91 +36,81 @@ class CopilotLdBot extends ActivityHandler {
   }
 
   /**
-   * Handles incoming message activities, sends user input to the Copilot-LD Agent service, and replies with the agent's response.
+   * Handles incoming message activities using the Teams Agent API, sends user input through HTTP to a private agent service, and replies with the response.
    * Maintains conversation state using resource IDs and formats responses for Teams.
    * @param {import('botbuilder').TurnContext} context - The turn context for the incoming activity.
    * @param {Function} next - The next middleware function in the pipeline.
    * @returns {Promise<void>}
    */
   async handleMessage(context, next) {
-    const text = context.activity.text?.trim().toLowerCase();
-    // Check for configure command
-    if (
-      text === "configure" ||
-      text === "/configure" ||
-      text === "settings" ||
-      text === "/settings"
-    ) {
+    if (this.#isConfigureCommand(context.activity.text)) {
       await this.handleConfigureCommand(context);
       await next();
       return;
     }
 
-    const tenantRecipientKey = `${context.activity.conversation.tenantId}:${context.activity.recipient.id}`;
-
-    const resourceId = this.getResourceId(
-      context.activity.conversation.tenantId,
-      context.activity.recipient.id,
-    );
-
-    const requestParams = agent.AgentRequest.fromObject({
-      messages: [
-        common.Message.fromObject({
-          role: "user",
-          content: context.activity.text,
-        }),
-      ],
-      github_token: await this.config.githubToken(),
-      resource_id: resourceId,
-    });
-
     const tenantId = context.activity.conversation.tenantId;
+    const recipientId = context.activity.recipient.id;
+    const tenantRecipientKey = `${tenantId}:${recipientId}`;
+
+    const resourceId = this.getResourceId(tenantId, recipientId);
 
     console.log(
-      `New message recieved: TenantId: ${tenantId}, RecipientId: ${context.activity.recipient.id}, ResourceId: ${resourceId}`,
+      `New message received (API): TenantId: ${tenantId}, RecipientId: ${recipientId}, ResourceId: ${resourceId}`,
     );
     console.log(`Message: ${context.activity.text}`);
 
-    const client = await this.tenantClientService.getTenantClient(tenantId);
-
-    if (!client) {
-      console.error("No configuration found for tenant:", tenantId);
-      await context.sendActivity(
-        MessageFactory.text(
-          "I am not configured to talk to your Copilot-LD agent yet. Please contact your administrator to configure me using the /configure command.",
-        ),
-      );
-      await next();
-      return;
-    }
-
-    console.log(`Client found for tenant: ${tenantId}`);
-
     try {
-      const response = await client.ProcessRequest(requestParams);
-      console.log(
-        `ProcessRequest completed for tenant/recipient: ${tenantRecipientKey}`,
-      );
-      let reply = { role: "assistant", content: null };
+      const tenantConfig = await this.tenantConfigRepository.get(tenantId);
 
-      if (
-        response.choices?.length > 0 &&
-        response.choices[0]?.message?.content
-      ) {
-        reply.content = String(response.choices[0].message.content);
+      if (!tenantConfig) {
+        console.error("No configuration found for tenant:", tenantId);
+        await context.sendActivity(
+          MessageFactory.text(
+            "I am not configured to talk to your private Copilot-LD agent yet. Please contact your administrator to configure me using the /configure command.",
+          ),
+        );
+        await next();
+        return;
       }
 
-      this.#setResourceId(
-        context.activity.conversation.tenantId,
-        context.activity.recipient.id,
-        response.resource_id,
+      const authToken = this.tenantSecretEncryption.decrypt(
+        tenantId,
+        tenantConfig.encryptedSecret,
       );
 
-      await context.sendActivity(
-        MessageFactory.text(reply.content, reply.content),
+      const response = await this.#callTeamsAgent(
+        context.activity.text,
+        resourceId,
+        tenantConfig.host,
+        tenantConfig.port,
+        authToken,
       );
+
+      console.log(
+        `Teams Agent request completed for tenant/recipient: ${tenantRecipientKey}`,
+      );
+
+      const replyContent = response.reply?.choices?.[0]?.message?.content;
+      const newResourceId = response.reply?.resource_id;
+
+      if (newResourceId) {
+        this.#setResourceId(tenantId, recipientId, newResourceId);
+      }
+
+      if (replyContent) {
+        await context.sendActivity(
+          MessageFactory.text(String(replyContent), String(replyContent)),
+        );
+      } else {
+        await context.sendActivity(
+          MessageFactory.text(
+            "I received your message but couldn't generate a response.",
+          ),
+        );
+      }
     } catch (error) {
-      console.error("Error processing request:", error);
+      console.error("Error calling Teams Agent:", error);
       console.error("Error stack:", error.stack);
       await context.sendActivity(
         MessageFactory.text(
@@ -152,6 +145,56 @@ class CopilotLdBot extends ActivityHandler {
   #setResourceId(tenantId, recipientId, resourceId) {
     const key = `${tenantId}:${recipientId}`;
     this.resourceIds.set(key, resourceId);
+  }
+
+  /**
+   * Checks if the message text is a configure command.
+   * @param {string} text - The message text to check.
+   * @returns {boolean} True if the text is a configure command.
+   */
+  #isConfigureCommand(text) {
+    const normalizedText = text?.trim().toLowerCase();
+    return (
+      normalizedText === "configure" ||
+      normalizedText === "/configure" ||
+      normalizedText === "settings" ||
+      normalizedText === "/settings"
+    );
+  }
+
+  /**
+   * Calls the Teams Agent service with a message and authentication.
+   * @param {string} message - The user message to send.
+   * @param {string|null} resourceId - The resource ID for conversation tracking.
+   * @param {string} host - The host address of the Teams Agent service.
+   * @param {number} port - The port number of the Teams Agent service.
+   * @param {string} authToken - The authentication token for the Teams Agent service.
+   * @returns {Promise<object>} The response from the Teams Agent service.
+   */
+  async #callTeamsAgent(message, resourceId, host, port, authToken) {
+    const url = `http://${host}:${port}/api/messages`;
+
+    const requestBody = {
+      message,
+      resourceId,
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Teams Agent request failed: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    return await response.json();
   }
 
   /**

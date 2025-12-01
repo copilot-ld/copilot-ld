@@ -40,6 +40,7 @@ SCRATCHPAD*.md
 **/*.log
 /temp/
 /tmp/
+.git-snapshot
 
 # Excplicit test fixtures
 !**/test/fixtures/sample.tar.gz

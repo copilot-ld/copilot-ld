@@ -1,5 +1,30 @@
 # Changelog
 
+## 2025-12-01
+
+- Changed `config/eval.yml` format from object-based to array-based structure
+- Scenarios now use `- name: scenario_name` instead of `scenario_name:` keys
+- Updated `loadScenarios()` to expect array format with validation
+
+## 2025-12-01
+
+- Added `ParseError` class for retryable parsing failures
+- Added retry logic to `Evaluator.evaluate()` for `ParseError` (2 retries)
+- Updated `JudgeEvaluator` to throw `ParseError` on JSON parse failures
+
+## 2025-12-01
+
+- Changed `RecallEvaluator` to use `MemoryIndex` directly instead of memory
+  client
+- Constructor now accepts `storage` instead of `memoryClient`
+- Retrieves subjects from `identifier.subjects` field via `queryItems()`
+
+## 2025-11-30
+
+- Updated evaluators to use new memory window interface returning
+  `{messages, tools}`
+- Simplified stream handling with async iteration for message assembly
+
 ## 2025-01-29
 
 - Renamed `CriteriaEvaluator` to `JudgeEvaluator` for clearer naming

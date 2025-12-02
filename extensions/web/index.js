@@ -1,5 +1,6 @@
 /* eslint-env node */
 import { Hono } from "hono";
+import { streamText } from "hono/streaming";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
 import { agent, common } from "@copilot-ld/libtype";
@@ -67,23 +68,47 @@ export async function createWebExtension(client, config, logger = null) {
           resource_id: resource_id,
         });
 
-        const response = await client.ProcessRequest(requestParams);
-        let reply = { role: "assistant", content: null };
+        return streamText(c, async (stream) => {
+          try {
+            const grpcStream = client.ProcessStream(requestParams);
 
-        // Format HTML content if present
-        if (
-          response.choices?.length > 0 &&
-          response.choices[0]?.message?.content
-        ) {
-          reply.content = htmlFormatter.format(
-            String(response.choices[0].message.content),
-          );
-        }
+            for await (const chunk of grpcStream) {
+              if (chunk.resource_id) {
+                await stream.write(
+                  JSON.stringify({ resource_id: chunk.resource_id }) + "\n",
+                );
+              }
 
-        return c.json({
-          message: reply,
-          resource_id: response.resource_id,
-          status: "success",
+              if (chunk.messages && chunk.messages.length > 0) {
+                for (const msg of chunk.messages) {
+                  let content = msg.content || "";
+                  if (msg.role === "assistant" && content) {
+                    content = htmlFormatter.format(content);
+                  }
+
+                  await stream.write(
+                    JSON.stringify({
+                      messages: [
+                        {
+                          role: msg.role,
+                          content: content,
+                          tool_calls: msg.tool_calls,
+                        },
+                      ],
+                    }) + "\n",
+                  );
+                }
+              }
+            }
+          } catch (error) {
+            logger?.error("Stream", error);
+            await stream.write(
+              JSON.stringify({
+                error: "Stream processing failed",
+                details: error.message,
+              }) + "\n",
+            );
+          }
         });
       } catch (error) {
         logger?.error("API", error, { path: c.req.path });

@@ -16,7 +16,7 @@ async function main() {
   const client = createLlm(await config.githubToken());
   const embeddings = await client.createEmbeddings([input]);
 
-  console.log(JSON.stringify(embeddings[0].embedding));
+  console.log(JSON.stringify(embeddings.data[0].embedding));
 }
 
 main();

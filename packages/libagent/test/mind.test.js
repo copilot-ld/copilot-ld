@@ -14,16 +14,8 @@ describe("AgentMind", () => {
 
   beforeEach(() => {
     mockConfig = {
-      budget: {
-        tokens: 1000,
-        allocation: {
-          tools: 0.3,
-          history: 0.4,
-          results: 0.3,
-        },
-      },
+      budget: 1000,
       assistant: "software_dev_expert",
-      permanent_tools: ["search", "analyze"],
       temperature: 0.7,
       threshold: 0.5,
       limit: 10,
@@ -33,9 +25,8 @@ describe("AgentMind", () => {
       memory: {
         append: async () => ({}),
         get: async () => ({
+          messages: [{ role: "system", content: "You are an assistant" }],
           tools: [],
-          context: [],
-          history: [],
         }),
       },
       llm: {
@@ -103,7 +94,7 @@ describe("AgentMind", () => {
     assert.ok(agentMind instanceof AgentMind);
   });
 
-  test("calculateBudget adjusts budget based on resources", () => {
+  test("setupConversation creates new conversation when none exists", async () => {
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
@@ -111,87 +102,76 @@ describe("AgentMind", () => {
       mockAgentHands,
     );
 
-    const assistant = { id: { tokens: 100 } }; // 100 tokens
-    const permanentTools = [
-      { id: { tokens: 50 } }, // 50 tokens
-      { id: { tokens: 30 } }, // 30 tokens
-    ];
-    const tasks = [{ id: { tokens: 20 } }]; // 20 tokens
+    // Mock resourceIndex.get to return empty for conversation lookup
+    mockResourceIndex.get = async () => [];
 
-    const budget = agentMind.calculateBudget(assistant, permanentTools, tasks);
-
-    // Budget should be reduced by approximately 200 tokens
-    assert.ok(budget < 1000);
-    assert.ok(budget > 700);
-  });
-
-  test("calculateBudget handles empty content", () => {
-    const agentMind = new AgentMind(
-      mockConfig,
-      mockServiceCallbacks,
-      mockResourceIndex,
-      mockAgentHands,
-    );
-
-    const assistant = { id: { tokens: 100 } };
-    const permanentTools = [
-      { id: { tokens: 0 } }, // Empty content
-      { id: { tokens: 30 } },
-    ];
-    const tasks = [];
-
-    const budget = agentMind.calculateBudget(assistant, permanentTools, tasks);
-
-    // Budget should still be reduced appropriately
-    assert.ok(budget < 1000);
-    assert.ok(budget > 800);
-  });
-
-  test("buildMessages creates proper message array", async () => {
-    const agentMind = new AgentMind(
-      mockConfig,
-      mockServiceCallbacks,
-      mockResourceIndex,
-      mockAgentHands,
-    );
-
-    // Mock resource index to return specific items
-    mockResourceIndex.get = async (identifiers, _actor) => {
-      if (!identifiers || identifiers.length === 0) return [];
-      return identifiers.map((id) => ({ id, type: "mock" }));
+    const request = {
+      messages: [common.Message.fromObject({ role: "user", content: "Hello" })],
     };
 
-    const assistant = { id: { name: "test-assistant" } };
-    const tasks = [{ id: { name: "test-task" } }];
-    const window = {
-      tools: ["tool1", "tool2"],
-      context: ["context1"],
-      conversation: ["conversation1", "conversation2"],
-    };
+    const result = await agentMind.setupConversation(request);
 
-    const messages = await agentMind.buildMessages(assistant, tasks, window);
-
-    // Should include: assistant + tasks + tools + context + conversation
-    assert.strictEqual(messages.length, 7);
-    assert.deepStrictEqual(messages[0], assistant);
-    assert.deepStrictEqual(messages[1], tasks[0]);
+    assert.ok(result.conversation);
+    assert.ok(result.conversation.id);
+    assert.ok(result.message);
+    assert.strictEqual(result.message.role, "user");
   });
 
-  test("buildMessages throws error when assistant is missing", async () => {
+  test("setupConversation uses existing conversation when resource_id provided", async () => {
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
       mockResourceIndex,
       mockAgentHands,
     );
+
+    const existingConversation = common.Conversation.fromObject({
+      id: { name: "existing-conv", type: "common.Conversation" },
+      assistant_id: "common.Assistant.test",
+    });
+
+    // Mock resourceIndex.get to return existing conversation
+    mockResourceIndex.get = async (ids) => {
+      if (ids.includes("existing-conv")) {
+        return [existingConversation];
+      }
+      return [];
+    };
+
+    const request = {
+      resource_id: "existing-conv",
+      messages: [common.Message.fromObject({ role: "user", content: "Hello" })],
+    };
+
+    const result = await agentMind.setupConversation(request);
+
+    assert.ok(result.conversation);
+    assert.strictEqual(result.conversation.id.name, "existing-conv");
+  });
+
+  test("setupConversation throws error when no user message found", async () => {
+    const agentMind = new AgentMind(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+      mockAgentHands,
+    );
+
+    mockResourceIndex.get = async () => [];
+
+    const request = {
+      messages: [
+        common.Message.fromObject({ role: "assistant", content: "Hello" }),
+      ],
+    };
 
     await assert.rejects(
-      () => agentMind.buildMessages(null, [], {}),
-      /assistant is required/,
+      () => agentMind.setupConversation(request),
+      /No user message found in request/,
     );
   });
 
-  test("buildTools converts function resources to tool definitions", async () => {
+  test("process handles complete workflow", async () => {
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
@@ -199,65 +179,159 @@ describe("AgentMind", () => {
       mockAgentHands,
     );
 
-    // Mock resource index to return tool functions
-    mockResourceIndex.get = async () => [
-      { id: { name: "search" }, name: "search" },
-      { id: { name: "analyze" }, name: "analyze" },
-    ];
+    // Track calls to verify workflow
+    let memoryAppendCalls = 0;
+    let executeToolLoopCalled = false;
 
-    const identifiers = [
-      "tool.ToolFunction.search",
-      "tool.ToolFunction.analyze",
-    ];
-    const tools = await agentMind.buildTools(identifiers);
-
-    assert.strictEqual(tools.length, 2);
-    assert.strictEqual(tools[0].type, "function");
-    assert.strictEqual(tools[1].type, "function");
-  });
-
-  test("processRequest handles complete workflow", async () => {
-    const agentMind = new AgentMind(
-      mockConfig,
-      mockServiceCallbacks,
-      mockResourceIndex,
-      mockAgentHands,
-    );
+    mockServiceCallbacks.memory.append = async () => {
+      memoryAppendCalls++;
+      return {};
+    };
 
     // Mock setupConversation to return valid data
     agentMind.setupConversation = async () => ({
-      conversation: {
+      conversation: common.Conversation.fromObject({
         id: {
           name: "test-conv",
-          toString: () => "test-conv",
+          type: "common.Conversation",
         },
-      },
-      message: {
+        assistant_id: "common.Assistant.test",
+      }),
+      message: common.Message.fromObject({
         id: {
           name: "test-msg",
           type: "common.Message",
-          toJSON: () => ({ name: "test-msg", type: "common.Message" }),
         },
-      },
-      assistant: { content: { tokens: 100 } },
-      tasks: [],
-      permanentTools: [],
+        role: "user",
+        content: "Hello",
+      }),
     });
 
-    // Mock getMemoryWindow
-    agentMind.getMemoryWindow = async () => ({
-      messages: [{ role: "user", content: "Hello" }],
-      rememberedTools: [],
-    });
+    // Mock AgentHands executeToolLoop
+    mockAgentHands.executeToolLoop = async () => {
+      executeToolLoopCalled = true;
+    };
 
     const request = {
       github_token: "test-token",
       messages: [{ role: "user", content: "Hello" }],
     };
 
-    const result = await agentMind.processRequest(request);
+    // process returns void - verify it completes without error
+    await agentMind.process(request);
 
-    assert.ok(result.resource_id);
-    assert.strictEqual(result.resource_id, "test-conv");
+    // Verify memory was appended (for the user message)
+    assert.ok(memoryAppendCalls >= 1, "Memory should be appended");
+
+    // Verify tool loop was executed
+    assert.ok(executeToolLoopCalled, "executeToolLoop should be called");
+  });
+
+  test("process passes conversationId to executeToolLoop", async () => {
+    const agentMind = new AgentMind(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+      mockAgentHands,
+    );
+
+    let capturedConversationId = null;
+
+    agentMind.setupConversation = async () => ({
+      conversation: common.Conversation.fromObject({
+        id: {
+          name: "captured-conv-id",
+          type: "common.Conversation",
+        },
+        assistant_id: "common.Assistant.test",
+      }),
+      message: common.Message.fromObject({
+        id: {
+          name: "test-msg",
+          type: "common.Message",
+        },
+        role: "user",
+        content: "Hello",
+      }),
+    });
+
+    mockAgentHands.executeToolLoop = async (conversationId) => {
+      capturedConversationId = conversationId;
+    };
+
+    const request = {
+      github_token: "test-token",
+      messages: [{ role: "user", content: "Hello" }],
+    };
+
+    await agentMind.process(request);
+
+    assert.strictEqual(
+      capturedConversationId,
+      "common.Conversation.captured-conv-id",
+      "Should pass conversationId to executeToolLoop",
+    );
+  });
+
+  test("process streams progress via onProgress callback", async () => {
+    const agentMind = new AgentMind(
+      mockConfig,
+      mockServiceCallbacks,
+      mockResourceIndex,
+      mockAgentHands,
+    );
+
+    const progressMessages = [];
+
+    agentMind.setupConversation = async () => ({
+      conversation: common.Conversation.fromObject({
+        id: {
+          name: "test-conv",
+          type: "common.Conversation",
+        },
+        assistant_id: "common.Assistant.test",
+      }),
+      message: common.Message.fromObject({
+        id: {
+          name: "test-msg",
+          type: "common.Message",
+        },
+        role: "user",
+        content: "Hello",
+      }),
+    });
+
+    // Mock executeToolLoop to call saveResource which triggers onProgress
+    mockAgentHands.executeToolLoop = async (
+      _conversationId,
+      saveResource,
+      _options,
+    ) => {
+      // Simulate saving a non-tool message that should trigger onProgress
+      const msg = common.Message.fromObject({
+        id: { name: "response", type: "common.Message" },
+        role: "assistant",
+        content: "Response",
+      });
+      msg.withIdentifier = () => {};
+      await saveResource(msg);
+    };
+
+    const request = {
+      github_token: "test-token",
+      messages: [{ role: "user", content: "Hello" }],
+    };
+
+    const onProgress = (msg) => {
+      progressMessages.push(msg);
+    };
+
+    await agentMind.process(request, onProgress);
+
+    // onProgress should be called for non-tool messages
+    assert.ok(
+      progressMessages.length >= 1,
+      "Should call onProgress for messages",
+    );
   });
 });

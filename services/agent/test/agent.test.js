@@ -12,9 +12,16 @@ describe("agent service", () => {
       assert.ok(AgentService.prototype);
     });
 
-    test("AgentService has ProcessRequest method", () => {
+    test("AgentService has ProcessStream method", () => {
       assert.strictEqual(
-        typeof AgentService.prototype.ProcessRequest,
+        typeof AgentService.prototype.ProcessStream,
+        "function",
+      );
+    });
+
+    test("AgentService has ProcessUnary method", () => {
+      assert.strictEqual(
+        typeof AgentService.prototype.ProcessUnary,
         "function",
       );
     });
@@ -26,7 +33,8 @@ describe("agent service", () => {
 
     test("AgentService has proper method signatures", () => {
       const methods = Object.getOwnPropertyNames(AgentService.prototype);
-      assert(methods.includes("ProcessRequest"));
+      assert(methods.includes("ProcessStream"));
+      assert(methods.includes("ProcessUnary"));
       assert(methods.includes("constructor"));
     });
   });
@@ -40,17 +48,14 @@ describe("agent service", () => {
       mockConfig = {
         name: "agent", // Required for logging
         assistant: "common.Assistant.test-assistant",
-        budget: {
-          tokens: 1000,
-          allocation: { tools: 0.2, history: 0.5, context: 0.3 },
-        },
+        budget: 1000,
         threshold: 0.3,
         limit: 10,
         temperature: 0.7,
       };
 
       mockAgentMind = {
-        processRequest: async () => ({
+        process: async () => ({
           resource_id: "test-conversation",
           choices: [
             { message: { role: "assistant", content: "Test response" } },
@@ -75,9 +80,9 @@ describe("agent service", () => {
       );
     });
 
-    test("ProcessRequest throws error for missing user message", async () => {
+    test("ProcessStream throws error for missing user message", async () => {
       const mockAgentMindWithError = {
-        processRequest: async () => {
+        process: async () => {
           throw new Error("No user message found in request");
         },
       };
@@ -89,9 +94,14 @@ describe("agent service", () => {
         () => ({ debug: () => {}, info: () => {}, error: () => {} }), // Mock logger
       );
 
+      const mockCall = {
+        request: { messages: [], github_token: "test-token" },
+        write: () => {},
+        end: () => {},
+      };
+
       await assert.rejects(
-        () =>
-          service.ProcessRequest({ messages: [], github_token: "test-token" }),
+        () => service.ProcessStream(mockCall),
         /No user message found in request/,
       );
     });
@@ -107,7 +117,7 @@ describe("agent service", () => {
       assert.strictEqual(service.config, mockConfig);
     });
 
-    test("ProcessRequest calls agentMind and returns response", async () => {
+    test("ProcessStream calls agentMind and returns response", async () => {
       const service = new AgentService(
         mockConfig,
         mockAgentMind,
@@ -115,13 +125,16 @@ describe("agent service", () => {
         () => ({ debug: () => {}, info: () => {}, error: () => {} }),
       );
 
-      const result = await service.ProcessRequest({
-        messages: [{ role: "user", content: "Hello" }],
-        github_token: "test-token",
-      });
+      const mockCall = {
+        request: {
+          messages: [{ role: "user", content: "Hello" }],
+          github_token: "test-token",
+        },
+        write: () => {},
+        end: () => {},
+      };
 
-      assert.ok(result);
-      assert.strictEqual(result.resource_id, "test-conversation");
+      await service.ProcessStream(mockCall);
     });
   });
 });

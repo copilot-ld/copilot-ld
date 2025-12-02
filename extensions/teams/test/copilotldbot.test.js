@@ -38,8 +38,8 @@ describe("CopilotLdBot", () => {
 
   beforeEach(() => {
     mockAgentClient = {
-      ProcessRequest: async () => ({
-        choices: [{ message: { content: "Hello from Copilot!" } }],
+      ProcessUnary: async () => ({
+        messages: [{ role: "assistant", content: "Hello from Copilot!" }],
         resource_id: "resource-xyz",
       }),
     };

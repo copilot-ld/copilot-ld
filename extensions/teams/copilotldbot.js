@@ -70,11 +70,14 @@ class CopilotLdBot extends ActivityHandler {
     console.log("Received message:", context.activity.text);
 
     const client = await this.tenantClientService.getTenantClient(tenantId);
-    const response = await client.ProcessRequest(requestParams);
+    const response = await client.ProcessUnary(requestParams);
     let reply = { role: "assistant", content: null };
 
-    if (response.choices?.length > 0 && response.choices[0]?.message?.content) {
-      reply.content = String(response.choices[0].message.content);
+    if (response.messages?.length > 0) {
+      const lastMessage = response.messages[response.messages.length - 1];
+      if (lastMessage?.content) {
+        reply.content = String(lastMessage.content);
+      }
     }
 
     this.#setResourceId(

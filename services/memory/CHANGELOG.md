@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-12-02
+
+- **BREAKING**: `GetWindow` now takes `model` instead of `budget` in request
+- Added `GetBudget` RPC for retrieving available budget for a conversation
+- Memory service is now the central authority for all budget calculations
+
+## 2025-11-30
+
+- **BREAKING**: `GetWindow` returns `{messages, tools}` instead of identifiers;
+  requires `resourceIndex` injection in server
+- `WindowRequest` simplified to `{resource_id, budget}` only
+
 ## 2025-11-24
 
 - Bump version

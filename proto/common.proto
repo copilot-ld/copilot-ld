@@ -22,24 +22,35 @@ message Choice {
 }
 
 message Embedding {
-  int32 index = 1;
-  repeated float embedding = 2;
+  string object = 1;
+  int32 index = 2;
+  repeated float embedding = 3;
+}
+
+message Embeddings {
+  string object = 1;
+  repeated Embedding data = 2;
+  string model = 3;
+  Usage usage = 4;
 }
 
 message Conversation {
   resource.Identifier id = 1;
+  optional string assistant_id = 2;
 }
 
 message Message {
   resource.Identifier id = 1;
-  string content = 2;
-  string role = 3;
-  repeated tool.ToolDefinition tool_calls = 4;
+  string role = 2;
+  string content = 3;
+  repeated tool.ToolCall tool_calls = 4;
   optional string tool_call_id = 5;
 }
 
 message Assistant {
   resource.Identifier id = 1;
-  string content = 2;
-  string role = 3;
+  string name = 2;
+  float temperature = 3;
+  repeated string tools = 4;
+  string content = 5;
 }

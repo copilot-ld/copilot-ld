@@ -15,7 +15,7 @@ import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
 // Extract generated clients
-const { LlmClient, AgentClient, MemoryClient, TraceClient } = clients;
+const { AgentClient, TraceClient } = clients;
 
 // Initialize logger
 const logger = createLogger("eval");
@@ -23,7 +23,7 @@ const logger = createLogger("eval");
 /**
  * Load scenarios from config/eval.yml
  * @param {object} storage - Config storage instance
- * @param {string} scenario - Optional specific scenario ID to load
+ * @param {string} scenario - Optional specific scenario name to load
  * @returns {Promise<object[]>} Array of scenarios
  */
 async function loadScenarios(storage, scenario = null) {
@@ -32,13 +32,12 @@ async function loadScenarios(storage, scenario = null) {
     throw new Error("config/eval.yml not found");
   }
 
-  const yamlObjects = yaml.load(yamlString);
+  let scenarios = yaml.load(yamlString);
 
-  // Convert to array with IDs
-  let scenarios = Object.entries(yamlObjects).map(([name, data]) => ({
-    name,
-    ...data,
-  }));
+  // Validate array format
+  if (!Array.isArray(scenarios)) {
+    throw new Error("config/eval.yml must be an array of scenarios");
+  }
 
   // Filter to specific scenario if requested
   if (scenario) {
@@ -121,6 +120,7 @@ async function main() {
   // Initialize storage
   const configStorage = createStorage("config");
   const evalStorage = createStorage("eval");
+  const memoryStorage = createStorage("memories");
 
   // Load config.json to get model matrix
   const config = await configStorage.get("config.json");
@@ -134,12 +134,7 @@ async function main() {
   const githubToken = getGithubToken();
 
   // Initialize utility clients, without tracing
-  const llmConfig = await createServiceConfig("llm");
-  const memoryConfig = await createServiceConfig("memory");
   const traceConfig = await createServiceConfig("trace");
-
-  const llmClient = new LlmClient(llmConfig);
-  const memoryClient = new MemoryClient(memoryConfig);
   const traceClient = new TraceClient(traceConfig);
 
   // Initialize evaluation index for storing results
@@ -154,8 +149,8 @@ async function main() {
   const scenarios = await loadScenarios(configStorage, args.scenario);
 
   // Create evaluators
-  const judgeEvaluator = new JudgeEvaluator(llmClient, githubToken, judgeModel);
-  const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
+  const judgeEvaluator = new JudgeEvaluator(githubToken, judgeModel);
+  const recallEvaluator = new RecallEvaluator(memoryStorage);
   const traceEvaluator = new TraceEvaluator(traceClient);
 
   // Plan all runs in a flat array - iterate over models, then iterations, then scenarios
@@ -164,7 +159,6 @@ async function main() {
     // Create evaluator with specific model
     const evaluator = new Evaluator(
       agentClient,
-      memoryClient,
       traceClient,
       githubToken,
       model,

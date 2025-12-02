@@ -33,23 +33,16 @@ export class VectorService extends VectorBase {
    * @returns {Promise<import("@copilot-ld/libtype").tool.ToolCallResult>} Query results with resource identifiers
    */
   async SearchContent(req) {
-    // 1. Get embeddings from LLM service
-    const embeddingRequest = llm.EmbeddingsRequest.fromObject({
-      chunks: [req.text],
-      github_token: req.github_token,
-    });
-
+    const embeddingRequest = llm.EmbeddingsRequest.fromObject(req);
     const embeddings = await this.#llmClient.CreateEmbeddings(embeddingRequest);
 
     if (!embeddings.data?.length) {
       throw new Error("No embeddings returned from LLM service");
     }
 
-    // 2. Query content vector index
-    const vector = embeddings.data[0].embedding;
+    const vectors = embeddings.data.map((item) => item.embedding);
 
-    // 3. Retrieve identifiers
-    const identifiers = await this.#vectorIndex.queryItems(vector, req.filter);
+    const identifiers = await this.#vectorIndex.queryItems(vectors, req.filter);
     return { identifiers };
   }
 }

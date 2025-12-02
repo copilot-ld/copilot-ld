@@ -115,7 +115,7 @@ sequenceDiagram
     participant GitHub as GitHub API
 
     Client->>Extension: REST request
-    Extension->>Agent: RPC request (ProcessRequest)
+    Extension->>Agent: RPC request (ProcessStream)
 
     Note right of Agent: GitHub validation
     Agent->>GitHub: GET /user (validate token)
@@ -123,28 +123,28 @@ sequenceDiagram
 
     Agent->>ResourceIndex: Get/Create conversation
     Agent->>ResourceIndex: Put user message (scoped to conversation)
-    Agent->>ResourceIndex: Get assistant by id (from config)
-    Note right of Agent: Compute token budget (budget = config.budget.tokens - assistant.id.tokens) and derive allocation
+    Agent->>Memory: AppendMemory (user message identifier)
 
-    Agent->>Memory: Get (for conversation, with budget/allocation)
-    Memory-->>Agent: Window (tools, identifiers)
-
-    Agent->>ResourceIndex: Resolve window identifiers (tools/identifiers)
-    ResourceIndex-->>Agent: Resources (policy-filtered)
-
-    Note over Agent: Autonomous Tool Calling Loop (max 10 iterations)
+    Note over Agent: Autonomous Tool Calling Loop (max 100 iterations)
     loop Until no tool calls or max iterations
-        Agent->>LLM: CreateCompletions (assistant + tasks + tools + identifiers)
+        Agent->>LLM: CreateCompletions (resource_id)
+        LLM->>Memory: GetWindow (resource_id, budget)
+        Memory-->>LLM: Window {messages, tools}
         LLM-->>Agent: Completion with autonomous tool call decisions
 
         alt Tool calls present
+            Agent->>ResourceIndex: Put assistant message
+            Agent->>Memory: AppendMemory (assistant message identifier)
             loop For each autonomous tool call
                 Agent->>Tool: Call (tool call + github_token)
                 Tool-->>Agent: Tool result message
-                Note right of Agent: Add tool result to messages
+                Agent->>ResourceIndex: Put tool result
+                Agent->>Memory: AppendMemory (tool result identifier)
             end
-            Note right of Agent: Continue loop with updated messages
+            Note right of Agent: Continue loop with updated memory
         else No tool calls
+            Agent->>ResourceIndex: Put final message
+            Agent->>Memory: AppendMemory (final message identifier)
             Note right of Agent: Exit loop - completion ready
         end
     end
@@ -323,21 +323,22 @@ sequenceDiagram
 
     Note over Client,Storage: All operations automatically traced
 
-    Client->>Agent: ProcessRequest
+    Client->>Agent: ProcessStream
     activate Agent
-    Agent->>Trace: RecordSpan (Agent.ProcessRequest SERVER)
-
-    Agent->>Memory: GetWindow
-    activate Memory
-    Memory->>Trace: RecordSpan (Memory.GetWindow CLIENT)
-    Memory->>Trace: RecordSpan (Memory.GetWindow SERVER)
-    Memory-->>Agent: Conversation resources
-    deactivate Memory
+    Agent->>Trace: RecordSpan (Agent.ProcessStream SERVER)
 
     Agent->>LLM: CreateCompletions
     activate LLM
     LLM->>Trace: RecordSpan (Llm.CreateCompletions CLIENT)
     LLM->>Trace: RecordSpan (Llm.CreateCompletions SERVER)
+
+    LLM->>Memory: GetWindow
+    activate Memory
+    Memory->>Trace: RecordSpan (Memory.GetWindow CLIENT)
+    Memory->>Trace: RecordSpan (Memory.GetWindow SERVER)
+    Memory-->>LLM: Conversation resources
+    deactivate Memory
+
     LLM-->>Agent: Response
     deactivate LLM
 
@@ -373,14 +374,14 @@ line:
   "trace_id": "8c1675ebe7c638",
   "span_id": "efdbcc4e6a1a78",
   "parent_span_id": "",
-  "name": "Agent.ProcessRequest",
+  "name": "Agent.ProcessStream",
   "kind": 0,
   "start_time_unix_nano": "1234567890123456789",
   "end_time_unix_nano": "1234567890234567890",
   "attributes": {
     "service.name": "agent",
     "rpc.service": "Agent",
-    "rpc.method": "ProcessRequest"
+    "rpc.method": "ProcessStream"
   },
   "status": { "code": "OK" }
 }

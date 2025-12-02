@@ -19,25 +19,26 @@ Provide empty input (or "*") to get all subjects, or specify a type URI to filte
  * Retrieves subjects and their types from the graph index
  * @param {string} prompt - The type filter (use "*" or empty for all subjects)
  * @param {object} state - The REPL state object
- * @returns {Promise<string>} Tab-separated list of subjects and types
+ * @param {import("stream").Writable} outputStream - Stream to write results to
  */
-async function getSubjects(prompt, state) {
+async function getSubjects(prompt, state, outputStream) {
   try {
     const trimmed = prompt.trim();
     // Pass the input directly to getSubjects - it handles wildcard normalization
     const subjects = await state.graphIndex.getSubjects(trimmed);
 
     if (subjects.size === 0) {
-      return "No subjects found\n";
+      outputStream.write("No subjects found\n");
+      return;
     }
 
     const lines = Array.from(subjects.entries())
       .map(([subject, type]) => `${subject}\t${type}`)
       .sort();
 
-    return lines.join("\n") + "\n";
+    outputStream.write(lines.join("\n") + "\n");
   } catch (error) {
-    return `Error: ${error.message}\n`;
+    outputStream.write(`Error: ${error.message}\n`);
   }
 }
 

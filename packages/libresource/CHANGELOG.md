@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-30
+
+- Fixed `ResourceIndex.get()` to preserve identifier order - critical for
+  message sequencing in conversations
+
 ## 2025-11-24
 
 - Bump version

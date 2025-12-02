@@ -36,7 +36,6 @@ CI
 CIDR
 CLI
 CloudFormation
-CloudFormation
 CloudWatch
 codebase
 codebases
@@ -127,7 +126,6 @@ IRI
 iteratively
 Jaeger
 JavaScript
-JavaScript
 jitter
 JMESPath
 JSDoc
@@ -155,7 +153,6 @@ libtelemetry
 libtext
 libtype
 libvector
-lifecycle
 lifecycle
 Lifecycle
 llm
@@ -194,6 +191,7 @@ nanoseconds
 Nanoseconds
 natively
 nav
+NDJSON
 nginx
 Nginx
 nginx-based
@@ -339,3 +337,4 @@ workspaces
 X-Ray
 XML
 YAML
+deduplicates

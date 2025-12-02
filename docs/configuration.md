@@ -242,17 +242,26 @@ sha256_hash:
 
 ### Assistant Configuration (`assistants.yml`)
 
-Defines AI assistant personas and their specialized behaviors.
+Defines AI assistant personas with their system prompts and available tools.
 
 ```yaml
 software_dev_expert:
-  content:
-    text: |
-      You are a software development expert with deep knowledge of:
-      - Software architecture patterns and principles
-      - Code quality and maintainability best practices
-      - Security considerations in software development
+  tools:
+    - get_ontology
+    - get_subjects
+    - query_by_pattern
+    - search
+  content: |
+    You are a software development expert with deep knowledge of:
+    - Software architecture patterns and principles
+    - Code quality and maintainability best practices
+    - Security considerations in software development
 ```
+
+Each assistant has:
+
+- `tools`: Array of tool function names available to this assistant
+- `content`: System prompt defining the assistant's persona and capabilities
 
 ## Runtime Configuration
 

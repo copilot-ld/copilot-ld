@@ -150,7 +150,7 @@ describe("TenantClientService", () => {
       const client = await tenantClientService.getTenantClient(tenantId);
 
       assert.ok(client);
-      assert.ok(typeof client.ProcessRequest === "function");
+      assert.ok(typeof client.ProcessUnary === "function");
     });
 
     test("should return null for unknown tenant", async () => {
@@ -240,7 +240,7 @@ describe("TenantClientService", () => {
       // Retrieve client (decrypts secret internally)
       const client = await tenantClientService.getTenantClient(tenantId);
       assert.ok(client);
-      assert.ok(typeof client.ProcessRequest === "function");
+      assert.ok(typeof client.ProcessUnary === "function");
     });
 
     test("should isolate tenant data", async () => {

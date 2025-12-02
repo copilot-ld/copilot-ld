@@ -1,5 +1,30 @@
 # Changelog
 
+## 2025-12-02
+
+- Fixed `processToolCalls()` to decrement remaining budget after each tool call
+  within the same batch, preventing combined tool results from exceeding budget
+- `AgentMind.process()` now defaults `model` from config when not provided in
+  request
+- `AgentHands.executeToolLoop()` now queries budget from Memory service
+- Tool calls receive `max_tokens` filter based on remaining budget
+- `processToolCalls()` returns total tokens used for budget tracking
+
+## 2025-12-01
+
+- Renamed `AgentMind.processRequest()` to `AgentMind.process()`
+
+## 2025-11-30
+
+- **BREAKING**: `AgentHands` constructor requires `resourceIndex` as third
+  parameter; `executeToolLoop()` takes `(conversationId, saveResource, options)`
+- **BREAKING**: `AgentMind` delegates tool loop to `AgentHands`; removed
+  `buildMessages()`, `calculateBudget()`, `getMemoryWindow()` methods
+- Simplified config: `budget` is now a number, `permanent_tools` renamed to
+  `tools`
+- Tool results use `tool.ToolCallMessage` type for correct persistence and LLM
+  context
+
 ## 2025-11-24
 
 - Bump version

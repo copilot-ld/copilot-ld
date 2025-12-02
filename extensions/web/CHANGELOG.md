@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-11-30
+
+- Implemented streaming support for chat API using NDJSON
+- Added error handling within the stream to prevent silent failures
+- Restored server-side Markdown-to-HTML formatting for streamed chunks
+
 ## 2025-11-25
 
 - Removed static file serving (moved to `ui` extension)

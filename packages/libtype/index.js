@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-import { countTokens, generateHash, generateUUID } from "@copilot-ld/libutil";
+import { countTokens, generateUUID } from "@copilot-ld/libutil";
 
 import * as types from "./generated/types/types.js";
 
@@ -21,45 +21,56 @@ const {
 } = types;
 
 /**
+ * Generate a name for the resource. Always uses UUID for uniqueness.
+ * For content-based idempotency (e.g., ResourceProcessor), inject
+ * the name explicitly via id.name before calling withIdentifier().
+ * @param {object} instance - The resource instance
+ * @returns {string} The generated name
+ */
+function generateName(instance) {
+  // Preserve explicitly provided name
+  if (instance.id.name) {
+    return instance.id.name.split(".").pop();
+  }
+  // Preserve name field if present
+  if (instance.name && typeof instance.name === "string") {
+    return instance.name;
+  }
+  // Always use UUID for uniqueness
+  return generateUUID();
+}
+
+/**
  * Ensure that the identifier has values assigned. Call before persisting.
  * @param {string} [parent] - Parent ID
- * @param {string} [subject] - Subject URI
+ * @param {string[]} [subjects] - Subject URIs
  */
-function withIdentifier(parent, subject) {
+function withIdentifier(parent, subjects) {
   // Initialize id if missing
   this.id = this.id || new resource.Identifier();
+  this.id.subjects = subjects?.length
+    ? subjects.map(String)
+    : this.id.subjects || [];
+  this.id.parent = parent ? String(parent) : this.id.parent || "";
 
   const type = this.constructor.getTypeUrl("copilot-ld.dev").split("/").pop();
   if (!type)
     throw new Error("resource.withIdentifier: Resource type must not be null");
 
   // Get name with fallback chain
-  let name = this.id.name;
-  name = name
-    ? // Normalize dotted names to just the last part
-      name.split(".").pop()
-    : // Fallback to .name property if available
-      this.name && typeof this.name === "string"
-      ? this.name
-      : // Fallback to content hash if available
-        this.content
-        ? generateHash(type, this.content)
-        : // Fallback to UUID
-          generateUUID();
+  const name = generateName(this);
 
   this.id.type = type;
   this.id.name = name;
 
-  this.id.subject = subject ? String(subject) : this.id.subject || "";
-
-  this.id.parent = parent ? String(parent) : this.id.parent || "";
-
-  // Always set tokens field to ensure memory filtering works correctly
-  if (this.content && typeof this.content === "string") {
-    this.id.tokens = countTokens(this.content);
-  } else {
-    // Set to 0 for empty, null, undefined, or non-string content
-    this.id.tokens = 0;
+  // Set tokens field only if not already set (preserve explicit values)
+  if (this.id.tokens === undefined || this.id.tokens === null) {
+    if (this.content && typeof this.content === "string") {
+      this.id.tokens = countTokens(this.content);
+    } else {
+      // Set to 0 for empty, null, undefined, or non-string content
+      this.id.tokens = 0;
+    }
   }
 }
 
@@ -67,6 +78,7 @@ common.Assistant.prototype.withIdentifier = withIdentifier;
 common.Conversation.prototype.withIdentifier = withIdentifier;
 common.Message.prototype.withIdentifier = withIdentifier;
 tool.ToolFunction.prototype.withIdentifier = withIdentifier;
+tool.ToolCallMessage.prototype.withIdentifier = withIdentifier;
 
 resource.Identifier.prototype.toString = function () {
   if (!this?.type)
@@ -110,15 +122,26 @@ common.Message.fromObject = function (object) {
 };
 
 /**
+ * Monkey-patches for common.Conversation
+ */
+const ConversationCtor = common.Conversation;
+const ConversationfromObject = ConversationCtor.fromObject;
+
+// Monkey-patch Conversation.fromObject to apply identifier
+common.Conversation.fromObject = function (object) {
+  const typed = ConversationfromObject(object);
+  typed.withIdentifier();
+  return typed;
+};
+
+/**
  * Monkey-patches for common.Assistant
  */
 const AssistantCtor = common.Assistant;
 const AssistantfromObject = AssistantCtor.fromObject;
 
-// Monkey-patch Assistant.fromObject to apply a default role if not set
+// Monkey-patch Assistant.fromObject to apply identifier
 common.Assistant.fromObject = function (object) {
-  object.role = object?.role || "system";
-
   const typed = AssistantfromObject(object);
   typed.withIdentifier();
   return typed;
@@ -144,6 +167,19 @@ tool.ToolFunction.fromObject = function (object) {
   }
 
   const typed = ToolFunctionfromObject(object);
+  typed.withIdentifier();
+  return typed;
+};
+
+/**
+ * Monkey-patches for tool.ToolCallMessage
+ */
+const ToolCallMessageCtor = tool.ToolCallMessage;
+const ToolCallMessagefromObject = ToolCallMessageCtor.fromObject;
+
+// Monkey-patch ToolCallMessage.fromObject to apply identifier
+tool.ToolCallMessage.fromObject = function (object) {
+  const typed = ToolCallMessagefromObject(object);
   typed.withIdentifier();
   return typed;
 };

@@ -281,7 +281,7 @@ export default function createServer(agentConfig, extensionConfig) {
   const htmlRenderer = new HtmlRenderer(__dirname);
 
   // Configure adapter for bot requests
-  const adapter = configureAdapter();
+  const adapter = configureAdapter(extensionConfig);
 
   // Instantiate the CopilotLdBot with required dependencies
   const bot = new CopilotLdBot(

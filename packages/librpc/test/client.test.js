@@ -110,32 +110,28 @@ describe("Client", () => {
     assert.strictEqual(mockClientInstance.TestMethod.mock.callCount(), 1);
   });
 
-  test(
-    "callStream should execute streaming call",
-    { skip: "Future PR will fix this" },
-    async () => {
-      const client = new Client(
-        mockConfig,
-        mockLogFn,
-        null,
-        mockObserverFn,
-        mockGrpcFn,
-        mockAuthFn,
-      );
+  test("callStream should execute streaming call", async () => {
+    const client = new Client(
+      mockConfig,
+      mockLogFn,
+      null,
+      mockObserverFn,
+      mockGrpcFn,
+      mockAuthFn,
+    );
 
-      const stream = client.callStream("StreamMethod", { some: "data" });
+    const stream = client.callStream("StreamMethod", { some: "data" });
 
-      const chunks = [];
-      for await (const chunk of stream) {
-        chunks.push(chunk);
-      }
+    const chunks = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
 
-      assert.strictEqual(chunks.length, 2);
-      assert.deepStrictEqual(chunks[0], { result: "chunk1" });
-      assert.deepStrictEqual(chunks[1], { result: "chunk2" });
-      assert.strictEqual(mockClientInstance.StreamMethod.mock.callCount(), 1);
-    },
-  );
+    assert.strictEqual(chunks.length, 2);
+    assert.deepStrictEqual(chunks[0], { result: "chunk1" });
+    assert.deepStrictEqual(chunks[1], { result: "chunk2" });
+    assert.strictEqual(mockClientInstance.StreamMethod.mock.callCount(), 1);
+  });
 
   test("should accept tracer parameter", () => {
     const client = new Client(

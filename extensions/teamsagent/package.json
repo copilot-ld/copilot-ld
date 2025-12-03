@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/teamsagent",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
   "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
   "license": "MIT",

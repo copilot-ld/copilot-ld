@@ -1,5 +1,6 @@
 /* eslint-env node */
 import { services } from "@copilot-ld/librpc";
+import { agent } from "@copilot-ld/libtype";
 
 const { AgentBase } = services;
 
@@ -27,15 +28,38 @@ export class AgentService extends AgentBase {
 
   /**
    * @inheritdoc
-   * @param {import("@copilot-ld/libtype").agent.AgentRequest} req - Request message
-   * @returns {Promise<import("@copilot-ld/libtype").agent.AgentResponse>} Response message
+   * @param {agent.AgentRequest} req - The agent request
+   * @param {(response: agent.AgentResponse) => void} write - Callback to write response messages
    */
-  async ProcessRequest(req) {
+  async ProcessStream(req, write) {
     const octokit = this.#octokitFn(req.github_token);
     await octokit.request("GET /user");
 
-    const response = await this.#mind.processRequest(req);
+    const onProgress = (resource_id, messages) => {
+      write({ resource_id, messages });
+    };
 
-    return response;
+    await this.#mind.process(req, onProgress);
+  }
+
+  /**
+   * @inheritdoc
+   * @param {agent.AgentRequest} req - The agent request
+   * @returns {Promise<agent.AgentResponse>} The agent response
+   */
+  async ProcessUnary(req) {
+    const octokit = this.#octokitFn(req.github_token);
+    await octokit.request("GET /user");
+
+    /** @type {agent.AgentResponse} */
+    let finalResponse;
+
+    const onProgress = (resource_id, messages) => {
+      finalResponse = { resource_id, messages };
+    };
+
+    await this.#mind.process(req, onProgress);
+
+    return finalResponse;
   }
 }

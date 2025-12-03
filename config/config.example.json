@@ -1,4 +1,13 @@
 {
+  "extension": {
+    "teamsapp": {
+      "master_key": null,
+      "bot_domain": null
+    },
+    "teamsagent": {
+      "secret": null
+    }
+  },
   "evals": {
     "models": ["gpt-4o"],
     "judge_model": "gpt-5"

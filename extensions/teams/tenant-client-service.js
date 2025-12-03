@@ -1,6 +1,4 @@
 /* eslint-env node */
-import { clients, Interceptor, HmacAuth } from "@copilot-ld/librpc";
-import { createServiceConfig } from "@copilot-ld/libconfig";
 import { TenantConfig } from "./tenant-config-repository.js";
 
 /**
@@ -26,19 +24,6 @@ export class TenantClientService {
     if (!encryption) throw new Error("encryption is required");
     this.#configRepository = configRepository;
     this.#encryption = encryption;
-  }
-
-  /**
-   * Get a client by tenant id.
-   * @param {string} id - Tenant identifier
-   * @returns {Promise<import("@copilot-ld/librpc").clients.AgentClient|null>} The client instance or null if not found
-   */
-  async getTenantClient(id) {
-    const config = await this.#configRepository.get(id);
-    if (!config) return null;
-
-    const secret = this.#encryption.decrypt(id, config.encryptedSecret);
-    return await this.#buildClient(config.host, config.port, secret);
   }
 
   /**
@@ -74,25 +59,5 @@ export class TenantClientService {
       host: config.host,
       port: config.port,
     };
-  }
-
-  /**
-   * Builds and returns an AgentClient with overridden config values.
-   * @private
-   * @param {string} host - The agent service host
-   * @param {number} port - The agent service port
-   * @param {string} secret - The agent service secret
-   * @returns {Promise<import("@copilot-ld/librpc").clients.AgentClient>} Initialized AgentClient instance
-   */
-  async #buildClient(host, port, secret) {
-    const serviceConfig = await createServiceConfig("agent");
-    if (host !== undefined) serviceConfig.host = host;
-    if (port !== undefined) serviceConfig.port = port;
-
-    const createAuth = () => {
-      return new Interceptor(new HmacAuth(secret), serviceConfig.name);
-    };
-
-    return new clients.AgentClient(serviceConfig, null, null, createAuth);
   }
 }

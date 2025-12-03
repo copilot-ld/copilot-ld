@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-11-30
+
+- Fixed `tool_calls` format conversion to OpenAI API structure - removes
+  internal `function.id` resource identifier
+
 ## 2025-11-24
 
 - Bump version

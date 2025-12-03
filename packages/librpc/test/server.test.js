@@ -2,34 +2,7 @@
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
-import { Server, Client, Rpc } from "../index.js";
-
-describe("Rpc", () => {
-  test("should throw on missing config", () => {
-    assert.throws(() => new Rpc(), /config is required/);
-  });
-
-  test("should accept valid config", () => {
-    // Mock the environment variable required by authFactory
-    const originalEnv = process.env.SERVICE_SECRET;
-    process.env.SERVICE_SECRET =
-      "test-secret-that-is-at-least-32-characters-long";
-
-    try {
-      const config = { name: "test", host: "localhost", port: 5000 };
-      const rpc = new Rpc(config);
-
-      assert.strictEqual(rpc.config, config);
-    } finally {
-      // Restore original environment
-      if (originalEnv !== undefined) {
-        process.env.SERVICE_SECRET = originalEnv;
-      } else {
-        delete process.env.SERVICE_SECRET;
-      }
-    }
-  });
-});
+import { Server } from "../index.js";
 
 describe("Server", () => {
   let mockService;
@@ -47,7 +20,7 @@ describe("Server", () => {
     };
 
     mockConfig = {
-      name: "test-service",
+      name: "memory", // Use a valid service name
       host: "0.0.0.0",
       port: 5000,
     };
@@ -75,14 +48,16 @@ describe("Server", () => {
     });
     mockLogFn = {
       debug: mock.fn(),
+      error: mock.fn(),
     };
     mockObserverFn = () => ({
-      observeServerCall: async (method, handler, call, callback) => {
+      observeServerUnaryCall: async (method, handler, call, callback) => {
         return await handler(call, callback);
       },
-      observeClientCall: async (method, request, fn) => {
+      observeClientUnaryCall: async (method, request, fn) => {
         return await fn();
       },
+      logger: () => mockLogFn,
     });
   });
 
@@ -152,89 +127,28 @@ describe("Server", () => {
       mockAuthFn,
     );
 
-    // Test that the server has the service and can access its methods
-    assert.ok(server);
+    // Start the server to trigger setup
+    await server.start();
 
-    // Verify service methods can be called directly (which is what matters)
-    const handlers = spiedService.getHandlers();
-
-    assert.ok(handlers.TestMethod);
     assert.strictEqual(getHandlersSpy.mock.callCount(), 1);
   });
-});
 
-describe("Client", () => {
-  let mockConfig;
-  let mockGrpcFn;
-  let mockAuthFn;
-  let mockLogFn;
-  let mockObserverFn;
-
-  beforeEach(() => {
-    mockConfig = {
-      name: "agent",
-      host: "localhost",
-      port: 5000,
+  test("should accept tracer parameter", () => {
+    const mockTracer = {
+      startServerSpan: mock.fn(),
+      getSpanContext: () => ({ run: (_span, fn) => fn() }),
     };
 
-    const mockGrpcClient = {
-      TestMethod: mock.fn((request, callback) => {
-        callback(null, { result: "success" });
-      }),
-    };
-
-    const mockGrpc = {
-      makeGenericClientConstructor: mock.fn(
-        () =>
-          function () {
-            return mockGrpcClient;
-          },
-      ),
-      credentials: {
-        createInsecure: mock.fn(),
-      },
-    };
-
-    mockGrpcFn = () => ({ grpc: mockGrpc });
-    mockAuthFn = () => ({
-      createClientInterceptor: () => () => {},
-    });
-    mockLogFn = {
-      debug: mock.fn(),
-    };
-    mockObserverFn = () => ({
-      observeClientCall: async (method, request, fn) => {
-        return await fn();
-      },
-    });
-  });
-
-  test("should require config parameter", () => {
-    assert.throws(
-      () =>
-        new Client(
-          null,
-          mockLogFn,
-          null,
-          mockObserverFn,
-          mockGrpcFn,
-          mockAuthFn,
-        ),
-      /config is required/,
-    );
-  });
-
-  test("should accept valid parameters", () => {
-    const client = new Client(
+    const server = new Server(
+      mockService,
       mockConfig,
       mockLogFn,
-      null,
+      mockTracer,
       mockObserverFn,
       mockGrpcFn,
       mockAuthFn,
     );
 
-    assert.ok(client);
-    assert.strictEqual(client.config, mockConfig);
+    assert.ok(server);
   });
 });

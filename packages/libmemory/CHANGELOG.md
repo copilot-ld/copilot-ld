@@ -1,5 +1,21 @@
 # Changelog
 
+## 2025-12-02
+
+- **BREAKING**: `MemoryWindow.build()` now takes `model` instead of `budget`
+- Added `MemoryWindow.calculateBudget(model)` for budget calculation
+- Added `getModelBudget()` function (moved from `@copilot-ld/libcopilot`)
+- Added `models.js` with static model budget map
+
+## 2025-11-30
+
+- **BREAKING**: `MemoryWindow` constructor takes
+  `(resourceId, resourceIndex, memoryIndex)`; `build(budget)` returns
+  `{messages, tools}` ready for LLM
+- `MemoryWindow` loads conversation → assistant → tools chain internally
+- Fixed tool call integrity - drops orphaned tool messages at window start
+- Removed `MemoryFilter` class; budget filtering is inline
+
 ## 2025-11-24
 
 - Bump version

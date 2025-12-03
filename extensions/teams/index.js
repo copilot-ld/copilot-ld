@@ -1,19 +1,19 @@
-import dotenv from "dotenv";
-dotenv.config();
+import {
+  createServiceConfig,
+  createExtensionConfig,
+} from "@copilot-ld/libconfig";
 
 import createServer from "./server.js";
 
-const server = await createServer();
+const agentConfig = await createServiceConfig("agent");
+const extensionConfig = await createExtensionConfig("teamsapp");
 
-server.listen(process.env.port || process.env.PORT || 3978, () => {
+const server = await createServer(agentConfig, extensionConfig);
+
+server.listen(extensionConfig.port, () => {
   console.log("\n------------------- Startup ---------------------------");
-  console.log(
-    `\nRunning at: http://localhost:${process.env.port || process.env.PORT || 3978}`,
-  );
-  console.log("\nExpose publically: ngrok http 3978");
-  console.log(
-    "\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator",
-  );
-  console.log('\nTo talk to your bot, open the emulator select "Open Bot"');
+  console.log(`\nRunning at: http://localhost:${extensionConfig.port}`);
+  console.log("\nExpose publicly: npm run ngrok");
+  console.log("\nBot Framework Emulator: https://aka.ms/botframework-emulator");
   console.log("\n------------------- Listening ---------------------------");
 });

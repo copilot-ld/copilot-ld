@@ -4,32 +4,29 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import mustache from "mustache";
-import { common, llm } from "@copilot-ld/libtype";
+
+import { ParseError } from "./error.js";
+import { createLlm } from "@copilot-ld/libcopilot";
+import { common } from "@copilot-ld/libtype";
 
 /**
  * Judge-based evaluator using LLM
  * Evaluates agent responses against natural language criteria
  */
 export class JudgeEvaluator {
-  #llmClient;
-  #githubToken;
-  #model;
+  #copilot;
   #criteriaTemplate;
 
   /**
    * Create a new JudgeEvaluator instance
-   * @param {import('@copilot-ld/librpc').LlmClient} llmClient - LLM client for evaluation
    * @param {string} githubToken - GitHub token for API access
    * @param {string} model - Model to use for judge evaluations
    */
-  constructor(llmClient, githubToken, model) {
-    if (!llmClient) throw new Error("llmClient is required");
+  constructor(githubToken, model) {
     if (!githubToken) throw new Error("githubToken is required");
     if (!model) throw new Error("model is required");
 
-    this.#llmClient = llmClient;
-    this.#githubToken = githubToken;
-    this.#model = model;
+    this.#copilot = createLlm(githubToken, model);
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const templatePath = join(__dirname, "./prompts/criteria.md.mustache");
@@ -37,21 +34,22 @@ export class JudgeEvaluator {
   }
 
   /**
-   * Evaluate agent response against criteria
+   * Evaluate agent responses against criteria
    * @param {object} scenario - Scenario with evaluations array
-   * @param {object} response - Agent response object
-   * @returns {Promise<object>} Evaluation result
+   * @param {string[]} responses - Array of response strings from agent
+   * @returns {Promise<object>} Evaluation result with passed and evaluations
    */
-  async evaluate(scenario, response) {
+  async evaluate(scenario, responses) {
     if (!scenario.evaluations || scenario.evaluations.length === 0) {
       throw new Error(`Scenario ${scenario.name} missing evaluations`);
     }
 
-    if (!response.choices || response.choices.length === 0) {
-      throw new Error(`No choices in agent response for ${scenario.id}`);
+    if (!responses || responses.length === 0) {
+      throw new Error(`No responses from agent for ${scenario.name}`);
     }
 
-    const responseContent = response.choices[0].message.content;
+    // Concatenate all responses for judgment
+    const responseContent = responses.join("\n\n---\n\n");
 
     // Add indices to evaluations for template rendering
     const evaluationsWithIndex = scenario.evaluations.map(
@@ -68,19 +66,14 @@ export class JudgeEvaluator {
       evaluations: evaluationsWithIndex,
     });
 
-    const request = llm.CompletionsRequest.fromObject({
-      model: this.#model,
-      messages: [
-        common.Message.fromObject({
-          role: "user",
-          content: evaluationPrompt,
-        }),
-      ],
-      temperature: 0.0,
-      github_token: this.#githubToken,
-    });
+    const messages = [
+      common.Message.fromObject({
+        role: "user",
+        content: evaluationPrompt,
+      }),
+    ];
 
-    const judgment = await this.#llmClient.CreateCompletions(request);
+    const judgment = await this.#copilot.createCompletions({ messages });
     const judgmentContent = judgment.choices[0].message.content.trim();
 
     // Parse JSON response
@@ -88,8 +81,9 @@ export class JudgeEvaluator {
     try {
       parsedJudgment = JSON.parse(judgmentContent);
     } catch (error) {
-      throw new Error(
+      throw new ParseError(
         `Failed to parse judgment JSON for ${scenario.name}: ${error.message}`,
+        { cause: error },
       );
     }
 
@@ -113,11 +107,7 @@ export class JudgeEvaluator {
     const passed = evaluationResults.every((r) => r.passed);
 
     return {
-      scenario: scenario.name,
-      type: "criteria",
       passed,
-      prompt: scenario.prompt,
-      response: responseContent,
       evaluations: evaluationResults,
     };
   }

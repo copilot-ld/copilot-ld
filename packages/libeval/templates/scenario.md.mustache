@@ -28,8 +28,8 @@ The scenario passes if all evaluations pass.
 The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluations.
 {{total.passed}} passed, {{total.failed}} failed.
 
-## Results
-{{#results}}
+## Runs
+{{#runs}}
 
 ### {{#passed}}✅{{/passed}}{{^passed}}❌{{/passed}} Run {{{index}}}
 
@@ -53,11 +53,13 @@ The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluat
 [{{{resource}}}]: ../resources/{{{resource}}}.json
 {{/memories}}
 
-#### Agent Response
+#### Agent Response(s)
 
+{{#responses}}
 ```markdown
-{{{response}}}
+{{{.}}}
 ```
+{{/responses}}
 
 #### Evaluations
 {{#evaluations}}
@@ -74,4 +76,4 @@ The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluat
 {{/detail}}
 {{/evaluations}}
 ---
-{{/results}}
+{{/runs}}

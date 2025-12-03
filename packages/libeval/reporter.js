@@ -3,17 +3,16 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import mustache from "mustache";
-import { memory } from "@copilot-ld/libtype";
+import { MemoryIndex } from "@copilot-ld/libmemory/index/memory.js";
 
 /**
  * EvaluationReporter generates summary and per-scenario reports from evaluation index
  * Uses mustache templates to generate markdown reports
  */
 export class EvaluationReporter {
-  #agentConfig;
   #evaluationIndex;
   #traceVisualizer;
-  #memoryClient;
+  #memoryStorage;
   #summaryTemplate;
   #scenarioTemplate;
 
@@ -22,18 +21,17 @@ export class EvaluationReporter {
    * @param {import("@copilot-ld/libconfig").Config} agentConfig - Agent configuration with budget and allocation
    * @param {import("./index/evaluation.js").EvaluationIndex} evaluationIndex - Evaluation index with results
    * @param {import("@copilot-ld/libtelemetry/visualizer.js").TraceVisualizer} traceVisualizer - Trace visualizer for generating trace diagrams
-   * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory client for fetching memory windows
+   * @param {import("@copilot-ld/libstorage").StorageInterface} memoryStorage - Storage instance for memories
    */
-  constructor(agentConfig, evaluationIndex, traceVisualizer, memoryClient) {
+  constructor(agentConfig, evaluationIndex, traceVisualizer, memoryStorage) {
     if (!agentConfig) throw new Error("agentConfig is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!traceVisualizer) throw new Error("traceVisualizer is required");
-    if (!memoryClient) throw new Error("memoryClient is required");
+    if (!memoryStorage) throw new Error("memoryStorage is required");
 
-    this.#agentConfig = agentConfig;
     this.#evaluationIndex = evaluationIndex;
     this.#traceVisualizer = traceVisualizer;
-    this.#memoryClient = memoryClient;
+    this.#memoryStorage = memoryStorage;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
     this.#summaryTemplate = readFileSync(
@@ -72,33 +70,30 @@ export class EvaluationReporter {
   }
 
   /**
-   * Fetch and format memory window for a resource
+   * Fetch and format memory items for a resource
    * @param {string} resource_id - Resource ID to fetch memory for
    * @returns {Promise<Array<{subject: string, resource: string, score: number|null}>>} Formatted memory data
    */
-  async #fetchMemoryWindow(resource_id) {
-    const request = memory.WindowRequest.fromObject({
-      resource_id,
-      budget: this.#agentConfig.budget?.tokens,
-      allocation: this.#agentConfig.budget?.allocation || {
-        tools: 0.01,
-        context: 0.98,
-        conversation: 0.01,
-      },
-    });
+  async #fetchMemoryItems(resource_id) {
+    // Create a MemoryIndex for this resourceId and fetch all items
+    const indexKey = `${resource_id}.jsonl`;
+    const memoryIndex = new MemoryIndex(this.#memoryStorage, indexKey);
+    const allItems = await memoryIndex.queryItems();
 
-    const response = await this.#memoryClient.GetWindow(request);
-
-    // Format context identifiers for the template
+    // Format identifiers for the template, flattening subjects
     const memories = [];
 
-    if (response.context) {
-      for (const identifier of response.context) {
-        memories.push({
-          subject: identifier.subject || "unknown",
-          resource: `${identifier.type}.${identifier.name}`,
-          score: identifier.score || null,
-        });
+    for (const identifier of allItems) {
+      const subjects = identifier.subjects || [];
+      // Build full resource path: parent/type.name
+      const resource = identifier.parent
+        ? `${identifier.parent}/${identifier.type}.${identifier.name}`
+        : `${identifier.type}.${identifier.name}`;
+      const score = identifier.score || null;
+
+      // Create one entry per subject for the template
+      for (const subject of subjects) {
+        memories.push({ subject, resource, score });
       }
     }
 
@@ -113,13 +108,13 @@ export class EvaluationReporter {
     const scenarios = await this.#evaluationIndex.getAllScenarios();
 
     // Get all unique models
-    const allResults = [];
+    const allRuns = [];
     for (const scenario of scenarios) {
-      const results = await this.#evaluationIndex.getByScenario(scenario);
-      allResults.push(...results);
+      const runs = await this.#evaluationIndex.getByScenario(scenario);
+      allRuns.push(...runs);
     }
     const models = [
-      ...new Set(allResults.map((r) => r.model || "default")),
+      ...new Set(allRuns.map((r) => r.model || "default")),
     ].sort();
 
     const scenarioStats = [];
@@ -127,9 +122,9 @@ export class EvaluationReporter {
     let totalPassed = 0;
 
     for (const scenario of scenarios) {
-      const results = await this.#evaluationIndex.getByScenario(scenario);
-      const scenarioRuns = results.length;
-      const scenarioPassed = results.filter((r) => r.passed).length;
+      const runs = await this.#evaluationIndex.getByScenario(scenario);
+      const scenarioRuns = runs.length;
+      const scenarioPassed = runs.filter((r) => r.passed).length;
       const scenarioRate =
         scenarioRuns > 0
           ? ((scenarioPassed / scenarioRuns) * 100).toFixed(1)
@@ -138,23 +133,21 @@ export class EvaluationReporter {
       totalRuns += scenarioRuns;
       totalPassed += scenarioPassed;
 
-      // Get scenario-level data from first result
-      const firstResult = results[0];
+      // Get scenario-level data from first run
+      const firstRun = runs[0];
 
       // Generate model-specific statistics
       const modelStats = models.map((model) => {
-        const modelResults = results.filter(
-          (r) => (r.model || "default") === model,
-        );
-        const modelPassed = modelResults.filter((r) => r.passed).length;
-        const modelTotal = modelResults.length;
+        const modelRuns = runs.filter((r) => (r.model || "default") === model);
+        const modelPassed = modelRuns.filter((r) => r.passed).length;
+        const modelTotal = modelRuns.length;
         const modelRate =
           modelTotal > 0
             ? ((modelPassed / modelTotal) * 100).toFixed(1)
             : "0.0";
 
-        // Generate visual indicators for this model's results
-        const indicators = this.#generateIndicators(modelResults);
+        // Generate visual indicators for this model's runs
+        const indicators = this.#generateIndicators(modelRuns);
 
         return {
           model,
@@ -167,9 +160,9 @@ export class EvaluationReporter {
 
       scenarioStats.push({
         scenario: scenario,
-        type: firstResult?.type || "unknown",
-        complexity: firstResult?.metadata?.complexity || "unknown",
-        rationale: (firstResult?.metadata?.rationale || "").replace(/\n+$/, ""),
+        type: firstRun?.type || "unknown",
+        complexity: firstRun?.complexity || "unknown",
+        rationale: (firstRun?.rationale || "").replace(/\n+$/, ""),
         total: {
           runs: scenarioRuns,
           passed: scenarioPassed,
@@ -184,11 +177,9 @@ export class EvaluationReporter {
 
     // Calculate per-model overall pass rates
     const modelRates = models.map((model) => {
-      const modelResults = allResults.filter(
-        (r) => (r.model || "default") === model,
-      );
-      const modelPassed = modelResults.filter((r) => r.passed).length;
-      const modelTotal = modelResults.length;
+      const modelRuns = allRuns.filter((r) => (r.model || "default") === model);
+      const modelPassed = modelRuns.filter((r) => r.passed).length;
+      const modelTotal = modelRuns.length;
       const modelRate =
         modelTotal > 0 ? ((modelPassed / modelTotal) * 100).toFixed(1) : "0.0";
 
@@ -220,46 +211,46 @@ export class EvaluationReporter {
    * @returns {Promise<string>} Markdown formatted scenario report
    */
   async generateScenarioReport(scenario) {
-    const results = await this.#evaluationIndex.getByScenario(scenario);
+    const runs = await this.#evaluationIndex.getByScenario(scenario);
 
-    if (results.length === 0) {
-      throw new Error(`No results found for scenario: ${scenario}`);
+    if (runs.length === 0) {
+      throw new Error(`No runs found for scenario: ${scenario}`);
     }
 
-    // Get scenario details from first result
-    const firstResult = results[0];
+    // Get scenario details from first run
+    const firstRun = runs[0];
 
     // Calculate statistics
-    const totalRuns = results.length;
-    const totalPassed = results.filter((r) => r.passed).length;
+    const totalRuns = runs.length;
+    const totalPassed = runs.filter((r) => r.passed).length;
     const totalFailed = totalRuns - totalPassed;
     const totalRate =
       totalRuns > 0 ? ((totalPassed / totalRuns) * 100).toFixed(1) : "0.0";
 
     // Generate visual pass/fail indicators
-    const indicators = this.#generateIndicators(results);
+    const indicators = this.#generateIndicators(runs);
 
     // Determine if evaluations should be wrapped in code blocks (only for trace type)
-    const inlineCode = firstResult.type === "trace";
+    const inlineCode = firstRun.type === "trace";
 
-    // Prepare results with run numbers and formatted data
-    const formattedResults = await Promise.all(
-      results.map(async (result, r) => {
-        // Generate trace visualization for this result's resource
+    // Prepare runs with run numbers and formatted data
+    const formattedRuns = await Promise.all(
+      runs.map(async (run, r) => {
+        // Generate trace visualization for this run's resource
         let trace = "";
-        if (result.resource) {
+        if (run.resource) {
           trace = await this.#traceVisualizer.visualize(null, {
-            resource_id: result.resource,
+            resource_id: run.resource,
           });
         }
 
-        // Fetch memory window for this result's resource
-        const memories = result.resource
-          ? await this.#fetchMemoryWindow(result.resource)
+        // Fetch memory items for this run's resource
+        const memories = run.resource
+          ? await this.#fetchMemoryItems(run.resource)
           : [];
 
-        const evaluations = result.evaluations
-          ? result.evaluations.map((item, e) => ({
+        const evaluations = run.evaluations
+          ? run.evaluations.map((item, e) => ({
               index: e + 1,
               passed: item.passed,
               label: item.label,
@@ -270,10 +261,10 @@ export class EvaluationReporter {
 
         return {
           index: r + 1,
-          resource: result.resource,
-          model: result.model || "default",
-          passed: result.passed,
-          response: result.response,
+          resource: run.resource,
+          model: run.model || "default",
+          passed: run.passed,
+          responses: run.responses || [],
           trace,
           evaluations,
           memories,
@@ -282,8 +273,8 @@ export class EvaluationReporter {
     );
 
     // Prepare evaluations list for Method section (without pass/fail status)
-    const evaluationsList = firstResult.evaluations
-      ? firstResult.evaluations.map((item, e) => ({
+    const evaluationsList = firstRun.evaluations
+      ? firstRun.evaluations.map((item, e) => ({
           index: e + 1,
           label: item.label,
         }))
@@ -291,10 +282,10 @@ export class EvaluationReporter {
 
     const templateData = {
       scenario,
-      type: firstResult.type,
-      complexity: firstResult.metadata?.complexity || "unknown",
-      rationale: (firstResult.metadata?.rationale || "").replace(/\n+$/, ""),
-      prompt: (firstResult.prompt || "").replace(/\n+$/, ""),
+      type: firstRun.type,
+      complexity: firstRun.complexity || "unknown",
+      rationale: (firstRun.rationale || "").replace(/\n+$/, ""),
+      prompt: (firstRun.prompt || "").replace(/\n+$/, ""),
       indicators,
       evaluations: evaluationsList,
       total: {
@@ -302,9 +293,9 @@ export class EvaluationReporter {
         passed: totalPassed,
         failed: totalFailed,
         rate: totalRate,
-        evaluations: firstResult.evaluations.length,
+        evaluations: firstRun.evaluations.length,
       },
-      results: formattedResults,
+      runs: formattedRuns,
     };
 
     return mustache.render(this.#scenarioTemplate, templateData);

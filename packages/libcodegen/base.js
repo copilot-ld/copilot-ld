@@ -186,6 +186,8 @@ export class CodegenBase {
           responseTypeNamespace: this.findTypeNamespace(res, def, packageName),
           paramName: "req",
           isLast: index === array.length - 1,
+          responseStream: !!method.responseStream,
+          requestStream: !!method.requestStream,
         };
       },
     );

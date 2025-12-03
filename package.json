@@ -28,7 +28,8 @@
     "codegen:definition": "npx --workspace=@copilot-ld/libcodegen codegen --definition",
     "transform": "npm run transform:pdf",
     "transform:pdf": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libtransform transform-pdf",
-    "process": "npm run process:assistants && npm run process:resources && npm run process:tools && npm run process:vectors && npm run process:graphs",
+    "process": "npm run process:assistants && npm run process:resources && npm run process:tools && npm run process:graphs && npm run process:vectors",
+    "process:fast": "npm run process:assistants && npm run process:resources && npm run process:tools && npm run process:graphs",
     "process:assistants": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libagent process-assistants",
     "process:resources": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libresource process-resources",
     "process:tools": "npx env-cmd --silent -- node ./scripts/tools.js",
@@ -67,6 +68,10 @@
     "cli:query": "npm --silent run dev:start -- --silent && npx env-cmd -- node ./scripts/query.js",
     "cli:subjects": "npm --silent run dev:start -- --silent && npx env-cmd -- node ./scripts/subjects.js",
     "cli:visualize": "npx env-cmd -- npx --workspace=@copilot-ld/libtelemetry visualize",
+    "cli:window": "npm --silent run dev:start -- --silent && npx env-cmd -- node ./scripts/window.js",
+    "cli:completion": "npm --silent run dev:start -- --silent && npx env-cmd -- node ./scripts/completion.js",
+    "cli:tiktoken": "npm --silent run dev:start -- --silent && npx env-cmd -- node ./scripts/tiktoken.js",
+    "cli:unary": "npm --silent run dev:start -- --silent && npx env-cmd -- node ./scripts/unary.js",
     "eval": "npm --silent run dev:start -- --silent && npx env-cmd -- npx --workspace=@copilot-ld/libeval evaluation",
     "eval:report": "npx env-cmd -- npx --workspace=@copilot-ld/libeval eval-report",
     "eval:reset": "rm -rf data/dev.log data/cli/* data/eval/* data/memories/* data/resources/common.Conversation.* data/traces/* && npm --silent run dev:restart -- --silent"
@@ -81,7 +86,8 @@
     "eslint-plugin-jsdoc": "^52.0.4",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
-    "spellchecker-cli": "^7.0.0"
+    "spellchecker-cli": "^7.0.0",
+    "tiktoken": "^1.0.22"
   },
   "repository": {
     "type": "git",

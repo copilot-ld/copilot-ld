@@ -28,6 +28,7 @@ const callbacks = {
   memory: {
     append: memoryClient.AppendMemory.bind(memoryClient),
     get: memoryClient.GetWindow.bind(memoryClient),
+    getBudget: memoryClient.GetBudget.bind(memoryClient),
   },
   llm: {
     createCompletions: llmClient.CreateCompletions.bind(llmClient),
@@ -37,7 +38,7 @@ const callbacks = {
   },
 };
 
-const agentHands = new AgentHands(agentConfig, callbacks, resourceIndex);
+const agentHands = new AgentHands(callbacks, resourceIndex);
 const agentMind = new AgentMind(
   agentConfig,
   callbacks,

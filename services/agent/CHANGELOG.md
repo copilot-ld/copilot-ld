@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-12-01
+
+- Renamed `ProcessRequest()` to `ProcessStream()` for streaming responses
+- Added `ProcessUnary()` for single-response agent requests
+- Updated `ProcessStream()` signature to use `write` callback from base class
+
+## 2025-11-30
+
+- Simplified `ProcessRequest()` - no longer returns response object, just ends
+  the stream after processing
+
 ## 2025-11-24
 
 - Bump version

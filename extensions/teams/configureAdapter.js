@@ -6,16 +6,19 @@ import {
 
 /**
  * Configures and returns a Microsoft Bot Framework CloudAdapter for Teams bots.
- * Sets up authentication using environment variables and attaches a default error handler for turn errors.
+ * Sets up authentication using extension configuration and attaches a default error handler for turn errors.
+ * @param {object} extensionConfig - Extension configuration
  * @returns {CloudAdapter} Configured CloudAdapter instance for handling bot activities.
  */
-export function configureAdapter() {
-  // Create credentials factory from environment variables
+export function configureAdapter(extensionConfig) {
+  if (!extensionConfig) throw new Error("extensionConfig is required");
+
+  // Create credentials factory from extension configuration
   const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
-    MicrosoftAppId: process.env.MicrosoftAppId,
-    MicrosoftAppPassword: process.env.MicrosoftAppPassword,
-    MicrosoftAppType: process.env.MicrosoftAppType,
-    MicrosoftAppTenantId: process.env.MicrosoftAppTenantId,
+    MicrosoftAppId: extensionConfig.microsoft_app_id,
+    MicrosoftAppPassword: extensionConfig.microsoft_app_password,
+    MicrosoftAppType: extensionConfig.microsoft_app_type,
+    MicrosoftAppTenantId: extensionConfig.microsoft_app_tenant_id,
   });
 
   // Create bot framework authentication using credentials

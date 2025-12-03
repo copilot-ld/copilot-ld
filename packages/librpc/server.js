@@ -52,7 +52,7 @@ export class Server extends Rpc {
     const handlers = this.#service.getHandlers();
 
     // Wrap handlers with auth/error handling
-    const wrappedHandlers = this.#wrapHandlers(handlers);
+    const wrappedHandlers = this.#wrapHandlers(handlers, definition);
 
     this.#server.addService(definition, wrappedHandlers);
 
@@ -65,14 +65,61 @@ export class Server extends Rpc {
   /**
    * Wraps handlers with auth and error handling
    * @param {object} handlers - Service method handlers
+   * @param {object} definition - Service definition
    * @returns {object} Wrapped handlers
    */
-  #wrapHandlers(handlers) {
+  #wrapHandlers(handlers, definition) {
     const wrapped = {};
     for (const [method, handler] of Object.entries(handlers)) {
-      wrapped[method] = this.#wrapUnary(method, handler);
+      const methodDef = definition[method];
+      if (methodDef?.responseStream) {
+        wrapped[method] = this.#wrapStreaming(method, handler);
+      } else {
+        wrapped[method] = this.#wrapUnary(method, handler);
+      }
     }
     return wrapped;
+  }
+
+  /**
+   * Wraps a streaming handler with tracing, authentication, and error handling via Observer
+   * @param {string} methodName - Method name for tracing
+   * @param {Function} handler - Streaming handler function
+   * @returns {Function} Wrapped handler
+   */
+  #wrapStreaming(methodName, handler) {
+    return async (call) => {
+      const emitError = (code, message) =>
+        call.emit("error", { code, message });
+
+      // Validate call.request exists (for server streaming)
+      if (!call?.request) {
+        return emitError(
+          this.grpc().status.INVALID_ARGUMENT,
+          "Invalid request: call.request is missing",
+        );
+      }
+
+      // Authenticate
+      const validation = this.auth().validateCall(call);
+      if (!validation.isValid) {
+        return emitError(
+          this.grpc().status.UNAUTHENTICATED,
+          `Authentication failed: ${validation.error}`,
+        );
+      }
+
+      // Observer handles everything: spans, events, metadata, logging
+      try {
+        await this.observer().observeServerStreamingCall(
+          methodName,
+          call,
+          handler,
+        );
+      } catch (error) {
+        emitError(this.grpc().status.INTERNAL, error?.message || String(error));
+      }
+    };
   }
 
   /**
@@ -102,7 +149,7 @@ export class Server extends Rpc {
 
       // Observer handles everything: spans, events, metadata, logging
       try {
-        const response = await this.observer().observeServerCall(
+        const response = await this.observer().observeServerUnaryCall(
           methodName,
           call,
           async (call) => await handler(call),

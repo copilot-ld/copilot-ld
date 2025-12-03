@@ -4,7 +4,6 @@ import { EvaluationIndex, EvaluationReporter } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
 import { TraceIndex } from "@copilot-ld/libtelemetry/index/trace.js";
 import { TraceVisualizer } from "@copilot-ld/libtelemetry/visualizer.js";
-import { MemoryClient } from "../../../generated/services/memory/client.js";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 
 /**
@@ -16,22 +15,21 @@ async function main() {
   // Initialize storage
   const evalStorage = createStorage("eval");
   const traceStorage = createStorage("traces");
+  const memoryStorage = createStorage("memories");
 
   // Initialize evaluation index, trace index, and visualizer
   const evaluationIndex = new EvaluationIndex(evalStorage);
   const traceIndex = new TraceIndex(traceStorage, "index.jsonl");
   const traceVisualizer = new TraceVisualizer(traceIndex);
 
-  // Initialize memory client and agent config
+  // Initialize agent config
   const agentConfig = await createServiceConfig("agent");
-  const memoryConfig = await createServiceConfig("memory");
-  const memoryClient = new MemoryClient(memoryConfig);
 
   const reporter = new EvaluationReporter(
     agentConfig,
     evaluationIndex,
     traceVisualizer,
-    memoryClient,
+    memoryStorage,
   );
 
   console.log("Generating evaluation reports...");

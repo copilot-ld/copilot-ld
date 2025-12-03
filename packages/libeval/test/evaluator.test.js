@@ -4,12 +4,21 @@ import assert from "node:assert";
 
 import { Evaluator } from "../index.js";
 
+/**
+ * Mock stream generator
+ * @param {any} data - The data to yield
+ * @yields {any} The data
+ */
+async function* mockStream(data) {
+  yield data;
+}
+
 describe("Evaluator", () => {
   test("constructor validates required dependencies", () => {
     const mockAgent = {};
-    const mockMemory = {};
     const mockTrace = {};
     const mockToken = "test-token";
+    const mockModel = null;
     const mockIndex = {};
     const mockCriteria = {};
     const mockRetrieval = {};
@@ -19,10 +28,9 @@ describe("Evaluator", () => {
       () =>
         new Evaluator(
           null,
-          mockMemory,
           mockTrace,
           mockToken,
-          null,
+          mockModel,
           mockIndex,
           mockCriteria,
           mockRetrieval,
@@ -36,25 +44,8 @@ describe("Evaluator", () => {
         new Evaluator(
           mockAgent,
           null,
-          mockTrace,
           mockToken,
-          null,
-          mockIndex,
-          mockCriteria,
-          mockRetrieval,
-          mockTraceEval,
-        ),
-      /memoryClient is required/,
-    );
-
-    assert.throws(
-      () =>
-        new Evaluator(
-          mockAgent,
-          mockMemory,
-          null,
-          mockToken,
-          null,
+          mockModel,
           mockIndex,
           mockCriteria,
           mockRetrieval,
@@ -67,10 +58,9 @@ describe("Evaluator", () => {
       () =>
         new Evaluator(
           mockAgent,
-          mockMemory,
           mockTrace,
           null,
-          null,
+          mockModel,
           mockIndex,
           mockCriteria,
           mockRetrieval,
@@ -83,10 +73,9 @@ describe("Evaluator", () => {
       () =>
         new Evaluator(
           mockAgent,
-          mockMemory,
           mockTrace,
           mockToken,
-          null,
+          mockModel,
           null,
           mockCriteria,
           mockRetrieval,
@@ -99,10 +88,9 @@ describe("Evaluator", () => {
       () =>
         new Evaluator(
           mockAgent,
-          mockMemory,
           mockTrace,
           mockToken,
-          null,
+          mockModel,
           mockIndex,
           null,
           mockRetrieval,
@@ -115,10 +103,9 @@ describe("Evaluator", () => {
       () =>
         new Evaluator(
           mockAgent,
-          mockMemory,
           mockTrace,
           mockToken,
-          null,
+          mockModel,
           mockIndex,
           mockCriteria,
           null,
@@ -131,10 +118,9 @@ describe("Evaluator", () => {
       () =>
         new Evaluator(
           mockAgent,
-          mockMemory,
           mockTrace,
           mockToken,
-          null,
+          mockModel,
           mockIndex,
           mockCriteria,
           mockRetrieval,
@@ -146,9 +132,9 @@ describe("Evaluator", () => {
 
   test("constructor creates evaluator with all dependencies", () => {
     const mockAgent = {};
-    const mockMemory = {};
     const mockTrace = {};
     const mockToken = "test-token";
+    const mockModel = null;
     const mockIndex = {};
     const mockCriteria = {};
     const mockRetrieval = {};
@@ -156,10 +142,9 @@ describe("Evaluator", () => {
 
     const evaluator = new Evaluator(
       mockAgent,
-      mockMemory,
       mockTrace,
       mockToken,
-      null,
+      mockModel,
       mockIndex,
       mockCriteria,
       mockRetrieval,
@@ -171,16 +156,16 @@ describe("Evaluator", () => {
 
   test("evaluate throws error for invalid scenario type", async () => {
     const mockAgent = {
-      ProcessRequest: mock.fn(() =>
-        Promise.resolve({
+      ProcessStream: mock.fn(() =>
+        mockStream({
           resource_id: "test-123",
           choices: [{ message: { content: { text: "Response" } } }],
         }),
       ),
     };
-    const mockMemory = {};
     const mockTrace = {};
     const mockToken = "test-token";
+    const mockModel = null;
     const mockIndex = { add: mock.fn(() => Promise.resolve()) };
     const mockCriteria = {};
     const mockRetrieval = {};
@@ -188,10 +173,9 @@ describe("Evaluator", () => {
 
     const evaluator = new Evaluator(
       mockAgent,
-      mockMemory,
       mockTrace,
       mockToken,
-      null,
+      mockModel,
       mockIndex,
       mockCriteria,
       mockRetrieval,
@@ -221,15 +205,14 @@ describe("Evaluator", () => {
     };
 
     const mockAgent = {
-      ProcessRequest: mock.fn(() => Promise.resolve(mockResponse)),
+      ProcessStream: mock.fn(() => mockStream(mockResponse)),
     };
 
-    const mockMemory = {};
     const mockTrace = {};
 
     const mockCriteriaResult = {
       scenario: "test-1",
-      type: "criteria",
+      type: "judge",
       passed: true,
       judgment: "PASS: Response meets all criteria",
       prompt: "What is the meaning of life?",
@@ -243,14 +226,14 @@ describe("Evaluator", () => {
     const mockRetrieval = {};
     const mockTraceEval = {};
     const mockToken = "test-token";
+    const mockModel = null;
     const mockIndex = { add: mock.fn(() => Promise.resolve()) };
 
     const evaluator = new Evaluator(
       mockAgent,
-      mockMemory,
       mockTrace,
       mockToken,
-      null,
+      mockModel,
       mockIndex,
       mockCriteria,
       mockRetrieval,
@@ -259,7 +242,7 @@ describe("Evaluator", () => {
 
     const scenario = {
       name: "test-1",
-      type: "criteria",
+      type: "judge",
       prompt: "What is the meaning of life?",
       evaluations: [
         {
@@ -271,7 +254,7 @@ describe("Evaluator", () => {
 
     const result = await evaluator.evaluate(scenario);
 
-    assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 1);
+    assert.strictEqual(mockAgent.ProcessStream.mock.callCount(), 1);
     assert.strictEqual(mockCriteria.evaluate.mock.callCount(), 1);
 
     assert.strictEqual(result.passed, true);
@@ -291,15 +274,14 @@ describe("Evaluator", () => {
     };
 
     const mockAgent = {
-      ProcessRequest: mock.fn(() => Promise.resolve(mockResponse)),
+      ProcessStream: mock.fn(() => mockStream(mockResponse)),
     };
 
-    const mockMemory = {};
     const mockTrace = {};
 
     const mockCriteriaResult = {
       scenario: "test-1",
-      type: "criteria",
+      type: "judge",
       passed: true,
       judgment: "PASS",
       prompt: "Query",
@@ -313,14 +295,14 @@ describe("Evaluator", () => {
     const mockRetrieval = {};
     const mockTraceEval = {};
     const mockToken = "test-token";
+    const mockModel = null;
     const mockIndex = { add: mock.fn(() => Promise.resolve()) };
 
     const evaluator = new Evaluator(
       mockAgent,
-      mockMemory,
       mockTrace,
       mockToken,
-      null,
+      mockModel,
       mockIndex,
       mockCriteria,
       mockRetrieval,
@@ -330,7 +312,7 @@ describe("Evaluator", () => {
     const scenarios = [
       {
         name: "test-1",
-        type: "criteria",
+        type: "judge",
         prompt: "Query 1",
         evaluations: [
           {
@@ -341,7 +323,7 @@ describe("Evaluator", () => {
       },
       {
         name: "test-2",
-        type: "criteria",
+        type: "judge",
         prompt: "Query 2",
         evaluations: [
           {
@@ -352,7 +334,7 @@ describe("Evaluator", () => {
       },
       {
         name: "test-3",
-        type: "criteria",
+        type: "judge",
         prompt: "Query 3",
         evaluations: [
           {
@@ -367,7 +349,7 @@ describe("Evaluator", () => {
       scenarios.map((scenario) => evaluator.evaluate(scenario)),
     );
 
-    assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 3);
+    assert.strictEqual(mockAgent.ProcessStream.mock.callCount(), 3);
     assert.strictEqual(mockCriteria.evaluate.mock.callCount(), 3);
     assert.strictEqual(results.length, 3);
   });

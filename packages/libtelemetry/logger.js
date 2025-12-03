@@ -119,7 +119,7 @@ export class Logger {
   #formatData(attributes) {
     if (attributes && typeof attributes === "object") {
       const pairs = Object.entries(attributes)
-        .map(([key, value]) => `${key}=${value}`)
+        .map(([key, value]) => `${key}="${value}"`)
         .join(" ");
 
       if (pairs) {

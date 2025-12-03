@@ -31,29 +31,76 @@ class MockContext {
   }
 }
 
+/**
+ * Creates a mock config object
+ * @returns {object} Mock config
+ */
+function createMockConfig() {
+  return {
+    githubToken: async () => "token",
+  };
+}
+
+/**
+ * Creates a mock tenant config repository
+ * @param {object} overrides - Properties to override
+ * @returns {object} Mock tenant config repository
+ */
+function createMockTenantConfigRepository(overrides = {}) {
+  return {
+    get: async () => ({
+      host: "localhost",
+      port: 3979,
+      encryptedSecret: { ciphertext: "encrypted" },
+    }),
+    save: async () => {},
+    delete: async () => {},
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a mock tenant secret encryption service
+ * @param {object} overrides - Properties to override
+ * @returns {object} Mock encryption service
+ */
+function createMockTenantSecretEncryption(overrides = {}) {
+  return {
+    encrypt: () => ({ ciphertext: "encrypted" }),
+    decrypt: () => "decrypted-secret",
+    ...overrides,
+  };
+}
+
 describe("CopilotLdBot", () => {
-  let mockAgentClient;
-  let mockTenantClientService;
   let mockConfig;
+  let mockTenantConfigRepository;
+  let mockTenantSecretEncryption;
 
   beforeEach(() => {
-    mockAgentClient = {
-      ProcessRequest: async () => ({
-        choices: [{ message: { content: "Hello from Copilot!" } }],
-        resource_id: "resource-xyz",
+    mockConfig = createMockConfig();
+    mockTenantConfigRepository = createMockTenantConfigRepository();
+    mockTenantSecretEncryption = createMockTenantSecretEncryption();
+
+    // Mock global fetch for the Teams Agent call
+    global.fetch = async () => ({
+      ok: true,
+      json: async () => ({
+        reply: {
+          messages: [{ role: "assistant", content: "Hello from Copilot!" }],
+          resource_id: "resource-xyz",
+        },
       }),
-    };
-    mockTenantClientService = {
-      getTenantClient: async () => mockAgentClient,
-    };
-    mockConfig = {
-      githubToken: async () => "token",
-    };
+    });
   });
 
   test("given a configured CopilotLdBot, when handleMessage is called, then it sends a reply and sets resourceId", async () => {
     // Given: a CopilotLdBot with mocked dependencies and a context
-    const bot = new CopilotLdBot(mockTenantClientService, mockConfig);
+    const bot = new CopilotLdBot(
+      mockConfig,
+      mockTenantConfigRepository,
+      mockTenantSecretEncryption,
+    );
     const context = new MockContext("Hi Copilot!");
     let nextCalled = false;
 

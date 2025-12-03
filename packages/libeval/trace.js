@@ -52,10 +52,9 @@ export class TraceEvaluator {
    * Evaluate traces with JMESPath expressions
    * @param {object} scenario - Scenario with evaluations array containing JMESPath queries
    * @param {string} resourceId - Resource ID from agent response
-   * @param {object} response - Agent response object containing messages
-   * @returns {Promise<object>} Evaluation result
+   * @returns {Promise<object>} Evaluation result with passed and evaluations
    */
-  async evaluate(scenario, resourceId, response) {
+  async evaluate(scenario, resourceId) {
     if (!scenario.evaluations || scenario.evaluations.length === 0) {
       throw new Error(`Scenario ${scenario.name} missing evaluations`);
     }
@@ -68,14 +67,9 @@ export class TraceEvaluator {
     );
 
     const passed = evaluationResults.every((r) => r.passed);
-    const responseContent = response?.choices?.[0]?.message?.content;
 
     return {
-      scenario: scenario.name,
-      type: "trace",
       passed,
-      prompt: scenario.prompt,
-      response: responseContent,
       evaluations: evaluationResults,
     };
   }

@@ -19,37 +19,36 @@ export class EvaluationIndex extends BufferedIndex {
   }
 
   /**
-   * Adds an evaluation result to the index
-   * @param {object} result - Evaluation result object
-   * @param {string} result.resourceId - Resource ID (conversation ID) as key
-   * @param {string} result.scenario - Scenario ID
-   * @param {boolean} result.passed - Whether evaluation passed
-   * @param {string} result.type - Evaluation type (criteria/recall/trace)
-   * @param {string} result.prompt - Evaluation prompt
-   * @param {string} result.response - Agent response
-   * @param {object} [result.metadata] - Optional metadata (complexity, rationale)
-   * @param {Array} [result.evaluations] - Criteria evaluations array
-   * @param {Array} [result.subjects] - Recall subjects array
-   * @param {Array} [result.checks] - Trace checks array
+   * Adds an evaluation run to the index
+   * @param {object} run - Evaluation run object
+   * @param {string} run.resource - Resource ID (conversation ID) as key
+   * @param {string} run.scenario - Scenario ID
+   * @param {boolean} run.passed - Whether evaluation passed
+   * @param {string} run.type - Evaluation type (criteria/recall/trace)
+   * @param {string} run.prompt - Evaluation prompt
+   * @param {string[]} run.responses - Agent responses
+   * @param {string} run.complexity - Scenario complexity
+   * @param {string} run.rationale - Scenario rationale
+   * @param {Array} [run.evaluations] - Evaluation results array
    * @returns {Promise<void>}
    */
-  async add(result) {
-    if (!result.resource) throw new Error("resource is required");
-    if (!result.scenario) throw new Error("scenario is required");
+  async add(run) {
+    if (!run.resource) throw new Error("resource is required");
+    if (!run.scenario) throw new Error("scenario is required");
 
     const item = {
-      id: result.resource,
-      scenario: result.scenario,
-      result: result,
+      id: run.resource,
+      scenario: run.scenario,
+      run: run,
     };
 
     await super.add(item);
   }
 
   /**
-   * Gets all evaluation results for a specific scenario
+   * Gets all evaluation runs for a specific scenario
    * @param {string} scenario - Scenario ID to filter by
-   * @returns {Promise<object[]>} Array of evaluation results for this scenario
+   * @returns {Promise<object[]>} Array of evaluation runs for this scenario
    */
   async getByScenario(scenario) {
     if (!this.loaded) await this.loadData();
@@ -64,8 +63,8 @@ export class EvaluationIndex extends BufferedIndex {
     // Sort by timestamp descending (newest first)
     items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    // Return the result objects
-    return items.map((item) => item.result);
+    // Return the run objects
+    return items.map((item) => item.run);
   }
 
   /**

@@ -42,11 +42,10 @@ parallel). Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
 <details>
 <summary>Message Assembly and Budgeting</summary>
 
-- **Architecture**: `assistant` → `tasks` → `tools` → `context` → `conversation`
-- **Budgeting formula**:
-  `effective_budget = max(0, config.budget.tokens - assistant.id.tokens)`
-- **Allocation**: Optional shaping for `tools`, `context`, and `conversation`
-  portions
+- **Architecture**: `conversation` → `assistant` → `tools` chain loaded by
+  `MemoryService`
+- **Budgeting formula**: `remaining = budget - assistant.tokens - tools.tokens`
+- **Token filtering**: Messages selected within budget, oldest first
 - **Autonomous decisions**: Agent decides which tools to call without hard-wired
   dependencies
 
@@ -55,18 +54,18 @@ parallel). Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
 #### Memory Service
 
 Manages conversation memory using JSONL (newline-delimited JSON) storage for
-efficient appends. Provides memory windows with intelligent budget allocation.
-Built as a gRPC wrapper around `@copilot-ld/libmemory`.
+efficient appends. Provides memory windows with messages and tools ready for LLM
+consumption. Built as a gRPC wrapper around `@copilot-ld/libmemory`.
 
 **Key Operations**:
 
 - `AppendMemory`: Adds resource identifiers with automatic deduplication
-- `GetWindow`: Returns memory window with budget-allocated tools, context, and
-  conversation identifiers
+- `GetWindow`: Returns `{messages, tools}` by loading conversation → assistant →
+  tools chain
 
 **Architecture**:
 
-- **Core classes**: `MemoryWindow`, `MemoryIndex`, `MemoryFilter`
+- **Core classes**: `MemoryWindow`, `MemoryIndex`
 - **Per-resource isolation**: Each conversation has its own index and window
 - **On-demand initialization**: Windows created and cached as needed
 - **Network coordination**: Request locks ensure consistency during concurrent
@@ -74,8 +73,7 @@ Built as a gRPC wrapper around `@copilot-ld/libmemory`.
 - **`IndexInterface` compliance**: Implements standard interface with `add()`,
   `get()`, `has()`, and `queryItems()`
 - **JSONL storage**: Append-only format for efficient operations
-- **Budget allocation**: Splits memory into `tools`, `context`, and
-  `conversation` portions based on configured ratios
+- **Token budget**: Filters messages by token count within budget limit
 
 #### LLM Service
 
@@ -637,7 +635,7 @@ const tracer = new Tracer({
 /* eslint-env node */
 /* eslint-disable no-undef */
 // Start a span
-const span = tracer.startSpan("ProcessRequest", {
+const span = tracer.startSpan("ProcessStream", {
   kind: "INTERNAL",
   attributes: { "request.id": "123" },
 });
@@ -662,7 +660,7 @@ Represents a unit of work with timing, attributes, events, and relationships.
 - `traceId`: Unique identifier shared across all spans in a request
 - `spanId`: Unique identifier for this span
 - `parentSpanId`: Links to parent span, creating hierarchical trace tree
-- `name`: Human-readable operation name (e.g., `agent.ProcessRequest`)
+- `name`: Human-readable operation name (e.g., `agent.ProcessStream`)
 - `kind`: Operation type (`SERVER`, `CLIENT`, `INTERNAL`)
 - `startTime` / `endTime`: High-precision timestamps (nanoseconds)
 - `attributes`: Key-value metadata for filtering and analysis
@@ -718,7 +716,7 @@ const tracer = new Tracer({ serviceName: "agent", traceClient });
 const observer = createObserver("agent", logger, tracer);
 
 // Observe client call (outgoing)
-const clientResponse = await observer.observeClientCall(
+const clientResponse = await observer.observeClientUnaryCall(
   "CreateCompletions",
   request,
   async (metadata) => {
@@ -727,11 +725,11 @@ const clientResponse = await observer.observeClientCall(
 );
 
 // Observe server call (incoming)
-const serverResponse = await observer.observeServerCall(
-  "ProcessRequest",
+const serverResponse = await observer.observeServerUnaryCall(
+  "ProcessStream",
   call,
   async (call) => {
-    return await agentMind.processRequest(call.request);
+    return await agentMind.process(call.request);
   },
 );
 ```
@@ -815,7 +813,7 @@ const memoryClient = await createClient("memory", logger, tracer);
 // All RPC calls automatically create CLIENT spans
 // Trace context injected into gRPC metadata
 // Parent-child relationships maintained via AsyncLocalStorage
-const response = await memoryClient.callMethod("Get", request);
+const response = await memoryClient.callUnary("Get", request);
 ```
 
 **Zero-Touch Instrumentation**:
@@ -899,14 +897,14 @@ Traces are stored as newline-delimited JSON (JSONL) in
   "trace_id": "f6a4a4d0d3e91",
   "span_id": "f91610b972397",
   "parent_span_id": "",
-  "name": "agent.ProcessRequest",
+  "name": "agent.ProcessStream",
   "kind": 0,
   "start_time_unix_nano": { "low": 884383599, "high": 680 },
   "end_time_unix_nano": { "low": -749323440, "high": 682 },
   "attributes": {
     "service.name": "agent",
     "rpc.service": "agent",
-    "rpc.method": "ProcessRequest"
+    "rpc.method": "ProcessStream"
   },
   "events": [
     {
@@ -966,14 +964,14 @@ cat data/traces/2025-10-27.jsonl | \
 Agent Request Flow (simplified):
 
 ```
-Agent.ProcessRequest (root)
-├── Memory.GetWindow (retrieve conversation resources)
+Agent.ProcessStream (root)
+├── Llm.CreateCompletions (generate response)
+│   └── Memory.GetWindow (retrieve conversation resources)
 ├── Llm.CreateEmbeddings (generate query vector)
 ├── Vector.QueryByContent (semantic search)
 ├── Graph.QueryByPattern (knowledge graph query)
 ├── Tool.CallTool (execute tool)
 │   └── Tool.CallTool (nested tool execution)
-├── Llm.CreateCompletions (generate response)
 └── Memory.AppendMemory (save conversation)
 ```
 
@@ -1317,8 +1315,11 @@ class AgentService extends AgentBase {
     this.#mind = mind;
   }
 
-  async ProcessRequest(req) {
-    return await this.#mind.processRequest(req);
+  async ProcessStream(req, write) {
+    const onProgress = (resource_id, messages) => {
+      write({ resource_id, messages });
+    };
+    await this.#mind.process(req, onProgress);
   }
 }
 ```
@@ -1413,10 +1414,12 @@ describe("Agent Service", () => {
   it("processes requests end-to-end", async () => {
     const config = await createServiceConfig("agent");
     const client = new AgentClient(config);
-    const response = await client.ProcessRequest({
+    const stream = client.ProcessStream({
       messages: [{ role: "user", content: "test" }],
     });
-    assert.ok(response.choices);
+    for await (const response of stream) {
+      assert.ok(response.messages);
+    }
   });
 });
 ```

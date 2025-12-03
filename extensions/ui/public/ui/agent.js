@@ -18,6 +18,7 @@ class AgentChat extends HTMLElement {
       this.getAttribute("data-api") ||
       window.ENV?.API_URL ||
       `${window.location.origin}/web/api`;
+    this.agentName = this.getAttribute("data-name") || "Agent";
     this.update();
     setTimeout(() => this.scrollToBottom(), 0);
   }
@@ -93,16 +94,90 @@ class AgentChat extends HTMLElement {
       });
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
-      const data = await response.json();
-      this.resource_id = data.resource_id;
-      localStorage.setItem("agent_resource_id", this.resource_id);
 
-      this.addMessage(data.message.role, data.message.content);
+      for await (const chunk of this.readStream(response)) {
+        this.handleStreamChunk(chunk);
+      }
     } catch (error) {
       console.error(error.message || String(error));
       this.addMessage("error", `Error`);
     } finally {
       this.setLoading(false);
+    }
+  }
+
+  async *readStream(response) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.trim()) yield JSON.parse(line);
+      }
+    }
+
+    if (buffer.trim()) yield JSON.parse(buffer);
+  }
+
+  handleStreamChunk(data) {
+    if (data.error) {
+      console.error("Stream error:", data.error, data.details);
+      this.addMessage("error", `Error: ${data.error}`);
+      return;
+    }
+    if (data.resource_id) {
+      this.resource_id = data.resource_id;
+      localStorage.setItem("agent_resource_id", this.resource_id);
+    }
+    if (data.messages && data.messages.length > 0) {
+      data.messages.forEach((msg) => {
+        this.processMessageChunk(msg);
+      });
+    }
+  }
+
+  processMessageChunk(msg) {
+    const content = this.formatMessageContent(msg);
+    const lastMsg = this.messages[this.messages.length - 1];
+    const shouldAppend =
+      lastMsg &&
+      lastMsg.role === msg.role &&
+      !msg.tool_calls &&
+      lastMsg.role !== "tool";
+
+    if (shouldAppend) {
+      lastMsg.content += content;
+      this.updateLastMessageUI(lastMsg);
+    } else {
+      this.addMessage(msg.role, content);
+    }
+  }
+
+  formatMessageContent(msg) {
+    if (msg.tool_calls?.length) {
+      const tools = msg.tool_calls.map((tc) => tc.function.name).join(", ");
+      return msg.content || `Calling tools: ${tools}`;
+    }
+    if (msg.role === "tool") {
+      return `Tool Result: ${msg.content}`;
+    }
+    return msg.content || "";
+  }
+
+  updateLastMessageUI(msg) {
+    const main = this.shadowRoot.querySelector("main");
+    if (main && main.lastElementChild) {
+      main.lastElementChild.innerHTML = msg.content;
+      localStorage.setItem("agent_messages", JSON.stringify(this.messages));
+      this.scrollToBottom();
     }
   }
 
@@ -147,7 +222,7 @@ class AgentChat extends HTMLElement {
   getHtml() {
     return `
       <header>
-        <h1>🔮 Agent Walter</h1>
+        <h1><mark>✦</mark>${this.agentName}</h1>
         <button 
           id="new"
           title="New conversation"
@@ -200,6 +275,7 @@ class AgentChat extends HTMLElement {
     return `
       :host {
         --text: #24292f;
+        --text-subtle: #57606a;
         --error: #dc2626;
         --accent: #1e40af;
         --accent-subtle: #0969da1a;
@@ -216,11 +292,11 @@ class AgentChat extends HTMLElement {
         height: ${this.collapsed ? "50px" : this.expanded ? "1000px" : "600px"};
         background: var(--bg);
         border: 1px solid var(--border);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        box-shadow: 0 8px 32px var(--border);
         font: 14px system-ui, sans-serif;
         transition: all 0.2s ease-in-out;
       }
-      
+
       header {
         display: flex;
         align-items: center;
@@ -231,7 +307,7 @@ class AgentChat extends HTMLElement {
         background: var(--bg-secondary);
         border-bottom: 1px solid var(--border);
       }
-      
+
       h1 {
         margin: 0 auto 0 0;
         font-weight: 600;
@@ -239,14 +315,21 @@ class AgentChat extends HTMLElement {
         line-height: 1;
         color: var(--text);
       }
-      
+
+      h1 mark {
+        background: transparent;
+        color: var(--text);
+        font-size: 18px;
+        margin-right: 8px;
+      }
+
       button {
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
       }
-      
+
       header button {
         width: 32px;
         height: 32px;
@@ -255,27 +338,27 @@ class AgentChat extends HTMLElement {
         color: var(--text);
         font-size: 18px;
       }
-      
+
       header button:hover {
         background: var(--accent-subtle);
       }
-      
+
       main {
         flex: 1;
         padding: 16px;
         overflow-y: auto;
       }
-      
+
       footer {
         padding: 16px;
         border-top: 1px solid var(--border);
       }
-      
+
       form {
         position: relative;
         margin: 0;
       }
-      
+
       form textarea {
         box-sizing: border-box;
         width: 100%;
@@ -286,16 +369,16 @@ class AgentChat extends HTMLElement {
         line-height: 1.4;
         resize: none;
       }
-      
+
       form textarea:focus {
         outline: none;
         border-color: var(--accent);
       }
-      
+
       form textarea:disabled {
         background: var(--bg-secondary);
       }
-      
+
       form button {
         position: absolute;
         right: 4px;
@@ -309,20 +392,20 @@ class AgentChat extends HTMLElement {
         font-weight: 500;
         font-size: 16px;
       }
-      
+
       form button:hover:not(:disabled) {
         background: var(--accent-subtle);
       }
-      
+
       form button:disabled {
         cursor: not-allowed;
       }
-      
+
       article {
         margin-bottom: 1em;
         line-height: 1.4;
       }
-      
+
       article[role="user"] {
         max-width: 85%;
         margin-left: auto;
@@ -330,11 +413,11 @@ class AgentChat extends HTMLElement {
         background: var(--accent-subtle);
         color: var(--accent);
       }
-      
+
       article[role="error"] {
         color: var(--error);
       }
-      
+
       article pre {
         padding: 8px;
         border: 1px solid var(--border);
@@ -343,6 +426,33 @@ class AgentChat extends HTMLElement {
         color: var(--accent);
         font: 12px ui-monospace, monospace;
         overflow: auto;
+      }
+
+      details, summary {
+        color: var(--text-subtle);
+      }
+
+      details[open] {
+        background: var(--bg-secondary);
+        padding-bottom: 8px;
+      }
+
+      details > *:not(summary) {
+        margin-left: 4px;
+        margin-right: 4px;
+      }
+
+      summary {
+        cursor: pointer;
+        padding: 4px;
+      }
+
+      summary::marker {
+        font-size: 16px;
+      }
+
+      summary:hover {
+        background: var(--accent-subtle);
       }
     `;
   }

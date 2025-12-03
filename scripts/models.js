@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { Copilot } from "@copilot-ld/libcopilot";
+import { createLlm } from "@copilot-ld/libcopilot";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 
 const config = await createScriptConfig("models");
@@ -11,7 +11,7 @@ const config = await createScriptConfig("models");
  * @returns {Promise<void>}
  */
 async function main() {
-  const client = new Copilot(await config.githubToken());
+  const client = createLlm(await config.githubToken());
   const models = await client.listModels();
 
   const cleanedModels = models.map((model) => {

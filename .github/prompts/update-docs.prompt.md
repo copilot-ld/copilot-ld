@@ -6,14 +6,20 @@ Analyze code changes comprehensively and consolidate multiple changelog entries
 into concise, meaningful summaries while ensuring all documentation remains
 synchronized.
 
-## 1. Change Analysis
+## 1. Stage and Commit Changes
+
+- Stage all modified files in the git working directory
+- Create a single commit with a descriptive message summarizing the overall
+  purpose of the changes
+
+## 2. Change Analysis
 
 - Generate a git diff against the `main` branch to identify all modifications
 - Search the codebase to fully understand the broader context and impact of
   changes
 - Identify which components (services, packages, extensions, tools) are affected
 
-## 2. Documentation Updates
+## 3. Documentation Updates
 
 - Follow `.github/instructions/documentation.instructions.md` for all standard
   documentation requirements
@@ -21,7 +27,7 @@ synchronized.
   previous states or what changed (except in changelog files)
 - Update documentation in the same commit as code changes
 
-## 3. Changelog Consolidation Strategy
+## 4. Changelog Consolidation Strategy
 
 **Primary Goal**: Replace verbose, granular changelog entries with consolidated
 summaries

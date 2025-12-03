@@ -18,8 +18,7 @@ export async function createUiExtension(config, _logger = null) {
 
   // Serve runtime configuration
   app.get("/ui/config.js", (c) => {
-    const apiUrl = config.apiUrl || "";
-    return c.text(`window.ENV = { API_URL: "${apiUrl}" };`, 200, {
+    return c.text(`window.ENV = { API_URL: "${config.apiUrl}" };`, 200, {
       "Content-Type": "application/javascript",
     });
   });

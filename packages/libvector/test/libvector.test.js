@@ -40,7 +40,7 @@ describe("libvector", () => {
       await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
       await vectorIndex.add(identifier2, [0.2, 0.3, 0.4]);
 
-      const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
+      const results = await vectorIndex.queryItems([[0.1, 0.2, 0.3]], {
         threshold: 0,
       });
 
@@ -61,7 +61,7 @@ describe("libvector", () => {
       await vectorIndex.add(identifier1, [0.1, 0.2, 0.3]);
       await vectorIndex.add(identifier2, [0.2, 0.3, 0.4]);
 
-      const results = await vectorIndex.queryItems([0.1, 0.2, 0.3], {
+      const results = await vectorIndex.queryItems([[0.1, 0.2, 0.3]], {
         threshold: 0,
         limit: 0,
         max_tokens: null,
@@ -116,7 +116,7 @@ describe("libvector", () => {
       await vectorIndex.add(identifier3, [1.0, 0.0, 0.0]);
 
       // Query with max_tokens=20, should get first two items (10+15=25 > 20, so stops at first item)
-      const results = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const results = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         max_tokens: 20,
       });
@@ -136,7 +136,7 @@ describe("libvector", () => {
       await vectorIndex.add(identifier, [1.0, 0.0, 0.0]);
 
       // Query with max_tokens=50, should return empty since first item is 100 tokens
-      const results = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const results = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         max_tokens: 50,
       });
@@ -166,22 +166,22 @@ describe("libvector", () => {
       await vectorIndex.add(resourceId, [1.0, 0.0, 0.0]);
 
       // Test different prefix filters
-      const allResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const allResults = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
       });
-      const messageResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const messageResults = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         prefix: "common.Message",
       });
-      const toolResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const toolResults = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         prefix: "tool.Function",
       });
-      const resourceResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const resourceResults = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         prefix: "resource.Document",
       });
-      const noMatchResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
+      const noMatchResults = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         prefix: "nonexistent",
       });
@@ -251,18 +251,24 @@ describe("libvector", () => {
       await vectorIndex.add(tool1, [1.0, 0.0, 0.0]);
 
       // Test prefix + limit filter
-      const prefixLimitResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
-        threshold: 0,
-        prefix: "common.Message",
-        limit: 1,
-      });
+      const prefixLimitResults = await vectorIndex.queryItems(
+        [[1.0, 0.0, 0.0]],
+        {
+          threshold: 0,
+          prefix: "common.Message",
+          limit: 1,
+        },
+      );
 
       // Test prefix + max_tokens filter
-      const prefixTokenResults = await vectorIndex.queryItems([1.0, 0.0, 0.0], {
-        threshold: 0,
-        prefix: "common.Message",
-        max_tokens: 15,
-      });
+      const prefixTokenResults = await vectorIndex.queryItems(
+        [[1.0, 0.0, 0.0]],
+        {
+          threshold: 0,
+          prefix: "common.Message",
+          max_tokens: 15,
+        },
+      );
 
       assert.strictEqual(
         prefixLimitResults.length,

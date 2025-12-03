@@ -15,27 +15,14 @@
   "service": {
     "agent": {
       "assistant": "knowledge_graph_agent",
-      "permanent_tools": [
-        "get_ontology",
-        "get_subjects",
-        "search_content",
-        "query_by_pattern"
-      ],
-      "threshold": 0.48,
-      "temperature": 0.1,
-      "budget": {
-        "tokens": 60000,
-        "allocation": {
-          "tools": 0.1,
-          "context": 0.8,
-          "conversation": 0.1
-        }
-      }
-    },
-    "llm": {
       "model": "gpt-4o"
     },
+    "llm": {},
     "tool": {
+      "filter": {
+        "threshold": 0.48,
+        "max_tokens": null
+      },
       "endpoints": {
         "get_ontology": {
           "method": "graph.Graph.GetOntology",

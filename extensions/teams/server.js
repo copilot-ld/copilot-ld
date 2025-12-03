@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configureAdapter } from "./configureAdapter.js";
 import { CopilotLdBot } from "./copilotldbot.js";
-import { createExtensionConfig } from "@copilot-ld/libconfig";
 import { authorize, getTenantId } from "./auth.js";
 import { TenantClientService } from "./tenant-client-service.js";
 import { TenantConfigRepository } from "./tenant-config-repository.js";
@@ -260,18 +259,19 @@ export class TeamsServer {
 
 /**
  * Creates and configures a new TeamsServer instance
- * @returns {Promise<TeamsServer>} Configured server instance
+ * @param {object} agentConfig - Service configuration
+ * @param {object} extensionConfig - Extension configuration
+ * @returns {TeamsServer} Configured server instance
  */
-export default async function createServer() {
+export default function createServer(agentConfig, extensionConfig) {
+  if (!agentConfig) throw new Error("agentConfig is required");
+  if (!extensionConfig) throw new Error("extensionConfig is required");
+
   // Initialize tenant management dependencies
   const tenantConfigRepository = new TenantConfigRepository();
-  const masterKey = process.env.EXTENSION_TEAMS_MASTER_KEY;
-  if (!masterKey) {
-    throw new Error(
-      "EXTENSION_TEAMS_MASTER_KEY environment variable is required",
-    );
-  }
-  const tenantSecretEncryption = new TenantSecretEncryption({ masterKey });
+  const tenantSecretEncryption = new TenantSecretEncryption({
+    masterKey: extensionConfig.master_key,
+  });
   const tenantClientService = new TenantClientService(
     tenantConfigRepository,
     tenantSecretEncryption,
@@ -284,15 +284,14 @@ export default async function createServer() {
   const adapter = configureAdapter();
 
   // Instantiate the CopilotLdBot with required dependencies
-  const config = await createExtensionConfig("teams");
   const bot = new CopilotLdBot(
-    config,
+    extensionConfig,
     tenantConfigRepository,
     tenantSecretEncryption,
   );
 
   return new TeamsServer(
-    config,
+    extensionConfig,
     tenantClientService,
     htmlRenderer,
     adapter,

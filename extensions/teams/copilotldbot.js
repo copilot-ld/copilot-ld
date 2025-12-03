@@ -240,7 +240,7 @@ class CopilotLdBot extends ActivityHandler {
       context?.activity?.conversation?.tenantId;
     console.log("Handling task/fetch for tenantId:", tenantId);
 
-    const settingsUrl = `https://${process.env.TEAMS_BOT_DOMAIN}/settings`;
+    const settingsUrl = `https://${this.config.bot_domain}/settings`;
 
     return {
       status: 200,

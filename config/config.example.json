@@ -1,7 +1,8 @@
 {
   "extension": {
     "teamsapp": {
-      "master_key": null
+      "master_key": null,
+      "bot_domain": null
     },
     "teamsagent": {
       "secret": null

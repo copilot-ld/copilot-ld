@@ -11,6 +11,6 @@ const server = createServer(agentConfig, extensionConfig);
 server.listen(extensionConfig.port, () => {
   console.log("\n------------------- Startup ---------------------------");
   console.log(`\nRunning at: http://localhost:${extensionConfig.port}`);
-  console.log("\nExpose publically: npm run ngrok");
+  console.log("\nExpose publicly: npm run ngrok");
   console.log("\n------------------- Listening ---------------------------");
 });

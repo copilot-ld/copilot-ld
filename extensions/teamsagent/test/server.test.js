@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { authorize } from "../auth.js";
+import { Authorizer } from "../auth.js";
 import { parseBody } from "../http.js";
 import createServer, { AgentServer } from "../server.js";
 
@@ -59,12 +59,22 @@ function createMockResponse() {
 }
 
 /**
- * Creates a mock config object
- * @returns {object} Mock config
+ * Creates a mock agent config object
+ * @returns {object} Mock agent config
  */
-function createMockConfig() {
+function createMockAgentConfig() {
   return {
     githubToken: async () => "test-github-token",
+  };
+}
+
+/**
+ * Creates a mock extension config object
+ * @returns {object} Mock extension config
+ */
+function createMockExtensionConfig() {
+  return {
+    secret: "test-secret",
   };
 }
 
@@ -91,35 +101,78 @@ function createMockLogger() {
     info: () => {},
     warn: () => {},
     error: () => {},
+    debug: () => {},
+  };
+}
+
+/**
+ * Creates a mock authorizer
+ * @returns {object} Mock authorizer
+ */
+function createMockAuthorizer() {
+  return {
+    authorize: () => true,
   };
 }
 
 describe("TeamsAgentServer", () => {
-  test("throws error when config is not provided", () => {
+  test("throws error when agentConfig is not provided", () => {
     assert.throws(
-      () => new AgentServer(null, createMockAgentClient(), createMockLogger()),
-      { message: "config is required" },
+      () =>
+        new AgentServer(
+          null,
+          createMockAgentClient(),
+          createMockAuthorizer(),
+          createMockLogger(),
+        ),
+      { message: "agentConfig is required" },
     );
   });
 
   test("throws error when agentClient is not provided", () => {
     assert.throws(
-      () => new AgentServer(createMockConfig(), null, createMockLogger()),
+      () =>
+        new AgentServer(
+          createMockAgentConfig(),
+          null,
+          createMockAuthorizer(),
+          createMockLogger(),
+        ),
       { message: "agentClient is required" },
+    );
+  });
+
+  test("throws error when authorizer is not provided", () => {
+    assert.throws(
+      () =>
+        new AgentServer(
+          createMockAgentConfig(),
+          createMockAgentClient(),
+          null,
+          createMockLogger(),
+        ),
+      { message: "authorizer is required" },
     );
   });
 
   test("throws error when logger is not provided", () => {
     assert.throws(
-      () => new AgentServer(createMockConfig(), createMockAgentClient(), null),
+      () =>
+        new AgentServer(
+          createMockAgentConfig(),
+          createMockAgentClient(),
+          createMockAuthorizer(),
+          null,
+        ),
       { message: "logger is required" },
     );
   });
 
   test("creates server instance with valid dependencies", () => {
     const server = new AgentServer(
-      createMockConfig(),
+      createMockAgentConfig(),
       createMockAgentClient(),
+      createMockAuthorizer(),
       createMockLogger(),
     );
 
@@ -133,16 +186,12 @@ describe("TeamsAgentServer", () => {
 describe("createServer factory", () => {
   test("returns TeamsAgentServer instance", () => {
     const server = createServer(
-      createMockConfig(),
+      createMockAgentConfig(),
+      createMockExtensionConfig(),
       createMockAgentClient(),
+      createMockAuthorizer(),
       createMockLogger(),
     );
-
-    assert.ok(server instanceof AgentServer);
-  });
-
-  test("creates default logger when not provided", () => {
-    const server = createServer(createMockConfig(), createMockAgentClient());
 
     assert.ok(server instanceof AgentServer);
   });
@@ -151,12 +200,15 @@ describe("createServer factory", () => {
 describe("TeamsAgentServer routes", () => {
   let teamsServer;
   let mockAgentClient;
+  let mockAuthorizer;
 
   beforeEach(() => {
     mockAgentClient = createMockAgentClient();
+    mockAuthorizer = createMockAuthorizer();
     teamsServer = new AgentServer(
-      createMockConfig(),
+      createMockAgentConfig(),
       mockAgentClient,
+      mockAuthorizer,
       createMockLogger(),
     );
   });
@@ -184,8 +236,12 @@ describe("TeamsAgentServer routes", () => {
   });
 
   test("returns 401 for unauthorized POST /api/messages", async () => {
-    const originalSecret = process.env.TEAMS_AGENT_SECRET;
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
+    const unauthorizedServer = new AgentServer(
+      createMockAgentConfig(),
+      mockAgentClient,
+      { authorize: () => false },
+      createMockLogger(),
+    );
 
     const req = createMockRequest({
       method: "POST",
@@ -195,21 +251,16 @@ describe("TeamsAgentServer routes", () => {
     });
     const res = createMockResponse();
 
-    const requestHandler = teamsServer.server.listeners("request")[0];
+    const requestHandler = unauthorizedServer.server.listeners("request")[0];
     const handlerPromise = requestHandler(req, res);
     req.simulateBody();
     await handlerPromise;
 
     assert.strictEqual(res.statusCode, 401);
     assert.strictEqual(res.body, "Unauthorized");
-
-    process.env.TEAMS_AGENT_SECRET = originalSecret;
   });
 
   test("returns 200 with agent response for authorized POST /api/messages", async () => {
-    const originalSecret = process.env.TEAMS_AGENT_SECRET;
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
-
     const req = createMockRequest({
       method: "POST",
       url: "/api/messages",
@@ -228,14 +279,9 @@ describe("TeamsAgentServer routes", () => {
 
     const responseBody = JSON.parse(res.body);
     assert.ok(responseBody.reply);
-
-    process.env.TEAMS_AGENT_SECRET = originalSecret;
   });
 
   test("returns 500 when agent client throws error", async () => {
-    const originalSecret = process.env.TEAMS_AGENT_SECRET;
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
-
     const errorClient = createMockAgentClient({
       ProcessRequest: async () => {
         throw new Error("Agent service unavailable");
@@ -243,8 +289,9 @@ describe("TeamsAgentServer routes", () => {
     });
 
     const errorServer = new AgentServer(
-      createMockConfig(),
+      createMockAgentConfig(),
       errorClient,
+      createMockAuthorizer(),
       createMockLogger(),
     );
 
@@ -263,8 +310,6 @@ describe("TeamsAgentServer routes", () => {
 
     assert.strictEqual(res.statusCode, 500);
     assert.strictEqual(res.body, "Internal Server Error");
-
-    process.env.TEAMS_AGENT_SECRET = originalSecret;
   });
 });
 
@@ -330,74 +375,65 @@ describe("parseBody", () => {
   });
 });
 
-describe("authorize", () => {
-  const originalEnv = process.env.TEAMS_AGENT_SECRET;
+describe("Authorizer", () => {
+  test("throws error when secret is not provided", () => {
+    assert.throws(() => new Authorizer(), { message: "secret is required" });
+  });
 
-  test("returns false when TEAMS_AGENT_SECRET is not set", () => {
-    delete process.env.TEAMS_AGENT_SECRET;
+  test("throws error when secret is empty string", () => {
+    assert.throws(() => new Authorizer(""), { message: "secret is required" });
+  });
 
-    const req = createMockRequest({
-      headers: { authorization: "Bearer test-token" },
-    });
-
-    const result = authorize(req);
-
-    assert.strictEqual(result, false);
+  test("creates instance with valid secret", () => {
+    const authorizer = new Authorizer("valid-secret");
+    assert.ok(authorizer);
   });
 
   test("returns false when authorization header is missing", () => {
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
+    const authorizer = new Authorizer("valid-secret");
 
     const req = createMockRequest({
       headers: {},
     });
 
-    const result = authorize(req);
+    const result = authorizer.authorize(req);
 
     assert.strictEqual(result, false);
-
-    process.env.TEAMS_AGENT_SECRET = originalEnv;
   });
 
   test("returns true when Bearer token matches secret", () => {
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
+    const authorizer = new Authorizer("valid-secret");
 
     const req = createMockRequest({
       headers: { authorization: "Bearer valid-secret" },
     });
 
-    const result = authorize(req);
+    const result = authorizer.authorize(req);
 
     assert.strictEqual(result, true);
-
-    process.env.TEAMS_AGENT_SECRET = originalEnv;
   });
 
   test("returns true when token matches secret without Bearer prefix", () => {
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
+    const authorizer = new Authorizer("valid-secret");
 
     const req = createMockRequest({
       headers: { authorization: "valid-secret" },
     });
 
-    const result = authorize(req);
+    const result = authorizer.authorize(req);
 
     assert.strictEqual(result, true);
-
-    process.env.TEAMS_AGENT_SECRET = originalEnv;
   });
 
   test("returns false when token does not match secret", () => {
-    process.env.TEAMS_AGENT_SECRET = "valid-secret";
+    const authorizer = new Authorizer("valid-secret");
 
     const req = createMockRequest({
       headers: { authorization: "Bearer wrong-token" },
     });
 
-    const result = authorize(req);
+    const result = authorizer.authorize(req);
 
     assert.strictEqual(result, false);
-
-    process.env.TEAMS_AGENT_SECRET = originalEnv;
   });
 });

@@ -60,6 +60,7 @@ DDoS
 debuggable
 declaratively
 deduplicate
+deduplicates
 deduplication
 deserialization
 deserialize
@@ -302,6 +303,7 @@ symlink
 Symlink
 symlinks
 Symlinks
+teamsagent
 Tempo
 testability
 tiktoken
@@ -337,4 +339,3 @@ workspaces
 X-Ray
 XML
 YAML
-deduplicates

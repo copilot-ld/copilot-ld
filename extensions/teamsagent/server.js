@@ -89,7 +89,7 @@ export class AgentServer {
 
     try {
       const requestParams = await this.#buildAgentRequest(message, resourceId);
-      const response = await this.#agentClient.ProcessRequest(requestParams);
+      const response = await this.#agentClient.ProcessUnary(requestParams);
 
       this.#logger.debug("handleApiMessages", "Request completed", {
         correlationId,

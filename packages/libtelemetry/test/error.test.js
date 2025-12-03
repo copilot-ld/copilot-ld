@@ -4,7 +4,7 @@ import { strict as assert } from "node:assert";
 
 import { Tracer } from "../tracer.js";
 
-test("Tracer enriches errors with trace context in observeClientCall", async () => {
+test("Tracer enriches errors with trace context in observeClientUnaryCall", async () => {
   const mockTraceClient = {
     RecordSpan: async () => ({}),
   };
@@ -47,7 +47,7 @@ test("Tracer enriches errors with trace context in observeClientCall", async () 
   };
 
   try {
-    await tracer.observeClientCall("TestMethod", request, callFn);
+    await tracer.observeClientUnaryCall("TestMethod", request, callFn);
     assert.fail("Should have thrown error");
   } catch (error) {
     // Verify error has trace context properties
@@ -68,7 +68,7 @@ test("Tracer enriches errors with trace context in observeClientCall", async () 
   }
 });
 
-test("Tracer enriches errors with trace context in observeServerCall", async () => {
+test("Tracer enriches errors with trace context in observeServerUnaryCall", async () => {
   const mockTraceClient = {
     RecordSpan: async () => ({}),
   };
@@ -114,7 +114,7 @@ test("Tracer enriches errors with trace context in observeServerCall", async () 
   };
 
   try {
-    await tracer.observeServerCall("TestMethod", call, handlerFn);
+    await tracer.observeServerUnaryCall("TestMethod", call, handlerFn);
     assert.fail("Should have thrown error");
   } catch (error) {
     // Verify error has trace context
@@ -178,7 +178,7 @@ test("Logger extracts trace context from error", async () => {
   };
 
   try {
-    await tracer.observeClientCall("TestMethod", request, callFn);
+    await tracer.observeClientUnaryCall("TestMethod", request, callFn);
     assert.fail("Should have thrown error");
   } catch (error) {
     // Verify trace context is in properties, not message
@@ -234,7 +234,7 @@ test("Tracer handles non-Error objects gracefully", async () => {
   };
 
   try {
-    await tracer.observeClientCall("TestMethod", request, callFn);
+    await tracer.observeClientUnaryCall("TestMethod", request, callFn);
     assert.fail("Should have thrown error");
   } catch (error) {
     // Should still throw the original error

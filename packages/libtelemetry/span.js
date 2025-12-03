@@ -36,7 +36,7 @@ export class Span {
       kind,
       start_time_unix_nano: String(process.hrtime.bigint()),
       end_time_unix_nano: "",
-      attributes: { "service.name": serviceName, ...attributes },
+      attributes: { service_name: serviceName, ...attributes },
       events: [],
       status: { code: trace.Code.UNSET, message: "" },
     };

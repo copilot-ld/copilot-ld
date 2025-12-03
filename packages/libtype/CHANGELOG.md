@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-11-30
+
+- **BREAKING**: `generateName()` uses UUID instead of content hash - prevents
+  message collision when content is identical (e.g., tool errors)
+- Added `fromObject()` monkey-patches for `common.Conversation` and
+  `tool.ToolCallMessage` to auto-apply identifiers
+- Fixed `withIdentifier()` to preserve explicit `tokens` values
+
 ## 2025-11-24
 
 - Bump version

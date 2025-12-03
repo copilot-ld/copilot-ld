@@ -5,7 +5,7 @@ package tool;
 import "resource.proto";
 
 service Tool {
-  rpc CallTool(ToolDefinition) returns (ToolCallResult);
+  rpc CallTool(ToolCall) returns (ToolCallResult);
 }
 
 // Generic query types
@@ -21,7 +21,8 @@ message QueryFilter {
 
 message ToolProp {
   string type = 1;
-  string description = 2;
+  map<string, string> items = 2;
+  string description = 3;
 }
 
 message ToolParam {
@@ -32,15 +33,15 @@ message ToolParam {
 
 message ToolFunction {
   resource.Identifier id = 1;
-  string content = 2;
-  optional string name = 3; // Passed by tool call requests
+  string name = 2;
+  string description = 3;
   oneof usage {
     ToolParam parameters = 4; // When declaring
     string arguments = 5; // When calling
   }
 }
 
-message ToolDefinition {
+message ToolCall {
   string type = 1;
   ToolFunction function = 2;
   optional string id = 3; // When calling
@@ -48,13 +49,15 @@ message ToolDefinition {
   optional string github_token = 5; // Github token to pass-on when calling
 }
 
-message ToolCallMessage {
-  string role = 1;
-  string tool_call_id = 2;
-  string content = 3;
-}
-
 message ToolCallResult {
   optional string content = 1;
   repeated resource.Identifier identifiers = 2;
+}
+
+message ToolCallMessage {
+  resource.Identifier id = 1;
+  string content = 2;
+  string role = 3;
+  repeated ToolCall tool_calls = 4;
+  string tool_call_id = 5;
 }

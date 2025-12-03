@@ -142,7 +142,8 @@ describe("ResourceIndex", () => {
     // Verify descriptor was generated
     assert.ok(message.id instanceof resource.Identifier);
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "a50a3807");
+    // Should generate a UUID
+    assert.strictEqual(message.id.name.length, 36);
   });
 
   test("gets resource contents by IDs with access control", async () => {

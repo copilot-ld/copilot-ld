@@ -42,7 +42,7 @@ export class Tracer {
 
   /**
    * Starts a new span with optional parent context
-   * @param {string} name - Span name (e.g., 'AgentService.ProcessRequest')
+   * @param {string} name - Span name (e.g., 'AgentService.ProcessStream')
    * @param {object} options - Span options
    * @param {string} options.kind - Span kind: 'SERVER', 'CLIENT', 'INTERNAL'
    * @param {object} [options.attributes] - Initial span attributes
@@ -67,7 +67,7 @@ export class Tracer {
   /**
    * Starts a SERVER span for incoming gRPC calls with trace context from metadata
    * @param {string} service - Service name (e.g., 'Agent', 'Vector')
-   * @param {string} method - Method name (e.g., 'ProcessRequest', 'QueryItems')
+   * @param {string} method - Method name (e.g., 'ProcessStream', 'QueryItems')
    * @param {object} [request] - Request object that may contain resource_id
    * @param {import("@grpc/grpc-js").Metadata} [metadata] - gRPC Metadata object containing trace context
    * @returns {Span} Started SERVER span with parent context
@@ -76,8 +76,8 @@ export class Tracer {
     const span = this.startSpan(`${service}.${method}`, {
       kind: "SERVER",
       attributes: {
-        "rpc.service": service,
-        "rpc.method": method,
+        rpc_service: service,
+        rpc_method: method,
       },
     });
 
@@ -99,7 +99,7 @@ export class Tracer {
    * Uses the active span from AsyncLocalStorage as parent
    * Creates metadata and populates it with trace context for propagation
    * @param {string} service - Service name (e.g., 'Agent', 'Vector')
-   * @param {string} method - Method name (e.g., 'ProcessRequest', 'QueryItems')
+   * @param {string} method - Method name (e.g., 'ProcessStream', 'QueryItems')
    * @param {object} [request] - Request object that may contain resource_id
    * @returns {{span: Span, metadata: import("@grpc/grpc-js").Metadata}} Started CLIENT span and populated metadata
    */
@@ -109,8 +109,8 @@ export class Tracer {
     const span = this.startSpan(`${service}.${method}`, {
       kind: "CLIENT",
       attributes: {
-        "rpc.service": service,
-        "rpc.method": method,
+        rpc_service: service,
+        rpc_method: method,
       },
       // Use parent span's trace context if available
       traceId: parentSpan?.trace_id,
@@ -141,7 +141,7 @@ export class Tracer {
    * @param {Function} callFn - Function that executes the gRPC call with metadata
    * @returns {Promise<object>} Response object
    */
-  async observeClientCall(methodName, request, callFn) {
+  async observeClientUnaryCall(methodName, request, callFn) {
     // Start CLIENT span and get populated metadata
     const { span, metadata } = this.startClientSpan(
       this.#serviceName,
@@ -149,14 +149,13 @@ export class Tracer {
       request,
     );
 
-    // Add request.sent event
-    span.addEvent("request.sent", extractAttributes(request));
+    span.addEvent("request_sent", extractAttributes(request));
 
     try {
       // Execute the gRPC call with populated metadata
       const response = await callFn(metadata);
 
-      span.addEvent("response.received", extractAttributes(response));
+      span.addEvent("response_received", extractAttributes(response));
       span.setOk();
       await span.end();
 
@@ -173,13 +172,56 @@ export class Tracer {
   }
 
   /**
+   * Observes a client streaming RPC call (outgoing) with automatic span management
+   * @param {string} methodName - RPC method name
+   * @param {object} request - Request object
+   * @param {Function} callFn - Function that executes the gRPC call with metadata and returns a stream
+   * @returns {object} The gRPC stream
+   */
+  observeClientStreamingCall(methodName, request, callFn) {
+    // Start CLIENT span and get populated metadata
+    const { span, metadata } = this.startClientSpan(
+      this.#serviceName,
+      methodName,
+      request,
+    );
+
+    span.addEvent("stream_started", extractAttributes(request));
+
+    try {
+      // Execute the gRPC call with populated metadata
+      const stream = callFn(metadata);
+
+      // Attach listeners to end span
+      stream.on("end", () => {
+        span.addEvent("stream_ended");
+        span.setOk();
+        span.end();
+      });
+
+      stream.on("error", (error) => {
+        span.setError(error);
+        span.end();
+        this.#enrichErrorWithTraceContext(error, span);
+      });
+
+      return stream;
+    } catch (error) {
+      span.setError(error);
+      span.end();
+      this.#enrichErrorWithTraceContext(error, span);
+      throw error;
+    }
+  }
+
+  /**
    * Observes a server RPC handler (incoming) with automatic span management
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
    * @param {Function} handlerFn - Business logic handler function
    * @returns {Promise<object>} Response object
    */
-  async observeServerCall(methodName, call, handlerFn) {
+  async observeServerUnaryCall(methodName, call, handlerFn) {
     // Start SERVER span with metadata extraction
     const span = this.startServerSpan(
       this.#serviceName,
@@ -188,14 +230,14 @@ export class Tracer {
       call.metadata,
     );
 
-    span.addEvent("request.received", extractAttributes(call.request));
+    span.addEvent("request_received", extractAttributes(call.request));
 
     // Execute handler within span context
     const executeHandler = async () => {
       try {
         const response = await handlerFn(call);
 
-        span.addEvent("response.sent", extractAttributes(response));
+        span.addEvent("response_sent", extractAttributes(response));
         span.setOk();
 
         return response;
@@ -213,6 +255,47 @@ export class Tracer {
 
     // Run within span context
     return await this.#spanContext.run(span, executeHandler);
+  }
+
+  /**
+   * Observes a server streaming RPC handler (incoming) with automatic span management
+   * @param {string} methodName - RPC method name
+   * @param {object} call - gRPC call object with metadata and request
+   * @param {Function} handlerFn - Business logic handler function
+   * @returns {Promise<void>}
+   */
+  async observeServerStreamingCall(methodName, call, handlerFn) {
+    // Start SERVER span with metadata extraction
+    const span = this.startServerSpan(
+      this.#serviceName,
+      methodName,
+      call.request,
+      call.metadata,
+    );
+
+    span.addEvent("stream_received", extractAttributes(call.request));
+
+    // Execute handler within span context
+    const executeHandler = async () => {
+      try {
+        await handlerFn(call);
+
+        span.addEvent("stream_ended");
+        span.setOk();
+        await span.end();
+      } catch (error) {
+        span.setError(error);
+        // End span before propagating error
+        await span.end();
+
+        // Enrich error with trace context for debugging
+        this.#enrichErrorWithTraceContext(error, span);
+        throw error;
+      }
+    };
+
+    // Run within span context
+    await this.#spanContext.run(span, executeHandler);
   }
 
   /**

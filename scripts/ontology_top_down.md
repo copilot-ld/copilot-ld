@@ -1,4 +1,12 @@
-Topdown Overview
+Topdown
+
+### How to run
+
+```
+npx env-cmd -- node scripts/ontology_top_down.js
+```
+
+### Overview
 
 This script generates a SHACL ontology (ontology.ttl) and graph index
 (index.jsonl) using a top-down approach - it starts with predefined Schema.org

@@ -48,6 +48,24 @@ describe("PdfTransformer", () => {
           return "";
         }
       },
+      createCompletions: async () => {
+        return {
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  global_summary: "Test document summary",
+                  document_type: "presentation",
+                  slides: {
+                    1: "Slide 1 summary",
+                    2: "Slide 2 summary",
+                  },
+                }),
+              },
+            },
+          ],
+        };
+      },
     };
 
     // Mock logger (no-op for tests)
@@ -94,13 +112,24 @@ describe("PdfTransformer", () => {
 
     await processor.process();
     assert.ok(true, "Processing completed without errors");
-    assert.strictEqual(capturedKey.length, 1);
-    assert.strictEqual(capturedHtml.length, 1);
-    assert.strictEqual(capturedKey[0], "fixtures/test.html");
-    assert.strictEqual(
-      capturedHtml[0],
-      '<!DOCTYPE html>\n<html>\n<head><meta charset="utf-8"><title>fixtures/test.pdf - PDF to HTML</title></head>\n<body>\n<div>page-1.png</div>\n<div>page-2.png</div>\n</body>\n</html>',
-    );
+
+    // Process stores 3 files: merged HTML, context JSON, and final HTML
+    assert.strictEqual(capturedKey.length, 3);
+
+    // Verify merged HTML
+    assert.strictEqual(capturedKey[0], "fixtures/test.pdf-merged.html");
+    assert.ok(capturedHtml[0].includes("<div>page-1.png</div>"));
+    assert.ok(capturedHtml[0].includes("<div>page-2.png</div>"));
+
+    // Verify context JSON
+    assert.strictEqual(capturedKey[1], "fixtures/test.pdf-context.json");
+    const context = JSON.parse(capturedHtml[1]);
+    assert.strictEqual(context.global_summary, "Test document summary");
+    assert.strictEqual(context.document_type, "presentation");
+
+    // Verify final HTML
+    assert.strictEqual(capturedKey[2], "fixtures/test.html");
+    assert.ok(capturedHtml[2].includes("<!DOCTYPE html>"));
   });
 
   test(

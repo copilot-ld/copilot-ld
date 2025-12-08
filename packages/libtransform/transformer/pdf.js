@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
-import { ProcessorBase } from "@copilot-ld/libutil";
+import { countTokens, ProcessorBase } from "@copilot-ld/libutil";
 import { common } from "@copilot-ld/libtype";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -222,7 +222,7 @@ export class PdfTransformer extends ProcessorBase {
         content: html,
       }),
     ];
-    this.#logger.debug(`token count of html ${this.#llm.countTokens(html)}`);
+    this.#logger.debug(`token count of html ${countTokens(html)}`);
     this.#logger.debug(`json ${JSON.stringify(messages)}`);
 
     const response = await this.#llm.createCompletions(messages);

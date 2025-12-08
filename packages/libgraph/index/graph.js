@@ -108,6 +108,53 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
+   * Extracts local name from a URI
+   * @param {string} uri - Full URI (e.g., "https://schema.org/Person")
+   * @returns {string} Local name (e.g., "Person")
+   * @private
+   */
+  #extractLocalName(uri) {
+    const parts = uri.split(/[#/]/);
+    return parts[parts.length - 1] || uri;
+  }
+
+  /**
+   * Gets type URIs including synonyms defined in ontology via skos:altLabel
+   * @param {string} type - The requested type (e.g., "schema:Person" or "https://schema.org/Person")
+   * @returns {Promise<string[]>} Array of type URIs to query
+   * @private
+   */
+  async #getTypesWithSynonyms(type) {
+    // Resolve the type to a full URI first
+    const resolvedType = this.#patternTermToN3Term(type);
+    const typeUri = resolvedType?.value || type;
+    const types = [typeUri];
+
+    // Load ontology.ttl to find synonyms
+    const storage = this.storage();
+    const ontologyContent = String((await storage.get("ontology.ttl")) || "");
+    if (!ontologyContent) return types;
+
+    // Parse ontology to find skos:altLabel for this type
+    // Look for pattern: schema:TypeShape ... skos:altLabel "SynonymName"
+    const typeName = this.#extractLocalName(typeUri);
+    const altLabelPattern = new RegExp(
+      `schema:${typeName}Shape[^.]*skos:altLabel\\s+"([^"]+)"`,
+      "g",
+    );
+
+    let match;
+    while ((match = altLabelPattern.exec(ontologyContent)) !== null) {
+      const synonymName = match[1];
+      // Construct full URI for synonym (e.g., "Individual" -> "https://schema.org/Individual")
+      const synonymUri = `https://schema.org/${synonymName}`;
+      types.push(synonymUri);
+    }
+
+    return types;
+  }
+
+  /**
    * Converts a pattern term to the appropriate N3 term type
    * @param {string|null} term - The term to convert
    * @returns {import("n3").Term|null} N3 term or null for wildcards
@@ -148,16 +195,28 @@ export class GraphIndex extends IndexBase {
     );
     const subjects = new Map();
 
-    // Query for all rdf:type triples, optionally filtered by object type
     // Use isWildcard to normalize wildcard values to null
     const normalizedType = isWildcard(type) ? null : type;
-    const objectTerm = normalizedType
-      ? this.#patternTermToN3Term(normalizedType)
-      : null;
-    const quads = this.#graph.getQuads(null, typeTerm, objectTerm);
 
-    for (const quad of quads) {
-      subjects.set(quad.subject.value, quad.object.value);
+    if (normalizedType) {
+      // Get all types to query (including synonyms from ontology via skos:altLabel)
+      const typesToQuery = await this.#getTypesWithSynonyms(normalizedType);
+
+      // Query for each type (canonical + synonyms)
+      for (const typeUri of typesToQuery) {
+        const objectTerm = namedNode(typeUri);
+        const quads = this.#graph.getQuads(null, typeTerm, objectTerm);
+
+        for (const quad of quads) {
+          subjects.set(quad.subject.value, quad.object.value);
+        }
+      }
+    } else {
+      // No type filter - return all subjects with types
+      const quads = this.#graph.getQuads(null, typeTerm, null);
+      for (const quad of quads) {
+        subjects.set(quad.subject.value, quad.object.value);
+      }
     }
 
     return subjects;

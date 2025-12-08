@@ -21,7 +21,7 @@ import { S3Storage } from "./s3.js";
  * @property {function(string, string|Buffer): Promise<void>} append - Append data to an existing key
  * @property {function(string[]): Promise<object>} getMany - Retrieve multiple items by their keys
  * @property {function(): Promise<string[]>} list - Lists all keys in storage
- * @property {function(string): Promise<string[]>} findByPrefix - Find keys with specified prefix
+ * @property {function(string, string=): Promise<string[]>} findByPrefix - Find keys with specified prefix, optionally grouped by delimiter
  * @property {function(string): Promise<string[]>} findByExtension - Find keys with specified extension
  * @property {function(string=): string} path - Gets the full path for a storage key
  */

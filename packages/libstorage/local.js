@@ -155,10 +155,27 @@ export class LocalStorage {
   /**
    * Find keys with specified prefix
    * @param {string} prefix - Key prefix to match
+   * @param {string} [delimiter] - Optional delimiter to group results by directory-like segments
    * @returns {Promise<string[]>} Array of matching keys
    */
-  async findByPrefix(prefix) {
-    return await this.#traverse((filename) => filename.startsWith(prefix));
+  async findByPrefix(prefix, delimiter = "") {
+    const keys = await this.#traverse((filename) =>
+      filename.startsWith(prefix),
+    );
+    if (delimiter) {
+      // Group keys by delimiter, return unique prefixes
+      const groups = new Set();
+      for (const key of keys) {
+        const idx = key.indexOf(delimiter, prefix.length);
+        if (idx !== -1) {
+          groups.add(key.slice(0, idx + 1));
+        } else {
+          groups.add(key);
+        }
+      }
+      return Array.from(groups);
+    }
+    return keys;
   }
 
   /**

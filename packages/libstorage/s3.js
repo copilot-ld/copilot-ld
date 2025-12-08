@@ -182,12 +182,17 @@ export class S3Storage {
   }
 
   /**
-   * Find keys with specified prefix
+   * Find keys with specified prefix, optionally grouped by delimiter
    * @param {string} prefix - Key prefix to match
-   * @returns {Promise<string[]>} Array of matching keys
+   * @param {string} [delimiter] - Optional delimiter to group keys (e.g. '/')
+   * @returns {Promise<string[]>} Array of matching keys or prefixes
    */
-  async findByPrefix(prefix) {
-    return await this.#traverse({ Prefix: `${this.#prefix}/${prefix}` });
+  async findByPrefix(prefix, delimiter = undefined) {
+    const keys = await this.#traverse({
+      Prefix: `${this.#prefix}/${prefix}`,
+      Delimiter: delimiter,
+    });
+    return keys;
   }
 
   /**

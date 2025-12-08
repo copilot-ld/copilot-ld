@@ -148,24 +148,32 @@ export class Copilot {
 
   /**
    * Converts an image to text description using vision capabilities
-   * @param {string} filePath - Path to the image file
+   * @param {string|Buffer} file - Path to the image file or a Buffer containing the image data
    * @param {string} [prompt] - Optional text prompt to guide the description
    * @param {string} [model] - Model to use for image-to-text conversion, defaults to instance model
    * @param {string} [systemPrompt] - System prompt to set context for the description
    * @param {number} [max_tokens] - Maximum tokens to generate in the description
+   * @param {string} [mimeType] - The mime type of the file. Defaults to image/png if file is a buffer, otherwise determined from the extension
    * @returns {Promise<string>} Text description of the image
    */
   async imageToText(
-    filePath,
+    file,
     prompt = "Describe this image in detail.",
     model = this.#model,
     systemPrompt = "You are an AI assistant that describes images accurately and in detail.",
     max_tokens = 1000,
+    mimeType = "image/png",
   ) {
-    const buffer = await readFile(filePath);
+    let buffer;
+    if (Buffer.isBuffer(file)) {
+      buffer = file;
+    } else {
+      buffer = await readFile(file);
+      const extension = file.split(".").pop().toLowerCase();
+      mimeType = `image/${extension === "jpg" ? "jpeg" : extension}`;
+    }
+
     const base64 = buffer.toString("base64");
-    const extension = filePath.split(".").pop().toLowerCase();
-    const mimeType = `image/${extension === "jpg" ? "jpeg" : extension}`;
 
     const body = {
       model: model,

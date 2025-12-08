@@ -1,7 +1,7 @@
 /**
  * Authorizes incoming requests by validating the authorization token.
  */
-export class Authorizer {
+export class LocalSecretAuthorizer {
   #secret;
 
   /**

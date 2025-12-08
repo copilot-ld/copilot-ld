@@ -1,5 +1,11 @@
 Overview of ontology_bottom_up.js
 
+### How to run
+
+```
+npx env-cmd -- node scripts/ontology_bottom_up.js
+```
+
 This script generates a SHACL ontology (ontology.ttl) using a bottom-up
 approach - it discovers entity types and synonyms purely from observed data
 patterns, without predefined schema knowledge.

@@ -12,7 +12,6 @@
  * USAGE:
  *
  * npx env-cmd -- node scripts/ontology_top_down.js
- * npm run ontology:topdown
  *
  * APPROACH:
  *
@@ -230,9 +229,7 @@ function processResources(resources) {
     }
   }
 
-  console.error(
-    `Processed ${processedCount} resources, skipped ${skippedCount}`,
-  );
+  console.log(`Processed ${processedCount} resources, skipped ${skippedCount}`);
 
   return { stats, indexEntries };
 }
@@ -479,13 +476,13 @@ function generateTTL(stats) {
  */
 // eslint-disable-next-line complexity
 async function normalizeTypes(llm, stats) {
-  console.error("  Normalizing discovered types to Schema.org...");
+  console.log("  Normalizing discovered types to Schema.org...");
 
   const typeMapping = new Map(); // discoveredType -> canonicalType
   const unknownTypesArray = Array.from(stats.unknownTypes);
 
   if (unknownTypesArray.length === 0) {
-    console.error("  No types to normalize");
+    console.log("  No types to normalize");
     return { stats, typeMapping };
   }
 
@@ -533,14 +530,14 @@ For "${localName}", what is the canonical Schema.org type?`;
 
       // Debug: check full response structure
       if (!response || !response.choices || response.choices.length === 0) {
-        console.error(`    ⚠️  ${localName}: No LLM response`);
+        console.log(`    ⚠️  ${localName}: No LLM response`);
         continue;
       }
 
       const message = response.choices[0].message;
       if (!message || !message.content) {
-        console.error(`    ⚠️  ${localName}: Empty message content`);
-        console.error(
+        console.log(`    ⚠️  ${localName}: Empty message content`);
+        console.log(
           `    Response:`,
           JSON.stringify(response).substring(0, 200),
         );
@@ -549,7 +546,7 @@ For "${localName}", what is the canonical Schema.org type?`;
 
       const content = message.content.text || message.content || "";
       if (!content) {
-        console.error(`    ⚠️  ${localName}: No text content`);
+        console.log(`    ⚠️  ${localName}: No text content`);
         continue;
       }
 
@@ -558,19 +555,17 @@ For "${localName}", what is the canonical Schema.org type?`;
         .replace(/```/g, "")
         .trim();
 
-      console.error(
-        `    LLM: ${localName} -> ${cleanContent.substring(0, 100)}`,
-      );
+      console.log(`    LLM: ${localName} -> ${cleanContent.substring(0, 100)}`);
 
       const result = JSON.parse(cleanContent);
 
       if (result.canonical) {
         typeMapping.set(discoveredType, result.canonical);
-        console.error(
+        console.log(
           `    ✓ MAPPED: ${localName} → ${extractLocalName(result.canonical)}`,
         );
       } else {
-        console.error(`    - ${localName}: Already canonical or unknown`);
+        console.log(`    - ${localName}: Already canonical or unknown`);
       }
     } catch (error) {
       console.error(`    ❌ Error for ${localName}: ${error.message}`);
@@ -622,7 +617,7 @@ For "${localName}", what is the canonical Schema.org type?`;
     stats.unknownTypes.delete(discoveredType);
   }
 
-  console.error(`  Normalized ${typeMapping.size} types`);
+  console.log(`  Normalized ${typeMapping.size} types`);
   return { stats, typeMapping };
 }
 
@@ -635,7 +630,7 @@ For "${localName}", what is the canonical Schema.org type?`;
 function applyTypeMappingToIndex(indexEntries, typeMapping) {
   if (typeMapping.size === 0) return indexEntries;
 
-  console.error(
+  console.log(
     `  Applying type mapping to ${indexEntries.length} index entries...`,
   );
 
@@ -672,11 +667,11 @@ function applyTypeMappingToIndex(indexEntries, typeMapping) {
  * @returns {Promise<void>}
  */
 async function enrichSchemas(llm, unknownTypes) {
-  console.error("  Enriching schemas for missing types...");
+  console.log("  Enriching schemas for missing types...");
 
   const unknownTypesArray = Array.from(unknownTypes);
   if (unknownTypesArray.length === 0) {
-    console.error("  No types to enrich");
+    console.log("  No types to enrich");
     return;
   }
 
@@ -729,11 +724,11 @@ If none are valid Schema.org types, return: {}`;
         SCHEMA_DEFINITIONS[typeIRI] = typeDef;
         unknownTypes.delete(typeIRI);
         addedCount++;
-        console.error(`    Added schema for ${extractLocalName(typeIRI)}`);
+        console.log(`    Added schema for ${extractLocalName(typeIRI)}`);
       }
     }
 
-    console.error(`  Enriched ${addedCount} schemas`);
+    console.log(`  Enriched ${addedCount} schemas`);
   } catch (error) {
     console.error(`  Error enriching schemas: ${error.message}`);
   }
@@ -746,7 +741,7 @@ If none are valid Schema.org types, return: {}`;
  * @returns {Promise<void>}
  */
 async function validateSchemas(llm, stats) {
-  console.error("  Validating schema usage...");
+  console.log("  Validating schema usage...");
 
   const issues = [];
 
@@ -782,19 +777,19 @@ async function validateSchemas(llm, stats) {
   }
 
   if (issues.length === 0) {
-    console.error("  No issues found");
+    console.log("  No issues found");
     return;
   }
 
-  console.error(`  Found ${issues.length} types with schema variations`);
+  console.log(`  Found ${issues.length} types with schema variations`);
 
   for (const issue of issues.slice(0, 5)) {
-    console.error(`    ${issue.type}:`);
+    console.log(`    ${issue.type}:`);
     if (issue.missing.length > 0) {
-      console.error(`      Missing: ${issue.missing.join(", ")}`);
+      console.log(`      Missing: ${issue.missing.join(", ")}`);
     }
     if (issue.extra.length > 0) {
-      console.error(`      Extra: ${issue.extra.join(", ")}`);
+      console.log(`      Extra: ${issue.extra.join(", ")}`);
     }
   }
 }
@@ -806,12 +801,12 @@ async function main() {
   const outputPath = join(__dirname, "../data/graphs/ontology.ttl");
   const indexPath = join(__dirname, "../data/graphs/index.jsonl");
 
-  console.error("=".repeat(60));
-  console.error("Top-Down Ontology Generator");
-  console.error("=".repeat(60));
+  console.log("=".repeat(60));
+  console.log("Top-Down Ontology Generator");
+  console.log("=".repeat(60));
 
   // Step 1: Load resources from ResourceIndex
-  console.error("\n[1/4] Loading resources from ResourceIndex...");
+  console.log("\n[1/4] Loading resources from ResourceIndex...");
   const resourceIndex = createResourceIndex("resources");
   const _logger = createLogger("ontology_top_down");
 
@@ -828,29 +823,29 @@ async function main() {
     );
   });
 
-  console.error(`Found ${filteredIdentifiers.length} RDF resources`);
+  console.log(`Found ${filteredIdentifiers.length} RDF resources`);
 
   const resources = await resourceIndex.get(filteredIdentifiers, actor);
-  console.error(`Loaded ${resources.length} resources`);
+  console.log(`Loaded ${resources.length} resources`);
 
   // Step 2: Process resources with schema guidance
-  console.error("\n[2/5] Processing resources with schema guidance...");
-  console.error(
+  console.log("\n[2/5] Processing resources with schema guidance...");
+  console.log(
     `Using ${Object.keys(SCHEMA_DEFINITIONS).length} schema definitions`,
   );
 
   let { stats, indexEntries } = processResources(resources);
 
-  console.error(`Found ${stats.typeInstances.size} unique types`);
-  console.error(
+  console.log(`Found ${stats.typeInstances.size} unique types`);
+  console.log(
     `  - ${stats.typeInstances.size - stats.unknownTypes.size} with schema definitions`,
   );
-  console.error(
+  console.log(
     `  - ${stats.unknownTypes.size} without schema definitions (discovered)`,
   );
 
   // Step 3: LLM Enhancement (always enabled)
-  console.error("\n[3/5] LLM-based enhancements...");
+  console.log("\n[3/5] LLM-based enhancements...");
   const config = await createScriptConfig("ontology_top_down");
   const llm = createLlm(await config.githubToken());
 
@@ -860,7 +855,7 @@ async function main() {
     stats,
   );
   stats = normalizedStats;
-  console.error(
+  console.log(
     `After normalization: ${stats.typeInstances.size} types (${stats.unknownTypes.size} discovered)`,
   );
 
@@ -869,7 +864,7 @@ async function main() {
 
   // Enrich schemas
   await enrichSchemas(llm, stats.unknownTypes);
-  console.error(
+  console.log(
     `After enrichment: ${Object.keys(SCHEMA_DEFINITIONS).length} schema definitions`,
   );
 
@@ -877,11 +872,11 @@ async function main() {
   await validateSchemas(llm, stats);
 
   // Step 4: Generate SHACL TTL
-  console.error("\n[4/5] Generating SHACL ontology...");
+  console.log("\n[4/5] Generating SHACL ontology...");
   const ttl = generateTTL(stats);
 
   // Step 5: Write output
-  console.error("\n[5/5] Writing output...");
+  console.log("\n[5/5] Writing output...");
 
   // Write ontology.ttl
   await writeFile(outputPath, ttl, "utf-8");
@@ -893,32 +888,30 @@ async function main() {
   }
 
   // Generate report
-  console.error("\n" + "=".repeat(60));
-  console.error("ONTOLOGY GENERATION COMPLETE");
-  console.error("=".repeat(60));
-  console.error(`\nOutput written to:`);
-  console.error(`  - ${outputPath}`);
-  console.error(`  - ${indexPath} (${indexEntries.length} entries)`);
-  console.error(`\nTotal types: ${stats.typeInstances.size}`);
-  console.error(
+  console.log("\n" + "=".repeat(60));
+  console.log("ONTOLOGY GENERATION COMPLETE");
+  console.log("=".repeat(60));
+  console.log(`\nOutput written to:`);
+  console.log(`  - ${outputPath}`);
+  console.log(`  - ${indexPath} (${indexEntries.length} entries)`);
+  console.log(`\nTotal types: ${stats.typeInstances.size}`);
+  console.log(
     `Schema-defined types: ${stats.typeInstances.size - stats.unknownTypes.size}`,
   );
-  console.error(`Discovered types: ${stats.unknownTypes.size}`);
+  console.log(`Discovered types: ${stats.unknownTypes.size}`);
 
-  console.error(`\nLLM enhancements applied:`);
-  console.error(`  ✓ Type normalization (${typeMapping.size} types mapped)`);
+  console.log(`\nLLM enhancements applied:`);
+  console.log(`  ✓ Type normalization (${typeMapping.size} types mapped)`);
   if (typeMapping.size > 0) {
     for (const [from, to] of typeMapping.entries()) {
-      console.error(
-        `      ${extractLocalName(from)} → ${extractLocalName(to)}`,
-      );
+      console.log(`      ${extractLocalName(from)} → ${extractLocalName(to)}`);
     }
   }
-  console.error(`  ✓ Schema enrichment`);
-  console.error(`  ✓ Schema validation`);
+  console.log(`  ✓ Schema enrichment`);
+  console.log(`  ✓ Schema validation`);
 
   // Show top types
-  console.error("\nTop 10 types by instance count:");
+  console.log("\nTop 10 types by instance count:");
   const topTypes = Array.from(stats.typeInstances.entries())
     .sort((a, b) => b[1].size - a[1].size)
     .slice(0, 10);
@@ -926,10 +919,10 @@ async function main() {
   for (const [typeIRI, instances] of topTypes) {
     const hasSchema = getSchemaDefinition(typeIRI) ? "✓" : "✗";
     const typeName = extractLocalName(typeIRI);
-    console.error(`  ${hasSchema} ${typeName}: ${instances.size} instances`);
+    console.log(`  ${hasSchema} ${typeName}: ${instances.size} instances`);
   }
 
-  console.error("\n" + "=".repeat(60));
+  console.log("\n" + "=".repeat(60));
 }
 
 main().catch((error) => {

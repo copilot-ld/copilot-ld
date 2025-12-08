@@ -4,12 +4,12 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { IngesterPipeline } from "./pipeline.js";
-import { STEP_NAME as PDF_TO_IMAGES_STEP } from "./steps/pdf-to-images.js";
-import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./steps/images-to-html.js";
-import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "./steps/extract-context.js";
-import { STEP_NAME as ANNOTATE_HTML_STEP } from "./steps/annotate-html.js";
-import { STEP_NAME as NORMALIZE_HTML_STEP } from "./steps/normalize-html.js";
+import { IngesterPipeline } from "../pipeline.js";
+import { STEP_NAME as PDF_TO_IMAGES_STEP } from "../steps/pdf-to-images.js";
+import { STEP_NAME as IMAGES_TO_HTML_STEP } from "../steps/images-to-html.js";
+import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "../steps/extract-context.js";
+import { STEP_NAME as ANNOTATE_HTML_STEP } from "../steps/annotate-html.js";
+import { STEP_NAME as NORMALIZE_HTML_STEP } from "../steps/normalize-html.js";
 
 // Mock storage for testing
 /**

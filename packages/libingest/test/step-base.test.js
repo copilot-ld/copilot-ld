@@ -4,7 +4,11 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { StepBase, DEFAULT_MAX_TOKENS, DEFAULT_MODEL } from "./step-base.js";
+import {
+  StepBase,
+  DEFAULT_MAX_TOKENS,
+  DEFAULT_MODEL,
+} from "../steps/step-base.js";
 
 // Mock storage for testing
 /**

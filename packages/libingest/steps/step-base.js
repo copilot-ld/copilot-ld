@@ -36,7 +36,8 @@ export class StepBase {
   _modelConfig;
 
   /**
-   * The step name - must be overridden by subclasses.
+   * The step name for this ingest step.
+   * Must be overridden by subclasses, and should match the step name exported from the module.
    * @type {string}
    */
   static STEP_NAME = "";

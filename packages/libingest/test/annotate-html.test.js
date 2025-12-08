@@ -4,9 +4,9 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { AnnotateHtml, STEP_NAME } from "./annotate-html.js";
-import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./images-to-html.js";
-import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "./extract-context.js";
+import { AnnotateHtml, STEP_NAME } from "../steps/annotate-html.js";
+import { STEP_NAME as IMAGES_TO_HTML_STEP } from "../steps/images-to-html.js";
+import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "../steps/extract-context.js";
 
 // Mock storage for testing
 /**

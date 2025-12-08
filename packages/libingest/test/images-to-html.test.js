@@ -4,8 +4,8 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { ImagesToHtml, STEP_NAME } from "./images-to-html.js";
-import { STEP_NAME as PDF_TO_IMAGES_STEP } from "./pdf-to-images.js";
+import { ImagesToHtml, STEP_NAME } from "../steps/images-to-html.js";
+import { STEP_NAME as PDF_TO_IMAGES_STEP } from "../steps/pdf-to-images.js";
 
 // Mock storage for testing
 /**

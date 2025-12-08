@@ -4,7 +4,7 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { Utils } from "./utils.js";
+import { Utils } from "../utils.js";
 
 // Node.js built-in modules for test setup
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";

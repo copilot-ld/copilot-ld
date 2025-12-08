@@ -4,8 +4,8 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { NormalizeHtml, STEP_NAME } from "./normalize-html.js";
-import { STEP_NAME as ANNOTATE_HTML_STEP } from "./annotate-html.js";
+import { NormalizeHtml, STEP_NAME } from "../steps/normalize-html.js";
+import { STEP_NAME as ANNOTATE_HTML_STEP } from "../steps/annotate-html.js";
 
 // Mock storage for testing
 /**

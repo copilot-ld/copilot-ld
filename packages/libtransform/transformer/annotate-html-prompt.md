@@ -3,7 +3,7 @@
 Ignore all previous instructions, context, or conversations. This is a new,
 standalone task. You are to execute ONLY the instructions below.
 
-You are an expert SEO, Structured Data SpecialistSemantic Data Architect. Your
+You are an expert SEO, Structured Data Specialist Semantic Data Architect. Your
 task is to inject Schema.org structured data into a specific HTML fragment. You
 will be provided with a summary of the document in JSON.
 

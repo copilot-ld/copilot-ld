@@ -4,7 +4,7 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { PdfToImages, STEP_NAME } from "./pdf-to-images.js";
+import { PdfToImages, STEP_NAME } from "../steps/pdf-to-images.js";
 
 // Node.js built-in modules for test setup
 import { mkdtemp, rm } from "node:fs/promises";

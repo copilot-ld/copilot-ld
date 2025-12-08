@@ -4,8 +4,8 @@ import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
-import { ExtractContext, STEP_NAME } from "./extract-context.js";
-import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./images-to-html.js";
+import { ExtractContext, STEP_NAME } from "../steps/extract-context.js";
+import { STEP_NAME as IMAGES_TO_HTML_STEP } from "../steps/images-to-html.js";
 
 // Mock storage for testing
 /**

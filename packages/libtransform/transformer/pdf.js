@@ -68,13 +68,6 @@ export class PdfTransformer extends ProcessorBase {
     );
 
     this.#model = options.model || "gpt-4o";
-    // this.#model = "gpt-5";
-    // this.#model = "gpt-5-mini"; // no good
-    // this.#model = "claude-haiku-4.5";
-    // this.#model = "claude-sonnet-4.5"; //best?
-    // this.#model = "gemini-2.5-pro"
-    // this.#model = "gemini-3-pro-preview";
-    // this.#model = "gemini-3-pro";
 
     this.#maxTokens = options.maxTokens || 5000;
   }
@@ -195,9 +188,9 @@ export class PdfTransformer extends ProcessorBase {
 
       // this.#logger.debug(`Merged HTML ${mergedHtml}`);
       // this.#logger.debug(`Merged HTML ${typeof mergedHtml}`);
-      const contextDataStrign = await this.#contextExtraction(key, mergedHtml);
+      const contextDataString = await this.#contextExtraction(key, mergedHtml);
 
-      const contextData = JSON.parse(contextDataStrign);
+      const contextData = JSON.parse(contextDataString);
 
       const annotatedHtml = this.#annotateHtml(key, htmlFragments, contextData);
       return annotatedHtml;
@@ -239,7 +232,6 @@ export class PdfTransformer extends ProcessorBase {
       // const htmlContent = response.choices[0].message.content?.text || "";
       const htmlContext = response.choices[0].message?.content || "";
       await this.#knowledgeStorage.put(key + "-context.json", htmlContext);
-      // this.#logger.debug(`htmlCohtmlContextntent ${htmlContext}`);
       this.#logger.debug(`Returning context ${htmlContext}`);
       return htmlContext;
     } else {

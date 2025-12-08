@@ -1,9 +1,3 @@
-/**
- * Gets the MIME type of a buffer using the Linux 'file' command.
- * Throws if 'file' command is not found.
- * @param {Buffer} buffer - File buffer
- * @returns {Promise<string>} MIME type string
- */
 /* eslint-env node */
 import { createHash } from "crypto";
 import { ProcessorBase } from "@copilot-ld/libutil/processor.js";

@@ -339,3 +339,8 @@ workspaces
 X-Ray
 XML
 YAML
+rdf:type
+sh:NodeShape
+skos:altLabel
+TTL
+vectorize

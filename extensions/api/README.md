@@ -3,7 +3,8 @@
 Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked data and
 retrieval-augmented generation.
 
-This is an AI extension to the Copilot-LD platform using
+This is an AI extension to the Copilot-LD platform using a REST API to expose
+platform capabilities.
 
 ## 🚀 Setup
 

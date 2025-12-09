@@ -16,7 +16,7 @@ export class Server {
   #server;
 
   /**
-   * Creates a new apiServer instance
+   * Creates a new Server instance
    * @param {object} agentConfig - Service configuration
    * @param {object} agentClient - Agent client for processing requests
    * @param {import('./auth.js').LocalSecretAuthorizer} authorizer - Authorizer instance
@@ -148,7 +148,7 @@ export class Server {
 }
 
 /**
- * Creates and configures a new apiServer instance
+ * Creates and configures a new Server instance
  * @param {object} agentConfig - Service configuration
  * @param {object} extensionConfig - Extension configuration
  * @param {object} agentClient - Agent client for processing requests

@@ -9,3 +9,4 @@
 - Added POST `/api/messages` endpoint for agent request processing
 - Added comprehensive test suite for server, auth, and HTTP utilities
 - Added `README` with setup and usage instructions
+- Renamed the extension to `api`

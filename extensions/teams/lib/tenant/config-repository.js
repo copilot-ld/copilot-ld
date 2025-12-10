@@ -62,7 +62,7 @@ export class TenantConfigRepository {
    * Initializes an internal storage to store tenant configurations.
    */
   constructor() {
-    this.#storage = createStorage("tenants");
+    this.#storage = createStorage("teams-tenant-configs");
   }
 
   /**

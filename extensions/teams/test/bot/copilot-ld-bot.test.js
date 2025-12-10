@@ -112,7 +112,10 @@ describe("CopilotLdBot", () => {
     // Then: the reply is sent, resourceId is set, and next is called
     assert.strictEqual(context.sent.length, 1);
     assert.strictEqual(context.sent[0].text, "Hello from Copilot!");
-    assert.strictEqual(bot.getResourceId("tenant1", "bot1"), "resource-xyz");
+    assert.strictEqual(
+      await bot.getResourceId("tenant1", "bot1"),
+      "resource-xyz",
+    );
     assert.ok(nextCalled);
   });
 });

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import { writeFileSync, readFileSync, existsSync, openSync } from "fs";
 import { parseArgs } from "node:util";
 
@@ -11,6 +11,7 @@ const SHUTDOWN_GRACE_PERIOD = 3000;
 const MATCH_PATTERNS = ["npm run dev", "node --watch"];
 
 const SERVICES = [
+  "@copilot-ld/api",
   "@copilot-ld/ui",
   "@copilot-ld/web",
   "@copilot-ld/agent",

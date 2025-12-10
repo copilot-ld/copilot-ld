@@ -1,6 +1,6 @@
 import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
-import { CopilotLdBot } from "../copilotldbot.js";
+import { CopilotLdBot } from "../../lib/bot/copilot-ld-bot.js";
 
 /**
  * Minimal mock for TurnContext used in CopilotLdBot tests.

@@ -3,7 +3,7 @@ import assert from "node:assert";
 import {
   TenantConfigRepository,
   TenantConfig,
-} from "../tenant-config-repository.js";
+} from "../../lib/tenant/config-repository.js";
 
 describe("TenantConfigRepository", () => {
   let repo;

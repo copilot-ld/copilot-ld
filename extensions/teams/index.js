@@ -7,8 +7,7 @@ import createServer from "./server.js";
 
 const agentConfig = await createServiceConfig("agent");
 const extensionConfig = await createExtensionConfig("teamsapp");
-
-const server = await createServer(agentConfig, extensionConfig);
+const server = createServer(agentConfig, extensionConfig);
 
 server.listen(extensionConfig.port, () => {
   console.log("\n------------------- Startup ---------------------------");

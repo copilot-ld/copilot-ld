@@ -16,12 +16,12 @@
     "watch": "node --watch ./index.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.50",
+    "@copilot-ld/libconfig": "^0.1.51",
     "@copilot-ld/libformat": "^0.1.51",
     "@copilot-ld/librpc": "^0.1.70",
     "@copilot-ld/libtype": "^0.1.57",
     "@copilot-ld/libutil": "^0.1.54",
-    "@copilot-ld/libweb": "^0.1.50",
+    "@copilot-ld/libweb": "^0.1.51",
     "botbuilder": "~4.23.3"
   },
   "repository": {

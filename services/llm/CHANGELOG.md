@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-12-01
+
+- **BREAKING**: `CreateCompletions` takes `resource_id` and fetches memory
+  window internally via `Memory.GetWindow`
+- Constructor requires `memoryClient` for memory service interaction
+
 ## 2025-11-24
 
 - Bump version

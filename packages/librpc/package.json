@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/librpc",
-  "version": "0.1.67",
+  "version": "0.1.68",
   "description": "gRPC framework and utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,9 +13,9 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.48",
-    "@copilot-ld/libtelemetry": "^0.1.14",
-    "@copilot-ld/libutil": "^0.1.52",
+    "@copilot-ld/libconfig": "^0.1.49",
+    "@copilot-ld/libtelemetry": "^0.1.15",
+    "@copilot-ld/libutil": "^0.1.53",
     "@grpc/grpc-js": "^1.12.2"
   },
   "devDependencies": {},

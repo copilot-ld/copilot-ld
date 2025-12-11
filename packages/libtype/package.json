@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libtype",
-  "version": "0.1.55",
+  "version": "0.1.56",
   "description": "Shared type definitions and data models for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -13,7 +13,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libutil": "^0.1.52"
+    "@copilot-ld/libutil": "^0.1.53"
   },
   "repository": {
     "type": "git",

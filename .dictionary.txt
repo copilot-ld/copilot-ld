@@ -339,3 +339,8 @@ workspaces
 X-Ray
 XML
 YAML
+Topdown
+rdf:type
+sh:targetClass
+TTL
+NodeShape

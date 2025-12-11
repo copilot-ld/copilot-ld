@@ -22,7 +22,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libcopilot": "^0.1.59",
+    "@copilot-ld/libcopilot": "^0.1.60",
     "@copilot-ld/libpolicy": "^0.1.40",
     "@copilot-ld/libstorage": "^0.1.41",
     "@copilot-ld/libtelemetry": "^0.1.12",

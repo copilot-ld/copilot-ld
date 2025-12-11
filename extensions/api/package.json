@@ -1,6 +1,6 @@
 {
-  "name": "@copilot-ld/teamsagent",
-  "version": "1.0.3",
+  "name": "@copilot-ld/api",
+  "version": "1.0.4",
   "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
   "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
   "license": "MIT",
@@ -27,7 +27,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "extensions/teamsagent"
+    "directory": "extensions/api"
   },
   "publishConfig": {
     "access": "public",

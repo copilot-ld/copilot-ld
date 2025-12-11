@@ -125,7 +125,7 @@ class CopilotLdBot extends ActivityHandler {
    * @returns {Promise<string|null>} The resourceId if found, otherwise null.
    */
   async getResourceId(tenantId, recipientId) {
-    const key = `${tenantId}.${recipientId}.json`;
+    const key = `${tenantId}:${recipientId}.json`;
     try {
       const data = await this.resourceIdStorage.get(key);
       return data?.resourceId || null;
@@ -144,7 +144,7 @@ class CopilotLdBot extends ActivityHandler {
    * @returns {Promise<void>}
    */
   async #setResourceId(tenantId, recipientId, resourceId) {
-    const key = `${tenantId}.${recipientId}.json`;
+    const key = `${tenantId}:${recipientId}.json`;
     await this.resourceIdStorage.put(key, { resourceId });
   }
 

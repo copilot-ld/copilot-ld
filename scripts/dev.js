@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
 import { spawn } from "node:child_process";
-import { writeFileSync, readFileSync, existsSync, openSync } from "fs";
+import { writeFileSync, readFileSync, existsSync, openSync } from "node:fs";
 import { parseArgs } from "node:util";
 
 const PID_FILE = "data/dev.pid";

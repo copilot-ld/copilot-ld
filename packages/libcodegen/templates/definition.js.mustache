@@ -9,8 +9,8 @@ export const {{serviceName}}ServiceDefinition = {
 {{#methods}}
   {{name}}: {
     path: '/{{packageName}}.{{serviceName}}/{{name}}',
-    requestStream: false,
-    responseStream: false,
+    requestStream: {{requestStream}},
+    responseStream: {{responseStream}},
     requestSerialize: (value) => {
       return Buffer.from({{requestTypeNamespace}}.{{requestType}}.encode(value).finish());
     },

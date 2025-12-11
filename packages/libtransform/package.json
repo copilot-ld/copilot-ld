@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libtransform",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "Resource transformations for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,7 +16,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libcopilot": "^0.1.60",
+    "@copilot-ld/libcopilot": "^0.1.61",
     "@copilot-ld/libpolicy": "^0.1.41",
     "@copilot-ld/libstorage": "^0.1.42",
     "@copilot-ld/libtype": "^0.1.54",

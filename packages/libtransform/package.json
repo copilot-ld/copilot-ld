@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libtransform",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "Resource transformations for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

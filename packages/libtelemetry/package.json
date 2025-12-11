@@ -22,7 +22,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libindex": "^0.1.18",
+    "@copilot-ld/libindex": "^0.1.19",
     "jmespath": "^0.16.0"
   },
   "repository": {

@@ -66,7 +66,7 @@ describe("LibMemory Performance Tests", () => {
 
         // Mock resourceIndex for testing
         const mockResourceIndex = {
-          get: async (ids, actor) => {
+          get: async (ids) => {
             // Handle conversation lookup
             if (ids[0] === "test-conversation") {
               return [

@@ -22,6 +22,7 @@
 **/assistants.yml
 **/tools.yml
 **/eval.yml
+**/ingest.yml
 
 # For developers
 **/.build_token

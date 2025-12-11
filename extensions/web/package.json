@@ -18,9 +18,9 @@
     "@copilot-ld/libconfig": "^0.1.50",
     "@copilot-ld/libformat": "^0.1.51",
     "@copilot-ld/librpc": "^0.1.69",
-    "@copilot-ld/libtelemetry": "^0.1.15",
-    "@copilot-ld/libtype": "^0.1.56",
-    "@copilot-ld/libutil": "^0.1.53",
+    "@copilot-ld/libtelemetry": "^0.1.16",
+    "@copilot-ld/libtype": "^0.1.57",
+    "@copilot-ld/libutil": "^0.1.54",
     "@copilot-ld/libweb": "^0.1.50",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"

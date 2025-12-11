@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { test, describe } from "node:test";
 
-import { MemoryFilter, MemoryWindow } from "../index.js";
+import { MemoryWindow } from "../index.js";
 import { MemoryIndex } from "../index/memory.js";
 import { createPerformanceTest } from "@copilot-ld/libperf";
 
@@ -56,58 +56,6 @@ describe("LibMemory Performance Tests", () => {
   }
 
   test(
-    "MemoryFilter.filterByBudget by identifier count",
-    createPerformanceTest({
-      count: [500, 1000, 2000, 5000],
-      setupFn: (identifierCount) => {
-        const identifiers = generateMockIdentifiers(identifierCount);
-        const budget = 50000;
-        return { identifiers, budget };
-      },
-      testFn: ({ identifiers, budget }) =>
-        MemoryFilter.filterByBudget(identifiers, budget),
-      constraints: {
-        maxDuration: 40,
-        maxMemory: 3000,
-        scaling: "linear",
-        tolerance: 3.0,
-      },
-    }),
-  );
-
-  test(
-    "MemoryFilter.splitResources by memory size",
-    createPerformanceTest({
-      count: [500, 1000, 2000, 4000],
-      setupFn: (memorySize) => {
-        const toolCount = Math.floor(memorySize * 0.2);
-        const contextCount = Math.floor(memorySize * 0.3);
-        const conversationCount = memorySize - toolCount - contextCount;
-        const tools = generateMockIdentifiers(toolCount, "tool.ToolFunction");
-        const context = generateMockIdentifiers(contextCount, "schema.Article");
-        const conversation = generateMockIdentifiers(
-          conversationCount,
-          "common.Message",
-        ).map((id) => ({
-          ...id,
-          parent: "common.Conversation/conversation-1",
-        }));
-        const memory = [...tools, ...context, ...conversation].sort(
-          () => Math.random() - 0.5,
-        );
-        return { memory };
-      },
-      testFn: ({ memory }) => MemoryFilter.splitResources(memory),
-      constraints: {
-        maxDuration: 10,
-        maxMemory: 500,
-        scaling: "linear",
-        tolerance: 3.5,
-      },
-    }),
-  );
-
-  test(
     "MemoryWindow.build by window size",
     createPerformanceTest({
       count: [50, 100, 200, 500],
@@ -115,42 +63,60 @@ describe("LibMemory Performance Tests", () => {
         const { mockStorage } = createDependencies(windowSize);
         const memoryIndex = new MemoryIndex(mockStorage, "index.jsonl");
         await memoryIndex.loadData();
-        const memoryWindow = new MemoryWindow(memoryIndex);
-        const budget = 45000;
-        const allocation = {
-          tools: 0.2,
-          context: 0.3,
-          conversation: 0.5,
+
+        // Mock resourceIndex for testing
+        const mockResourceIndex = {
+          get: async (ids) => {
+            // Handle conversation lookup
+            if (ids[0] === "test-conversation") {
+              return [
+                {
+                  identifier: { name: "test-conversation" },
+                  descriptor: { name: "Test Conversation" },
+                  type: "common.Conversation",
+                  assistant_id: "test-assistant",
+                },
+              ];
+            }
+            // Handle assistant lookup
+            if (ids[0] === "test-assistant") {
+              return [
+                {
+                  identifier: { name: "test-assistant" },
+                  descriptor: { name: "Test Assistant" },
+                  type: "common.Assistant",
+                  instructions: "Test instructions",
+                  tools: [], // No tools to keep it simple
+                },
+              ];
+            }
+            // Handle tool function lookups (return empty array if tools requested)
+            if (ids[0] && ids[0].startsWith("tool.ToolFunction.")) {
+              return [];
+            }
+            // Handle message lookups (return mock messages based on identifiers)
+            return ids.map((id, idx) => ({
+              identifier: { name: id },
+              role: idx % 2 === 0 ? "user" : "assistant",
+              content: `Message ${idx}`,
+            }));
+          },
         };
-        return { memoryWindow, budget, allocation };
+
+        const memoryWindow = new MemoryWindow(
+          "test-conversation",
+          mockResourceIndex,
+          memoryIndex,
+        );
+        const model = "gpt-4o";
+        return { memoryWindow, model };
       },
-      testFn: ({ memoryWindow, budget, allocation }) =>
-        memoryWindow.build(budget, allocation),
+      testFn: ({ memoryWindow, model }) => memoryWindow.build(model),
       constraints: {
         maxDuration: 120,
         maxMemory: 5000,
         scaling: "linear",
         tolerance: 2.5,
-      },
-    }),
-  );
-
-  test(
-    "MemoryFilter.filterByBudget memory stability",
-    createPerformanceTest({
-      count: 10000,
-      setupFn: (iterations) => {
-        const identifiers = generateMockIdentifiers(100);
-        const budget = 10000;
-        return { identifiers, budget, iterations };
-      },
-      testFn: async ({ identifiers, budget, iterations }) => {
-        for (let i = 0; i < iterations; i++) {
-          MemoryFilter.filterByBudget(identifiers, budget);
-        }
-      },
-      constraints: {
-        maxMemory: 2500,
       },
     }),
   );

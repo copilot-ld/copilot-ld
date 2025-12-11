@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
-import { createScriptConfig } from "@copilot-ld/libconfig";
+import { createServiceConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createClient, createTracer } from "@copilot-ld/librpc";
 import { createLogger } from "@copilot-ld/libtelemetry";
@@ -17,7 +17,7 @@ The agent maintains conversation context across multiple turns.
     echo "Tell me about the company" | npm -s run cli:chat
     printf "What is microservices?\\nWhat are the benefits?\\n" | npm -s run cli:chat`;
 
-const config = await createScriptConfig("cli");
+const config = await createServiceConfig("agent");
 const logger = createLogger("cli");
 const tracer = await createTracer("cli");
 const agentClient = await createClient("agent", logger, tracer);
@@ -30,33 +30,39 @@ const storage = createStorage("cli");
  * sending to the Agent service, and returning the response
  * @param {string} prompt - The user's input prompt
  * @param {object} state - The REPL state object
- * @returns {Promise<string>} The assistant's response content
+ * @param {import("stream").Writable} outputStream - Stream to write results to
  */
-async function handlePrompt(prompt, state) {
-  // Create user message - content is just a string
-  const userMessage = common.Message.fromObject({
-    role: "user",
-    content: prompt,
-  });
+async function handlePrompt(prompt, state, outputStream) {
+  try {
+    // Create user message - content is just a string
+    const userMessage = common.Message.fromObject({
+      role: "user",
+      content: prompt,
+    });
 
-  // Create typed request using agent.AgentRequest
-  const request = new agent.AgentRequest({
-    messages: [userMessage],
-    github_token: await config.githubToken(),
-    resource_id: state.resource_id,
-  });
+    // Create typed request using agent.AgentRequest
+    const request = agent.AgentRequest.fromObject({
+      messages: [userMessage],
+      github_token: await config.githubToken(),
+      resource_id: state.resource_id,
+      model: config.model,
+    });
 
-  const result = await agentClient.ProcessRequest(request);
+    const stream = agentClient.ProcessStream(request);
 
-  if (!result || !result.choices || result.choices.length === 0) {
-    throw new Error("No response from agent service");
+    for await (const response of stream) {
+      if (response.resource_id) {
+        state.resource_id = response.resource_id;
+      }
+      if (response.messages?.length > 0) {
+        const text = response.messages.map((msg) => msg.content).join("\n");
+        outputStream.write(text);
+      }
+    }
+  } catch (err) {
+    console.error("Stream error:", err);
+    throw err;
   }
-
-  if (result.resource_id) {
-    state.resource_id = result.resource_id;
-  }
-
-  return result.choices[0].message.content;
 }
 
 // Create REPL with dependency injection
@@ -68,7 +74,7 @@ const repl = new Repl({
   },
   onLine: handlePrompt,
   afterLine: (state) => {
-    return logger.debug("ProcessRequest", "Response received", {
+    return logger.debug("ProcessStream", "Stream ended", {
       resource_id: state.resource_id,
     });
   },

@@ -42,7 +42,33 @@ function mapFieldToSchema(field) {
     description: field.comment || `${field.name || "field"} field`,
   };
 
-  // Map protobuf types to JSON schema types
+  // Handle repeated fields (arrays) first, before scalar type mapping
+  if (field.rule === "repeated") {
+    property.type = "array";
+    switch (field.type) {
+      case "string":
+        property.items = { type: "string" };
+        break;
+      case "int32":
+      case "int64":
+      case "uint32":
+      case "uint64":
+        property.items = { type: "integer" };
+        break;
+      case "float":
+      case "double":
+        property.items = { type: "number" };
+        break;
+      case "bool":
+        property.items = { type: "boolean" };
+        break;
+      default:
+        property.items = { type: "object" };
+    }
+    return property;
+  }
+
+  // Map scalar protobuf types to JSON schema types
   switch (field.type) {
     case "string":
       property.type = "string";
@@ -61,19 +87,7 @@ function mapFieldToSchema(field) {
       property.type = "boolean";
       break;
     default:
-      // Handle repeated fields (arrays)
-      if (field.rule === "repeated") {
-        property.type = "array";
-        if (field.type === "float" || field.type === "double") {
-          property.items = { type: "number" };
-        } else if (field.type === "string") {
-          property.items = { type: "string" };
-        } else {
-          property.items = { type: "object" };
-        }
-      } else {
-        property.type = "object";
-      }
+      property.type = "object";
   }
 
   return property;
@@ -249,7 +263,8 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
       name: schema.function.name,
       type: "tool.ToolFunction",
     }),
-    content: JSON.stringify(descriptor),
+    name: schema.function.name,
+    description: descriptor.description,
     parameters: toolParam,
   });
 
@@ -277,13 +292,16 @@ async function main() {
 
   const tools = await generateToolSchemas(endpoints, logger);
 
+  // Build lookup map from descriptors array
+  const descriptorMap = new Map(descriptors.map((d) => [d.name, d]));
+
   // Store each tool schema as a resource, combining endpoint and descriptor data
   for (const tool of tools) {
     const name = tool.function.name;
-    if (!descriptors[name]) {
+    if (!descriptorMap.has(name)) {
       throw new Error("Missing descriptor for tool", { name });
     }
-    const descriptor = descriptors[name];
+    const descriptor = descriptorMap.get(name);
     await storeToolResource(resourceIndex, tool, descriptor, logger);
   }
 

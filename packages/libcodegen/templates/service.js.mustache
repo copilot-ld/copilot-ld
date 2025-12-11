@@ -1,4 +1,6 @@
 /* eslint-env node */
+/* eslint no-unused-vars: "off" */
+
 import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
 
 /**
@@ -17,14 +19,27 @@ export class {{className}} {
   }
 
 {{#methods}}
+  {{#responseStream}}
   /**
-   * Must be implemented by subclass
-   * @param { {{requestTypeNamespace}}.{{requestType}} } _{{paramName}} - Request parameters
-   * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Response object
+   * Must be implemented by subclass (server streaming)
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Request parameters
+   * @param { (response: {{responseTypeNamespace}}.{{responseType}}) => void } write - Callback to write response messages
+   * @returns { Promise<void> } Resolves when streaming is complete
    */
-  async {{name}}(_{{paramName}}) {
+  async {{name}}({{paramName}}, write) {
     throw new Error("{{name}} not implemented");
   }
+  {{/responseStream}}
+  {{^responseStream}}
+  /**
+   * Must be implemented by subclass
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Request parameters
+   * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Response object
+   */
+  async {{name}}({{paramName}}) {
+    throw new Error("{{name}} not implemented");
+  }
+  {{/responseStream}}
 
 {{/methods}}
   /**
@@ -34,6 +49,24 @@ export class {{className}} {
   getHandlers() {
     return {
 {{#methods}}
+      {{#responseStream}}
+      {{name}}: async (call) => {
+        // Validate and convert request
+        const error = {{requestTypeNamespace}}.{{requestType}}.verify(call.request);
+        if (error) throw new Error(`{{name}}: ${error}`);
+        const req = {{requestTypeNamespace}}.{{requestType}}.fromObject(call.request);
+
+        // Stream wrapper that writes typed responses
+        const write = (response) => {
+          call.write({{responseTypeNamespace}}.{{responseType}}.toObject(response));
+        };
+
+        // Call implementation and end stream
+        await this.{{name}}(req, write);
+        call.end();
+      },
+      {{/responseStream}}
+      {{^responseStream}}
       {{name}}: async (call) => {
         // Validate and convert request
         const error = {{requestTypeNamespace}}.{{requestType}}.verify(call.request);
@@ -43,6 +76,7 @@ export class {{className}} {
         // Call implementation
         return await this.{{name}}(req);
       },
+      {{/responseStream}}
 {{/methods}}
     };
   }

@@ -139,22 +139,22 @@ export class TraceVisualizer {
 
     for (const event of events) {
       const span = event.span;
-      const fromService = span.attributes["service.name"];
+      const fromService = span.attributes["service_name"];
 
       // Find the corresponding SERVER span
       const serverSpan = this.#findServerSpan(allSpans, span);
       if (!serverSpan) continue;
 
-      const toService = serverSpan.attributes["service.name"];
-      const method = span.attributes["rpc.method"];
+      const toService = serverSpan.attributes["service_name"];
+      const method = span.attributes["rpc_method"];
 
       if (!fromService || !toService || !method) continue;
 
       if (event.type === "start") {
         // Generate request line
         const requestAttrs = this.#extractAttributes(span, [
-          "request.sent",
-          "request.received",
+          "request_sent",
+          "stream_started",
         ]);
         const requestStr = requestAttrs ? ` (${requestAttrs})` : "";
         lines.push(
@@ -196,8 +196,8 @@ export class TraceVisualizer {
     }
 
     const responseAttrs = this.#extractAttributes(serverSpan, [
-      "response.sent",
-      "response.received",
+      "response_sent",
+      "stream_ended",
     ]);
     const responseStr = responseAttrs ? ` (${responseAttrs})` : "";
     return `    ${toService}-->>-${fromService}: ${statusCode}${responseStr}`;
@@ -212,14 +212,14 @@ export class TraceVisualizer {
     const participantSet = new Set();
 
     for (const span of spans) {
-      const serviceName = span.attributes["service.name"];
+      const serviceName = span.attributes["service_name"];
       if (serviceName) {
         participantSet.add(serviceName);
       }
 
       // For CLIENT spans, also add the target service
       if (span.kind === trace.Kind.CLIENT) {
-        const rpcService = span.attributes["rpc.service"];
+        const rpcService = span.attributes["rpc_service"];
         if (rpcService) {
           participantSet.add(rpcService);
         }
@@ -231,10 +231,10 @@ export class TraceVisualizer {
       "cli",
       "agent",
       "memory",
+      "llm",
       "tool",
       "graph",
       "vector",
-      "llm",
     ];
 
     // Return participants in architectural order

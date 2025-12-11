@@ -105,6 +105,12 @@ export class Rpc {
   observer = () => this.#observer;
 
   /**
+   * Returns the tracer instance
+   * @returns {object} Tracer instance
+   */
+  tracer = () => this.#observer.tracer();
+
+  /**
    * Get pre-compiled service definition
    * @param {string} serviceName - Service name (e.g., "Agent", "Vector")
    * @returns {object} Pre-compiled service definition

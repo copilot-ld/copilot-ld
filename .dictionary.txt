@@ -36,7 +36,6 @@ CI
 CIDR
 CLI
 CloudFormation
-CloudFormation
 CloudWatch
 codebase
 codebases
@@ -61,6 +60,7 @@ DDoS
 debuggable
 declaratively
 deduplicate
+deduplicates
 deduplication
 deserialization
 deserialize
@@ -127,7 +127,6 @@ IRI
 iteratively
 Jaeger
 JavaScript
-JavaScript
 jitter
 JMESPath
 JSDoc
@@ -155,7 +154,6 @@ libtelemetry
 libtext
 libtype
 libvector
-lifecycle
 lifecycle
 Lifecycle
 llm
@@ -194,6 +192,7 @@ nanoseconds
 Nanoseconds
 natively
 nav
+NDJSON
 nginx
 Nginx
 nginx-based
@@ -304,6 +303,7 @@ symlink
 Symlink
 symlinks
 Symlinks
+teamsagent
 Tempo
 testability
 tiktoken

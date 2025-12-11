@@ -10,35 +10,38 @@ const { MemoryBase } = services;
  */
 export class MemoryService extends MemoryBase {
   #storage;
-  #windows = new Map();
+  #resourceIndex;
+  #indices = new Map();
   #lock = {};
 
   /**
    * Creates a new Memory service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage instance for memories
+   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
    */
-  constructor(config, storage) {
+  constructor(config, storage, resourceIndex) {
     super(config);
     if (!storage) throw new Error("storage is required");
+    if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#storage = storage;
+    this.#resourceIndex = resourceIndex;
   }
 
   /**
-   * Gets (and creates if necessary) the MemoryWindow for a specific resource
+   * Gets (and creates if necessary) the MemoryIndex for a specific resource
    * @param {string} id - Resource ID
-   * @returns {MemoryWindow} MemoryWindow instance for the resource
+   * @returns {MemoryIndex} MemoryIndex instance for the resource
    * @private
    */
-  #getWindow(id) {
-    if (!this.#windows.has(id)) {
+  #getMemoryIndex(id) {
+    if (!this.#indices.has(id)) {
       const key = `${id}.jsonl`;
       const index = new MemoryIndex(this.#storage, key);
-      const window = new MemoryWindow(index);
-      this.#windows.set(id, window);
+      this.#indices.set(id, index);
     }
-    return this.#windows.get(id);
+    return this.#indices.get(id);
   }
 
   /** @inheritdoc */
@@ -48,7 +51,12 @@ export class MemoryService extends MemoryBase {
     this.#lock[req.resource_id] = true;
 
     try {
-      const window = this.#getWindow(req.resource_id);
+      const memoryIndex = this.#getMemoryIndex(req.resource_id);
+      const window = new MemoryWindow(
+        req.resource_id,
+        this.#resourceIndex,
+        memoryIndex,
+      );
 
       if (req.identifiers && req.identifiers.length > 0) {
         await window.append(req.identifiers);
@@ -63,30 +71,35 @@ export class MemoryService extends MemoryBase {
   /** @inheritdoc */
   async GetWindow(req) {
     if (!req.resource_id) throw new Error("resource_id is required");
-
-    if (
-      !req.budget ||
-      !req.allocation?.tools ||
-      !req.allocation?.context ||
-      !req.allocation?.conversation
-    ) {
-      throw new Error(
-        "Budget allocation is required: tools, context, conversation",
-      );
-    }
+    if (!req.model) throw new Error("model is required");
 
     while (this.#lock[req.resource_id]) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    const window = this.#getWindow(req.resource_id);
-    const memory = await window.build(req.budget, req.allocation);
+    const memoryIndex = this.#getMemoryIndex(req.resource_id);
+    const window = new MemoryWindow(
+      req.resource_id,
+      this.#resourceIndex,
+      memoryIndex,
+    );
+    const { messages, tools, temperature } = await window.build(req.model);
 
-    return {
-      resource_id: req.resource_id,
-      tools: memory.tools,
-      context: memory.context,
-      conversation: memory.conversation,
-    };
+    return { messages, tools, temperature };
+  }
+
+  /** @inheritdoc */
+  async GetBudget(req) {
+    if (!req.resource_id) throw new Error("resource_id is required");
+    if (!req.model) throw new Error("model is required");
+
+    const memoryIndex = this.#getMemoryIndex(req.resource_id);
+    const window = new MemoryWindow(
+      req.resource_id,
+      this.#resourceIndex,
+      memoryIndex,
+    );
+
+    return await window.calculateBudget(req.model);
   }
 }

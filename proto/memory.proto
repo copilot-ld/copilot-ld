@@ -2,11 +2,14 @@ syntax = "proto3";
 
 package memory;
 
+import "common.proto";
 import "resource.proto";
+import "tool.proto";
 
 service Memory {
   rpc AppendMemory(AppendRequest) returns (AppendResponse);
   rpc GetWindow(WindowRequest) returns (WindowResponse);
+  rpc GetBudget(BudgetRequest) returns (BudgetResponse);
 }
 
 message AppendRequest {
@@ -20,19 +23,22 @@ message AppendResponse {
 
 message WindowRequest {
   string resource_id = 1;
-  int32 budget = 2;
-  Allocation allocation = 3;
-
-  message Allocation {
-    float tools = 1;
-    float context = 2;
-    float conversation = 3;
-  }
+  string model = 2;
 }
 
 message WindowResponse {
+  repeated common.Message messages = 1;
+  repeated tool.ToolCall tools = 2;
+  float temperature = 3;
+}
+
+message BudgetRequest {
   string resource_id = 1;
-  repeated resource.Identifier tools = 2;
-  repeated resource.Identifier context = 3;
-  repeated resource.Identifier conversation = 4;
+  string model = 2;
+}
+
+message BudgetResponse {
+  int32 total = 1;
+  int32 overhead = 2;
+  int32 available = 3;
 }

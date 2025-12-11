@@ -1,9 +1,9 @@
 /* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { Authorizer } from "../auth.js";
+import { LocalSecretAuthorizer } from "../auth.js";
 import { parseBody } from "../http.js";
-import createServer, { AgentServer } from "../server.js";
+import createServer, { Server } from "../server.js";
 
 /**
  * Creates a mock HTTP request object with event emitter behavior
@@ -85,8 +85,9 @@ function createMockExtensionConfig() {
  */
 function createMockAgentClient(overrides = {}) {
   return {
-    ProcessRequest: async () => ({
+    ProcessUnary: async () => ({
       messages: [{ role: "assistant", content: "Test response" }],
+      resource_id: "test-resource-id",
     }),
     ...overrides,
   };
@@ -115,11 +116,11 @@ function createMockAuthorizer() {
   };
 }
 
-describe("TeamsAgentServer", () => {
+describe("Server", () => {
   test("throws error when agentConfig is not provided", () => {
     assert.throws(
       () =>
-        new AgentServer(
+        new Server(
           null,
           createMockAgentClient(),
           createMockAuthorizer(),
@@ -132,7 +133,7 @@ describe("TeamsAgentServer", () => {
   test("throws error when agentClient is not provided", () => {
     assert.throws(
       () =>
-        new AgentServer(
+        new Server(
           createMockAgentConfig(),
           null,
           createMockAuthorizer(),
@@ -145,7 +146,7 @@ describe("TeamsAgentServer", () => {
   test("throws error when authorizer is not provided", () => {
     assert.throws(
       () =>
-        new AgentServer(
+        new Server(
           createMockAgentConfig(),
           createMockAgentClient(),
           null,
@@ -158,7 +159,7 @@ describe("TeamsAgentServer", () => {
   test("throws error when logger is not provided", () => {
     assert.throws(
       () =>
-        new AgentServer(
+        new Server(
           createMockAgentConfig(),
           createMockAgentClient(),
           createMockAuthorizer(),
@@ -169,7 +170,7 @@ describe("TeamsAgentServer", () => {
   });
 
   test("creates server instance with valid dependencies", () => {
-    const server = new AgentServer(
+    const server = new Server(
       createMockAgentConfig(),
       createMockAgentClient(),
       createMockAuthorizer(),
@@ -184,7 +185,7 @@ describe("TeamsAgentServer", () => {
 });
 
 describe("createServer factory", () => {
-  test("returns TeamsAgentServer instance", () => {
+  test("returns Server instance", () => {
     const server = createServer(
       createMockAgentConfig(),
       createMockExtensionConfig(),
@@ -193,19 +194,19 @@ describe("createServer factory", () => {
       createMockLogger(),
     );
 
-    assert.ok(server instanceof AgentServer);
+    assert.ok(server instanceof Server);
   });
 });
 
-describe("TeamsAgentServer routes", () => {
-  let teamsServer;
+describe("Server routes", () => {
+  let server;
   let mockAgentClient;
   let mockAuthorizer;
 
   beforeEach(() => {
     mockAgentClient = createMockAgentClient();
     mockAuthorizer = createMockAuthorizer();
-    teamsServer = new AgentServer(
+    server = new Server(
       createMockAgentConfig(),
       mockAgentClient,
       mockAuthorizer,
@@ -217,7 +218,7 @@ describe("TeamsAgentServer routes", () => {
     const req = createMockRequest({ method: "GET", url: "/unknown" });
     const res = createMockResponse();
 
-    const requestHandler = teamsServer.server.listeners("request")[0];
+    const requestHandler = server.server.listeners("request")[0];
     await requestHandler(req, res);
 
     assert.strictEqual(res.statusCode, 404);
@@ -228,7 +229,7 @@ describe("TeamsAgentServer routes", () => {
     const req = createMockRequest({ method: "GET", url: "/api/messages" });
     const res = createMockResponse();
 
-    const requestHandler = teamsServer.server.listeners("request")[0];
+    const requestHandler = server.server.listeners("request")[0];
     await requestHandler(req, res);
 
     assert.strictEqual(res.statusCode, 404);
@@ -236,7 +237,7 @@ describe("TeamsAgentServer routes", () => {
   });
 
   test("returns 401 for unauthorized POST /api/messages", async () => {
-    const unauthorizedServer = new AgentServer(
+    const unauthorizedServer = new Server(
       createMockAgentConfig(),
       mockAgentClient,
       { authorize: () => false },
@@ -269,7 +270,7 @@ describe("TeamsAgentServer routes", () => {
     });
     const res = createMockResponse();
 
-    const requestHandler = teamsServer.server.listeners("request")[0];
+    const requestHandler = server.server.listeners("request")[0];
     const handlerPromise = requestHandler(req, res);
     req.simulateBody();
     await handlerPromise;
@@ -279,16 +280,59 @@ describe("TeamsAgentServer routes", () => {
 
     const responseBody = JSON.parse(res.body);
     assert.ok(responseBody.reply);
+    assert.ok(responseBody.reply.messages);
+    assert.strictEqual(responseBody.reply.messages[0].content, "Test response");
+    assert.strictEqual(responseBody.reply.resource_id, "test-resource-id");
+  });
+
+  test("returns full messages array from agent response", async () => {
+    const customClient = createMockAgentClient({
+      ProcessUnary: async () => ({
+        messages: [
+          { role: "user", content: "Hello" },
+          { role: "assistant", content: "Hi there!" },
+        ],
+        resource_id: "custom-resource",
+      }),
+    });
+
+    const customServer = new Server(
+      createMockAgentConfig(),
+      customClient,
+      createMockAuthorizer(),
+      createMockLogger(),
+    );
+
+    const req = createMockRequest({
+      method: "POST",
+      url: "/api/messages",
+      body: { message: "Hello" },
+      headers: { authorization: "Bearer valid-secret" },
+    });
+    const res = createMockResponse();
+
+    const requestHandler = customServer.server.listeners("request")[0];
+    const handlerPromise = requestHandler(req, res);
+    req.simulateBody();
+    await handlerPromise;
+
+    const responseBody = JSON.parse(res.body);
+    assert.strictEqual(responseBody.reply.messages.length, 2);
+    assert.strictEqual(responseBody.reply.messages[0].role, "user");
+    assert.strictEqual(responseBody.reply.messages[0].content, "Hello");
+    assert.strictEqual(responseBody.reply.messages[1].role, "assistant");
+    assert.strictEqual(responseBody.reply.messages[1].content, "Hi there!");
+    assert.strictEqual(responseBody.reply.resource_id, "custom-resource");
   });
 
   test("returns 500 when agent client throws error", async () => {
     const errorClient = createMockAgentClient({
-      ProcessRequest: async () => {
+      ProcessUnary: async () => {
         throw new Error("Agent service unavailable");
       },
     });
 
-    const errorServer = new AgentServer(
+    const errorServer = new Server(
       createMockAgentConfig(),
       errorClient,
       createMockAuthorizer(),
@@ -377,20 +421,24 @@ describe("parseBody", () => {
 
 describe("Authorizer", () => {
   test("throws error when secret is not provided", () => {
-    assert.throws(() => new Authorizer(), { message: "secret is required" });
+    assert.throws(() => new LocalSecretAuthorizer(), {
+      message: "secret is required",
+    });
   });
 
   test("throws error when secret is empty string", () => {
-    assert.throws(() => new Authorizer(""), { message: "secret is required" });
+    assert.throws(() => new LocalSecretAuthorizer(""), {
+      message: "secret is required",
+    });
   });
 
   test("creates instance with valid secret", () => {
-    const authorizer = new Authorizer("valid-secret");
+    const authorizer = new LocalSecretAuthorizer("valid-secret");
     assert.ok(authorizer);
   });
 
   test("returns false when authorization header is missing", () => {
-    const authorizer = new Authorizer("valid-secret");
+    const authorizer = new LocalSecretAuthorizer("valid-secret");
 
     const req = createMockRequest({
       headers: {},
@@ -402,7 +450,7 @@ describe("Authorizer", () => {
   });
 
   test("returns true when Bearer token matches secret", () => {
-    const authorizer = new Authorizer("valid-secret");
+    const authorizer = new LocalSecretAuthorizer("valid-secret");
 
     const req = createMockRequest({
       headers: { authorization: "Bearer valid-secret" },
@@ -414,7 +462,7 @@ describe("Authorizer", () => {
   });
 
   test("returns true when token matches secret without Bearer prefix", () => {
-    const authorizer = new Authorizer("valid-secret");
+    const authorizer = new LocalSecretAuthorizer("valid-secret");
 
     const req = createMockRequest({
       headers: { authorization: "valid-secret" },
@@ -426,7 +474,7 @@ describe("Authorizer", () => {
   });
 
   test("returns false when token does not match secret", () => {
-    const authorizer = new Authorizer("valid-secret");
+    const authorizer = new LocalSecretAuthorizer("valid-secret");
 
     const req = createMockRequest({
       headers: { authorization: "Bearer wrong-token" },

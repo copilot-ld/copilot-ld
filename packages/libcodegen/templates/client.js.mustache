@@ -1,8 +1,10 @@
 /* eslint-env node */
+/* eslint no-unused-vars: "off" */
+
 import { Client } from "@copilot-ld/librpc/client.js";
-import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
+import { createAuth, createGrpc } from "@copilot-ld/librpc/base.js";
 import { createObserver } from "@copilot-ld/libtelemetry";
-import { createAuth, createGrpc } from "@copilot-ld/librpc";
+import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@copilot-ld/libtype";
 
 /**
  * Typed client for the {{serviceName}} gRPC service.
@@ -21,6 +23,28 @@ export class {{className}} extends Client {
   }
 
 {{#methods}}
+  {{#responseStream}}
+  /**
+   * Call the `{{name}}` RPC with request/response type conversion.
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Typed request message.
+   * @returns { import("@grpc/grpc-js").ClientReadableStream<{{responseTypeNamespace}}.{{responseType}}> } Response stream emitting typed messages.
+   */
+  {{name}}({{paramName}}) {
+    // Type validation
+    if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
+      throw new TypeError(
+        `{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`,
+      );
+    }
+    
+    // Convert to plain object
+    const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
+    
+    // Make gRPC call
+    return this.callStream("{{name}}", request, (res) => {{responseTypeNamespace}}.{{responseType}}.fromObject(res));
+  }
+  {{/responseStream}}
+  {{^responseStream}}
   /**
    * Call the `{{name}}` RPC with request/response type conversion.
    * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Typed request message.
@@ -38,11 +62,9 @@ export class {{className}} extends Client {
     const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
     
     // Make gRPC call (tracing handled by base Client class)
-    const response = await this.callMethod("{{name}}", request);
-    
-    // Convert response back to typed object
-    return {{responseTypeNamespace}}.{{responseType}}.fromObject(response);
+    return this.callUnary("{{name}}", request, (res) => {{responseTypeNamespace}}.{{responseType}}.fromObject(res));
   }
+  {{/responseStream}}
 {{^isLast}}
 
 {{/isLast}}{{/methods}}

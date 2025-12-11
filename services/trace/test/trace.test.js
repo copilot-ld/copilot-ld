@@ -297,7 +297,7 @@ describe("trace service", () => {
           trace_id: "trace123",
           span_id: "span1",
           parent_span_id: "",
-          name: "agent.ProcessRequest",
+          name: "agent.ProcessStream",
           kind: "SERVER",
           start_time_unix_nano: "1698345600000000000",
           end_time_unix_nano: "1698345601000000000",

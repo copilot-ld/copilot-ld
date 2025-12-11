@@ -36,13 +36,22 @@ describe("llm service", () => {
 
   describe("LlmService business logic", () => {
     let mockConfig;
+    let mockMemoryClient;
     let mockLlmFactory;
     let mockCopilot;
 
     beforeEach(() => {
       mockConfig = {
         name: "llm", // Required for logging
-        model: "gpt-4",
+        model: "gpt-4o",
+      };
+
+      mockMemoryClient = {
+        GetWindow: async () => ({
+          messages: [{ role: "system", content: "You are an assistant" }],
+          tools: [],
+          temperature: "0.7",
+        }),
       };
 
       mockCopilot = {
@@ -53,9 +62,9 @@ describe("llm service", () => {
           ],
           usage: { total_tokens: 100 },
         }),
-        createEmbeddings: async () => [
-          { index: 0, embedding: [0.1, 0.2, 0.3] },
-        ],
+        createEmbeddings: async () => ({
+          data: [{ index: 0, embedding: [0.1, 0.2, 0.3] }],
+        }),
       };
 
       mockLlmFactory = (token, model) => {
@@ -64,8 +73,12 @@ describe("llm service", () => {
       };
     });
 
-    test("constructor stores llmFactory", () => {
-      const service = new LlmService(mockConfig, mockLlmFactory);
+    test("constructor stores llmFactory and memoryClient", () => {
+      const service = new LlmService(
+        mockConfig,
+        mockMemoryClient,
+        mockLlmFactory,
+      );
 
       // Test that constructor succeeds - actual validation happens at usage time
       assert.ok(service);
@@ -73,33 +86,76 @@ describe("llm service", () => {
     });
 
     test("creates service instance with valid parameters", () => {
-      const service = new LlmService(mockConfig, mockLlmFactory);
+      const service = new LlmService(
+        mockConfig,
+        mockMemoryClient,
+        mockLlmFactory,
+      );
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
     });
 
-    test("CreateCompletions uses correct model from config", async () => {
-      const service = new LlmService(mockConfig, mockLlmFactory);
+    test("CreateCompletions requires resource_id", async () => {
+      const service = new LlmService(
+        mockConfig,
+        mockMemoryClient,
+        mockLlmFactory,
+      );
+
+      await assert.rejects(
+        async () => {
+          await service.CreateCompletions({
+            github_token: "test-token",
+            messages: [{ role: "user", content: "Hello" }],
+            tools: [],
+            temperature: 0.7,
+          });
+        },
+        { message: "resource_id is required for CreateCompletions" },
+      );
+    });
+
+    test("CreateCompletions fetches memory window when resource_id provided", async () => {
+      let memoryWindowCalled = false;
+      const mockMemoryClientWithTracking = {
+        GetWindow: async (req) => {
+          memoryWindowCalled = true;
+          assert.ok(req.resource_id);
+          assert.ok(req.model);
+          return {
+            messages: [{ role: "system", content: "You are an assistant" }],
+            tools: [],
+            temperature: "0.7",
+          };
+        },
+      };
+
+      const service = new LlmService(
+        mockConfig,
+        mockMemoryClientWithTracking,
+        mockLlmFactory,
+      );
 
       const result = await service.CreateCompletions({
         github_token: "test-token",
-        messages: [{ role: "user", content: "Hello" }],
-        tools: [],
-        temperature: 0.7,
+        resource_id: "test-conversation-id",
       });
 
       assert.ok(result);
-      assert.ok(result.choices);
-      assert.strictEqual(result.choices.length, 1);
+      assert.ok(memoryWindowCalled, "Memory window should be fetched");
     });
 
     test("CreateEmbeddings processes chunks correctly", async () => {
-      const service = new LlmService(mockConfig, mockLlmFactory);
+      const service = new LlmService(
+        mockConfig,
+        mockMemoryClient,
+        mockLlmFactory,
+      );
 
       const result = await service.CreateEmbeddings({
         github_token: "test-token",
-        chunks: ["test chunk"],
+        input: ["test chunk"],
       });
 
       assert.ok(result);

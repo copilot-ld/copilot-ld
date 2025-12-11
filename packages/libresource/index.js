@@ -97,9 +97,14 @@ export class ResourceIndex {
     const keys = ids.map((id) => `${id}.json`);
     const data = await this.#storage.getMany(keys);
 
-    // Convert object values to array and apply type conversion
-    const promises = Object.values(data).map((d) => Promise.resolve(toType(d)));
-    return await Promise.all(promises);
+    // Convert to array preserving original order of ids
+    const promises = keys.map((key) => {
+      const d = data[key];
+      if (!d) return null;
+      return Promise.resolve(toType(d));
+    });
+    const results = await Promise.all(promises);
+    return results.filter(Boolean); // Remove nulls for missing resources
   }
 
   /**

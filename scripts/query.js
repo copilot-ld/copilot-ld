@@ -26,54 +26,52 @@ Use ? as wildcard for any field. Quote strings containing spaces.
  * Performs a graph query using the parsed pattern
  * @param {string} prompt - The graph query string (e.g., "person:john ? ?")
  * @param {object} state - The REPL state object
- * @returns {Promise<string>} Formatted query results as markdown
+ * @param {import("stream").Writable} outputStream - Stream to write results to
  */
-async function performQuery(prompt, state) {
+async function performQuery(prompt, state, outputStream) {
   try {
     // Parse and execute the query
     const pattern = parseGraphQuery(prompt);
     const identifiers = await state.graphIndex.queryItems(pattern);
 
-    let output = ``;
-
     if (identifiers.length === 0) {
-      output += `No results\n`;
-    } else {
-      identifiers.forEach((identifier, i) => {
-        // Get the graph item directly from the GraphIndex internal index
-        const item = state.graphIndex.index.get(String(identifier));
-
-        if (!item || !item.quads) {
-          output += `# ${i + 1}\n\n`;
-          output += `${identifier}\n`;
-          output += `\n\nNo graph data available.\n\n`;
-          return;
-        }
-
-        // Convert quads to a readable format using N3 Writer
-        const tempStore = new Store();
-        item.quads.forEach((quad) => tempStore.addQuad(quad));
-
-        const writer = new Writer({
-          format: "turtle",
-          prefixes: RDF_PREFIXES,
-        });
-
-        const quadsText = writer.quadsToString(tempStore.getQuads());
-
-        output += `# ${i + 1}: ${identifier}\n\n`;
-        output += `\n\`\`\`turtle\n${quadsText}\n\`\`\`\n\n`;
-      });
+      outputStream.write("No results\n");
+      return;
     }
 
-    return output;
+    identifiers.forEach((identifier, i) => {
+      // Get the graph item directly from the GraphIndex internal index
+      const item = state.graphIndex.index.get(String(identifier));
+
+      if (!item || !item.quads) {
+        outputStream.write(
+          `# ${i + 1}\n\n${identifier}\n\nNo graph data available.\n\n`,
+        );
+        return;
+      }
+
+      // Convert quads to a readable format using N3 Writer
+      const tempStore = new Store();
+      item.quads.forEach((quad) => tempStore.addQuad(quad));
+
+      const writer = new Writer({
+        format: "turtle",
+        prefixes: RDF_PREFIXES,
+      });
+
+      const quadsText = writer.quadsToString(tempStore.getQuads());
+
+      let output = `# ${i + 1}: ${identifier}\n\n`;
+      output += `\n\`\`\`turtle\n${quadsText}\n\`\`\`\n\n`;
+      outputStream.write(output);
+    });
   } catch (error) {
-    return (
+    const errorMsg =
       `Error: ${error.message}\n\nExample queries:\n` +
       `  person:john ? ?           # Find all graphs about person:john\n` +
       `  ? foaf:name "John Doe"    # Find all people with name "John Doe"\n` +
-      `  ? ? ?                     # Find all graphs\n`
-    );
+      `  ? ? ?                     # Find all graphs\n`;
+    outputStream.write(errorMsg);
   }
 }
 

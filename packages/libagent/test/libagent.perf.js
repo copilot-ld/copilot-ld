@@ -105,57 +105,72 @@ describe("LibAgent Performance Tests", () => {
   }
 
   test(
-    "AgentMind.calculateBudget by tool count",
+    "AgentMind.setupConversation performance",
     createPerformanceTest({
-      count: [25, 50, 100, 200],
-      setupFn: (toolCount) => {
-        const deps = createDependencies(toolCount);
+      count: 100,
+      setupFn: () => {
+        const deps = createDependencies(10);
+        const mockHands = {
+          executeToolLoop: () => Promise.resolve({}),
+        };
         const agentMind = new AgentMind(
-          deps.assistant,
-          deps.tools,
           deps.config,
           deps.mockCallbacks,
           deps.mockResourceIndex,
+          mockHands,
         );
-        const tasks = [];
-        return {
-          agentMind,
-          assistant: deps.assistant,
-          tools: deps.tools,
-          tasks,
+
+        const req = {
+          messages: [
+            common.Message.fromObject({
+              role: "user",
+              content: "Test message",
+            }),
+          ],
         };
+
+        return { agentMind, req };
       },
-      testFn: ({ agentMind, assistant, tools, tasks }) =>
-        agentMind.calculateBudget(assistant, tools, tasks),
+      testFn: ({ agentMind, req }) => agentMind.setupConversation(req),
       constraints: {
-        maxDuration: 10,
+        maxDuration: 5,
         maxMemory: 500,
-        scaling: "linear",
-        tolerance: 4.0,
       },
     }),
   );
 
   test(
-    "AgentMind.calculateBudget memory stability",
+    "AgentMind.setupConversation memory stability",
     createPerformanceTest({
-      count: 10000,
+      count: 1000,
       setupFn: (iterations) => {
-        const { config, mockCallbacks, mockResourceIndex, assistant, tools } =
-          createDependencies(50);
-        const mind = new AgentMind(config, mockCallbacks, mockResourceIndex, {
+        const deps = createDependencies(10);
+        const mockHands = {
           executeToolLoop: () => Promise.resolve({}),
-        });
-        const tasks = [];
-        return { mind, assistant, tools, tasks, iterations };
+        };
+        const mind = new AgentMind(
+          deps.config,
+          deps.mockCallbacks,
+          deps.mockResourceIndex,
+          mockHands,
+        );
+        const req = {
+          messages: [
+            common.Message.fromObject({
+              role: "user",
+              content: "Test message",
+            }),
+          ],
+        };
+        return { mind, req, iterations };
       },
-      testFn: async ({ mind, assistant, tools, tasks, iterations }) => {
+      testFn: async ({ mind, req, iterations }) => {
         for (let i = 0; i < iterations; i++) {
-          mind.calculateBudget(assistant, tools, tasks);
+          await mind.setupConversation(req);
         }
       },
       constraints: {
-        maxMemory: 1000,
+        maxMemory: 5000,
       },
     }),
   );

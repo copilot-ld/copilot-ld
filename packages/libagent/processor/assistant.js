@@ -36,20 +36,15 @@ export class AssistantProcessor {
     const data = await this.#configStorage.get("assistants.yml");
     const objects = yaml.load(data);
 
-    for (const [name, content] of Object.entries(objects)) {
+    for (const config of objects) {
       const assistant = common.Assistant.fromObject({
-        id: {
-          type: "common.Assistant",
-          name,
-        },
-        content,
-        role: "system",
+        ...config,
       });
       await this.#resourceIndex.put(assistant);
     }
 
     this.#logger.debug("Processor", "Processing complete", {
-      count: Object.keys(objects).length,
+      count: objects.length,
     });
   }
 }

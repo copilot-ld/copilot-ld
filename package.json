@@ -35,6 +35,8 @@
     "process:tools": "npx env-cmd --silent -- node ./scripts/tools.js",
     "process:vectors": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libvector process-vectors",
     "process:graphs": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libgraph process-graphs",
+    "service:agent": "npx env-cmd --silent -- npx --node-options='--inspect-brk=9229' --workspace=@copilot-ld/agent dev",
+    "ontology:topdown": "npx env-cmd --silent -- node ./scripts/ontology_top_down.js",
     "upload": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libutil upload",
     "download": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libutil download",
     "dev": "npm --silent run dev:start",

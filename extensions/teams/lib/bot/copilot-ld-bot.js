@@ -131,7 +131,9 @@ class CopilotLdBot extends ActivityHandler {
       return data?.resourceId || null;
     } catch (error) {
       if (error.code === "ENOENT") return null;
-      throw error;
+      const message = `Error retrieving resource ID for tenant ${tenantId}, recipient ${recipientId}`;
+      console.error(message, error);
+      throw new Error(message, { cause: error });
     }
   }
 

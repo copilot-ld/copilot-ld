@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libresource",
-  "version": "0.1.78",
+  "version": "0.1.79",
   "description": "Resource management for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -25,7 +25,7 @@
     "@copilot-ld/libcopilot": "^0.1.60",
     "@copilot-ld/libpolicy": "^0.1.41",
     "@copilot-ld/libstorage": "^0.1.42",
-    "@copilot-ld/libtelemetry": "^0.1.13",
+    "@copilot-ld/libtelemetry": "^0.1.14",
     "@copilot-ld/libtype": "^0.1.54",
     "@copilot-ld/libutil": "^0.1.51",
     "html-minifier-terser": "^7.2.0"

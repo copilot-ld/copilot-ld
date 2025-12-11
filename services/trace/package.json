@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.49",
-    "@copilot-ld/libindex": "^0.1.19",
+    "@copilot-ld/libindex": "^0.1.20",
     "@copilot-ld/librpc": "^0.1.68",
     "@copilot-ld/libstorage": "^0.1.44",
-    "@copilot-ld/libtype": "^0.1.55"
+    "@copilot-ld/libtype": "^0.1.56"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/ui",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "UI extension for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -15,9 +15,9 @@
     "test": "echo 'No tests specified for this extension'"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.46",
-    "@copilot-ld/librpc": "^0.1.65",
-    "@copilot-ld/libtelemetry": "^0.1.12",
+    "@copilot-ld/libconfig": "^0.1.47",
+    "@copilot-ld/librpc": "^0.1.66",
+    "@copilot-ld/libtelemetry": "^0.1.13",
     "@hono/node-server": "^1.18.1",
     "hono": "^4.8.12"
   },

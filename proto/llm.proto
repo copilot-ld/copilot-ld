@@ -6,24 +6,18 @@ import "common.proto";
 import "tool.proto";
 
 service Llm {
-  rpc CreateEmbeddings(EmbeddingsRequest) returns (EmbeddingsResponse);
+  rpc CreateEmbeddings(EmbeddingsRequest) returns (common.Embeddings);
   rpc CreateCompletions(CompletionsRequest) returns (CompletionsResponse);
 }
 
 message EmbeddingsRequest {
-  repeated string chunks = 1;
+  repeated string input = 1;
   string github_token = 2;
   optional string model = 3;
 }
 
-message EmbeddingsResponse {
-  repeated common.Embedding data = 1;
-}
-
 message CompletionsRequest {
-  repeated common.Message messages = 1;
-  repeated tool.ToolDefinition tools = 2;
-  optional float temperature = 3;
+  string resource_id = 1;
   string github_token = 4;
   optional string model = 5;
 }

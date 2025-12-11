@@ -35,7 +35,8 @@ describe("Universal Resource Identifier", () => {
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "499e2b89");
+    // Should generate a UUID
+    assert.strictEqual(message.id.name.length, 36);
     assert.strictEqual(message.id.parent, "");
     assert.strictEqual(message.id.tokens, 7);
   });
@@ -51,7 +52,7 @@ describe("Universal Resource Identifier", () => {
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "499e2b89");
+    assert.strictEqual(message.id.name.length, 36); // UUID length
     assert.strictEqual(message.id.parent, "common.Conversation.hash0001");
     assert.strictEqual(message.id.tokens, 7);
   });
@@ -66,12 +67,13 @@ describe("Universal Resource Identifier", () => {
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "499e2b89");
+    // Should generate a UUID
+    assert.strictEqual(message.id.name.length, 36);
     assert.strictEqual(
       message.id.parent,
       "common.Conversation.hash0001/common.Message.hash0002",
     );
-    assert.strictEqual(message.id.subject, "");
+    assert.deepStrictEqual(message.id.subjects, []);
     assert.strictEqual(message.id.tokens, 7);
   });
 
@@ -126,7 +128,12 @@ describe("Universal Resource Identifier", () => {
       content: "Hello, world!",
     });
     message.withIdentifier();
-    assert.strictEqual(String(message.id), "common.Message.499e2b89");
+    // Should generate URI with UUID
+    assert.ok(String(message.id).startsWith("common.Message."));
+    assert.strictEqual(
+      String(message.id).length,
+      "common.Message.".length + 36,
+    );
   });
 
   test("Identifier generates a URI with name", () => {
@@ -172,31 +179,33 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("withIdentifier sets subject parameter", () => {
+  test("withIdentifier sets subjects parameter", () => {
     const message = common.Message.fromObject({
       content: "Hello, world!",
     });
-    message.withIdentifier(null, "#bob");
+    message.withIdentifier(null, ["#bob"]);
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "499e2b89");
+    // Should generate a UUID
+    assert.strictEqual(message.id.name.length, 36);
     assert.strictEqual(message.id.parent, "");
-    assert.strictEqual(message.id.subject, "#bob");
+    assert.deepStrictEqual(message.id.subjects, ["#bob"]);
     assert.strictEqual(message.id.tokens, 7);
   });
 
-  test("withIdentifier sets both parent and subject parameters", () => {
+  test("withIdentifier sets both parent and subjects parameters", () => {
     const message = common.Message.fromObject({
       content: "Hello, world!",
     });
-    message.withIdentifier("common.Conversation.hash0001", "#alice");
+    message.withIdentifier("common.Conversation.hash0001", ["#alice"]);
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "499e2b89");
+    // Should generate a UUID
+    assert.strictEqual(message.id.name.length, 36);
     assert.strictEqual(message.id.parent, "common.Conversation.hash0001");
-    assert.strictEqual(message.id.subject, "#alice");
+    assert.deepStrictEqual(message.id.subjects, ["#alice"]);
     assert.strictEqual(message.id.tokens, 7);
   });
 
@@ -221,50 +230,53 @@ describe("Universal Resource Identifier", () => {
     },
   );
 
-  test("withIdentifier overwrites existing subject when subject parameter provided", () => {
+  test("withIdentifier overwrites existing subjects when subjects parameter provided", () => {
     const message = common.Message.fromObject({
       id: {
-        subject: "#old",
+        subjects: ["#old"],
       },
       content: "Hello, world!",
     });
-    message.withIdentifier(null, "#new");
+    message.withIdentifier(null, ["#new"]);
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.name, "499e2b89");
+    // Should generate a UUID
+    assert.strictEqual(message.id.name.length, 36);
     assert.strictEqual(message.id.parent, "");
-    assert.strictEqual(message.id.subject, "#new");
+    assert.deepStrictEqual(message.id.subjects, ["#new"]);
     assert.strictEqual(message.id.tokens, 7);
   });
 
-  test("withIdentifier handles complex JSON-LD subject URIs", () => {
+  test("withIdentifier handles complex JSON-LD subjects URIs", () => {
     const message = common.Message.fromObject({
       content: {
         text: "Complex URI example",
       },
     });
-    message.withIdentifier(null, "http://example.org/people#person1");
+    message.withIdentifier(null, ["http://example.org/people#person1"]);
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.subject, "http://example.org/people#person1");
+    assert.deepStrictEqual(message.id.subjects, [
+      "http://example.org/people#person1",
+    ]);
   });
 
-  test("withIdentifier converts non-string subject to string", () => {
+  test("withIdentifier converts non-string subjects to strings", () => {
     const message = common.Message.fromObject({
       content: {
         text: "Number subject example",
       },
     });
-    message.withIdentifier(null, 12345);
+    message.withIdentifier(null, [12345]);
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.subject, "12345");
+    assert.deepStrictEqual(message.id.subjects, ["12345"]);
   });
 
-  test("withIdentifier sets empty string when subject is falsy", () => {
+  test("withIdentifier sets empty array when subjects is falsy", () => {
     const message = common.Message.fromObject({
       content: {
         text: "Falsy subject example",
@@ -274,6 +286,6 @@ describe("Universal Resource Identifier", () => {
 
     assert.strictEqual(typeof message.id, "object");
     assert.strictEqual(message.id.type, "common.Message");
-    assert.strictEqual(message.id.subject, "");
+    assert.deepStrictEqual(message.id.subjects, []);
   });
 });

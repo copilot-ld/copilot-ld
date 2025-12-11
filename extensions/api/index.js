@@ -5,7 +5,7 @@ import {
 import createServer from "./server.js";
 
 const agentConfig = await createServiceConfig("agent");
-const extensionConfig = await createExtensionConfig("teamsagent");
+const extensionConfig = await createExtensionConfig("api");
 const server = createServer(agentConfig, extensionConfig);
 
 server.listen(extensionConfig.port, () => {

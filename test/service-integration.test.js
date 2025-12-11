@@ -56,10 +56,10 @@ describe("Service Integration", () => {
 
     // Mock observer factory
     mockObserverFn = () => ({
-      observeServerCall: async (method, handler, call, callback) => {
+      observeServerUnaryCall: async (method, handler, call, callback) => {
         return await handler(call, callback);
       },
-      observeClientCall: async (method, request, fn) => {
+      observeClientUnaryCall: async (method, request, fn) => {
         return await fn();
       },
     });

@@ -1,6 +1,6 @@
 {
-  "name": "@copilot-ld/teamsagent",
-  "version": "1.0.3",
+  "name": "@copilot-ld/api",
+  "version": "1.0.5",
   "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
   "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
   "license": "MIT",
@@ -16,18 +16,18 @@
     "watch": "node --watch ./index.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.31",
+    "@copilot-ld/libconfig": "^0.1.47",
     "@copilot-ld/libformat": "^0.1.39",
-    "@copilot-ld/librpc": "^0.1.50",
-    "@copilot-ld/libtype": "^0.1.39",
-    "@copilot-ld/libutil": "^0.1.37",
-    "@copilot-ld/libweb": "^0.1.31",
+    "@copilot-ld/librpc": "^0.1.66",
+    "@copilot-ld/libtype": "^0.1.54",
+    "@copilot-ld/libutil": "^0.1.51",
+    "@copilot-ld/libweb": "^0.1.47",
     "botbuilder": "~4.23.3"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "extensions/teamsagent"
+    "directory": "extensions/api"
   },
   "publishConfig": {
     "access": "public",

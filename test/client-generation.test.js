@@ -31,7 +31,7 @@ describe("Generated client locations", () => {
   test("Agent client class shape", { skip: "Future PR will fix this" }, () => {
     assert.ok(AgentClient);
     assert.ok(AgentClient.prototype instanceof Client);
-    ["ProcessRequest"].forEach((m) =>
+    ["ProcessStream", "ProcessUnary"].forEach((m) =>
       assert.strictEqual(typeof AgentClient.prototype[m], "function"),
     );
   });

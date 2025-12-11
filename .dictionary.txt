@@ -339,7 +339,10 @@ workspaces
 X-Ray
 XML
 YAML
+Topdown
+NodeShape
 rdf:type
+sh:targetClass
 sh:NodeShape
 skos:altLabel
 TTL

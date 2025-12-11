@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/librel",
-  "version": "0.1.39",
+  "version": "0.1.40",
   "description": "Release management tools for version bumping and change detection",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.0.0",
-    "@copilot-ld/libtelemetry": "^0.1.13"
+    "@copilot-ld/libtelemetry": "^0.1.14"
   },
   "repository": {
     "type": "git",

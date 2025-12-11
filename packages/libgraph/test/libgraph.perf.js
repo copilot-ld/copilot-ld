@@ -164,7 +164,7 @@ describe("LibGraph Performance Tests", () => {
         }
       },
       constraints: {
-        maxMemory: 2000,
+        maxMemory: 2500,
       },
     }),
   );

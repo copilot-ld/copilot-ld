@@ -1,7 +1,11 @@
 # Changelog
 
-## 2025-12-09
+## 2025-12-03
 
+- Changed `ProcessRequest` to `ProcessUnary` for agent client calls
+- Response now returns `messages` array directly matching `AgentResponse`
+  protobuf
+- Removed transformation layer for cleaner pass-through of gRPC response
 - Added `Server` class for HTTP server implementation
 - Added `LocalSecretAuthorizer` for Bearer token authentication
 - Added `parseBody()` function for HTTP request body parsing

@@ -79,6 +79,7 @@ export class Retry {
 
         // Check if we should retry based on status code
         if (
+          response?.status &&
           this.#isRetryableStatus(response.status) &&
           attempt < this.#retries
         ) {

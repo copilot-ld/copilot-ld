@@ -44,3 +44,9 @@ established patterns.
 
 **Explain Context**: Help users understand how their changes fit within the
 broader system architecture.
+
+## Terminal Commands
+
+**No Stderr Redirection**: Never redirect stderr to `/dev/null` (e.g.,
+`command 2>/dev/null`). This causes VS Code to pause and prompt for user input.
+Run commands without suppressing stderr output.

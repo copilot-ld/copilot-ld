@@ -13,6 +13,7 @@ const { ToolBase } = services;
 export class ToolService extends ToolBase {
   #clients;
   #endpoints;
+  #filter;
   #logger;
   #tracer;
 
@@ -27,6 +28,7 @@ export class ToolService extends ToolBase {
 
     this.#clients = new Map();
     this.#endpoints = config.endpoints || {};
+    this.#filter = config.filter || {};
     this.#logger = logger;
     this.#tracer = tracer;
   }
@@ -41,15 +43,14 @@ export class ToolService extends ToolBase {
 
   /**
    * Makes a tool call by routing to the appropriate service
-   * @param {import("@copilot-ld/libtype").tool.ToolDefinition} req - Tool execution request
+   * @param {import("@copilot-ld/libtype").tool.ToolCall} req - Tool execution request
    */
   async CallTool(req) {
     try {
-      if (!req?.id || !req?.function) {
+      if (!req?.function)
         throw new Error("Invalid tool request: missing id or function");
-      }
 
-      const toolName = req.function.id.name;
+      const toolName = req.function.name;
 
       const endpoint = this.#endpoints[toolName];
       if (!endpoint) {
@@ -157,7 +158,8 @@ export class ToolService extends ToolBase {
 
     const args = JSON.parse(toolRequest.function.arguments);
 
-    if (toolRequest.filter) args.filter = toolRequest.filter;
+    // Apply static filter from service configuration
+    if (this.#filter) args.filter = this.#filter;
     if (toolRequest.github_token) args.github_token = toolRequest.github_token;
 
     const RequestType = types[requestPackage]?.[requestType];

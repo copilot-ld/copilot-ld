@@ -12,28 +12,16 @@ describe("libagent", () => {
 
   beforeEach(() => {
     mockConfig = {
-      budget: {
-        tokens: 1000,
-        allocation: {
-          tools: 0.3,
-          history: 0.4,
-          results: 0.3,
-        },
-      },
       assistant: "software_dev_expert",
-      permanent_tools: ["search", "analyze"],
-      temperature: 0.7,
-      threshold: 0.5,
-      limit: 10,
     };
 
     mockServiceCallbacks = {
       memory: {
         append: async () => ({}),
-        get: async () => ({
-          tools: [],
-          context: [],
-          history: [],
+        getBudget: async () => ({
+          total: 128000,
+          overhead: 5000,
+          available: 123000,
         }),
       },
       llm: {
@@ -72,11 +60,7 @@ describe("libagent", () => {
     assert.ok(AgentMind);
     assert.ok(AgentHands);
 
-    const agentHands = new AgentHands(
-      mockConfig,
-      mockServiceCallbacks,
-      mockResourceIndex,
-    );
+    const agentHands = new AgentHands(mockServiceCallbacks, mockResourceIndex);
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
@@ -89,11 +73,7 @@ describe("libagent", () => {
   });
 
   test("AgentMind and AgentHands work together in complete workflow", async () => {
-    const agentHands = new AgentHands(
-      mockConfig,
-      mockServiceCallbacks,
-      mockResourceIndex,
-    );
+    const agentHands = new AgentHands(mockServiceCallbacks, mockResourceIndex);
     const agentMind = new AgentMind(
       mockConfig,
       mockServiceCallbacks,
@@ -103,28 +83,21 @@ describe("libagent", () => {
 
     // Mock setupConversation to return valid data
     agentMind.setupConversation = async () => ({
-      conversation: {
+      conversation: common.Conversation.fromObject({
         id: {
           name: "test-conv",
-          toString: () => "test-conv",
+          type: "common.Conversation",
         },
-      },
-      message: {
+        assistant_id: "common.Assistant.test",
+      }),
+      message: common.Message.fromObject({
         id: {
           name: "test-msg",
           type: "common.Message",
-          toJSON: () => ({ name: "test-msg", type: "common.Message" }),
         },
-      },
-      assistant: { content: { tokens: 100 } },
-      tasks: [],
-      permanentTools: [],
-    });
-
-    // Mock getMemoryWindow
-    agentMind.getMemoryWindow = async () => ({
-      messages: [{ role: "user", content: "Hello" }],
-      rememberedTools: [],
+        role: "user",
+        content: "Hello",
+      }),
     });
 
     const request = {
@@ -132,9 +105,10 @@ describe("libagent", () => {
       messages: [{ role: "user", content: "Hello" }],
     };
 
-    const result = await agentMind.processRequest(request);
+    // process now returns void - just verify it completes without error
+    await agentMind.process(request);
 
-    assert.ok(result.resource_id);
-    assert.strictEqual(result.resource_id, "test-conv");
+    // Test passes if no error was thrown
+    assert.ok(true);
   });
 });

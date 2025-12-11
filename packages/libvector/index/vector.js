@@ -26,23 +26,33 @@ export class VectorIndex extends IndexBase {
 
   /**
    * Queries items from this vector index using cosine similarity
-   * @param {number[]} query - Query vector
+   * @param {number[][]} vectors - Query vectors
    * @param {import("@copilot-ld/libtype").tool.QueryFilter} filter - Filter object for query constraints
    * @returns {Promise<resource.Identifier[]>} Array of resource identifiers sorted by score
    */
-  async queryItems(query, filter = {}) {
+  async queryItems(vectors, filter = {}) {
     if (!this.loaded) await this.loadData();
 
     const { threshold = 0, limit = 0, prefix, max_tokens } = filter;
-    const identifiers = [];
+    const scores = new Map();
 
     for (const item of this.index.values()) {
       if (!this._applyPrefixFilter(item.id, prefix)) continue;
-      const score = calculateDotProduct(query, item.vector, query.length);
-      if (score >= threshold) {
-        item.identifier.score = score;
-        identifiers.push(resource.Identifier.fromObject(item.identifier));
+      for (const vector of vectors) {
+        const score = calculateDotProduct(vector, item.vector, vector.length);
+        if (score < threshold) continue;
+        const existing = scores.get(item.id);
+        if (existing === undefined || score > existing) {
+          scores.set(item.id, score);
+        }
       }
+    }
+
+    const identifiers = [];
+    for (const [id, score] of scores) {
+      const item = this.index.get(id);
+      item.identifier.score = score;
+      identifiers.push(resource.Identifier.fromObject(item.identifier));
     }
 
     identifiers.sort((a, b) => b.score - a.score);

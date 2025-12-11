@@ -2,8 +2,8 @@
 # Search Scenarios
 # ==============================================================================
 
-search_drug_discovery_platform:
-  type: criteria
+- name: search_drug_discovery_platform
+  type: judge
   complexity: medium
   rationale: |
     Tests semantic understanding of comprehensive platform capabilities, 
@@ -35,8 +35,8 @@ search_drug_discovery_platform:
         how these dependencies or integrations enable or enhance MolecularForge's 
         computational chemistry capabilities.
 
-search_gmp_compliance:
-  type: criteria
+- name: search_gmp_compliance
+  type: judge
   complexity: medium
   rationale: |
     Tests understanding of regulatory compliance requirements and their 
@@ -64,8 +64,8 @@ search_gmp_compliance:
         automation, tracking, quality assurance, or other mechanisms. Response is 
         demonstrating understanding of how technology supports compliance requirements.
 
-search_biomarker_trials:
-  type: criteria
+- name: search_biomarker_trials
+  type: judge
   complexity: high
   rationale: |
     Tests ability to synthesize information across multiple clinical trials, 
@@ -96,8 +96,8 @@ search_biomarker_trials:
         Response is showing awareness of biomarker applications in autoimmune and/or 
         neurodegenerative contexts.
 
-search_multi_drug_comparison:
-  type: criteria
+- name: search_multi_drug_comparison
+  type: judge
   complexity: high
   rationale: |
     Tests ability to retrieve and synthesize information about multiple drugs 
@@ -131,7 +131,7 @@ search_multi_drug_comparison:
 # Recall Scenarios
 # ==============================================================================
 
-recall_drug_discovery_team:
+- name: recall_drug_discovery_team
   type: recall
   complexity: low
   rationale: |
@@ -146,7 +146,7 @@ recall_drug_discovery_team:
     - label: Retrieves Drug Discovery Team item
       data: https://bionova.example/id/org/drug-discovery-team
 
-recall_manufacturing_projects:
+- name: recall_manufacturing_projects
   type: recall
   complexity: medium
   rationale: |
@@ -167,8 +167,8 @@ recall_manufacturing_projects:
 # Traversal Scenarios
 # ==============================================================================
 
-traverse_project_team:
-  type: criteria
+- name: traverse_project_team
+  type: judge
   complexity: medium
   rationale: |
     Tests multi-hop relationship queries across person, project, and 
@@ -188,8 +188,8 @@ traverse_project_team:
         reports to Minerva as R&D Director), or (3) context about BioNova R&D as 
         the parent organization for Project Alpha.
 
-traverse_platform_dependencies:
-  type: criteria
+- name: traverse_platform_dependencies
+  type: judge
   complexity: high
   rationale: |
     Tests graph traversal to find dependency relationships between platforms and 
@@ -209,8 +209,8 @@ traverse_platform_dependencies:
         analytics, or visualization. Response is indicating how these dependencies 
         enable or support MolecularForge's capabilities.
 
-traverse_course_progression:
-  type: criteria
+- name: traverse_course_progression
+  type: judge
   complexity: high
   rationale: |
     Tests ability to synthesize comprehensive learning pathways from course 
@@ -243,8 +243,8 @@ traverse_course_progression:
         mention credentials awarded (Foundations Badge, Intermediate Certificate, 
         Advanced Credential) to show understanding of the learning progression.
 
-traverse_drug_trial_timeline:
-  type: criteria
+- name: traverse_drug_trial_timeline
+  type: judge
   complexity: high
   rationale: |
     Tests ability to synthesize information across multiple related trials, 
@@ -281,8 +281,8 @@ traverse_drug_trial_timeline:
 # Edge Case Scenarios
 # ==============================================================================
 
-edge_empty_results:
-  type: criteria
+- name: edge_empty_results
+  type: judge
   complexity: low
   rationale: |
     Tests handling of queries with no matching results and validates no 
@@ -307,8 +307,8 @@ edge_empty_results:
         avoiding confidently presenting information that does not exist in the 
         knowledge base.
 
-edge_negative_relationship:
-  type: criteria
+- name: edge_negative_relationship
+  type: judge
   complexity: medium
   rationale: |
     Tests ability to distinguish between different platform types, understand 
@@ -333,8 +333,8 @@ edge_negative_relationship:
         directly related or dependent on each other, demonstrating understanding that 
         they serve different domains.
 
-edge_complex_relationship:
-  type: criteria
+- name: edge_complex_relationship
+  type: judge
   complexity: high
   rationale: |
     Tests ability to retrieve and synthesize specific documented connections 
@@ -367,7 +367,7 @@ edge_complex_relationship:
 # Trace Scenarios
 # ==============================================================================
 
-trace_efficient_tool_sequence:
+- name: trace_efficient_tool_sequence
   type: trace
   complexity: low
   rationale: |
@@ -388,7 +388,7 @@ trace_efficient_tool_sequence:
     - label: Agent uses efficient tool sequence
       data: "[?name==`tool.CallTool`] | length(@) <= `4`"
 
-trace_graph_discovery_workflow:
+- name: trace_graph_discovery_workflow
   type: trace
   complexity: medium
   rationale: |
@@ -412,7 +412,7 @@ trace_graph_discovery_workflow:
         "[?name==`tool.CallTool` &&
         events[0].attributes.function_name==`query_by_pattern`]"
 
-trace_mixed_query_strategy:
+- name: trace_mixed_query_strategy
   type: trace
   complexity: high
   rationale: |

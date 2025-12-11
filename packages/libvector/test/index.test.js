@@ -291,7 +291,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems returns similar vectors sorted by score", async () => {
       const queryVector = normalize([1.0, 0.0, 0.0]);
 
-      const results = await vectorIndex.queryItems(queryVector, {
+      const results = await vectorIndex.queryItems([queryVector], {
         threshold: 0.5,
       });
 
@@ -314,10 +314,10 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems respects threshold", async () => {
       const queryVector = normalize([1.0, 0.0, 0.0]);
 
-      const strictResults = await vectorIndex.queryItems(queryVector, {
+      const strictResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0.95,
       });
-      const lenientResults = await vectorIndex.queryItems(queryVector, {
+      const lenientResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0.5,
       });
 
@@ -334,10 +334,10 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems applies prefix filter", async () => {
       const queryVector = normalize([0.5, 0.5, 0.0]);
 
-      const allResults = await vectorIndex.queryItems(queryVector, {
+      const allResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0,
       });
-      const messageResults = await vectorIndex.queryItems(queryVector, {
+      const messageResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0,
         prefix: "Message",
       });
@@ -355,7 +355,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems applies limit filter", async () => {
       const queryVector = normalize([1.0, 0.0, 0.0]);
 
-      const limitedResults = await vectorIndex.queryItems(queryVector, {
+      const limitedResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0,
         limit: 2,
       });
@@ -366,7 +366,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
         "Should return limited number of results",
       );
 
-      const zeroLimitResults = await vectorIndex.queryItems(queryVector, {
+      const zeroLimitResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0,
         limit: 0,
       });
@@ -379,7 +379,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems applies max_tokens filter", async () => {
       const queryVector = normalize([1.0, 0.0, 0.0]);
 
-      const tokenLimitedResults = await vectorIndex.queryItems(queryVector, {
+      const tokenLimitedResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0,
         max_tokens: 30,
       });
@@ -399,7 +399,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems applies combined filters", async () => {
       const queryVector = normalize([1.0, 0.0, 0.0]);
 
-      const combinedResults = await vectorIndex.queryItems(queryVector, {
+      const combinedResults = await vectorIndex.queryItems([queryVector], {
         threshold: 0.5,
         prefix: "Message",
         limit: 1,
@@ -427,7 +427,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
 
       // Use a very high but achievable threshold
       // Identical normalized vectors should have score ~0.9999+
-      const results = await vectorIndex.queryItems(queryVector, {
+      const results = await vectorIndex.queryItems([queryVector], {
         threshold: 0.99999,
       });
 
@@ -440,7 +440,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
     test("queryItems includes score in results", async () => {
       const queryVector = normalize([1.0, 0.0, 0.0]);
 
-      const results = await vectorIndex.queryItems(queryVector, {
+      const results = await vectorIndex.queryItems([queryVector], {
         threshold: 0,
       });
 
@@ -456,12 +456,58 @@ describe("VectorIndex - IndexBase Functionality", () => {
         );
       }
     });
+
+    test("queryItems deduplicates results when using multiple query vectors", async () => {
+      // Query with multiple similar vectors that will match the same items
+      const queryVector1 = normalize([1.0, 0.0, 0.0]);
+      const queryVector2 = normalize([0.95, 0.05, 0.0]);
+      const queryVector3 = normalize([0.9, 0.1, 0.0]);
+
+      const results = await vectorIndex.queryItems(
+        [queryVector1, queryVector2, queryVector3],
+        { threshold: 0 },
+      );
+
+      // Count occurrences of each identifier
+      const idCounts = new Map();
+      for (const result of results) {
+        const id = `${result.type}.${result.name}`;
+        idCounts.set(id, (idCounts.get(id) ?? 0) + 1);
+      }
+
+      // Verify no duplicates
+      for (const [id, count] of idCounts) {
+        assert.strictEqual(count, 1, `${id} should appear exactly once`);
+      }
+    });
+
+    test("queryItems keeps highest score when deduplicating across multiple vectors", async () => {
+      // Query with vectors that will produce different scores for the same item
+      const queryVector1 = normalize([1.0, 0.0, 0.0]); // Highest score for similar1
+      const queryVector2 = normalize([0.5, 0.5, 0.0]); // Lower score for similar1
+
+      const results = await vectorIndex.queryItems(
+        [queryVector1, queryVector2],
+        { threshold: 0, prefix: "Message" },
+      );
+
+      const similar1 = results.find((r) => r.name === "similar1");
+      assert(similar1, "Should find similar1 in results");
+
+      // The score should be from queryVector1 (highest match)
+      // similar1 has vector [1, 0, 0] normalized, queryVector1 is also [1, 0, 0] normalized
+      // Dot product should be ~1.0
+      assert(
+        similar1.score > 0.9,
+        "Should keep highest score from queryVector1",
+      );
+    });
   });
 
   describe("Edge Cases", () => {
     test("queryItems with empty index returns empty array", async () => {
       const queryVector = [0.1, 0.2, 0.3];
-      const results = await vectorIndex.queryItems(queryVector, {});
+      const results = await vectorIndex.queryItems([queryVector], {});
 
       assert.deepStrictEqual(
         results,
@@ -497,7 +543,9 @@ describe("VectorIndex - IndexBase Functionality", () => {
 
       await vectorIndex.add(identifier, vector);
 
-      const results = await vectorIndex.queryItems(vector, { threshold: 0.99 });
+      const results = await vectorIndex.queryItems([vector], {
+        threshold: 0.99,
+      });
 
       assert.strictEqual(results.length, 1, "Should find identical vector");
       assert(

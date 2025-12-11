@@ -146,29 +146,24 @@ export class Parser {
    * @returns {Promise<Array>} Array of RDF quads
    */
   async #extractQuads(html, baseIri) {
-    return new Promise((resolve, reject) => {
-      const quads = [];
-      const parser = new MicrodataRdfParser({
-        baseIRI: baseIri,
-        contentType: "text/html",
-      });
-
-      parser.on("data", (quad) => {
-        quads.push(quad);
-      });
-
-      parser.on("error", (error) => {
-        reject(new Error(`Microdata parsing failed: ${error.message}`));
-      });
-
-      parser.on("end", () => {
-        const skolemizedQuads = this.#skolemizer.skolemize(quads);
-        resolve(skolemizedQuads);
-      });
-
-      parser.write(html);
-      parser.end();
+    const quads = [];
+    const parser = new MicrodataRdfParser({
+      baseIRI: baseIri,
+      contentType: "text/html",
     });
+
+    parser.write(html);
+    parser.end();
+
+    try {
+      for await (const quad of parser) {
+        quads.push(quad);
+      }
+    } catch (error) {
+      throw new Error(`Microdata parsing failed: ${error.message}`);
+    }
+
+    return this.#skolemizer.skolemize(quads);
   }
 
   /**

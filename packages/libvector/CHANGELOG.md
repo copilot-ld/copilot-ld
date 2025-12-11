@@ -1,5 +1,15 @@
 # Changelog
 
+## 2025-12-02
+
+- Fixed `VectorIndex.queryItems()` duplicate results when querying with multiple
+  vectors - now deduplicates by keeping highest score per identifier
+
+## 2025-11-30
+
+- Added `tool.ToolFunction` to exclusion filter in `VectorProcessor` - tool
+  definitions are no longer embedded since dynamic tool discovery is not used
+
 ## 2025-11-24
 
 - Bump version

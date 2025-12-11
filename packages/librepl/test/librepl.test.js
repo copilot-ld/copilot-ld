@@ -74,7 +74,9 @@ describe("librepl", () => {
     test("creates repl with complete app configuration", () => {
       const app = {
         prompt: "test> ",
-        onLine: async (input) => `You said: ${input}`,
+        onLine: async (input, state, output) => {
+          output.write(`You said: ${input}`);
+        },
         beforeLine: async () => {},
         afterLine: async () => {},
         setup: async () => {},
@@ -221,7 +223,9 @@ describe("librepl", () => {
 
       const app = {
         prompt: "custom> ",
-        onLine: async (input) => `Response: ${input}`,
+        onLine: async (input, state, output) => {
+          output.write(`Response: ${input}`);
+        },
       };
 
       const repl = new Repl(
@@ -234,6 +238,45 @@ describe("librepl", () => {
 
       // Just test that it can be created in interactive mode
       assert(repl instanceof Repl);
+    });
+
+    test("handles onLine with output stream", async () => {
+      const app = {
+        prompt: "stream> ",
+        onLine: async (input, state, output) => {
+          output.write(`Streamed: ${input}`);
+        },
+      };
+
+      const repl = new Repl(
+        app,
+        mockFormatter,
+        mockReadline,
+        mockProcess,
+        mockOs,
+      );
+
+      // We need to access the private #handleLine method or simulate input
+      // Since we can't easily access private methods, we'll simulate input via stdin
+      // but we need to capture stdout to verify
+
+      let outputData = "";
+      mockProcess.stdout.write = (text) => {
+        outputData += text;
+      };
+
+      // Override stdin to provide input
+      mockProcess.stdin = {
+        isTTY: false, // Non-interactive mode is easier to test
+        setEncoding: () => {},
+        async *[Symbol.asyncIterator]() {
+          yield "test input\n";
+        },
+      };
+
+      await repl.start();
+
+      assert(outputData.includes("formatted: Streamed: test input"));
     });
 
     test("merges default app configuration with provided app", () => {

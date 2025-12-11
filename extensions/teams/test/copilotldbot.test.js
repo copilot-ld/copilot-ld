@@ -87,7 +87,7 @@ describe("CopilotLdBot", () => {
       ok: true,
       json: async () => ({
         reply: {
-          choices: [{ message: { content: "Hello from Copilot!" } }],
+          messages: [{ role: "assistant", content: "Hello from Copilot!" }],
           resource_id: "resource-xyz",
         },
       }),

@@ -85,8 +85,9 @@ function createMockExtensionConfig() {
  */
 function createMockAgentClient(overrides = {}) {
   return {
-    ProcessRequest: async () => ({
+    ProcessUnary: async () => ({
       messages: [{ role: "assistant", content: "Test response" }],
+      resource_id: "test-resource-id",
     }),
     ...overrides,
   };
@@ -279,11 +280,54 @@ describe("Server routes", () => {
 
     const responseBody = JSON.parse(res.body);
     assert.ok(responseBody.reply);
+    assert.ok(responseBody.reply.messages);
+    assert.strictEqual(responseBody.reply.messages[0].content, "Test response");
+    assert.strictEqual(responseBody.reply.resource_id, "test-resource-id");
+  });
+
+  test("returns full messages array from agent response", async () => {
+    const customClient = createMockAgentClient({
+      ProcessUnary: async () => ({
+        messages: [
+          { role: "user", content: "Hello" },
+          { role: "assistant", content: "Hi there!" },
+        ],
+        resource_id: "custom-resource",
+      }),
+    });
+
+    const customServer = new Server(
+      createMockAgentConfig(),
+      customClient,
+      createMockAuthorizer(),
+      createMockLogger(),
+    );
+
+    const req = createMockRequest({
+      method: "POST",
+      url: "/api/messages",
+      body: { message: "Hello" },
+      headers: { authorization: "Bearer valid-secret" },
+    });
+    const res = createMockResponse();
+
+    const requestHandler = customServer.server.listeners("request")[0];
+    const handlerPromise = requestHandler(req, res);
+    req.simulateBody();
+    await handlerPromise;
+
+    const responseBody = JSON.parse(res.body);
+    assert.strictEqual(responseBody.reply.messages.length, 2);
+    assert.strictEqual(responseBody.reply.messages[0].role, "user");
+    assert.strictEqual(responseBody.reply.messages[0].content, "Hello");
+    assert.strictEqual(responseBody.reply.messages[1].role, "assistant");
+    assert.strictEqual(responseBody.reply.messages[1].content, "Hi there!");
+    assert.strictEqual(responseBody.reply.resource_id, "custom-resource");
   });
 
   test("returns 500 when agent client throws error", async () => {
     const errorClient = createMockAgentClient({
-      ProcessRequest: async () => {
+      ProcessUnary: async () => {
         throw new Error("Agent service unavailable");
       },
     });

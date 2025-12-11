@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-12-03
+
+- Updated `handleMessage()` to use new `messages` array format from teamsagent
+- Replaced `choices[0].message.content` with `messages[last].content` extraction
+
 ## 2025-11-24
 
 - Bump version

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libeval",
-  "version": "1.0.20",
+  "version": "1.0.22",
   "description": "Evaluation system for RAG agent quality assessment",
   "type": "module",
   "exports": {
@@ -22,8 +22,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@copilot-ld/librpc": "^0.1.65",
-    "@copilot-ld/libtelemetry": "^0.1.12",
-    "@copilot-ld/libtype": "^0.1.53"
+    "@copilot-ld/librpc": "^0.1.67",
+    "@copilot-ld/libtelemetry": "^0.1.14",
+    "@copilot-ld/libtype": "^0.1.55"
   }
 }

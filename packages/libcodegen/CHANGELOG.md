@@ -1,5 +1,13 @@
 # Changelog
 
+## 2025-12-01
+
+- Added streaming support to `service.js.mustache` template for server-side
+  streaming RPC methods
+- Generated service base classes now handle `responseStream` methods with a
+  `write` callback parameter
+- Services no longer need to override `getHandlers()` for streaming methods
+
 ## 2025-11-24
 
 - Bump version

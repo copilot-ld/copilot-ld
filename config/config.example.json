@@ -2,7 +2,11 @@
   "extension": {
     "teamsapp": {
       "master_key": null,
-      "bot_domain": null
+      "bot_domain": null,
+      "microsoft_app_type": null,
+      "microsoft_app_tenant_id": null,
+      "microsoft_app_id": null,
+      "microsoft_app_password": null
     },
     "api": {
       "secret": null

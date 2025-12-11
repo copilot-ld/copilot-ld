@@ -1,14 +1,14 @@
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { configureAdapter } from "./configureAdapter.js";
-import { CopilotLdBot } from "./copilotldbot.js";
-import { authorize, getTenantId } from "./auth.js";
-import { TenantClientService } from "./tenant-client-service.js";
-import { TenantConfigRepository } from "./tenant-config-repository.js";
-import { TenantSecretEncryption } from "./tenant-secret-encryption.js";
-import { HtmlRenderer } from "./htmlRenderer.js";
-import { patchResponse, parseBody } from "./http.js";
+import { configureAdapter } from "./lib/adapter/configure-adapter.js";
+import { CopilotLdBot } from "./lib/bot/copilot-ld-bot.js";
+import { authorize, getTenantId } from "./lib/auth.js";
+import { TenantClientService } from "./lib/tenant/client-service.js";
+import { TenantConfigRepository } from "./lib/tenant/config-repository.js";
+import { TenantSecretEncryption } from "./lib/tenant/secret-encryption.js";
+import { HtmlRenderer } from "./lib/html/renderer.js";
+import { patchResponse, parseBody } from "./lib/http.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,7 +61,7 @@ export class TeamsServer {
    */
   #handleCss(req, res) {
     console.log("GET /main.css");
-    this.#htmlRenderer.serve("public/main.css", res, "text/css");
+    this.#htmlRenderer.serve("main.css", res, "text/css");
   }
 
   /**
@@ -71,11 +71,7 @@ export class TeamsServer {
    */
   #handleSettingsJs(req, res) {
     console.log("GET /settings.js");
-    this.#htmlRenderer.serve(
-      "public/settings.js",
-      res,
-      "application/javascript",
-    );
+    this.#htmlRenderer.serve("settings.js", res, "application/javascript");
   }
 
   /**
@@ -85,7 +81,7 @@ export class TeamsServer {
    */
   #handleAbout(req, res) {
     console.log("GET /about");
-    this.#htmlRenderer.serve("public/about.html", res);
+    this.#htmlRenderer.serve("about.html", res);
   }
 
   /**
@@ -95,7 +91,7 @@ export class TeamsServer {
    */
   #handleMessages(req, res) {
     console.log("GET /messages");
-    this.#htmlRenderer.serve("public/messages.html", res);
+    this.#htmlRenderer.serve("messages.html", res);
   }
 
   /**
@@ -127,7 +123,7 @@ export class TeamsServer {
    */
   #handleGetSettings(req, res) {
     console.log("GET /settings");
-    this.#htmlRenderer.serve("public/settings.html", res);
+    this.#htmlRenderer.serve("settings.html", res);
   }
 
   /**

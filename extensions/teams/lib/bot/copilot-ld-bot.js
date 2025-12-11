@@ -1,4 +1,5 @@
 import { ActivityHandler, MessageFactory, CardFactory } from "botbuilder";
+import { createStorage } from "@copilot-ld/libstorage";
 
 /**
  * @typedef {import("@copilot-ld/librpc").clients.AgentClient} AgentClient
@@ -37,11 +38,7 @@ class CopilotLdBot extends ActivityHandler {
     this.tenantSecretEncryption = tenantSecretEncryption;
     this.onMessage(this.handleMessage.bind(this));
     this.onMembersAdded(this.handleMembersAdded.bind(this));
-    /**
-     * Map of resource IDs keyed by tenantId:recipientId for conversation tracking.
-     * @type {Map<string, string>}
-     */
-    this.resourceIds = new Map();
+    this.resourceIdStorage = createStorage("teams-resource-ids");
   }
 
   /**
@@ -60,7 +57,7 @@ class CopilotLdBot extends ActivityHandler {
 
     const tenantId = context.activity.conversation.tenantId;
     const recipientId = context.activity.recipient.id;
-    const resourceId = this.getResourceId(tenantId, recipientId);
+    const resourceId = await this.getResourceId(tenantId, recipientId);
 
     const correlationId = resourceId
       ? `${tenantId}:${recipientId}:${resourceId}`
@@ -103,7 +100,7 @@ class CopilotLdBot extends ActivityHandler {
       const newResourceId = response.reply?.resource_id;
 
       if (newResourceId) {
-        this.#setResourceId(tenantId, recipientId, newResourceId);
+        await this.#setResourceId(tenantId, recipientId, newResourceId);
       }
 
       if (replyContent) {
@@ -127,11 +124,19 @@ class CopilotLdBot extends ActivityHandler {
    * Used to maintain conversation context across messages.
    * @param {string} tenantId - The tenant ID for the conversation.
    * @param {string} recipientId - The recipient (bot) ID.
-   * @returns {string|null} The resourceId if found, otherwise null.
+   * @returns {Promise<string|null>} The resourceId if found, otherwise null.
    */
-  getResourceId(tenantId, recipientId) {
-    const key = `${tenantId}:${recipientId}`;
-    return this.resourceIds.has(key) ? this.resourceIds.get(key) : null;
+  async getResourceId(tenantId, recipientId) {
+    const key = `${tenantId}:${recipientId}.json`;
+    try {
+      const data = await this.resourceIdStorage.get(key);
+      return data?.resourceId || null;
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      const message = `Error retrieving resource ID for tenant ${tenantId}, recipient ${recipientId}`;
+      console.error(message, error);
+      throw new Error(message, { cause: error });
+    }
   }
 
   /**
@@ -140,11 +145,11 @@ class CopilotLdBot extends ActivityHandler {
    * @param {string} tenantId - The tenant ID for the conversation.
    * @param {string} recipientId - The recipient (bot) ID.
    * @param {string} resourceId - The resource ID to associate with this conversation.
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  #setResourceId(tenantId, recipientId, resourceId) {
-    const key = `${tenantId}:${recipientId}`;
-    this.resourceIds.set(key, resourceId);
+  async #setResourceId(tenantId, recipientId, resourceId) {
+    const key = `${tenantId}:${recipientId}.json`;
+    await this.resourceIdStorage.put(key, { resourceId });
   }
 
   /**

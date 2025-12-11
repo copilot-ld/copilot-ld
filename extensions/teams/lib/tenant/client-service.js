@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { TenantConfig } from "./tenant-config-repository.js";
+import { TenantConfig } from "./config-repository.js";
 
 /**
  * @typedef {object} BasicTenantConfig

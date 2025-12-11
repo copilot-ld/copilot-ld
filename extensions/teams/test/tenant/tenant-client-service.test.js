@@ -1,9 +1,9 @@
 /* eslint-env node */
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { TenantClientService } from "../tenant-client-service.js";
-import { TenantConfigRepository } from "../tenant-config-repository.js";
-import { TenantSecretEncryption } from "../tenant-secret-encryption.js";
+import { TenantClientService } from "../../lib/tenant/client-service.js";
+import { TenantConfigRepository } from "../../lib/tenant/config-repository.js";
+import { TenantSecretEncryption } from "../../lib/tenant/secret-encryption.js";
 
 describe("TenantClientService", () => {
   let tenantClientService;

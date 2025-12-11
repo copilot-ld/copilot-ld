@@ -110,14 +110,15 @@ describe("Logger", () => {
         retry: "2/3",
       });
 
-    assert.strictEqual(consoleOutput.length, 1);
-    assert.ok(consoleOutput[0].includes("DEBUG"));
-    assert.ok(consoleOutput[0].includes("test"));
-    assert.ok(consoleOutput[0].includes("ProcessMethod"));
-    assert.ok(consoleOutput[0].includes("Processing"));
-    assert.ok(consoleOutput[0].includes('items="50/200"'));
-    assert.ok(consoleOutput[0].includes('retry="2/3"'));
-  });
+      assert.strictEqual(consoleOutput.length, 1);
+      assert.ok(consoleOutput[0].includes("DEBUG"));
+      assert.ok(consoleOutput[0].includes("test"));
+      assert.ok(consoleOutput[0].includes("ProcessMethod"));
+      assert.ok(consoleOutput[0].includes("Processing"));
+      assert.ok(consoleOutput[0].includes('items="50/200"'));
+      assert.ok(consoleOutput[0].includes('retry="2/3"'));
+    },
+  );
 
   test("handles empty data object", () => {
     process.env.DEBUG = "test";
@@ -203,22 +204,23 @@ describe("Logger", () => {
 
       logger.error("TestMethod", error, { retry: "1/3", status: "500" });
 
-    assert.strictEqual(consoleOutput.length, 1);
-    assert.ok(consoleOutput[0].includes("ERROR"));
-    assert.ok(consoleOutput[0].includes("Test error"));
-    assert.ok(
-      consoleOutput[0].includes('trace_id="abc123def456"'),
-      "Should include trace_id in structured data",
-    );
-    assert.ok(
-      consoleOutput[0].includes('span_id="789xyz012"'),
-      "Should include span_id in structured data",
-    );
-    assert.ok(
-      consoleOutput[0].includes('service_name="test-service"'),
-      "Should include service_name in structured data",
-    );
-  });
+      assert.strictEqual(consoleOutput.length, 1);
+      assert.ok(consoleOutput[0].includes("ERROR"));
+      assert.ok(consoleOutput[0].includes("Test error"));
+      assert.ok(
+        consoleOutput[0].includes('trace_id="abc123def456"'),
+        "Should include trace_id in structured data",
+      );
+      assert.ok(
+        consoleOutput[0].includes('span_id="789xyz012"'),
+        "Should include span_id in structured data",
+      );
+      assert.ok(
+        consoleOutput[0].includes('service_name="test-service"'),
+        "Should include service_name in structured data",
+      );
+    },
+  );
 
   test("merges trace context with provided attributes", () => {
     process.env.DEBUG = "test";

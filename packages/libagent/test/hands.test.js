@@ -69,10 +69,10 @@ describe("AgentHands", () => {
   test("executeToolCall handles successful tool execution", async () => {
     const agentHands = new AgentHands(mockServiceCallbacks, mockResourceIndex);
 
-      const toolCall = {
-        id: "test-call",
-        function: { name: "search" },
-      };
+    const toolCall = {
+      id: "test-call",
+      function: { name: "search" },
+    };
 
     const message = await agentHands.executeToolCall(toolCall, "test-token");
 
@@ -151,7 +151,8 @@ describe("AgentHands", () => {
             ],
           };
         },
-      };
+      },
+    };
 
     const agentHands = new AgentHands(
       mockCallbacksWithCapture,

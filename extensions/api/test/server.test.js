@@ -296,7 +296,7 @@ describe("Server routes", () => {
       }),
     });
 
-    const customServer = new AgentServer(
+    const customServer = new Server(
       createMockAgentConfig(),
       customClient,
       createMockAuthorizer(),

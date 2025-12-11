@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/tool",
-  "version": "0.1.75",
+  "version": "0.1.76",
   "description": "Tool service providing various utility functions for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.46",
-    "@copilot-ld/librpc": "^0.1.65",
+    "@copilot-ld/librpc": "^0.1.66",
     "@copilot-ld/libtype": "^0.1.53"
   },
   "repository": {

@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.46",
     "@copilot-ld/libcopilot": "^0.1.60",
-    "@copilot-ld/librpc": "^0.1.65",
+    "@copilot-ld/librpc": "^0.1.66",
     "@copilot-ld/libtype": "^0.1.53"
   },
   "repository": {

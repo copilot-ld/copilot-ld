@@ -23,7 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "@copilot-ld/librpc": "^0.1.65",
-    "@copilot-ld/libtelemetry": "^0.1.12",
+    "@copilot-ld/libtelemetry": "^0.1.13",
     "@copilot-ld/libtype": "^0.1.54"
   }
 }

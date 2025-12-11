@@ -1,9 +1,16 @@
 /* eslint-env node */
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { spawn, spawnSync } from "child_process";
+import { fileURLToPath } from "node:url";
 import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
-import { ProcessorBase } from "@copilot-ld/libutil";
+import { countTokens, ProcessorBase } from "@copilot-ld/libutil";
+import { common } from "@copilot-ld/libtype";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * PdfTransformer converts PDF files in knowledge storage to HTML using Copilot vision.
@@ -14,8 +21,9 @@ export class PdfTransformer extends ProcessorBase {
   #knowledgeStorage;
   #llm;
   #logger;
-  #systemPrompt;
-  #userPrompt;
+  #imgToHtmlSystemPrompt;
+  #annotateHtmlSystemPrompt;
+  #contextExtractorSystemPrompt;
   #model;
   #maxTokens;
 
@@ -44,12 +52,45 @@ export class PdfTransformer extends ProcessorBase {
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
     this.#logger = logger;
-    this.#systemPrompt =
-      options.systemPrompt ||
-      "You are an expert in HTML and Schema.org microdata. Extract text from the provided image and convert it into valid class-less HTML with appropriate Schema.org microdata attributes. Assume the image is one of many, so create fragments of HTML that will be combined to produce a single HTML file at the end of the process. These images may contain Gantt charts and graphs. Use only valid Schema.org types and properties from https://schema.org. Output only the HTML without any explanation or markdown code blocks.";
-    this.#userPrompt = options.userPrompt || "What is in this image?";
+
+    if (options.imgToHtmlSystemPrompt) {
+      this.#imgToHtmlSystemPrompt = options.systemPrompt;
+    } else {
+      this.#imgToHtmlSystemPrompt = this.#loadPrompt("image-to-html-prompt.md");
+    }
+
+    this.#annotateHtmlSystemPrompt = this.#loadPrompt(
+      "annotate-html-prompt.md",
+    );
+
+    this.#contextExtractorSystemPrompt = this.#loadPrompt(
+      "context-extractor-prompt.md",
+    );
+
     this.#model = options.model || "gpt-4o";
-    this.#maxTokens = options.maxTokens || 2000;
+
+    this.#maxTokens = options.maxTokens || 5000;
+  }
+
+  /**
+   * Loads a prompt file by name from the current directory.
+   * Checks if the file exists before reading.
+   * @param {string} promptName - Name of the prompt file to load
+   * @returns {string} Prompt file contents as a string
+   * @throws {Error} If promptName is not supplied or file does not exist
+   */
+  #loadPrompt(promptName) {
+    if (!promptName) {
+      throw new Error("promptName must be supplied");
+    }
+
+    const promptPath = join(__dirname, promptName);
+
+    if (!existsSync(promptPath)) {
+      throw new Error(`Prompt file does not exist: ${promptPath}`);
+    }
+
+    return readFileSync(promptPath, { encoding: "utf-8" });
   }
 
   /**
@@ -94,15 +135,27 @@ export class PdfTransformer extends ProcessorBase {
 
       this.#logger.debug(`Split PDF ${key} into images ${images.length}`);
 
+      this.#logger.debug(
+        `this.#imgToHtmlSystemPrompt ${this.#imgToHtmlSystemPrompt} `,
+      );
+
       const htmlFragments = [];
+
       for (const [i, image] of images.entries()) {
+        // if (i === 2) {
+        //   this.#logger.debug(
+        //     `Reached max 3 pages for PDF ${key}, stopping further processing.`,
+        //   );
+        //   break;
+        // }
+
         this.#logger.debug(`Sending image ${i + 1} to Copilot - ${image}`);
 
         const htmlContent = await this.#llm.imageToText(
           image,
-          this.#userPrompt,
+          `This is the image of page ${i + 1}. Convert it to HTML.`,
           this.#model,
-          this.#systemPrompt,
+          this.#imgToHtmlSystemPrompt,
           this.#maxTokens,
         );
 
@@ -121,15 +174,26 @@ export class PdfTransformer extends ProcessorBase {
       const mergedHtml = [
         "<!DOCTYPE html>",
         "<html>",
-        `<head><meta charset="utf-8"><title>${key} - PDF to HTML</title></head>`,
-        "<body>",
+        `<head><meta charset="utf-8"><title>${key}</title></head>`,
+        `<body>`,
+        `<h1>${key} </h1>`,
         ...htmlFragments,
         "</body>",
         "</html>",
       ].join("\n");
 
-      this.#logger.debug(`Merged HTML ${htmlFragments.length} fragments`);
-      return mergedHtml;
+      // this.#logger.debug(`Merged HTML ${htmlFragments.length} fragments`);
+
+      await this.#knowledgeStorage.put(key + "-merged.html", mergedHtml);
+
+      // this.#logger.debug(`Merged HTML ${mergedHtml}`);
+      // this.#logger.debug(`Merged HTML ${typeof mergedHtml}`);
+      const contextDataString = await this.#contextExtraction(key, mergedHtml);
+
+      const contextData = JSON.parse(contextDataString);
+
+      const annotatedHtml = this.#annotateHtml(key, htmlFragments, contextData);
+      return annotatedHtml;
     } finally {
       // Clean up tempDir after all processing is complete
       this.#logger.debug(`Removing tempDir ${tempDir}`);
@@ -137,6 +201,102 @@ export class PdfTransformer extends ProcessorBase {
     }
   }
 
+  /**
+   * Analyze the provided HTML presentation document and
+   * generate a structured JSON summary that describes the
+   * global context and the specific content of every single slide.
+   * @param {string} key - Storage key for logging
+   * @param {string} html - html document to extract context from
+   * @returns {Promise<string>} JSON summary
+   */
+  async #contextExtraction(key, html) {
+    this.#logger.debug(`Extracting context`);
+
+    const messages = [
+      common.Message.fromObject({
+        role: "system",
+        content: this.#contextExtractorSystemPrompt,
+      }),
+      common.Message.fromObject({
+        role: "user",
+        content: html,
+      }),
+    ];
+    this.#logger.debug(`token count of html ${countTokens(html)}`);
+    this.#logger.debug(`json ${JSON.stringify(messages)}`);
+
+    const response = await this.#llm.createCompletions(messages);
+
+    if (response.choices && response.choices.length > 0) {
+      this.#logger.debug(`response ${JSON.stringify(response)}`);
+      // const htmlContent = response.choices[0].message.content?.text || "";
+      const htmlContext = response.choices[0].message?.content || "";
+      await this.#knowledgeStorage.put(key + "-context.json", htmlContext);
+      this.#logger.debug(`Returning context ${htmlContext}`);
+      return htmlContext;
+    } else {
+      this.#logger.debug(
+        `Got an empty response from Copilot for HTML annotation"`,
+      );
+      throw new Error("Got an empty response from Copilot for HTML annotation");
+    }
+  }
+
+  /**
+   * Inject Schema.org structured data into a the HTML
+   * @param {string} key - Storage key for logging
+   * @param {string} htmlFragments - list containing html fragments
+   * @param {string} contextData - structured JSON summary that describes the
+   * global context of the HTML
+   * @returns {Promise<string>} annotated HTML
+   */
+  async #annotateHtml(key, htmlFragments, contextData) {
+    const annotatedHtml = [];
+
+    for (const [i, htmlFragment] of htmlFragments.entries()) {
+      const populatedAnnotateHtmlSystemPrompt = this.#annotateHtmlSystemPrompt
+        .replace("{global_summary}", contextData.global_summary)
+        .replace("{document_type}", contextData.document_type)
+        .replace("{slide_summary}", contextData.slides[i + 1]);
+
+      const messages = [
+        common.Message.fromObject({
+          role: "system",
+          content: populatedAnnotateHtmlSystemPrompt,
+        }),
+        common.Message.fromObject({
+          role: "user",
+          content: htmlFragment,
+        }),
+      ];
+      this.#logger.debug(`json ${JSON.stringify(messages)}`);
+
+      const response = await this.#llm.createCompletions(messages);
+
+      if (response.choices && response.choices.length > 0) {
+        this.#logger.debug(`response ${JSON.stringify(response)}`);
+        // const htmlContent = response.choices[0].message.content?.text || "";
+        annotatedHtml.push(response.choices[0].message?.content);
+      } else {
+        throw new Error(
+          `Got an empty response from Copilot for HTML annotation of page: ${i + 1}`,
+        );
+      }
+    }
+
+    const mergedHtml = [
+      "<!DOCTYPE html>",
+      "<html>",
+      `<head><meta charset="utf-8"><title>${key}</title></head>`,
+      `<body>`,
+      `<h1>${key} </h1>`,
+      ...annotatedHtml,
+      "</body>",
+      "</html>",
+    ].join("\n");
+
+    return mergedHtml;
+  }
   /**
    * Splits a PDF buffer into an array of image file paths using pdftoppm.
    * Returns both the image file paths and the temp directory for later cleanup.

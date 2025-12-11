@@ -17,7 +17,7 @@ async function main() {
   const knowledgeStorage = createStorage("knowledge");
 
   const llm = createLlm(await config.githubToken(), "gpt-4o");
-  const logger = createLogger("resources");
+  const logger = createLogger("pdf-transformer");
 
   logger.debug("Starting PDF pre-processing");
   // Process knowledge using PdfProcessor

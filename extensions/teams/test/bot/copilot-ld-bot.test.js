@@ -1,6 +1,6 @@
 import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
-import { CopilotLdBot } from "../copilotldbot.js";
+import { CopilotLdBot } from "../../lib/bot/copilot-ld-bot.js";
 
 /**
  * Minimal mock for TurnContext used in CopilotLdBot tests.
@@ -112,7 +112,10 @@ describe("CopilotLdBot", () => {
     // Then: the reply is sent, resourceId is set, and next is called
     assert.strictEqual(context.sent.length, 1);
     assert.strictEqual(context.sent[0].text, "Hello from Copilot!");
-    assert.strictEqual(bot.getResourceId("tenant1", "bot1"), "resource-xyz");
+    assert.strictEqual(
+      await bot.getResourceId("tenant1", "bot1"),
+      "resource-xyz",
+    );
     assert.ok(nextCalled);
   });
 });

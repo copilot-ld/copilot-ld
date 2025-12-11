@@ -25,7 +25,7 @@ export class HtmlRenderer {
    * @returns {void}
    */
   serve(relativePath, res, contentType = "text/html") {
-    const filePath = path.join(this.baseDir, relativePath);
+    const filePath = path.join(this.baseDir, "lib/html/views", relativePath);
     fs.readFile(filePath, (err, data) => {
       if (err) {
         res.writeHead(404, { "Content-Type": "text/plain" });
@@ -43,7 +43,7 @@ export class HtmlRenderer {
    * @returns {Promise<string>} - Resolves with HTML content as string
    */
   async readHtml(relativePath) {
-    const filePath = path.join(this.baseDir, relativePath);
+    const filePath = path.join(this.baseDir, "lib/html/views", relativePath);
     return new Promise((resolve, reject) => {
       fs.readFile(filePath, "utf8", (err, data) => {
         if (err) reject(err);

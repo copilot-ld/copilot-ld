@@ -316,16 +316,16 @@ export class ZipExtractor extends BaseExtractor {
    * @private
    */
   async #inflateData(compressedData) {
-    return new Promise((resolve, reject) => {
-      const chunks = [];
-      const inflate = createInflateRaw();
+    const chunks = [];
+    const inflate = createInflateRaw();
 
-      inflate.on("data", (chunk) => chunks.push(chunk));
-      inflate.on("end", () => resolve(Buffer.concat(chunks)));
-      inflate.on("error", reject);
+    inflate.write(compressedData);
+    inflate.end();
 
-      inflate.write(compressedData);
-      inflate.end();
-    });
+    for await (const chunk of inflate) {
+      chunks.push(chunk);
+    }
+
+    return Buffer.concat(chunks);
   }
 }

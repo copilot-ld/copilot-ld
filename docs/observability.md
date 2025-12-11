@@ -16,9 +16,9 @@ files.
 Traces consist of hierarchical spans:
 
 ```
-agent.ProcessRequest (SERVER)
-├── memory.GetWindow (CLIENT → SERVER)
+agent.ProcessStream (SERVER)
 ├── llm.CreateCompletions (CLIENT → SERVER)
+│   └── memory.GetWindow (CLIENT → SERVER)
 ├── tool.CallTool (CLIENT → SERVER)
 │   └── vector.SearchContent (SERVER)
 └── memory.AppendMemory (CLIENT → SERVER)

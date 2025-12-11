@@ -97,7 +97,9 @@ class CopilotLdBot extends ActivityHandler {
         `Teams Agent request completed for correlationId: ${correlationId}`,
       );
 
-      const replyContent = response.reply?.choices?.[0]?.message?.content;
+      const messages = response.reply?.messages || [];
+      const lastMessage = messages[messages.length - 1];
+      const replyContent = lastMessage?.content;
       const newResourceId = response.reply?.resource_id;
 
       if (newResourceId) {

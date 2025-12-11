@@ -16,13 +16,13 @@
  */
 export const TELEMETRY_ATTRIBUTES_MAP = [
   // Tool usage
+  { key: "type", type: "string" },
   { key: "function.name", type: "string" },
   { key: "tools", type: "count" },
   { key: "tool_call_id", type: "string" },
 
   // Query
-  { key: "type", type: "string" },
-  { key: "text", type: "string" },
+  { key: "input", type: "first" },
   { key: "subject", type: "string" },
   { key: "predicate", type: "string" },
   { key: "object", type: "string" },
@@ -65,18 +65,29 @@ export function extractAttributes(data) {
     const value = getNestedValue(data, config.key);
     if (value === undefined || value === null) continue;
 
-    // Replace dots in keys with underscores for attribute naming
+    // Replace dots in keys with underscores for easier JMESPath parsing
     const key = config.key.replace(/\./g, "_");
 
-    if (config.type === "count") {
-      const count = Array.isArray(value) ? value.length : 0;
-      attributes[key] = count;
-    } else if (config.type === "number") {
-      attributes[key] = Number(value);
-    } else if (config.type === "length") {
-      attributes[key] = value.length;
-    } else {
-      attributes[key] = value;
+    switch (config.type) {
+      case "count": {
+        const count = Array.isArray(value) ? value.length : 0;
+        attributes[`${key}_count`] = count;
+        break;
+      }
+      case "first": {
+        const count = Array.isArray(value) ? value.length : 0;
+        attributes[`${key}_count`] = count;
+        attributes[`${key}_0`] = value[0];
+        break;
+      }
+      case "number":
+        attributes[key] = Number(value);
+        break;
+      case "length":
+        attributes[`${key}_length`] = value.length;
+        break;
+      default:
+        attributes[key] = value;
     }
   }
 

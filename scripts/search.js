@@ -31,34 +31,41 @@ let resourceIndex;
  * Performs a semantic search using embeddings
  * @param {string} prompt - The search query text
  * @param {object} state - REPL state containing limit and threshold settings
- * @returns {Promise<string>} Formatted search results as markdown
+ * @param {import("stream").Writable} outputStream - Stream to write results to
  */
-async function performSearch(prompt, state) {
+async function performSearch(prompt, state, outputStream) {
+  outputStream.write(`Searching content index...\n\n`);
+
   const { limit, threshold } = state;
 
   const llm = createLlm(await config.githubToken());
   const embeddings = await llm.createEmbeddings([prompt]);
 
-  const identifiers = await vectorIndex.queryItems(embeddings[0].embedding, {
-    threshold: threshold,
-    limit: limit > 0 ? limit : 0,
-  });
+  const identifiers = await vectorIndex.queryItems(
+    embeddings.data.map((item) => item.embedding),
+    {
+      threshold: threshold,
+      limit: limit > 0 ? limit : 0,
+    },
+  );
+
+  if (identifiers.length === 0) {
+    outputStream.write("No results found.\n");
+    return;
+  }
 
   const resources = await resourceIndex.get(identifiers, "common.System.root");
 
-  let output = ``;
-  output += `Searching content index\n\n`;
   identifiers.forEach((identifier, i) => {
     const resource = resources.find((r) => r.id.name === identifier.name);
     if (!resource) return;
 
     const text = resource.content;
 
-    output += `# ${i + 1}: ${identifier} (${identifier.score.toFixed(4)})\n\n`;
+    let output = `# ${i + 1}: ${identifier} (${identifier.score.toFixed(4)})\n\n`;
     output += `\n\n\`\`\`json\n${text.substring(0, 500)}\n\`\`\`\n\n`;
+    outputStream.write(output);
   });
-
-  return output;
 }
 
 // Create REPL with dependency injection

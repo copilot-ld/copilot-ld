@@ -152,9 +152,9 @@ describe("libcopilot", () => {
       assert.strictEqual(body.dimensions, 256);
       assert.deepStrictEqual(body.input, texts);
 
-      assert.strictEqual(result.length, 2);
-      assert.ok(result[0].embedding);
-      assert.ok(result[1].embedding);
+      assert.strictEqual(result.data.length, 2);
+      assert.ok(result.data[0].embedding);
+      assert.ok(result.data[1].embedding);
     });
 
     test("createEmbeddings retries on 429 status", async () => {
@@ -188,7 +188,7 @@ describe("libcopilot", () => {
 
       // Should retry once and then succeed
       assert(mockFetch.mock.callCount() >= 2);
-      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result.data.length, 1);
     });
 
     test("createEmbeddings throws error immediately on non-429 HTTP error", async () => {

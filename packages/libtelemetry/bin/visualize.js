@@ -13,7 +13,7 @@ Apply filters to narrow down traces before querying.
 
 **Examples:**
 
-    echo "[?name=='ProcessRequest']" | npm -s run cli:visualize
+    echo "[?name=='ProcessStream']" | npm -s run cli:visualize
     echo "[]" | npm -s run cli:visualize -- --trace 0f53069dbc62d
     echo "[?kind==\`2\`]" | npm -s run cli:visualize
     echo "[?contains(name, 'QueryByPattern')]" | npm -s run cli:visualize -- --resource common.Conversation.abc123`;
@@ -22,9 +22,9 @@ Apply filters to narrow down traces before querying.
  * Queries and visualizes traces using JMESPath
  * @param {string} prompt - The JMESPath query expression
  * @param {object} state - REPL state containing trace filters and indices
- * @returns {Promise<string>} Trace visualization wrapped in mermaid code block
+ * @param {import("stream").Writable} outputStream - Stream to write results to
  */
-async function queryTraces(prompt, state) {
+async function queryTraces(prompt, state, outputStream) {
   const { trace_id, resource_id, visualizer } = state;
 
   const filter = {};
@@ -42,11 +42,11 @@ async function queryTraces(prompt, state) {
 
   // If no spans found, return as-is
   if (visualization.startsWith("No spans found")) {
-    return visualization;
+    outputStream.write(visualization);
+  } else {
+    // Wrap raw Mermaid syntax in code block
+    outputStream.write(`\`\`\`mermaid\n${visualization}\n\`\`\``);
   }
-
-  // Wrap raw Mermaid syntax in code block
-  return `\`\`\`mermaid\n${visualization}\n\`\`\``;
 }
 
 // Create REPL with dependency injection

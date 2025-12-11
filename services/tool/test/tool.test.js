@@ -74,7 +74,7 @@ describe("tool service", () => {
       const result = await service.CallTool({
         id: "test-call",
         function: {
-          id: { name: "unknown.tool" },
+          name: "unknown.tool",
         },
       });
 
@@ -99,7 +99,7 @@ describe("tool service", () => {
       const result = await service.CallTool({
         id: "test-call",
         function: {
-          id: { name: "invalid.tool" },
+          name: "invalid.tool",
           arguments: "{}",
         },
       });
@@ -115,7 +115,7 @@ describe("tool service", () => {
       const result = await service.CallTool({
         id: "test-call-123",
         function: {
-          id: { name: "nonexistent.tool" },
+          name: "nonexistent.tool",
         },
       });
 

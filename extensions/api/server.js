@@ -2,13 +2,13 @@ import http from "node:http";
 import { clients } from "@copilot-ld/librpc";
 import { agent, common } from "@copilot-ld/libtype";
 import { createLogger } from "@copilot-ld/libtelemetry";
-import { Authorizer } from "./auth.js";
+import { LocalSecretAuthorizer } from "./auth.js";
 import { parseBody } from "./http.js";
 
 /**
- * HTTP server for hosting a Microsoft Teams bot using Copilot-LD.
+ * HTTP server for hosting a API extension using Copilot-LD.
  */
-export class AgentServer {
+export class Server {
   #agentConfig;
   #agentClient;
   #authorizer;
@@ -16,10 +16,10 @@ export class AgentServer {
   #server;
 
   /**
-   * Creates a new TeamsAgentServer instance
+   * Creates a new Server instance
    * @param {object} agentConfig - Service configuration
    * @param {object} agentClient - Agent client for processing requests
-   * @param {import('./auth.js').Authorizer} authorizer - Authorizer instance
+   * @param {import('./auth.js').LocalSecretAuthorizer} authorizer - Authorizer instance
    * @param {object} logger - Logger instance
    */
   constructor(agentConfig, agentClient, authorizer, logger) {
@@ -89,7 +89,7 @@ export class AgentServer {
 
     try {
       const requestParams = await this.#buildAgentRequest(message, resourceId);
-      const response = await this.#agentClient.ProcessRequest(requestParams);
+      const response = await this.#agentClient.ProcessUnary(requestParams);
 
       this.#logger.debug("handleApiMessages", "Request completed", {
         correlationId,
@@ -148,13 +148,13 @@ export class AgentServer {
 }
 
 /**
- * Creates and configures a new TeamsAgentServer instance
+ * Creates and configures a new Server instance
  * @param {object} agentConfig - Service configuration
  * @param {object} extensionConfig - Extension configuration
  * @param {object} agentClient - Agent client for processing requests
- * @param {import('./auth.js').Authorizer} authorizer - Authorizer instance
+ * @param {import('./auth.js').LocalSecretAuthorizer} authorizer - Authorizer instance
  * @param {object} logger - Logger instance (optional, creates default if not provided)
- * @returns {AgentServer} Configured server instance
+ * @returns {Server} Configured server instance
  */
 export default function createServer(
   agentConfig,
@@ -164,13 +164,13 @@ export default function createServer(
   logger,
 ) {
   if (!logger) {
-    logger = createLogger("teamsagent");
+    logger = createLogger("api");
   }
   if (!agentClient) {
     agentClient = new clients.AgentClient(agentConfig);
   }
   if (!authorizer) {
-    authorizer = new Authorizer(extensionConfig.secret);
+    authorizer = new LocalSecretAuthorizer(extensionConfig.secret);
   }
-  return new AgentServer(agentConfig, agentClient, authorizer, logger);
+  return new Server(agentConfig, agentClient, authorizer, logger);
 }

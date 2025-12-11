@@ -1,6 +1,7 @@
 /* eslint-env node */
 import os from "os";
 import readline from "readline";
+import { Readable, PassThrough } from "stream";
 
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 
@@ -8,7 +9,7 @@ import { createTerminalFormatter } from "@copilot-ld/libformat";
  * REPL application configuration
  * @typedef {object} ReplApp
  * @property {string} [prompt="> "] - Prompt string displayed to the user
- * @property {(line: string, state: object) => Promise<string>} [onLine] - Handler for input lines that returns response text
+ * @property {(line: string, state: object, output: import("stream").Writable) => Promise<void>} [onLine] - Handler for input lines that writes to output stream
  * @property {(state: object) => Promise<void>} [beforeLine] - Handler called before each line is processed
  * @property {(state: object) => Promise<void>} [afterLine] - Handler called after each line is processed
  * @property {(state: object) => Promise<void>} [setup] - Setup function to run before starting the REPL
@@ -90,11 +91,7 @@ export class Repl {
       setup: null,
       state: {},
       ...app,
-      // Merge built-in commands with custom commands, allowing custom commands to override
-      commands: {
-        ...defaultCommands,
-        ...(app.commands || {}),
-      },
+      commands: { ...defaultCommands, ...(app.commands || {}) },
     };
     this.#rl = null;
 
@@ -185,19 +182,23 @@ export class Repl {
 
   /**
    * Formats and writes output to stdout
-   * @param {string} text - Text to output
+   * @param {import("stream").Readable} output - Stream to output
    * @returns {Promise<void>} Promise that resolves when output is complete
    */
-  async #output(text) {
-    if (text !== undefined && text !== null) {
-      // Always print a blank line after the reply
-      const formatted = "\n" + this.#formatter.format(text).trim() + "\n\n";
-      return new Promise((resolve) => {
-        this.#process.stdout.write(formatted, () => {
-          // Add a small delay to ensure the output is visually complete
-          setTimeout(resolve, 10);
-        });
-      });
+  async #output(output) {
+    if (!output) return;
+
+    let firstChunk = true;
+
+    for await (const chunk of output) {
+      if (firstChunk) {
+        this.#process.stdout.write("\n");
+        firstChunk = false;
+      }
+      const text = chunk.toString();
+      if (text) {
+        this.#process.stdout.write(this.#formatter.format(text));
+      }
     }
   }
 
@@ -227,12 +228,17 @@ export class Repl {
 
     // Handle regular input
     if (this.#app.onLine) {
+      const outputStream = new PassThrough();
+      const outputPromise = this.#output(outputStream);
+
       try {
-        const result = await this.#app.onLine(trimmed, this.state);
-        await this.#output(result);
+        await this.#app.onLine(trimmed, this.state, outputStream);
       } catch {
         // Error is already logged by libtelemetry logger in the service layer
         // Don't duplicate error output to stderr
+      } finally {
+        outputStream.end();
+        await outputPromise.catch(() => {});
       }
     }
 
@@ -259,7 +265,10 @@ export class Repl {
     if (command && command.handler) {
       try {
         const result = await command.handler(args, this.state);
-        await this.#output(result);
+        // Only output if result is a stream (ignore boolean/null)
+        if (result && typeof result.on === "function") {
+          await this.#output(result);
+        }
       } catch {
         // Error is already logged by libtelemetry logger if handler uses it
         // Don't duplicate error output to stderr
@@ -301,7 +310,7 @@ export class Repl {
       output += `\`/${name}\` ${usage}\n`;
     }
 
-    await this.#output(output);
+    await this.#output(Readable.from([output]));
   }
 
   /**

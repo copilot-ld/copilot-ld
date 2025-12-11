@@ -10,24 +10,60 @@ import sanitizeHtml from "sanitize-html";
  */
 
 /**
+ * Replaces details/summary tags in text using a callback
+ * @param {string} text - Text to process
+ * @param {Function} replacer - Callback function ({ attributes, summary, content }) => string
+ * @returns {string} Processed text
+ */
+function replaceDetails(text, replacer) {
+  return text.replace(
+    /<details([^>]*)>([\s\S]*?)<\/details>/gi,
+    (match, attributes, inner) => {
+      const summaryRegex = /(<summary[^>]*>)([\s\S]*?)(<\/summary>)/i;
+      const summaryMatch = summaryRegex.exec(inner);
+
+      let summary = null;
+      let content = inner;
+
+      if (summaryMatch) {
+        summary = {
+          full: summaryMatch[0],
+          open: summaryMatch[1],
+          content: summaryMatch[2],
+          close: summaryMatch[3],
+        };
+        content = inner.replace(summaryMatch[0], "");
+      }
+
+      return replacer({
+        match,
+        attributes,
+        summary,
+        content,
+      });
+    },
+  );
+}
+
+/**
  * Formats markdown content to sanitized HTML
  * @implements {FormatterInterface}
  */
 export class HtmlFormatter {
-  #sanitizeHtml;
+  #sanitize;
   #marked;
   #htmlMarked;
 
   /**
    * Creates an HTML formatter with required dependencies
-   * @param {object} sanitizeHtml - sanitize-html sanitizer
+   * @param {object} sanitizeFn - sanitize-html sanitizer
    * @param {object} marked - Marked markdown parser
    */
-  constructor(sanitizeHtml, marked) {
-    if (!sanitizeHtml) throw new Error("sanitizeHtml dependency is required");
+  constructor(sanitizeFn, marked) {
+    if (!sanitizeFn) throw new Error("sanitizeFn dependency is required");
     if (!marked) throw new Error("marked dependency is required");
 
-    this.#sanitizeHtml = sanitizeHtml;
+    this.#sanitize = sanitizeFn;
     this.#marked = marked;
 
     // Initialize the HTML marked instance with configuration
@@ -38,39 +74,62 @@ export class HtmlFormatter {
   }
 
   /**
+   * Formats text content inside details elements in paragraph tags
+   * @param {string} html - Raw HTML content
+   * @returns {string} HTML with wrapped details content
+   */
+  #formatDetails(html) {
+    return replaceDetails(html, ({ match, attributes, summary, content }) => {
+      if (!content.trim()) return match;
+
+      let formatted = this.#htmlMarked.parse(content);
+      if (!formatted.trim().toLowerCase().startsWith("<p")) {
+        formatted = `<p>${formatted}</p>`;
+      }
+
+      const summaryHtml = summary ? summary.full : "";
+      return `<details${attributes}>${summaryHtml}${formatted}</details>`;
+    });
+  }
+
+  /**
    * Formats markdown content to the target format
    * @param {string} markdown - Markdown content to format
    * @returns {string} Sanitized HTML with allowed tags and attributes
    */
   format(markdown) {
     const rawHtml = this.#htmlMarked.parse(markdown);
-    return this.#sanitizeHtml(rawHtml, {
+    const formattedHtml = this.#formatDetails(rawHtml);
+
+    return this.#sanitize(formattedHtml, {
       allowedTags: [
-        "p",
+        "a",
+        "blockquote",
         "br",
-        "strong",
+        "code",
+        "details",
         "em",
-        "u",
         "h1",
         "h2",
         "h3",
         "h4",
         "h5",
         "h6",
-        "ul",
-        "ol",
-        "li",
-        "blockquote",
-        "code",
-        "pre",
-        "a",
         "img",
+        "li",
+        "ol",
+        "p",
+        "pre",
+        "strong",
+        "summary",
         "table",
-        "thead",
         "tbody",
-        "tr",
-        "th",
         "td",
+        "th",
+        "thead",
+        "tr",
+        "u",
+        "ul",
       ],
       allowedAttributes: {
         a: ["href", "title"],
@@ -117,12 +176,36 @@ export class TerminalFormatter {
   }
 
   /**
+   * Formats details/summary tags into terminal-friendly markdown
+   * @param {string} markdown - Raw markdown content
+   * @returns {string} Markdown with details converted to blockquotes
+   */
+  #formatDetails(markdown) {
+    return replaceDetails(markdown, ({ summary, content }) => {
+      const parts = [];
+      if (summary) parts.push(`**${summary.content.trim()}**`);
+      if (content.trim()) parts.push(content.trim());
+
+      return (
+        "\n" +
+        parts
+          .join("\n\n")
+          .split("\n")
+          .map((line) => `> ${line}`)
+          .join("\n") +
+        "\n"
+      );
+    });
+  }
+
+  /**
    * Formats markdown content to the target format
    * @param {string} markdown - Markdown content to format
    * @returns {string} Terminal-formatted text with ANSI escape codes
    */
   format(markdown) {
-    const formatted = this.#terminalMarked.parse(markdown);
+    const processed = this.#formatDetails(markdown);
+    const formatted = this.#terminalMarked.parse(processed);
     // Reduce the length of horizontal lines by replacing long sequences of dashes
     return formatted.replace(/-{73,}/g, "-".repeat(72));
   }

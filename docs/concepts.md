@@ -196,15 +196,13 @@ components work together.
    Teams bot, etc.)
 2. **Agent Orchestration**: Agent service receives the request and validates
    authentication
-3. **Memory Assembly**: Agent requests a memory window with conversation history
-   and available tools
-4. **Context Retrieval**: Agent resolves resource identifiers to actual content,
-   with policy filtering applied
-5. **Completion Generation**: Agent sends assembled context to LLM service for
-   response generation
-6. **Tool Execution**: If the LLM decides to call tools, Agent executes them and
+3. **Memory Assembly**: Memory service builds a window with conversation history
+   and tools from the assistant configuration
+4. **Completion Generation**: Agent sends assembled messages and tools to LLM
+   service for response generation
+5. **Tool Execution**: If the LLM decides to call tools, Agent executes them and
    continues the loop
-7. **Response**: Final completion is saved to memory and returned to the client
+6. **Response**: Final completion is saved to memory and streamed to the client
 
 This flow is **sequential per request** but multiple requests can be processed
 concurrently. The agent makes intelligent decisions at each step rather than

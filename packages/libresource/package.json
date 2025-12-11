@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libresource",
-  "version": "0.1.77",
+  "version": "0.1.82",
   "description": "Resource management for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -22,12 +22,12 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libcopilot": "^0.1.59",
-    "@copilot-ld/libpolicy": "^0.1.40",
-    "@copilot-ld/libstorage": "^0.1.41",
-    "@copilot-ld/libtelemetry": "^0.1.12",
-    "@copilot-ld/libtype": "^0.1.53",
-    "@copilot-ld/libutil": "^0.1.50",
+    "@copilot-ld/libcopilot": "^0.1.64",
+    "@copilot-ld/libpolicy": "^0.1.44",
+    "@copilot-ld/libstorage": "^0.1.45",
+    "@copilot-ld/libtelemetry": "^0.1.16",
+    "@copilot-ld/libtype": "^0.1.57",
+    "@copilot-ld/libutil": "^0.1.54",
     "html-minifier-terser": "^7.2.0"
   },
   "devDependencies": {

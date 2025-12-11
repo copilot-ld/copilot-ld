@@ -133,7 +133,7 @@ Check retrieved context (replace `<resource-id>` with actual ID from eval
 output):
 
 ```bash
-cat data/memories/<resource-id>.jsonl | jq -c 'select(.identifier.subject != "") | .identifier.subject'
+cat data/memories/<resource-id>.jsonl | jq -c 'select(.identifier.subjects | length > 0) | .identifier.subjects'
 ```
 
 Visualize trace spans:

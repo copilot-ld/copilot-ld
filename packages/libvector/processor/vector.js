@@ -38,9 +38,11 @@ export class VectorProcessor extends ProcessorBase {
     // 1. Get all resource identifiers
     const identifiers = await this.#resourceIndex.findAll();
 
-    // 2. Filter out conversations and their child resources
+    // 2. Filter out conversations, their child resources, and tool functions
     const filteredIdentifiers = identifiers.filter(
-      (id) => !String(id).startsWith("common.Conversation"),
+      (id) =>
+        !String(id).startsWith("common.Conversation") &&
+        !String(id).startsWith("tool.ToolFunction"),
     );
 
     // 3. Load the full resources using the identifiers
@@ -86,7 +88,7 @@ export class VectorProcessor extends ProcessorBase {
   async processItem(item) {
     const texts = [item.text];
     const embeddings = await this.#llm.createEmbeddings(texts);
-    const vector = embeddings[0].embedding;
+    const vector = embeddings.data[0].embedding;
 
     await this.#vectorIndex.add(item.identifier, vector);
     return vector;

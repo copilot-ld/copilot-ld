@@ -131,7 +131,7 @@ export class ResourceProcessor extends ProcessorBase {
           if (this.#parser.isMainItem(parsedItem.iri, mergedQuads)) {
             const item = {
               name,
-              subject: parsedItem.iri,
+              subjects: [parsedItem.iri],
               quads: mergedQuads,
             };
             items.push(item);
@@ -149,7 +149,7 @@ export class ResourceProcessor extends ProcessorBase {
       // New entity - add to items and track
       const item = {
         name,
-        subject: parsedItem.iri,
+        subjects: [parsedItem.iri],
         quads: parsedItem.quads,
       };
       items.push(item);
@@ -161,14 +161,14 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Processes an extracted item into a complete Message resource
-   * @param {object} item - Item object with name, subject, and quads properties
+   * @param {object} item - Item object with name, subjects, and quads properties
    * @returns {Promise<object>} Typed Message resource stored in ResourceIndex
    */
   async processItem(item) {
-    const { name, subject, quads } = item;
+    const { name, subjects, quads } = item;
 
     const message = {
-      id: { name, subject },
+      id: { name, subjects },
       role: "system",
       content: await this.#parser.quadsToRdf(quads),
     };

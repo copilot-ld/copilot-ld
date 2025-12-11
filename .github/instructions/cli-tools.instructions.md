@@ -18,13 +18,15 @@ exploration. All tools accept piped input for automation.
 
 ### Available Tools
 
-| Tool            | Purpose                      | Basic Usage                              |
-| --------------- | ---------------------------- | ---------------------------------------- |
-| `cli:chat`      | Agent conversations          | `echo "query" \| npm -s run cli:chat`    |
-| `cli:search`    | Vector similarity search     | `echo "query" \| npm -s run cli:search`  |
-| `cli:query`     | Graph triple pattern queries | `echo "s p o" \| npm -s run cli:query`   |
-| `cli:subjects`  | List graph subjects by type  | `echo "type" \| npm -s run cli:subjects` |
-| `cli:visualize` | Trace visualization          | `echo "[]" \| npm -s run cli:visualize`  |
+| Tool             | Purpose                      | Basic Usage                              |
+| ---------------- | ---------------------------- | ---------------------------------------- |
+| `cli:chat`       | Agent conversations          | `echo "query" \| npm -s run cli:chat`    |
+| `cli:search`     | Vector similarity search     | `echo "query" \| npm -s run cli:search`  |
+| `cli:query`      | Graph triple pattern queries | `echo "s p o" \| npm -s run cli:query`   |
+| `cli:subjects`   | List graph subjects by type  | `echo "type" \| npm -s run cli:subjects` |
+| `cli:visualize`  | Trace visualization          | `echo "[]" \| npm -s run cli:visualize`  |
+| `cli:window`     | Fetch memory window as JSON  | `npm -s run cli:window -- <resource_id>` |
+| `cli:completion` | Send window to LLM API       | `... \| npm -s run cli:completion`       |
 
 ### Command Syntax
 
@@ -72,6 +74,13 @@ echo "[]" | npm -s run cli:visualize # All spans
 echo '[?kind==`2`]' | npm -s run cli:visualize # SERVER spans, pay attention to string and numeric quoting
 echo '[?kind==`3`]' | npm -s run cli:visualize # CLIENT spans, pay attention to string and numeric quoting
 echo "[?contains(name, 'llm')]" | npm -s run cli:visualize # LLM spans
+```
+
+Debug memory windows → test LLM completions:
+
+```bash
+npm -s run cli:window -- common.Conversation.<id> 2>/dev/null  # Fetch window JSON
+npm -s run cli:window -- <id> 2>/dev/null | npm -s run cli:completion 2>/dev/null  # Test completion
 ```
 
 ## Prohibitions

@@ -36,7 +36,7 @@ export class Utils {
    */
   static isPdftoppmAvailable() {
     const result = spawnSync("pdftoppm", ["-v"], { encoding: "utf8" });
-    return result.status === 0 || result.stdout?.includes("pdftoppm");
+    return result.status === 0 || Boolean(result.stdout?.includes("pdftoppm"));
   }
 
   /**

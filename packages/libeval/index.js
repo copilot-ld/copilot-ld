@@ -75,12 +75,12 @@ export class Evaluator {
       model: this.#model,
     });
 
-    const response = await this.#agentClient.ProcessRequest(request);
+    const response = await this.#agentClient.ProcessUnary(request);
     const resource = response.resource_id;
 
     // Determine evaluation type and dispatch based on scenario.type
     let result;
-    if (scenario.type === "criteria") {
+    if (scenario.type === "criteria" || scenario.type === "judge") {
       result = await this.#judgeEvaluator.evaluate(scenario, response);
     } else if (scenario.type === "recall") {
       result = await this.#recallEvaluator.evaluate(

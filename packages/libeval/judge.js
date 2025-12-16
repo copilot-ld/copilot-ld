@@ -47,11 +47,21 @@ export class JudgeEvaluator {
       throw new Error(`Scenario ${scenario.name} missing evaluations`);
     }
 
-    if (!response.choices || response.choices.length === 0) {
-      throw new Error(`No choices in agent response for ${scenario.id}`);
+    if (!response.messages || response.messages.length === 0) {
+      throw new Error(`No messages in agent response for ${scenario.name}`);
     }
 
-    const responseContent = response.choices[0].message.content;
+    // Get the last assistant message as the response content
+    const assistantMessages = response.messages.filter(
+      (m) => m.role === "assistant",
+    );
+    if (assistantMessages.length === 0) {
+      throw new Error(
+        `No assistant messages in agent response for ${scenario.name}`,
+      );
+    }
+
+    const responseContent = assistantMessages[assistantMessages.length - 1].content;
 
     // Add indices to evaluations for template rendering
     const evaluationsWithIndex = scenario.evaluations.map(

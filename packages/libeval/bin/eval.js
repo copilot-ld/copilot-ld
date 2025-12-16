@@ -74,10 +74,7 @@ function getModels(config, modelArg) {
 function getGithubToken() {
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
-    logger.error(
-      "main",
-      new Error("GITHUB_TOKEN environment variable is required"),
-    );
+    console.error("Error: GITHUB_TOKEN environment variable is required");
     process.exit(1);
   }
   return githubToken;
@@ -208,6 +205,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  logger.error("Evaluator", error);
+  console.error("Error:", error.message || error);
   process.exit(1);
 });

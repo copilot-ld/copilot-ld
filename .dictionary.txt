@@ -133,6 +133,8 @@ JSDoc
 JSON
 JSON-LD
 JSON-ND
+JSON-RPC
+json-rpc
 JSON-structured
 JSONL
 JWT
@@ -158,6 +160,8 @@ lifecycle
 Lifecycle
 llm
 LLM
+LSP-style
+lsp-style
 LLM-as-a-judge
 LLMs
 localhost
@@ -180,6 +184,8 @@ MinIO
 minioadmin
 modularity
 monorepo
+MCP
+mcp
 mTLS
 N3
 NACLs

@@ -48,8 +48,11 @@ if (document.querySelector(".language-mermaid")) {
     startOnLoad: false,
     theme: "neutral",
   });
-  // Run mermaid on code blocks with language-mermaid class
+  // Run Mermaid on code blocks with language-mermaid class.
+  // Our doc builder emits: <pre><code class="language-mermaid">...</code></pre>
   mermaid.run({
-    nodes: document.querySelectorAll(".language-mermaid code"),
+    nodes: document.querySelectorAll(
+      "code.language-mermaid, pre.language-mermaid code",
+    ),
   });
 }

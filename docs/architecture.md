@@ -104,15 +104,15 @@ and when:
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Extension as Extensions
-    participant Agent as Agent service
-    participant Memory as Memory service
-    participant LLM as LLM service
-    participant Tool as Tool service
-    participant Vector as Vector service
-    participant ContentIndex as Content Vector Index
-    participant ResourceIndex as Resource Index
-    participant GitHub as GitHub API
+  participant Extension as "Extensions"
+  participant Agent as "Agent service"
+  participant Memory as "Memory service"
+  participant LLM as "LLM service"
+  participant Tool as "Tool service"
+  participant Vector as "Vector service"
+  participant ContentIndex as "Content Vector Index"
+  participant ResourceIndex as "Resource Index"
+  participant GitHub as "GitHub API"
 
     Client->>Extension: REST request
     Extension->>Agent: RPC request (ProcessStream)
@@ -171,13 +171,13 @@ searchable formats. This happens offline during the build process:
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant Scripts as Processing Scripts
-    participant HTML as HTML Files
-    participant ResourceProc as Resource Processor
-    participant ResourceIndex as Resource Index
-    participant LLM as LLM API
-    participant VectorProc as Vector Processor
-    participant VectorIndex as Vector Indexes
+  participant Scripts as "Processing Scripts"
+  participant HTML as "HTML Files"
+  participant ResourceProc as "Resource Processor"
+  participant ResourceIndex as "Resource Index"
+    participant LLM as "LLM API"
+  participant VectorProc as "Vector Processor"
+  participant VectorIndex as "Vector Indexes"
 
     Note over Dev,VectorIndex: Offline Processing Pipeline
 
@@ -318,8 +318,8 @@ sequenceDiagram
     participant Agent
     participant Memory
     participant LLM
-    participant Trace as Trace Service
-    participant Storage as data/traces/
+  participant Trace as "Trace Service"
+  participant Storage as "data/traces/"
 
     Note over Client,Storage: All operations automatically traced
 

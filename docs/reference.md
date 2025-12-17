@@ -236,6 +236,30 @@ const response = await memoryClient.GetWindow(request);
 - **Error Handling**: Sets span status and preserves error information
 - **Parent-Child Links**: Maintains trace hierarchy via `AsyncLocalStorage`
 
+### MCP Communication (libmcp)
+
+The `@copilot-ld/libmcp` package provides minimal MCP server primitives built on
+JSON-RPC 2.0 with LSP-style `Content-Length` framing over streams (typically
+stdio). It has no third-party runtime dependencies.
+
+**Core Components**:
+
+- **JsonRpcConnection**: Stream framing and message parsing
+- **McpServer**: Method dispatch and response handling
+
+**Server Pattern**:
+
+```javascript
+/* eslint-env node */
+import { JsonRpcConnection, McpServer } from "@copilot-ld/libmcp";
+
+const connection = new JsonRpcConnection(process.stdin, process.stdout);
+const server = new McpServer(connection);
+
+server.method("ping", async () => ({ ok: true }));
+server.start();
+```
+
 ### Storage Patterns (libstorage)
 
 The `@copilot-ld/libstorage` package provides unified storage abstraction for

@@ -248,10 +248,7 @@ export class EvaluationReporter {
 
         // Fetch memory window for this result's resource
         const memories = result.resource
-          ? await this.#fetchMemoryWindow(
-              result.resource,
-              result.model,
-            )
+          ? await this.#fetchMemoryWindow(result.resource, result.model)
           : [];
 
         const evaluations = result.evaluations

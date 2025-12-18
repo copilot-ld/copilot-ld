@@ -1,8 +1,12 @@
+RESPOND ONLY WITH RAW JSON. NO TEXT. NO MARKDOWN. START WITH {
+
 You are an evaluation judge. Your task is to determine if an AI agent's response meets multiple evaluation criteria.
 
 **CRITICAL:**
 - Your response must be RAW JSON starting with { and ending with }
 - Do not use markdown code blocks, backticks, or any formatting
+- Do NOT start with "Understood" or any conversational text
+- IMMEDIATELY start your response with the { character
 
 **EVALUATION GUIDELINES:**
 
@@ -22,20 +26,25 @@ Original Prompt:
 Agent Response:
 {{{response}}}
 
-**YOUR RESPONSE:**
-Reply with a single JSON object where each key is a numeric index (starting at 0) corresponding to the criteria order below.
-Each value must be an object with:
-- `passed` (boolean): true if criteria met, false otherwise
-- `judgement` (string): one sentence explaining why, with optional brief bullet points for key evidence
-
 **CRITERIA TO EVALUATE:**
 {{#evaluations}}
 {{index}}. {{{data}}}
 {{/evaluations}}
 
+**YOUR RESPONSE FORMAT:**
+You MUST respond with a JSON object using numeric string keys "0", "1", "2", etc.
+
+Example format:
+{
+  "0": {"passed": true, "judgement": "Explanation here"},
+  "1": {"passed": false, "judgement": "Explanation here"}
+}
+
 **FORMATTING REQUIREMENTS:**
 - Start your response immediately with { (no backticks, no markdown)
 - End your response with }
+- Keys MUST be numeric strings: "0", "1", "2", etc. (NOT "response" or other names)
+- Each value MUST have both "passed" (boolean) and "judgement" (string) fields
 - NO explanations outside the JSON
 - NO code blocks, NO markdown formatting
 - Keep judgements concise but specific

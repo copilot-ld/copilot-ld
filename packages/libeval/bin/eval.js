@@ -10,6 +10,7 @@ import {
   TraceEvaluator,
 } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
+import { createResourceIndex } from "@copilot-ld/libresource";
 import { clients, createTracer } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
@@ -142,6 +143,9 @@ async function main() {
   // Initialize evaluation index for storing results
   const evaluationIndex = new EvaluationIndex(evalStorage);
 
+  // Initialize resource index for storing conversation resources
+  const resourceIndex = createResourceIndex("resources");
+
   // The agent client is the one doing evaluations, so this gets tracing
   const tracer = await createTracer("agent");
   const agentConfig = await createServiceConfig("agent");
@@ -151,7 +155,13 @@ async function main() {
   const scenarios = await loadScenarios(configStorage, args.scenario);
 
   // Create evaluators
-  const judgeEvaluator = new JudgeEvaluator(llmClient, githubToken, judgeModel);
+  const judgeEvaluator = new JudgeEvaluator(
+    llmClient,
+    memoryClient,
+    resourceIndex,
+    githubToken,
+    judgeModel,
+  );
   const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
   const traceEvaluator = new TraceEvaluator(traceClient);
 

@@ -29,25 +29,31 @@ export class RecallEvaluator {
    * @param {object} scenario - Scenario with evaluations array containing subject IRIs
    * @param {string} resourceId - Resource ID from agent response
    * @param {object} agentResponse - Agent response containing the assistant message
+   * @param {string} model - Model name for memory window budget calculation
    * @returns {Promise<object>} Evaluation result
    */
-  async evaluate(scenario, resourceId, agentResponse) {
+  async evaluate(scenario, resourceId, agentResponse, model) {
     if (!scenario.evaluations || scenario.evaluations.length === 0) {
       throw new Error(`Scenario ${scenario.name} missing evaluations`);
     }
+    if (!model) throw new Error("model is required");
 
     // Get memory window with all resource context
     const windowRequest = memory.WindowRequest.fromObject({
       resource_id: resourceId,
+      model,
       budget: this.#agentConfig.budget?.tokens,
       allocation: this.#agentConfig.budget?.allocation,
     });
     const memoryWindow = await this.#memoryClient.GetWindow(windowRequest);
 
-    // Extract retrieved subjects from context identifiers
-    const retrievedSubjects = memoryWindow.context
-      .map((identifier) => identifier.subject)
-      .filter((subject) => subject); // Remove empty subjects
+    // Extract retrieved subjects from message identifiers
+    const retrievedSubjects = [];
+    for (const message of memoryWindow.messages) {
+      if (message.id && message.id.subjects) {
+        retrievedSubjects.push(...message.id.subjects);
+      }
+    }
 
     // Calculate recall
     const retrievedSet = new Set(retrievedSubjects);

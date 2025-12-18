@@ -159,6 +159,7 @@ Lifecycle
 llm
 LLM
 LLM-as-a-judge
+LLM-enhanced
 LLMs
 localhost
 lookup
@@ -330,6 +331,7 @@ uuid
 UUID
 viewport
 VPC
+webpage
 warmup
 WASM
 webpack

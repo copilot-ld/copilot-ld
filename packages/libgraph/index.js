@@ -79,3 +79,21 @@ export function createGraphIndex(prefix) {
 // GraphIndex is NOT exported to avoid circular dependency - import from ./index/graph.js
 // OntologyProcessor is NOT exported to avoid unnecessary dependencies - import from ./processor/ontology.js
 export { ShaclSerializer } from "./serializer.js";
+export {
+  loadSchemaDefinitions,
+  saveSchemaDefinitions,
+  getSchemaDefinition,
+  getProps,
+  hasSchemaDefinition,
+  addSchemaDefinition,
+  mergeAliases,
+  addExamples,
+  getDefinedTypes,
+  clearSchemaCache,
+  toShortName,
+  toFullIRI,
+} from "./schema.js";
+export {
+  detectSynonyms,
+  updateSchemaWithDiscoveries,
+} from "./processor/llm-normalizer.js";

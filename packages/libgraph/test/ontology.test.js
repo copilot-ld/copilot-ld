@@ -261,16 +261,15 @@ describe("OntologyProcessor", () => {
       processor.process(typeQuad);
       const data = processor.getData();
 
-      assert.ok(data.classSubjects instanceof Map);
-      assert.ok(data.subjectClasses instanceof Map);
-      assert.ok(data.classPredicates instanceof Map);
-      assert.ok(data.predicateCounts instanceof Map);
-      assert.ok(data.predicateObjectTypes instanceof Map);
-      assert.ok(data.inversePredicates instanceof Map);
+      assert.ok(data.typeInstances instanceof Map);
+      assert.ok(data.typeProperties instanceof Map);
+      assert.ok(data.propertyObjectTypes instanceof Map);
+      assert.ok(data.typeExamples instanceof Map);
+      assert.ok(data.entityNames instanceof Map);
     });
 
-    test("computes inverse predicates", () => {
-      // Create two people with bidirectional relationship
+    test("tracks property object types", () => {
+      // Create two people with relationship
       const person1Type = {
         subject: namedNode("http://example.org/person/1"),
         predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
@@ -290,22 +289,15 @@ describe("OntologyProcessor", () => {
         object: namedNode("http://example.org/person/2"),
       };
 
-      // Person 2 knows Person 1 (bidirectional)
-      const knows2to1 = {
-        subject: namedNode("http://example.org/person/2"),
-        predicate: namedNode("http://schema.org/knows"),
-        object: namedNode("http://example.org/person/1"),
-      };
-
       processor.process(person1Type);
       processor.process(person2Type);
       processor.process(knows1to2);
-      processor.process(knows2to1);
 
       const data = processor.getData();
 
-      // Should have computed inverse predicates
-      assert.ok(data.inversePredicates instanceof Map);
+      // Should track property object types
+      assert.ok(data.propertyObjectTypes instanceof Map);
+      assert.ok(data.propertyObjectTypes.has("http://schema.org/knows"));
     });
   });
 });

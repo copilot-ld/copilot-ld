@@ -18,6 +18,10 @@ describe("GraphProcessor", () => {
 
     mockGraphIndex = {
       add: async () => {},
+      storage: () => ({
+        get: async () => null,
+        put: async () => {},
+      }),
     };
 
     mockResourceIndex = {

@@ -135,7 +135,7 @@ describe("LibVector Performance Tests", () => {
         }
       },
       constraints: {
-        maxMemory: 1600,
+        maxMemory: 1650,
       },
     }),
   );

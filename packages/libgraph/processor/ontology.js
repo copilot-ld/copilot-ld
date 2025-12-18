@@ -17,6 +17,7 @@ import {
   validateSchemas,
   extractLocalName,
 } from "./llm-normalizer.js";
+import { InverseDetector } from "./inverse-detector.js";
 
 const RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -29,6 +30,7 @@ const RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
  * @property {Record<string, object>} schemaDefinitions - Schema definitions
  * @property {Map<string, Set<string>>} typeExamples - Type IRI to example entity names
  * @property {Map<string, string>} entityNames - Subject IRI to name string
+ * @property {Map<string, string>} inversePredicates - Inverse predicate map (key → inverse)
  */
 
 /** OntologyProcessor using top-down Schema.org knowledge with LLM enhancement */
@@ -44,6 +46,7 @@ export class OntologyProcessor {
   #logger = null;
   #typeExamples = new Map(); // Type IRI -> Set of example names
   #entityNames = new Map(); // Subject IRI -> name string
+  #inverseDetector = new InverseDetector();
 
   /**
    * Creates a new OntologyProcessor instance
@@ -85,7 +88,7 @@ export class OntologyProcessor {
     }
 
     this.#recordPropertyForSubjectTypes(subject, predicate);
-    this.#processObjectIfNamedNode(quad.object, predicate);
+    this.#processObjectIfNamedNode(quad.object, predicate, subject);
   }
 
   /**
@@ -166,11 +169,12 @@ export class OntologyProcessor {
   }
 
   /**
-   * Process object node to track property object types
+   * Process object node to track property object types and inverse pairs
    * @param {object} objectNode - Object node from quad
    * @param {string} predicate - Predicate IRI
+   * @param {string} subject - Subject IRI
    */
-  #processObjectIfNamedNode(objectNode, predicate) {
+  #processObjectIfNamedNode(objectNode, predicate, subject) {
     if (objectNode?.termType !== "NamedNode" || !objectNode.value) return;
     const objectTypes = this.#subjectTypes.get(objectNode.value);
     if (!objectTypes?.size) return;
@@ -182,6 +186,14 @@ export class OntologyProcessor {
     for (const t of objectTypes) {
       typeMap.set(t, (typeMap.get(t) || 0) + 1);
     }
+
+    // Record inverse pair for bidirectional detection
+    this.#inverseDetector.recordInversePair(
+      subject,
+      predicate,
+      objectNode.value,
+      this.#subjectTypes,
+    );
   }
 
   /**
@@ -294,6 +306,9 @@ export class OntologyProcessor {
    * @returns {OntologyData} Ontology data snapshot
    */
   getData() {
+    // Compute inverse predicates before returning data
+    this.#inverseDetector.computeInversePredicates();
+
     return {
       typeInstances: this.#typeInstances,
       typeProperties: this.#typeProperties,
@@ -302,6 +317,7 @@ export class OntologyProcessor {
       schemaDefinitions: this.#schemaDefinitions || {},
       typeExamples: this.#typeExamples,
       entityNames: this.#entityNames,
+      inversePredicates: this.#inverseDetector.getInversePredicates(),
     };
   }
 

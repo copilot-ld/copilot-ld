@@ -266,6 +266,7 @@ describe("OntologyProcessor", () => {
       assert.ok(data.propertyObjectTypes instanceof Map);
       assert.ok(data.typeExamples instanceof Map);
       assert.ok(data.entityNames instanceof Map);
+      assert.ok(data.inversePredicates instanceof Map);
     });
 
     test("tracks property object types", () => {
@@ -298,6 +299,100 @@ describe("OntologyProcessor", () => {
       // Should track property object types
       assert.ok(data.propertyObjectTypes instanceof Map);
       assert.ok(data.propertyObjectTypes.has("http://schema.org/knows"));
+    });
+
+    test("detects inverse predicates for bidirectional relationships", () => {
+      // Person 1 and Person 2
+      const person1Type = {
+        subject: namedNode("http://example.org/person/1"),
+        predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        object: namedNode("http://schema.org/Person"),
+      };
+
+      const person2Type = {
+        subject: namedNode("http://example.org/person/2"),
+        predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        object: namedNode("http://schema.org/Person"),
+      };
+
+      // Person 1 knows Person 2
+      const knows1to2 = {
+        subject: namedNode("http://example.org/person/1"),
+        predicate: namedNode("http://schema.org/knows"),
+        object: namedNode("http://example.org/person/2"),
+      };
+
+      // Person 2 knows Person 1 (bidirectional)
+      const knows2to1 = {
+        subject: namedNode("http://example.org/person/2"),
+        predicate: namedNode("http://schema.org/knows"),
+        object: namedNode("http://example.org/person/1"),
+      };
+
+      processor.process(person1Type);
+      processor.process(person2Type);
+      processor.process(knows1to2);
+      processor.process(knows2to1);
+
+      const data = processor.getData();
+
+      // Should detect "knows" as its own inverse (bidirectional)
+      assert.ok(data.inversePredicates instanceof Map);
+      const key =
+        "http://schema.org/Person|http://schema.org/knows|http://schema.org/Person";
+      assert.ok(
+        data.inversePredicates.has(key),
+        "Should detect knows as bidirectional between Person and Person",
+      );
+      assert.strictEqual(
+        data.inversePredicates.get(key),
+        "http://schema.org/knows",
+        "knows should be its own inverse",
+      );
+    });
+
+    test("does not detect inverse for one-way predicates", () => {
+      // Person 1 and Person 2
+      const person1Type = {
+        subject: namedNode("http://example.org/person/1"),
+        predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        object: namedNode("http://schema.org/Person"),
+      };
+
+      const person2Type = {
+        subject: namedNode("http://example.org/person/2"),
+        predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        object: namedNode("http://schema.org/Person"),
+      };
+
+      // Person 1 mentions Person 2 (one-way predicate)
+      const mentions1to2 = {
+        subject: namedNode("http://example.org/person/1"),
+        predicate: namedNode("https://schema.org/mentions"),
+        object: namedNode("http://example.org/person/2"),
+      };
+
+      // Person 2 mentions Person 1
+      const mentions2to1 = {
+        subject: namedNode("http://example.org/person/2"),
+        predicate: namedNode("https://schema.org/mentions"),
+        object: namedNode("http://example.org/person/1"),
+      };
+
+      processor.process(person1Type);
+      processor.process(person2Type);
+      processor.process(mentions1to2);
+      processor.process(mentions2to1);
+
+      const data = processor.getData();
+
+      // Should NOT detect "mentions" as inverse (it's a one-way predicate)
+      const key =
+        "http://schema.org/Person|https://schema.org/mentions|http://schema.org/Person";
+      assert.ok(
+        !data.inversePredicates.has(key),
+        "Should not detect mentions as bidirectional (one-way predicate)",
+      );
     });
   });
 });

@@ -39,6 +39,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(emptyData);
@@ -61,6 +62,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -109,6 +111,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -156,6 +159,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -200,6 +204,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -232,6 +237,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -279,6 +285,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -313,6 +320,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -358,6 +366,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
@@ -410,6 +419,7 @@ describe("ShaclSerializer", () => {
         schemaDefinitions: {},
         typeExamples: new Map(),
         entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);

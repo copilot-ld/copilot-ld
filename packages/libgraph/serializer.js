@@ -11,6 +11,7 @@ const { namedNode, literal } = DataFactory;
  * @property {Map<string, Map<string, number>>} propertyObjectTypes - Object type counts
  * @property {Map<string, Set<string>>} schemaPropertyUsage - Used schema properties
  * @property {Record<string, object>} schemaDefinitions - Schema definitions
+ * @property {Map<string, string>} inversePredicates - Inverse predicate map
  */
 
 /**
@@ -58,12 +59,20 @@ export class ShaclSerializer {
             ontologyData.propertyObjectTypes,
           );
 
+        // Look up inverse predicate for this class/predicate/dominantClass combo
+        const inversePred = dominantClass
+          ? ontologyData.inversePredicates?.get(
+              `${cls}|${predicate}|${dominantClass}`,
+            )
+          : null;
+
         const predicates = this.#buildPropertyPredicates(
           predicate,
           propInfo.count,
           dominantClass,
           propInfo.schemaDefined,
           propInfo.observed,
+          inversePred,
         );
         const bnodeId = writer.blank(predicates);
         writer.addQuad(
@@ -216,6 +225,7 @@ export class ShaclSerializer {
    * @param {string|null} dominantClass - Dominant object class
    * @param {boolean} schemaDefined - Whether schema-defined
    * @param {boolean} observed - Whether observed in data
+   * @param {string|null} inversePred - Inverse predicate IRI (if bidirectional)
    * @returns {Array} Property predicates
    */
   #buildPropertyPredicates(
@@ -224,6 +234,7 @@ export class ShaclSerializer {
     dominantClass,
     schemaDefined,
     observed,
+    inversePred = null,
   ) {
     const rdfType = namedNode(
       "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
@@ -268,6 +279,14 @@ export class ShaclSerializer {
           object: namedNode("http://www.w3.org/ns/shacl#IRI"),
         },
       );
+    }
+
+    // Add inverse path for bidirectional relationships
+    if (inversePred) {
+      predicates.push({
+        predicate: namedNode("http://www.w3.org/ns/shacl#inversePath"),
+        object: namedNode(inversePred),
+      });
     }
 
     return predicates;

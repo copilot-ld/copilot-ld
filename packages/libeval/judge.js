@@ -61,7 +61,8 @@ export class JudgeEvaluator {
       );
     }
 
-    const responseContent = assistantMessages[assistantMessages.length - 1].content;
+    const responseContent =
+      assistantMessages[assistantMessages.length - 1].content;
 
     // Add indices to evaluations for template rendering
     const evaluationsWithIndex = scenario.evaluations.map(

@@ -292,8 +292,10 @@ async function main() {
 
   const tools = await generateToolSchemas(endpoints, logger);
 
-  // Build lookup map from descriptors array
-  const descriptorMap = new Map(descriptors.map((d) => [d.name, d]));
+  // Build lookup map from descriptors object
+  const descriptorMap = new Map(
+    Object.entries(descriptors).map(([name, desc]) => [name, desc]),
+  );
 
   // Store each tool schema as a resource, combining endpoint and descriptor data
   for (const tool of tools) {

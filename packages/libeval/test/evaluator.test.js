@@ -171,7 +171,7 @@ describe("Evaluator", () => {
 
   test("evaluate throws error for invalid scenario type", async () => {
     const mockAgent = {
-      ProcessRequest: mock.fn(() =>
+      ProcessUnary: mock.fn(() =>
         Promise.resolve({
           resource_id: "test-123",
           choices: [{ message: { content: { text: "Response" } } }],
@@ -221,7 +221,7 @@ describe("Evaluator", () => {
     };
 
     const mockAgent = {
-      ProcessRequest: mock.fn(() => Promise.resolve(mockResponse)),
+      ProcessUnary: mock.fn(() => Promise.resolve(mockResponse)),
     };
 
     const mockMemory = {};
@@ -271,7 +271,7 @@ describe("Evaluator", () => {
 
     const result = await evaluator.evaluate(scenario);
 
-    assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 1);
+    assert.strictEqual(mockAgent.ProcessUnary.mock.callCount(), 1);
     assert.strictEqual(mockCriteria.evaluate.mock.callCount(), 1);
 
     assert.strictEqual(result.passed, true);
@@ -291,7 +291,7 @@ describe("Evaluator", () => {
     };
 
     const mockAgent = {
-      ProcessRequest: mock.fn(() => Promise.resolve(mockResponse)),
+      ProcessUnary: mock.fn(() => Promise.resolve(mockResponse)),
     };
 
     const mockMemory = {};
@@ -367,7 +367,7 @@ describe("Evaluator", () => {
       scenarios.map((scenario) => evaluator.evaluate(scenario)),
     );
 
-    assert.strictEqual(mockAgent.ProcessRequest.mock.callCount(), 3);
+    assert.strictEqual(mockAgent.ProcessUnary.mock.callCount(), 3);
     assert.strictEqual(mockCriteria.evaluate.mock.callCount(), 3);
     assert.strictEqual(results.length, 3);
   });

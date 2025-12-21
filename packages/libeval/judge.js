@@ -4,45 +4,56 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import mustache from "mustache";
-import { generateUUID } from "@copilot-ld/libutil";
-import { common, llm, memory } from "@copilot-ld/libtype";
+import { common, agent } from "@copilot-ld/libtype";
 
 /**
- * Judge-based evaluator using LLM
+ * Judge-based evaluator using agent service
  * Evaluates agent responses against natural language criteria
  */
 export class JudgeEvaluator {
-  #llmClient;
-  #memoryClient;
-  #resourceIndex;
+  #agentClient;
   #githubToken;
   #model;
-  #criteriaTemplate;
+  #evaluationTemplate;
 
   /**
    * Create a new JudgeEvaluator instance
-   * @param {import('@copilot-ld/librpc').LlmClient} llmClient - LLM client for evaluation
-   * @param {import('@copilot-ld/librpc').MemoryClient} memoryClient - Memory client for storing evaluation messages
-   * @param {import('@copilot-ld/libresource').ResourceIndex} resourceIndex - Resource index for storing conversation
+   * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
    * @param {string} githubToken - GitHub token for API access
    * @param {string} model - Model to use for judge evaluations
    */
-  constructor(llmClient, memoryClient, resourceIndex, githubToken, model) {
-    if (!llmClient) throw new Error("llmClient is required");
-    if (!memoryClient) throw new Error("memoryClient is required");
-    if (!resourceIndex) throw new Error("resourceIndex is required");
+  constructor(agentClient, githubToken, model) {
+    if (!agentClient) throw new Error("agentClient is required");
     if (!githubToken) throw new Error("githubToken is required");
     if (!model) throw new Error("model is required");
 
-    this.#llmClient = llmClient;
-    this.#memoryClient = memoryClient;
-    this.#resourceIndex = resourceIndex;
+    this.#agentClient = agentClient;
     this.#githubToken = githubToken;
     this.#model = model;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
-    const templatePath = join(__dirname, "./prompts/criteria.md.mustache");
-    this.#criteriaTemplate = readFileSync(templatePath, "utf8");
+    const templatePath = join(__dirname, "./templates/evaluation.md.mustache");
+    this.#evaluationTemplate = readFileSync(templatePath, "utf8");
+  }
+
+  /**
+   * Build the evaluation message content
+   * @param {string} prompt - Original user prompt
+   * @param {string} responseContent - Agent's response content
+   * @param {object[]} evaluations - Array of evaluation criteria
+   * @returns {string} Formatted evaluation message
+   */
+  #buildEvaluationMessage(prompt, responseContent, evaluations) {
+    const evaluationsWithIndex = evaluations.map((evaluation, index) => ({
+      ...evaluation,
+      index,
+    }));
+
+    return mustache.render(this.#evaluationTemplate, {
+      prompt,
+      response: responseContent,
+      evaluations: evaluationsWithIndex,
+    });
   }
 
   /**
@@ -73,77 +84,44 @@ export class JudgeEvaluator {
     const responseContent =
       assistantMessages[assistantMessages.length - 1].content;
 
-    // Add indices to evaluations for template rendering
-    const evaluationsWithIndex = scenario.evaluations.map(
-      (evaluation, index) => ({
-        ...evaluation,
-        index,
-      }),
+    // Build the evaluation message
+    const evaluationContent = this.#buildEvaluationMessage(
+      scenario.prompt,
+      responseContent,
+      scenario.evaluations,
     );
 
-    // Render evaluation prompt with all criteria
-    const evaluationPrompt = mustache.render(this.#criteriaTemplate, {
-      prompt: scenario.prompt,
-      response: responseContent,
-      evaluations: evaluationsWithIndex,
-    });
-
-    // Use judge_evaluator assistant (has no tools, just returns JSON)
-    const assistantId = "common.Assistant.judge_evaluator";
-
-    // Create a new conversation for this evaluation
-    const conversation = common.Conversation.fromObject({
-      id: {
-        name: generateUUID(),
-      },
-      assistant_id: assistantId,
-    });
-
-    // Store conversation resource
-    await this.#resourceIndex.put(conversation);
-
-    const evaluationResourceId = String(conversation.id);
-
-    // Create and store the evaluation message
-    const evaluationMessage = common.Message.fromObject({
-      role: "user",
-      content: evaluationPrompt,
-    });
-    evaluationMessage.withIdentifier(conversation.id);
-
-    // Store the message resource
-    await this.#resourceIndex.put(evaluationMessage);
-
-    // Append the evaluation message to memory
-    await this.#memoryClient.AppendMemory(
-      memory.AppendRequest.fromObject({
-        resource_id: evaluationResourceId,
-        identifiers: [evaluationMessage.id],
-      }),
-    );
-
-    const request = llm.CompletionsRequest.fromObject({
-      resource_id: evaluationResourceId,
-      model: this.#model,
+    // Create agent request with judge_evaluator assistant
+    const request = agent.AgentRequest.fromObject({
+      messages: [
+        common.Message.fromObject({ role: "user", content: evaluationContent }),
+      ],
       github_token: this.#githubToken,
+      model: this.#model,
+      assistant: "judge_evaluator",
     });
 
-    const judgment = await this.#llmClient.CreateCompletions(request);
+    const judgment = await this.#agentClient.ProcessUnary(request);
 
     // Validate response structure
-    if (!judgment.choices || judgment.choices.length === 0) {
+    if (!judgment.messages || judgment.messages.length === 0) {
       throw new Error(
-        `No choices returned from LLM for ${scenario.name}. Response: ${JSON.stringify(judgment).substring(0, 200)}`,
+        `No messages returned from agent for ${scenario.name}. Response: ${JSON.stringify(judgment).substring(0, 200)}`,
       );
     }
 
-    const content = judgment.choices[0].message?.content;
-    if (!content || content.trim().length === 0) {
+    // Get the last assistant message from the judgment
+    const judgmentAssistantMessages = judgment.messages.filter(
+      (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
+    );
+    if (judgmentAssistantMessages.length === 0) {
       throw new Error(
-        `Empty content from LLM for ${scenario.name}. Choice: ${JSON.stringify(judgment.choices[0]).substring(0, 200)}`,
+        `No assistant messages in judgment for ${scenario.name}. Total messages: ${judgment.messages.length}`,
       );
     }
 
+    const content =
+      judgmentAssistantMessages[judgmentAssistantMessages.length - 1].content;
     let judgmentContent = content.trim();
 
     // Strip any conversational prefix before JSON (e.g., "Understood. ", "Sure! ")

@@ -58,8 +58,14 @@ export class RecallEvaluator {
     // Calculate recall
     const retrievedSet = new Set(retrievedSubjects);
 
-    // Extract response text from agent response
-    const responseText = agentResponse?.choices?.[0]?.message?.content;
+    // Extract response text from agent response (last assistant message with content)
+    const assistantMessages = (agentResponse?.messages || []).filter(
+      (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
+    );
+    const responseText =
+      assistantMessages.length > 0
+        ? assistantMessages[assistantMessages.length - 1].content
+        : null;
 
     // Build one evaluation per subject IRI in evaluations array
     const evaluationResults = scenario.evaluations.map((evaluation) => {

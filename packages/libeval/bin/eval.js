@@ -10,13 +10,12 @@ import {
   TraceEvaluator,
 } from "@copilot-ld/libeval";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createResourceIndex } from "@copilot-ld/libresource";
 import { clients, createTracer } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
 // Extract generated clients
-const { LlmClient, AgentClient, MemoryClient, TraceClient } = clients;
+const { AgentClient, MemoryClient, TraceClient } = clients;
 
 // Initialize logger
 const logger = createLogger("eval");
@@ -132,19 +131,14 @@ async function main() {
   const githubToken = getGithubToken();
 
   // Initialize utility clients, without tracing
-  const llmConfig = await createServiceConfig("llm");
   const memoryConfig = await createServiceConfig("memory");
   const traceConfig = await createServiceConfig("trace");
 
-  const llmClient = new LlmClient(llmConfig);
   const memoryClient = new MemoryClient(memoryConfig);
   const traceClient = new TraceClient(traceConfig);
 
   // Initialize evaluation index for storing results
   const evaluationIndex = new EvaluationIndex(evalStorage);
-
-  // Initialize resource index for storing conversation resources
-  const resourceIndex = createResourceIndex("resources");
 
   // The agent client is the one doing evaluations, so this gets tracing
   const tracer = await createTracer("agent");
@@ -156,9 +150,7 @@ async function main() {
 
   // Create evaluators
   const judgeEvaluator = new JudgeEvaluator(
-    llmClient,
-    memoryClient,
-    resourceIndex,
+    agentClient,
     githubToken,
     judgeModel,
   );

@@ -4,36 +4,56 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import mustache from "mustache";
-import { common, llm } from "@copilot-ld/libtype";
+import { common, agent } from "@copilot-ld/libtype";
 
 /**
- * Judge-based evaluator using LLM
+ * Judge-based evaluator using agent service
  * Evaluates agent responses against natural language criteria
  */
 export class JudgeEvaluator {
-  #llmClient;
+  #agentClient;
   #githubToken;
   #model;
-  #criteriaTemplate;
+  #evaluationTemplate;
 
   /**
    * Create a new JudgeEvaluator instance
-   * @param {import('@copilot-ld/librpc').LlmClient} llmClient - LLM client for evaluation
+   * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
    * @param {string} githubToken - GitHub token for API access
    * @param {string} model - Model to use for judge evaluations
    */
-  constructor(llmClient, githubToken, model) {
-    if (!llmClient) throw new Error("llmClient is required");
+  constructor(agentClient, githubToken, model) {
+    if (!agentClient) throw new Error("agentClient is required");
     if (!githubToken) throw new Error("githubToken is required");
     if (!model) throw new Error("model is required");
 
-    this.#llmClient = llmClient;
+    this.#agentClient = agentClient;
     this.#githubToken = githubToken;
     this.#model = model;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
-    const templatePath = join(__dirname, "./prompts/criteria.md.mustache");
-    this.#criteriaTemplate = readFileSync(templatePath, "utf8");
+    const templatePath = join(__dirname, "./templates/evaluation.md.mustache");
+    this.#evaluationTemplate = readFileSync(templatePath, "utf8");
+  }
+
+  /**
+   * Build the evaluation message content
+   * @param {string} prompt - Original user prompt
+   * @param {string} responseContent - Agent's response content
+   * @param {object[]} evaluations - Array of evaluation criteria
+   * @returns {string} Formatted evaluation message
+   */
+  #buildEvaluationMessage(prompt, responseContent, evaluations) {
+    const evaluationsWithIndex = evaluations.map((evaluation, index) => ({
+      ...evaluation,
+      index,
+    }));
+
+    return mustache.render(this.#evaluationTemplate, {
+      prompt,
+      response: responseContent,
+      evaluations: evaluationsWithIndex,
+    });
   }
 
   /**
@@ -51,48 +71,64 @@ export class JudgeEvaluator {
       throw new Error(`No messages in agent response for ${scenario.name}`);
     }
 
-    // Get the last assistant message as the response content
+    // Get the last assistant message with content as the response
     const assistantMessages = response.messages.filter(
-      (m) => m.role === "assistant",
+      (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
     );
     if (assistantMessages.length === 0) {
       throw new Error(
-        `No assistant messages in agent response for ${scenario.name}`,
+        `No assistant messages with content in agent response for ${scenario.name}. Total messages: ${response.messages.length}`,
       );
     }
 
     const responseContent =
       assistantMessages[assistantMessages.length - 1].content;
 
-    // Add indices to evaluations for template rendering
-    const evaluationsWithIndex = scenario.evaluations.map(
-      (evaluation, index) => ({
-        ...evaluation,
-        index,
-      }),
+    // Build the evaluation message
+    const evaluationContent = this.#buildEvaluationMessage(
+      scenario.prompt,
+      responseContent,
+      scenario.evaluations,
     );
 
-    // Render evaluation prompt with all criteria
-    const evaluationPrompt = mustache.render(this.#criteriaTemplate, {
-      prompt: scenario.prompt,
-      response: responseContent,
-      evaluations: evaluationsWithIndex,
-    });
-
-    const request = llm.CompletionsRequest.fromObject({
-      model: this.#model,
+    // Create agent request with judge_evaluator assistant
+    const request = agent.AgentRequest.fromObject({
       messages: [
-        common.Message.fromObject({
-          role: "user",
-          content: evaluationPrompt,
-        }),
+        common.Message.fromObject({ role: "user", content: evaluationContent }),
       ],
-      temperature: 0.0,
       github_token: this.#githubToken,
+      model: this.#model,
+      assistant: "judge_evaluator",
     });
 
-    const judgment = await this.#llmClient.CreateCompletions(request);
-    const judgmentContent = judgment.choices[0].message.content.trim();
+    const judgment = await this.#agentClient.ProcessUnary(request);
+
+    // Validate response structure
+    if (!judgment.messages || judgment.messages.length === 0) {
+      throw new Error(
+        `No messages returned from agent for ${scenario.name}. Response: ${JSON.stringify(judgment).substring(0, 200)}`,
+      );
+    }
+
+    // Get the last assistant message from the judgment
+    const judgmentAssistantMessages = judgment.messages.filter(
+      (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
+    );
+    if (judgmentAssistantMessages.length === 0) {
+      throw new Error(
+        `No assistant messages in judgment for ${scenario.name}. Total messages: ${judgment.messages.length}`,
+      );
+    }
+
+    const content =
+      judgmentAssistantMessages[judgmentAssistantMessages.length - 1].content;
+    let judgmentContent = content.trim();
+
+    // Strip any conversational prefix before JSON (e.g., "Understood. ", "Sure! ")
+    const jsonMatch = judgmentContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      judgmentContent = jsonMatch[0];
+    }
 
     // Parse JSON response
     let parsedJudgment;
@@ -100,16 +136,19 @@ export class JudgeEvaluator {
       parsedJudgment = JSON.parse(judgmentContent);
     } catch (error) {
       throw new Error(
-        `Failed to parse judgment JSON for ${scenario.name}: ${error.message}`,
+        `Failed to parse judgment JSON for ${scenario.name}: ${error.message}. Content: ${judgmentContent.substring(0, 200)}`,
       );
     }
 
     // Build evaluation results from parsed JSON
     const evaluationResults = scenario.evaluations.map((evaluation, index) => {
-      const result = parsedJudgment[index.toString()];
+      // Try both string and numeric keys for flexibility
+      const result = parsedJudgment[index.toString()] || parsedJudgment[index];
       if (!result) {
+        // Log the actual keys to help debug
+        const actualKeys = Object.keys(parsedJudgment).join(", ");
         throw new Error(
-          `Missing judgment for criteria index ${index} ("${evaluation.label}") in scenario ${scenario.name}`,
+          `Missing judgment for criteria index ${index} ("${evaluation.label}") in scenario ${scenario.name}. Received keys: ${actualKeys}`,
         );
       }
 

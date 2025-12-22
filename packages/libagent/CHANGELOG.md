@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-12-21
+
+- `AgentMind.setupConversation()` now supports `req.assistant` to override the
+  default assistant
+
 ## 2025-12-02
 
 - Fixed `processToolCalls()` to decrement remaining budget after each tool call

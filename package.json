@@ -16,7 +16,7 @@
     "scripts"
   ],
   "scripts": {
-    "data:init": "mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants",
+    "data:init": "mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/memories data/policies data/resources data/schemas data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants",
     "data:clean": "rm -rf generated data/cli data/eval data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants",
     "data:reset": "npm run data:clean && npm run data:init && npm run codegen",
     "data:download": "npx env-cmd -- node ./scripts/demo-data.js",
@@ -39,7 +39,6 @@
     "process:vectors": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libvector process-vectors",
     "process:graphs": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libgraph process-graphs",
     "service:agent": "npx env-cmd --silent -- npx --node-options='--inspect-brk=9229' --workspace=@copilot-ld/agent dev",
-    "ontology:topdown": "npx env-cmd --silent -- node ./scripts/ontology_top_down.js",
     "upload": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libutil upload",
     "download": "npx env-cmd --silent -- npx --workspace=@copilot-ld/libutil download",
     "dev": "npm --silent run dev:start",

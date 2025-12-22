@@ -1,13 +1,21 @@
 /* eslint-env node */
 
-import { Parser } from "n3";
+import { Parser, DataFactory } from "n3";
 import { ProcessorBase } from "@copilot-ld/libutil";
 
+import { EntityMerger } from "./entity-merger.js";
+import { IndexUpdater } from "./index-updater.js";
 import { OntologyProcessor } from "./ontology.js";
 import { ShaclSerializer } from "../serializer.js";
+import { loadSchemaDefinitions, saveSchemaDefinitions } from "../schema.js";
+import { updateSchemaWithDiscoveries } from "./llm-normalizer.js";
+
+const { namedNode: _namedNode } = DataFactory;
+const RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /**
  * GraphProcessor class for processing resources with N-Quads into graph index
+ * Uses top-down Schema.org knowledge with LLM enhancement for ontology generation
  * @augments {ProcessorBase}
  */
 export class GraphProcessor extends ProcessorBase {
@@ -15,22 +23,60 @@ export class GraphProcessor extends ProcessorBase {
   #targetIndex;
   #ontologyProcessor;
   #serializer;
+  #llm;
+  #initialized;
+  #schemaDefinitions;
+  #entityMerger;
+  #indexUpdater;
 
   /**
    * Creates a new GraphProcessor instance
    * @param {import("@copilot-ld/libgraph").GraphIndex} graphIndex - The graph index to store RDF quads
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance to process resources from
    * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
+   * @param {object} [llm] - Optional LLM instance from libcopilot for type normalization
    */
-  constructor(graphIndex, resourceIndex, logger) {
+  constructor(graphIndex, resourceIndex, logger, llm = null) {
     super(logger);
     if (!graphIndex) throw new Error("graphIndex is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#resourceIndex = resourceIndex;
     this.#targetIndex = graphIndex;
-    this.#ontologyProcessor = new OntologyProcessor();
+    this.#ontologyProcessor = new OntologyProcessor(logger);
     this.#serializer = new ShaclSerializer();
+    this.#llm = llm;
+    this.#initialized = false;
+    this.#indexUpdater = new IndexUpdater(graphIndex.storage(), logger);
+    if (llm) {
+      this.#entityMerger = new EntityMerger(llm, logger);
+    }
+  }
+
+  /**
+   * Initialize async dependencies (schema definitions)
+   * Must be called before processing
+   * @returns {Promise<void>}
+   */
+  async initialize() {
+    if (this.#initialized) return;
+
+    try {
+      this.#schemaDefinitions = await loadSchemaDefinitions();
+      this.#ontologyProcessor.setSchemaDefinitions(this.#schemaDefinitions);
+      this.logger.debug("GraphProcessor", "Loaded schema definitions", {
+        count: Object.keys(this.#schemaDefinitions).length,
+      });
+    } catch (error) {
+      this.logger.error(
+        "GraphProcessor",
+        "Failed to load schema definitions, continuing without",
+        { error: error.message },
+      );
+      this.#schemaDefinitions = {};
+    }
+
+    this.#initialized = true;
   }
 
   /** @inheritdoc */
@@ -63,11 +109,8 @@ export class GraphProcessor extends ProcessorBase {
     }
 
     // CRITICAL: Sort quads to ensure rdf:type assertions are processed before
-    // property triples. OntologyProcessor's inverse relationship detection
-    // requires type information to be available when processing object properties.
-    // This is defensive - ResourceProcessor should already provide canonical
-    // ordering, but we enforce it here for robustness against other quad sources.
-    // See: SCRATCHPAD.md "RDF Quad Ordering for Reliable Processing"
+    // property triples. OntologyProcessor requires type information to be
+    // available when processing object properties for schema validation.
     quads.sort((a, b) => {
       const aIsType = this.#isTypePredicate(a.predicate.value);
       const bIsType = this.#isTypePredicate(b.predicate.value);
@@ -97,7 +140,7 @@ export class GraphProcessor extends ProcessorBase {
    * @private
    */
   #isTypePredicate(predicate) {
-    return predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    return predicate === RDF_TYPE_IRI;
   }
 
   /**
@@ -112,14 +155,88 @@ export class GraphProcessor extends ProcessorBase {
   }
 
   /**
+   * Detect synonyms and apply entity merging
+   * @returns {Promise<void>}
+   * @private
+   */
+  async #detectAndMergeSynonyms() {
+    if (!this.#entityMerger) return;
+
+    const data = this.#ontologyProcessor.getData();
+    await this.#entityMerger.detectAndBuildMergeMap(
+      data.typeExamples,
+      data.entityNames,
+    );
+
+    const mergeMap = this.#entityMerger.getMergeMap();
+    if (mergeMap.size > 0) {
+      await this.#indexUpdater.applyEntityMerging(mergeMap);
+    }
+  }
+
+  /**
    * Saves the ontology to storage for agent consumption
    * @returns {Promise<void>}
    */
   async saveOntology() {
     const storage = this.#targetIndex.storage();
+
+    let typeMapping = new Map();
+    if (this.#llm) {
+      this.logger.debug("GraphProcessor", "Running LLM finalization...");
+      typeMapping = await this.#ontologyProcessor.finalize(this.#llm);
+
+      if (typeMapping.size > 0) {
+        await this.#indexUpdater.applyTypeMapping(typeMapping);
+      }
+
+      await this.#detectAndMergeSynonyms();
+    } else {
+      this.logger.error(
+        "GraphProcessor",
+        "No LLM provided, skipping type normalization",
+      );
+    }
+
     const data = this.#ontologyProcessor.getData();
     const ttl = this.#serializer.serialize(data);
     await storage.put("ontology.ttl", ttl);
+
+    await this.#saveSchemaUpdates(data);
+
+    this.logger.debug("GraphProcessor", "Ontology saved", {
+      types: data.typeInstances.size,
+      normalized: typeMapping.size,
+    });
+  }
+
+  /**
+   * Save schema updates with discovered examples and synonyms
+   * @param {object} data - Ontology data from processor
+   * @returns {Promise<void>}
+   * @private
+   */
+  async #saveSchemaUpdates(data) {
+    if (
+      !this.#schemaDefinitions ||
+      Object.keys(this.#schemaDefinitions).length === 0
+    ) {
+      return;
+    }
+
+    const synonymResults = this.#entityMerger
+      ? this.#entityMerger.getSynonymResults()
+      : [];
+
+    updateSchemaWithDiscoveries(
+      this.#schemaDefinitions,
+      data.typeExamples,
+      synonymResults,
+      (level, msg) => this.logger[level]?.("GraphProcessor", msg),
+    );
+
+    await saveSchemaDefinitions(this.#schemaDefinitions);
+    this.logger.debug("GraphProcessor", "Schema definitions updated and saved");
   }
 
   /**
@@ -128,6 +245,9 @@ export class GraphProcessor extends ProcessorBase {
    * @returns {Promise<void>}
    */
   async process(actor) {
+    // Initialize async dependencies (schema definitions)
+    await this.initialize();
+
     // 1. Get all resource identifiers
     const identifiers = await this.#resourceIndex.findAll();
 

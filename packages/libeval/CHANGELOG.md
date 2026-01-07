@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-12-21
+
+- Refactored `JudgeEvaluator` to use agent service instead of direct LLM/memory
+  orchestration
+- Simplified constructor to accept `agentClient`, `githubToken`, and `model`
+  only
+- Moved judge system prompt from `prompts/criteria.md.mustache` to
+  `config/assistants.yml`
+- Added `assistant` field to `AgentRequest` proto to allow specifying assistant
+  override
+
 ## 2025-01-29
 
 - Renamed `CriteriaEvaluator` to `JudgeEvaluator` for clearer naming

@@ -53,13 +53,8 @@ export class EvaluationReporter {
    * @returns {string} Formatted text
    */
   #formatEvaluation(text, inlineCode = false) {
-    let formatted = text.replace(/\n/g, " ").replace(/\s+/g, " ");
-
-    if (inlineCode) {
-      formatted = `\`\` ${formatted} \`\``;
-    }
-
-    return formatted;
+    const formatted = text.replace(/\n/g, " ").replace(/\s+/g, " ");
+    return inlineCode ? `\`\` ${formatted} \`\`` : formatted;
   }
 
   /**
@@ -74,11 +69,13 @@ export class EvaluationReporter {
   /**
    * Fetch and format memory window for a resource
    * @param {string} resource_id - Resource ID to fetch memory for
+   * @param {string} model - Model name for memory window budget calculation
    * @returns {Promise<Array<{subject: string, resource: string, score: number|null}>>} Formatted memory data
    */
-  async #fetchMemoryWindow(resource_id) {
+  async #fetchMemoryWindow(resource_id, model) {
     const request = memory.WindowRequest.fromObject({
       resource_id,
+      model,
       budget: this.#agentConfig.budget?.tokens,
       allocation: this.#agentConfig.budget?.allocation || {
         tools: 0.01,
@@ -89,20 +86,16 @@ export class EvaluationReporter {
 
     const response = await this.#memoryClient.GetWindow(request);
 
-    // Format context identifiers for the template
-    const memories = [];
-
-    if (response.context) {
-      for (const identifier of response.context) {
-        memories.push({
-          subject: identifier.subject || "unknown",
-          resource: `${identifier.type}.${identifier.name}`,
-          score: identifier.score || null,
-        });
-      }
-    }
-
-    return memories;
+    // Format message identifiers for the template
+    return (response.messages || [])
+      .filter((m) => m.id?.subjects?.length > 0)
+      .flatMap((m) =>
+        m.id.subjects.map((subject) => ({
+          subject: subject || "unknown",
+          resource: `${m.id.type}.${m.id.name}`,
+          score: m.id.score || null,
+        })),
+      );
   }
 
   /**
@@ -255,7 +248,7 @@ export class EvaluationReporter {
 
         // Fetch memory window for this result's resource
         const memories = result.resource
-          ? await this.#fetchMemoryWindow(result.resource)
+          ? await this.#fetchMemoryWindow(result.resource, result.model)
           : [];
 
         const evaluations = result.evaluations

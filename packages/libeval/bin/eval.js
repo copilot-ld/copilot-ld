@@ -15,7 +15,7 @@ import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
 // Extract generated clients
-const { LlmClient, AgentClient, MemoryClient, TraceClient } = clients;
+const { AgentClient, MemoryClient, TraceClient } = clients;
 
 // Initialize logger
 const logger = createLogger("eval");
@@ -74,10 +74,7 @@ function getModels(config, modelArg) {
 function getGithubToken() {
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
-    logger.error(
-      "main",
-      new Error("GITHUB_TOKEN environment variable is required"),
-    );
+    console.error("Error: GITHUB_TOKEN environment variable is required");
     process.exit(1);
   }
   return githubToken;
@@ -134,11 +131,9 @@ async function main() {
   const githubToken = getGithubToken();
 
   // Initialize utility clients, without tracing
-  const llmConfig = await createServiceConfig("llm");
   const memoryConfig = await createServiceConfig("memory");
   const traceConfig = await createServiceConfig("trace");
 
-  const llmClient = new LlmClient(llmConfig);
   const memoryClient = new MemoryClient(memoryConfig);
   const traceClient = new TraceClient(traceConfig);
 
@@ -154,7 +149,11 @@ async function main() {
   const scenarios = await loadScenarios(configStorage, args.scenario);
 
   // Create evaluators
-  const judgeEvaluator = new JudgeEvaluator(llmClient, githubToken, judgeModel);
+  const judgeEvaluator = new JudgeEvaluator(
+    agentClient,
+    githubToken,
+    judgeModel,
+  );
   const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
   const traceEvaluator = new TraceEvaluator(traceClient);
 
@@ -208,6 +207,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  logger.error("Evaluator", error);
+  console.error("Error:", error.message || error);
   process.exit(1);
 });

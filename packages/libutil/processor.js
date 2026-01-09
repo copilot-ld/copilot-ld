@@ -23,6 +23,14 @@ export class ProcessorBase {
   }
 
   /**
+   * Get logger instance for subclasses
+   * @returns {object} Logger instance
+   */
+  get logger() {
+    return this.#logger;
+  }
+
+  /**
    * Processes items in batches
    * @param {any[]} items - Items to process
    * @param {string} context - Processing context label

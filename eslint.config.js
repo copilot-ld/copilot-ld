@@ -63,6 +63,7 @@ export default [
       "**/package-lock.json",
       "**/.vscode/**",
       "SCRATCHPAD*.md",
+      "**/*.md", // Ignore markdown files
     ],
   },
 

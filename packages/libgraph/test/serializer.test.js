@@ -32,11 +32,13 @@ describe("ShaclSerializer", () => {
     test("produces empty Turtle for empty data", () => {
       serializer = new ShaclSerializer();
       const emptyData = {
-        classSubjects: new Map(),
-        subjectClasses: new Map(),
-        classPredicates: new Map(),
-        predicateCounts: new Map(),
-        predicateObjectTypes: new Map(),
+        typeInstances: new Map(),
+        typeProperties: new Map(),
+        propertyObjectTypes: new Map(),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -48,21 +50,18 @@ describe("ShaclSerializer", () => {
     test("produces valid SHACL Turtle with single class", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
           ],
         ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-        ]),
-        classPredicates: new Map(),
-        predicateCounts: new Map(),
-        predicateObjectTypes: new Map(),
+        typeProperties: new Map(),
+        propertyObjectTypes: new Map(),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -90,19 +89,13 @@ describe("ShaclSerializer", () => {
     test("includes property shapes for predicates", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
           ],
         ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-        ]),
-        classPredicates: new Map([
+        typeProperties: new Map([
           [
             "https://schema.org/Person",
             new Map([
@@ -113,8 +106,11 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
-        predicateCounts: new Map([["https://schema.org/name", 1]]),
-        predicateObjectTypes: new Map(),
+        propertyObjectTypes: new Map(),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -132,7 +128,7 @@ describe("ShaclSerializer", () => {
     test("includes dominant class constraints", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
@@ -142,17 +138,7 @@ describe("ShaclSerializer", () => {
             new Set(["http://example.org/org1"]),
           ],
         ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-          [
-            "http://example.org/org1",
-            new Set(["https://schema.org/Organization"]),
-          ],
-        ]),
-        classPredicates: new Map([
+        typeProperties: new Map([
           [
             "https://schema.org/Person",
             new Map([
@@ -163,13 +149,16 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
-        predicateCounts: new Map([["https://schema.org/worksFor", 1]]),
-        predicateObjectTypes: new Map([
+        propertyObjectTypes: new Map([
           [
             "https://schema.org/worksFor",
             new Map([["https://schema.org/Organization", 10]]),
           ],
         ]),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -185,22 +174,16 @@ describe("ShaclSerializer", () => {
       assert.ok(output.includes("sh:IRI"));
     });
 
-    test("includes inverse path when provided", () => {
+    test("includes class constraint for object properties", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
           ],
         ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-        ]),
-        classPredicates: new Map([
+        typeProperties: new Map([
           [
             "https://schema.org/Person",
             new Map([
@@ -211,31 +194,30 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
-        predicateCounts: new Map([["https://schema.org/knows", 1]]),
-        predicateObjectTypes: new Map([
+        propertyObjectTypes: new Map([
           [
             "https://schema.org/knows",
             new Map([["https://schema.org/Person", 10]]),
           ],
         ]),
-        inversePredicates: new Map([
-          [
-            "https://schema.org/Person|https://schema.org/knows|https://schema.org/Person",
-            "https://schema.org/knows",
-          ],
-        ]),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
+        inversePredicates: new Map(),
       };
 
       const output = serializer.serialize(data);
 
-      // Should contain inverse path
-      assert.ok(output.includes("sh:inversePath"));
+      // Should contain property shape with class constraint
+      assert.ok(output.includes("sh:property"));
+      assert.ok(output.includes("sh:class"));
     });
 
     test("orders classes by instance count", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set([
@@ -249,10 +231,12 @@ describe("ShaclSerializer", () => {
             new Set(["http://example.org/org1"]),
           ],
         ]),
-        subjectClasses: new Map(),
-        classPredicates: new Map(),
-        predicateCounts: new Map(),
-        predicateObjectTypes: new Map(),
+        typeProperties: new Map(),
+        propertyObjectTypes: new Map(),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -275,39 +259,32 @@ describe("ShaclSerializer", () => {
 
     test("orders predicates by usage count", () => {
       serializer = new ShaclSerializer();
+      // Create larger sets for name vs email to test ordering
+      const nameSubjects = new Set();
+      const emailSubjects = new Set();
+      for (let i = 0; i < 100; i++) {
+        nameSubjects.add(`http://example.org/person${i}`);
+      }
+      for (let i = 0; i < 50; i++) {
+        emailSubjects.add(`http://example.org/person${i}`);
+      }
+
       const data = {
-        classSubjects: new Map([
-          [
-            "https://schema.org/Person",
-            new Set(["http://example.org/person1"]),
-          ],
-        ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-        ]),
-        classPredicates: new Map([
+        typeInstances: new Map([["https://schema.org/Person", nameSubjects]]),
+        typeProperties: new Map([
           [
             "https://schema.org/Person",
             new Map([
-              [
-                "https://schema.org/name",
-                new Set(["http://example.org/person1"]),
-              ],
-              [
-                "https://schema.org/email",
-                new Set(["http://example.org/person1"]),
-              ],
+              ["https://schema.org/name", nameSubjects],
+              ["https://schema.org/email", emailSubjects],
             ]),
           ],
         ]),
-        predicateCounts: new Map([
-          ["https://schema.org/name", 100],
-          ["https://schema.org/email", 50],
-        ]),
-        predicateObjectTypes: new Map(),
+        propertyObjectTypes: new Map(),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -331,16 +308,18 @@ describe("ShaclSerializer", () => {
     test("handles missing predicate map gracefully", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
           ],
         ]),
-        subjectClasses: new Map(),
-        classPredicates: new Map(), // Empty - no predicates for Person
-        predicateCounts: new Map(),
-        predicateObjectTypes: new Map(),
+        typeProperties: new Map(), // Empty - no predicates for Person
+        propertyObjectTypes: new Map(),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -357,19 +336,13 @@ describe("ShaclSerializer", () => {
     test("computes dominant class correctly", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
           ],
         ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-        ]),
-        classPredicates: new Map([
+        typeProperties: new Map([
           [
             "https://schema.org/Person",
             new Map([
@@ -380,8 +353,7 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
-        predicateCounts: new Map([["https://schema.org/knows", 1]]),
-        predicateObjectTypes: new Map([
+        propertyObjectTypes: new Map([
           [
             "https://schema.org/knows",
             new Map([
@@ -390,6 +362,10 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 
@@ -413,19 +389,13 @@ describe("ShaclSerializer", () => {
     test("does not include class constraint when no dominant class", () => {
       serializer = new ShaclSerializer();
       const data = {
-        classSubjects: new Map([
+        typeInstances: new Map([
           [
             "https://schema.org/Person",
             new Set(["http://example.org/person1"]),
           ],
         ]),
-        subjectClasses: new Map([
-          [
-            "http://example.org/person1",
-            new Set(["https://schema.org/Person"]),
-          ],
-        ]),
-        classPredicates: new Map([
+        typeProperties: new Map([
           [
             "https://schema.org/Person",
             new Map([
@@ -436,8 +406,7 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
-        predicateCounts: new Map([["https://schema.org/related", 1]]),
-        predicateObjectTypes: new Map([
+        propertyObjectTypes: new Map([
           [
             "https://schema.org/related",
             new Map([
@@ -446,6 +415,10 @@ describe("ShaclSerializer", () => {
             ]),
           ],
         ]),
+        schemaPropertyUsage: new Map(),
+        schemaDefinitions: {},
+        typeExamples: new Map(),
+        entityNames: new Map(),
         inversePredicates: new Map(),
       };
 

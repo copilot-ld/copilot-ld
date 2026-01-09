@@ -1,0 +1,95 @@
+{
+  "Person": {
+    "aliases": ["Individual", "Employee", "Staff"],
+    "examples": ["John Smith", "Dr. Jane Doe, CEO"],
+    "props": {
+      "name": "Text",
+      "jobTitle": "Text",
+      "email": "Text",
+      "worksFor": "Organization",
+      "affiliation": "Organization",
+      "memberOf": "Organization"
+    }
+  },
+  "Organization": {
+    "aliases": ["Company", "Corporation", "Firm"],
+    "examples": ["Pfizer", "Acme Corp"],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "member": "Person",
+      "employee": "Person",
+      "parentOrganization": "Organization",
+      "subOrganization": "Organization",
+      "location": "Place"
+    }
+  },
+  "Place": {
+    "aliases": ["Location", "Site"],
+    "examples": ["New York", "Building A"],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "address": "PostalAddress",
+      "containedInPlace": "Place"
+    }
+  },
+  "Product": {
+    "aliases": ["Item", "Goods"],
+    "examples": ["iPhone 15", "Paxlovid"],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "brand": "Organization",
+      "manufacturer": "Organization",
+      "category": "Text"
+    }
+  },
+  "Event": {
+    "aliases": ["Meeting", "Conference"],
+    "examples": ["Q4 Review", "Annual Summit 2024"],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "startDate": "Date",
+      "endDate": "Date",
+      "location": "Place",
+      "organizer": "Organization",
+      "attendee": "Person"
+    }
+  },
+  "Project": {
+    "aliases": ["Initiative", "Program"],
+    "examples": ["Project Apollo", "Digital Transformation"],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "member": "Person",
+      "funder": "Organization",
+      "about": "Thing"
+    }
+  },
+  "CreativeWork": {
+    "aliases": ["Document", "Article"],
+    "examples": ["Annual Report 2024", "Technical Spec v2"],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "author": "Person",
+      "creator": "Person",
+      "about": "Thing",
+      "mentions": "Thing",
+      "dateCreated": "Date",
+      "datePublished": "Date"
+    }
+  },
+  "Thing": {
+    "aliases": [],
+    "examples": [],
+    "props": {
+      "name": "Text",
+      "description": "Text",
+      "identifier": "Text"
+    }
+  }
+}

@@ -2,8 +2,13 @@
 1000ms
 1KB
 5000ms
+AAD
+accentColor
+ActivityHandler
+AES-256-GCM
 agentic
 Agentic
+api
 APIs
 APM
 ARN
@@ -22,6 +27,7 @@ backticks
 balancer
 Balancer
 Base64
+Base64-encoded
 BioNova
 boolean
 BuildKit
@@ -52,6 +58,7 @@ Copilot-LD's
 CORS
 cryptographic
 Cryptographic
+cryptographically
 css
 CSS
 cyclomatic
@@ -59,6 +66,11 @@ Datadog
 DDoS
 debuggable
 declaratively
+decrypt
+Decrypt
+decrypted
+decrypting
+decrypts
 deduplicate
 deduplicates
 deduplication
@@ -88,6 +100,7 @@ ECR
 ECS
 embeddings
 Embeddings
+encryptions
 enum
 env
 ESLint
@@ -100,8 +113,11 @@ Fargate
 filesystem
 forwarding
 frontend
+GCM
+geo-routing
 GitHub
 Grafana
+groupchat
 grpc
 gRPC
 grpc-enabled
@@ -109,10 +125,12 @@ gRPC-enabled
 gRPCs
 hardcoded
 hgroup
+HKDF
 HMAC
 HMAC-based
 HMAC-SHA256
 Hono
+Hostname
 hostname
 href
 HTML
@@ -135,6 +153,7 @@ JSON-LD
 JSON-ND
 JSON-structured
 JSONL
+JSONL-based
 JWT
 keyless
 Kubernetes
@@ -194,6 +213,7 @@ Nanoseconds
 natively
 nav
 NDJSON
+ngrok
 nginx
 Nginx
 nginx-based
@@ -233,9 +253,12 @@ PAX
 PGID
 pico
 PID
+plaintext
 pluggable
 plugins
 portability
+Postprocessing
+Preprocessing
 pre-calculate
 pre-calculated
 Pre-compilation
@@ -292,8 +315,10 @@ SPARQL-like
 src
 ssl
 SSL
+staticTab
 stdin
 stdout
+stylesheet
 subclasses
 Subclasses
 subnet
@@ -313,10 +338,12 @@ toc
 TODO
 tokenizer
 TraceQL
+turnContext
 typedef
 typeof
 TypeScript
 UI
+UX
 ul
 undirected
 unencrypted
@@ -335,6 +362,8 @@ webpage
 warmup
 WASM
 webpack
+webhook
+Webhook
 WebSocket
 whitespace
 workspaces

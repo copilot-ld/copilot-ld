@@ -15,7 +15,7 @@ import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
 // Extract generated clients
-const { LlmClient, AgentClient, MemoryClient, TraceClient } = clients;
+const { AgentClient, MemoryClient, TraceClient } = clients;
 
 // Initialize logger
 const logger = createLogger("eval");
@@ -131,11 +131,9 @@ async function main() {
   const githubToken = getGithubToken();
 
   // Initialize utility clients, without tracing
-  const llmConfig = await createServiceConfig("llm");
   const memoryConfig = await createServiceConfig("memory");
   const traceConfig = await createServiceConfig("trace");
 
-  const llmClient = new LlmClient(llmConfig);
   const memoryClient = new MemoryClient(memoryConfig);
   const traceClient = new TraceClient(traceConfig);
 
@@ -151,7 +149,11 @@ async function main() {
   const scenarios = await loadScenarios(configStorage, args.scenario);
 
   // Create evaluators
-  const judgeEvaluator = new JudgeEvaluator(llmClient, githubToken, judgeModel);
+  const judgeEvaluator = new JudgeEvaluator(
+    agentClient,
+    githubToken,
+    judgeModel,
+  );
   const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
   const traceEvaluator = new TraceEvaluator(traceClient);
 

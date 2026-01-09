@@ -14,6 +14,7 @@ message AgentRequest {
   optional string resource_id = 2;
   optional string github_token = 3;
   optional string model = 4;
+  optional string assistant = 5;
 }
 
 message AgentResponse {

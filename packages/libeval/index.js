@@ -87,6 +87,7 @@ export class Evaluator {
         scenario,
         resource,
         response,
+        this.#model,
       );
     } else if (scenario.type === "trace") {
       result = await this.#traceEvaluator.evaluate(

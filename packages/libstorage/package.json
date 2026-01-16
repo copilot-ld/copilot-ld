@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libstorage",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "description": "Storage abstraction layer for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -15,7 +15,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.970.0",
     "@aws-sdk/credential-providers": "^3.970.0",
-    "@copilot-ld/libutil": "^0.1.54"
+    "@copilot-ld/libutil": "^0.1.55"
   },
   "repository": {
     "type": "git",

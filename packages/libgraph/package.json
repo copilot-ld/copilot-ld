@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@copilot-ld/libutil": "^0.1.54",
-    "@copilot-ld/libharness": "*"
+    "@copilot-ld/libharness": "^0.1.1"
   },
   "repository": {
     "type": "git",

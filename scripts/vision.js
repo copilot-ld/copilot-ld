@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createScriptConfig } from "@copilot-ld/libconfig";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { parseArgs } from "node:util";
 
 /**
@@ -36,7 +35,11 @@ async function main() {
   }
 
   const config = await createScriptConfig("vision");
-  const llm = createLlm(await config.githubToken(), values.model);
+  const llm = createLlmApi(
+    await config.llmToken(),
+    values.model,
+    config.llmBaseUrl(),
+  );
   const description = await llm.imageToText(
     values.image,
     values.prompt,

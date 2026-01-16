@@ -1,6 +1,5 @@
-/* eslint-env node */
 import { dirname } from "node:path";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { Utils } from "../utils.js";
 
 /** @type {number} Default max tokens for LLM completions */
@@ -151,11 +150,15 @@ export class StepBase {
   }
 
   /**
-   * Creates an LLM client using the GitHub token and configured model.
+   * Creates an LLM client using the LLM token and configured model.
    * @returns {object} LLM client instance
    */
   createLlm() {
-    return createLlm(Utils.getGithubToken(), this.getModel());
+    return createLlmApi(
+      Utils.getLlmToken(),
+      this.getModel(),
+      Utils.getLlmBaseUrl(),
+    );
   }
 
   /**

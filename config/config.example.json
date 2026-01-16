@@ -1,16 +1,45 @@
 {
-  "extension": {
-    "teamsapp": {
-      "master_key": null,
-      "bot_domain": null,
-      "microsoft_app_type": null,
-      "microsoft_app_tenant_id": null,
-      "microsoft_app_id": null,
-      "microsoft_app_password": null
-    },
-    "api": {
-      "secret": null
-    }
+  "init": {
+    "log_dir": "data/logs",
+    "shutdown_timeout": 3000,
+    "services": [
+      {
+        "name": "trace",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/trace"
+      },
+      {
+        "name": "vector",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/vector"
+      },
+      {
+        "name": "graph",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/graph"
+      },
+      {
+        "name": "llm",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/llm"
+      },
+      {
+        "name": "memory",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/memory"
+      },
+      {
+        "name": "tool",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/tool"
+      },
+      {
+        "name": "agent",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/agent"
+      },
+      {
+        "name": "web",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/web"
+      },
+      {
+        "name": "ui",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/ui"
+      }
+    ]
   },
   "evals": {
     "models": ["gpt-4o"],
@@ -45,6 +74,19 @@
           "request": "vector.TextQuery"
         }
       }
+    }
+  },
+  "extension": {
+    "teamsapp": {
+      "master_key": null,
+      "bot_domain": null,
+      "microsoft_app_type": null,
+      "microsoft_app_tenant_id": null,
+      "microsoft_app_id": null,
+      "microsoft_app_password": null
+    },
+    "api": {
+      "secret": null
     }
   }
 }

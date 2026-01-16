@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { createReadStream } from "node:fs";
 import { createGunzip, createInflateRaw } from "node:zlib";
 

@@ -1,0 +1,44 @@
+{
+  "name": "@copilot-ld/libchat",
+  "version": "0.1.0",
+  "description": "Chat web components for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./index.js",
+    "./drawer.js": "./drawer.js",
+    "./chat.js": "./chat.js"
+  },
+  "files": [
+    "*.js",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "keywords": [
+    "web-components",
+    "chat",
+    "agent",
+    "conversational-ai",
+    "custom-elements"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/libchat"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
+  }
+}

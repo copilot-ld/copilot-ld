@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 /* eslint-disable max-lines */
 
 /**
@@ -42,7 +41,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common } from "@copilot-ld/libtype";
 import { parseArgs } from "node:util";
@@ -713,7 +712,11 @@ async function main() {
 
   // Step 4: Compute embeddings and find synonyms by semantic similarity
   console.log("\n[4/7] Computing embeddings for semantic similarity...");
-  const llm = createLlm(await config.githubToken());
+  const llm = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
 
   // Prepare texts for embedding (use local names for better semantic meaning)
   const classTexts = Array.from(classCounts.keys())

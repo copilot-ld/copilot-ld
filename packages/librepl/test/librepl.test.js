@@ -1,6 +1,7 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+
+import { createMockStorage } from "@copilot-ld/libharness";
 
 // Module under test
 import { Repl } from "../index.js";
@@ -53,11 +54,7 @@ describe("librepl", () => {
       };
 
       // Mock storage interface
-      mockStorage = {
-        exists: async () => false,
-        get: async () => ({}),
-        put: async () => {},
-      };
+      mockStorage = createMockStorage();
     });
 
     test("creates repl with minimal app configuration", () => {

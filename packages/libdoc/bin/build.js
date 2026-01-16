@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
@@ -8,6 +7,9 @@ import prettier from "prettier";
 
 import { DocsBuilder } from "@copilot-ld/libdoc";
 import { parseFrontMatter } from "../frontmatter.js";
+import { createLogger } from "@copilot-ld/libtelemetry";
+
+const logger = createLogger("doc-build");
 
 /**
  * Main function to handle CLI execution
@@ -20,7 +22,9 @@ async function main() {
 
   // Validate docs directory exists
   if (!fs.existsSync(docsDir)) {
-    console.error(`Error: docs/ directory not found in ${workingDir}`);
+    logger.error("main", "docs/ directory not found", {
+      working_dir: workingDir,
+    });
     process.exit(1);
   }
 
@@ -36,7 +40,7 @@ async function main() {
   try {
     await builder.build(docsDir, distDir);
   } catch (error) {
-    console.error(`Error during build:`, error.message);
+    logger.exception("main", error);
     process.exit(1);
   }
 }

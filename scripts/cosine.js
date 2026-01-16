@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { PerformanceMonitor } from "@copilot-ld/libperf";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libtelemetry";
@@ -26,7 +25,9 @@ async function main() {
   const metrics = monitor.stop();
 
   console.log(JSON.stringify(results, null, 2));
-  logger.debug(`Searched content index with ${metrics.getDiagnostics()}`);
+  logger.debug("search", "Searched content index", {
+    diagnostics: metrics.getDiagnostics(),
+  });
 }
 
 main();

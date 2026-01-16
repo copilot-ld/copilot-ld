@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { common } from "@copilot-ld/libtype";
 import { Utils } from "../utils.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./images-to-html.js";
@@ -61,9 +60,10 @@ export class AnnotateHtml extends StepBase {
       ingestContextKey,
     );
 
-    this._logger.debug(
-      `Annotating ${fragmentKeys.length} fragments with context: ${contextKey}`,
-    );
+    this._logger.debug("AnnotateHtml", "Annotating fragments with context", {
+      fragment_count: fragmentKeys.length,
+      context_key: contextKey,
+    });
 
     // Load fragments and context from storage
     const htmlFragments = await this.#loadFragments(fragmentKeys);
@@ -117,7 +117,9 @@ export class AnnotateHtml extends StepBase {
     const entitiesList = this.#formatEntities(contextData.entities);
 
     for (const [i, htmlFragment] of htmlFragments.entries()) {
-      this._logger.debug(`Annotating fragment ${i + 1}`);
+      this._logger.debug("AnnotateHtml", "Annotating fragment", {
+        fragment: i + 1,
+      });
 
       const pageKey = `page-${i + 1}`;
       const slideData = contextData.slides?.[pageKey] || {};
@@ -156,9 +158,10 @@ export class AnnotateHtml extends StepBase {
 
       const annotatedHtml = response.choices[0].message?.content || "";
       annotatedFragments.push(annotatedHtml);
-      this._logger.debug(
-        `Annotated fragment ${i + 1}, length: ${annotatedHtml.length}`,
-      );
+      this._logger.debug("AnnotateHtml", "Annotated fragment", {
+        fragment: i + 1,
+        length: annotatedHtml.length,
+      });
     }
 
     return annotatedFragments;
@@ -184,7 +187,9 @@ export class AnnotateHtml extends StepBase {
 
     const annotatedHtmlKey = `${targetDir}/annotated.html`;
     await this._ingestStorage.put(annotatedHtmlKey, mergedHtml);
-    this._logger.debug(`Saved annotated HTML to ${annotatedHtmlKey}`);
+    this._logger.debug("AnnotateHtml", "Saved annotated HTML", {
+      key: annotatedHtmlKey,
+    });
 
     return annotatedHtmlKey;
   }

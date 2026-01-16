@@ -1,9 +1,9 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { GraphService } from "../index.js";
+import { createMockConfig } from "@copilot-ld/libharness";
 
 describe("graph service", () => {
   describe("GraphService", () => {
@@ -36,9 +36,7 @@ describe("graph service", () => {
     let mockGraphIndex;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "graph",
-      };
+      mockConfig = createMockConfig("graph");
 
       mockGraphIndex = {
         queryItems: async () => [

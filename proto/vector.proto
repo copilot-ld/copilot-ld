@@ -11,5 +11,5 @@ service Vector {
 message TextQuery {
   repeated string input = 1;
   optional tool.QueryFilter filter = 2;
-  optional string github_token = 3;
+  optional string llm_token = 3;
 }

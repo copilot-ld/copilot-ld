@@ -95,6 +95,10 @@ gRPC. They handle:
 - **Input Validation**: Sanitize and validate user input
 - **Rate Limiting**: Protect backend from abuse
 
+**Web Components** (`@copilot-ld/libchat`): Reusable chat interface components
+(`<agent-drawer>`, `<agent-chat>`) that extensions can serve to browser clients.
+Built with Web Components standard for framework-agnostic integration.
+
 ## Online Request Flow
 
 The following sequence diagram shows how a user request flows through the system
@@ -136,7 +140,7 @@ sequenceDiagram
             Agent->>ResourceIndex: Put assistant message
             Agent->>Memory: AppendMemory (assistant message identifier)
             loop For each autonomous tool call
-                Agent->>Tool: Call (tool call + github_token)
+                Agent->>Tool: Call (tool call + llm_token)
                 Tool-->>Agent: Tool result message
                 Agent->>ResourceIndex: Put tool result
                 Agent->>Memory: AppendMemory (tool result identifier)

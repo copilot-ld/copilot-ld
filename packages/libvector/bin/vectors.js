@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createScriptConfig } from "@copilot-ld/libconfig";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libtelemetry";
@@ -19,7 +18,11 @@ async function main() {
 
   const resourceIndex = createResourceIndex("resources");
   const vectorIndex = new VectorIndex(vectorStorage);
-  const llm = createLlm(await config.githubToken());
+  const llm = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
   const logger = createLogger("vectors");
 
   const processor = new VectorProcessor(
@@ -35,7 +38,9 @@ async function main() {
   await processor.process(actor);
 }
 
+const logger = createLogger("vectors");
+
 main().catch((error) => {
-  console.error("Vector processing failed:", error);
+  logger.exception("main", error);
   process.exit(1);
 });

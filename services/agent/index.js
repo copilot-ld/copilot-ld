@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { services } from "@copilot-ld/librpc";
 import { agent } from "@copilot-ld/libtype";
 
@@ -32,7 +31,7 @@ export class AgentService extends AgentBase {
    * @param {(response: agent.AgentResponse) => void} write - Callback to write response messages
    */
   async ProcessStream(req, write) {
-    const octokit = this.#octokitFn(req.github_token);
+    const octokit = this.#octokitFn(req.llm_token);
     await octokit.request("GET /user");
 
     const onProgress = (resource_id, messages) => {
@@ -48,7 +47,7 @@ export class AgentService extends AgentBase {
    * @returns {Promise<agent.AgentResponse>} The agent response
    */
   async ProcessUnary(req) {
-    const octokit = this.#octokitFn(req.github_token);
+    const octokit = this.#octokitFn(req.llm_token);
     await octokit.request("GET /user");
 
     /** @type {agent.AgentResponse} */

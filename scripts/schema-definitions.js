@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Schema.org Type Definitions
  *

@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { Parser } from "n3";
 import { ProcessorBase } from "@copilot-ld/libutil";
 

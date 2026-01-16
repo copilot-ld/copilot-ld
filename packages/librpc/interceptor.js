@@ -1,4 +1,3 @@
-/* eslint-env node */
 import grpc from "@grpc/grpc-js";
 
 /**

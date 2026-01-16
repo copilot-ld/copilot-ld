@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import * as types from "@copilot-ld/libtype";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createPolicy } from "@copilot-ld/libpolicy";

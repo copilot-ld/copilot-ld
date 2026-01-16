@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { JSDOM } from "jsdom";
 import { sanitizeDom } from "../sanitizer.js";
 

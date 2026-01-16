@@ -63,10 +63,19 @@ for more information.
 
 ### 5. Authentication and secrets
 
-```sh
-# Set GITHUB_CLIENT_ID in .env, then generate token
-npx env-cmd -- node scripts/token.js
+Get a token from your OpenAI-compatible LLM provider and set LLM_TOKEN in `.env`
+To use GitHub Copilot as the LLM backend, run:
 
+```sh
+# Generate a GitHub token and set GITHUB_TOKEN in .env
+npx env-cmd -- node scripts/gh-token.js
+
+# Then manually copy GITHUB_TOKEN to LLM_TOKEN in .env for LLM API access
+```
+
+Then generate the secret used for internal service communication:
+
+```sh
 # Generate service authentication secret
 node scripts/secret.js
 ```
@@ -168,6 +177,23 @@ a minimum similarity threshold:
 echo "testing" | npm run cli:search -- --limit 10 --threshold 0.25
 echo "find pipeline tasks" | npm run cli:search -- --index descriptor --limit 5
 ```
+
+### Web Components
+
+Add chat interfaces to any web page using the `@copilot-ld/libchat` components:
+
+```html
+<!-- Collapsible drawer (bottom-right corner) -->
+<agent-drawer data-api="/web/api" data-name="Agent"></agent-drawer>
+<script type="module" src="/ui/libchat/drawer.js"></script>
+
+<!-- Full-page chat interface -->
+<agent-chat data-name="Agent"></agent-chat>
+<script type="module" src="/ui/libchat/chat.js"></script>
+```
+
+See [`packages/libchat/README.md`](packages/libchat/README.md) for theming, API
+documentation, and framework integration examples.
 
 ## 👨‍💻 Development
 

@@ -26,7 +26,8 @@
     "@copilot-ld/libtype": "^0.1.57"
   },
   "devDependencies": {
-    "@copilot-ld/libutil": "^0.1.54"
+    "@copilot-ld/libutil": "^0.1.54",
+    "@copilot-ld/libharness": "*"
   },
   "repository": {
     "type": "git",

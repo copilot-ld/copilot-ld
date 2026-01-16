@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 

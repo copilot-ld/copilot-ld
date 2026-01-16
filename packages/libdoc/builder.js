@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import { markedHighlight } from "marked-highlight";
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-/* eslint-env node */
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 
 const config = await createScriptConfig("embed");
@@ -13,7 +12,11 @@ const config = await createScriptConfig("embed");
 async function main() {
   const input = (await process.stdin.toArray()).join("").trim();
 
-  const client = createLlm(await config.githubToken());
+  const client = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
   const embeddings = await client.createEmbeddings([input]);
 
   console.log(JSON.stringify(embeddings.data[0].embedding));

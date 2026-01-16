@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { parseArgs } from "node:util";
 import yaml from "js-yaml";
 import {
@@ -68,16 +67,17 @@ function getModels(config, modelArg) {
 }
 
 /**
- * Validate GitHub token from environment
- * @returns {string} GitHub token
+ * Validate LLM token from environment
+ * @param {import("@copilot-ld/libtelemetry").Logger} logger - Logger instance
+ * @returns {string} LLM token
  */
-function getGithubToken() {
-  const githubToken = process.env.GITHUB_TOKEN;
-  if (!githubToken) {
-    console.error("Error: GITHUB_TOKEN environment variable is required");
+function getLlmToken(logger) {
+  const llmToken = process.env.LLM_TOKEN;
+  if (!llmToken) {
+    logger.error("main", "LLM_TOKEN environment variable is required");
     process.exit(1);
   }
-  return githubToken;
+  return llmToken;
 }
 
 /**
@@ -128,7 +128,7 @@ async function main() {
   // Get models and judge model from config
   const models = getModels(config, args.model);
   const judgeModel = config.evals?.judge_model || "gpt-4o";
-  const githubToken = getGithubToken();
+  const llmToken = getLlmToken();
 
   // Initialize utility clients, without tracing
   const memoryConfig = await createServiceConfig("memory");
@@ -149,11 +149,7 @@ async function main() {
   const scenarios = await loadScenarios(configStorage, args.scenario);
 
   // Create evaluators
-  const judgeEvaluator = new JudgeEvaluator(
-    agentClient,
-    githubToken,
-    judgeModel,
-  );
+  const judgeEvaluator = new JudgeEvaluator(agentClient, llmToken, judgeModel);
   const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
   const traceEvaluator = new TraceEvaluator(traceClient);
 
@@ -165,7 +161,7 @@ async function main() {
       agentClient,
       memoryClient,
       traceClient,
-      githubToken,
+      llmToken,
       model,
       evaluationIndex,
       judgeEvaluator,
@@ -207,6 +203,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Error:", error.message || error);
+  logger.exception("main", error);
   process.exit(1);
 });

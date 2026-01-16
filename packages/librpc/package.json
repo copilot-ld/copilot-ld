@@ -16,9 +16,8 @@
     "@copilot-ld/libconfig": "^0.1.51",
     "@copilot-ld/libtelemetry": "^0.1.16",
     "@copilot-ld/libutil": "^0.1.54",
-    "@grpc/grpc-js": "^1.12.2"
+    "@grpc/grpc-js": "^1.14.3"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
@@ -27,5 +26,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

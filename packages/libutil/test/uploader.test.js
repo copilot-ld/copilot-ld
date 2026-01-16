@@ -1,6 +1,7 @@
-/* eslint-env node */
 import { strict as assert } from "node:assert";
 import { test, describe, beforeEach } from "node:test";
+
+import { createSilentLogger } from "@copilot-ld/libharness";
 
 import { Uploader } from "../uploader.js";
 
@@ -25,9 +26,7 @@ describe("Uploader", () => {
       return type === "local" ? mockLocalStorage : mockRemoteStorage;
     };
 
-    mockLogger = {
-      debug: () => {},
-    };
+    mockLogger = createSilentLogger();
   });
 
   test("constructor validates required dependencies", () => {

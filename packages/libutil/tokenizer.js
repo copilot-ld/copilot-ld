@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Simple tokenizer class that provides API compatibility with js-tiktoken
  * Uses basic approximation logic for token counting

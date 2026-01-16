@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { promises as fs } from "fs";
 import fsAsync from "fs/promises";
 import { join } from "path";

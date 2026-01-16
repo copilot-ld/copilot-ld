@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { services } from "@copilot-ld/librpc";
 
 const { GraphBase } = services;

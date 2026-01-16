@@ -1,4 +1,3 @@
-/* eslint-env node */
 import jmespath from "jmespath";
 import { BufferedIndex } from "@copilot-ld/libindex";
 import { trace } from "@copilot-ld/libtype";

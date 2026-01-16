@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,15 +39,25 @@ export class Utils {
   }
 
   /**
-   * Gets the GitHub token from environment variable
-   * @returns {string} GitHub token
+   * Gets the LLM token from environment variable
+   * @returns {string} LLM API token
    */
-  static getGithubToken() {
+  static getLlmToken() {
     const processEnv = globalThis.process.env;
-    if (processEnv.GITHUB_TOKEN) {
-      return processEnv.GITHUB_TOKEN;
+    if (processEnv.LLM_TOKEN) {
+      return processEnv.LLM_TOKEN;
     }
 
-    throw new Error("GitHub token not found in environment");
+    throw new Error("LLM token not found in environment");
+  }
+
+  /**
+   * Gets the LLM base URL from environment variable or default
+   * @returns {string} LLM API base URL
+   */
+  static getLlmBaseUrl() {
+    return (
+      globalThis.process.env.LLM_BASE_URL || "https://api.githubcopilot.com"
+    );
   }
 }

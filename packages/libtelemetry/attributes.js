@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Telemetry attribute mapping configuration
  * Maps protobuf fields to span attributes with type handling

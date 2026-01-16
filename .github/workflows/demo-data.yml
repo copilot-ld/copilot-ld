@@ -24,7 +24,7 @@ jobs:
       - name: Process demo data
         id: data
         env:
-          GITHUB_TOKEN: ${{ secrets.DEMO_GITHUB_TOKEN }}
+          LLM_TOKEN: ${{ secrets.DEMO_LLM_TOKEN }}
           DEBUG: "*"
         run: |
           set -e

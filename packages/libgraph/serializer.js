@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { DataFactory, Writer } from "n3";
 const { namedNode, literal } = DataFactory;
 

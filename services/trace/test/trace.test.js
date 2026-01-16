@@ -1,11 +1,11 @@
-/* eslint-env node */
-import { test, describe, beforeEach, mock } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { TraceService } from "../index.js";
 import { TraceIndex } from "@copilot-ld/libtelemetry/index/trace.js";
 import { trace } from "@copilot-ld/libtype";
+import { createMockConfig, createMockStorage } from "@copilot-ld/libharness";
 
 describe("trace service", () => {
   describe("TraceService", () => {
@@ -46,16 +46,10 @@ describe("trace service", () => {
     let mockStorage;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "trace",
-      };
+      mockConfig = createMockConfig("trace");
 
       // Create mock storage for TraceIndex
-      mockStorage = {
-        exists: mock.fn(() => Promise.resolve(false)),
-        get: mock.fn(() => Promise.resolve([])),
-        append: mock.fn(() => Promise.resolve()),
-      };
+      mockStorage = createMockStorage();
 
       // Use real TraceIndex with mock storage for more realistic testing
       mockTraceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");

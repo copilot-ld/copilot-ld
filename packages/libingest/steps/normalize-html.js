@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { STEP_NAME as ANNOTATE_HTML_STEP } from "./annotate-html.js";
 import { StepBase } from "./step-base.js";
 

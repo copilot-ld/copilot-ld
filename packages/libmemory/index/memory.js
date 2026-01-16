@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { IndexBase } from "@copilot-ld/libindex";
 
 /**

@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Documentation server for serving built documentation and watching for changes
  */

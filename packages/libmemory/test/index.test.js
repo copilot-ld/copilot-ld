@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { describe, it, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 import { MemoryIndex } from "../index/memory.js";

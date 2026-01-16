@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common } from "@copilot-ld/libtype";
 
@@ -29,7 +28,11 @@ async function main() {
   const promptPath = join(__dirname, "ontology-prompt.md");
   const systemPrompt = await readFile(promptPath, "utf-8");
 
-  const client = createLlm(await config.githubToken(), "gpt-5");
+  const client = createLlmApi(
+    await config.llmToken(),
+    "gpt-5",
+    config.llmBaseUrl(),
+  );
 
   const messages = [
     common.Message.fromObject({

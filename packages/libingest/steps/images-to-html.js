@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { Utils } from "../utils.js";
 import { STEP_NAME as PDF_TO_IMAGES_STEP } from "./pdf-to-images.js";
 import { StepBase } from "./step-base.js";
@@ -52,12 +51,17 @@ export class ImagesToHtml extends StepBase {
       ingestContextKey,
     );
 
-    this._logger.debug(`Processing ${imageKeys.length} images to HTML`);
+    this._logger.debug("ImagesToHtml", "Processing images to HTML", {
+      count: imageKeys.length,
+    });
 
     const htmlFragments = [];
 
     for (const [i, imageKey] of imageKeys.entries()) {
-      this._logger.debug(`Processing image ${i + 1}: ${imageKey}`);
+      this._logger.debug("ImagesToHtml", "Processing image", {
+        page: i + 1,
+        key: imageKey,
+      });
 
       const imageBuffer = await this._ingestStorage.get(imageKey);
       if (!Buffer.isBuffer(imageBuffer)) {

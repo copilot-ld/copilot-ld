@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Logger class for RFC 5424 compliant logging
  */
@@ -79,20 +77,50 @@ export class Logger {
   }
 
   /**
-   * Logs an error message if logging is enabled for this domain
+   * Logs an info message (always outputs regardless of DEBUG setting)
+   * @param {string} [appId] - Application identifier or method name
+   * @param {string} [message] - The log message
+   * @param {object} [attributes] - Optional key-value pairs to append to the message
+   */
+  info(appId, message, attributes = {}) {
+    console.error(this.#formatLine("INFO", appId, message, attributes));
+  }
+
+  /**
+   * Logs an error message (always outputs regardless of DEBUG setting)
+   * @param {string} [appId] - Application identifier or method name
+   * @param {string|Error} [message] - Error message or Error object
+   * @param {object} [attributes] - Optional key-value pairs to append to the message
+   */
+  error(appId, message, attributes = {}) {
+    const errorMessage =
+      message instanceof Error ? message.message : String(message);
+
+    // Extract trace context from error object (added by Tracer)
+    const traceContext = {};
+    if (message?.trace_id) traceContext.trace_id = message.trace_id;
+    if (message?.span_id) traceContext.span_id = message.span_id;
+    if (message?.service_name) traceContext.service_name = message.service_name;
+
+    // Merge trace context with provided attributes
+    const enrichedAttributes = { ...traceContext, ...attributes };
+
+    console.error(
+      this.#formatLine("ERROR", appId, errorMessage, enrichedAttributes),
+    );
+  }
+
+  /**
+   * Logs an error with stack trace (always logs message, stack trace only when enabled)
    * @param {string} [appId] - Application identifier or method name
    * @param {Error} [error] - Error object
    * @param {object} [attributes] - Optional key-value pairs to append to the message
    */
-  error(appId, error, attributes = {}) {
-    if (!this.#enabled) {
-      return;
-    }
-
+  exception(appId, error, attributes = {}) {
     let message = error?.message || String(error);
 
-    // Append stack trace if available
-    if (error?.stack) {
+    // Append stack trace if available and logging is enabled
+    if (this.#enabled && error?.stack) {
       message += "\n" + error.stack;
     }
 

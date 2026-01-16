@@ -25,5 +25,8 @@
     "@copilot-ld/librpc": "^0.1.70",
     "@copilot-ld/libtelemetry": "^0.1.16",
     "@copilot-ld/libtype": "^0.1.57"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

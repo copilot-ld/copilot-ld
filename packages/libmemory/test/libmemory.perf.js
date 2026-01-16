@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe } from "node:test";
 
 import { MemoryWindow } from "../index.js";

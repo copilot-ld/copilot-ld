@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { Repl } from "@copilot-ld/librepl";
 import { createStorage } from "@copilot-ld/libstorage";
 

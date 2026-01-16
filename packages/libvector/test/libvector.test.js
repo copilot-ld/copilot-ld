@@ -1,10 +1,10 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { VectorIndex } from "../index/vector.js";
 import { resource } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 describe("libvector", () => {
   describe("VectorIndex", () => {
@@ -12,12 +12,10 @@ describe("libvector", () => {
     let mockStorage;
 
     beforeEach(() => {
-      mockStorage = {
+      mockStorage = createMockStorage({
         exists: mock.fn(() => Promise.resolve(true)),
         get: mock.fn(() => Promise.resolve(Buffer.from(""))),
-        put: mock.fn(() => Promise.resolve()),
-        append: mock.fn(() => Promise.resolve()),
-      };
+      });
 
       vectorIndex = new VectorIndex(mockStorage);
     });

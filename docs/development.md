@@ -155,8 +155,8 @@ node scripts/cert.js
 # Generate service authentication secrets
 node scripts/secret.js
 
-# GitHub token setup and validation
-npx env-cmd -- node scripts/token.js
+# GitHub token setup (for GitHub Copilot users)
+npx env-cmd -- node scripts/gh-token.js
 ```
 
 ## Code Generation Workflow

@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { DataFactory } from "n3";
 import { generateHash } from "@copilot-ld/libutil";
 

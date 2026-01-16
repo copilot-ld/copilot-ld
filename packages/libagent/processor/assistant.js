@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import yaml from "js-yaml";
 
 import { common } from "@copilot-ld/libtype";

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
@@ -23,7 +22,9 @@ async function main() {
   await processor.process(actor);
 }
 
+const logger = createLogger("graphs");
+
 main().catch((error) => {
-  console.error("Graph processing failed:", error);
+  logger.exception("main", error);
   process.exit(1);
 });

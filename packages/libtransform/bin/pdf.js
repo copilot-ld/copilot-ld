@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createScriptConfig } from "@copilot-ld/libconfig";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
@@ -16,16 +15,22 @@ async function main() {
 
   const knowledgeStorage = createStorage("knowledge");
 
-  const llm = createLlm(await config.githubToken(), "gpt-4o");
+  const llm = createLlmApi(
+    await config.llmToken(),
+    "gpt-4o",
+    config.llmBaseUrl(),
+  );
   const logger = createLogger("pdf-transformer");
 
-  logger.debug("Starting PDF pre-processing");
+  logger.debug("main", "Starting PDF pre-processing");
   // Process knowledge using PdfProcessor
   const pdfTransformer = new PdfTransformer(knowledgeStorage, llm, logger);
   await pdfTransformer.process();
 }
 
+const logger = createLogger("pdf-transformer");
+
 main().catch((error) => {
-  console.error("Resource pdf pre-processing failed:", error);
+  logger.exception("main", error);
   process.exit(1);
 });

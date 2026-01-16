@@ -1,9 +1,9 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 import { VectorIndex } from "../index/vector.js";
 import { resource } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 // Helper function to normalize vectors
 const normalize = (vector) => {
@@ -16,11 +16,7 @@ describe("VectorIndex - IndexBase Functionality", () => {
   let mockStorage;
 
   beforeEach(() => {
-    mockStorage = {
-      exists: mock.fn(() => Promise.resolve(false)),
-      get: mock.fn(() => Promise.resolve([])),
-      append: mock.fn(() => Promise.resolve()),
-    };
+    mockStorage = createMockStorage();
 
     vectorIndex = new VectorIndex(mockStorage, "test-vectors.jsonl");
   });

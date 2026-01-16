@@ -1,4 +1,3 @@
-/* eslint-env node */
 // Standard imports - always first
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
@@ -36,9 +35,12 @@ function createMockStorage(overrides = {}) {
 function createMockLogger() {
   const logs = [];
   return {
-    debug: (msg) => logs.push({ level: "debug", msg }),
-    info: (msg) => logs.push({ level: "info", msg }),
-    error: (msg) => logs.push({ level: "error", msg }),
+    debug: (appId, msg, attributes) =>
+      logs.push({ level: "debug", appId, msg, attributes }),
+    info: (appId, msg, attributes) =>
+      logs.push({ level: "info", appId, msg, attributes }),
+    error: (appId, msg, attributes) =>
+      logs.push({ level: "error", appId, msg, attributes }),
     logs,
   };
 }
@@ -51,18 +53,18 @@ describe("AnnotateHtml", () => {
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
-    // Save original GITHUB_TOKEN
-    originalEnv = globalThis.process.env.GITHUB_TOKEN;
+    // Save original LLM_TOKEN
+    originalEnv = globalThis.process.env.LLM_TOKEN;
     // Set a test token to avoid errors in createLlm
-    globalThis.process.env.GITHUB_TOKEN = "test_token_123";
+    globalThis.process.env.LLM_TOKEN = "test_token_123";
   });
 
   afterEach(() => {
-    // Restore original GITHUB_TOKEN
+    // Restore original LLM_TOKEN
     if (originalEnv === undefined) {
-      delete globalThis.process.env.GITHUB_TOKEN;
+      delete globalThis.process.env.LLM_TOKEN;
     } else {
-      globalThis.process.env.GITHUB_TOKEN = originalEnv;
+      globalThis.process.env.LLM_TOKEN = originalEnv;
     }
   });
 
@@ -139,8 +141,8 @@ describe("AnnotateHtml", () => {
       });
     });
 
-    test("throws error when GITHUB_TOKEN is not set", async () => {
-      delete globalThis.process.env.GITHUB_TOKEN;
+    test("throws error when LLM_TOKEN is not set", async () => {
+      delete globalThis.process.env.LLM_TOKEN;
 
       const ingestContext = {
         filename: "test.pdf",

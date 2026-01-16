@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { readFile } from "node:fs/promises";
 import { formatForAnalysis } from "@copilot-ld/libanalysis";
 

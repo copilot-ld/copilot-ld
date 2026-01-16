@@ -1,4 +1,3 @@
-/* eslint-env node */
 // Standard imports - always first
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
@@ -40,9 +39,12 @@ function createMockStorage(overrides = {}) {
 function createMockLogger() {
   const logs = [];
   return {
-    debug: (msg) => logs.push({ level: "debug", msg }),
-    info: (msg) => logs.push({ level: "info", msg }),
-    error: (msg) => logs.push({ level: "error", msg }),
+    debug: (appId, msg, attributes) =>
+      logs.push({ level: "debug", appId, msg, attributes }),
+    info: (appId, msg, attributes) =>
+      logs.push({ level: "info", appId, msg, attributes }),
+    error: (appId, msg, attributes) =>
+      logs.push({ level: "error", appId, msg, attributes }),
     logs,
   };
 }
@@ -286,7 +288,7 @@ steps:
 
       // Should complete without error
       const debugLogs = mockLogger.logs.filter((l) => l.level === "debug");
-      assert.ok(debugLogs.some((l) => l.msg.includes("All steps completed")));
+      assert.ok(debugLogs.some((l) => l.msg === "All steps completed"));
     });
 
     test("processes steps in order", async () => {
@@ -324,8 +326,10 @@ steps:
       // Verify it attempted to process the step
       const debugLogs = mockLogger.logs.filter((l) => l.level === "debug");
       assert.ok(
-        debugLogs.some((l) =>
-          l.msg.includes(`Processing step: ${PDF_TO_IMAGES_STEP}`),
+        debugLogs.some(
+          (l) =>
+            l.msg === "Processing step" &&
+            l.attributes?.step === PDF_TO_IMAGES_STEP,
         ),
       );
     });
@@ -363,10 +367,11 @@ steps:
 
       // Should log discovered steps
       const debugLogs = mockLogger.logs.filter((l) => l.level === "debug");
-      const discoveryLog = debugLogs.find((l) => l.msg.includes("Discovered"));
+      const discoveryLog = debugLogs.find((l) => l.msg === "Discovered steps");
       assert.ok(discoveryLog, "Should log step discovery");
-      assert.ok(
-        discoveryLog.msg.includes("5 steps"),
+      assert.strictEqual(
+        discoveryLog.attributes?.count,
+        5,
         "Should discover 5 steps",
       );
     });
@@ -391,13 +396,14 @@ steps:
 
       // Verify all expected steps are mentioned in discovery log
       const debugLogs = mockLogger.logs.filter((l) => l.level === "debug");
-      const discoveryLog = debugLogs.find((l) => l.msg.includes("Discovered"));
+      const discoveryLog = debugLogs.find((l) => l.msg === "Discovered steps");
+      const stepsString = discoveryLog.attributes?.steps || "";
 
-      assert.ok(discoveryLog.msg.includes(PDF_TO_IMAGES_STEP));
-      assert.ok(discoveryLog.msg.includes(IMAGES_TO_HTML_STEP));
-      assert.ok(discoveryLog.msg.includes(EXTRACT_CONTEXT_STEP));
-      assert.ok(discoveryLog.msg.includes(ANNOTATE_HTML_STEP));
-      assert.ok(discoveryLog.msg.includes(NORMALIZE_HTML_STEP));
+      assert.ok(stepsString.includes(PDF_TO_IMAGES_STEP));
+      assert.ok(stepsString.includes(IMAGES_TO_HTML_STEP));
+      assert.ok(stepsString.includes(EXTRACT_CONTEXT_STEP));
+      assert.ok(stepsString.includes(ANNOTATE_HTML_STEP));
+      assert.ok(stepsString.includes(NORMALIZE_HTML_STEP));
     });
 
     test("caches step handlers between calls", async () => {
@@ -423,8 +429,8 @@ steps:
 
       // Should only log discovery once (cached after first call)
       const debugLogs = mockLogger.logs.filter((l) => l.level === "debug");
-      const discoveryLogs = debugLogs.filter((l) =>
-        l.msg.includes("Discovered"),
+      const discoveryLogs = debugLogs.filter(
+        (l) => l.msg === "Discovered steps",
       );
       assert.strictEqual(
         discoveryLogs.length,
@@ -468,8 +474,10 @@ steps:
       // Verify step was selected for processing
       const debugLogs = mockLogger.logs.filter((l) => l.level === "debug");
       assert.ok(
-        debugLogs.some((l) =>
-          l.msg.includes(`Processing step: ${IMAGES_TO_HTML_STEP}`),
+        debugLogs.some(
+          (l) =>
+            l.msg === "Processing step" &&
+            l.attributes?.step === IMAGES_TO_HTML_STEP,
         ),
       );
     });

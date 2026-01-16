@@ -1,9 +1,12 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { AgentService } from "../index.js";
+import {
+  createMockServiceConfig,
+  createSilentLogger,
+} from "@copilot-ld/libharness";
 
 describe("agent service", () => {
   describe("AgentService", () => {
@@ -43,16 +46,12 @@ describe("agent service", () => {
     let mockConfig;
     let mockAgentMind;
     let mockOctokitFactory;
+    let mockLogger;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "agent", // Required for logging
+      mockConfig = createMockServiceConfig("agent", {
         assistant: "common.Assistant.test-assistant",
-        budget: 1000,
-        threshold: 0.3,
-        limit: 10,
-        temperature: 0.7,
-      };
+      });
 
       mockAgentMind = {
         process: async () => ({
@@ -66,6 +65,8 @@ describe("agent service", () => {
       mockOctokitFactory = () => ({
         request: async () => ({ login: "test-user" }),
       });
+
+      mockLogger = createSilentLogger();
     });
 
     test("constructor validates required dependencies", () => {
@@ -91,11 +92,11 @@ describe("agent service", () => {
         mockConfig,
         mockAgentMindWithError,
         mockOctokitFactory,
-        () => ({ debug: () => {}, info: () => {}, error: () => {} }), // Mock logger
+        () => mockLogger,
       );
 
       const mockCall = {
-        request: { messages: [], github_token: "test-token" },
+        request: { messages: [], llm_token: "test-token" },
         write: () => {},
         end: () => {},
       };
@@ -122,13 +123,13 @@ describe("agent service", () => {
         mockConfig,
         mockAgentMind,
         mockOctokitFactory,
-        () => ({ debug: () => {}, info: () => {}, error: () => {} }),
+        () => mockLogger,
       );
 
       const mockCall = {
         request: {
           messages: [{ role: "user", content: "Hello" }],
-          github_token: "test-token",
+          llm_token: "test-token",
         },
         write: () => {},
         end: () => {},

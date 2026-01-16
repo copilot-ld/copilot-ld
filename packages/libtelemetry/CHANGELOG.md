@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-01-15
+
+- **BREAKING**: Redesigned `Logger` API with `info()`, `error()`, `debug()`, and
+  `exception()` methods
+- `info()` always outputs for user-facing messages; `debug()` and `exception()`
+  are DEBUG-gated
+- `error()` now only accepts string messages (use `exception()` for Error
+  objects)
+
 ## 2025-11-24
 
 - Bump version

@@ -1,170 +1,9 @@
-/* eslint-env node */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
 import { MemoryWindow } from "../index.js";
 import { MemoryIndex } from "../index/memory.js";
 import { resource, common, tool } from "@copilot-ld/libtype";
-
-// Mock storage for testing
-/** Mock storage implementation for testing */
-class MockStorage {
-  /** Creates a new mock storage instance */
-  constructor() {
-    this.data = new Map();
-  }
-
-  /**
-   * Gets data from storage
-   * @param {string} key - Storage key
-   * @returns {Promise<any>} Stored value
-   */
-  async get(key) {
-    const value = this.data.get(key);
-    if (!value) throw new Error("Not found");
-
-    // Simulate JSONL parsing for .jsonl files
-    if (key.endsWith(".jsonl")) {
-      return value.split("\n").map((line) => JSON.parse(line));
-    }
-    return value;
-  }
-
-  /**
-   * Sets data in storage
-   * @param {string} key - Storage key
-   * @param {any} value - Value to store
-   */
-  async set(key, value) {
-    this.data.set(key, value);
-  }
-
-  /**
-   * Appends data to storage
-   * @param {string} key - Storage key
-   * @param {string} value - Value to append
-   */
-  async append(key, value) {
-    const existing = this.data.get(key) || "";
-    const newValue = existing ? `${existing}\n${value}` : value;
-    this.data.set(key, newValue);
-  }
-
-  /**
-   * Checks if key exists in storage
-   * @param {string} key - Storage key
-   * @returns {Promise<boolean>} True if key exists
-   */
-  async exists(key) {
-    return this.data.has(key);
-  }
-
-  /**
-   * Deletes data from storage
-   * @param {string} key - Storage key
-   */
-  async delete(key) {
-    this.data.delete(key);
-  }
-}
-
-/**
- * Mock resource index for testing
- * Returns conversation with assistant_id, assistant with tools, and tool functions
- */
-class MockResourceIndex {
-  /** Creates a new mock resource index */
-  constructor() {
-    this.resources = new Map();
-  }
-
-  /**
-   * Sets up default test resources
-   * @param {object} options - Setup options
-   * @param {string[]} [options.tools] - Tool names for assistant
-   */
-  setupDefaults(options = {}) {
-    const toolNames = options.tools || [];
-
-    // Set up conversation
-    this.resources.set(
-      "test-conversation",
-      common.Conversation.fromObject({
-        id: { name: "test-conversation" },
-        assistant_id: "common.Assistant.test-assistant",
-      }),
-    );
-
-    // Set up assistant with tools
-    this.resources.set(
-      "common.Assistant.test-assistant",
-      common.Assistant.fromObject({
-        id: { name: "test-assistant", tokens: 50 },
-        tools: toolNames,
-        content: "You are a test assistant.",
-        temperature: 0.5,
-      }),
-    );
-
-    // Set up tool functions
-    for (const name of toolNames) {
-      this.resources.set(
-        `tool.ToolFunction.${name}`,
-        tool.ToolFunction.fromObject({
-          id: { name, tokens: 20 },
-          name,
-          description: `${name} tool`,
-        }),
-      );
-    }
-  }
-
-  /**
-   * Adds a message resource
-   * @param {object} msg - Message to add
-   */
-  addMessage(msg) {
-    // Store by full identifier string (type.name) to match lookup behavior
-    const id =
-      msg.id?.type && msg.id?.toString
-        ? msg.id.toString()
-        : msg.id?.name || String(msg.id);
-    this.resources.set(id, msg);
-  }
-
-  /**
-   * Gets resources by identifiers
-   * @param {string[]|object[]} identifiers - Resource identifiers
-   * @param {string} _actor - Actor (unused)
-   * @returns {Promise<object[]>} Resources
-   */
-  async get(identifiers, _actor) {
-    if (!identifiers || identifiers.length === 0) return [];
-
-    return identifiers
-      .map((id) => {
-        let key;
-        if (typeof id === "string") {
-          key = id;
-        } else if (id && typeof id.toString === "function" && id.type) {
-          key = id.toString();
-        } else if (id && id.name) {
-          key = id.name;
-        } else {
-          key = String(id);
-        }
-        return this.resources.get(key);
-      })
-      .filter(Boolean);
-  }
-
-  /**
-   * Stores a resource
-   * @param {object} _resource - Resource to store
-   */
-  put(_resource) {
-    // No-op for tests
-  }
-}
+import { MockStorage, createMockResourceIndex } from "@copilot-ld/libharness";
 
 describe("MemoryWindow", () => {
   let storage;
@@ -175,8 +14,10 @@ describe("MemoryWindow", () => {
   beforeEach(() => {
     storage = new MockStorage();
     memoryIndex = new MemoryIndex(storage, "test-conversation.jsonl");
-    resourceIndex = new MockResourceIndex();
-    resourceIndex.setupDefaults({ tools: ["search", "analyze"] });
+    resourceIndex = createMockResourceIndex({
+      tools: ["search", "analyze"],
+      temperature: 0.5,
+    });
     memoryWindow = new MemoryWindow(
       "test-conversation",
       resourceIndex,

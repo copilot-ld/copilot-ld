@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Static map of model names to their context window token budgets
  * Seeded from GitHub Copilot API via `npx env-cmd -- node scripts/models.js`

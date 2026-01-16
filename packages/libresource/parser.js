@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { minify } from "html-minifier-terser";
 import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 import { Writer, Parser as N3Parser } from "n3";

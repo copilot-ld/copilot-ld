@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 /**
  * @file Retrieves CloudFormation stack outputs and formats as parameters.json
  * @example
@@ -128,8 +127,10 @@ async function main() {
 
     outputParameters(parameters, values.file, workingDir);
   } catch (error) {
-    logger.error("Error:", error.message);
-    logger.debug("Stack trace:", error.stack);
+    logger.error("main", "Parameter operation failed", {
+      reason: error.message,
+    });
+    logger.exception("main", error);
     process.exit(1);
   }
 }

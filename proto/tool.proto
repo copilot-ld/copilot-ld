@@ -46,7 +46,7 @@ message ToolCall {
   ToolFunction function = 2;
   optional string id = 3; // When calling
   optional QueryFilter filter = 4; // Filter to pass-on when calling
-  optional string github_token = 5; // Github token to pass-on when calling
+  optional string llm_token = 5; // LLM API token to pass-on when calling
 }
 
 message ToolCallResult {

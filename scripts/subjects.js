@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createGraphIndex } from "@copilot-ld/libgraph";
 import { Repl } from "@copilot-ld/librepl";
 

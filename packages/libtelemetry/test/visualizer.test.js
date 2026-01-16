@@ -1,10 +1,10 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { TraceVisualizer } from "../visualizer.js";
 import { TraceIndex } from "../index/trace.js";
 import { trace } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 describe("TraceVisualizer", () => {
   let traceIndex;
@@ -12,11 +12,7 @@ describe("TraceVisualizer", () => {
   let mockStorage;
 
   beforeEach(() => {
-    mockStorage = {
-      exists: async () => false,
-      get: async () => [],
-      append: async () => {},
-    };
+    mockStorage = createMockStorage();
 
     traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");
     visualizer = new TraceVisualizer(traceIndex);

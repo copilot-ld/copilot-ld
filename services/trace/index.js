@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { services } from "@copilot-ld/librpc";
 import { TraceIndex } from "@copilot-ld/libtelemetry/index/trace.js";
 

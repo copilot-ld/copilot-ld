@@ -1,4 +1,3 @@
-/* eslint-env node */
 import fs from "fs";
 import fsAsync from "fs/promises";
 import path from "path";
@@ -122,8 +121,8 @@ export class Finder {
     // Create the symlink
     await fsAsync.symlink(sourcePath, targetPath, "dir");
     this.#logger.debug("Finder", "Created symlink", {
-      source: sourcePath,
-      target: targetPath,
+      source_path: sourcePath,
+      target_path: targetPath,
     });
   }
 

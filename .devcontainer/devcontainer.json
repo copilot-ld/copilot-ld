@@ -1,23 +1,16 @@
 {
   "name": "Copilot-LD Development Container",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:bookworm",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "moby": true,
-      "installDockerBuildx": true,
-      "installDockerComposeSwitch": true,
-      "version": "latest"
-    }
-  },
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-trixie",
   "postCreateCommand": "sudo apt-get update && sudo apt-get install -y awscli gh poppler-utils && npm install",
   "remoteUser": "node",
+  "remoteEnv": {
+    "SHELL": "/bin/sh"
+  },
   "customizations": {
     "vscode": {
-      "extensions": [
-        "bierner.markdown-mermaid",
-        "amazonwebservices.aws-toolkit-vscode",
-        "ms-azuretools.vscode-containers"
-      ]
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "sh"
+      }
     }
   }
 }

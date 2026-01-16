@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { performance } from "node:perf_hooks";
 import { memoryUsage } from "node:process";
 

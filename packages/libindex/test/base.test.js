@@ -1,10 +1,10 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { IndexBase } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 /**
  * Test implementation of IndexBase for testing shared functionality
@@ -42,11 +42,7 @@ describe("IndexBase - Shared Functionality", () => {
   let mockStorage;
 
   beforeEach(() => {
-    mockStorage = {
-      exists: mock.fn(() => Promise.resolve(false)),
-      get: mock.fn(() => Promise.resolve([])),
-      append: mock.fn(() => Promise.resolve()),
-    };
+    mockStorage = createMockStorage();
 
     testIndex = new TestIndex(mockStorage);
   });

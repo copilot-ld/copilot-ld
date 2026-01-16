@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { BufferedIndex } from "@copilot-ld/libindex";
 
 /**

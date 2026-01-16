@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-/* eslint-env node */
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createResourceIndex } from "@copilot-ld/libresource";
@@ -38,7 +37,11 @@ async function performSearch(prompt, state, outputStream) {
 
   const { limit, threshold } = state;
 
-  const llm = createLlm(await config.githubToken());
+  const llm = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
   const embeddings = await llm.createEmbeddings([prompt]);
 
   const identifiers = await vectorIndex.queryItems(

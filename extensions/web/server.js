@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { serve } from "@hono/node-server";
 
 import { createExtensionConfig } from "@copilot-ld/libconfig";

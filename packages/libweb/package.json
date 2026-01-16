@@ -14,9 +14,8 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.51",
-    "hono": "^4.8.12"
+    "hono": "^4.11.4"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
@@ -25,5 +24,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

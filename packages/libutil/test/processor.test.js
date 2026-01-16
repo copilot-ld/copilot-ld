@@ -1,6 +1,7 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+
+import { createSilentLogger } from "@copilot-ld/libharness";
 
 // Module under test
 import { ProcessorBase } from "../processor.js";
@@ -9,9 +10,7 @@ describe("ProcessorBase", () => {
   let mockLogger;
 
   beforeEach(() => {
-    mockLogger = {
-      debug: () => {}, // No-op logger for tests
-    };
+    mockLogger = createSilentLogger();
   });
 
   describe("constructor", () => {

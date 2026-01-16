@@ -1,10 +1,10 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 import { Store, DataFactory } from "n3";
 
 import { GraphIndex } from "../index/graph.js";
 import { resource } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 const { namedNode, literal } = DataFactory;
 
@@ -14,11 +14,7 @@ describe("GraphIndex - IndexBase Functionality", () => {
   let n3Store;
 
   beforeEach(() => {
-    mockStorage = {
-      exists: mock.fn(() => Promise.resolve(false)),
-      get: mock.fn(() => Promise.resolve([])),
-      append: mock.fn(() => Promise.resolve()),
-    };
+    mockStorage = createMockStorage();
 
     n3Store = new Store();
     graphIndex = new GraphIndex(mockStorage, n3Store, {}, "test-graph.jsonl");

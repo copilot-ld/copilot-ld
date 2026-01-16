@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import crypto from "crypto";
 import { updateEnvFile } from "@copilot-ld/libutil";
 import { parseArgs } from "node:util";

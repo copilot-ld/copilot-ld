@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
@@ -14,7 +13,7 @@ async function main() {
   const configStorage = createStorage("config");
   const logger = createLogger("ingestor-pipeline");
 
-  logger.debug("Starting pipeline ingest processing");
+  logger.debug("main", "Starting pipeline ingest processing");
 
   const ingesterPipeline = new IngesterPipeline(
     ingestStorage,

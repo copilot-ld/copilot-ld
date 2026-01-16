@@ -1,6 +1,11 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+
+import {
+  createMockConfig,
+  createMockServiceCallbacks,
+  createMockResourceIndex,
+} from "@copilot-ld/libharness";
 
 import { AgentMind } from "../mind.js";
 import { AgentHands } from "../hands.js";
@@ -13,52 +18,18 @@ describe("AgentMind", () => {
   let mockAgentHands;
 
   beforeEach(() => {
-    mockConfig = {
+    mockConfig = createMockConfig("agent", {
       budget: 1000,
       assistant: "software_dev_expert",
       temperature: 0.7,
       threshold: 0.5,
       limit: 10,
-    };
+    });
 
-    mockServiceCallbacks = {
-      memory: {
-        append: async () => ({}),
-        get: async () => ({
-          messages: [{ role: "system", content: "You are an assistant" }],
-          tools: [],
-        }),
-      },
-      llm: {
-        createCompletions: async () => ({
-          choices: [
-            {
-              message: common.Message.fromObject({
-                role: "assistant",
-                content: "Test response",
-                tool_calls: [],
-              }),
-            },
-          ],
-        }),
-      },
-      tool: {
-        call: async () => ({
-          role: "tool",
-          content: "Tool result",
-        }),
-      },
-    };
+    mockServiceCallbacks = createMockServiceCallbacks();
 
-    mockResourceIndex = {
-      get: async () => [
-        {
-          id: { name: "test-assistant" },
-          content: { tokens: 100 },
-        },
-      ],
-      put: () => {},
-    };
+    mockResourceIndex = createMockResourceIndex();
+    mockResourceIndex.setupDefaults({ assistantId: "test-assistant" });
 
     mockAgentHands = new AgentHands(
       mockConfig,
@@ -213,7 +184,7 @@ describe("AgentMind", () => {
     };
 
     const request = {
-      github_token: "test-token",
+      llm_token: "test-token",
       messages: [{ role: "user", content: "Hello" }],
     };
 
@@ -260,7 +231,7 @@ describe("AgentMind", () => {
     };
 
     const request = {
-      github_token: "test-token",
+      llm_token: "test-token",
       messages: [{ role: "user", content: "Hello" }],
     };
 
@@ -318,7 +289,7 @@ describe("AgentMind", () => {
     };
 
     const request = {
-      github_token: "test-token",
+      llm_token: "test-token",
       messages: [{ role: "user", content: "Hello" }],
     };
 

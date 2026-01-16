@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { createHash } from "crypto";
 import { ProcessorBase } from "@copilot-ld/libutil/processor.js";
 import yaml from "js-yaml";
@@ -74,7 +73,7 @@ export class IngesterLoad extends ProcessorBase {
     const ingestStorage = this.#ingestStorage;
     const fileName = basename(key);
     const extension = extname(fileName);
-    this.#logger.debug(`Ingesting file ${fileName}`);
+    this.#logger.debug("Ingestor", "Ingesting file", { file_name: fileName });
     const buffer = await ingestStorage.get(key);
     const sha256 = createHash("sha256").update(buffer).digest("hex");
     const targetDir = join("pipeline", sha256);
@@ -116,9 +115,10 @@ export class IngesterLoad extends ProcessorBase {
     );
     // Remove the original file from the 'todo' folder
     await ingestStorage.delete(key);
-    this.#logger.debug(
-      `Ingested ${key} → ${targetDir} and removed from in folder`,
-    );
+    this.#logger.debug("Ingestor", "Ingested file and removed from in folder", {
+      key,
+      target_dir: targetDir,
+    });
   }
 
   /**

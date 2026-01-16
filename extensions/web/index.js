@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { Hono } from "hono";
 import { streamText } from "hono/streaming";
 
@@ -7,6 +6,7 @@ import { agent, common } from "@copilot-ld/libtype";
 import {
   createValidationMiddleware,
   createCorsMiddleware,
+  createAuthMiddleware,
 } from "@copilot-ld/libweb";
 
 // Create HTML formatter with factory function
@@ -26,15 +26,25 @@ export async function createWebExtension(client, config, logger = null) {
   const validationMiddleware = createValidationMiddleware(config);
   const corsMiddleware = createCorsMiddleware(config);
 
+  // Create auth middleware if enabled (authEnabled is a config property from config.json)
+  const authMiddleware = config.authEnabled
+    ? createAuthMiddleware(config)
+    : null;
+
   // Add CORS middleware
   app.use(
     "/web/api/*",
     corsMiddleware.create({
       origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
       allowMethods: ["GET", "POST"],
-      allowHeaders: ["Content-Type"],
+      allowHeaders: ["Content-Type", "Authorization"],
     }),
   );
+
+  // Add auth middleware to protected routes
+  if (authMiddleware) {
+    app.use("/web/api/chat", authMiddleware.create());
+  }
 
   // Health check endpoint
   app.get("/web/health", (c) => {
@@ -57,6 +67,10 @@ export async function createWebExtension(client, config, logger = null) {
     }),
     async (c) => {
       try {
+        // Access authenticated user (null if auth disabled or optional)
+        const user = c.get("user");
+        logger?.debug("Chat", "Processing request", { userId: user?.id });
+
         const data = c.get("validatedData");
         const { message, resource_id } = data;
 
@@ -64,7 +78,7 @@ export async function createWebExtension(client, config, logger = null) {
           messages: [
             common.Message.fromObject({ role: "user", content: message }),
           ],
-          github_token: await config.githubToken(),
+          llm_token: await config.llmToken(),
           resource_id: resource_id,
         });
 

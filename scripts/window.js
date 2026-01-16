@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createClient } from "@copilot-ld/librpc";
 import { memory } from "@copilot-ld/libtype";

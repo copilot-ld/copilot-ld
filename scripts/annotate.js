@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-/* eslint-env node */
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common } from "@copilot-ld/libtype";
 
@@ -8,7 +7,7 @@ const config = await createScriptConfig("annotate");
 
 /**
  * Main function to convert text to HTML with Schema.org microdata
- * Reads text from stdin, uses Copilot to convert it to valid HTML with Schema.org microdata
+ * Reads text from stdin, uses the LLM to convert it to valid HTML with Schema.org microdata
  * @returns {Promise<void>}
  */
 async function main() {
@@ -19,7 +18,11 @@ async function main() {
     process.exit(1);
   }
 
-  const client = createLlm(await config.githubToken());
+  const client = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
 
   const messages = [
     common.Message.fromObject({

@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { createStorage } from "@copilot-ld/libstorage";
 import { Config } from "./config.js";
 
@@ -57,6 +56,17 @@ export async function createExtensionConfig(name, defaults = {}) {
  */
 export async function createScriptConfig(name, defaults = {}) {
   const instance = new Config("script", name, defaults);
+  await instance.load();
+  return instance;
+}
+
+/**
+ * Creates and initializes a Config instance for init/supervision.
+ * Used by rc.js to bootstrap services.
+ * @returns {Promise<Config>} Initialized Config instance with init() and rootDir()
+ */
+export async function createInitConfig() {
+  const instance = new Config("init", "rc", {});
   await instance.load();
   return instance;
 }

@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@copilot-ld/libformat": "^0.1.51",
-    "prettier": "^3.4.2"
+    "prettier": "^3.8.0"
   },
   "repository": {
     "type": "git",
@@ -24,5 +24,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

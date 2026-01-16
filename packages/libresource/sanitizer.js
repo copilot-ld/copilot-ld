@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Pattern definitions for text-node sanitation.
  */

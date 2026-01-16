@@ -138,10 +138,8 @@ patterns include:
 
 **Document relationships (EXAMPLE)**:
 
-- `schema:isPartOf` (Document → Document) ↔ `schema:hasPart` (inverse
-  direction)
-- `schema:citation` (Document → Document) ↔ `schema:hasPart` (inverse
-  direction)
+- `schema:isPartOf` (Document → Document) ↔ `schema:hasPart` (inverse direction)
+- `schema:citation` (Document → Document) ↔ `schema:hasPart` (inverse direction)
 
 **IMPORTANT GUIDELINES**:
 

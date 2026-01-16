@@ -1,4 +1,4 @@
-/* eslint-env node */
+/* eslint-disable max-lines -- Complex PDF processing logic */
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { spawn, spawnSync } from "child_process";
@@ -102,13 +102,15 @@ export class PdfTransformer extends ProcessorBase {
   async process(pdfExtension = ".pdf", htmlExtension = ".html") {
     const keys = await this.#knowledgeStorage.findByExtension(pdfExtension);
 
-    this.#logger.debug(`Found ${keys.length} PDF files to process`);
+    this.#logger.debug("Processor", "Found PDF files to process", {
+      count: keys.length,
+    });
     for (const key of keys) {
-      this.#logger.debug(`Processing PDF ${key}`);
+      this.#logger.debug("Processor", "Processing PDF", { key });
 
       const pdfBuffer = await this.#knowledgeStorage.get(key);
       if (!Buffer.isBuffer(pdfBuffer)) {
-        this.#logger.debug(`Skipping non-buffer PDF ${key}`);
+        this.#logger.debug("Processor", "Skipping non-buffer PDF", { key });
         continue;
       }
 
@@ -117,7 +119,10 @@ export class PdfTransformer extends ProcessorBase {
       const htmlKey = key.replace(/\.pdf$/i, htmlExtension);
       await this.#knowledgeStorage.put(htmlKey, html);
 
-      this.#logger.debug(`Converted PDF ${key} to HTML ${htmlKey}`);
+      this.#logger.debug("Processor", "Converted PDF to HTML", {
+        key,
+        html_key: htmlKey,
+      });
     }
   }
 
@@ -133,11 +138,14 @@ export class PdfTransformer extends ProcessorBase {
     try {
       const images = await this.#pdfSplitter(pdfBuffer, tempDir);
 
-      this.#logger.debug(`Split PDF ${key} into images ${images.length}`);
+      this.#logger.debug("Processor", "Split PDF into images", {
+        key,
+        count: images.length,
+      });
 
-      this.#logger.debug(
-        `this.#imgToHtmlSystemPrompt ${this.#imgToHtmlSystemPrompt} `,
-      );
+      this.#logger.debug("Processor", "Using image to HTML system prompt", {
+        prompt: this.#imgToHtmlSystemPrompt,
+      });
 
       const htmlFragments = [];
 
@@ -210,7 +218,7 @@ export class PdfTransformer extends ProcessorBase {
    * @returns {Promise<string>} JSON summary
    */
   async #contextExtraction(key, html) {
-    this.#logger.debug(`Extracting context`);
+    this.#logger.debug("Processor", "Extracting context", { key });
 
     const messages = [
       common.Message.fromObject({
@@ -222,21 +230,30 @@ export class PdfTransformer extends ProcessorBase {
         content: html,
       }),
     ];
-    this.#logger.debug(`token count of html ${countTokens(html)}`);
-    this.#logger.debug(`json ${JSON.stringify(messages)}`);
+    this.#logger.debug("Processor", "Token count of HTML", {
+      token_count: countTokens(html),
+    });
+    this.#logger.debug("Processor", "Messages JSON", {
+      messages: JSON.stringify(messages),
+    });
 
     const response = await this.#llm.createCompletions(messages);
 
     if (response.choices && response.choices.length > 0) {
-      this.#logger.debug(`response ${JSON.stringify(response)}`);
+      this.#logger.debug("Processor", "Response received", {
+        response: JSON.stringify(response),
+      });
       // const htmlContent = response.choices[0].message.content?.text || "";
       const htmlContext = response.choices[0].message?.content || "";
       await this.#knowledgeStorage.put(key + "-context.json", htmlContext);
-      this.#logger.debug(`Returning context ${htmlContext}`);
+      this.#logger.debug("Processor", "Returning context", {
+        context: htmlContext,
+      });
       return htmlContext;
     } else {
       this.#logger.debug(
-        `Got an empty response from Copilot for HTML annotation"`,
+        "Processor",
+        "Got an empty response from Copilot for HTML annotation",
       );
       throw new Error("Got an empty response from Copilot for HTML annotation");
     }
@@ -269,12 +286,16 @@ export class PdfTransformer extends ProcessorBase {
           content: htmlFragment,
         }),
       ];
-      this.#logger.debug(`json ${JSON.stringify(messages)}`);
+      this.#logger.debug("Processor", "Messages JSON", {
+        messages: JSON.stringify(messages),
+      });
 
       const response = await this.#llm.createCompletions(messages);
 
       if (response.choices && response.choices.length > 0) {
-        this.#logger.debug(`response ${JSON.stringify(response)}`);
+        this.#logger.debug("Processor", "Response received", {
+          response: JSON.stringify(response),
+        });
         // const htmlContent = response.choices[0].message.content?.text || "";
         annotatedHtml.push(response.choices[0].message?.content);
       } else {
@@ -308,14 +329,18 @@ export class PdfTransformer extends ProcessorBase {
   async #pdfSplitter(pdfBuffer, tempDir) {
     // Create a temporary directory for images
 
-    this.#logger.debug(`Created temp directory ${tempDir} `);
+    this.#logger.debug("Processor", "Created temp directory", {
+      temp_dir: tempDir,
+    });
     const pdfPath = join(tempDir, "input.pdf");
     await writeFile(pdfPath, pdfBuffer);
-    this.#logger.debug(`Wrote pdf to  ${pdfPath} `);
+    this.#logger.debug("Processor", "Wrote PDF to file", { pdf_path: pdfPath });
 
     // pdftoppm command: pdftoppm input.pdf page -png
     const outputPrefix = join(tempDir, "page");
-    this.#logger.debug(`outputPrefix  ${outputPrefix} `);
+    this.#logger.debug("Processor", "Output prefix", {
+      output_prefix: outputPrefix,
+    });
     await new Promise((resolve, reject) => {
       const proc = spawn("pdftoppm", [pdfPath, outputPrefix, "-png"]);
       proc.on("error", reject);
@@ -340,7 +365,9 @@ export class PdfTransformer extends ProcessorBase {
       throw new Error("No images generated from PDF");
     }
 
-    this.#logger.debug(`Generated images from PDF - ${imageFiles}`);
+    this.#logger.debug("Processor", "Generated images from PDF", {
+      image_files: imageFiles.join(", "),
+    });
     return imageFiles;
   }
 

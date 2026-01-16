@@ -1,9 +1,9 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { ToolService } from "../index.js";
+import { createMockConfig } from "@copilot-ld/libharness";
 
 describe("tool service", () => {
   describe("ToolService", () => {
@@ -32,8 +32,7 @@ describe("tool service", () => {
     let mockConfig;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "tool", // Required for logging
+      mockConfig = createMockConfig("tool", {
         endpoints: {
           "hash.sha256": {
             method: "hash.Hash.Sha256",
@@ -42,7 +41,7 @@ describe("tool service", () => {
             method: "vector.Vector.QueryItems",
           },
         },
-      };
+      });
     });
 
     test("creates service instance with config", () => {

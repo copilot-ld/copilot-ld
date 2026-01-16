@@ -1,6 +1,11 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+
+import {
+  createMockConfig,
+  createMockServiceCallbacks,
+  createMockResourceIndex,
+} from "@copilot-ld/libharness";
 
 import { AgentMind, AgentHands } from "../index.js";
 import { common } from "@copilot-ld/libtype";
@@ -11,11 +16,11 @@ describe("libagent", () => {
   let mockResourceIndex;
 
   beforeEach(() => {
-    mockConfig = {
+    mockConfig = createMockConfig("agent", {
       assistant: "software_dev_expert",
-    };
+    });
 
-    mockServiceCallbacks = {
+    mockServiceCallbacks = createMockServiceCallbacks({
       memory: {
         append: async () => ({}),
         getBudget: async () => ({
@@ -24,36 +29,10 @@ describe("libagent", () => {
           available: 123000,
         }),
       },
-      llm: {
-        createCompletions: async () => ({
-          choices: [
-            {
-              message: common.Message.fromObject({
-                role: "assistant",
-                content: "Test response",
-                tool_calls: [],
-              }),
-            },
-          ],
-        }),
-      },
-      tool: {
-        call: async () => ({
-          role: "tool",
-          content: "Tool result",
-        }),
-      },
-    };
+    });
 
-    mockResourceIndex = {
-      get: async () => [
-        {
-          id: { name: "test-assistant" },
-          content: { tokens: 100 },
-        },
-      ],
-      put: () => {},
-    };
+    mockResourceIndex = createMockResourceIndex();
+    mockResourceIndex.setupDefaults({ assistantId: "test-assistant" });
   });
 
   test("AgentMind and AgentHands can be imported from main index", () => {
@@ -101,7 +80,7 @@ describe("libagent", () => {
     });
 
     const request = {
-      github_token: "test-token",
+      llm_token: "test-token",
       messages: [{ role: "user", content: "Hello" }],
     };
 

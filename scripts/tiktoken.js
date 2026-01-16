@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { encoding_for_model } from "tiktoken";
 
 const usage = `Usage: npm -s run cli:window -- <resource_id> 2>/dev/null | npm run cli:tiktoken

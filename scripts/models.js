@@ -1,17 +1,20 @@
 #!/usr/bin/env node
-/* eslint-env node */
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 
 const config = await createScriptConfig("models");
 
 /**
- * Main function to list available models from the copilot service
+ * Main function to list available models from the LLM service
  * Fetches models and outputs them as JSON without descriptions
  * @returns {Promise<void>}
  */
 async function main() {
-  const client = createLlm(await config.githubToken());
+  const client = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
   const models = await client.listModels();
 
   const cleanedModels = models.map((model) => {

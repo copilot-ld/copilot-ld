@@ -1,7 +1,5 @@
 import { createStorage } from "@copilot-ld/libstorage";
 
-/* eslint-env node */
-
 /**
  * Configuration for a tenant
  */

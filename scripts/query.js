@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { Store, Writer } from "n3";
 
 import {

@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe, mock } from "node:test";
 import assert from "node:assert";
 
@@ -76,7 +75,7 @@ describe("Evaluator", () => {
           mockRetrieval,
           mockTraceEval,
         ),
-      /githubToken is required/,
+      /llmToken is required/,
     );
 
     assert.throws(

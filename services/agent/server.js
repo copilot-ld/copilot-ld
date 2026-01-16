@@ -1,7 +1,6 @@
-/* eslint-env node */
 import { Octokit } from "@octokit/core";
 
-import { createProxyAwareFetch } from "@copilot-ld/libcopilot";
+import { createProxyAwareFetch } from "@copilot-ld/libllm";
 import { Server, createClient } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createResourceIndex } from "@copilot-ld/libresource";

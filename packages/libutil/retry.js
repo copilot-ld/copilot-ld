@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Retry class for handling transient errors with exponential backoff
  */

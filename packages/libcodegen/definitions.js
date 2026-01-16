@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Handles service definition generation from protobuf files
  * Specializes in gRPC service definition creation for runtime registration

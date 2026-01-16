@@ -1,4 +1,3 @@
-/* eslint-env node */
 // Standard imports - always first
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
@@ -101,54 +100,54 @@ Line 3`;
     });
   });
 
-  describe("getGithubToken", () => {
+  describe("getLlmToken", () => {
     let originalToken;
 
     beforeEach(() => {
       // Save original token
-      originalToken = globalThis.process.env.GITHUB_TOKEN;
+      originalToken = globalThis.process.env.LLM_TOKEN;
     });
 
     afterEach(() => {
       // Restore original token
       if (originalToken !== undefined) {
-        globalThis.process.env.GITHUB_TOKEN = originalToken;
+        globalThis.process.env.LLM_TOKEN = originalToken;
       } else {
-        delete globalThis.process.env.GITHUB_TOKEN;
+        delete globalThis.process.env.LLM_TOKEN;
       }
     });
 
-    test("returns token when GITHUB_TOKEN is set", () => {
-      const testToken = "ghp_test_token_123";
-      globalThis.process.env.GITHUB_TOKEN = testToken;
+    test("returns token when LLM_TOKEN is set", () => {
+      const testToken = "llm_test_token_123";
+      globalThis.process.env.LLM_TOKEN = testToken;
 
-      const result = Utils.getGithubToken();
+      const result = Utils.getLlmToken();
       assert.strictEqual(result, testToken);
     });
 
-    test("throws error when GITHUB_TOKEN is not set", () => {
-      delete globalThis.process.env.GITHUB_TOKEN;
+    test("throws error when LLM_TOKEN is not set", () => {
+      delete globalThis.process.env.LLM_TOKEN;
 
-      assert.throws(() => Utils.getGithubToken(), {
+      assert.throws(() => Utils.getLlmToken(), {
         name: "Error",
-        message: "GitHub token not found in environment",
+        message: "LLM token not found in environment",
       });
     });
 
-    test("throws error when GITHUB_TOKEN is empty string", () => {
-      globalThis.process.env.GITHUB_TOKEN = "";
+    test("throws error when LLM_TOKEN is empty string", () => {
+      globalThis.process.env.LLM_TOKEN = "";
 
-      assert.throws(() => Utils.getGithubToken(), {
+      assert.throws(() => Utils.getLlmToken(), {
         name: "Error",
-        message: "GitHub token not found in environment",
+        message: "LLM token not found in environment",
       });
     });
 
     test("handles token with special characters", () => {
-      const testToken = "ghp_test-token.with_special/chars";
-      globalThis.process.env.GITHUB_TOKEN = testToken;
+      const testToken = "llm_test-token.with_special/chars";
+      globalThis.process.env.LLM_TOKEN = testToken;
 
-      const result = Utils.getGithubToken();
+      const result = Utils.getLlmToken();
       assert.strictEqual(result, testToken);
     });
   });

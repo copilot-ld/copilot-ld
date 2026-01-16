@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 
 import fs from "node:fs";
 import fsAsync from "node:fs/promises";

@@ -1,9 +1,12 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { LlmService } from "../index.js";
+import {
+  createMockConfig,
+  createMockMemoryClient,
+} from "@copilot-ld/libharness";
 
 describe("llm service", () => {
   describe("LlmService", () => {
@@ -41,18 +44,9 @@ describe("llm service", () => {
     let mockCopilot;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "llm", // Required for logging
-        model: "gpt-4o",
-      };
+      mockConfig = createMockConfig("llm", { model: "gpt-4o" });
 
-      mockMemoryClient = {
-        GetWindow: async () => ({
-          messages: [{ role: "system", content: "You are an assistant" }],
-          tools: [],
-          temperature: "0.7",
-        }),
-      };
+      mockMemoryClient = createMockMemoryClient();
 
       mockCopilot = {
         createCompletions: async () => ({
@@ -106,7 +100,7 @@ describe("llm service", () => {
       await assert.rejects(
         async () => {
           await service.CreateCompletions({
-            github_token: "test-token",
+            llm_token: "test-token",
             messages: [{ role: "user", content: "Hello" }],
             tools: [],
             temperature: 0.7,
@@ -138,7 +132,7 @@ describe("llm service", () => {
       );
 
       const result = await service.CreateCompletions({
-        github_token: "test-token",
+        llm_token: "test-token",
         resource_id: "test-conversation-id",
       });
 
@@ -154,7 +148,7 @@ describe("llm service", () => {
       );
 
       const result = await service.CreateEmbeddings({
-        github_token: "test-token",
+        llm_token: "test-token",
         input: ["test chunk"],
       });
 

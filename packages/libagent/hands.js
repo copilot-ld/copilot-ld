@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { llm, tool, common, memory } from "@copilot-ld/libtype";
 
 /**
@@ -27,12 +26,12 @@ export class AgentHands {
    * @param {string} conversationId - Conversation resource ID
    * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
-   * @param {string} [options.githubToken] - GitHub token for LLM calls
+   * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {string} [options.model] - Optional model override for LLM service
    * @returns {Promise<void>}
    */
   async executeToolLoop(conversationId, saveMessage, options = {}) {
-    const { githubToken, model } = options;
+    const { llmToken, model } = options;
     let maxIterations = 100; // TODO: configurable limit
     let currentIteration = 0;
 
@@ -48,7 +47,7 @@ export class AgentHands {
       // Build request with resource_id - LLM service fetches memory window internally
       const completionRequest = llm.CompletionsRequest.fromObject({
         resource_id: conversationId,
-        github_token: githubToken,
+        llm_token: llmToken,
         model,
       });
 
@@ -67,7 +66,7 @@ export class AgentHands {
         const tokensUsed = await this.processToolCalls(
           choice.message.tool_calls,
           saveMessage,
-          { githubToken, maxTokens: remainingBudget },
+          { llmToken, maxTokens: remainingBudget },
         );
 
         // Draw down budget by tokens used
@@ -85,11 +84,11 @@ export class AgentHands {
   /**
    * Executes a single tool call and returns the result message
    * @param {object} toolCall - Tool call object
-   * @param {string} github_token - GitHub token for LLM calls
+   * @param {string} llm_token - LLM API token for LLM calls
    * @param {number} [maxTokens] - Maximum tokens for tool result
    * @returns {Promise<object>} Tool result message
    */
-  async executeToolCall(toolCall, github_token, maxTokens = null) {
+  async executeToolCall(toolCall, llm_token, maxTokens = null) {
     try {
       // Set max_tokens filter if budget available
       if (maxTokens && maxTokens > 0) {
@@ -97,7 +96,7 @@ export class AgentHands {
         toolCall.filter.max_tokens = String(maxTokens);
       }
 
-      toolCall.github_token = github_token;
+      toolCall.llm_token = llm_token;
       const toolCallResult = await this.#callbacks.tool.call(toolCall);
 
       // Process the tool call result
@@ -171,12 +170,12 @@ export class AgentHands {
    * @param {import("@copilot-ld/libtype").tool.ToolCall[]} toolCalls - Array of tool calls to process
    * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
-   * @param {string} [options.githubToken] - GitHub token for LLM calls
+   * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {number} [options.maxTokens] - Maximum tokens for tool results
    * @returns {Promise<number>} Total tokens used by tool results
    */
   async processToolCalls(toolCalls, saveMessage, options = {}) {
-    const { githubToken, maxTokens } = options;
+    const { llmToken, maxTokens } = options;
     let totalTokensUsed = 0;
     let remainingBudget = maxTokens;
 
@@ -184,7 +183,7 @@ export class AgentHands {
     for (const toolCall of toolCalls) {
       const message = await this.executeToolCall(
         toolCall,
-        githubToken,
+        llmToken,
         remainingBudget,
       );
 

@@ -1,0 +1,35 @@
+{
+  "name": "@copilot-ld/librc",
+  "version": "0.1.0",
+  "description": "Service manager for Copilot-LD",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "rc": "./bin/rc.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libconfig": "^0.1.51",
+    "@copilot-ld/libsupervision": "^0.1.0",
+    "@copilot-ld/libtelemetry": "^0.1.16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/librc"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
+  }
+}

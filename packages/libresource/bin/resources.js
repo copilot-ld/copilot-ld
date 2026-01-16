@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { parseArgs } from "node:util";
 
 import { createScriptConfig } from "@copilot-ld/libconfig";

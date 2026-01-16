@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/api",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "REST API extension for Copilot-LD agent services",
   "license": "MIT",
   "type": "module",

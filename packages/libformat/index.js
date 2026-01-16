@@ -1,4 +1,3 @@
-/* eslint-env node */
 // External libraries (alphabetical)
 import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";

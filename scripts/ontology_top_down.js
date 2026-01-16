@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 /* eslint-disable max-lines */
-/* eslint-env node */
 
 /**
  * Top-Down Ontology Generator
@@ -40,7 +39,7 @@ import { dirname, join } from "node:path";
 import { Parser, DataFactory, Writer } from "n3";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createLogger } from "@copilot-ld/libtelemetry";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common } from "@copilot-ld/libtype";
 import {
@@ -847,7 +846,11 @@ async function main() {
   // Step 3: LLM Enhancement (always enabled)
   console.log("\n[3/5] LLM-based enhancements...");
   const config = await createScriptConfig("ontology_top_down");
-  const llm = createLlm(await config.githubToken());
+  const llm = createLlmApi(
+    await config.llmToken(),
+    undefined,
+    config.llmBaseUrl(),
+  );
 
   // Normalize types
   const { stats: normalizedStats, typeMapping } = await normalizeTypes(

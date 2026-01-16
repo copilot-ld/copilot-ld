@@ -12,13 +12,13 @@ service Llm {
 
 message EmbeddingsRequest {
   repeated string input = 1;
-  string github_token = 2;
+  string llm_token = 2;
   optional string model = 3;
 }
 
 message CompletionsRequest {
   string resource_id = 1;
-  string github_token = 4;
+  string llm_token = 4;
   optional string model = 5;
 }
 

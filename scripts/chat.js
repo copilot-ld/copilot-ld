@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { Repl } from "@copilot-ld/librepl";
 import { createClient, createTracer } from "@copilot-ld/librpc";
@@ -43,7 +42,7 @@ async function handlePrompt(prompt, state, outputStream) {
     // Create typed request using agent.AgentRequest
     const request = agent.AgentRequest.fromObject({
       messages: [userMessage],
-      github_token: await config.githubToken(),
+      llm_token: await config.llmToken(),
       resource_id: state.resource_id,
       model: config.model,
     });
@@ -60,7 +59,7 @@ async function handlePrompt(prompt, state, outputStream) {
       }
     }
   } catch (err) {
-    console.error("Stream error:", err);
+    logger.exception("ProcessStream", err);
     throw err;
   }
 }

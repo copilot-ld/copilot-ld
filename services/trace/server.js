@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { Server } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";

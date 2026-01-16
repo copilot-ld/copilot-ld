@@ -1,4 +1,3 @@
-/* eslint-env node */
 import crypto from "crypto";
 import grpc from "@grpc/grpc-js";
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createClient, createTracer } from "@copilot-ld/librpc";
 import { createLogger } from "@copilot-ld/libtelemetry";
@@ -19,7 +18,7 @@ for await (const chunk of process.stdin) {
 
 const request = agent.AgentRequest.fromObject({
   messages: [common.Message.fromObject({ role: "user", content: input })],
-  github_token: await config.githubToken(),
+  llm_token: await config.llmToken(),
   model: config.model,
 });
 

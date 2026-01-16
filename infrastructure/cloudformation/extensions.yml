@@ -37,9 +37,9 @@ Parameters:
     Type: String
     Description: ECR registry URL from registry stack
 
-  GitHubTokenArn:
+  LlmTokenArn:
     Type: String
-    Description: ARN of the GitHub token secret in AWS Secrets Manager
+    Description: ARN of the LLM token secret in AWS Secrets Manager
 
   ServiceSecretArn:
     Type: String
@@ -181,8 +181,8 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
-            - Name: GITHUB_TOKEN
-              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: LLM_TOKEN
+              ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:
@@ -219,8 +219,8 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
-            - Name: GITHUB_TOKEN
-              ValueFrom: !Sub "${GitHubTokenArn}:GITHUB_TOKEN::"
+            - Name: LLM_TOKEN
+              ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
           LogConfiguration:

@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { ProcessorBase } from "@copilot-ld/libutil";
 
 /**
@@ -15,7 +13,7 @@ export class VectorProcessor extends ProcessorBase {
    * Creates a new VectorProcessor instance
    * @param {import("@copilot-ld/libvector").VectorIndex} vectorIndex - The vector index to store content embeddings
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance to process resources from
-   * @param {import("@copilot-ld/libcopilot").Copilot} llm - LLM client instance for embedding generation
+   * @param {import("@copilot-ld/libllm").LlmApi} llm - LLM client instance for embedding generation
    * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
    */
   constructor(vectorIndex, resourceIndex, llm, logger) {

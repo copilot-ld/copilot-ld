@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { common, agent } from "@copilot-ld/libtype";
 
 /**
@@ -12,7 +11,7 @@ import { common, agent } from "@copilot-ld/libtype";
  */
 export class Evaluator {
   #agentClient;
-  #githubToken;
+  #llmToken;
   #model;
   #judgeEvaluator;
   #recallEvaluator;
@@ -24,7 +23,7 @@ export class Evaluator {
    * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
    * @param {import('@copilot-ld/librpc').MemoryClient} memoryClient - Memory client for recall evaluation
    * @param {import('@copilot-ld/librpc').TraceClient} traceClient - Trace client for trace evaluation
-   * @param {string} githubToken - GitHub token for API access
+   * @param {string} llmToken - GitHub token for API access
    * @param {string} [model] - Optional model override for LLM service
    * @param {import('./index/evaluation.js').EvaluationIndex} evaluationIndex - Evaluation index for storing results
    * @param {import('./criteria.js').JudgeEvaluator} judgeEvaluator - Judge evaluator instance
@@ -35,7 +34,7 @@ export class Evaluator {
     agentClient,
     memoryClient,
     traceClient,
-    githubToken,
+    llmToken,
     model,
     evaluationIndex,
     judgeEvaluator,
@@ -45,14 +44,14 @@ export class Evaluator {
     if (!agentClient) throw new Error("agentClient is required");
     if (!memoryClient) throw new Error("memoryClient is required");
     if (!traceClient) throw new Error("traceClient is required");
-    if (!githubToken) throw new Error("githubToken is required");
+    if (!llmToken) throw new Error("llmToken is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!judgeEvaluator) throw new Error("judgeEvaluator is required");
     if (!recallEvaluator) throw new Error("recallEvaluator is required");
     if (!traceEvaluator) throw new Error("traceEvaluator is required");
 
     this.#agentClient = agentClient;
-    this.#githubToken = githubToken;
+    this.#llmToken = llmToken;
     this.#model = model;
     this.#evaluationIndex = evaluationIndex;
     this.#judgeEvaluator = judgeEvaluator;
@@ -71,7 +70,7 @@ export class Evaluator {
       messages: [
         common.Message.fromObject({ role: "user", content: scenario.prompt }),
       ],
-      github_token: this.#githubToken,
+      llm_token: this.#llmToken,
       model: this.#model,
     });
 

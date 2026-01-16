@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Downloader utility for retrieving and extracting bundle.tar.gz from remote storage
  * Implements object-oriented approach with dependency injection

@@ -1,9 +1,9 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { Policy } from "../index.js";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 describe("libpolicy", () => {
   describe("Policy", () => {
@@ -11,19 +11,13 @@ describe("libpolicy", () => {
     let policy;
 
     beforeEach(() => {
-      mockStorage = {
-        put: mock.fn(() => Promise.resolve()),
+      mockStorage = createMockStorage({
         get: mock.fn(() => Promise.resolve(Buffer.from("test data"))),
-        delete: mock.fn(() => Promise.resolve()),
-        exists: mock.fn(() => Promise.resolve(true)),
-        findByExtension: mock.fn(() => Promise.resolve([])),
-        getMany: mock.fn(() => Promise.resolve({})),
-        findByPrefix: mock.fn(() => Promise.resolve([])),
         list: mock.fn(() => Promise.resolve([])),
         path: mock.fn((key) => `/test/base/${key}`),
         ensureBucket: mock.fn(() => Promise.resolve(false)),
         bucketExists: mock.fn(() => Promise.resolve(true)),
-      };
+      });
 
       policy = new Policy(mockStorage);
     });

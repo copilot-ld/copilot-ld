@@ -1,4 +1,3 @@
-/* eslint-env node */
 /**
  * @file Tests for release parameters management utilities
  */

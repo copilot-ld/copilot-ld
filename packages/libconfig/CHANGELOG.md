@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-01-15
+
+- **BREAKING**: Renamed `githubToken()` to `llmToken()` (env: `LLM_TOKEN`)
+- Added `llmBaseUrl()` for configurable LLM API endpoints (env: `LLM_BASE_URL`)
+- Added `init` getter and `createInitConfig()` factory for process supervision
+- Added `jwtSecret()` for JWT authentication support
+
 ## 2025-11-24
 
 - Bump version

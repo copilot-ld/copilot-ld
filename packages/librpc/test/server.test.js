@@ -1,8 +1,15 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 import { Server } from "../index.js";
+import {
+  createMockConfig,
+  createMockGrpcFn,
+  createMockObserverFn,
+  createMockAuthFn,
+  createMockLogger,
+  createMockTracer,
+} from "@copilot-ld/libharness";
 
 describe("Server", () => {
   let mockService;
@@ -19,46 +26,11 @@ describe("Server", () => {
       }),
     };
 
-    mockConfig = {
-      name: "memory", // Use a valid service name
-      host: "0.0.0.0",
-      port: 5000,
-    };
-
-    const mockGrpc = {
-      Server: function () {
-        return {
-          addService: mock.fn(),
-          bindAsync: mock.fn((uri, creds, callback) => callback(null, 5000)),
-          tryShutdown: mock.fn((callback) => callback()),
-        };
-      },
-      ServerCredentials: {
-        createInsecure: mock.fn(),
-      },
-      status: {
-        UNAUTHENTICATED: 16,
-        INTERNAL: 13,
-      },
-    };
-
-    mockGrpcFn = () => ({ grpc: mockGrpc });
-    mockAuthFn = () => ({
-      validateCall: () => ({ isValid: true, serviceId: "test" }),
-    });
-    mockLogFn = {
-      debug: mock.fn(),
-      error: mock.fn(),
-    };
-    mockObserverFn = () => ({
-      observeServerUnaryCall: async (method, handler, call, callback) => {
-        return await handler(call, callback);
-      },
-      observeClientUnaryCall: async (method, request, fn) => {
-        return await fn();
-      },
-      logger: () => mockLogFn,
-    });
+    mockConfig = createMockConfig("memory", { host: "0.0.0.0", port: 5000 });
+    mockGrpcFn = createMockGrpcFn();
+    mockAuthFn = createMockAuthFn();
+    mockLogFn = createMockLogger();
+    mockObserverFn = createMockObserverFn(mockLogFn);
   });
 
   test("should require service parameter", () => {
@@ -134,10 +106,7 @@ describe("Server", () => {
   });
 
   test("should accept tracer parameter", () => {
-    const mockTracer = {
-      startServerSpan: mock.fn(),
-      getSpanContext: () => ({ run: (_span, fn) => fn() }),
-    };
+    const mockTracer = createMockTracer();
 
     const server = new Server(
       mockService,

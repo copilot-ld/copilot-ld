@@ -30,10 +30,11 @@
     "@copilot-ld/libstorage": "^0.1.46",
     "@copilot-ld/libtelemetry": "^0.1.16",
     "@copilot-ld/libtype": "^0.1.57",
-    "n3": "^1.21.0"
+    "n3": "^1.26.0"
   },
   "devDependencies": {
-    "@copilot-ld/libutil": "^0.1.54"
+    "@copilot-ld/libutil": "^0.1.54",
+    "@copilot-ld/libharness": "*"
   },
   "repository": {
     "type": "git",

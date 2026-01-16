@@ -1,4 +1,3 @@
-/* eslint-env node */
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
@@ -152,3 +151,4 @@ export { Downloader } from "./downloader.js";
 export { TarExtractor, ZipExtractor } from "./extractor.js";
 export { ProcessorBase } from "./processor.js";
 export { Retry, createRetry } from "./retry.js";
+export { parseJsonBody } from "./http.js";

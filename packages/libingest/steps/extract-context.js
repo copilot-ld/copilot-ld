@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { common } from "@copilot-ld/libtype";
 import { Utils } from "../utils.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./images-to-html.js";
@@ -74,7 +73,10 @@ export class ExtractContext extends StepBase {
       }),
     ];
 
-    this._logger.debug(`Sending HTML to Copilot for context extraction`);
+    this._logger.debug(
+      "ExtractContext",
+      "Sending HTML to Copilot for context extraction",
+    );
 
     const response = await llm.createCompletions(
       messages,

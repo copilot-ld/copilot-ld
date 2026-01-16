@@ -1,4 +1,3 @@
-/* eslint-env node */
 // Standard imports - always first
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
@@ -50,18 +49,18 @@ describe("ExtractContext", () => {
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
-    // Save original GITHUB_TOKEN
-    originalEnv = globalThis.process.env.GITHUB_TOKEN;
+    // Save original LLM_TOKEN
+    originalEnv = globalThis.process.env.LLM_TOKEN;
     // Set a test token to avoid errors in createLlm
-    globalThis.process.env.GITHUB_TOKEN = "test_token_123";
+    globalThis.process.env.LLM_TOKEN = "test_token_123";
   });
 
   afterEach(() => {
-    // Restore original GITHUB_TOKEN
+    // Restore original LLM_TOKEN
     if (originalEnv !== undefined) {
-      globalThis.process.env.GITHUB_TOKEN = originalEnv;
+      globalThis.process.env.LLM_TOKEN = originalEnv;
     } else {
-      delete globalThis.process.env.GITHUB_TOKEN;
+      delete globalThis.process.env.LLM_TOKEN;
     }
   });
 
@@ -129,8 +128,8 @@ describe("ExtractContext", () => {
       });
     });
 
-    test("throws error when GITHUB_TOKEN is not set", async () => {
-      delete globalThis.process.env.GITHUB_TOKEN;
+    test("throws error when LLM_TOKEN is not set", async () => {
+      delete globalThis.process.env.LLM_TOKEN;
 
       const ingestContext = {
         steps: {
@@ -152,11 +151,11 @@ describe("ExtractContext", () => {
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
-        message: /GitHub token not found/,
+        message: /LLM token not found/,
       });
 
       // Restore token
-      globalThis.process.env.GITHUB_TOKEN = originalEnv;
+      globalThis.process.env.LLM_TOKEN = originalEnv;
     });
 
     test("logs debug messages during processing", async () => {

@@ -1,10 +1,14 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { resource, common, tool } from "@copilot-ld/libtype";
+import { resource, common } from "@copilot-ld/libtype";
 
 // Module under test
 import { MemoryService } from "../index.js";
+import {
+  createMockConfig,
+  createMockStorage,
+  createMockResourceIndex,
+} from "@copilot-ld/libharness";
 
 describe("memory service", () => {
   describe("MemoryService", () => {
@@ -43,101 +47,9 @@ describe("memory service", () => {
     let mockResourceIndex;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "memory", // Required for logging
-      };
-
-      mockStorage = {
-        data: new Map(),
-        async append(key, value) {
-          const existing = this.data.get(key) || "";
-          const newValue = existing ? `${existing}\n${value}` : value;
-          this.data.set(key, newValue);
-        },
-        async get(key) {
-          const value = this.data.get(key);
-          if (!value) throw new Error("Not found");
-          // Simulate JSONL parsing for .jsonl files
-          if (key.endsWith(".jsonl")) {
-            return value.split("\n").map((line) => JSON.parse(line));
-          }
-          return value;
-        },
-        async exists(key) {
-          return this.data.has(key);
-        },
-      };
-
-      mockResourceIndex = {
-        resources: new Map(),
-        async get(identifiers, _actor) {
-          if (!identifiers || identifiers.length === 0) return [];
-          return identifiers
-            .map((id) => {
-              let key;
-              if (typeof id === "string") {
-                key = id;
-              } else if (id && typeof id.toString === "function" && id.type) {
-                key = id.toString();
-              } else if (id && id.name) {
-                key = id.name;
-              } else {
-                key = String(id);
-              }
-              return this.resources.get(key);
-            })
-            .filter(Boolean);
-        },
-        put(_resource) {
-          // No-op for tests
-        },
-        setupDefaults(options = {}) {
-          const toolNames = options.tools || [];
-
-          // Set up conversation
-          this.resources.set(
-            "test-conversation",
-            common.Conversation.fromObject({
-              id: { name: "test-conversation" },
-              assistant_id: "common.Assistant.test-assistant",
-            }),
-          );
-
-          // Set up assistant with tools
-          this.resources.set(
-            "common.Assistant.test-assistant",
-            common.Assistant.fromObject({
-              id: { name: "test-assistant", tokens: 50 },
-              tools: toolNames,
-              content: "You are a test assistant.",
-              temperature: 0.3,
-            }),
-          );
-
-          // Set up tool functions
-          for (const name of toolNames) {
-            this.resources.set(
-              `tool.ToolFunction.${name}`,
-              tool.ToolFunction.fromObject({
-                id: { name, tokens: 20 },
-                name,
-                description: `${name} tool`,
-              }),
-            );
-          }
-        },
-        addMessage(msg) {
-          // Store by full identifier string (type.name) to match lookup behavior
-          const id =
-            msg.id?.type && msg.id?.toString
-              ? msg.id.toString()
-              : msg.id?.name || String(msg.id);
-          this.resources.set(id, msg);
-        },
-      };
-
-      // Set up default resources
-      mockResourceIndex.setupDefaults({ tools: ["search"] });
+      mockConfig = createMockConfig("memory");
+      mockStorage = createMockStorage();
+      mockResourceIndex = createMockResourceIndex({ tools: ["search"] });
     });
 
     test("constructor validates required dependencies", () => {

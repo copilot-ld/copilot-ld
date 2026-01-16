@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { Store } from "n3";
 import { createStorage } from "@copilot-ld/libstorage";
 import { GraphIndex } from "./index/graph.js";

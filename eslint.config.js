@@ -1,4 +1,3 @@
-/* eslint-env node */
 import eslint from "@eslint/js";
 import prettierConfig from "eslint-config-prettier";
 import globals from "globals";
@@ -19,6 +18,10 @@ const strictJSDocRules = () => ({
   "jsdoc/require-description": "error",
   // Allow implementations using `@inheritdoc` to omit explicit @returns
   "jsdoc/require-returns": ["error", { exemptedBy: ["throws", "inheritdoc"] }],
+  // Disable type-specific rules that are too strict for this codebase
+  "jsdoc/reject-function-type": "off",
+  "jsdoc/reject-any-type": "off",
+  "jsdoc/escape-inline-tags": "off",
   // Require JSDoc for private methods (but not params/returns)
   "jsdoc/require-jsdoc": [
     "error",
@@ -115,7 +118,11 @@ export default [
 
   {
     // Configuration for browser JavaScript files
-    files: ["**/public/**/*.js", "**/docs/assets/**/*.js"],
+    files: [
+      "**/public/**/*.js",
+      "**/docs/assets/**/*.js",
+      "**/packages/libchat/**/*.js",
+    ],
     languageOptions: {
       globals: { ...globals.browser },
     },
@@ -133,7 +140,7 @@ export default [
   {
     // Markdown files MUST be valid
     files: ["**/*.md"],
-    ignores: [".github/instructions/**/*.md"],
+    ignores: [".github/instructions/**/*.md", "**/packages/libchat/**/*.md"],
     plugins: { markdown },
     processor: "markdown/markdown",
     language: "markdown/commonmark",
@@ -162,12 +169,20 @@ export default [
   {
     // JavaScript MUST be valid inside Markdown files
     files: ["**/*.md/*.js"],
-    ignores: [".github/instructions/**/*.md/*.js"],
+    ignores: [
+      ".github/instructions/**/*.md/*.js",
+      "**/packages/libchat/**/*.md/*.js",
+    ],
     languageOptions: {
       globals: { ...globals.node },
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
     },
     rules: {
       "no-unused-vars": "off", // The ONLY rule that relaxes JS in Markdown
+      "no-undef": "off", // Code examples may reference symbols from context
       // Disable all JSDoc rules for documentation examples
       ...Object.fromEntries(
         Object.keys(jsdoc.configs["flat/recommended"].rules).map((key) => [

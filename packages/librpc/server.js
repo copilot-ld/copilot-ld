@@ -1,4 +1,3 @@
-/* eslint-env node */
 import {
   Rpc,
   createGrpc,
@@ -179,7 +178,7 @@ export class Server extends Rpc {
             this.observer().logger()?.error("Server", error);
             reject(error);
           } else {
-            this.observer().logger()?.debug("Server", "Listening", { uri });
+            this.observer().logger()?.info("Server", "Listening", { uri });
             resolve(port);
           }
         },
@@ -190,7 +189,7 @@ export class Server extends Rpc {
   /** Sets up graceful shutdown handlers */
   #setupShutdown() {
     const shutdown = async () => {
-      this.observer().logger()?.debug("Server", "Shutting down...");
+      this.observer().logger()?.info("Server", "Shutting down...");
 
       // Call service shutdown if it exists
       if (typeof this.#service.shutdown === "function") {

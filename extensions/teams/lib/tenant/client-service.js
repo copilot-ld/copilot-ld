@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { TenantConfig } from "./config-repository.js";
 
 /**

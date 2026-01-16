@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe } from "node:test";
 import { Store, DataFactory } from "n3";
 

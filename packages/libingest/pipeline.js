@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { join, dirname } from "path";
 import { readdir } from "fs/promises";
 import { fileURLToPath } from "url";
@@ -92,9 +91,10 @@ export class IngesterPipeline extends ProcessorBase {
   async #loadStepHandlers() {
     if (!this.#stepHandlers) {
       this.#stepHandlers = await discoverSteps();
-      this.#logger.debug(
-        `Discovered ${this.#stepHandlers.size} steps: ${[...this.#stepHandlers.keys()].join(", ")}`,
-      );
+      this.#logger.debug("Pipeline", "Discovered steps", {
+        count: this.#stepHandlers.size,
+        steps: [...this.#stepHandlers.keys()].join(", "),
+      });
     }
     return this.#stepHandlers;
   }
@@ -119,9 +119,9 @@ export class IngesterPipeline extends ProcessorBase {
   /**
    * Processes a single pipeline folder by loading its context.json and logging step information.
    * @param {string} pipelineFolder The key representing the pipeline folder path
-   * @param {string} githubToken GitHub token for LLM authentication
+   * @param {string} llmToken LLM API token for authentication
    */
-  async processItem(pipelineFolder, githubToken) {
+  async processItem(pipelineFolder, llmToken) {
     const ingestStorage = this.#ingestStorage;
     // Check for context.json in each folder
     const contextPath = join(pipelineFolder, "context.json");
@@ -152,12 +152,17 @@ export class IngesterPipeline extends ProcessorBase {
       const nextStep = sortedSteps.find(([, meta]) => meta.status === "QUEUED");
       if (!nextStep) {
         // No more queued steps - all done
-        this.#logger.debug(`All steps completed for ${pipelineFolder}`);
+        this.#logger.debug("Pipeline", "All steps completed", {
+          folder: pipelineFolder,
+        });
         break;
       }
 
       const [stepName] = nextStep;
-      this.#logger.debug(`Processing step: ${stepName} for ${pipelineFolder}`);
+      this.#logger.debug("Pipeline", "Processing step", {
+        step: stepName,
+        folder: pipelineFolder,
+      });
 
       // Get the handler for this step
       const StepHandler = stepHandlers.get(stepName);
@@ -173,7 +178,7 @@ export class IngesterPipeline extends ProcessorBase {
 
       // Create and run the step handler
       const handler = new StepHandler(ingestStorage, this.#logger, modelConfig);
-      await handler.process(contextPath, githubToken);
+      await handler.process(contextPath, llmToken);
     }
   }
 }

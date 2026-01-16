@@ -1,4 +1,3 @@
-/* eslint-env node */
 import yaml from "js-yaml";
 
 /**

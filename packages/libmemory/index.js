@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { common, tool } from "@copilot-ld/libtype";
 import { getModelBudget } from "./models.js";
 

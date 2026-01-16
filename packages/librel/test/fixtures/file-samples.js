@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Test fixtures for CHANGELOG.md content in tests
  */

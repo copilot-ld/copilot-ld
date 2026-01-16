@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
@@ -123,7 +122,7 @@ describe("AgentHands", () => {
     };
 
     await agentHands.processToolCalls(toolCalls, saveResource, {
-      githubToken: "test-token",
+      llmToken: "test-token",
     });
 
     // Should save 2 tool result messages
@@ -165,7 +164,7 @@ describe("AgentHands", () => {
     };
 
     await agentHands.executeToolLoop("test-conversation-id", saveResource, {
-      githubToken: "test-token",
+      llmToken: "test-token",
       model: "gpt-4o",
     });
 
@@ -175,7 +174,7 @@ describe("AgentHands", () => {
 
     // Verify resource_id was passed to LLM service
     assert.strictEqual(capturedRequest.resource_id, "test-conversation-id");
-    assert.strictEqual(capturedRequest.github_token, "test-token");
+    assert.strictEqual(capturedRequest.llm_token, "test-token");
   });
 
   test("executeToolLoop handles completion with tool calls", async () => {
@@ -225,7 +224,7 @@ describe("AgentHands", () => {
     };
 
     await agentHands.executeToolLoop("test-conversation", saveResource, {
-      githubToken: "test-token",
+      llmToken: "test-token",
       model: "gpt-4o",
     });
 
@@ -271,7 +270,7 @@ describe("AgentHands", () => {
     };
 
     await agentHands.processToolCalls(toolCalls, saveResource, {
-      githubToken: "test-token",
+      llmToken: "test-token",
       maxTokens: 5000,
     });
 
@@ -323,7 +322,7 @@ describe("AgentHands", () => {
       toolCalls,
       saveResource,
       {
-        githubToken: "test-token",
+        llmToken: "test-token",
         maxTokens: 10000,
       },
     );

@@ -1,9 +1,14 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "stream";
 
 import { Client } from "../index.js";
+import {
+  createMockGrpcFn,
+  createMockObserverFn,
+  createMockAuthFn,
+  createMockLogger,
+} from "@copilot-ld/libharness";
 
 describe("Client", () => {
   let mockConfig;
@@ -34,36 +39,22 @@ describe("Client", () => {
       }),
     };
 
-    const mockGrpc = {
-      credentials: {
-        createInsecure: mock.fn(),
-      },
-      makeGenericClientConstructor: mock.fn(() => {
-        return function () {
-          return mockClientInstance;
-        };
-      }),
-      Metadata: class {},
-    };
-
-    mockGrpcFn = () => ({ grpc: mockGrpc });
-
-    mockAuthFn = () => ({
-      createClientInterceptor: () => () => {},
-    });
-
-    mockLogFn = {
-      debug: mock.fn(),
-    };
-
-    mockObserverFn = () => ({
-      observeClientUnaryCall: async (method, request, fn) => {
-        return await fn();
-      },
-      observeClientStreamingCall: (method, request, fn) => {
-        return fn();
+    mockGrpcFn = createMockGrpcFn({
+      grpc: {
+        Metadata: class {},
+        makeGenericClientConstructor: mock.fn(() => {
+          return function () {
+            return mockClientInstance;
+          };
+        }),
       },
     });
+
+    mockAuthFn = createMockAuthFn();
+
+    mockLogFn = createMockLogger();
+
+    mockObserverFn = createMockObserverFn();
   });
 
   test("should require config parameter", () => {

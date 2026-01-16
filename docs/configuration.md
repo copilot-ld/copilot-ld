@@ -97,27 +97,35 @@ SERVICE_HASH_PORT=3009
 
 ### GitHub Authentication
 
-Configure GitHub integration for Copilot API access:
+Configure GitHub OAuth for user authentication:
 
 ```bash
 # GitHub Client ID (20-character string)
 GITHUB_CLIENT_ID=your_client_id_here
+```
 
-# GitHub Token (40-character string)
-GITHUB_TOKEN=your_github_token_here
+Configure LLM API access:
+
+```bash
+# LLM API Token
+LLM_TOKEN=your_llm_api_token_here
+
+# LLM API Base URL (optional, defaults to GitHub Copilot API)
+LLM_BASE_URL=https://api.githubcopilot.com
 ```
 
 #### Token Generation
 
-Generate a GitHub token using the OAuth device flow:
+Get a token from your OpenAI-compatible LLM provider and set `LLM_TOKEN` in your
+`.env` file. For GitHub Copilot users:
 
 ```bash
 # Set GITHUB_CLIENT_ID first, then run:
-node scripts/token.js
+node scripts/gh-token.js
 ```
 
-This command authenticates with GitHub and saves the token directly to
-`GITHUB_TOKEN` in your `.env` file.
+This command authenticates with GitHub using OAuth device flow and saves the
+token to `GITHUB_TOKEN` in your `.env` file. Copy this value to `LLM_TOKEN`.
 
 ### Service Secret
 
@@ -178,7 +186,38 @@ DEBUG=agent
 
 ### Service Configuration (`config.json`)
 
-Defines service parameters and the available tools in JSON format.
+Defines service parameters, process supervision, and available tools in JSON
+format.
+
+#### Process Supervision
+
+The `init` section configures the process supervision system (`svscan` and
+`rc`):
+
+```json
+{
+  "init": {
+    "log_dir": "data/logs",
+    "shutdown_timeout": 3000,
+    "services": [
+      {
+        "name": "agent",
+        "command": "npx env-cmd -- npm run dev -w @copilot-ld/agent"
+      }
+    ]
+  }
+}
+```
+
+- **`log_dir`**: Directory for service logs (default: `data/logs`)
+- **`shutdown_timeout`**: Maximum milliseconds to wait for graceful shutdown
+  (default: 3000)
+- **`services`**: Array of services to supervise with `name` and `command`
+  properties
+
+#### Service Parameters
+
+The `service` section defines service-specific configuration:
 
 ```json
 {
@@ -296,9 +335,11 @@ docker compose up
 
 | Variable                | Purpose                                            | Default                                   | Required           |
 | ----------------------- | -------------------------------------------------- | ----------------------------------------- | ------------------ |
-| `GITHUB_CLIENT_ID`      | GitHub OAuth application client ID                 | -                                         | Yes                |
-| `GITHUB_TOKEN`          | GitHub personal access token                       | -                                         | Yes                |
+| `LLM_TOKEN`             | LLM API access token                               | -                                         | Yes                |
+| `LLM_BASE_URL`          | LLM API base URL                                   | `https://api.githubcopilot.com`           | No                 |
+| `GITHUB_CLIENT_ID`      | GitHub OAuth application client ID                 | -                                         | OAuth only         |
 | `SERVICE_SECRET`        | HMAC secret for service authentication             | -                                         | Yes                |
+| `JWT_SECRET`            | HS256 secret for JWT authentication                | -                                         | Extensions only    |
 | `STORAGE_TYPE`          | Storage backend type                               | `local`                                   | No                 |
 | `S3_BUCKET_NAME`        | S3 bucket name for data storage                    | `copilot-ld`                              | S3 or MinIO        |
 | `S3_BUCKET_ROLE_ARN`    | S3 bucket role ARN for local development and CI/CD | `arn:aws:iam::123456789012:role/S3Access` | Local/CI only      |

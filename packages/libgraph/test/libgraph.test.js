@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import { Store, DataFactory } from "n3";
@@ -6,6 +5,7 @@ import { Store, DataFactory } from "n3";
 import { GraphIndex } from "../index/graph.js";
 import { parseGraphQuery } from "../index.js";
 import { resource } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 const { namedNode, literal } = DataFactory;
 
@@ -61,12 +61,7 @@ describe("libgraph", () => {
     let n3Store;
 
     beforeEach(() => {
-      // Simple mock storage that doesn't persist data (like the demo)
-      mockStorage = {
-        exists: () => Promise.resolve(false),
-        get: () => Promise.resolve([]),
-        append: () => Promise.resolve(),
-      };
+      mockStorage = createMockStorage();
 
       n3Store = new Store();
       graphIndex = new GraphIndex(mockStorage, n3Store, {}, "test.jsonl");

@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,23 +11,23 @@ import { common, agent } from "@copilot-ld/libtype";
  */
 export class JudgeEvaluator {
   #agentClient;
-  #githubToken;
+  #llmToken;
   #model;
   #evaluationTemplate;
 
   /**
    * Create a new JudgeEvaluator instance
    * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
-   * @param {string} githubToken - GitHub token for API access
+   * @param {string} llmToken - LLM token for API access
    * @param {string} model - Model to use for judge evaluations
    */
-  constructor(agentClient, githubToken, model) {
+  constructor(agentClient, llmToken, model) {
     if (!agentClient) throw new Error("agentClient is required");
-    if (!githubToken) throw new Error("githubToken is required");
+    if (!llmToken) throw new Error("llmToken is required");
     if (!model) throw new Error("model is required");
 
     this.#agentClient = agentClient;
-    this.#githubToken = githubToken;
+    this.#llmToken = llmToken;
     this.#model = model;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -96,7 +95,7 @@ export class JudgeEvaluator {
       messages: [
         common.Message.fromObject({ role: "user", content: evaluationContent }),
       ],
-      github_token: this.#githubToken,
+      llm_token: this.#llmToken,
       model: this.#model,
       assistant: "judge_evaluator",
     });

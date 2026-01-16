@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-01-15
+
+- Refactored to match web extension pattern with `ApiExtension` class and
+  `createApiExtension()` factory
+- Moved `parseBody` to `@copilot-ld/libutil` as `parseJsonBody`
+- Replaced console logging with `createLogger` from libtelemetry
+- Removed unused dependencies: botbuilder, libformat, libweb
+
 ## 2025-12-03
 
 - Changed `ProcessRequest` to `ProcessUnary` for agent client calls

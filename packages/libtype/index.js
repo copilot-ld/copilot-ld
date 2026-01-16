@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { countTokens, generateUUID } from "@copilot-ld/libutil";
 
 import * as types from "./generated/types/types.js";

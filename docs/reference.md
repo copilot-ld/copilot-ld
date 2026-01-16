@@ -78,7 +78,7 @@ consumption. Built as a gRPC wrapper around `@copilot-ld/libmemory`.
 #### LLM Service
 
 Interfaces with language models for embedding generation and text completion.
-Handles communication with external AI services (GitHub Copilot, OpenAI, etc.).
+Supports any OpenAI-compatible API endpoint via `@copilot-ld/libllm`.
 
 **Key Operations**:
 
@@ -87,9 +87,11 @@ Handles communication with external AI services (GitHub Copilot, OpenAI, etc.).
 
 **Implementation**:
 
-- **Provider abstraction**: Supports multiple LLM providers
+- **Provider flexibility**: Configurable base URL supports GitHub Copilot,
+  OpenAI, or any OpenAI-compatible API
 - **Batch processing**: Optimizes API calls for embedding generation
-- **Error handling**: Graceful degradation on API failures
+- **Error handling**: Graceful degradation on API failures with exponential
+  backoff
 
 #### Vector Service
 
@@ -192,8 +194,6 @@ communication with automatic tracing integration.
 **Server Pattern**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 import { Server, createTracer } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
@@ -211,8 +211,6 @@ await server.start();
 **Client Pattern**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 import { createClient, createTracer } from "@copilot-ld/librpc";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
@@ -244,7 +242,6 @@ local filesystem and S3-compatible storage.
 **Storage Interface**:
 
 ```javascript
-/* eslint-env node */
 import { createStorage } from "@copilot-ld/libstorage";
 
 // Automatically uses local or S3 based on config
@@ -288,7 +285,6 @@ storage-backed indexes with a standard interface.
 All indexes implement this interface:
 
 ```javascript
-/* eslint-env node */
 /**
  * @interface IndexInterface
  */
@@ -334,7 +330,6 @@ class IndexInterface {
 Extend `IndexBase` to create custom indexes:
 
 ```javascript
-/* eslint-env node */
 import { IndexBase } from "@copilot-ld/libindex";
 
 /**
@@ -375,7 +370,6 @@ class CustomIndex extends IndexBase {
 **Factory Functions**:
 
 ```javascript
-/* eslint-env node */
 import { createGraphIndex } from "@copilot-ld/libgraph";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { VectorIndex } from "@copilot-ld/libvector";
@@ -434,7 +428,6 @@ with canonical definitions (e.g., drug details page) without data loss.
 **Usage Example**:
 
 ```javascript
-/* eslint-env node */
 import { ResourceProcessor } from "@copilot-ld/libresource";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
@@ -499,7 +492,6 @@ The processor identifies inverse predicates by analyzing relationship patterns:
 **Usage Example**:
 
 ```javascript
-/* eslint-env node */
 import { OntologyProcessor } from "@copilot-ld/libgraph";
 import { createGraphIndex } from "@copilot-ld/libgraph";
 import { createStorage } from "@copilot-ld/libstorage";
@@ -556,7 +548,6 @@ all batch processing operations with error isolation and progress tracking.
 **Batch Processing Pattern**:
 
 ```javascript
-/* eslint-env node */
 import { ProcessorBase } from "@copilot-ld/libutil";
 
 class CustomProcessor extends ProcessorBase {
@@ -600,7 +591,6 @@ context propagation.
 **Initialization**:
 
 ```javascript
-/* eslint-env node */
 import { Tracer } from "@copilot-ld/libtelemetry/tracer.js";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { clients } from "@copilot-ld/librpc";
@@ -632,8 +622,6 @@ const tracer = new Tracer({
 **Basic Usage**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 // Start a span
 const span = tracer.startSpan("ProcessStream", {
   kind: "INTERNAL",
@@ -670,8 +658,6 @@ Represents a unit of work with timing, attributes, events, and relationships.
 **Working with Spans**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 const span = tracer.startSpan("LookupUser", {
   kind: "INTERNAL",
   attributes: { "user.id": "abc123" },
@@ -705,8 +691,6 @@ automatically.
 **Usage**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 import { createObserver } from "@copilot-ld/libtelemetry";
 import { createLogger } from "@copilot-ld/libtelemetry";
 import { Tracer } from "@copilot-ld/libtelemetry/tracer.js";
@@ -753,7 +737,6 @@ Simple namespace-based logger with DEBUG environment variable filtering.
 **Usage**:
 
 ```javascript
-/* eslint-env node */
 import { createLogger } from "@copilot-ld/libtelemetry";
 
 const logger = createLogger("agent:memory");
@@ -783,8 +766,6 @@ The `@copilot-ld/librpc` package integrates telemetry automatically through the
 **Server Integration**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 import { Server, createTracer } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 
@@ -803,8 +784,6 @@ await server.start();
 **Client Integration**:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 import { createClient, createTracer } from "@copilot-ld/librpc";
 
 const tracer = await createTracer("agent");
@@ -870,7 +849,6 @@ The trace service includes a stub OTLP exporter that can be extended to send
 spans to external systems:
 
 ```javascript
-/* eslint-env node */
 // Enable OTLP export via environment variable
 process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://jaeger:4318";
 
@@ -990,7 +968,6 @@ Tool.CallTool (root)
 Query traces programmatically via the Trace Service gRPC API:
 
 ```javascript
-/* eslint-env node */
 import { TraceClient } from "../../generated/services/trace/client.js";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { trace } from "@copilot-ld/libtype";
@@ -1125,7 +1102,6 @@ definitions respectively.
 Packages provide factory functions for simplified component creation:
 
 ```javascript
-/* eslint-env node */
 import { createGraphIndex } from "@copilot-ld/libgraph";
 import { createResourceIndex } from "@copilot-ld/libresource";
 import { Policy } from "@copilot-ld/libpolicy";
@@ -1155,6 +1131,125 @@ message Content {
 This enables both semantic graph processing and traditional text operations on
 the same resource.
 
+### LLM Integration (libllm)
+
+The `@copilot-ld/libllm` package provides a unified interface for interacting
+with OpenAI-compatible language model APIs.
+
+**Key Features**:
+
+- **Provider agnostic**: Works with GitHub Copilot, OpenAI, Azure OpenAI, or any
+  OpenAI-compatible endpoint
+- **Configurable base URL**: Set via `LLM_BASE_URL` environment variable
+- **Streaming support**: Handles both streaming and non-streaming completions
+- **Token authentication**: Uses `LLM_TOKEN` environment variable for API access
+- **Error handling**: Built-in retry logic with exponential backoff
+
+**Basic Usage**:
+
+```javascript
+import { createLlmApi } from "@copilot-ld/libllm";
+import { createServiceConfig } from "@copilot-ld/libconfig";
+
+const config = await createServiceConfig("llm");
+const llm = createLlmApi(config);
+
+// Generate embeddings
+const embeddings = await llm.createEmbeddings(["text1", "text2"]);
+
+// Generate completions
+const response = await llm.textToText({
+  messages: [{ role: "user", content: "Hello" }],
+});
+```
+
+### Process Supervision (libsupervision, librc)
+
+Process supervision is inspired by daemontools/s6 for reliable service
+management.
+
+#### libsupervision
+
+Core supervision primitives for managing long-running processes:
+
+- **`bin/svscan.js`**: Pure supervision daemon with Unix socket IPC
+- **`LongrunProcess`**: Manages daemon processes with automatic restart
+- **`OneshotProcess`**: Executes one-time initialization scripts
+- **`SupervisionTree`**: Hierarchical process management
+- **`LogWriter`**: Automatic log rotation with timestamps
+
+**Key Features**:
+
+- **Crash recovery**: Automatically restarts failed processes
+- **Process groups**: Proper cleanup of child processes
+- **Unix socket IPC**: JSON-based command protocol
+- **Structured logging**: RFC 5424 format via `@copilot-ld/libtelemetry`
+
+#### librc
+
+Service management CLI that communicates with svscan:
+
+```bash
+# Start svscan daemon
+npm run svscan
+
+# Add service to supervision
+npm run rc -- add agent
+
+# Remove service from supervision
+npm run rc -- remove agent
+```
+
+### Testing Infrastructure (libharness)
+
+The `@copilot-ld/libharness` package provides reusable test fixtures and mocks
+for unit and integration testing.
+
+**Mock Factories**:
+
+- `createMockConfig()`: Configuration with sensible defaults
+- `createMockStorage()`: In-memory storage implementation
+- `createMockLogger()`: Logger that captures output
+- `createMockObserver()`: Telemetry observer for traces
+- `createMockClients()`: gRPC client mocks for all services
+- `createMockGrpcServer()`: Test gRPC server
+
+**Usage Example**:
+
+```javascript
+import { describe, it } from "node:test";
+import { createMockConfig, createMockClients } from "@copilot-ld/libharness";
+
+describe("MyService", () => {
+  it("calls memory service", async () => {
+    const config = createMockConfig();
+    const clients = createMockClients({
+      memory: {
+        GetWindow: async () => ({ messages: [], tools: [] }),
+      },
+    });
+    // Test code using mocked clients
+  });
+});
+```
+
+### Web Utilities (libweb)
+
+HTTP server utilities for building REST extensions:
+
+**Authentication Middleware**:
+
+```javascript
+import { createAuthMiddleware } from "@copilot-ld/libweb";
+
+const authMiddleware = createAuthMiddleware(config);
+app.use("/protected", authMiddleware);
+```
+
+- **JWT validation**: HS256-signed tokens
+- **Optional authentication**: Configure per-route
+- **Token extraction**: Supports `Authorization: Bearer <token>` header
+
 ### Security Implementation
 
 #### Authentication Mechanisms
@@ -1173,8 +1268,6 @@ tokens:
 ##### Token Lifecycle
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 // Token generation (simplified)
 const serviceId = "agent";
 const timestamp = Date.now();
@@ -1303,7 +1396,6 @@ enables:
 Example:
 
 ```javascript
-/* eslint-env node */
 import { AgentMind } from "@copilot-ld/libagent";
 import { AgentBase } from "./service.js";
 
@@ -1347,6 +1439,50 @@ extensions/your-extension/
 └── CHANGELOG.md       # Component changelog
 ```
 
+#### Web Components (libchat)
+
+The `@copilot-ld/libchat` package provides reusable chat web components for
+embedding conversational interfaces in any web application.
+
+**Components**:
+
+- **`<agent-drawer>`**: Collapsible drawer chat interface (bottom-right corner)
+- **`<agent-chat>`**: Full-page chat interface
+
+**Key Features**:
+
+- **Framework-agnostic**: Pure Web Components (Custom Elements V1, Shadow DOM
+  V1)
+- **Shared state**: Multiple instances automatically sync via CustomEvents
+- **LocalStorage persistence**: Conversations persist across page reloads
+- **Zero dependencies**: No external libraries required
+- **CSS encapsulation**: Shadow DOM prevents style conflicts
+
+**Usage Example**:
+
+```html
+<!-- Drawer component -->
+<agent-drawer data-api="/web/api" data-name="Agent Walter"> </agent-drawer>
+<script type="module" src="/ui/libchat/drawer.js"></script>
+
+<!-- Full-page component -->
+<agent-chat data-name="Agent"></agent-chat>
+<script type="module" src="/ui/libchat/chat.js"></script>
+```
+
+**Theming with CSS Custom Properties**:
+
+```css
+agent-drawer {
+  --agent-accent: #ff6600;
+  --agent-bg: #f5f5f5;
+  --agent-padding: 1.5rem;
+}
+```
+
+See [`packages/libchat/README.md`](/packages/libchat/README.md) for complete
+documentation.
+
 ### Tool Development
 
 #### Creating Custom Tools
@@ -1380,7 +1516,6 @@ your_tool:
 Test business logic packages independently:
 
 ```javascript
-/* eslint-env node */
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import { AgentMind } from "@copilot-ld/libagent";
@@ -1402,7 +1537,6 @@ describe("AgentMind", () => {
 Test service communication:
 
 ```javascript
-/* eslint-env node */
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import { clients } from "@copilot-ld/librpc";
@@ -1429,8 +1563,6 @@ describe("Agent Service", () => {
 Use `@copilot-ld/libperf` for benchmarks:
 
 ```javascript
-/* eslint-env node */
-/* eslint-disable no-undef */
 import { benchmark } from "@copilot-ld/libperf";
 
 // Assuming vectorService is already initialized

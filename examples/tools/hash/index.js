@@ -1,4 +1,3 @@
-/* eslint-env node */
 import crypto from "node:crypto";
 import { services } from "@copilot-ld/librpc";
 

@@ -221,8 +221,8 @@ variables → Actions**):
 
 - **DEMO_AWS_DEPLOY_ROLE_ARN**:
   `arn:aws:iam::YOUR_ACCOUNT_ID:role/GitHubActions-CopilotLD-Demo-Deploy`
-- **DEMO_GITHUB_TOKEN**: Personal access token for GitHub API access (required
-  for some workflows)
+- **DEMO_LLM_TOKEN**: LLM API token for LLM service access (required for data
+  processing workflows)
 
 #### 4. Workflow Usage
 

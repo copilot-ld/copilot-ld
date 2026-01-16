@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Base class for batch processor implementations with common batch management logic
  */

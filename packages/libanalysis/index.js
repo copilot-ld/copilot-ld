@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { createTerminalFormatter } from "@copilot-ld/libformat";
 import prettier from "prettier";
 

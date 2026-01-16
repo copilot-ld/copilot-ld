@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
 import Prism from "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/+esm";
 import "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js/+esm";

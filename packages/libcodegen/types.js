@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Handles JavaScript type generation from protobuf files
  * Specializes in Protocol Buffer to JavaScript type conversion

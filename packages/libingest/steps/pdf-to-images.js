@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { spawn } from "child_process";
 import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
@@ -63,9 +62,10 @@ export class PdfToImages extends StepBase {
     try {
       const images = await this.#pdfSplitter(pdfBuffer, tempDir);
 
-      this._logger.debug(`Split PDF ${pdfKey} into images ${images.length}`);
-
-      // Save images back to storage
+      this._logger.debug("PdfToImages", "Split PDF into images", {
+        key: pdfKey,
+        count: images.length,
+      });
       const savedImageKeys = [];
       for (const imagePath of images) {
         // Read image file as buffer
@@ -74,7 +74,8 @@ export class PdfToImages extends StepBase {
         const pageNum = pageMatch ? pageMatch[1] : "unknown";
         const imageKey = `${targetDir}/target-page-${pageNum}.png`;
         await this._ingestStorage.put(imageKey, imageBuffer);
-        this._logger.debug(`Uploaded image ${imageKey}`);
+
+        this._logger.debug("PdfToImages", "Uploaded image", { key: imageKey });
         savedImageKeys.push(imageKey);
       }
 
@@ -83,7 +84,9 @@ export class PdfToImages extends StepBase {
       });
     } finally {
       // Clean up tempDir after all processing is complete
-      this._logger.debug(`Removing tempDir ${tempDir}`);
+      this._logger.debug("PdfToImages", "Removing temp directory", {
+        temp_dir: tempDir,
+      });
       await rm(tempDir, { recursive: true, force: true });
     }
   }
@@ -127,7 +130,9 @@ export class PdfToImages extends StepBase {
       throw new Error("No images generated from PDF");
     }
 
-    this._logger.debug(`Generated images from PDF - ${imageFiles}`);
+    this._logger.debug("PdfToImages", "Generated images from PDF", {
+      image_files: imageFiles.join(", "),
+    });
     return imageFiles;
   }
 }

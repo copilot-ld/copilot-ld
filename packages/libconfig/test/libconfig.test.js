@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
@@ -8,6 +7,7 @@ import {
   createServiceConfig,
   createExtensionConfig,
 } from "../index.js";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 describe("libconfig", () => {
   describe("Config", () => {
@@ -15,11 +15,9 @@ describe("libconfig", () => {
     let mockStorage;
 
     beforeEach(() => {
-      mockStorage = {
-        exists: mock.fn(() => Promise.resolve(false)),
+      mockStorage = createMockStorage({
         get: mock.fn(() => Promise.resolve("")),
-        put: mock.fn(() => Promise.resolve()),
-      };
+      });
 
       mockProcess = {
         cwd: mock.fn(() => "/test/dir"),
@@ -227,27 +225,33 @@ describe("libconfig", () => {
       const mockProcess = {
         cwd: mock.fn(() => "/test/dir"),
         env: {
-          GITHUB_TOKEN: "gh-token-123",
+          LLM_TOKEN: "llm-token-123",
         },
       };
 
       config = await createConfig("test", "myservice", {}, mockProcess);
     });
 
-    test("githubClientId returns from environment", () => {
-      const clientId = config.githubClientId();
-      assert.strictEqual(clientId, undefined); // Not set in test
+    test("ghClientId throws when not set in environment", () => {
+      assert.throws(() => config.ghClientId(), {
+        message: "GitHub client ID not found in environment",
+      });
     });
 
-    test("githubToken returns from environment", async () => {
-      const token = await config.githubToken();
-      assert.strictEqual(token, "gh-token-123");
+    test("llmToken returns from environment", async () => {
+      const token = await config.llmToken();
+      assert.strictEqual(token, "llm-token-123");
+    });
+
+    test("llmBaseUrl returns default when not set", () => {
+      const baseUrl = config.llmBaseUrl();
+      assert.strictEqual(baseUrl, "https://api.githubcopilot.com");
     });
 
     test("reset clears cached values", async () => {
       const mockProcess = {
         cwd: () => "/test/dir",
-        env: { GITHUB_TOKEN: "new-token" },
+        env: { LLM_TOKEN: "new-token" },
       };
 
       const mockStorageFn = () => ({
@@ -264,13 +268,13 @@ describe("libconfig", () => {
         mockStorageFn,
       );
 
-      // Access githubToken to cache it
-      await testConfig.githubToken();
+      // Access llmToken to cache it
+      await testConfig.llmToken();
 
       // Reset should clear the cache
       testConfig.reset();
 
-      const token = await testConfig.githubToken();
+      const token = await testConfig.llmToken();
       assert.strictEqual(token, "new-token");
     });
 

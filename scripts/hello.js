@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-/* eslint-env node */
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { common, tool } from "@copilot-ld/libtype";
 
@@ -11,14 +10,15 @@ import { common, tool } from "@copilot-ld/libtype";
 async function main() {
   try {
     const config = await createScriptConfig("hello");
-    const token = await config.githubToken();
-    const llm = createLlm(token);
+    const token = await config.llmToken();
+    const baseUrl = config.llmBaseUrl();
+    const llm = createLlmApi(token, undefined, baseUrl);
     const models = await llm.listModels();
     const successfulModels = [];
 
     for (const model of models) {
       try {
-        const testLlm = createLlm(token, model.id);
+        const testLlm = createLlmApi(token, model.id, baseUrl);
         const messages = [
           common.Message.fromObject({
             role: "user",

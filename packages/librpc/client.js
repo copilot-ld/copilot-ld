@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { PassThrough } from "stream";
 import { createRetry } from "@copilot-ld/libutil";
 

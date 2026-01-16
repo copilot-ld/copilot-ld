@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { describe, test, mock } from "node:test";
 import assert from "node:assert";
 

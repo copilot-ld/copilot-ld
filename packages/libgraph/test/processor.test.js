@@ -1,9 +1,9 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { GraphProcessor } from "../processor/graph.js";
 import { resource } from "@copilot-ld/libtype";
+import { createSilentLogger } from "@copilot-ld/libharness";
 
 describe("GraphProcessor", () => {
   let mockLogger;
@@ -12,9 +12,7 @@ describe("GraphProcessor", () => {
   let processor;
 
   beforeEach(() => {
-    mockLogger = {
-      debug: () => {},
-    };
+    mockLogger = createSilentLogger();
 
     mockGraphIndex = {
       add: async () => {},

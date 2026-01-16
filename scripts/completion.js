@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { createServiceConfig } from "@copilot-ld/libconfig";
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi } from "@copilot-ld/libllm";
 
 const usage = `Usage: npm -s run cli:window -- <resource_id> | npm -s run cli:completion
 
@@ -12,7 +11,11 @@ Example:
   npm -s run cli:window -- common.Conversation.abc123 | npm -s run cli:completion`;
 
 const config = await createServiceConfig("agent");
-const llm = createLlm(await config.githubToken());
+const llm = createLlmApi(
+  await config.llmToken(),
+  undefined,
+  config.llmBaseUrl(),
+);
 
 /**
  * Main entry point - reads window JSON from stdin and sends to LLM

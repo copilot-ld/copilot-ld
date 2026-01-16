@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -11,6 +10,9 @@ import prettier from "prettier";
 
 import { DocsBuilder, DocsServer } from "@copilot-ld/libdoc";
 import { parseFrontMatter } from "../frontmatter.js";
+import { createLogger } from "@copilot-ld/libtelemetry";
+
+const logger = createLogger("doc-serve");
 
 /**
  * Main function to handle CLI execution
@@ -40,7 +42,9 @@ async function main() {
 
   // Validate docs directory exists
   if (!fs.existsSync(docsDir)) {
-    console.error(`Error: docs/ directory not found in ${workingDir}`);
+    logger.error("main", "docs/ directory not found", {
+      working_dir: workingDir,
+    });
     process.exit(1);
   }
 
@@ -66,9 +70,9 @@ async function main() {
     // Start server
     server.serve(distDir, { port, hostname: "0.0.0.0" });
 
-    console.log(`\nPress Ctrl+C to stop`);
+    logger.info("main", "Press Ctrl+C to stop");
   } catch (error) {
-    console.error(`Error during serve:`, error.message);
+    logger.exception("main", error);
     process.exit(1);
   }
 }

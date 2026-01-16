@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import { execSync } from "child_process";
 import { createWriteStream } from "fs";
 import fs from "fs/promises";
@@ -52,10 +51,10 @@ async function main() {
 
     // Download the artifact
     const downloadUrl = demoDataArtifact.archive_download_url;
-    const githubToken = await config.githubToken();
+    const ghToken = config.ghToken();
     const response = await fetch(downloadUrl, {
       headers: {
-        Authorization: `Bearer ${githubToken}`,
+        Authorization: `Bearer ${ghToken}`,
         Accept: "application/vnd.github+json",
       },
     });

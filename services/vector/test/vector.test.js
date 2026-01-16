@@ -1,9 +1,9 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { VectorService } from "../index.js";
+import { createMockConfig, createMockLlmClient } from "@copilot-ld/libharness";
 
 describe("vector service", () => {
   describe("VectorService", () => {
@@ -37,21 +37,16 @@ describe("vector service", () => {
     let mockLlmClient;
 
     beforeEach(() => {
-      mockConfig = {
-        name: "vector",
+      mockConfig = createMockConfig("vector", {
         threshold: 0.3,
         limit: 10,
-      };
+      });
 
       mockContentIndex = {
         queryItems: async () => [{ toString: () => "msg1" }],
       };
 
-      mockLlmClient = {
-        CreateEmbeddings: async () => ({
-          data: [{ embedding: [0.1, 0.2, 0.3] }],
-        }),
-      };
+      mockLlmClient = createMockLlmClient();
     });
 
     test("creates service instance with index", () => {

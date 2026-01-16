@@ -1,4 +1,3 @@
-/* eslint-env node */
 // Standard imports - always first
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";

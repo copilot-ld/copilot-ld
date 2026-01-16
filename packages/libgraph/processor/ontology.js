@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * OntologyProcessor builds a lightweight SHACL shapes graph from observed RDF quads.
  * Observes rdf:type assertions, predicate usage per class, global predicate frequency,

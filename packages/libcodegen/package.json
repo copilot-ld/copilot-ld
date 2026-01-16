@@ -18,8 +18,8 @@
   "dependencies": {
     "@grpc/proto-loader": "^0.8.0",
     "mustache": "^4.2.0",
-    "protobufjs": "^7.4.0",
-    "protobufjs-cli": "^1.1.1"
+    "protobufjs": "^7.5.4",
+    "protobufjs-cli": "^1.2.0"
   },
   "repository": {
     "type": "git",
@@ -29,5 +29,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

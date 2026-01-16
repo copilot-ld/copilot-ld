@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { trace } from "@copilot-ld/libtype";
 
 /**

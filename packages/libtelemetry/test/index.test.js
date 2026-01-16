@@ -1,20 +1,16 @@
-/* eslint-env node */
-import { test, describe, beforeEach, mock } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { TraceIndex } from "../index/trace.js";
 import { trace } from "@copilot-ld/libtype";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 describe("TraceIndex", () => {
   let traceIndex;
   let mockStorage;
 
   beforeEach(() => {
-    mockStorage = {
-      exists: mock.fn(() => Promise.resolve(false)),
-      get: mock.fn(() => Promise.resolve([])),
-      append: mock.fn(() => Promise.resolve()),
-    };
+    mockStorage = createMockStorage();
 
     traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");
   });

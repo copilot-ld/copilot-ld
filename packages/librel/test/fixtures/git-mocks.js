@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Mock git repository structure for testing
  */

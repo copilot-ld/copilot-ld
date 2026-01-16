@@ -1,5 +1,4 @@
-/* eslint-env node */
-import { createLlm } from "@copilot-ld/libcopilot";
+import { createLlmApi, DEFAULT_BASE_URL } from "@copilot-ld/libllm";
 import { memory } from "@copilot-ld/libtype";
 import { services } from "@copilot-ld/librpc";
 
@@ -16,9 +15,9 @@ export class LlmService extends LlmBase {
    * Creates a new LLM service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {object} memoryClient - Memory service client for fetching windows
-   * @param {(config: object) => import("@copilot-ld/libcopilot").Copilot} [llmFn] - Factory function to create LLM client
+   * @param {(token: string, model: string, baseUrl: string) => import("@copilot-ld/libllm").LlmApi} [llmFn] - Factory function to create LLM client
    */
-  constructor(config, memoryClient, llmFn = createLlm) {
+  constructor(config, memoryClient, llmFn = createLlmApi) {
     super(config);
     this.#llmFactory = llmFn;
     this.#memoryClient = memoryClient;
@@ -30,7 +29,8 @@ export class LlmService extends LlmBase {
       throw new Error("resource_id is required for CreateCompletions");
 
     const model = req.model || this.config.model;
-    const copilot = this.#llmFactory(req.github_token, model);
+    const baseUrl = this.config.llm_base_url || DEFAULT_BASE_URL;
+    const llm = this.#llmFactory(req.llm_token, model, baseUrl);
 
     const windowRequest = memory.WindowRequest.fromObject({
       resource_id: req.resource_id,
@@ -38,7 +38,7 @@ export class LlmService extends LlmBase {
     });
 
     const window = await this.#memoryClient.GetWindow(windowRequest);
-    return await copilot.createCompletions(window);
+    return await llm.createCompletions(window);
   }
 
   /** @inheritdoc */
@@ -47,8 +47,9 @@ export class LlmService extends LlmBase {
       throw new Error("input is required for CreateEmbeddings");
 
     const model = req.model || this.config.model;
-    const copilot = this.#llmFactory(req.github_token, model);
+    const baseUrl = this.config.llm_base_url || DEFAULT_BASE_URL;
+    const llm = this.#llmFactory(req.llm_token, model, baseUrl);
 
-    return await copilot.createEmbeddings(req.input);
+    return await llm.createEmbeddings(req.input);
   }
 }

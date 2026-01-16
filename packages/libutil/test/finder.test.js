@@ -1,10 +1,11 @@
-/* eslint-env node */
 import { test, describe, beforeEach, afterEach, mock } from "node:test";
 import assert from "node:assert";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import { createMockLogger } from "@copilot-ld/libharness";
 
 // Module under test
 import { Finder } from "../finder.js";
@@ -16,9 +17,7 @@ describe("Finder", () => {
   let tempDir;
 
   beforeEach(() => {
-    mockLogger = {
-      debug: mock.fn(),
-    };
+    mockLogger = createMockLogger();
 
     mockProcess = {
       cwd: () => "/test/project",

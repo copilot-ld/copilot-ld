@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-01-15
+
+- **BREAKING**: Renamed `token.js` to `gh-token.js` (now writes `GITHUB_TOKEN`
+  for GitHub API)
+- **BREAKING**: Migrated from `@copilot-ld/libcopilot` to `@copilot-ld/libllm`
+- **BREAKING**: Updated all scripts to use `createLlmApi()` and
+  `config.llmToken()`
+- Added `config.llmBaseUrl()` support for configurable LLM endpoints
+
 ## 2025-11-18
 
 - Fixed `chat.js` to use `content` as a string instead of object with `text`

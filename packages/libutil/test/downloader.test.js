@@ -1,6 +1,7 @@
-/* eslint-env node */
 import { strict as assert } from "node:assert";
 import { test, describe, beforeEach, mock } from "node:test";
+
+import { createSilentLogger } from "@copilot-ld/libharness";
 
 import { Downloader } from "../downloader.js";
 
@@ -33,7 +34,7 @@ describe("Downloader", () => {
     mockExtractor = {
       extract: mock.fn(async () => {}),
     };
-    mockLogger = { debug: () => {} };
+    mockLogger = createSilentLogger();
     mockFinder = {
       createPackageSymlinks: mock.fn(async () => {}),
     };

@@ -1,0 +1,32 @@
+{
+  "name": "@copilot-ld/libllm",
+  "version": "0.1.65",
+  "description": "LLM API client for OpenAI-compatible endpoints",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libtype": "^0.1.57",
+    "@copilot-ld/libutil": "^0.1.54",
+    "undici": "^7.18.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/libllm"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
+  }
+}

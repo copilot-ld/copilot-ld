@@ -1,110 +1,29 @@
-/* eslint-env node */
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { LocalSecretAuthorizer } from "../auth.js";
-import { parseBody } from "../http.js";
-import createServer, { Server } from "../server.js";
+import {
+  LocalSecretAuthorizer,
+  ApiExtension,
+  createApiExtension,
+} from "../index.js";
+import {
+  createMockRequest,
+  createMockResponse,
+  createMockExtensionConfig,
+  createSilentLogger,
+  createMockAgentClient,
+} from "@copilot-ld/libharness";
 
-/**
- * Creates a mock HTTP request object with event emitter behavior
- * @param {object} options - Request options
- * @returns {object} Mock request object
- */
-function createMockRequest(options = {}) {
-  const { method = "GET", url = "/", body = {}, headers = {} } = options;
-  const bodyStr = JSON.stringify(body);
-  let dataCallback;
-  let endCallback;
-  let errorCallback;
-
-  return {
-    method,
-    url,
-    headers,
-    on: (event, callback) => {
-      if (event === "data") dataCallback = callback;
-      if (event === "end") endCallback = callback;
-      if (event === "error") errorCallback = callback;
-    },
-    simulateBody: () => {
-      if (dataCallback) dataCallback(bodyStr);
-      if (endCallback) endCallback();
-    },
-    simulateError: (err) => {
-      if (errorCallback) errorCallback(err);
-    },
-  };
-}
-
-/**
- * Creates a mock HTTP response object
- * @returns {object} Mock response object with tracking
- */
-function createMockResponse() {
-  const response = {
-    headersSent: false,
-    statusCode: null,
-    headers: {},
-    body: "",
-    writeHead: (status, headers) => {
-      response.statusCode = status;
-      response.headers = headers || {};
-      response.headersSent = true;
-    },
-    end: (data) => {
-      response.body = data || "";
-    },
-  };
-  return response;
-}
-
-/**
- * Creates a mock agent config object
- * @returns {object} Mock agent config
- */
-function createMockAgentConfig() {
-  return {
-    githubToken: async () => "test-github-token",
-  };
-}
-
-/**
- * Creates a mock extension config object
- * @returns {object} Mock extension config
- */
-function createMockExtensionConfig() {
-  return {
-    secret: "test-secret",
-  };
-}
-
-/**
- * Creates a mock agent client
- * @param {object} overrides - Properties to override
- * @returns {object} Mock agent client
- */
-function createMockAgentClient(overrides = {}) {
-  return {
+// Local wrappers using shared mocks
+const createMockConfig = () => createMockExtensionConfig("api");
+const createMockLogger = () => createSilentLogger();
+const createMockClient = (overrides = {}) =>
+  createMockAgentClient({
     ProcessUnary: async () => ({
       messages: [{ role: "assistant", content: "Test response" }],
       resource_id: "test-resource-id",
     }),
     ...overrides,
-  };
-}
-
-/**
- * Creates a mock logger
- * @returns {object} Mock logger
- */
-function createMockLogger() {
-  return {
-    info: () => {},
-    warn: () => {},
-    error: () => {},
-    debug: () => {},
-  };
-}
+  });
 
 /**
  * Creates a mock authorizer
@@ -116,39 +35,39 @@ function createMockAuthorizer() {
   };
 }
 
-describe("Server", () => {
-  test("throws error when agentConfig is not provided", () => {
+describe("ApiExtension", () => {
+  test("throws error when config is not provided", () => {
     assert.throws(
       () =>
-        new Server(
+        new ApiExtension(
           null,
-          createMockAgentClient(),
+          createMockClient(),
           createMockAuthorizer(),
           createMockLogger(),
         ),
-      { message: "agentConfig is required" },
+      { message: "config is required" },
     );
   });
 
-  test("throws error when agentClient is not provided", () => {
+  test("throws error when client is not provided", () => {
     assert.throws(
       () =>
-        new Server(
-          createMockAgentConfig(),
+        new ApiExtension(
+          createMockConfig(),
           null,
           createMockAuthorizer(),
           createMockLogger(),
         ),
-      { message: "agentClient is required" },
+      { message: "client is required" },
     );
   });
 
   test("throws error when authorizer is not provided", () => {
     assert.throws(
       () =>
-        new Server(
-          createMockAgentConfig(),
-          createMockAgentClient(),
+        new ApiExtension(
+          createMockConfig(),
+          createMockClient(),
           null,
           createMockLogger(),
         ),
@@ -159,9 +78,9 @@ describe("Server", () => {
   test("throws error when logger is not provided", () => {
     assert.throws(
       () =>
-        new Server(
-          createMockAgentConfig(),
-          createMockAgentClient(),
+        new ApiExtension(
+          createMockConfig(),
+          createMockClient(),
           createMockAuthorizer(),
           null,
         ),
@@ -170,9 +89,9 @@ describe("Server", () => {
   });
 
   test("creates server instance with valid dependencies", () => {
-    const server = new Server(
-      createMockAgentConfig(),
-      createMockAgentClient(),
+    const server = new ApiExtension(
+      createMockConfig(),
+      createMockClient(),
       createMockAuthorizer(),
       createMockLogger(),
     );
@@ -184,31 +103,29 @@ describe("Server", () => {
   });
 });
 
-describe("createServer factory", () => {
-  test("returns Server instance", () => {
-    const server = createServer(
-      createMockAgentConfig(),
-      createMockExtensionConfig(),
-      createMockAgentClient(),
-      createMockAuthorizer(),
+describe("createApiExtension factory", () => {
+  test("returns ApiExtension instance", () => {
+    const server = createApiExtension(
+      createMockClient(),
+      createMockConfig(),
       createMockLogger(),
     );
 
-    assert.ok(server instanceof Server);
+    assert.ok(server instanceof ApiExtension);
   });
 });
 
-describe("Server routes", () => {
+describe("ApiExtension routes", () => {
   let server;
-  let mockAgentClient;
+  let mockClient;
   let mockAuthorizer;
 
   beforeEach(() => {
-    mockAgentClient = createMockAgentClient();
+    mockClient = createMockClient();
     mockAuthorizer = createMockAuthorizer();
-    server = new Server(
-      createMockAgentConfig(),
-      mockAgentClient,
+    server = new ApiExtension(
+      createMockConfig(),
+      mockClient,
       mockAuthorizer,
       createMockLogger(),
     );
@@ -237,9 +154,9 @@ describe("Server routes", () => {
   });
 
   test("returns 401 for unauthorized POST /api/messages", async () => {
-    const unauthorizedServer = new Server(
-      createMockAgentConfig(),
-      mockAgentClient,
+    const unauthorizedServer = new ApiExtension(
+      createMockConfig(),
+      mockClient,
       { authorize: () => false },
       createMockLogger(),
     );
@@ -286,7 +203,7 @@ describe("Server routes", () => {
   });
 
   test("returns full messages array from agent response", async () => {
-    const customClient = createMockAgentClient({
+    const customClient = createMockClient({
       ProcessUnary: async () => ({
         messages: [
           { role: "user", content: "Hello" },
@@ -296,8 +213,8 @@ describe("Server routes", () => {
       }),
     });
 
-    const customServer = new Server(
-      createMockAgentConfig(),
+    const customServer = new ApiExtension(
+      createMockConfig(),
       customClient,
       createMockAuthorizer(),
       createMockLogger(),
@@ -326,14 +243,14 @@ describe("Server routes", () => {
   });
 
   test("returns 500 when agent client throws error", async () => {
-    const errorClient = createMockAgentClient({
+    const errorClient = createMockClient({
       ProcessUnary: async () => {
         throw new Error("Agent service unavailable");
       },
     });
 
-    const errorServer = new Server(
-      createMockAgentConfig(),
+    const errorServer = new ApiExtension(
+      createMockConfig(),
       errorClient,
       createMockAuthorizer(),
       createMockLogger(),
@@ -357,69 +274,7 @@ describe("Server routes", () => {
   });
 });
 
-describe("parseBody", () => {
-  test("parses valid JSON body", async () => {
-    const req = createMockRequest({
-      body: { message: "Hello", correlationId: "123" },
-    });
-
-    const parsePromise = parseBody(req);
-    req.simulateBody();
-    const result = await parsePromise;
-
-    assert.deepStrictEqual(result, { message: "Hello", correlationId: "123" });
-  });
-
-  test("returns empty object for invalid JSON", async () => {
-    const req = createMockRequest({ body: {} });
-    let dataCallback;
-    let endCallback;
-
-    req.on = (event, callback) => {
-      if (event === "data") dataCallback = callback;
-      if (event === "end") endCallback = callback;
-    };
-
-    const parsePromise = parseBody(req);
-    dataCallback("not valid json {{{");
-    endCallback();
-    const result = await parsePromise;
-
-    assert.deepStrictEqual(result, {});
-  });
-
-  test("rejects on request error", async () => {
-    const req = createMockRequest({ body: {} });
-    const testError = new Error("Connection reset");
-
-    const parsePromise = parseBody(req);
-    req.simulateError(testError);
-
-    await assert.rejects(() => parsePromise, {
-      message: "Connection reset",
-    });
-  });
-
-  test("handles empty body", async () => {
-    const req = createMockRequest({ body: {} });
-    let dataCallback;
-    let endCallback;
-
-    req.on = (event, callback) => {
-      if (event === "data") dataCallback = callback;
-      if (event === "end") endCallback = callback;
-    };
-
-    const parsePromise = parseBody(req);
-    dataCallback("");
-    endCallback();
-    const result = await parsePromise;
-
-    assert.deepStrictEqual(result, {});
-  });
-});
-
-describe("Authorizer", () => {
+describe("LocalSecretAuthorizer", () => {
   test("throws error when secret is not provided", () => {
     assert.throws(() => new LocalSecretAuthorizer(), {
       message: "secret is required",

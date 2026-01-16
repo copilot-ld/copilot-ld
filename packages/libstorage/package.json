@@ -13,8 +13,8 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.859.0",
-    "@aws-sdk/credential-providers": "^3.859.0",
+    "@aws-sdk/client-s3": "^3.970.0",
+    "@aws-sdk/credential-providers": "^3.970.0",
     "@copilot-ld/libutil": "^0.1.54"
   },
   "repository": {
@@ -25,5 +25,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

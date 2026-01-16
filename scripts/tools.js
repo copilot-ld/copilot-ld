@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
 import yaml from "js-yaml";
 import pkg from "protobufjs";
 import { access } from "node:fs/promises";
@@ -113,9 +112,9 @@ function generateSchemaFromProtobuf(messageType) {
 
   // Iterate through protobuf fields to build JSON schema
   for (const [fieldName, field] of Object.entries(messageType.fields)) {
-    // Skip the filter and github_token fields. These will be automatically
+    // Skip the filter and llm_token fields. These will be automatically
     // passed by the system.
-    if (fieldName === "github_token" || fieldName === "filter") {
+    if (fieldName === "llm_token" || fieldName === "filter") {
       continue;
     }
 

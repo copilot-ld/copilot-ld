@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Handles service and client generation from protobuf files
  * Specializes in gRPC service base classes and client generation

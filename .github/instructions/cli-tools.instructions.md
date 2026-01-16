@@ -79,8 +79,8 @@ echo "[?contains(name, 'llm')]" | npm -s run cli:visualize # LLM spans
 Debug memory windows → test LLM completions:
 
 ```bash
-npm -s run cli:window -- common.Conversation.<id> 2>/dev/null  # Fetch window JSON
-npm -s run cli:window -- <id> 2>/dev/null | npm -s run cli:completion 2>/dev/null  # Test completion
+npm -s run cli:window -- common.Conversation.<id>  # Fetch window JSON
+npm -s run cli:window -- <id> | npm -s run cli:completion  # Test completion
 ```
 
 ## Prohibitions

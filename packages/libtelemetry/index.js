@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 // Re-export classes for direct use
 // Note: Tracer, TraceVisualizer, and TraceIndex are NOT exported here to avoid
 // circular dependency on generated code (via libtype and libindex->libtype chain).

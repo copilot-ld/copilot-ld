@@ -1,4 +1,3 @@
-/* eslint-env node */
 import os from "os";
 import readline from "readline";
 import { Readable, PassThrough } from "stream";

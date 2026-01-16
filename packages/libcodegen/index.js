@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 // Export the new modular classes
 export { CodegenBase } from "./base.js";
 export { CodegenTypes } from "./types.js";

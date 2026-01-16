@@ -1,9 +1,9 @@
 {
   "name": "@copilot-ld/api",
   "version": "1.0.9",
-  "description": "Demonstrate the core capabilities of the Microsoft Bot Framework",
-  "author": "Generated using Microsoft Bot Builder Yeoman generator v4.22.1",
+  "description": "REST API extension for Copilot-LD agent services",
   "license": "MIT",
+  "type": "module",
   "main": "index.js",
   "engines": {
     "node": ">=22.0.0"
@@ -11,18 +11,16 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "dev": "npm run dev:start",
-    "dev:start": "npx env-cmd -f ../../.env -- node index.js",
+    "dev:start": "npx env-cmd -f ../../.env -- node server.js",
     "ngrok": "ngrok http 3979",
-    "watch": "node --watch ./index.js"
+    "watch": "node --watch ./server.js"
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.51",
-    "@copilot-ld/libformat": "^0.1.51",
     "@copilot-ld/librpc": "^0.1.70",
+    "@copilot-ld/libtelemetry": "^0.1.16",
     "@copilot-ld/libtype": "^0.1.57",
-    "@copilot-ld/libutil": "^0.1.54",
-    "@copilot-ld/libweb": "^0.1.51",
-    "botbuilder": "~4.23.3"
+    "@copilot-ld/libutil": "^0.1.54"
   },
   "repository": {
     "type": "git",
@@ -32,5 +30,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "*"
   }
 }

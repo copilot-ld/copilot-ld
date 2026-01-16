@@ -1,20 +1,16 @@
-/* eslint-env node */
-import { test, describe, beforeEach, afterEach, mock } from "node:test";
+import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
 import { BufferedIndex } from "../index.js";
+import { createMockStorage } from "@copilot-ld/libharness";
 
 describe("BufferedIndex - Buffered Write Operations", () => {
   let bufferedIndex;
   let mockStorage;
 
   beforeEach(() => {
-    mockStorage = {
-      exists: mock.fn(() => Promise.resolve(false)),
-      get: mock.fn(() => Promise.resolve([])),
-      append: mock.fn(() => Promise.resolve()),
-    };
+    mockStorage = createMockStorage();
   });
 
   afterEach(async () => {

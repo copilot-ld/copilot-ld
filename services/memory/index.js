@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { services } from "@copilot-ld/librpc";
 import { MemoryWindow } from "@copilot-ld/libmemory";
 import { MemoryIndex } from "@copilot-ld/libmemory/index/memory.js";

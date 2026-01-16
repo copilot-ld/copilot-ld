@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { Server, createClient } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { VectorIndex } from "@copilot-ld/libvector/index/vector.js";

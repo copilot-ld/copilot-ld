@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { extractAttributes } from "./attributes.js";
 
 /**
@@ -67,7 +66,7 @@ export class Observer {
 
       return response;
     } catch (error) {
-      this.#logger?.error(methodName, error);
+      this.#logger?.exception(methodName, error);
       throw error;
     }
   }
@@ -96,7 +95,7 @@ export class Observer {
       // Fallback without tracing
       return callFn();
     } catch (error) {
-      this.#logger?.error(methodName, error);
+      this.#logger?.exception(methodName, error);
       throw error;
     }
   }
@@ -128,7 +127,7 @@ export class Observer {
 
       return response;
     } catch (error) {
-      this.#logger?.error(methodName, error);
+      this.#logger?.exception(methodName, error);
       throw error;
     }
   }
@@ -159,7 +158,7 @@ export class Observer {
 
       this.#logEvent(methodName, "Stream ended");
     } catch (error) {
-      this.#logger?.error(methodName, error);
+      this.#logger?.exception(methodName, error);
       throw error;
     }
   }

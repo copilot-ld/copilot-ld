@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * Configuration for the agent
  * @typedef {object} AgentConfig

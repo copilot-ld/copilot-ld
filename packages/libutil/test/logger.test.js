@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
@@ -239,6 +238,71 @@ describe("Logger", () => {
     assert.ok(consoleOutput[0].includes('trace_id="trace123"'));
     assert.ok(consoleOutput[0].includes('retry="1/3"'));
     assert.ok(consoleOutput[0].includes('status="500"'));
+  });
+
+  test("exception logs message when disabled", () => {
+    process.env.DEBUG = "other";
+    const logger = new Logger("test");
+
+    const error = new Error("Test error");
+
+    logger.exception("TestMethod", error);
+
+    assert.strictEqual(consoleOutput.length, 1);
+    assert.ok(consoleOutput[0].includes("ERROR"));
+    assert.ok(consoleOutput[0].includes("Test error"));
+    assert.ok(
+      !consoleOutput[0].includes("at "),
+      "Should not include stack trace when disabled",
+    );
+  });
+
+  test("exception logs message with stack trace when enabled", () => {
+    process.env.DEBUG = "test";
+    const logger = new Logger("test");
+
+    const error = new Error("Test error");
+
+    logger.exception("TestMethod", error);
+
+    assert.strictEqual(consoleOutput.length, 1);
+    assert.ok(consoleOutput[0].includes("ERROR"));
+    assert.ok(consoleOutput[0].includes("Test error"));
+    assert.ok(
+      consoleOutput[0].includes("at "),
+      "Should include stack trace when enabled",
+    );
+  });
+
+  test("exception extracts trace context from error", () => {
+    process.env.DEBUG = "test";
+    const logger = new Logger("test");
+
+    const error = new Error("Test error");
+    error.trace_id = "trace456";
+    error.span_id = "span789";
+    error.service_name = "my-service";
+
+    logger.exception("TestMethod", error);
+
+    assert.strictEqual(consoleOutput.length, 1);
+    assert.ok(consoleOutput[0].includes('trace_id="trace456"'));
+    assert.ok(consoleOutput[0].includes('span_id="span789"'));
+    assert.ok(consoleOutput[0].includes('service_name="my-service"'));
+  });
+
+  test("exception merges trace context with provided attributes", () => {
+    process.env.DEBUG = "test";
+    const logger = new Logger("test");
+
+    const error = new Error("Test error");
+    error.trace_id = "trace123";
+
+    logger.exception("TestMethod", error, { retry: "2/3" });
+
+    assert.strictEqual(consoleOutput.length, 1);
+    assert.ok(consoleOutput[0].includes('trace_id="trace123"'));
+    assert.ok(consoleOutput[0].includes('retry="2/3"'));
   });
 });
 

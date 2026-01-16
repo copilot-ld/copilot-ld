@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-01-15
+
+- Added `parseJsonBody()` function for parsing JSON body from HTTP requests
+- Added `http.js` module with HTTP utility functions
+
 ## 2025-11-24
 
 - Bump version

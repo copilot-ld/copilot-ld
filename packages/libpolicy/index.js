@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { createStorage } from "@copilot-ld/libstorage";
 
 /**

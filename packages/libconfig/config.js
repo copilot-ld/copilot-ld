@@ -1,13 +1,20 @@
-/* eslint-env node */
+import path from "node:path";
 import { createStorage } from "@copilot-ld/libstorage";
 
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /**
+ * Default LLM API base URL (GitHub Copilot API)
+ */
+const DEFAULT_LLM_BASE_URL = "https://api.githubcopilot.com";
+
+/**
  * Centralized configuration management class
  */
 export class Config {
-  #githubToken = null;
+  #llmToken = null;
+  #ghToken = null;
+  #ghClientId = null;
   #fileData = null;
   #storage = null;
   #process;
@@ -72,24 +79,78 @@ export class Config {
    * Gets the GitHub client ID from environment variable
    * @returns {string} GitHub client ID
    */
-  githubClientId() {
-    return this.#process.env.GITHUB_CLIENT_ID;
+  ghClientId() {
+    if (this.#ghClientId) return this.#ghClientId;
+
+    if (this.#process.env.GITHUB_CLIENT_ID) {
+      this.#ghClientId = this.#process.env.GITHUB_CLIENT_ID;
+      return this.#ghClientId;
+    }
+
+    throw new Error("GitHub client ID not found in environment");
   }
 
   /**
    * Gets the GitHub token from environment variable
-   * @returns {Promise<string>} GitHub token
+   * @returns {string} GitHub token
    */
-  async githubToken() {
-    if (this.#githubToken) return this.#githubToken;
+  ghToken() {
+    if (this.#ghToken) return this.#ghToken;
 
-    const processEnv = this.#process.env;
-    if (processEnv.GITHUB_TOKEN) {
-      this.#githubToken = processEnv.GITHUB_TOKEN;
-      return this.#githubToken;
+    if (this.#process.env.GITHUB_TOKEN) {
+      this.#ghToken = this.#process.env.GITHUB_TOKEN;
+      return this.#ghToken;
     }
 
     throw new Error("GitHub token not found in environment");
+  }
+
+  /**
+   * Gets the LLM API token from environment variable
+   * @returns {Promise<string>} LLM API token
+   */
+  async llmToken() {
+    if (this.#llmToken) return this.#llmToken;
+
+    if (this.#process.env.LLM_TOKEN) {
+      this.#llmToken = this.#process.env.LLM_TOKEN;
+      return this.#llmToken;
+    }
+
+    throw new Error("LLM token not found in environment");
+  }
+
+  /**
+   * Gets the LLM API base URL from environment variable or default
+   * @returns {string} LLM API base URL
+   */
+  llmBaseUrl() {
+    return this.#process.env.LLM_BASE_URL || DEFAULT_LLM_BASE_URL;
+  }
+
+  /**
+   * Gets the JWT secret from environment variable
+   * @returns {string} JWT secret for HS256 signature verification
+   */
+  jwtSecret() {
+    return this.#process.env.JWT_SECRET;
+  }
+
+  /**
+   * Gets the init configuration for service supervision
+   * @returns {object|null} Init config with log_dir, shutdown_timeout, services
+   */
+  get init() {
+    return this.#fileData?.init || null;
+  }
+
+  /**
+   * Gets the project root directory (parent of config directory)
+   * @returns {string} Absolute path to project root
+   */
+  get rootDir() {
+    const configDir = this.#storage.path(".");
+    return path.dirname(configDir);
   }
 
   /**
@@ -97,7 +158,9 @@ export class Config {
    * @returns {void}
    */
   reset() {
-    this.#githubToken = null;
+    this.#llmToken = null;
+    this.#ghToken = null;
+    this.#ghClientId = null;
     this.#fileData = null;
     this.#storage = null;
   }

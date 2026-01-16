@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import { Span } from "./span.js";

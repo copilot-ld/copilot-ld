@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import * as types from "@copilot-ld/libtype";
 
@@ -160,7 +159,7 @@ export class ToolService extends ToolBase {
 
     // Apply static filter from service configuration
     if (this.#filter) args.filter = this.#filter;
-    if (toolRequest.github_token) args.github_token = toolRequest.github_token;
+    if (toolRequest.llm_token) args.llm_token = toolRequest.llm_token;
 
     const RequestType = types[requestPackage]?.[requestType];
     if (!RequestType) {

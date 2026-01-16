@@ -1,4 +1,3 @@
-/* eslint-env node */
 /**
  * @file Release parameters management utilities for CloudFormation stacks
  */

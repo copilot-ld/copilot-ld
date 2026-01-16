@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { TenantSecretEncryption } from "../../lib/tenant/secret-encryption.js";

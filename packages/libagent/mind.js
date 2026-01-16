@@ -1,4 +1,3 @@
-/* eslint-env node */
 import { generateUUID } from "@copilot-ld/libutil";
 import { memory, common } from "@copilot-ld/libtype";
 
@@ -70,7 +69,7 @@ export class AgentMind {
         }),
       );
 
-      const githubToken = req.github_token;
+      const llmToken = req.llm_token;
       const model = req.model || this.#config.model;
 
       /**
@@ -99,7 +98,7 @@ export class AgentMind {
 
       // Use AgentHands for tool execution
       await this.#hands.executeToolLoop(resource_id, saveMessage, {
-        githubToken,
+        llmToken,
         model,
       });
     }

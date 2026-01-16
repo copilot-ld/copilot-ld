@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libingest",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "File ingestion utility for Copilot-LD.",
   "license": "Apache-2.0",
   "author": "Copilot-LD Team",
@@ -21,7 +21,7 @@
     "@copilot-ld/libpolicy": "^0.1.45",
     "@copilot-ld/libstorage": "^0.1.46",
     "@copilot-ld/libtype": "^0.1.57",
-    "@copilot-ld/libutil": "^0.1.54"
+    "@copilot-ld/libutil": "^0.1.55"
   },
   "devDependencies": {
     "@copilot-ld/libharness": "*"

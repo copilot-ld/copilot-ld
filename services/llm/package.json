@@ -30,6 +30,6 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "*"
+    "@copilot-ld/libharness": "^0.1.1"
   }
 }

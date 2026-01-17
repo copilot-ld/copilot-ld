@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-01-16
+
+- Added `supabaseUrl` getter for Supabase Auth URL from `SUPABASE_AUTH_URL`
+  environment variable (defaults to `http://localhost:9999`)
+- Added `supabaseAnonKey` getter for Supabase anonymous key from
+  `SUPABASE_ANON_KEY` environment variable
+
 ## 2026-01-15
 
 - **BREAKING**: Renamed `githubToken()` to `llmToken()` (env: `LLM_TOKEN`)

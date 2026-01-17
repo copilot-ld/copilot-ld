@@ -1082,16 +1082,16 @@ Package symlinks are created at service startup to enable access via
 Generate everything (recommended):
 
 ```bash
-npm run codegen
+make codegen
 ```
 
 Generate specific components:
 
 ```bash
-npm run codegen:type
-npm run codegen:service
-npm run codegen:client
-npm run codegen:definition
+make codegen-type
+make codegen-service
+make codegen-client
+make codegen-definition
 ```
 
 These generate types only, service base classes, client classes, and service

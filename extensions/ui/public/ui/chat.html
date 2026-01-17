@@ -48,6 +48,15 @@
       <agent-chat data-name="Agent Walter"></agent-chat>
     </main>
     <script src="/ui/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+      import { getAccessToken } from "/ui/auth.js";
+      // Wire up auth token callback for the chat component
+      const chat = document.querySelector("agent-chat");
+      if (chat) {
+        chat.getAuthToken = getAccessToken;
+      }
+    </script>
     <script type="module" src="/ui/libchat/chat.js"></script>
   </body>
 </html>

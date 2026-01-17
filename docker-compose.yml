@@ -6,6 +6,10 @@
 volumes:
   minio_data:
     driver: local
+  supabase_db_data:
+    driver: local
+  supabase_storage_data:
+    driver: local
 
 secrets:
   github_token:
@@ -90,6 +94,8 @@ services:
     image: copilot-ld/web:latest
     container_name: web.copilot-ld
     env_file: .env
+    environment:
+      - EXTENSION_WEB_AUTH_ENABLED=true
     networks:
       internal:
         aliases:
@@ -232,6 +238,93 @@ services:
           - trace.copilot-ld.local
     depends_on:
       - storage
+
+  #
+  # Supabase Infrastructure (Auth + Storage only)
+  #
+
+  supabase-db:
+    image: supabase/postgres:15.6.1.143
+    container_name: supabase-db.copilot-ld
+    env_file: .env
+    environment:
+      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - supabase_db_data:/var/lib/postgresql/data
+    networks:
+      internal:
+        aliases:
+          - supabase-db.copilot-ld.local
+
+  supabase-auth:
+    image: supabase/gotrue:v2.164.0
+    container_name: supabase-auth.copilot-ld
+    env_file: .env
+    environment:
+      API_EXTERNAL_URL: ${SUPABASE_AUTH_EXTERNAL_URL:-http://localhost:9999}
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_SITE_URL: ${SUPABASE_SITE_URL:-http://localhost:3000}
+      GOTRUE_URI_ALLOW_LIST: ${SUPABASE_URI_ALLOW_LIST:-}
+      GOTRUE_DISABLE_SIGNUP: ${SUPABASE_DISABLE_SIGNUP:-false}
+
+      GOTRUE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      GOTRUE_JWT_EXP: ${SUPABASE_JWT_EXPIRY:-3600}
+      GOTRUE_JWT_AUD: authenticated
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${SUPABASE_DB_PASSWORD}@supabase-db.copilot-ld.local:5432/postgres?search_path=auth
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_MAILER_AUTOCONFIRM: true
+
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@localhost
+      GOTRUE_SMTP_HOST: ${SUPABASE_SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${SUPABASE_SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SUPABASE_SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${SUPABASE_SMTP_PASS:-}
+      GOTRUE_SMTP_SENDER_NAME: ${SUPABASE_SMTP_SENDER_NAME:-Copilot LD}
+    ports:
+      - "9999:9999"
+    networks:
+      internal:
+        aliases:
+          - supabase-auth.copilot-ld.local
+    depends_on:
+      - supabase-db
+
+  supabase-storage:
+    image: supabase/storage-api:v1.11.13
+    container_name: supabase-storage.copilot-ld
+    env_file: .env
+    environment:
+      ANON_KEY: ${SUPABASE_ANON_KEY}
+      SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      DATABASE_URL: postgres://postgres:${SUPABASE_DB_PASSWORD}@supabase-db.copilot-ld.local:5432/postgres?search_path=storage
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: false
+      IS_MULTITENANT: false
+      S3_PROTOCOL_ACCESS_KEY_ID: ${SUPABASE_S3_ACCESS_KEY}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${SUPABASE_S3_SECRET_KEY}
+    ports:
+      - "5000:5000"
+    volumes:
+      - supabase_storage_data:/var/lib/storage
+    networks:
+      internal:
+        aliases:
+          - supabase-storage.copilot-ld.local
+    depends_on:
+      - supabase-db
+      - supabase-auth
+
   #
   # Example Tool Services
   #

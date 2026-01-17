@@ -15,16 +15,10 @@ evaluates the response against defined criteria.
 
 ```bash
 # Run all scenarios
-npm run eval
-
-# Run specific scenario
-npm run eval -- --scenario search_drug_discovery_platform
-
-# Run with concurrency and iterations
-npm run eval -- --concurrency 5 --iterations 3
+make eval
 
 # Generate reports from stored results
-npm run eval:report
+make eval-report
 ```
 
 Results are stored in `data/eval/` with per-scenario markdown reports and a

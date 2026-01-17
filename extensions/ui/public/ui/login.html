@@ -1,0 +1,120 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Any Web Page – Login</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+  </head>
+
+  <body>
+    <header>
+      <hgroup>
+        <h1>Any Web Page</h1>
+        <p>This could literally be any web page.</p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="/ui/">Home</a></li>
+          <li><a href="/ui/other.html">Other Page</a></li>
+          <li><a href="/ui/chat.html">Chat</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>Login</h2>
+      <div id="login-form">
+        <form id="auth-form">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="demo@example.com"
+            required
+          />
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            required
+          />
+          <button type="submit">Sign In</button>
+        </form>
+        <p id="error-message" style="color: red; display: none"></p>
+      </div>
+      <div id="logged-in" style="display: none">
+        <p>You are logged in as <strong id="user-email"></strong></p>
+        <button id="logout-btn">Sign Out</button>
+      </div>
+    </main>
+    <footer>
+      <p>© 2025 Any Web Page</p>
+    </footer>
+    <script src="/ui/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+      import {
+        initSupabase,
+        signIn,
+        signOut,
+        getSession,
+        onAuthStateChange,
+      } from "./auth.js";
+
+      const loginForm = document.getElementById("login-form");
+      const loggedIn = document.getElementById("logged-in");
+      const authForm = document.getElementById("auth-form");
+      const errorMessage = document.getElementById("error-message");
+      const userEmail = document.getElementById("user-email");
+      const logoutBtn = document.getElementById("logout-btn");
+
+      function updateUI(session) {
+        if (session) {
+          loginForm.style.display = "none";
+          loggedIn.style.display = "block";
+          userEmail.textContent = session.user.email;
+        } else {
+          loginForm.style.display = "block";
+          loggedIn.style.display = "none";
+        }
+      }
+
+      async function init() {
+        initSupabase();
+
+        const { session } = await getSession();
+        updateUI(session);
+
+        onAuthStateChange((event, session) => {
+          updateUI(session);
+        });
+      }
+
+      authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorMessage.style.display = "none";
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const { session, error } = await signIn(email, password);
+
+        if (error) {
+          errorMessage.textContent = error.message;
+          errorMessage.style.display = "block";
+        }
+      });
+
+      logoutBtn.addEventListener("click", async () => {
+        await signOut();
+      });
+
+      init();
+    </script>
+  </body>
+</html>

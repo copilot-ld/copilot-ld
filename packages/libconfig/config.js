@@ -137,6 +137,22 @@ export class Config {
   }
 
   /**
+   * Gets the Supabase Auth URL from environment variable
+   * @returns {string} Supabase Auth URL (defaults to http://localhost:9999)
+   */
+  get supabaseUrl() {
+    return this.#process.env.SUPABASE_AUTH_URL || "http://localhost:9999";
+  }
+
+  /**
+   * Gets the Supabase anonymous key from environment variable
+   * @returns {string|undefined} Supabase anonymous key for frontend auth
+   */
+  get supabaseAnonKey() {
+    return this.#process.env.SUPABASE_ANON_KEY;
+  }
+
+  /**
    * Gets the init configuration for service supervision
    * @returns {object|null} Init config with log_dir, shutdown_timeout, services
    */

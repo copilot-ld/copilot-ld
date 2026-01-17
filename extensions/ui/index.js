@@ -21,8 +21,15 @@ export async function createUiExtension(config, _logger = null) {
 
   // Serve runtime configuration
   app.get("/ui/config.js", (c) => {
-    return c.text(`window.ENV = { API_URL: "${config.apiUrl}" };`, 200, {
+    const envConfig = {
+      API_URL: config.apiUrl,
+      // Use proxied auth endpoint to avoid CORS issues
+      SUPABASE_URL: config.apiUrl.replace(/\/api$/, "/auth"),
+      SUPABASE_ANON_KEY: config.supabaseAnonKey,
+    };
+    return c.text(`window.ENV = ${JSON.stringify(envConfig)};`, 200, {
       "Content-Type": "application/javascript",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
     });
   });
 

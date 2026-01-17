@@ -8,12 +8,23 @@
  * @param {string} apiUrl - Base API URL
  * @param {string} message - User message
  * @param {string|null} resourceId - Conversation resource ID
+ * @param {string|null} authToken - Optional JWT auth token
  * @returns {Promise<Response>} - Fetch response with streaming body
  */
-export async function sendChatMessage(apiUrl, message, resourceId) {
+export async function sendChatMessage(
+  apiUrl,
+  message,
+  resourceId,
+  authToken = null,
+) {
+  const headers = { "Content-Type": "application/json" };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
   const response = await fetch(`${apiUrl}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       message,
       resource_id: resourceId,

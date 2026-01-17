@@ -15,8 +15,12 @@
 !/tools/README.md
 
 # Config files
-**/.env*
+**/.env
+**/.env.local
+**/.env.docker
+**/.env.storage.*
 !**/.env.example
+!**/.env.*.example
 **/.github_token
 **/config.json
 **/assistants.yml

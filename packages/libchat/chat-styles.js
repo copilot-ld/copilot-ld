@@ -1,113 +1,114 @@
 /**
  * Styles specific to the agent-chat component.
+ * Extends baseStyles with full-page centered layout.
  * @type {string}
  */
 export const chatStyles = `
+  /*
+   * Host container
+   */
   :host {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-    background: var(--agent-bg);
-    border: 1px solid var(--agent-border);
+    background: var(--agent-color-bg-secondary);
   }
 
+  /*
+   * Responsive breakpoints
+   */
+  @media (min-width: 768px) {
+    main {
+      padding: 24px 32px;
+    }
+
+    footer {
+      padding: 16px 32px 32px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    main article,
+    form {
+      max-width: 800px;
+    }
+
+    main article[role="user"] {
+      max-width: min(85%, 680px);
+    }
+  }
+
+  /*
+   * Header
+   */
   header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    padding: 0 var(--agent-padding);
-    gap: var(--agent-gap);
-    background: var(--agent-bg-secondary);
-    border-bottom: 1px solid var(--agent-border);
+    height: 56px;
+    flex-shrink: 0;
+    background: var(--agent-color-bg);
   }
 
-  h1 {
-    margin: 0 auto 0 0;
-    font-weight: 600;
+  header h1 {
     font-size: 18px;
-    line-height: 1;
-    color: var(--agent-text);
   }
 
-  h1 mark {
-    background: transparent;
-    color: var(--agent-text);
+  header h1 mark {
     font-size: 20px;
-    margin-right: var(--agent-gap);
   }
 
   header button {
     width: 36px;
     height: 36px;
-    background: transparent;
-    border: none;
-    color: var(--agent-text);
-    font-size: 18px;
   }
 
-  header button:hover {
-    background: var(--agent-accent-subtle);
-  }
-
+  /*
+   * Main
+   */
   main {
-    flex: 1;
     padding: var(--agent-padding);
-    overflow-y: auto;
+    background: var(--agent-color-bg-secondary);
   }
 
+  main article {
+    max-width: 768px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  main article[role="user"] {
+    max-width: min(85%, 600px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /*
+   * Footer
+   */
   footer {
-    padding: var(--agent-padding);
-    border-top: 1px solid var(--agent-border);
+    padding: var(--agent-padding) var(--agent-padding) 24px;
+    border-top: none;
+    background: var(--agent-color-bg-secondary);
   }
 
+  /*
+   * Form
+   */
   form {
-    position: relative;
-    margin: 0;
-    max-width: 900px;
+    max-width: 768px;
     margin: 0 auto;
   }
 
   form textarea {
-    box-sizing: border-box;
-    width: 100%;
-    min-height: 60px;
-    padding: 15px 60px 15px 15px;
-    border: 1px solid var(--agent-border);
-    font: inherit;
-    line-height: var(--agent-line-height);
-    resize: none;
-  }
-
-  form textarea:focus {
-    outline: none;
-    border-color: var(--agent-accent);
-  }
-
-  form textarea:disabled {
-    background: var(--agent-bg-secondary);
+    min-height: 56px;
+    padding: 16px 56px 16px 16px;
+    border-radius: calc(var(--agent-radius) + 4px);
+    box-shadow: 0 2px 8px var(--agent-color-shadow);
   }
 
   form button {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    width: 44px;
-    height: 44px;
-    background: transparent;
-    border: none;
-    color: var(--agent-accent);
-    font-family: inherit;
-    font-weight: 500;
-    font-size: 18px;
-  }
-
-  form button:hover:not(:disabled) {
-    background: var(--agent-accent-subtle);
-  }
-
-  form button:disabled {
-    cursor: not-allowed;
+    right: 10px;
+    bottom: 10px;
+    width: 40px;
+    height: 40px;
   }
 `;

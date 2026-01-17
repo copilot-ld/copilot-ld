@@ -17,6 +17,7 @@ AssumeRole
 async
 Async
 auth
+Auth
 AWS
 backend
 Backend
@@ -39,6 +40,8 @@ Changelog
 charset
 chat
 chatbots
+ChatGPT
+ChatGPT-like
 chunking
 CI
 CIDR
@@ -90,6 +93,7 @@ DevOps
 DI
 discoverable
 distroless
+DNS
 DNS-based
 Docker
 dockerfile
@@ -359,6 +363,7 @@ subnet
 subnets
 subtask
 subtasks
+Supabase
 svscan
 symlink
 Symlink

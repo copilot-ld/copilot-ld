@@ -45,6 +45,42 @@ established patterns.
 **Explain Context**: Help users understand how their changes fit within the
 broader system architecture.
 
+## Environment Setup
+
+Environment variables are organized into multiple files by concern:
+
+- `.env` - Base configuration (API keys, secrets)
+- `.env.local` - Local development networking (service hosts/ports)
+- `.env.docker` - Docker Compose proxy settings
+- `.env.storage.local` - Local filesystem storage
+- `.env.storage.minio` - MinIO S3-compatible storage
+- `.env.storage.supabase` - Supabase auth and storage
+
+Load environment for local development:
+
+```bash
+set -a && source .env && source .env.local && source .env.storage.local && set +a
+```
+
+## Build System
+
+The project uses Make for automation and npm for standard development tasks:
+
+- **npm scripts**: `check`, `dev`, `format`, `lint`, `start`, `test` (and `:fix`
+  variants)
+- **make targets**: Everything else (codegen, processing, CLI tools, Docker,
+  etc.)
+
+Run `make help` to see all available targets. Common workflows:
+
+```bash
+make init          # Initialize data directories
+make codegen       # Generate code from Protocol Buffers
+make process       # Process all resources
+npm run dev        # Start services
+make cli-chat      # Agent conversations
+```
+
 ## Terminal Commands
 
 **No Stderr Redirection**: Never redirect stderr to `/dev/null` (e.g.,

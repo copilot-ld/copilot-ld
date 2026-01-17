@@ -160,10 +160,13 @@ class AgentChat extends HTMLElement {
     this.setLoading(true);
 
     try {
+      // Get auth token if callback is set
+      const authToken = this.getAuthToken ? await this.getAuthToken() : null;
       const response = await api.sendChatMessage(
         this.apiUrl,
         message,
         this.resourceId,
+        authToken,
       );
 
       for await (const chunk of api.readStream(response)) {

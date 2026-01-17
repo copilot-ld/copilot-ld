@@ -22,12 +22,19 @@ const htmlFormatter = createHtmlFormatter();
 export async function createWebExtension(client, config, logger = null) {
   const app = new Hono();
 
+  // Debug log auth configuration
+  logger?.debug("Config", "Auth configuration", {
+    authEnabled: config.auth_enabled,
+    authEnabledType: typeof config.auth_enabled,
+    jwtSecret: config.jwtSecret ? "present" : "missing",
+  });
+
   // Create middleware instances
   const validationMiddleware = createValidationMiddleware(config);
   const corsMiddleware = createCorsMiddleware(config);
 
-  // Create auth middleware if enabled (authEnabled is a config property from config.json)
-  const authMiddleware = config.authEnabled
+  // Create auth middleware if enabled (auth_enabled from config.json or EXTENSIONS_WEB_AUTH_ENABLED)
+  const authMiddleware = config.auth_enabled
     ? createAuthMiddleware(config)
     : null;
 
@@ -49,6 +56,71 @@ export async function createWebExtension(client, config, logger = null) {
   // Health check endpoint
   app.get("/web/health", (c) => {
     return c.json({ status: "ok" });
+  });
+
+  // Proxy Supabase Auth to avoid CORS issues
+  app.all("/web/auth/:path{.+}", async (c) => {
+    const origin = c.req.header("origin") || "*";
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, apikey, x-client-info, x-supabase-api-version",
+      "Access-Control-Allow-Credentials": "true",
+    };
+
+    // Handle preflight
+    if (c.req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    try {
+      const path = c.req.param("path");
+      // Supabase client adds /auth/v1/ prefix, strip it to get actual GoTrue endpoint
+      const endpoint = path.replace(/^auth\/v1\//, "");
+      const supabaseUrl =
+        process.env.SUPABASE_AUTH_URL || "http://localhost:9999";
+      const query = new URL(c.req.url).search;
+      const url = `${supabaseUrl}/${endpoint}${query}`;
+
+      logger?.debug("AuthProxy", "Proxying request", { path, endpoint, url });
+
+      const headers = {};
+      c.req.raw.headers.forEach((value, key) => {
+        if (
+          !["host", "connection", "content-length"].includes(key.toLowerCase())
+        ) {
+          headers[key] = value;
+        }
+      });
+
+      const options = {
+        method: c.req.method,
+        headers,
+      };
+
+      if (c.req.method !== "GET" && c.req.method !== "HEAD") {
+        options.body = await c.req.text();
+      }
+
+      const response = await fetch(url, options);
+      const body = await response.text();
+      const responseHeaders = new Headers(corsHeaders);
+      response.headers.forEach((value, key) => {
+        // Skip CORS headers from upstream - we set our own
+        if (!key.toLowerCase().startsWith("access-control-")) {
+          responseHeaders.set(key, value);
+        }
+      });
+
+      return new Response(body, {
+        status: response.status,
+        headers: responseHeaders,
+      });
+    } catch (error) {
+      logger?.error("AuthProxy", "Proxy error", { error: error.message });
+      return c.json({ error: error.message }, 500);
+    }
   });
 
   // Route handlers with input validation

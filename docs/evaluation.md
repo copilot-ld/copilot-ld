@@ -15,16 +15,10 @@ evaluates the response against defined criteria.
 
 ```bash
 # Run all scenarios
-npm run eval
-
-# Run specific scenario
-npm run eval -- --scenario search_drug_discovery_platform
-
-# Run with concurrency and iterations
-npm run eval -- --concurrency 5 --iterations 3
+make eval
 
 # Generate reports from stored results
-npm run eval:report
+make eval-report
 ```
 
 Results are stored in `data/eval/` with per-scenario markdown reports and a
@@ -107,16 +101,16 @@ Before writing a scenario, verify expected behavior:
 
 ```bash
 # Check entity exists
-echo "https://schema.org/Type" | npm -s run cli:subjects
+echo "https://schema.org/Type" | make cli-subjects
 
 # Explore relationships
-echo "entity:name ? ?" | npm -s run cli:query
+echo "entity:name ? ?" | make cli-query
 
 # Verify search retrieval
-echo "query terms" | npm -s run cli:search
+echo "query terms" | make cli-search
 
 # Test agent response
-echo "Your eval prompt" | npm -s run cli:chat
+echo "Your eval prompt" | make cli-chat
 ```
 
 ### Best Practices
@@ -139,13 +133,13 @@ cat data/memories/<resource-id>.jsonl | jq -c 'select(.identifier.subjects | len
 Visualize trace spans:
 
 ```bash
-echo "[]" | npm -s run cli:visualize -- --resource <resource-id>
+echo "[]" | make cli-visualize ARGS="--resource <resource-id>"
 ```
 
 Filter for specific operations:
 
 ```bash
-echo "[?name==\`tool.CallTool\`]" | npm -s run cli:visualize -- --resource <resource-id>
+echo "[?name==\`tool.CallTool\`]" | make cli-visualize ARGS="--resource <resource-id>"
 ```
 
 ## Related Documentation

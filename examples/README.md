@@ -16,7 +16,7 @@ To integrate the example tools that **extend your development environment**:
 
 ```sh
 cp -r ./examples/tools/* ./tools/
-npm run codegen
+make codegen
 ```
 
 This will copy the example tool definitions to your `tools/` directory and

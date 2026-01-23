@@ -73,16 +73,16 @@ response quality, context retrieval, and tool execution.
 
 ```bash
 # 1. Verify entity exists
-echo "https://schema.org/Type" | npm -s run cli:subjects
+echo "https://schema.org/Type" | make cli-subjects
 
 # 2. Explore relationships
-echo "entity:name ? ?" | npm -s run cli:query
+echo "entity:name ? ?" | make cli-query
 
 # 3. Verify search retrieval
-echo "query terms" | npm -s run cli:search
+echo "query terms" | make cli-search
 
 # 4. Validate agent response
-echo "Your eval prompt" | npm -s run cli:chat
+echo "Your eval prompt" | make cli-chat
 
 # 5. Write eval based on observed behavior
 ```
@@ -94,25 +94,25 @@ echo "Your eval prompt" | npm -s run cli:chat
 cat data/memories/common.Conversation.RESOURCE_ID.jsonl | jq -c '.subjects'
 
 # Visualize trace spans
-echo "[]" | npm -s run cli:visualize -- --resource common.Conversation.RESOURCE_ID
+echo "[]" | make cli-visualize ARGS="--resource common.Conversation.RESOURCE_ID"
 
 # Filter for tool calls
-echo "[?name==\`tool.CallTool\`]" | npm -s run cli:visualize -- --resource common.Conversation.RESOURCE_ID
+echo "[?name==\`tool.CallTool\`]" | make cli-visualize ARGS="--resource common.Conversation.RESOURCE_ID"
 ```
 
 ### Running Evals
 
 ```bash
-npm run eval                           # All evals
-npm run eval -- --scenario name        # Specific eval
-npm run eval -- --concurrency 3        # Parallel execution
-npm run eval:report                    # Generate report from results
+make eval                                 # All evals
+make eval ARGS="--scenario name"          # Specific eval
+make eval ARGS="--concurrency 3"          # Parallel execution
+make eval-report                          # Generate report from results
 ```
 
 ### Reset Eval Results
 
 ```bash
-npm run eval:reset                     # Reset all eval results
+make eval-reset                           # Reset all eval results
 ```
 
 ## Prohibitions

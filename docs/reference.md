@@ -1082,16 +1082,16 @@ Package symlinks are created at service startup to enable access via
 Generate everything (recommended):
 
 ```bash
-npm run codegen
+make codegen
 ```
 
 Generate specific components:
 
 ```bash
-npm run codegen:type
-npm run codegen:service
-npm run codegen:client
-npm run codegen:definition
+make codegen-type
+make codegen-service
+make codegen-client
+make codegen-definition
 ```
 
 These generate types only, service base classes, client classes, and service
@@ -1191,13 +1191,13 @@ Service management CLI that communicates with svscan:
 
 ```bash
 # Start svscan daemon
-npm run svscan
+make rc-svscan
 
 # Add service to supervision
-npm run rc -- add agent
+make rc-add SERVICE=agent
 
 # Remove service from supervision
-npm run rc -- remove agent
+make rc-remove SERVICE=agent
 ```
 
 ### Testing Infrastructure (libharness)
@@ -1347,12 +1347,12 @@ const isValid =
 #### Unified Dockerfile
 
 The platform uses a single parameterized Dockerfile that builds any service or
-extension. Use the `npm run docker:build` command to build all images with
-proper environment configuration:
+extension. Use the `make docker-build` command to build all images with proper
+environment configuration:
 
 ```bash
 # Build all services and extensions with environment variables
-npm run docker:build
+make docker-build
 ```
 
 This command uses `env-cmd` to load variables from `.env.build`, which must be
@@ -1492,7 +1492,7 @@ Tools extend the platform with custom functionality accessible to the agent:
 - **Define Protocol**: Create `tools/your-tool.proto`
 - **Implement Service**: Create `tools/your-tool/index.js`
 - **Configure Tool**: Add entry to `config/tools.yml`
-- **Regenerate Code**: Run `npm run codegen`
+- **Regenerate Code**: Run `make codegen`
 
 #### Tool Configuration Example
 

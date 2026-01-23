@@ -185,7 +185,7 @@ sequenceDiagram
 
     Note over Dev,VectorIndex: Offline Processing Pipeline
 
-    Dev->>Scripts: npm run process
+    Dev->>Scripts: make process
 
     Note over Scripts: 1. Assistant Processing
     Scripts->>ResourceIndex: Load assistants from config/assistants.yml
@@ -228,7 +228,7 @@ Protocol Buffer schemas in `proto/` and `tools/` are compiled into JavaScript
 types and service infrastructure:
 
 ```
-Developer defines schema → npm run codegen → Generated artifacts
+Developer defines schema → make codegen → Generated artifacts
                                               ↓
 proto/agent.proto ──────────────────→ generated/types/types.js
 proto/memory.proto                     generated/services/agent/service.js
@@ -250,7 +250,7 @@ The system can be deployed in multiple configurations depending on your needs:
 All services run on localhost with individual ports:
 
 ```bash
-npm run dev
+make rc-start
 ```
 
 Services available at:
@@ -272,8 +272,8 @@ extension is exposed externally, while backend services are isolated in the
 Docker network:
 
 ```bash
-npm run docker:build
-npm run docker:up
+make docker-build
+make docker-up
 ```
 
 ### Production (AWS/Cloud)

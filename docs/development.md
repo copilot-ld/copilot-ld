@@ -11,7 +11,7 @@ toc: true
 
 Complete the initial setup steps:
 
-- [Configuration Guide](/configuration/) - Environment setup and GitHub
+- [Configuration Guide](/configuration/) - Environment setup and GitHub Models
   authentication
 - [Processing Guide](/processing/) - Knowledge base processing (if using custom
   content)
@@ -22,13 +22,12 @@ By default all services run in development mode with debug logging enabled.
 
 ```bash
 # Launch all services in development mode
-npm run dev:start
+make rc-start
 
-# Stop development environment
-npm run dev:stop
-
-# Restart development environment
-npm run dev:restart
+# Control service lifecycle
+make rc-stop
+make rc-restart
+make rc-status
 ```
 
 ## Testing and Validation
@@ -36,19 +35,18 @@ npm run dev:restart
 Run various testing and validation checks:
 
 ```bash
-npm test
-npm run test:watch
-npm run perf
-npm run check
-npm run check:fix
+make test
+make test-watch
+make check
+make check-fix
 ```
 
 Individual quality checks:
 
 ```bash
-npm run lint
-npm run format
-npm run spellcheck
+make lint
+make format
+make spellcheck
 ```
 
 These run ESLint code analysis, Prettier formatting check, and spell check
@@ -59,7 +57,7 @@ documentation respectively.
 Check for security vulnerabilities:
 
 ```bash
-npm run security
+make security
 ```
 
 ## Development Scripts
@@ -70,22 +68,22 @@ The `scripts/` directory contains utilities for development and testing:
 
 ```bash
 # Interactive chat with the system
-npm run cli:chat
+make cli-chat
 > What are Docker security best practices?
 > How do I implement rolling updates in Kubernetes?
 
 # Semantic search testing
-npm run cli:search
+make cli-search
 > docker security
 > kubernetes deployment
 
 # Graph query testing
-npm run cli:query
+make cli-query
 > ? rdf:type schema:Person
 > person:john ? ?
 
 # Trace visualization with Mermaid diagrams
-npm run cli:visualize
+make cli-visualize
 > [?kind==`2`]  # Show all SERVER spans
 > [?contains(name, 'llm')]  # Show LLM-related operations
 ```
@@ -97,13 +95,10 @@ methodology with a two-step workflow:
 
 ```bash
 # Step 1: Run evaluations (stores results in data/eval/)
-npm run eval
-
-# Run with custom concurrency and iterations
-npm run eval -- --concurrency 10 --iterations 3
+make eval
 
 # Step 2: Generate reports from stored results
-npm run eval:report
+make eval-report
 ```
 
 **Evaluation System**:
@@ -130,33 +125,30 @@ Reports are written to:
 
 ```bash
 # Pipe input for automated testing
-echo "Tell me about container security" | npm run cli:chat
+echo "Tell me about container security" | make cli-chat
 
-# Search with CLI flags for precise testing
-echo "docker" | npm run cli:search -- --limit 10 --threshold 0.25
+# Search with piped input
+echo "docker" | make cli-search
 ```
 
 ### System Validation Scripts
 
 ```bash
 # Test embedding generation
-echo "sample text" | npx env-cmd -- node scripts/embed.js
+make cli-embed < <(echo "sample text")
 
 # Test cosine similarity search
-echo "other text" | npx env-cmd -- node scripts/embed.js | node scripts/cosine.js
+make cli-embed < <(echo "other text") | make cli-cosine
 ```
 
 ### Development Utilities
 
 ```bash
 # Generate SSL certificates for HTTPS development
-node scripts/cert.js
+make cert
 
-# Generate service authentication secrets
-node scripts/secret.js
-
-# GitHub token setup (for GitHub Copilot users)
-npx env-cmd -- node scripts/gh-token.js
+# Full environment setup (tokens, secrets, certificates)
+make env-setup
 ```
 
 ## Code Generation Workflow
@@ -167,16 +159,16 @@ For details about Protocol Buffer compilation and type generation, see the
 Generate all code from proto definitions:
 
 ```bash
-mkdir generated
-npm run codegen
+make init
+make codegen
 ```
 
 Generate specific components:
 
 ```bash
-npm run codegen:type
-npm run codegen:client
-npm run codegen:service
+make codegen-type
+make codegen-client
+make codegen-service
 ```
 
 These generate type definitions only, client stubs only, and service bases only
@@ -187,7 +179,7 @@ respectively.
 Access the development interfaces:
 
 - **UI Extension**: `http://localhost:3000/ui/`
-- **Documentation Server**: `npm run docs` serves on `http://localhost:8080`
+- **Documentation Server**: `make docs` serves on `http://localhost:8080`
 
 ## Trace Analysis
 
@@ -201,7 +193,7 @@ support:
 
 ```bash
 # Launch interactive REPL
-npm run cli:visualize
+make cli-visualize
 
 # Query traces with JMESPath expressions
 > [?kind==`2`]  # All SERVER spans

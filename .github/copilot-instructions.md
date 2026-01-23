@@ -45,6 +45,43 @@ established patterns.
 **Explain Context**: Help users understand how their changes fit within the
 broader system architecture.
 
+## Environment Setup
+
+Environment variables are organized into multiple files by concern:
+
+- `.env` - Base configuration (API keys, secrets, DATABASE_PASSWORD)
+- `.env.local` / `.env.docker` - Network configuration
+- `.env.storage.{local,minio,supabase}` - Storage backend
+- `.env.auth.{none,gotrue,supabase}` - Authentication backend
+
+Use `scripts/env.sh` to load the right files automatically:
+
+```bash
+./scripts/env.sh <command>             # Uses local + local storage + no auth
+ENV=docker ./scripts/env.sh <command>  # Uses docker networking
+STORAGE=minio ./scripts/env.sh <command>  # Uses MinIO storage
+AUTH=gotrue ./scripts/env.sh <command>  # Uses GoTrue auth
+```
+
+## Build System
+
+The project uses Make for automation and npm for standard development tasks:
+
+- **npm scripts**: `check`, `dev`, `format`, `lint`, `start`, `test` (and `:fix`
+  variants)
+- **make targets**: Everything else (codegen, processing, CLI tools, Docker,
+  etc.)
+
+Run `make help` to see all available targets. Common workflows:
+
+```bash
+make init          # Initialize data directories
+make codegen       # Generate code from Protocol Buffers
+make process       # Process all resources
+make rc-start      # Start services
+make cli-chat      # Agent conversations
+```
+
 ## Terminal Commands
 
 **No Stderr Redirection**: Never redirect stderr to `/dev/null` (e.g.,

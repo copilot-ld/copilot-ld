@@ -2,65 +2,57 @@
 applyTo: "**"
 ---
 
-# Development Workflow Instructions
+# Git Workflow
 
-Defines the standard Git and GitHub workflow for contribution, ensuring clean
-history and issue tracking.
+Multi-agent environment: other agents may commit to this repository at any time.
+Integrate git operations into task planning. A task is not complete until
+changes are committed and pushed.
 
-## Principles
-
-1. **Issue-Centric**: All work ties directly to a tracked issue.
-2. **Linear History**: Maintain a clean, linear history via rebasing and
-   squashing.
-3. **Automated Standards**: Adhere to strict naming and formatting for tooling
-   compatibility.
-
-## Requirements
-
-### Branching
-
-Name branches using the issue type and number:
-
-```bash
-git checkout -b fix-123  # For issue #123
-```
-
-### Commits
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+## Workflow
 
 ```text
-feat(auth): add login support
-fix(api): handle timeout errors
+1. [make changes - one logical unit]
+2. git add <specific-files>
+3. git commit -m "type(scope): description"
+4. git push origin main
+5. [repeat from step 1 for next logical unit]
 ```
 
-### Workflow
+A logical unit is a coherent change: a feature, a fix, a refactor. Multiple
+related files edited together form one logical unit, not separate commits.
 
-1. **Check**: Run checks and auto-fixes before committing.
-   ```bash
-   npm run check:fix
-   ```
-2. **Squash**: Combine related changes into atomic commits.
-3. **Rebase**: Keep branch up-to-date with `main`.
-   ```bash
-   git fetch origin main
-   git rebase origin/main
-   ```
-4. **Push**: Force push to update the remote branch.
-   ```bash
-   git push -f origin fix-123
-   ```
-5. **Pull Request**: Use `gh` CLI to create and merge (do not delete branch).
-   ```bash
-   gh pr create --fill
-   gh pr merge --squash
-   ```
+If push fails: `git pull --rebase origin main` then push again.
 
-## Prohibitions
+## Task Planning
 
-1. **DO NOT** use merge commits when updating from main - always rebase.
-2. **DO NOT** push vague commit messages - use Conventional Commits.
-3. **DO NOT** leave multiple "wip" commits - squash before PR.
-4. **DO NOT** merge PRs manually via web UI if `gh` CLI can be used.
-5. **DO NOT** delete branches after merge - release workflow relies on
-   references.
+When planning work with a todo list:
+
+- Group related changes into logical units
+- Include "commit and push" as part of completing each unit
+- Do not mark a task complete until changes are pushed
+
+## Commit Format
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```text
+feat(scope): add new capability
+fix(scope): correct behavior
+refactor(scope): restructure without behavior change
+docs(scope): update documentation
+```
+
+## After All Changes
+
+Run validation and fix any failures before considering work complete:
+
+```bash
+make check        # identify issues
+make check-fix    # auto-fix what's possible
+```
+
+## Prohibited
+
+- `git add -A` or `git add .` (captures other agents' work)
+- Waiting until end of session to commit (conflicts accumulate)
+- Force push or history rewrite on `main`

@@ -28,10 +28,7 @@ retrieval-augmented generation.
 Set up environment variables and service configuration:
 
 ```sh
-cp .env{.example,}
-cp config/config{.example,}.json
-cp config/assistants{.example,}.yml
-cp config/tools{.example,}.yml
+make env-setup
 ```
 
 For detailed configuration options, see the
@@ -48,37 +45,25 @@ npm install
 Initialize the necessary data directories with empty indices:
 
 ```sh
-npm run data:init
+make init
 ```
 
 ### 4. Generate code from Protocol Buffers
 
 ```sh
-npm run codegen
+make codegen
 ```
 
 This generates service interfaces and type definitions from the Protocol Buffer
 schemas. See [Code Generation Details](docs/architecture.html#code-generation)
 for more information.
 
-### 5. Authentication and secrets
+### 5. Authentication
 
-Get a token from your OpenAI-compatible LLM provider and set LLM_TOKEN in `.env`
-To use GitHub Copilot as the LLM backend, run:
-
-```sh
-# Generate a GitHub token and set GITHUB_TOKEN in .env
-npx env-cmd -- node scripts/gh-token.js
-
-# Then manually copy GITHUB_TOKEN to LLM_TOKEN in .env for LLM API access
-```
-
-Then generate the secret used for internal service communication:
-
-```sh
-# Generate service authentication secret
-node scripts/secret.js
-```
+Get a token from your OpenAI-compatible LLM provider and set `LLM_TOKEN` in
+`.env`. The `make env-setup` command handles GitHub token setup and secret
+generation automatically. See the [Configuration Guide](docs/configuration.html)
+for manual token configuration.
 
 ### 6. Prepare knowledge base
 
@@ -89,7 +74,7 @@ setup instructions including HTML structure examples and processing workflows.
 ### 7. Process all resources and create indices
 
 ```sh
-npm run process
+make process
 ```
 
 ### 8. Start services
@@ -97,7 +82,7 @@ npm run process
 #### Option A: Local Development Environment
 
 ```sh
-npm run dev
+make rc-start
 ```
 
 Access the services:
@@ -107,24 +92,27 @@ Access the services:
 #### Option B: Production-Like Environment
 
 For a production-like environment with an Application Load Balancer (ALB) and
-S3-compatible storage, first generate SSL certificates and comment out host and
-port variables in `.env` (using GNU `sed`), then start all services including
-ALB and MinIO:
+optional S3-compatible storage:
 
 ```sh
-node scripts/cert.js
-sed -i -E '/(HOST|PORT)=/s/^/# /' .env
-docker compose up
+# Start core services only
+make docker-up
+
+# Or start with MinIO storage
+make docker-up STORAGE=minio
+
+# Or start with Supabase (auth + storage)
+make docker-up STORAGE=supabase
 ```
 
-This provides SSL termination, path-based routing, and S3-compatible storage.
-See the [Configuration Guide](docs/configuration.html) for detailed setup
-options.
+This provides SSL termination, path-based routing, and optional S3-compatible
+storage. See the [Configuration Guide](docs/configuration.html) for detailed
+setup options.
 
 Access the services:
 
 - **UI Extension**: `https://localhost/ui`
-- **MinIO Console**: `http://localhost:9001`
+- **MinIO Console**: `http://localhost:9001` (when using `STORAGE=minio`)
 
 ## 📖 Detailed Guides
 
@@ -137,22 +125,22 @@ For comprehensive setup and deployment information:
 
 ## ⚡ Usage
 
-After starting services with `npm run dev`, you can interact with the system
-using available scripts.
+After starting services with `make rc-start`, you can interact with the system
+using CLI tools via Make.
 
 ### Chat Script
 
 Interactive mode:
 
 ```sh
-npm run cli:chat
+make cli-chat
 > Hello
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "Hello" | npm run cli:chat
+echo "Hello" | make cli-chat
 ```
 
 ### Search Script
@@ -160,22 +148,14 @@ echo "Hello" | npm run cli:chat
 Interactive mode:
 
 ```sh
-npm run cli:search
+make cli-search
 > What is Kanban?
 ```
 
 Piping for scripted testing:
 
 ```sh
-echo "What is Kanban?" | npm run cli:search
-```
-
-Command-line flags can be used for non-interactive runs to limit results and set
-a minimum similarity threshold:
-
-```sh
-echo "testing" | npm run cli:search -- --limit 10 --threshold 0.25
-echo "find pipeline tasks" | npm run cli:search -- --index descriptor --limit 5
+echo "What is Kanban?" | make cli-search
 ```
 
 ### Web Components
@@ -214,11 +194,11 @@ Run unit tests:
 npm test
 ```
 
-Manual integration testing by using scripts:
+Manual integration testing by using CLI tools:
 
 ```sh
-echo "test prompt" | npm run cli:chat
-echo "search query" | npm run cli:search -- --limit 3 --threshold 0.2
+echo "test prompt" | make cli-chat
+echo "search query" | make cli-search
 ```
 
 ### Adding New Features

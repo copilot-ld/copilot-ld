@@ -19,7 +19,7 @@ configured as repository secrets.
 ## Docker Compose Deployment
 
 The Docker Compose deployment provides a complete containerized stack with
-application load balancing, object storage, and all microservices.
+application load balancing, optional object storage, and all microservices.
 
 ### Architecture Overview
 
@@ -29,10 +29,14 @@ The Docker Compose stack includes:
   and HTTP/HTTPS routing (ports 80/443) to backend services
 - **Gateway**: Nginx container providing HTTPS egress proxy for outbound
   internet access (port 3128) using nginx stream module
-- **Object Storage**: MinIO S3-compatible storage for data persistence
 - **Extension Services**: Web API interface
 - **Core Services**: Agent, LLM, Memory, Vector, and Tool services
-- **Custom Tools**: Example Hash service demonstrating tool extensibility
+
+Optional storage backends (mutually exclusive):
+
+- **MinIO Storage** (`--profile minio`): S3-compatible storage for data
+  persistence
+- **Supabase** (`--profile supabase`): Authentication and S3-compatible storage
 
 The ALB handles inbound web traffic with SSL termination (ports 80/443) and
 routes requests to backend services. The separate gateway provides outbound
@@ -62,20 +66,28 @@ containers requires a GitHub Personal Access Token (PAT) with at minimum the
 stack:
 
 ```bash
-GITHUB_TOKEN=$(cat config/.build_token) docker compose build
-docker compose up -d
-docker compose ps
-```
+# Build all container images
+make docker-build
 
-The first command builds all container images, the second starts the complete
-stack, and the third checks service status.
+# Start core services only (no external storage)
+make docker-up
+
+# Or start with MinIO storage
+make docker-up STORAGE=minio
+
+# Or start with Supabase (auth + storage)
+make docker-up STORAGE=supabase
+
+# Check service status
+make docker-ps
+```
 
 ### Access Points
 
 Once deployed, access the system via:
 
 - **UI Extension**: `https://localhost/ui/`
-- **MinIO Console**: `http://localhost:9001`
+- **MinIO Console**: `http://localhost:9001` (when using `STORAGE=minio`)
 
 ## AWS CloudFormation Deployment
 

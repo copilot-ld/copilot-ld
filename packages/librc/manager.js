@@ -162,7 +162,11 @@ export class ServiceManager {
         "--logdir",
         logDir,
       ],
-      { detached: true, stdio: ["ignore", logFd, logFd] },
+      {
+        detached: true,
+        stdio: ["ignore", logFd, logFd],
+        env: this.#process.env,
+      },
     );
     child.unref();
     this.#fs.closeSync(logFd);

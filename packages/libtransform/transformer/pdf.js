@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- Complex PDF processing logic */
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { spawn, spawnSync } from "child_process";

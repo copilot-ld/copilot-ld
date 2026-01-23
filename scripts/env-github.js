@@ -3,13 +3,13 @@ import { createOAuthDeviceAuth } from "@octokit/auth-oauth-device";
 import { Octokit } from "@octokit/core";
 
 import { createScriptConfig } from "@copilot-ld/libconfig";
-import { updateEnvFile } from "@copilot-ld/libutil";
+import { updateEnvFile } from "@copilot-ld/libsecret";
 
 const config = await createScriptConfig("gh-token");
 
 /**
  * Main function to authenticate with GitHub using OAuth device flow
- * and save the resulting token to a file
+ * and save the resulting token to a file with 'models' scope
  * @returns {Promise<string>} The GitHub authentication token
  */
 async function main() {
@@ -17,6 +17,7 @@ async function main() {
     authStrategy: createOAuthDeviceAuth,
     auth: {
       clientId: config.ghClientId(),
+      scopes: ["models"],
       onVerification: (verification) => {
         console.log(`Visit: ${verification.verification_uri}`);
         console.log(`Code: ${verification.user_code}`);
@@ -26,7 +27,8 @@ async function main() {
 
   const { token } = await octokit.auth({ type: "oauth-device" });
   await updateEnvFile("GITHUB_TOKEN", token);
-  console.log("GITHUB_TOKEN was updated in .env");
+  await updateEnvFile("LLM_TOKEN", token);
+  console.log("GITHUB_TOKEN and LLM_TOKEN were updated in .env");
 }
 
 main();

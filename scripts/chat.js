@@ -13,8 +13,8 @@ The agent maintains conversation context across multiple turns.
 
 **Examples:**
 
-    echo "Tell me about the company" | npm -s run cli:chat
-    printf "What is microservices?\\nWhat are the benefits?\\n" | npm -s run cli:chat`;
+    echo "Tell me about the company" | make cli-chat
+    printf "What is microservices?\\nWhat are the benefits?\\n" | make cli-chat`;
 
 const config = await createServiceConfig("agent");
 const logger = createLogger("cli");

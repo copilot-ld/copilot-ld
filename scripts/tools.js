@@ -224,6 +224,30 @@ async function generateToolSchemas(endpoints, logger) {
 }
 
 /**
+ * Build tool description from descriptor fields
+ * @param {object} descriptor - Descriptor with purpose, applicability, instructions, evaluation
+ * @returns {string} Formatted description string
+ */
+function buildToolDescription(descriptor) {
+  const parts = [];
+
+  if (descriptor.purpose) {
+    parts.push(`PURPOSE: ${descriptor.purpose.trim()}`);
+  }
+  if (descriptor.applicability) {
+    parts.push(`WHEN TO USE: ${descriptor.applicability.trim()}`);
+  }
+  if (descriptor.instructions) {
+    parts.push(`HOW TO USE: ${descriptor.instructions.trim()}`);
+  }
+  if (descriptor.evaluation) {
+    parts.push(`RETURNS: ${descriptor.evaluation.trim()}`);
+  }
+
+  return parts.join("\n\n") || "No description available";
+}
+
+/**
  * Store tool object as a resource
  * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index instance
  * @param {object} schema - Tool schema object
@@ -257,13 +281,16 @@ async function storeToolResource(resourceIndex, schema, descriptor, logger) {
     toolParam.required = [];
   }
 
+  // Build description from descriptor fields (purpose, applicability, instructions, evaluation)
+  const description = buildToolDescription(descriptor);
+
   const func = tool.ToolFunction.fromObject({
     id: resource.Identifier.fromObject({
       name: schema.function.name,
       type: "tool.ToolFunction",
     }),
     name: schema.function.name,
-    description: descriptor.description,
+    description,
     parameters: toolParam,
   });
 

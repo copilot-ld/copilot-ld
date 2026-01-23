@@ -9,10 +9,10 @@ Provide empty input (or "*") to get all subjects, or specify a type URI to filte
 
 **Examples:**
 
-    echo "" | npm -s run cli:subjects
-    echo "*" | npm -s run cli:subjects
-    echo "https://schema.org/Person" | npm -s run cli:subjects
-    echo "https://schema.org/ScholarlyArticle" | npm -s run cli:subjects`;
+    echo "" | make cli-subjects
+    echo "*" | make cli-subjects
+    echo "https://schema.org/Person" | make cli-subjects
+    echo "https://schema.org/ScholarlyArticle" | make cli-subjects`;
 
 /**
  * Retrieves subjects and their types from the graph index

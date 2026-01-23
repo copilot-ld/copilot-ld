@@ -15,11 +15,11 @@ Use ? as wildcard for any field. Quote strings containing spaces.
 
 **Examples:**
 
-    echo "person:john ? ?" | npm -s run cli:query
-    echo "? foaf:name ?" | npm -s run cli:query
-    echo '? ? "John Doe"' | npm -s run cli:query
-    echo "? rdf:type schema:Person" | npm -s run cli:query
-    echo "? ? ?" | npm -s run cli:query`;
+    echo "person:john ? ?" | make cli-query
+    echo "? foaf:name ?" | make cli-query
+    echo '? ? "John Doe"' | make cli-query
+    echo "? rdf:type schema:Person" | make cli-query
+    echo "? ? ?" | make cli-query`;
 
 /**
  * Performs a graph query using the parsed pattern

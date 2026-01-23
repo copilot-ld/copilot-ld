@@ -1,8 +1,9 @@
 import { JSDOM } from "jsdom";
 import { sanitizeDom } from "../sanitizer.js";
 
+import { generateHash } from "@copilot-ld/libsecret";
 import { common } from "@copilot-ld/libtype";
-import { ProcessorBase, generateHash } from "@copilot-ld/libutil";
+import { ProcessorBase } from "@copilot-ld/libutil";
 
 /**
  * Batch processes HTML knowledge files into structured Message resources.

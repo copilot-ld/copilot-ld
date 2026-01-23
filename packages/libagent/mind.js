@@ -1,4 +1,4 @@
-import { generateUUID } from "@copilot-ld/libutil";
+import { generateUUID } from "@copilot-ld/libsecret";
 import { memory, common } from "@copilot-ld/libtype";
 
 /**

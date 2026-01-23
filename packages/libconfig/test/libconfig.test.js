@@ -339,16 +339,16 @@ describe("libconfig", () => {
       assert.strictEqual(secret, "my-jwt-secret-key");
     });
 
-    test("jwtSecret returns undefined when not set", async () => {
+    test("jwtSecret throws when not set", async () => {
       const mockProcess = {
         cwd: mock.fn(() => "/test/dir"),
         env: {},
       };
 
       const config = await createConfig("test", "myservice", {}, mockProcess);
-      const secret = config.jwtSecret();
-
-      assert.strictEqual(secret, undefined);
+      assert.throws(() => config.jwtSecret(), {
+        message: "JWT_SECRET not found in environment",
+      });
     });
 
     test("jwtAuthUrl returns from environment", async () => {
@@ -385,14 +385,16 @@ describe("libconfig", () => {
       assert.strictEqual(config.jwtAnonKey(), "anon-key-abc123");
     });
 
-    test("jwtAnonKey returns undefined when not set", async () => {
+    test("jwtAnonKey throws when not set", async () => {
       const mockProcess = {
         cwd: mock.fn(() => "/test/dir"),
         env: {},
       };
 
       const config = await createConfig("test", "myservice", {}, mockProcess);
-      assert.strictEqual(config.jwtAnonKey(), undefined);
+      assert.throws(() => config.jwtAnonKey(), {
+        message: "JWT_ANON_KEY not found in environment",
+      });
     });
 
     test("init returns init config from file data", async () => {

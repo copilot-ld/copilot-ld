@@ -40,17 +40,32 @@ Parameters:
     Type: String
     Description: ECR registry URL from registry stack
 
+  # LLM secrets
   LlmTokenArn:
     Type: String
     Description: ARN of the LLM token secret in AWS Secrets Manager
 
+  LlmBaseUrlArn:
+    Type: String
+    Description: ARN of the LLM base URL secret in AWS Secrets Manager
+
+  # JWT secrets
+  JwtSecretArn:
+    Type: String
+    Description: ARN of the JWT signing secret in AWS Secrets Manager
+
+  JwtAnonKeyArn:
+    Type: String
+    Description: ARN of the JWT anonymous key secret in AWS Secrets Manager
+
+  # Service secrets
   ServiceSecretArn:
     Type: String
     Description: ARN of the service authentication secret in AWS Secrets Manager
 
-  JwtSecretArn:
+  DatabasePasswordArn:
     Type: String
-    Description: ARN of the JWT signing secret in AWS Secrets Manager
+    Description: ARN of the database password secret in AWS Secrets Manager
 
   BucketName:
     Type: String
@@ -142,10 +157,21 @@ Resources:
             - Name: NO_PROXY
               Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -179,10 +205,21 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -222,10 +259,21 @@ Resources:
             - Name: NO_PROXY
               Value: localhost,127.0.0.1,*.copilot-ld.local
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -259,10 +307,21 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -296,10 +355,21 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -333,10 +403,21 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -370,10 +451,21 @@ Resources:
             - Name: DEBUG
               Value: "*"
           Secrets:
+            # LLM secrets
             - Name: LLM_TOKEN
               ValueFrom: !Sub "${LlmTokenArn}:LLM_TOKEN::"
+            - Name: LLM_BASE_URL
+              ValueFrom: !Sub "${LlmBaseUrlArn}:LLM_BASE_URL::"
+            # JWT secrets
+            - Name: JWT_SECRET
+              ValueFrom: !Sub "${JwtSecretArn}:JWT_SECRET::"
+            - Name: JWT_ANON_KEY
+              ValueFrom: !Sub "${JwtAnonKeyArn}:JWT_ANON_KEY::"
+            # Service secrets
             - Name: SERVICE_SECRET
               ValueFrom: !Sub "${ServiceSecretArn}:SERVICE_SECRET::"
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${DatabasePasswordArn}:DATABASE_PASSWORD::"
           LogConfiguration:
             LogDriver: awslogs
             Options:

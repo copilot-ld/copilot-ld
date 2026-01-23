@@ -36,7 +36,7 @@ jobs:
           retrieve: |
             {
               "${{ inputs.environment_name }}-cld-network-stack-cf": ["VpcId", "PrivateSubnetIds", "ServiceSecurityGroupId", "ALBListenerArn", "ServiceDiscoveryNamespaceId"],
-              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["LlmTokenArn", "ServiceSecretArn", "JwtSecretArn", "SecretsRoleArn"],
+              "${{ inputs.environment_name }}-cld-secrets-stack-cf": ["LlmTokenArn", "LlmBaseUrlArn", "JwtSecretArn", "JwtAnonKeyArn", "ServiceSecretArn", "DatabasePasswordArn", "SecretsRoleArn"],
               "${{ inputs.environment_name }}-cld-data-stack-cf": ["BucketName", "BucketRoleArn"],
               "${{ inputs.environment_name }}-cld-registry-stack-cf": ["RegistryUrl"]
             }

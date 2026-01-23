@@ -8,6 +8,10 @@ import { createStorage } from "@copilot-ld/libstorage";
  */
 export class Config {
   #llmToken = null;
+  #llmBaseUrl = null;
+  #jwtSecret = null;
+  #jwtAnonKey = null;
+  #jwtAuthUrl = null;
   #ghToken = null;
   #ghClientId = null;
   #fileData = null;
@@ -72,7 +76,7 @@ export class Config {
       }
     }
 
-    // Ensure that all URL components are consistent with the URL
+    // URL takes precedence if set and all components are extracted from it.
     if (data.url !== undefined) {
       const parsed = new URL(data.url);
       data.protocol = parsed.protocol.replace(":", "");
@@ -131,41 +135,65 @@ export class Config {
 
   /**
    * Gets the LLM API base URL from environment variable
-   * @returns {string} LLM API base URL
+   * @returns {string} LLM API base URL with trailing slashes removed
    * @throws {Error} If LLM_BASE_URL is not set in environment
    */
   llmBaseUrl() {
-    if (!this.#process.env.LLM_BASE_URL) {
-      throw new Error(
-        "LLM_BASE_URL not found in environment. Set to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
-      );
+    if (this.#llmBaseUrl) return this.#llmBaseUrl;
+
+    if (this.#process.env.LLM_BASE_URL) {
+      this.#llmBaseUrl = this.#process.env.LLM_BASE_URL.replace(/\/+$/, "");
+      return this.#llmBaseUrl;
     }
-    return this.#process.env.LLM_BASE_URL;
+
+    throw new Error(
+      "LLM_BASE_URL not found in environment. Set to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
+    );
   }
 
   /**
    * Gets the JWT secret from environment variable
    * @returns {string} JWT secret for HS256 signature verification
+   * @throws {Error} If JWT_SECRET is not set in environment
    */
   jwtSecret() {
-    return this.#process.env.JWT_SECRET;
+    if (this.#jwtSecret) return this.#jwtSecret;
+
+    if (this.#process.env.JWT_SECRET) {
+      this.#jwtSecret = this.#process.env.JWT_SECRET;
+      return this.#jwtSecret;
+    }
+
+    throw new Error("JWT_SECRET not found in environment");
   }
 
   /**
    * Gets the JWT anonymous key from environment variable.
    * Used for public/unauthenticated Supabase API access.
-   * @returns {string|undefined} JWT anon key or undefined if not set
+   * @returns {string} JWT anon key
+   * @throws {Error} If JWT_ANON_KEY is not set in environment
    */
   jwtAnonKey() {
-    return this.#process.env.JWT_ANON_KEY;
+    if (this.#jwtAnonKey) return this.#jwtAnonKey;
+
+    if (this.#process.env.JWT_ANON_KEY) {
+      this.#jwtAnonKey = this.#process.env.JWT_ANON_KEY;
+      return this.#jwtAnonKey;
+    }
+
+    throw new Error("JWT_ANON_KEY not found in environment");
   }
 
   /**
    * Gets the JWT authentication service URL from environment variable
-   * @returns {string} JWT auth service URL (defaults to http://localhost:9999)
+   * @returns {string} JWT auth service URL with trailing slashes removed (defaults to http://localhost:9999)
    */
   jwtAuthUrl() {
-    return this.#process.env.JWT_AUTH_URL || "http://localhost:9999";
+    if (this.#jwtAuthUrl) return this.#jwtAuthUrl;
+
+    const url = this.#process.env.JWT_AUTH_URL || "http://localhost:9999";
+    this.#jwtAuthUrl = url.replace(/\/+$/, "");
+    return this.#jwtAuthUrl;
   }
 
   /**
@@ -191,6 +219,10 @@ export class Config {
    */
   reset() {
     this.#llmToken = null;
+    this.#llmBaseUrl = null;
+    this.#jwtSecret = null;
+    this.#jwtAnonKey = null;
+    this.#jwtAuthUrl = null;
     this.#ghToken = null;
     this.#ghClientId = null;
     this.#fileData = null;

@@ -36,9 +36,6 @@ async function main() {
     jwtSecret,
   );
 
-  // Anonymous key: public/unauthenticated access
-  const anonKey = generateJWT({ ...jwtPayloadBase, role: "anon" }, jwtSecret);
-
   const MINIO_ENV_FILE = ".env.storage.minio";
   const SUPABASE_ENV_FILE = ".env.storage.supabase";
 
@@ -68,9 +65,6 @@ async function main() {
     SUPABASE_ENV_FILE,
   );
 
-  // Supabase anonymous key for public/frontend access
-  await updateEnvFile("JWT_ANON_KEY", anonKey, SUPABASE_ENV_FILE);
-
   console.log("Updated .env with:");
   console.log("  JWT_SECRET");
   console.log(`\nUpdated ${MINIO_ENV_FILE} with:`);
@@ -80,7 +74,6 @@ async function main() {
   console.log("  AWS_ACCESS_KEY_ID");
   console.log("  AWS_SECRET_ACCESS_KEY");
   console.log("  SUPABASE_SERVICE_ROLE_KEY");
-  console.log("  JWT_ANON_KEY");
 }
 
 main();

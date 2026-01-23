@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-import { updateEnvFile, generateSecret } from "@copilot-ld/libsecret";
+import {
+  generateJWT,
+  generateSecret,
+  updateEnvFile,
+} from "@copilot-ld/libsecret";
 import { writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 
@@ -28,15 +32,27 @@ async function main() {
   const jwtSecret = generateSecret(32);
   const databasePassword = generateSecret(16);
 
+  // JWT anonymous key: 10 years expiration
+  const jwtAnonKey = generateJWT(
+    {
+      iss: "supabase",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 60 * 60,
+      role: "anon",
+    },
+    jwtSecret,
+  );
+
   if (values.output) {
     // Write key=value pairs to output file
-    const content = `service_secret=${serviceSecret}\njwt_secret=${jwtSecret}\ndatabase_password=${databasePassword}\n`;
+    const content = `service_secret=${serviceSecret}\njwt_secret=${jwtSecret}\njwt_anon_key=${jwtAnonKey}\ndatabase_password=${databasePassword}\n`;
     await writeFile(values.output, content);
 
     if (values["add-mask"]) {
       // Print GitHub Actions mask commands to stdout
       console.log(`::add-mask::${serviceSecret}`);
       console.log(`::add-mask::${jwtSecret}`);
+      console.log(`::add-mask::${jwtAnonKey}`);
       console.log(`::add-mask::${databasePassword}`);
     }
     return;
@@ -45,10 +61,12 @@ async function main() {
   // Default: update .env file
   await updateEnvFile("SERVICE_SECRET", serviceSecret);
   await updateEnvFile("JWT_SECRET", jwtSecret);
+  await updateEnvFile("JWT_ANON_KEY", jwtAnonKey);
   await updateEnvFile("DATABASE_PASSWORD", databasePassword);
 
   console.log("SERVICE_SECRET was updated in .env");
   console.log("JWT_SECRET was updated in .env");
+  console.log("JWT_ANON_KEY was updated in .env");
   console.log("DATABASE_PASSWORD was updated in .env");
 }
 

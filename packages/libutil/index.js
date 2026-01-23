@@ -5,7 +5,7 @@ import { spawn } from "child_process";
 
 import { Tokenizer, ranks } from "./tokenizer.js";
 import { Finder } from "./finder.js";
-import { Downloader } from "./downloader.js";
+import { BundleDownloader } from "./downloader.js";
 import { TarExtractor } from "./extractor.js";
 
 /**
@@ -92,12 +92,12 @@ export function createTokenizer() {
 }
 
 /**
- * Creates a Download instance configured for generated code management
- * This is the new API that services should use instead of ensureGeneratedCode
+ * Creates a BundleDownloader instance configured for generated code management.
+ * Used in containerized deployments to download pre-generated code bundles.
  * @param {Function} createStorage - Storage factory function from libstorage
- * @returns {Promise<Downloader>} Configured Downloader instance
+ * @returns {Promise<BundleDownloader>} Configured BundleDownloader instance
  */
-export async function createDownloader(createStorage) {
+export async function createBundleDownloader(createStorage) {
   if (!createStorage) throw new Error("createStorage is required");
 
   // Dynamic import to avoid circular dependency with libtelemetry
@@ -106,7 +106,7 @@ export async function createDownloader(createStorage) {
   const finder = new Finder(fs, logger);
   const extractor = new TarExtractor(fs, path);
 
-  return new Downloader(createStorage, finder, logger, extractor);
+  return new BundleDownloader(createStorage, finder, logger, extractor);
 }
 
 /**
@@ -146,9 +146,9 @@ export function execLine(shift = 0) {
 }
 
 export { Finder } from "./finder.js";
-export { Uploader } from "./uploader.js";
-export { Downloader } from "./downloader.js";
+export { BundleDownloader } from "./downloader.js";
 export { TarExtractor, ZipExtractor } from "./extractor.js";
 export { ProcessorBase } from "./processor.js";
 export { Retry, createRetry } from "./retry.js";
 export { parseJsonBody } from "./http.js";
+export { waitFor } from "./wait.js";

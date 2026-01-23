@@ -5,11 +5,13 @@ import { join } from "path";
 import { S3Client } from "@aws-sdk/client-s3";
 import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
-import { generateUUID, Finder } from "@copilot-ld/libutil";
+import { generateUUID } from "@copilot-ld/libsecret";
+import { Finder } from "@copilot-ld/libutil";
 import { Logger } from "@copilot-ld/libtelemetry";
 
 import { LocalStorage } from "./local.js";
 import { S3Storage } from "./s3.js";
+import { SupabaseStorage } from "./supabase.js";
 
 /**
  * @typedef {object} StorageInterface
@@ -166,14 +168,55 @@ function _createS3Storage(prefix, process) {
   }
   // If no explicit credentials are provided, use default credential chain
 
-  // Optional custom endpoint for S3-compatible services
-  if (process.env.MINIO_ENDPOINT) config.endpoint = process.env.MINIO_ENDPOINT;
+  // Optional custom endpoint for S3-compatible services (AWS SDK standard variable)
+  if (process.env.AWS_ENDPOINT_URL)
+    config.endpoint = process.env.AWS_ENDPOINT_URL;
 
   const client = new S3Client(config);
 
   // Get bucket name from environment, use the factory parameter as prefix
   const bucketName = process.env.S3_BUCKET_NAME || "copilot-ld";
   return new S3Storage(prefix, bucketName, client);
+}
+
+/**
+ * Creates a Supabase storage instance
+ * @param {string} prefix - Prefix for Supabase storage operations
+ * @param {object} process - Process environment access (for testing)
+ * @returns {SupabaseStorage} Supabase storage instance
+ * @throws {Error} If SUPABASE_SERVICE_ROLE_KEY is missing
+ */
+function _createSupabaseStorage(prefix, process) {
+  const endpoint = process.env.AWS_ENDPOINT_URL;
+  const storageUrl = endpoint?.replace(/\/s3$/, "");
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is required for Supabase storage",
+    );
+  }
+
+  const config = {
+    region: process.env.S3_REGION || "local",
+    endpoint,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  };
+
+  const client = new S3Client(config);
+  const bucketName = process.env.S3_BUCKET_NAME || "copilot-ld";
+
+  return new SupabaseStorage(
+    prefix,
+    bucketName,
+    client,
+    storageUrl,
+    serviceRoleKey,
+  );
 }
 
 /**
@@ -185,6 +228,12 @@ function _createS3Storage(prefix, process) {
  * @throws {Error} When unsupported storage type is provided
  */
 export function createStorage(prefix, type, process = global.process) {
+  // Always use local storage for config and generated directories
+  // These are part of the codebase and should never be stored in S3
+  if (prefix === "config" || prefix === "generated") {
+    return _createLocalStorage(prefix, process);
+  }
+
   const finalType = type || process.env.STORAGE_TYPE || "local";
 
   switch (finalType) {
@@ -195,11 +244,15 @@ export function createStorage(prefix, type, process = global.process) {
     case "s3":
       return _createS3Storage(prefix, process);
 
+    case "supabase":
+      return _createSupabaseStorage(prefix, process);
+
     default:
-      throw new Error(`Unsupported storage type: ${type}`);
+      throw new Error(`Unsupported storage type: ${finalType}`);
   }
 }
 
 // Re-export storage classes
 export { LocalStorage } from "./local.js";
 export { S3Storage } from "./s3.js";
+export { SupabaseStorage } from "./supabase.js";

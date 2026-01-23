@@ -7,8 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "upload": "./bin/upload.js",
-    "download": "./bin/download.js"
+    "download-bundle": "./bin/download-bundle.js"
   },
   "engines": {
     "node": ">=22.0.0"

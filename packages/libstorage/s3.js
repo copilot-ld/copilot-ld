@@ -26,7 +26,8 @@ import {
  * @implements {StorageInterface}
  */
 export class S3Storage {
-  #bucket;
+  /** @protected */
+  _bucket;
   #prefix;
   #client;
   #commands;
@@ -53,7 +54,7 @@ export class S3Storage {
     },
   ) {
     this.#prefix = prefix;
-    this.#bucket = bucket;
+    this._bucket = bucket;
     this.#client = client;
     this.#commands = commands;
   }
@@ -186,8 +187,9 @@ export class S3Storage {
    * @returns {Promise<string[]>} Array of matching keys or prefixes
    */
   async findByPrefix(prefix, delimiter = undefined) {
+    const fullPrefix = this.#prefix ? `${this.#prefix}/${prefix}` : prefix;
     const keys = await this.#traverse({
-      Prefix: `${this.#prefix}/${prefix}`,
+      ...(fullPrefix && { Prefix: fullPrefix }),
       Delimiter: delimiter,
     });
     return keys;
@@ -215,8 +217,8 @@ export class S3Storage {
       // For absolute paths, remove leading slash
       cleanKey = key.substring(1);
     }
-    // Prepend prefix to create the full S3 key
-    return `${this.#prefix}/${cleanKey}`;
+    // Prepend prefix to create the full S3 key (empty prefix returns just the key)
+    return this.#prefix ? `${this.#prefix}/${cleanKey}` : cleanKey;
   }
 
   // Bucket Management
@@ -228,13 +230,13 @@ export class S3Storage {
   async ensureBucket() {
     try {
       await this.#executeCommand(this.#commands.HeadBucketCommand, {
-        Bucket: this.#bucket,
+        Bucket: this._bucket,
       });
       return false; // Bucket already exists
     } catch (error) {
       if (this.#isNotFound(error)) {
         await this.#executeCommand(this.#commands.CreateBucketCommand, {
-          Bucket: this.#bucket,
+          Bucket: this._bucket,
         });
         return true; // Bucket was created
       }
@@ -249,10 +251,32 @@ export class S3Storage {
   async bucketExists() {
     return await this.#withNotFoundHandling(async () => {
       await this.#executeCommand(this.#commands.HeadBucketCommand, {
-        Bucket: this.#bucket,
+        Bucket: this._bucket,
       });
       return true;
     }, false);
+  }
+
+  /**
+   * Check if storage service is reachable.
+   * Returns true if we can connect (even if bucket doesn't exist).
+   * Returns false only on connection/network errors.
+   * @returns {Promise<boolean>} True if storage service is reachable
+   */
+  async isHealthy() {
+    try {
+      await this.#executeCommand(this.#commands.HeadBucketCommand, {
+        Bucket: this._bucket,
+      });
+      return true; // Bucket exists, service is healthy
+    } catch (error) {
+      // Bucket not found means service is reachable
+      if (this.#isNotFound(error)) {
+        return true;
+      }
+      // Any other error (connection, auth) means not healthy
+      return false;
+    }
   }
 
   // Private Helper Methods
@@ -271,7 +295,7 @@ export class S3Storage {
     if (typeof keyOrParams === "string") {
       // keyOrParams is a key, build command parameters
       params = {
-        Bucket: this.#bucket,
+        Bucket: this._bucket,
         Key: this.path(keyOrParams),
         ...additionalParams,
       };
@@ -354,9 +378,10 @@ export class S3Storage {
     const objectsWithTimestamps = [];
     let continuationToken;
 
-    // Add prefix to the S3 list query
+    // Add prefix to the S3 list query (empty prefix lists all)
+    const prefixPath = this.#prefix ? `${this.#prefix}/` : "";
     const listOptions = {
-      Prefix: `${this.#prefix}/`,
+      ...(prefixPath && { Prefix: prefixPath }),
       ...options,
     };
 
@@ -364,36 +389,72 @@ export class S3Storage {
       const response = await this.#executeCommand(
         this.#commands.ListObjectsV2Command,
         {
-          Bucket: this.#bucket,
+          Bucket: this._bucket,
           ContinuationToken: continuationToken,
           ...listOptions,
         },
       );
 
-      if (response.Contents) {
-        for (const object of response.Contents) {
-          if (object.Key) {
-            // Strip the prefix from the key to maintain API compatibility
-            const strippedKey = object.Key.substring(`${this.#prefix}/`.length);
-            if (!keyFilter || keyFilter(strippedKey)) {
-              objectsWithTimestamps.push({
-                key: strippedKey,
-                lastModified: object.LastModified || new Date(0),
-              });
-            }
-          }
-        }
-      }
+      this.#collectObjects(
+        response.Contents,
+        prefixPath,
+        keyFilter,
+        objectsWithTimestamps,
+      );
+      this.#collectPrefixes(
+        response.CommonPrefixes,
+        prefixPath,
+        keyFilter,
+        objectsWithTimestamps,
+      );
 
       continuationToken = response.NextContinuationToken;
     } while (continuationToken);
 
-    // Sort by creation timestamp (oldest first)
-    // Note: S3 uses LastModified as the closest approximation to creation time
     objectsWithTimestamps.sort(
       (a, b) => a.lastModified.getTime() - b.lastModified.getTime(),
     );
 
     return objectsWithTimestamps.map((object) => object.key);
+  }
+
+  /**
+   * Collects objects from S3 response into results array
+   * @private
+   */
+  #collectObjects(contents, prefixPath, keyFilter, results) {
+    if (!contents) return;
+    for (const object of contents) {
+      if (!object.Key) continue;
+      const strippedKey = prefixPath
+        ? object.Key.substring(prefixPath.length)
+        : object.Key;
+      if (!keyFilter || keyFilter(strippedKey)) {
+        results.push({
+          key: strippedKey,
+          lastModified: object.LastModified || new Date(0),
+        });
+      }
+    }
+  }
+
+  /**
+   * Collects common prefixes from S3 response into results array
+   * @private
+   */
+  #collectPrefixes(commonPrefixes, prefixPath, keyFilter, results) {
+    if (!commonPrefixes) return;
+    for (const prefix of commonPrefixes) {
+      if (!prefix.Prefix) continue;
+      const strippedPrefix = prefixPath
+        ? prefix.Prefix.substring(prefixPath.length)
+        : prefix.Prefix;
+      if (!keyFilter || keyFilter(strippedPrefix)) {
+        results.push({
+          key: strippedPrefix,
+          lastModified: new Date(0),
+        });
+      }
+    }
   }
 }

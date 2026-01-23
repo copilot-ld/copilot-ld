@@ -6,6 +6,9 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "storage": "./bin/storage.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
@@ -15,6 +18,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.970.0",
     "@aws-sdk/credential-providers": "^3.970.0",
+    "@copilot-ld/libconfig": "^0.1.0",
+    "@copilot-ld/libsecret": "^0.1.0",
+    "@copilot-ld/libtelemetry": "^0.1.0",
     "@copilot-ld/libutil": "^0.1.55"
   },
   "repository": {

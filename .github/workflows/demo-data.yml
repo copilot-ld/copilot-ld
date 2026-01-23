@@ -25,6 +25,7 @@ jobs:
         id: data
         env:
           LLM_TOKEN: ${{ secrets.DEMO_LLM_TOKEN }}
+          LLM_BASE_URL: ${{ secrets.DEMO_LLM_BASE_URL }}
           DEBUG: "*"
         run: |
           set -e

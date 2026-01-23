@@ -320,6 +320,31 @@ Resources:
             ]
           }
 
+  DBRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${EnvironmentName}/db"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
 Outputs:
   RegistryUrl:
     Description: ECR registry URL
@@ -372,3 +397,7 @@ Outputs:
   ALBRepositoryUri:
     Description: ECR repository URI for ALB infrastructure
     Value: !GetAtt ALBRepository.RepositoryUri
+
+  DBRepositoryUri:
+    Description: ECR repository URI for database infrastructure
+    Value: !GetAtt DBRepository.RepositoryUri

@@ -436,6 +436,8 @@ env-storage:  ## Generate storage backend credentials
 .PHONY: env-reset
 env-reset:  ## Reset environment config from examples
 	@cp config/config.example.json config/config.json
+	@cp config/assistants.example.yml config/assistants.yml
+	@cp config/tools.example.yml config/tools.yml
 	@for file in .env*.example; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example}" || true; done
 	@echo "Environment config reset from examples"
 

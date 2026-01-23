@@ -15,7 +15,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.52",
+    "@copilot-ld/libconfig": "^0.1.53",
     "@copilot-ld/libresource": "^0.1.84",
     "@copilot-ld/librpc": "^0.1.72",
     "@copilot-ld/libstorage": "^0.1.48",

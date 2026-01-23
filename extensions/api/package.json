@@ -16,7 +16,7 @@
     "watch": "node --watch ./server.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.52",
+    "@copilot-ld/libconfig": "^0.1.53",
     "@copilot-ld/librpc": "^0.1.72",
     "@copilot-ld/libtelemetry": "^0.1.17",
     "@copilot-ld/libtype": "^0.1.58",

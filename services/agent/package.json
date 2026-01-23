@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/agent",
-  "version": "0.1.105",
+  "version": "0.1.106",
   "description": "Core orchestration service for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -18,7 +18,7 @@
     "@copilot-ld/libagent": "^0.1.32",
     "@copilot-ld/libconfig": "^0.1.53",
     "@copilot-ld/libresource": "^0.1.84",
-    "@copilot-ld/librpc": "^0.1.72"
+    "@copilot-ld/librpc": "^0.1.73"
   },
   "repository": {
     "type": "git",

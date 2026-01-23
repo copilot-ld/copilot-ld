@@ -254,8 +254,8 @@ export function createPerformanceTest(config) {
 
         const dependencies = await setupFn(currentCount);
 
-        // Run 10 warmup calls to reduce flakiness
-        for (let warmupCall = 0; warmupCall < 10; warmupCall++) {
+        // Run 25 warmup calls to ensure JIT compilation stabilizes
+        for (let warmupCall = 0; warmupCall < 25; warmupCall++) {
           await testFn(dependencies);
         }
 
@@ -328,21 +328,21 @@ export async function isolatePerformanceTest() {
 
   // Run GC multiple times to ensure memory is fully stabilized
   // Young generation objects may need multiple GC cycles
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
     global.gc();
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
 }
 
 /**
  * Measure performance of an async function with automatic test isolation
- * Runs multiple measurements and takes median by duration to filter GC outliers
+ * Runs multiple measurements, filters outliers using IQR, and takes median
  * @param {number} count - Count for scaling tests
  * @param {Function} fn - Async function to measure
- * @param {number} [runs] - Number of measurement runs (default: 3)
+ * @param {number} [runs] - Number of measurement runs (default: 8)
  * @returns {Promise<PerformanceMetric>} Performance metrics (median by duration)
  */
-export async function measurePerformance(count, fn, runs = 3) {
+export async function measurePerformance(count, fn, runs = 8) {
   const measurements = [];
 
   for (let i = 0; i < runs; i++) {
@@ -353,8 +353,31 @@ export async function measurePerformance(count, fn, runs = 3) {
     measurements.push(monitor.stop());
   }
 
-  // Sort by duration and take median measurement to filter GC outliers
-  // This preserves correlation between duration and memory from same run
-  measurements.sort((a, b) => a.duration - b.duration);
-  return measurements[Math.floor(measurements.length / 2)];
+  // Filter outliers using IQR method, then take median
+  const filtered = filterOutliers(measurements);
+  filtered.sort((a, b) => a.duration - b.duration);
+  return filtered[Math.floor(filtered.length / 2)];
+}
+
+/**
+ * Filter outliers from measurements using the IQR method
+ * @param {PerformanceMetric[]} measurements - Array of measurements
+ * @returns {PerformanceMetric[]} Filtered measurements with outliers removed
+ */
+function filterOutliers(measurements) {
+  if (measurements.length < 4) return measurements;
+
+  const durations = measurements.map((m) => m.duration).sort((a, b) => a - b);
+  const q1 = durations[Math.floor(durations.length * 0.25)];
+  const q3 = durations[Math.floor(durations.length * 0.75)];
+  const iqr = q3 - q1;
+  const lowerBound = q1 - 1.5 * iqr;
+  const upperBound = q3 + 1.5 * iqr;
+
+  const filtered = measurements.filter(
+    (m) => m.duration >= lowerBound && m.duration <= upperBound,
+  );
+
+  // Return at least half of measurements to avoid over-filtering
+  return filtered.length >= measurements.length / 2 ? filtered : measurements;
 }

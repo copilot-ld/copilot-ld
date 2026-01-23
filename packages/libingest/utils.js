@@ -52,12 +52,16 @@ export class Utils {
   }
 
   /**
-   * Gets the LLM base URL from environment variable or default
+   * Gets the LLM base URL from environment variable
    * @returns {string} LLM API base URL
+   * @throws {Error} If LLM_BASE_URL is not set
    */
   static getLlmBaseUrl() {
-    return (
-      globalThis.process.env.LLM_BASE_URL || "https://api.githubcopilot.com"
-    );
+    if (!globalThis.process.env.LLM_BASE_URL) {
+      throw new Error(
+        "LLM_BASE_URL not found in environment. Set to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
+      );
+    }
+    return globalThis.process.env.LLM_BASE_URL;
   }
 }

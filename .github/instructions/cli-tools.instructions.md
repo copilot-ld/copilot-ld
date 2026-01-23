@@ -18,69 +18,65 @@ exploration. All tools accept piped input for automation.
 
 ### Available Tools
 
-| Tool             | Purpose                      | Basic Usage                              |
-| ---------------- | ---------------------------- | ---------------------------------------- |
-| `cli:chat`       | Agent conversations          | `echo "query" \| npm -s run cli:chat`    |
-| `cli:search`     | Vector similarity search     | `echo "query" \| npm -s run cli:search`  |
-| `cli:query`      | Graph triple pattern queries | `echo "s p o" \| npm -s run cli:query`   |
-| `cli:subjects`   | List graph subjects by type  | `echo "type" \| npm -s run cli:subjects` |
-| `cli:visualize`  | Trace visualization          | `echo "[]" \| npm -s run cli:visualize`  |
-| `cli:window`     | Fetch memory window as JSON  | `npm -s run cli:window -- <resource_id>` |
-| `cli:completion` | Send window to LLM API       | `... \| npm -s run cli:completion`       |
+| Tool             | Purpose                      | Basic Usage                        |
+| ---------------- | ---------------------------- | ---------------------------------- |
+| `cli-chat`       | Agent conversations          | `echo "query" \| make cli-chat`    |
+| `cli-search`     | Vector similarity search     | `echo "query" \| make cli-search`  |
+| `cli-query`      | Graph triple pattern queries | `echo "s p o" \| make cli-query`   |
+| `cli-subjects`   | List graph subjects by type  | `echo "type" \| make cli-subjects` |
+| `cli-visualize`  | Trace visualization          | `echo "[]" \| make cli-visualize`  |
+| `cli-window`     | Fetch memory window as JSON  | `make cli-window ARGS="<id>"`      |
+| `cli-completion` | Send window to LLM API       | `... \| make cli-completion`       |
 
 ### Command Syntax
 
 ```bash
 # Single input
-echo "input" | npm -s run cli:<tool>
-
-# With options (use -- separator)
-echo "input" | npm -s run cli:<tool> -- --option value
+echo "input" | make cli-<tool>
 
 # Multi-line input (chat only)
-printf "line1\nline2\n" | npm -s run cli:chat
+printf "line1\nline2\n" | make cli-chat
 ```
 
 ### Tool-Specific Options
 
 **chat**: Maintains conversation state across invocations. Clear with
-`npm -s run cli:chat -- --clear` (separate step, exits immediately).
+`make cli-chat ARGS="--clear"` (separate step, exits immediately).
 
-**search**: `--threshold <0.0-1.0>`, `--limit <n>`,
-`--representation <content|descriptor>`
+**search**: `ARGS="--threshold 0.5 --limit 10 --representation content"`
 
 **query**: Triple patterns use `?` as wildcard: `echo "subject ? ?" | ...`
 
 **subjects**: Empty input or `*` returns all; type URI filters results
 
-**visualize**: `--trace <id>`, `--resource <id>`. JMESPath query selects traces:
-`echo "[?contains(name, 'llm')]" | ...`
+**visualize**: `ARGS="--trace <id>"` or `ARGS="--resource <id>"`. JMESPath query
+selects traces: `echo "[?contains(name, 'llm')]" | ...`
 
 ### Common Workflows
 
 Discover entities → explore relationships → search → test agent:
 
 ```bash
-echo "*" | npm -s run cli:subjects
-echo "prefix:entity ? ?" | npm -s run cli:query
-echo "search terms" | npm -s run cli:search
-echo "natural language question" | npm -s run cli:chat
+echo "*" | make cli-subjects
+echo "prefix:entity ? ?" | make cli-query
+echo "search terms" | make cli-search
+echo "natural language question" | make cli-chat
 ```
 
 Discover traces → filter spans → visualize:
 
 ```bash
-echo "[]" | npm -s run cli:visualize # All spans
-echo '[?kind==`2`]' | npm -s run cli:visualize # SERVER spans, pay attention to string and numeric quoting
-echo '[?kind==`3`]' | npm -s run cli:visualize # CLIENT spans, pay attention to string and numeric quoting
-echo "[?contains(name, 'llm')]" | npm -s run cli:visualize # LLM spans
+echo "[]" | make cli-visualize # All spans
+echo '[?kind==`2`]' | make cli-visualize # SERVER spans
+echo '[?kind==`3`]' | make cli-visualize # CLIENT spans
+echo "[?contains(name, 'llm')]" | make cli-visualize # LLM spans
 ```
 
 Debug memory windows → test LLM completions:
 
 ```bash
-npm -s run cli:window -- common.Conversation.<id>  # Fetch window JSON
-npm -s run cli:window -- <id> | npm -s run cli:completion  # Test completion
+make cli-window ARGS="common.Conversation.<id>"  # Fetch window JSON
+make cli-window ARGS="<id>" | make cli-completion  # Test completion
 ```
 
 ## Prohibitions

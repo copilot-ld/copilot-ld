@@ -10,8 +10,8 @@ import { createWebExtension } from "./index.js";
 const logger = createLogger("web");
 const tracer = await createTracer("web");
 
-// Extension configuration
-const config = await createExtensionConfig("web");
+// Extension configuration with defaults
+const config = await createExtensionConfig("web", { auth_enabled: false });
 
 const client = await createClient("agent", logger, tracer);
 const app = await createWebExtension(client, config, logger);

@@ -2,13 +2,13 @@
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLlmApi } from "@copilot-ld/libllm";
 
-const usage = `Usage: npm -s run cli:window -- <resource_id> | npm -s run cli:completion
+const usage = `Usage: make cli-window ARGS="<resource_id>" | make cli-completion
 
 Reads a memory window from stdin and sends it to the LLM API for completion.
 Outputs the completion response to stdout.
 
 Example:
-  npm -s run cli:window -- common.Conversation.abc123 | npm -s run cli:completion`;
+  make cli-window ARGS="common.Conversation.abc123" | make cli-completion`;
 
 const config = await createServiceConfig("agent");
 const llm = createLlmApi(

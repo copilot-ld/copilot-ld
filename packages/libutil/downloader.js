@@ -1,8 +1,8 @@
 /**
- * Downloader utility for retrieving and extracting bundle.tar.gz from remote storage
- * Implements object-oriented approach with dependency injection
+ * BundleDownloader utility for retrieving and extracting bundle.tar.gz from remote storage.
+ * Used to download generated code bundles in containerized deployments.
  */
-export class Downloader {
+export class BundleDownloader {
   #storageFactory;
   #finder;
   #logger;
@@ -73,7 +73,10 @@ export class Downloader {
     const storageType = this.#process.env.STORAGE_TYPE || "local";
 
     if (storageType === "local") {
-      this.#logger.debug("Downloader", "Download skipped, using local storage");
+      this.#logger.debug(
+        "BundleDownloader",
+        "Download skipped, using local storage",
+      );
       return;
     }
 
@@ -88,7 +91,7 @@ export class Downloader {
     await this.#extractBundle(key);
     await this.#local.delete(key);
 
-    this.#logger.debug("Downloader", "Download completed", { key });
+    this.#logger.debug("BundleDownloader", "Download completed", { key });
   }
 
   /**

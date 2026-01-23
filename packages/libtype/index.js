@@ -1,4 +1,5 @@
-import { countTokens, generateUUID } from "@copilot-ld/libutil";
+import { generateUUID } from "@copilot-ld/libsecret";
+import { countTokens } from "@copilot-ld/libutil";
 
 import * as types from "./generated/types/types.js";
 

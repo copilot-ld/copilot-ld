@@ -2,15 +2,16 @@
 
 import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
-import { createDownloader, execLine } from "@copilot-ld/libutil";
+import { createBundleDownloader, execLine } from "@copilot-ld/libutil";
 
 /**
- * Main execution function
+ * Downloads generated code bundle from remote storage.
+ * Used in containerized deployments to fetch pre-generated code.
  * @returns {Promise<void>}
  */
 async function main() {
-  await createScriptConfig("download");
-  const downloader = await createDownloader(createStorage);
+  await createScriptConfig("download-bundle");
+  const downloader = await createBundleDownloader(createStorage);
   await downloader.download();
 
   // If additional arguments provided, execute them after download
@@ -18,6 +19,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Download failed:", error);
+  console.error("Bundle download failed:", error);
   process.exit(1);
 });

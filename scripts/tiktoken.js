@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { encoding_for_model } from "tiktoken";
 
-const usage = `Usage: npm -s run cli:window -- <resource_id> 2>/dev/null | npm run cli:tiktoken
+const usage = `Usage: make cli-window ARGS="<resource_id>" | make cli-tiktoken
 
 Counts tokens in a memory window JSON using tiktoken (cl100k_base encoding).
 
 Example:
-  npm -s run cli:window -- common.Conversation.abc123 2>/dev/null | npm run cli:tiktoken`;
+  make cli-window ARGS="common.Conversation.abc123" | make cli-tiktoken`;
 
 /**
  * Reads all stdin input as a string

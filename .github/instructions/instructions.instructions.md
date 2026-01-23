@@ -44,6 +44,14 @@ applyTo: "pattern"
 
 ## Requirements
 
+### Scope Targeting
+
+- Use the narrowest `applyTo` glob pattern that covers the relevant files
+- `applyTo: "**"` is acceptable when the instruction genuinely applies globally
+- Global instructions must be especially concise - compete for attention by
+  being shorter, not broader
+- Prefer file-type patterns (`"**/*.js"`) over directory patterns when possible
+
 ### Structure
 
 - YAML frontmatter with `applyTo` pattern required
@@ -51,6 +59,7 @@ applyTo: "pattern"
   Examples
 - No "Purpose Declaration", "Best Practices", or "Comprehensive Examples"
   sections
+- Lead with actions, not explanations - put "what to do" before "why"
 
 ### Content
 
@@ -84,10 +93,12 @@ class Service {
 ## Prohibitions
 
 1. **DO NOT** exceed 150 lines - split into multiple focused files if needed
-2. **DO NOT** include multiple examples of the same pattern
-3. **DO NOT** use specific implementation details (class names, file paths,
+2. **DO NOT** exceed 50 lines for `applyTo: "**"` instructions - global means
+   brief
+3. **DO NOT** include multiple examples of the same pattern
+4. **DO NOT** use specific implementation details (class names, file paths,
    service names) - use generic placeholders
-4. **DO NOT** explain rationale extensively - one sentence maximum per rule
-5. **DO NOT** duplicate information found in other instruction files
-6. **DO NOT** include a "Best Practices" section - merge into Requirements
-7. **DO NOT** include an "Examples" section - examples belong inline with rules
+5. **DO NOT** explain rationale extensively - one sentence maximum per rule
+6. **DO NOT** duplicate information found in other instruction files
+7. **DO NOT** include a "Best Practices" section - merge into Requirements
+8. **DO NOT** include an "Examples" section - examples belong inline with rules

@@ -13,6 +13,9 @@ RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN=$(cat /run/secrets/github_token) \
     npm install --workspace=${TARGET_PATH} --omit=dev --ignore-scripts
 
+# Create generated directory for local storage
+RUN mkdir -p /app/generated
+
 FROM gcr.io/distroless/nodejs22-debian12
 
 WORKDIR /app
@@ -21,6 +24,7 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/generated ./generated
 
 # Copy the built target
 ARG TARGET_PATH
@@ -31,5 +35,5 @@ WORKDIR /app/${TARGET_PATH}
 
 EXPOSE 3000
 
-# We use the root node_modules binary, so we need to adjust the path
-CMD ["../../node_modules/.bin/download", "--", "/nodejs/bin/node", "server.js"]
+# Download generated code bundle before starting the server
+CMD ["../../node_modules/.bin/download-bundle", "--", "/nodejs/bin/node", "server.js"]

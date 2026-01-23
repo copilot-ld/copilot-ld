@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-01-18
+
+- Added `waitFor()` polling utility with exponential backoff for waiting on
+  conditions
+
 ## 2026-01-15
 
 - Added `parseJsonBody()` function for parsing JSON body from HTTP requests

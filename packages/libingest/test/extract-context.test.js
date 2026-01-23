@@ -44,23 +44,31 @@ function createMockLogger() {
 describe("ExtractContext", () => {
   let mockStorage;
   let mockLogger;
-  let originalEnv;
+  let originalLlmToken;
+  let originalLlmBaseUrl;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
-    // Save original LLM_TOKEN
-    originalEnv = globalThis.process.env.LLM_TOKEN;
-    // Set a test token to avoid errors in createLlm
+    // Save original environment variables
+    originalLlmToken = globalThis.process.env.LLM_TOKEN;
+    originalLlmBaseUrl = globalThis.process.env.LLM_BASE_URL;
+    // Set test values to avoid errors in createLlm
     globalThis.process.env.LLM_TOKEN = "test_token_123";
+    globalThis.process.env.LLM_BASE_URL = "https://models.github.ai/inference";
   });
 
   afterEach(() => {
-    // Restore original LLM_TOKEN
-    if (originalEnv !== undefined) {
-      globalThis.process.env.LLM_TOKEN = originalEnv;
+    // Restore original environment variables
+    if (originalLlmToken !== undefined) {
+      globalThis.process.env.LLM_TOKEN = originalLlmToken;
     } else {
       delete globalThis.process.env.LLM_TOKEN;
+    }
+    if (originalLlmBaseUrl !== undefined) {
+      globalThis.process.env.LLM_BASE_URL = originalLlmBaseUrl;
+    } else {
+      delete globalThis.process.env.LLM_BASE_URL;
     }
   });
 
@@ -155,7 +163,7 @@ describe("ExtractContext", () => {
       });
 
       // Restore token
-      globalThis.process.env.LLM_TOKEN = originalEnv;
+      globalThis.process.env.LLM_TOKEN = originalLlmToken;
     });
 
     test("logs debug messages during processing", async () => {

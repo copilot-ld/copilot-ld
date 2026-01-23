@@ -57,7 +57,7 @@ Proto files in this directory are automatically included in the type generation
 process when running:
 
 ```bash
-npm run codegen:type
+make codegen-type
 ```
 
 This generates TypeScript definitions in `@copilot-ld/libtype` for use
@@ -77,7 +77,7 @@ Tools are registered and made available to LLMs through:
 1. **For existing service mapping**: Add configuration to `config/tools.yml`
 2. **For custom tools**: Create a `.proto` file in this directory and implement
    the corresponding service
-3. Run `npm run codegen` to generate types and service bases
+3. Run `make codegen` to generate types and service bases
 4. Run `scripts/tools.js` to generate and store tool schemas
 5. Configure the tool mapping in `config/tools.yml`
 

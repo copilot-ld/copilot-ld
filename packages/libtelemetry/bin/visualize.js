@@ -12,10 +12,10 @@ Apply filters to narrow down traces before querying.
 
 **Examples:**
 
-    echo "[?name=='ProcessStream']" | npm -s run cli:visualize
-    echo "[]" | npm -s run cli:visualize -- --trace 0f53069dbc62d
-    echo "[?kind==\`2\`]" | npm -s run cli:visualize
-    echo "[?contains(name, 'QueryByPattern')]" | npm -s run cli:visualize -- --resource common.Conversation.abc123`;
+    echo "[?name=='ProcessStream']" | make cli-visualize
+    echo "[]" | make cli-visualize ARGS="--trace 0f53069dbc62d"
+    echo "[?kind==\`2\`]" | make cli-visualize
+    echo "[?contains(name, 'QueryByPattern')]" | make cli-visualize ARGS="--resource common.Conversation.abc123"`;
 
 /**
  * Queries and visualizes traces using JMESPath

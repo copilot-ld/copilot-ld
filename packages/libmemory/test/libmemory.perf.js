@@ -107,7 +107,7 @@ describe("LibMemory Performance Tests", () => {
           mockResourceIndex,
           memoryIndex,
         );
-        const model = "gpt-4o";
+        const model = "openai/gpt-4.1";
         return { memoryWindow, model };
       },
       testFn: ({ memoryWindow, model }) => memoryWindow.build(model),

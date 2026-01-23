@@ -6,13 +6,14 @@ DOM V1).
 
 ## Features
 
-- **`<agent-drawer>`** - Collapsible drawer chat interface for any web page
-- **`<agent-chat>`** - Full-page chat interface for dedicated chat pages
+- **`ChatClient`** - Composed client for auth, API, and state management
+- **`<chat-drawer>`** - Collapsible drawer chat interface for any web page
+- **`<chat-page>`** - Full-page chat interface for dedicated chat pages
+- **`<chat-user>`** - Authentication UI component (login/logout)
 - **Zero Dependencies** - Pure vanilla JavaScript, works anywhere
 - **Shadow DOM Encapsulation** - No style conflicts
-- **Shared State** - Multiple instances sync automatically
+- **Dependency Injection** - Testable, mockable client architecture
 - **LocalStorage Persistence** - Conversations persist across page reloads
-- **CustomEvent Communication** - Components communicate via standard DOM events
 
 ## Quick Start
 
@@ -23,149 +24,191 @@ npm install @copilot-ld/libchat
 ```
 
 ```html
-<script type="module" src="node_modules/@copilot-ld/libchat/drawer.js"></script>
-<agent-drawer data-api="/api" data-name="Support Agent"></agent-drawer>
+<script type="module">
+  import { ChatClient, ChatDrawerElement } from "@copilot-ld/libchat";
+
+  const client = new ChatClient({
+    chatUrl: "/api",
+    auth: {
+      url: "http://localhost:9999",
+      anonKey: "your-anon-key",
+    },
+  });
+
+  document.querySelector("chat-drawer").client = client;
+</script>
+
+<chat-drawer data-name="Support Agent"></chat-drawer>
 ```
 
 ### CDN Usage
 
 ```html
-<script
-  type="module"
-  src="https://cdn.example.com/@copilot-ld/libchat@0.1.0/dist/drawer.js"
-></script>
-<agent-drawer data-api="/api" data-name="Support Agent"></agent-drawer>
+<script type="module">
+  import {
+    ChatClient,
+    ChatDrawerElement,
+  } from "https://cdn.example.com/@copilot-ld/libchat/index.js";
+
+  const client = new ChatClient({ chatUrl: "/api" });
+  document.querySelector("chat-drawer").client = client;
+</script>
+
+<chat-drawer data-name="Support Agent"></chat-drawer>
+```
+
+## ChatClient
+
+The `ChatClient` composes authentication, API communication, and state
+management into a single injectable dependency.
+
+```javascript
+import { ChatClient } from "@copilot-ld/libchat";
+
+// Without authentication
+const client = new ChatClient({ chatUrl: "/api" });
+
+// With authentication
+const client = new ChatClient({
+  chatUrl: "/api",
+  auth: {
+    url: "http://localhost:9999",
+    anonKey: "your-anon-key",
+  },
+});
+
+// Send a message and stream the response
+for await (const chunk of client.chat("Hello")) {
+  console.log(chunk);
+}
+
+// Access individual services
+client.auth; // ChatAuth instance (or null)
+client.api; // ChatApi instance
+client.state; // ChatState instance
+
+// Clear conversation
+client.clear();
 ```
 
 ## Components
 
-### `<agent-drawer>`
+### `<chat-drawer>`
 
-Collapsible drawer that appears in the bottom-right corner. Expands to show chat
-interface.
+Collapsible drawer that appears in the bottom-right corner.
 
 **Attributes:**
 
-- `data-api` - API endpoint URL (default: `${window.location.origin}/web/api`)
 - `data-name` - Agent display name (default: "Agent")
 - `data-placeholder` - Input placeholder text (optional)
 
 **Example:**
 
 ```html
-<agent-drawer
-  data-api="/web/api"
-  data-name="Agent Walter"
-  data-placeholder="Ask me anything..."
->
-</agent-drawer>
-<script type="module" src="/path/to/drawer.js"></script>
+<chat-drawer data-name="Agent Walter"></chat-drawer>
+
+<script type="module">
+  import { ChatClient, ChatDrawerElement } from "@copilot-ld/libchat";
+
+  const client = new ChatClient({ chatUrl: "/api" });
+  document.querySelector("chat-drawer").client = client;
+</script>
 ```
 
 **Events:**
 
-- `agent:message` - Dispatched when messages update (bubbles, composed)
-- `agent:session-clear` - Dispatched when session is cleared (bubbles, composed)
+- `chat:message` - Dispatched when messages update (bubbles, composed)
+- `chat:clear` - Dispatched when session is cleared (bubbles, composed)
 
-### `<agent-chat>`
+### `<chat-page>`
 
 Full-page chat interface suitable for dedicated chat pages.
 
 **Attributes:**
 
-- `data-api` - API endpoint URL (default: `${window.location.origin}/web/api`)
 - `data-name` - Agent display name (default: "Agent")
 - `data-placeholder` - Input placeholder text (optional)
 
 **Example:**
 
 ```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      body {
-        margin: 0;
-        height: 100vh;
-      }
-      agent-chat {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <agent-chat data-name="Agent Walter"></agent-chat>
-    <script type="module" src="/path/to/chat.js"></script>
-  </body>
-</html>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+  }
+  chat-page {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<chat-page data-name="Agent Walter"></chat-page>
+
+<script type="module">
+  import { ChatClient, ChatPageElement } from "@copilot-ld/libchat";
+
+  const client = new ChatClient({ chatUrl: "/api" });
+  document.querySelector("chat-page").client = client;
+</script>
 ```
+
+### `<chat-user>`
+
+Authentication UI component for login/logout flows.
 
 **Events:**
 
-- `agent:message` - Dispatched when messages update (bubbles, composed)
-- `agent:session-clear` - Dispatched when session is cleared (bubbles, composed)
+- `chat:login` - Dispatched when user logs in (bubbles, composed)
+- `chat:logout` - Dispatched when user logs out (bubbles, composed)
+- `chat:error` - Dispatched on authentication error (bubbles, composed)
+
+**Example:**
+
+```html
+<chat-user></chat-user>
+
+<script type="module">
+  import { ChatClient, ChatUserElement } from "@copilot-ld/libchat";
+
+  const client = new ChatClient({
+    chatUrl: "/api",
+    auth: { url: "http://localhost:9999" },
+  });
+  document.querySelector("chat-user").client = client;
+
+  document.querySelector("chat-user").addEventListener("chat:login", (e) => {
+    console.log("Logged in:", e.detail.email);
+  });
+</script>
+```
 
 ## Styling & Theming
 
-Components use CSS custom properties for theming. Override in your own CSS:
+Components use CSS custom properties for theming. Override in your CSS:
 
 ```css
-agent-drawer {
+chat-drawer {
   /* Colors */
-  --agent-primary-color: #ff6600;
-  --agent-background: #f5f5f5;
-  --agent-text-color: #333;
+  --chat-color-accent: #ff6600;
+  --chat-color-bg: #f5f5f5;
+  --chat-color-text: #333;
 
   /* Spacing */
-  --agent-padding: 1.5rem;
-  --agent-border-radius: 8px;
+  --chat-padding: 1.5rem;
+  --chat-radius: 8px;
 
   /* Z-index */
-  --agent-z-index: 9999;
+  --chat-z-index: 9999;
 }
 ```
-
-## Architecture Decision: CSS in JavaScript
-
-CSS styles are defined as template strings in `.js` files (e.g., `styles.js`,
-`drawer-styles.js`) rather than separate `.css` files. This is an intentional
-design decision to support:
-
-1. **Zero-Build Development** - Components load directly from source without
-   compilation
-2. **Shadow DOM Injection** - Styles are programmatically injected into
-   component shadow roots
-3. **Self-Contained Components** - No external CSS file loading or FOUC
-4. **Simple Development Workflow** - UI service serves components directly from
-   package source
-
-**Development (source):**
-
-```html
-<!-- Styles are inlined in JS modules -->
-<script type="module" src="/ui/libchat/drawer.js"></script>
-```
-
-**Production (bundled):**
-
-```html
-<!-- Build process creates minified bundles with inlined CSS -->
-<script
-  type="module"
-  src="https://cdn.example.com/@copilot-ld/libchat@0.1.0/dist/drawer.js"
-></script>
-```
-
-This tradeoff prioritizes developer experience and deployment simplicity over
-IDE features like CSS syntax highlighting in separate files.
 
 ## API Contract
 
 Components expect a streaming chat API endpoint:
 
-**POST /web/api/chat**
+**POST /api/chat**
 
 Request:
 
@@ -192,16 +235,48 @@ Error response:
 { "error": "Rate limit exceeded", "details": "..." }
 ```
 
-## State Management
+## Framework Integration
 
-Components use three-tier state management:
+### React
 
-1. **Module-Level Shared State** - In-memory Map shared across all instances
-2. **LocalStorage Persistence** - Conversations persist across page reloads
-3. **CustomEvent Communication** - Components sync via DOM events
+```jsx
+import { useEffect, useRef } from "react";
+import { ChatClient, ChatDrawerElement } from "@copilot-ld/libchat";
 
-Multiple drawer/chat instances on the same page automatically share conversation
-state.
+const client = new ChatClient({ chatUrl: "/api" });
+
+function App() {
+  const drawerRef = useRef(null);
+
+  useEffect(() => {
+    if (drawerRef.current) {
+      drawerRef.current.client = client;
+    }
+  }, []);
+
+  return <chat-drawer ref={drawerRef} data-name="Agent" />;
+}
+```
+
+### Vue
+
+```vue
+<template>
+  <chat-drawer ref="drawer" data-name="Agent"></chat-drawer>
+</template>
+
+<script setup>
+import { ref, onMounted } from "vue";
+import { ChatClient, ChatDrawerElement } from "@copilot-ld/libchat";
+
+const drawer = ref(null);
+const client = new ChatClient({ chatUrl: "/api" });
+
+onMounted(() => {
+  drawer.value.client = client;
+});
+</script>
+```
 
 ## Browser Requirements
 
@@ -210,67 +285,7 @@ state.
 - Shadow DOM V1
 - Fetch API with ReadableStream
 
-Modern browsers only (Chrome 67+, Firefox 63+, Safari 12+, Edge 79+). No
-polyfills provided.
-
-## Framework Integration
-
-### Vanilla JavaScript
-
-```html
-<agent-drawer data-name="Agent"></agent-drawer>
-<script type="module" src="./drawer.js"></script>
-```
-
-### React
-
-```jsx
-import "@copilot-ld/libchat/drawer.js";
-
-function App() {
-  return <agent-drawer data-name="Agent" />;
-}
-```
-
-### Vue
-
-```vue
-<template>
-  <agent-drawer data-name="Agent"></agent-drawer>
-</template>
-
-<script>
-import "@copilot-ld/libchat/drawer.js";
-export default { name: "App" };
-</script>
-```
-
-### Angular
-
-```typescript
-import "@copilot-ld/libchat/drawer.js";
-
-@Component({
-  selector: "app-root",
-  template: '<agent-drawer data-name="Agent"></agent-drawer>',
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-})
-export class AppComponent {}
-```
-
-## Development
-
-Build production bundles:
-
-```bash
-npm run build
-```
-
-This creates minified bundles in `dist/`:
-
-- `drawer.js` - Drawer component with inlined CSS
-- `chat.js` - Chat component with inlined CSS
-- `bundle.js` - All components
+Modern browsers only (Chrome 67+, Firefox 63+, Safari 12+, Edge 79+).
 
 ## License
 

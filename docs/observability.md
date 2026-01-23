@@ -32,7 +32,7 @@ Each span includes trace ID, timestamps, attributes, events, and status.
 
 ```bash
 # Launch visualization REPL
-npm run cli:visualize
+make cli-visualize
 
 # Filter with JMESPath (kind: 2=SERVER, 3=CLIENT)
 > [?kind==`2`]                        # SERVER spans

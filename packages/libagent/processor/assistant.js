@@ -14,7 +14,7 @@ export class AssistantProcessor {
    * Creates a new AssistantProcessor instance
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - ResourceIndex instance
    * @param {import("@copilot-ld/libstorage").StorageInterface} configStorage - Storage for configuration files
-   * @param {import("@copilot-ld/libutil").Logger} logger - Logger instance for debug output
+   * @param {import("@copilot-ld/libtelemetry").Logger} logger - Logger instance for debug output
    */
   constructor(resourceIndex, configStorage, logger) {
     if (!resourceIndex) throw new Error("resourceIndex is required");

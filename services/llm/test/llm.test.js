@@ -44,7 +44,10 @@ describe("llm service", () => {
     let mockCopilot;
 
     beforeEach(() => {
-      mockConfig = createMockConfig("llm", { model: "gpt-4o" });
+      mockConfig = createMockConfig("llm", {
+        model: "gpt-4o",
+        llmBaseUrl: () => "https://test.api.com",
+      });
 
       mockMemoryClient = createMockMemoryClient();
 

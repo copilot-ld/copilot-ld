@@ -1,4 +1,4 @@
-import { createLlmApi, DEFAULT_BASE_URL } from "@copilot-ld/libllm";
+import { createLlmApi } from "@copilot-ld/libllm";
 import { memory } from "@copilot-ld/libtype";
 import { services } from "@copilot-ld/librpc";
 
@@ -29,7 +29,7 @@ export class LlmService extends LlmBase {
       throw new Error("resource_id is required for CreateCompletions");
 
     const model = req.model || this.config.model;
-    const baseUrl = this.config.llm_base_url || DEFAULT_BASE_URL;
+    const baseUrl = this.config.llmBaseUrl();
     const llm = this.#llmFactory(req.llm_token, model, baseUrl);
 
     const windowRequest = memory.WindowRequest.fromObject({
@@ -47,7 +47,7 @@ export class LlmService extends LlmBase {
       throw new Error("input is required for CreateEmbeddings");
 
     const model = req.model || this.config.model;
-    const baseUrl = this.config.llm_base_url || DEFAULT_BASE_URL;
+    const baseUrl = this.config.llmBaseUrl();
     const llm = this.#llmFactory(req.llm_token, model, baseUrl);
 
     return await llm.createEmbeddings(req.input);

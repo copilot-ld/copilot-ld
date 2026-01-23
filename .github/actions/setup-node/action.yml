@@ -36,5 +36,5 @@ runs:
     - name: Generate code
       shell: bash
       run: |
-        npm run data:init
-        npm run codegen
+        make data-init
+        make codegen

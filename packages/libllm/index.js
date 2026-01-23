@@ -8,9 +8,23 @@ import { ProxyAgent } from "undici";
 export { getBudget } from "./models.js";
 
 /**
- * Default LLM API base URL (GitHub Copilot API)
+ * Default base URL for GitHub Models API
+ * @type {string}
  */
-export const DEFAULT_BASE_URL = "https://api.githubcopilot.com";
+export const DEFAULT_BASE_URL = "https://models.github.ai/inference";
+
+/**
+ * Normalizes the base URL to include /inference for GitHub Models
+ * @param {string} baseUrl - Base URL for the LLM API
+ * @returns {string} Normalized base URL
+ */
+function normalizeBaseUrl(baseUrl) {
+  // For GitHub Models, ensure /inference is appended if not present
+  if (baseUrl.includes("models.github.ai") && !baseUrl.includes("/inference")) {
+    return `${baseUrl.replace(/\/$/, "")}/inference`;
+  }
+  return baseUrl;
+}
 
 /**
  * LLM API client with direct HTTP calls to OpenAI-compatible endpoints
@@ -48,11 +62,12 @@ export class LlmApi {
       throw new Error("Invalid tokenizer function");
 
     this.#model = model;
-    this.#baseURL = baseUrl;
+    this.#baseURL = normalizeBaseUrl(baseUrl);
     this.#headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      Accept: "application/json",
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
     };
     this.#fetch = fetchFn;
     this.#tokenizer = tokenizerFn();
@@ -116,7 +131,7 @@ export class LlmApi {
         headers: this.#headers,
         body: JSON.stringify({
           // TODO: Make this configurable
-          model: "text-embedding-3-small",
+          model: "openai/text-embedding-3-small",
           dimensions: 256,
           input,
         }),
@@ -134,14 +149,16 @@ export class LlmApi {
    * @returns {Promise<object[]>} Array of available models
    */
   async listModels() {
-    const response = await this.#fetch(`${this.#baseURL}/models`, {
+    // GitHub Models uses /catalog/models endpoint (not under /inference)
+    const catalogUrl = this.#baseURL.replace("/inference", "/catalog/models");
+    const response = await this.#fetch(catalogUrl, {
       method: "GET",
       headers: this.#headers,
     });
 
     await this.#throwIfNotOk(response);
     const json = await response.json();
-    return json.data;
+    return json;
   }
 
   /**
@@ -248,19 +265,24 @@ export function createProxyAwareFetch(process = global.process) {
 /**
  * Factory function to create an LlmApi instance with default dependencies
  * @param {string} token - LLM API token
- * @param {string} [model] - Default model to use
- * @param {string} [baseUrl] - Base URL for the LLM API
+ * @param {string} model - Model to use
+ * @param {string} baseUrl - Base URL for the LLM API (required, e.g. https://models.github.ai/orgs/{org})
  * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
  * @returns {LlmApi} Configured LlmApi instance
  */
 export function createLlmApi(
   token,
-  model = "gpt-4o",
-  baseUrl = DEFAULT_BASE_URL,
+  model,
+  baseUrl,
   fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
 ) {
+  if (!baseUrl) {
+    throw new Error(
+      "baseUrl is required. Set LLM_BASE_URL to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
+    );
+  }
   const retry = createRetry();
   return new LlmApi(token, model, baseUrl, retry, fetchFn, tokenizerFn);
 }

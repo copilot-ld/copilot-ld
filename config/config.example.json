@@ -42,13 +42,13 @@
     ]
   },
   "evals": {
-    "models": ["gpt-4o"],
-    "judge_model": "gpt-5"
+    "models": ["openai/gpt-4.1"],
+    "judge_model": "openai/gpt-4.1"
   },
   "service": {
     "agent": {
       "assistant": "knowledge_graph_agent",
-      "model": "gpt-4o"
+      "model": "openai/gpt-4.1"
     },
     "llm": {},
     "tool": {

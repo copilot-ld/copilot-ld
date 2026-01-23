@@ -1,5 +1,6 @@
 import { DataFactory } from "n3";
-import { generateHash } from "@copilot-ld/libutil";
+
+import { generateHash } from "@copilot-ld/libsecret";
 
 /**
  * Skolemizer for converting blank nodes to URIs using content-based hashing

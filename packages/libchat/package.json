@@ -8,6 +8,7 @@
   "sideEffects": false,
   "exports": {
     ".": "./index.js",
+    "./auth.js": "./auth.js",
     "./drawer.js": "./drawer.js",
     "./chat.js": "./chat.js"
   },

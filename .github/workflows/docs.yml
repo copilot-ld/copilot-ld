@@ -30,7 +30,7 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Build documentation
-        run: npm run docs:build
+        run: make docs-build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

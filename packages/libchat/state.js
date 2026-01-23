@@ -1,90 +1,189 @@
 /**
- * Shared state management for chat components.
- * Provides conversation state persistence and synchronization across component instances.
+ * State management for chat components.
+ * Provides conversation state persistence and synchronization.
+ * @module libchat/state
+ */
+
+const RESOURCE_KEY = "chat_resource_id";
+const MESSAGES_KEY = "chat_messages";
+
+/**
+ * @typedef {object} Message
+ * @property {string} role - Message role (user, assistant, tool, error)
+ * @property {string} content - Message content
  */
 
 /**
- * In-memory conversation store shared across all component instances.
- * @type {Map<string, {messages: Array, metadata: object}>}
+ * State management for chat conversations.
+ * @example
+ * const state = new ChatState(localStorage);
+ * state.resourceId = "abc-123";
+ * state.addMessage({ role: "user", content: "Hello" });
  */
-const conversations = new Map();
+export class ChatState {
+  #storage;
+  #resourceId;
+  #messages;
+  #listeners;
 
-/**
- * Get or create a conversation state.
- * @param {string} id - Conversation resource ID
- * @returns {{messages: Array, metadata: object}} Conversation state object
- */
-export function getConversation(id) {
-  if (!id) {
-    return { messages: [], metadata: {} };
+  /**
+   * Creates a ChatState instance.
+   * @param {Storage} storage - Storage implementation (localStorage, sessionStorage, etc.)
+   */
+  constructor(storage) {
+    if (!storage) throw new Error("storage is required");
+    this.#storage = storage;
+    this.#resourceId = null;
+    this.#messages = [];
+    this.#listeners = [];
+    this.#load();
   }
-  if (!conversations.has(id)) {
-    conversations.set(id, { messages: [], metadata: {} });
+
+  /**
+   * Gets the current resource ID.
+   * @returns {string|null} Resource ID or null
+   */
+  get resourceId() {
+    return this.#resourceId;
   }
-  return conversations.get(id);
-}
 
-/**
- * Update a conversation with new messages.
- * @param {string} id - Conversation resource ID
- * @param {Array} messages - Updated messages array
- */
-export function updateConversation(id, messages) {
-  if (!id) return;
-  const conv = getConversation(id);
-  conv.messages = messages;
-  conversations.set(id, conv);
-}
-
-/**
- * Clear a conversation.
- * @param {string} id - Conversation resource ID
- */
-export function clearConversation(id) {
-  if (!id) return;
-  conversations.delete(id);
-}
-
-/**
- * Load conversation from localStorage.
- * @returns {{resourceId: string|null, messages: Array}} Conversation data
- */
-export function loadFromStorage() {
-  const resourceId = localStorage.getItem("agent_resource_id");
-  const messagesJson = localStorage.getItem("agent_messages");
-  const messages = resourceId && messagesJson ? JSON.parse(messagesJson) : [];
-  return { resourceId, messages };
-}
-
-/**
- * Save conversation to localStorage.
- * @param {string|null} resourceId - Conversation resource ID
- * @param {Array} messages - Messages to save
- */
-export function saveToStorage(resourceId, messages) {
-  if (resourceId) {
-    localStorage.setItem("agent_resource_id", resourceId);
-    localStorage.setItem("agent_messages", JSON.stringify(messages));
-  } else {
-    localStorage.removeItem("agent_resource_id");
-    localStorage.removeItem("agent_messages");
+  /**
+   * Sets the resource ID and persists to storage.
+   * @param {string|null} id - Resource ID
+   */
+  set resourceId(id) {
+    this.#resourceId = id;
+    this.#persist();
+    this.#notify();
   }
-}
 
-/**
- * Load UI state from localStorage.
- * @param {string} key - State key (e.g., 'collapsed', 'expanded')
- * @returns {boolean} UI state value
- */
-export function loadUIState(key) {
-  return localStorage.getItem(`agent_${key}`) === "true";
-}
+  /**
+   * Gets a copy of the current messages.
+   * @returns {Array<Message>} Messages array
+   */
+  get messages() {
+    return [...this.#messages];
+  }
 
-/**
- * Save UI state to localStorage.
- * @param {string} key - State key (e.g., 'collapsed', 'expanded')
- * @param {boolean} value - State value
- */
-export function saveUIState(key, value) {
-  localStorage.setItem(`agent_${key}`, value.toString());
+  /**
+   * Adds a message to the conversation.
+   * @param {Message} message - Message to add
+   */
+  addMessage(message) {
+    this.#messages.push(message);
+    this.#persist();
+    this.#notify();
+  }
+
+  /**
+   * Updates the last message content.
+   * @param {string} content - New content to append
+   */
+  appendToLastMessage(content) {
+    const last = this.#messages[this.#messages.length - 1];
+    if (last) {
+      last.content += content;
+      this.#persist();
+      this.#notify();
+    }
+  }
+
+  /**
+   * Replaces all messages.
+   * @param {Array<Message>} messages - New messages array
+   */
+  setMessages(messages) {
+    this.#messages = [...messages];
+    this.#persist();
+    this.#notify();
+  }
+
+  /**
+   * Clears the conversation state.
+   */
+  clear() {
+    this.#resourceId = null;
+    this.#messages = [];
+    this.#persist();
+    this.#notify();
+  }
+
+  /**
+   * Registers a state change listener.
+   * @param {() => void} callback - Listener callback
+   * @returns {() => void} Unsubscribe function
+   */
+  onStateChange(callback) {
+    this.#listeners.push(callback);
+    return () => {
+      const index = this.#listeners.indexOf(callback);
+      if (index > -1) {
+        this.#listeners.splice(index, 1);
+      }
+    };
+  }
+
+  /** Loads state from storage. */
+  #load() {
+    const resourceId = this.#storageGet(RESOURCE_KEY);
+    const messagesJson = this.#storageGet(MESSAGES_KEY);
+
+    this.#resourceId = resourceId;
+    this.#messages = messagesJson ? JSON.parse(messagesJson) : [];
+  }
+
+  /** Persists state to storage. */
+  #persist() {
+    if (this.#resourceId) {
+      this.#storageSet(RESOURCE_KEY, this.#resourceId);
+      this.#storageSet(MESSAGES_KEY, JSON.stringify(this.#messages));
+    } else {
+      this.#storageRemove(RESOURCE_KEY);
+      this.#storageRemove(MESSAGES_KEY);
+    }
+  }
+
+  /** Notifies all listeners of state change. */
+  #notify() {
+    for (const callback of this.#listeners) {
+      callback();
+    }
+  }
+
+  /**
+   * Gets item from storage (supports both localStorage and Map).
+   * @param {string} key - Storage key
+   * @returns {string|null} Stored value or null
+   */
+  #storageGet(key) {
+    if (typeof this.#storage.getItem === "function") {
+      return this.#storage.getItem(key);
+    }
+    return this.#storage.get(key) ?? null;
+  }
+
+  /**
+   * Sets item in storage (supports both localStorage and Map).
+   * @param {string} key - Storage key
+   * @param {string} value - Value to store
+   */
+  #storageSet(key, value) {
+    if (typeof this.#storage.setItem === "function") {
+      this.#storage.setItem(key, value);
+    } else {
+      this.#storage.set(key, value);
+    }
+  }
+
+  /**
+   * Removes item from storage (supports both localStorage and Map).
+   * @param {string} key - Storage key
+   */
+  #storageRemove(key) {
+    if (typeof this.#storage.removeItem === "function") {
+      this.#storage.removeItem(key);
+    } else {
+      this.#storage.delete(key);
+    }
+  }
 }

@@ -1,32 +1,36 @@
-#
+# ==========================================
 # Volumes
 # Note: This file requires Docker BuildKit. Set DOCKER_BUILDKIT=1 or COMPOSE_DOCKER_CLI_BUILD=1
-#
+# ==========================================
 
 volumes:
   minio_data:
+    driver: local
+  db_data:
+    driver: local
+  supabase_storage_data:
     driver: local
 
 secrets:
   github_token:
     environment: GITHUB_TOKEN
 
-#
+# ==========================================
 # Networks
-#
+# ==========================================
 
 networks:
   internal:
     driver: bridge
 
-#
+# ==========================================
 # Services
-#
+# ==========================================
 
 services:
-  #
+  # ==========================================
   # Infrastructure Services
-  #
+  # ==========================================
 
   alb:
     build:
@@ -60,24 +64,30 @@ services:
         aliases:
           - gateway.copilot-ld.local
 
-  storage:
-    image: minio/minio:latest
-    container_name: storage.copilot-ld
-    env_file: .env
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+  db:
+    build:
+      context: ./infrastructure/docker/db
+      dockerfile: Dockerfile
+    image: copilot-ld/db:latest
+    container_name: db.copilot-ld
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: postgres
     volumes:
-      - minio_data:/data
+      - db_data:/var/lib/postgresql/data
     networks:
       internal:
         aliases:
-          - storage.copilot-ld.local
-    command: server /data --console-address ":9001"
+          - db.copilot-ld.local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  #
+  # ==========================================
   # Extension Services
-  #
+  # ==========================================
 
   web:
     build:
@@ -90,17 +100,38 @@ services:
     image: copilot-ld/web:latest
     container_name: web.copilot-ld
     env_file: .env
+    environment:
+      - EXTENSION_WEB_AUTH_ENABLED=true
     networks:
       internal:
         aliases:
           - web.copilot-ld.local
     depends_on:
       - agent
-      - storage
 
-  #
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: extensions/ui
+      secrets:
+        - github_token
+    image: copilot-ld/ui:latest
+    container_name: ui.copilot-ld
+    env_file: .env
+    environment:
+      - EXTENSION_WEB_AUTH_ENABLED=true
+    networks:
+      internal:
+        aliases:
+          - web.copilot-ld.local
+    depends_on:
+      - agent
+
+  # ==========================================
   # Core Services
-  #
+  # ==========================================
 
   agent:
     build:
@@ -123,7 +154,6 @@ services:
       - vector
       - graph
       - tool
-      - storage
 
   memory:
     build:
@@ -140,8 +170,6 @@ services:
       internal:
         aliases:
           - memory.copilot-ld.local
-    depends_on:
-      - storage
 
   llm:
     build:
@@ -158,8 +186,6 @@ services:
       internal:
         aliases:
           - llm.copilot-ld.local
-    depends_on:
-      - storage
 
   vector:
     build:
@@ -176,8 +202,6 @@ services:
       internal:
         aliases:
           - vector.copilot-ld.local
-    depends_on:
-      - storage
 
   graph:
     build:
@@ -194,8 +218,6 @@ services:
       internal:
         aliases:
           - graph.copilot-ld.local
-    depends_on:
-      - storage
 
   tool:
     build:
@@ -212,8 +234,6 @@ services:
       internal:
         aliases:
           - tool.copilot-ld.local
-    depends_on:
-      - storage
 
   trace:
     build:
@@ -230,11 +250,133 @@ services:
       internal:
         aliases:
           - trace.copilot-ld.local
+
+  # ==========================================
+  # Storage Services
+  # ==========================================
+
+  storage-minio:
+    profiles:
+      - minio
+    image: minio/minio:latest
+    container_name: storage-minio.copilot-ld
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      internal:
+        aliases:
+          - storage-minio.copilot-ld.local
+    command: server /data --console-address ":9001"
+
+  storage-supabase:
+    profiles:
+      - supabase
+    image: supabase/storage-api:v1.11.13
+    container_name: storage-supabase.copilot-ld
+    env_file:
+      - .env
+      - .env.storage.supabase
+    environment:
+      SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.copilot-ld.local:5432/postgres?search_path=storage
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: false
+      IS_MULTITENANT: false
+      S3_PROTOCOL_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - "9000:5000"
+    volumes:
+      - supabase_storage_data:/var/lib/storage
+    networks:
+      internal:
+        aliases:
+          - storage-supabase.copilot-ld.local
     depends_on:
-      - storage
-  #
+      db:
+        condition: service_healthy
+
+  # ==========================================
+  # Authentication Services
+  # ==========================================
+
+  auth-gotrue:
+    profiles:
+      - gotrue
+    image: supabase/gotrue:v2.164.0
+    container_name: auth-gotrue.copilot-ld
+    environment:
+      API_EXTERNAL_URL: ${JWT_AUTH_URL:-http://localhost:9999}
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_SITE_URL: ${EXTENSION_UI_URL:-http://localhost}
+      GOTRUE_DISABLE_SIGNUP: false
+
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_AUD: authenticated
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.copilot-ld.local:5432/postgres?search_path=auth
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_MAILER_AUTOCONFIRM: true
+    ports:
+      - "9999:9999"
+    networks:
+      internal:
+        aliases:
+          - auth-gotrue.copilot-ld.local
+    depends_on:
+      db:
+        condition: service_healthy
+
+  auth-supabase:
+    profiles:
+      - supabase
+    image: supabase/gotrue:v2.164.0
+    container_name: auth-supabase.copilot-ld
+    environment:
+      API_EXTERNAL_URL: ${JWT_AUTH_URL:-http://localhost:9999}
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_SITE_URL: ${EXTENSION_UI_URL:-http://localhost}
+      GOTRUE_DISABLE_SIGNUP: false
+
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_AUD: authenticated
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.copilot-ld.local:5432/postgres?search_path=auth
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_MAILER_AUTOCONFIRM: true
+    ports:
+      - "9999:9999"
+    networks:
+      internal:
+        aliases:
+          - auth-supabase.copilot-ld.local
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ==========================================
   # Example Tool Services
-  #
+  # ==========================================
 
   # hash:
   #   build:
@@ -251,5 +393,3 @@ services:
   #     internal:
   #       aliases:
   #         - hash.copilot-ld.local
-  #   depends_on:
-  #     - storage

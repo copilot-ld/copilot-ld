@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-01-16
+
+- Added `supabase-env.js` to generate all required Supabase environment
+  variables including JWT secrets, anon key, and service role key
+- Added `supabase-demo-user.js` to create demo users via Supabase Auth admin API
+
 ## 2026-01-15
 
 - **BREAKING**: Renamed `token.js` to `gh-token.js` (now writes `GITHUB_TOKEN`

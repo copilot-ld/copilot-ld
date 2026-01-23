@@ -3,13 +3,13 @@ import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createClient } from "@copilot-ld/librpc";
 import { memory } from "@copilot-ld/libtype";
 
-const usage = `Usage: npm -s run cli:window -- <resource_id>
+const usage = `Usage: make cli-window ARGS="<resource_id>"
 
 Fetches a memory window for the given resource ID and outputs the JSON to stdout.
 
 Example:
-  npm -s run cli:window -- common.Conversation.abc123
-  npm -s run cli:window -- common.Conversation.abc123 | npm -s run cli:completion`;
+  make cli-window ARGS="common.Conversation.abc123"
+  make cli-window ARGS="common.Conversation.abc123" | make cli-completion`;
 
 const config = await createServiceConfig("agent");
 const memoryClient = await createClient("memory");

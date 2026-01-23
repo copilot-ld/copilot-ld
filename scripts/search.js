@@ -13,9 +13,9 @@ Search either content or descriptor representations with configurable thresholds
 
 **Examples:**
 
-    echo "pharmaceutical research" | npm -s run cli:search
-    echo "regulatory compliance" | npm -s run cli:search -- --threshold 0.7 --limit 10
-    echo "clinical trials" | npm -s run cli:search -- --representation descriptor --threshold 0.5`;
+    echo "pharmaceutical research" | make cli-search
+    echo "regulatory compliance" | make cli-search ARGS="--threshold 0.7 --limit 10"
+    echo "clinical trials" | make cli-search ARGS="--representation descriptor --threshold 0.5"`;
 
 // Configuration
 const config = await createScriptConfig("search");

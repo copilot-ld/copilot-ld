@@ -98,6 +98,7 @@ export class LongrunProcess extends EventEmitter {
       stdio: ["ignore", "pipe", "pipe"],
       detached: true,
       cwd: this.#cwd,
+      env: process.env,
     });
 
     this.#process = child;

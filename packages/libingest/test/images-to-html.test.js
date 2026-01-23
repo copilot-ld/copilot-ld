@@ -47,23 +47,31 @@ function createMockLogger() {
 describe("ImagesToHtml", () => {
   let mockStorage;
   let mockLogger;
-  let originalEnv;
+  let originalLlmToken;
+  let originalLlmBaseUrl;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
-    // Save original LLM_TOKEN
-    originalEnv = globalThis.process.env.LLM_TOKEN;
-    // Set a test token to avoid errors in createLlm
+    // Save original environment variables
+    originalLlmToken = globalThis.process.env.LLM_TOKEN;
+    originalLlmBaseUrl = globalThis.process.env.LLM_BASE_URL;
+    // Set test values to avoid errors in createLlm
     globalThis.process.env.LLM_TOKEN = "test_token_123";
+    globalThis.process.env.LLM_BASE_URL = "https://models.github.ai/inference";
   });
 
   afterEach(() => {
-    // Restore original LLM_TOKEN
-    if (originalEnv === undefined) {
+    // Restore original environment variables
+    if (originalLlmToken === undefined) {
       delete globalThis.process.env.LLM_TOKEN;
     } else {
-      globalThis.process.env.LLM_TOKEN = originalEnv;
+      globalThis.process.env.LLM_TOKEN = originalLlmToken;
+    }
+    if (originalLlmBaseUrl === undefined) {
+      delete globalThis.process.env.LLM_BASE_URL;
+    } else {
+      globalThis.process.env.LLM_BASE_URL = originalLlmBaseUrl;
     }
   });
 

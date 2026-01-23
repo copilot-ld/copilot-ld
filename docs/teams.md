@@ -234,7 +234,7 @@ Start the Teams extension for local testing with ngrok:
 # Start the service
 cd extensions/teams
 npm install
-npm run dev
+make rc-start
 
 # In separate terminal, expose publicly
 npm run ngrok
@@ -262,10 +262,10 @@ The Teams extension uses the unified Dockerfile build process:
 
 ```bash
 # Build Teams extension image
-npm run docker:build
+make docker-build
 
-# Start with Docker Compose
-docker compose up -d teams
+# Start Teams service with Docker Compose
+make docker-up-teams
 ```
 
 Configuration in `docker-compose.yml`:

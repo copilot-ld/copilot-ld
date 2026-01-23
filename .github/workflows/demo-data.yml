@@ -33,13 +33,13 @@ jobs:
           cp ./config/assistants{.example,}.yml
           cp ./config/tools{.example,}.yml
 
-          npm run data:init
+          make data-init
 
           cp -r ./examples/knowledge data/
           cp -r ./examples/tools/* tools/
 
-          npm run codegen
-          npm run process
+          make codegen
+          make process
 
           echo "files<<EOF" >> $GITHUB_OUTPUT
           npx --workspace=@copilot-ld/libutil upload --stdout >> $GITHUB_OUTPUT

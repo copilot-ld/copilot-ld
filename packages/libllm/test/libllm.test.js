@@ -153,7 +153,7 @@ describe("libllm", () => {
       assert.strictEqual(options.method, "POST");
 
       const body = JSON.parse(options.body);
-      assert.strictEqual(body.model, "text-embedding-3-small");
+      assert.strictEqual(body.model, "openai/text-embedding-3-small");
       assert.strictEqual(body.dimensions, 256);
       assert.deepStrictEqual(body.input, texts);
 
@@ -238,12 +238,16 @@ describe("libllm", () => {
 
       assert.strictEqual(mockFetch.mock.callCount(), 1);
       const [url, options] = mockFetch.mock.calls[0].arguments;
-      assert.strictEqual(url, `${DEFAULT_BASE_URL}/models`);
+      // listModels uses /catalog/models endpoint (not under /inference)
+      assert.strictEqual(
+        url,
+        DEFAULT_BASE_URL.replace("/inference", "/catalog/models"),
+      );
       assert.strictEqual(options.method, "GET");
 
-      assert.strictEqual(result.length, 2);
-      assert.strictEqual(result[0].id, "gpt-4");
-      assert.strictEqual(result[1].id, "gpt-3.5-turbo");
+      assert.strictEqual(result.data.length, 2);
+      assert.strictEqual(result.data[0].id, "gpt-4");
+      assert.strictEqual(result.data[1].id, "gpt-3.5-turbo");
     });
 
     test("listModels throws error on HTTP error", async () => {
@@ -307,10 +311,11 @@ describe("libllm", () => {
   describe("Proxy Support", () => {
     test("createLlmApi creates LlmApi instance with default fetch", async () => {
       // Import the function dynamically to test it
-      const { createLlmApi, LlmApi } = await import("../index.js");
+      const { createLlmApi, LlmApi, DEFAULT_BASE_URL } =
+        await import("../index.js");
 
       // Create an LLM instance
-      const llm = createLlmApi("test-token", "gpt-4");
+      const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
 
       // Verify that the LLM was created successfully
       assert.ok(llm instanceof LlmApi);
@@ -323,10 +328,11 @@ describe("libllm", () => {
 
       try {
         // Import the function dynamically to test it
-        const { createLlmApi, LlmApi } = await import("../index.js");
+        const { createLlmApi, LlmApi, DEFAULT_BASE_URL } =
+          await import("../index.js");
 
         // Create an LLM instance with proxy environment
-        const llm = createLlmApi("test-token", "gpt-4");
+        const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
 
         // Verify that the LLM was created successfully
         assert.ok(llm instanceof LlmApi);

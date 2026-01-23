@@ -3,9 +3,9 @@ import { test, describe, beforeEach, mock } from "node:test";
 
 import { createSilentLogger } from "@copilot-ld/libharness";
 
-import { Downloader } from "../downloader.js";
+import { BundleDownloader } from "../downloader.js";
 
-describe("Downloader", () => {
+describe("BundleDownloader", () => {
   let mockStorageFactory;
   let mockExtractor;
   let mockLogger;
@@ -46,7 +46,7 @@ describe("Downloader", () => {
   test("constructor validates required dependencies", () => {
     assert.throws(
       () =>
-        new Downloader(
+        new BundleDownloader(
           null,
           mockFinder,
           mockLogger,
@@ -58,7 +58,7 @@ describe("Downloader", () => {
 
     assert.throws(
       () =>
-        new Downloader(
+        new BundleDownloader(
           mockStorageFactory,
           null,
           mockLogger,
@@ -70,7 +70,7 @@ describe("Downloader", () => {
 
     assert.throws(
       () =>
-        new Downloader(
+        new BundleDownloader(
           mockStorageFactory,
           mockFinder,
           null,
@@ -82,7 +82,7 @@ describe("Downloader", () => {
 
     assert.throws(
       () =>
-        new Downloader(
+        new BundleDownloader(
           mockStorageFactory,
           mockFinder,
           mockLogger,
@@ -94,7 +94,7 @@ describe("Downloader", () => {
 
     assert.throws(
       () =>
-        new Downloader(
+        new BundleDownloader(
           mockStorageFactory,
           mockFinder,
           mockLogger,
@@ -117,7 +117,7 @@ describe("Downloader", () => {
       operations.push({ op: "extract", sourcePath, targetPath });
     };
 
-    const download = new Downloader(
+    const download = new BundleDownloader(
       mockStorageFactory,
       mockFinder,
       mockLogger,
@@ -145,7 +145,7 @@ describe("Downloader", () => {
   test("throws error when bundle does not exist", async () => {
     mockRemoteStorage.exists = async () => false;
 
-    const download = new Downloader(
+    const download = new BundleDownloader(
       mockStorageFactory,
       mockFinder,
       mockLogger,
@@ -165,7 +165,7 @@ describe("Downloader", () => {
       ensureBucketCalls.push("generated");
     };
 
-    const download = new Downloader(
+    const download = new BundleDownloader(
       mockStorageFactory,
       mockFinder,
       mockLogger,
@@ -189,7 +189,7 @@ describe("Downloader", () => {
     mockProcess.env.STORAGE_TYPE = "local";
     mockRemoteStorage.exists = mock.fn(async () => true);
 
-    const download = new Downloader(
+    const download = new BundleDownloader(
       mockStorageFactory,
       mockFinder,
       mockLogger,
@@ -207,7 +207,7 @@ describe("Downloader", () => {
     mockProcess.env.STORAGE_TYPE = "s3";
     mockRemoteStorage.exists = mock.fn(async () => true);
 
-    const download = new Downloader(
+    const download = new BundleDownloader(
       mockStorageFactory,
       mockFinder,
       mockLogger,

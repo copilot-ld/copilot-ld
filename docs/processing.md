@@ -27,7 +27,7 @@ Process assistants, knowledge base content, tools, and vectors with a single
 command. The system handles all stages automatically:
 
 ```bash
-npm run process
+make process
 ```
 
 ## 2. Knowledge Base Structure
@@ -99,7 +99,7 @@ cp -r examples/knowledge data/
 
 The resource processor extracts structured content from HTML files and creates
 searchable resources stored in the `data/resources/` directory. This happens
-automatically when you run `npm run process`.
+automatically when you run `make process`.
 
 ### Custom CSS Selectors
 
@@ -150,7 +150,7 @@ and select appropriate assistants based on context.
 
 Tool processing generates OpenAI-compatible JSON schemas from Protocol Buffer
 definitions, enabling dynamic tool registration and validation. This happens
-automatically when you run `npm run process`.
+automatically when you run `make process`.
 
 ### Protocol Buffer Tool Definitions
 
@@ -247,7 +247,7 @@ generated `sha256_hash` tool resource:
 
 Vector processing creates embeddings of resource content for efficient
 similarity search and retrieval-augmented generation. This happens automatically
-when you run `npm run process`.
+when you run `make process`.
 
 ### Embedding Strategy
 
@@ -288,7 +288,7 @@ npx env-cmd -- upload
 Alternatively, if you want to upload data to your local Docker environment:
 
 ```bash
-npm run docker:upload
+make docker-upload
 ```
 
 #### Upload Process

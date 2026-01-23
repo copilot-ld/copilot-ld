@@ -16,170 +16,271 @@ toc: true
 
 The Copilot-LD platform uses two primary configuration approaches:
 
-- **Environment Variables** (`config/.env`): Runtime configuration for services,
+- **Environment Variables** (`.env` files): Runtime configuration for services,
   networking, and authentication
-- **JSON Configuration** (`config/*.json` and `config/*.yml`): Service behavior,
-  tool definitions, and assistant configurations
+- **JSON/YAML Configuration** (`config/*.json` and `config/*.yml`): Service
+  behavior, tool definitions, and assistant configurations
 
 ## Environment Variables
 
+### File Organization
+
+Environment variables are organized into multiple files by concern:
+
+| File                    | Purpose                                |
+| ----------------------- | -------------------------------------- |
+| `.env`                  | Base configuration (API keys, secrets) |
+| `.env.local`            | Local development networking           |
+| `.env.docker`           | Docker Compose proxy settings          |
+| `.env.storage.local`    | Local filesystem storage               |
+| `.env.storage.minio`    | MinIO S3-compatible storage            |
+| `.env.storage.supabase` | Supabase auth and storage              |
+
 ### Initial Setup
 
-Create your environment configuration:
+Create your environment configuration from example files:
 
 ```bash
+# Base configuration (required)
 cp .env.example .env
+
+# Local development networking (for npm run dev)
+cp .env.local.example .env.local
+
+# Docker Compose (for docker compose up)
+cp .env.docker.example .env.docker
+
+# Storage backend (choose one)
+cp .env.storage.local.example .env.storage.local      # Local filesystem
+cp .env.storage.minio.example .env.storage.minio      # MinIO
+cp .env.storage.supabase.example .env.storage.supabase # Supabase
+
+# JSON/YAML configuration
 cp config/config.example.json config/config.json
 cp config/assistants.example.yml config/assistants.yml
 cp config/tools.example.yml config/tools.yml
 ```
 
-### Service Networking
+### Usage Patterns
 
-Configure service host and port settings. When using Docker Compose, comment out
-these variables to use container networking:
-
-#### Extension Services
+#### Local Development (Local Storage)
 
 ```bash
-# UI Extension (User Interface)
-EXTENSION_UI_HOST=localhost
-EXTENSION_UI_PORT=3000
+# Load environment files
+set -a
+source .env
+source .env.local
+source .env.storage.local
+set +a
 
-# Web API Extension
-EXTENSION_WEB_HOST=localhost
-EXTENSION_WEB_PORT=3001
-
-# GitHub API Token for repository operations
+# Start services
+npm run dev
 ```
 
-#### Core Services
+#### Local Development (MinIO Storage)
 
 ```bash
-# Agent Service (Main Orchestrator)
-SERVICE_AGENT_HOST=localhost
-SERVICE_AGENT_PORT=3002
+set -a
+source .env
+source .env.local
+source .env.storage.minio
+set +a
 
-# Memory Service (Conversation Storage)
-SERVICE_MEMORY_HOST=localhost
-SERVICE_MEMORY_PORT=3003
-
-# LLM Service (Language Model Interface)
-SERVICE_LLM_HOST=localhost
-SERVICE_LLM_PORT=3004
-
-# Vector Service (Embedding Search)
-SERVICE_VECTOR_HOST=localhost
-SERVICE_VECTOR_PORT=3005
-
-# Graph Service (RDF Graph Queries)
-SERVICE_GRAPH_HOST=localhost
-SERVICE_GRAPH_PORT=3006
-
-# Tool Service (Function Calls)
-SERVICE_TOOL_HOST=localhost
-SERVICE_TOOL_PORT=3007
-
-# Trace Service (Observability Endpoints)
-SERVICE_TRACE_HOST=localhost
-SERVICE_TRACE_PORT=3008
+npm run dev
 ```
 
-#### Example Services
-
-Example tool service configuration:
+#### Docker Compose (MinIO Storage)
 
 ```bash
-# Hash Tool Service (Example)
-SERVICE_HASH_HOST=localhost
-SERVICE_HASH_PORT=3009
+docker compose \
+  --env-file .env \
+  --env-file .env.docker \
+  --env-file .env.storage.minio \
+  up
 ```
 
-### GitHub Authentication
-
-Configure GitHub OAuth for user authentication:
+#### Docker Compose (Supabase Storage)
 
 ```bash
-# GitHub Client ID (20-character string)
-GITHUB_CLIENT_ID=your_client_id_here
+docker compose \
+  --env-file .env \
+  --env-file .env.docker \
+  --env-file .env.storage.supabase \
+  up
 ```
 
-Configure LLM API access:
+### Base Configuration (.env)
+
+The base configuration file contains API credentials and secrets required for
+all deployment modes:
 
 ```bash
-# LLM API Token
-LLM_TOKEN=your_llm_api_token_here
+# API Credentials
+LLM_TOKEN=your_github_token_with_models_scope
+GITHUB_TOKEN=your_github_token
+GITHUB_CLIENT_ID=your_client_id
+# GitHub Models base URL - API endpoints are organized as:
+# - /catalog/models - List available models
+# - /inference/chat/completions - Chat completions
+# - /inference/embeddings - Embeddings
+LLM_BASE_URL=https://models.github.ai
 
-# LLM API Base URL (optional, defaults to GitHub Copilot API)
-LLM_BASE_URL=https://api.githubcopilot.com
+# Service Authentication
+SERVICE_SECRET=your_generated_secret
+JWT_SECRET=your_jwt_secret
+
+# Debug (optional)
+DEBUG=*
 ```
 
-#### Token Generation
+#### GitHub Models Token Generation
 
-Get a token from your OpenAI-compatible LLM provider and set `LLM_TOKEN` in your
-`.env` file. For GitHub Copilot users:
+Copilot-LD uses GitHub Models for LLM API access. To generate a token with the
+required `models` scope:
 
 ```bash
 # Set GITHUB_CLIENT_ID first, then run:
-node scripts/gh-token.js
+node scripts/env-github.js
 ```
 
-This command authenticates with GitHub using OAuth device flow and saves the
-token to `GITHUB_TOKEN` in your `.env` file. Copy this value to `LLM_TOKEN`.
+This command authenticates with GitHub using OAuth device flow, requests the
+`models` scope, and automatically saves both `GITHUB_TOKEN` and `LLM_TOKEN` to
+your `.env` file. The token is configured to use GitHub Models API by default:
 
-### Service Secret
+- **Base URL**: `https://models.github.ai`
+- **Model Catalog**: `GET /catalog/models` - List all available models
+- **Completions**: `POST /inference/chat/completions` - Chat completions
+- **Embeddings**: `POST /inference/embeddings` - Text embeddings
+- **Required Scope**: `models`
+- **Available Models**: Visit https://github.com/marketplace/models for the
+  complete list
 
-Generate shared secrets for inter-service authentication
+To use a different LLM provider (e.g., OpenAI):
 
 ```bash
-# Service Secret (32-character string)
-SERVICE_SECRET=your_generated_secret_here
+LLM_TOKEN=your_openai_api_key
+LLM_BASE_URL=https://api.openai.com/v1
 ```
 
 #### Secret Generation
 
 ```bash
-# Generate and automatically update config/.env
+# Generate and automatically update .env
 node scripts/secret.js
 ```
 
-### Storage Configuration
+### Service Networking (.env.local)
 
-Configure storage backends for data persistence. Supports local filesystem and
-S3-compatible storage:
+Configure service host and port settings for local development. Do NOT load this
+file when using Docker Compose—containers use internal DNS for service
+discovery.
 
-#### Local Storage (Default)
+#### Extension Services
 
-Use local filesystem (default behavior, no configuration needed):
+```bash
+EXTENSION_UI_HOST=localhost
+EXTENSION_UI_PORT=3000
+
+EXTENSION_WEB_HOST=localhost
+EXTENSION_WEB_PORT=3001
+EXTENSION_WEB_URL=http://localhost:3001/web/api
+```
+
+#### Core Services
+
+```bash
+SERVICE_AGENT_HOST=localhost
+SERVICE_AGENT_PORT=3002
+
+SERVICE_MEMORY_HOST=localhost
+SERVICE_MEMORY_PORT=3003
+
+SERVICE_LLM_HOST=localhost
+SERVICE_LLM_PORT=3004
+
+SERVICE_VECTOR_HOST=localhost
+SERVICE_VECTOR_PORT=3005
+
+SERVICE_GRAPH_HOST=localhost
+SERVICE_GRAPH_PORT=3006
+
+SERVICE_TOOL_HOST=localhost
+SERVICE_TOOL_PORT=3007
+
+SERVICE_TRACE_HOST=localhost
+SERVICE_TRACE_PORT=3008
+```
+
+### Docker Proxy (.env.docker)
+
+Proxy configuration for Docker containers to access external APIs:
+
+```bash
+HTTPS_PROXY=http://gateway.copilot-ld.local:3128
+HTTP_PROXY=http://gateway.copilot-ld.local:3128
+NO_PROXY=localhost,127.0.0.1,*.copilot-ld.local
+```
+
+### Storage Backends
+
+#### Local Storage (.env.storage.local)
+
+Use local filesystem (default behavior, minimal configuration):
 
 ```bash
 STORAGE_TYPE=local
 ```
 
-#### S3-Compatible Storage
+#### MinIO Storage (.env.storage.minio)
 
-Configure S3 or S3-compatible storage. `S3_BUCKET_ROLE_ARN` is used for local
-development and CI/CD, while `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are
-used for MinIO or direct S3 access:
+S3-compatible object storage with MinIO:
 
 ```bash
 STORAGE_TYPE=s3
-
 S3_REGION=us-east-1
 S3_BUCKET_NAME=copilot-ld
-S3_BUCKET_ROLE_ARN=arn:aws:iam::xxxxxxxxxxxx:xxx
-AWS_ACCESS_KEY_ID=xxx
-AWS_SECRET_ACCESS_KEY=xxx
+
+MINIO_ENDPOINT=http://storage.copilot-ld.local:9000
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=your_password
+
+AWS_ACCESS_KEY_ID=admin
+AWS_SECRET_ACCESS_KEY=your_password
 ```
 
-### Development Options
+#### Supabase Storage (.env.storage.supabase)
+
+Authentication and S3-compatible storage with Supabase:
 
 ```bash
-# Enable debug logging for all components
-DEBUG=*
+STORAGE_TYPE=s3
+S3_REGION=local
+S3_BUCKET_NAME=copilot-ld
 
-# Or enable for specific components
-DEBUG=agent
+# Database
+SUPABASE_DB_PASSWORD=your_database_password
+
+# JWT (shared by Auth and Storage)
+SUPABASE_JWT_SECRET=your_jwt_secret
+
+# Auth service keys
+SUPABASE_ANON_KEY=your_anon_key_jwt
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_jwt
+
+# Auth settings
+SUPABASE_SITE_URL=http://localhost:3000
+SUPABASE_DISABLE_SIGNUP=false
+
+# Storage S3 protocol
+SUPABASE_S3_ACCESS_KEY=your_s3_access_key
+SUPABASE_S3_SECRET_KEY=your_s3_secret_key
+
+# AWS SDK credentials
+AWS_ACCESS_KEY_ID=your_s3_access_key
+AWS_SECRET_ACCESS_KEY=your_s3_secret_key
+
+# Enable auth in web extension
+EXTENSION_WEB_AUTH_ENABLED=true
 ```
 
 ## JSON and YAML Configuration
@@ -304,28 +405,27 @@ Each assistant has:
 
 ## Runtime Configuration
 
-### Docker Compose Environment
+### Variable Precedence
 
-When using Docker Compose, comment out host and port variables to use container
-networking. This example uses GNU `sed`:
+When loading multiple `.env` files, later files override earlier ones. Load
+files in this order:
 
-```bash
-sed -i -E '/(HOST|PORT)=/s/^/# /' config/.env
-docker compose up
-```
+1. `.env` (base credentials and secrets)
+2. `.env.local` OR `.env.docker` (networking mode)
+3. `.env.storage.*` (storage backend)
 
 ### Development vs Production
 
 #### Development Configuration
 
-- Set explicit host/port variables for direct service access
+- Load `.env.local` for direct service access
 - Use local storage or MinIO for data persistence
 - Enable debug logging with `DEBUG=*`
 - Use self-signed certificates for SSL
 
 #### Production Configuration
 
-- Use container networking (comment out host/port variables)
+- Load `.env.docker` for container networking
 - Configure S3-compatible storage with proper credentials
 - Disable debug logging or set specific namespaces
 - Use valid TLS certificates from trusted CA
@@ -336,7 +436,7 @@ docker compose up
 | Variable                | Purpose                                            | Default                                   | Required           |
 | ----------------------- | -------------------------------------------------- | ----------------------------------------- | ------------------ |
 | `LLM_TOKEN`             | LLM API access token                               | -                                         | Yes                |
-| `LLM_BASE_URL`          | LLM API base URL                                   | `https://api.githubcopilot.com`           | No                 |
+| `LLM_BASE_URL`          | LLM API base URL                                   | `https://models.github.ai`                | No                 |
 | `GITHUB_CLIENT_ID`      | GitHub OAuth application client ID                 | -                                         | OAuth only         |
 | `SERVICE_SECRET`        | HMAC secret for service authentication             | -                                         | Yes                |
 | `JWT_SECRET`            | HS256 secret for JWT authentication                | -                                         | Extensions only    |

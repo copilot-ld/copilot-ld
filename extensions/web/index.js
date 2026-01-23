@@ -23,10 +23,7 @@ export async function createWebExtension(client, config, logger = null) {
   const app = new Hono();
 
   // Debug log auth configuration
-  logger?.debug("Config", "Auth configuration", {
-    authEnabled: config.auth_enabled,
-    jwtSecret: config.jwtSecret() ? "present" : "missing",
-  });
+  logger?.debug("Config", "Auth configuration", { auth_enabled: config.auth_enabled });
 
   // Create middleware instances
   const validationMiddleware = createValidationMiddleware(config);

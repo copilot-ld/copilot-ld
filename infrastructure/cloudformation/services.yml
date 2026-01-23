@@ -48,6 +48,10 @@ Parameters:
     Type: String
     Description: ARN of the service authentication secret in AWS Secrets Manager
 
+  JwtSecretArn:
+    Type: String
+    Description: ARN of the JWT signing secret in AWS Secrets Manager
+
   BucketName:
     Type: String
     Description: S3 bucket name for all data storage

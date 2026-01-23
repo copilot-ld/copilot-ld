@@ -1,6 +1,12 @@
 {
   "name": "Copilot-LD Development Container",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-trixie",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "installDockerComposeSwitch": true
+    }
+  },
   "postCreateCommand": "sudo apt-get update && sudo apt-get install -y awscli gh poppler-utils && npm install",
   "remoteUser": "node",
   "remoteEnv": {

@@ -132,6 +132,7 @@ help:
 	@echo "  start             	Start services"
 	@echo "  test              	Run tests"
 	@echo "  test-watch        	Run tests in watch mode"
+	@echo "  test-perf         	Run performance tests"
 	@echo "  lint              	Run ESLint"
 	@echo "  lint-fix          	Run ESLint with auto-fix"
 	@echo "  format            	Check formatting with Prettier"
@@ -481,6 +482,10 @@ test:  ## Run tests
 .PHONY: test-watch
 test-watch:  ## Run tests in watch mode
 	@npm run test:watch
+
+.PHONY: test-perf
+test-perf:  ## Run performance tests
+	@npm run test:perf
 
 .PHONY: lint
 lint:  ## Run ESLint

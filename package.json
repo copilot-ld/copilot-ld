@@ -20,6 +20,7 @@
     "start": "./scripts/env.sh npx --workspace=@copilot-ld/librc rc start",
     "test": "find extensions packages services test -name '*.test.js' | xargs node --test",
     "test:watch": "find extensions packages services test -name '*.test.js' | xargs node --test --watch",
+    "test:perf": "find extensions packages services test -name '*.perf.js' | xargs node --test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",

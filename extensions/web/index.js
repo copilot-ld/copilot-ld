@@ -22,12 +22,19 @@ const htmlFormatter = createHtmlFormatter();
 export async function createWebExtension(client, config, logger = null) {
   const app = new Hono();
 
+  // Debug log auth configuration
+  logger?.debug("Config", "Auth configuration", {
+    authEnabled: config.auth_enabled,
+    authEnabledType: typeof config.auth_enabled,
+    jwtSecret: config.jwtSecret ? "present" : "missing",
+  });
+
   // Create middleware instances
   const validationMiddleware = createValidationMiddleware(config);
   const corsMiddleware = createCorsMiddleware(config);
 
-  // Create auth middleware if enabled (authEnabled is a config property from config.json)
-  const authMiddleware = config.authEnabled
+  // Create auth middleware if enabled (auth_enabled from config.json or EXTENSIONS_WEB_AUTH_ENABLED)
+  const authMiddleware = config.auth_enabled
     ? createAuthMiddleware(config)
     : null;
 

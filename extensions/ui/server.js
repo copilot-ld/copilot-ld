@@ -5,25 +5,21 @@ import { createLogger } from "@copilot-ld/libtelemetry";
 
 import { createUiExtension } from "./index.js";
 
-// Initialize observability
+// Initialize logging
 const logger = createLogger("ui");
 
-// Extension configuration
-const config = await createExtensionConfig("ui", {
-  apiUrl: process.env.EXTENSION_WEB_URL || "/web/api",
-});
+const uiConfig = await createExtensionConfig("ui");
+const webConfig = await createExtensionConfig("web");
 
-const app = await createUiExtension(config, logger);
+const app = await createUiExtension(webConfig, logger);
 
 serve(
   {
     fetch: app.fetch,
-    port: config.port,
-    hostname: config.host,
+    port: uiConfig.port,
+    hostname: uiConfig.host,
   },
   () => {
-    logger.debug("Server", "Listening", {
-      uri: `${config.host}:${config.port}`,
-    });
+    logger.debug("Server", "Listening", { url: uiConfig.url });
   },
 );

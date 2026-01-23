@@ -4,11 +4,6 @@ import { createStorage } from "@copilot-ld/libstorage";
 /** @typedef {import("@copilot-ld/libstorage").StorageInterface} StorageInterface */
 
 /**
- * Default LLM API base URL (GitHub Copilot API)
- */
-const DEFAULT_LLM_BASE_URL = "https://api.githubcopilot.com";
-
-/**
  * Centralized configuration management class
  */
 export class Config {
@@ -58,9 +53,14 @@ export class Config {
 
     const data = { ...this.defaults, ...fileData };
 
+    // Set defaults
+    if (data.protocol === undefined) data.protocol = "grpc";
     if (data.host === undefined) data.host = "0.0.0.0";
     if (data.port === undefined) data.port = 3000;
+    if (data.path === undefined) data.path = "";
+    data.url = `${data.protocol}://${data.host}:${data.port}${data.path}`;
 
+    // Let the environment override any config file values
     for (const param of Object.keys(data)) {
       const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
       if (this.#process.env[varName] !== undefined) {
@@ -70,6 +70,15 @@ export class Config {
           data[param] = this.#process.env[varName];
         }
       }
+    }
+
+    // Ensure that all URL components are consistent with the URL
+    if (data.url !== undefined) {
+      const parsed = new URL(data.url);
+      data.protocol = parsed.protocol.replace(":", "");
+      data.host = parsed.hostname;
+      data.port = parsed.port ? parseInt(parsed.port, 10) : 80;
+      data.path = parsed.pathname.replace(/\/+$/, "");
     }
 
     Object.assign(this, data);
@@ -121,11 +130,17 @@ export class Config {
   }
 
   /**
-   * Gets the LLM API base URL from environment variable or default
+   * Gets the LLM API base URL from environment variable
    * @returns {string} LLM API base URL
+   * @throws {Error} If LLM_BASE_URL is not set in environment
    */
   llmBaseUrl() {
-    return this.#process.env.LLM_BASE_URL || DEFAULT_LLM_BASE_URL;
+    if (!this.#process.env.LLM_BASE_URL) {
+      throw new Error(
+        "LLM_BASE_URL not found in environment. Set to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
+      );
+    }
+    return this.#process.env.LLM_BASE_URL;
   }
 
   /**
@@ -134,6 +149,23 @@ export class Config {
    */
   jwtSecret() {
     return this.#process.env.JWT_SECRET;
+  }
+
+  /**
+   * Gets the JWT anonymous key from environment variable.
+   * Used for public/unauthenticated Supabase API access.
+   * @returns {string|undefined} JWT anon key or undefined if not set
+   */
+  jwtAnonKey() {
+    return this.#process.env.JWT_ANON_KEY;
+  }
+
+  /**
+   * Gets the JWT authentication service URL from environment variable
+   * @returns {string} JWT auth service URL (defaults to http://localhost:9999)
+   */
+  jwtAuthUrl() {
+    return this.#process.env.JWT_AUTH_URL || "http://localhost:9999";
   }
 
   /**

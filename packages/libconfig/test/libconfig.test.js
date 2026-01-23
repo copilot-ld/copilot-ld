@@ -43,12 +43,13 @@ describe("libconfig", () => {
       assert.strictEqual(config.defaultValue, 42);
       assert.strictEqual(config.host, "0.0.0.0");
       assert.strictEqual(config.port, 3000);
+      assert.strictEqual(config.protocol, "grpc");
+      assert.strictEqual(config.url, "grpc://0.0.0.0:3000");
     });
 
-    test("loads environment variables", async () => {
+    test("loads environment variables via URL", async () => {
       mockProcess.env = {
-        TEST_MYSERVICE_HOST: "custom-host",
-        TEST_MYSERVICE_PORT: "8080",
+        TEST_MYSERVICE_URL: "grpc://custom-host:8080",
       };
 
       const mockStorageFn = () => mockStorage;
@@ -61,7 +62,29 @@ describe("libconfig", () => {
       );
 
       assert.strictEqual(config.host, "custom-host");
-      assert.strictEqual(config.port, 8080); // JSON parsing converts "8080" to number
+      assert.strictEqual(config.port, 8080);
+      assert.strictEqual(config.protocol, "grpc");
+      assert.strictEqual(config.url, "grpc://custom-host:8080");
+    });
+
+    test("extracts path from URL environment variable", async () => {
+      mockProcess.env = {
+        TEST_MYSERVICE_URL: "https://api.example.com:8443/v1/api",
+      };
+
+      const mockStorageFn = () => mockStorage;
+      const config = await createConfig(
+        "test",
+        "myservice",
+        {},
+        mockProcess,
+        mockStorageFn,
+      );
+
+      assert.strictEqual(config.host, "api.example.com");
+      assert.strictEqual(config.port, 8443);
+      assert.strictEqual(config.protocol, "https");
+      assert.strictEqual(config.path, "/v1/api");
     });
 
     test("parses JSON environment variables", async () => {
@@ -243,9 +266,11 @@ describe("libconfig", () => {
       assert.strictEqual(token, "llm-token-123");
     });
 
-    test("llmBaseUrl returns default when not set", () => {
-      const baseUrl = config.llmBaseUrl();
-      assert.strictEqual(baseUrl, "https://api.githubcopilot.com");
+    test("llmBaseUrl throws when not set", () => {
+      assert.throws(
+        () => config.llmBaseUrl(),
+        /LLM_BASE_URL not found in environment/,
+      );
     });
 
     test("reset clears cached values", async () => {
@@ -296,6 +321,196 @@ describe("libconfig", () => {
       assert.strictEqual(config.name, "testextension");
       assert.strictEqual(config.namespace, "extension");
       assert.strictEqual(config.custom, "value");
+    });
+  });
+
+  describe("Config getters", () => {
+    test("jwtSecret returns from environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {
+          JWT_SECRET: "my-jwt-secret-key",
+        },
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      const secret = config.jwtSecret();
+
+      assert.strictEqual(secret, "my-jwt-secret-key");
+    });
+
+    test("jwtSecret returns undefined when not set", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      const secret = config.jwtSecret();
+
+      assert.strictEqual(secret, undefined);
+    });
+
+    test("jwtAuthUrl returns from environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {
+          JWT_AUTH_URL: "https://myproject.supabase.co",
+        },
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.strictEqual(config.jwtAuthUrl(), "https://myproject.supabase.co");
+    });
+
+    test("jwtAuthUrl returns default when not set", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.strictEqual(config.jwtAuthUrl(), "http://localhost:9999");
+    });
+
+    test("jwtAnonKey returns from environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {
+          JWT_ANON_KEY: "anon-key-abc123",
+        },
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.strictEqual(config.jwtAnonKey(), "anon-key-abc123");
+    });
+
+    test("jwtAnonKey returns undefined when not set", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.strictEqual(config.jwtAnonKey(), undefined);
+    });
+
+    test("init returns init config from file data", async () => {
+      const mockStorage = createMockStorage({
+        get: mock.fn(() =>
+          Promise.resolve({
+            init: {
+              log_dir: "data/logs",
+              shutdown_timeout: 5000,
+              services: [{ name: "api", command: "npm start" }],
+            },
+          }),
+        ),
+      });
+
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig(
+        "test",
+        "myservice",
+        {},
+        mockProcess,
+        () => mockStorage,
+      );
+
+      assert.ok(config.init);
+      assert.strictEqual(config.init.log_dir, "data/logs");
+      assert.strictEqual(config.init.shutdown_timeout, 5000);
+    });
+
+    test("init returns null when not present in file", async () => {
+      const mockStorage = createMockStorage({
+        get: mock.fn(() => Promise.resolve({})),
+      });
+
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig(
+        "test",
+        "myservice",
+        {},
+        mockProcess,
+        () => mockStorage,
+      );
+
+      assert.strictEqual(config.init, null);
+    });
+
+    test("rootDir returns parent of config directory", async () => {
+      const mockStorage = createMockStorage({
+        get: mock.fn(() => Promise.resolve({})),
+        path: mock.fn(() => "/project/root/config"),
+      });
+
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig(
+        "test",
+        "myservice",
+        {},
+        mockProcess,
+        () => mockStorage,
+      );
+
+      assert.strictEqual(config.rootDir, "/project/root");
+    });
+
+    test("ghToken throws when not set in environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.throws(() => config.ghToken(), {
+        message: "GitHub token not found in environment",
+      });
+    });
+
+    test("ghToken returns from environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: { GITHUB_TOKEN: "gh-token-xyz" },
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.strictEqual(config.ghToken(), "gh-token-xyz");
+    });
+
+    test("llmToken throws when not set in environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: {},
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      await assert.rejects(() => config.llmToken(), {
+        message: "LLM token not found in environment",
+      });
+    });
+
+    test("llmBaseUrl returns custom URL from environment", async () => {
+      const mockProcess = {
+        cwd: mock.fn(() => "/test/dir"),
+        env: { LLM_BASE_URL: "https://custom.api.com" },
+      };
+
+      const config = await createConfig("test", "myservice", {}, mockProcess);
+      assert.strictEqual(config.llmBaseUrl(), "https://custom.api.com");
     });
   });
 });

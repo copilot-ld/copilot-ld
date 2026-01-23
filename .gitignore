@@ -1,37 +1,41 @@
 # Node files
-**/node_modules/
+**/node_modules
 
 # Generated files and data
-/data/
-/data*/
-/dist/
+**/build
+**/data*
+**/dist
 **/generated
 
 # Eval outputs
-/eval/output/
+**/eval/output
 
 # Custom tools
 /tools
 !/tools/README.md
 
 # Config files
-**/.env*
+**/.env
+**/.env.local
+**/.env.build
+**/.env.docker
+**/.env.auth.*
+**/.env.storage.*
 !**/.env.example
-**/.github_token
-**/config.json
-**/assistants.yml
-**/tools.yml
-**/eval.yml
-**/ingest.yml
+!**/.env.*.example
 
-# For developers
-**/.build_token
+## Config files
+**/config/config.json
+**/config/assistants.yml
+**/config/tools.yml
+**/config/eval.yml
+**/config/ingest.yml
 
 # Editor files
-.vscode/
-.idea/
+**/.vscode/
+**/.idea/
 
-# Agent files
+# Agent planning
 **/*PLAN*.md
 **/*REPORT*.md
 **/*SCRATCHPAD*.md
@@ -43,9 +47,8 @@
 **/*.tar.gz
 **/*.zip
 **/*.log
-/temp/
-/tmp/
-.git-snapshot
+**/temp
+**/tmp
 
 # Excplicit test fixtures
 !**/test/fixtures/sample.tar.gz

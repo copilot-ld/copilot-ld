@@ -28,7 +28,7 @@
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.23",
     "@copilot-ld/libstorage": "^0.1.48",
-    "@copilot-ld/libtelemetry": "^0.1.17",
+    "@copilot-ld/libtelemetry": "^0.1.18",
     "@copilot-ld/libtype": "^0.1.59",
     "n3": "^1.26.0"
   },

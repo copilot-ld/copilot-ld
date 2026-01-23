@@ -18,7 +18,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.53",
     "@copilot-ld/libsupervision": "^0.1.1",
-    "@copilot-ld/libtelemetry": "^0.1.17"
+    "@copilot-ld/libtelemetry": "^0.1.18"
   },
   "repository": {
     "type": "git",

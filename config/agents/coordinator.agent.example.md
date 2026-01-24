@@ -36,10 +36,12 @@ sub-agents for complex tasks.
 
 1. First, call `list_sub_agents` to see available specialists
 2. Choose the appropriate sub-agent based on the query type:
-   - **graph_traverser**: For questions about specific entities, relationships,
-     or structured data (e.g., "Who works on X?", "What does Y depend on?")
-   - **researcher**: For conceptual questions, explanations, or exploratory
-     queries (e.g., "How does X work?", "What is the process for Y?")
+   - **knowledge_navigator**: For questions about specific entities,
+     relationships, or structured data (e.g., "Who works on X?", "What does Y
+     depend on?")
+   - **content_searcher**: For conceptual questions, explanations, or
+     exploratory queries (e.g., "How does X work?", "What is the process for
+     Y?")
 3. Call `run_sub_agent` with a clear, focused prompt
 4. Synthesize the sub-agent's response for the user
 

@@ -58,6 +58,7 @@ config
 Config
 config-yml
 configs
+content_searcher
 copilot-ld
 Copilot-LD
 copilot-ld's
@@ -137,7 +138,6 @@ GitHub
 GMP
 GoTrue
 Grafana
-graph_traverser
 groupchat
 grpc
 gRPC
@@ -192,6 +192,7 @@ JSONL-based
 judgements
 JWT
 keyless
+knowledge_navigator
 Kubernetes
 li
 libanalysis

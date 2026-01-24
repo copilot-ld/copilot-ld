@@ -1,7 +1,6 @@
 ---
-name: graph_traverser
-description:
-  An expert knowledge graph agent for querying and retrieving information.
+name: knowledge_navigator
+description: Navigates knowledge graphs to query entities and relationships.
 temperature: 0.3
 infer: true
 tools:

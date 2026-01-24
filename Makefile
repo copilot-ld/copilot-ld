@@ -56,7 +56,7 @@ help:
 	@echo "  ingest-pipeline  	Run ingestion pipeline"
 	@echo "  process          	Process all resources"
 	@echo "  process-fast      	Process without vectors"
-	@echo "  process-assistants	Process assistant definitions"
+	@echo "  process-agents	Process assistant definitions"
 	@echo "  process-resources 	Process knowledge resources"
 	@echo "  process-tools     	Process tool definitions"
 	@echo "  process-vectors   	Process vector indices"
@@ -210,14 +210,14 @@ ingest-pipeline:  ## Run ingestion pipeline
 	@$(ENVLOAD) npx --workspace=@copilot-ld/libingest ingest-pipeline
 
 .PHONY: process
-process: process-assistants process-resources process-tools process-graphs process-vectors  ## Process all resources
+process: process-agents process-resources process-tools process-graphs process-vectors  ## Process all resources
 
 .PHONY: process-fast
-process-fast: process-assistants process-resources process-tools process-graphs  ## Process without vectors
+process-fast: process-agents process-resources process-tools process-graphs  ## Process without vectors
 
-.PHONY: process-assistants
-process-assistants:  ## Process assistant definitions
-	@$(ENVLOAD) npx --workspace=@copilot-ld/libagent process-assistants
+.PHONY: process-agents
+process-agents:  ## Process assistant definitions
+	@$(ENVLOAD) npx --workspace=@copilot-ld/libagent process-agents
 
 .PHONY: process-resources
 process-resources:  ## Process knowledge resources

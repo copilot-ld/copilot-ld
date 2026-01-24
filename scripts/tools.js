@@ -39,7 +39,8 @@ async function loadToolDescriptors() {
  */
 function mapFieldToSchema(field, description) {
   const property = {
-    description: description || field.comment || `${field.name || "field"} field`,
+    description:
+      description || field.comment || `${field.name || "field"} field`,
   };
 
   // Handle repeated fields (arrays) first, before scalar type mapping

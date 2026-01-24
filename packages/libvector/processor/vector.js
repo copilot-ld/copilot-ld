@@ -1,4 +1,7 @@
-import { ProcessorBase } from "@copilot-ld/libutil";
+import { ProcessorBase, truncateToTokens } from "@copilot-ld/libutil";
+
+/** @type {number} Max tokens for TEI embedding endpoint (model-dependent) */
+const EMBEDDING_MAX_TOKENS = 512;
 
 /**
  * VectorProcessor class for processing resources into vector embeddings
@@ -84,7 +87,9 @@ export class VectorProcessor extends ProcessorBase {
 
   /** @inheritdoc */
   async processItem(item) {
-    const texts = [item.text];
+    // Truncate text to fit within embedding model's token limit
+    const truncatedText = truncateToTokens(item.text, EMBEDDING_MAX_TOKENS);
+    const texts = [truncatedText];
     const embeddings = await this.#llm.createEmbeddings(texts);
     const vector = embeddings.data[0].embedding;
 

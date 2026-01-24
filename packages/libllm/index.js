@@ -1,7 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { common, llm } from "@copilot-ld/libtype";
-import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
+import {
+  countTokens,
+  createTokenizer,
+  createRetry,
+  truncateToTokens,
+} from "@copilot-ld/libutil";
 import { ProxyAgent } from "undici";
+
+/** @type {number} Max tokens for TEI embedding endpoint (bge-large-en-v1.5) */
+const TEI_MAX_TOKENS = 512;
 
 // Note: getBudget has moved to @copilot-ld/libmemory as getModelBudget
 // This re-export is deprecated and will be removed in a future version
@@ -137,6 +145,11 @@ export class LlmApi {
     // Detect if using separate TEI endpoint
     const isTEI = this.#embeddingBaseURL !== this.#baseURL;
 
+    // Truncate inputs to fit within TEI's token limit
+    const processedInput = isTEI
+      ? input.map((text) => truncateToTokens(text, TEI_MAX_TOKENS))
+      : input;
+
     // TEI uses /embed endpoint, OpenAI uses /embeddings
     const endpoint = isTEI ? "/embed" : "/embeddings";
 
@@ -147,12 +160,12 @@ export class LlmApi {
 
     // TEI expects { inputs: [...] }, OpenAI expects { input: [...], model: "..." }
     const body = isTEI
-      ? { inputs: input }
+      ? { inputs: processedInput }
       : {
           // TODO: Make this configurable
           model: "text-embedding-3-large",
           dimensions: 1024,
-          input,
+          input: processedInput,
         };
 
     const response = await this.#retry.execute(() =>

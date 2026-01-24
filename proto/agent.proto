@@ -18,8 +18,7 @@ message AgentRequest {
   repeated common.Message messages = 1;
   optional string resource_id = 2;
   optional string llm_token = 3;
-  optional string model = 4;
-  optional string agent = 5;
+  optional string agent = 4;
 }
 
 message AgentResponse {
@@ -36,7 +35,6 @@ message RunSubAgentRequest {
   string agent_id = 2;
   string prompt = 3;
   optional string llm_token = 4;
-  optional string model = 5;
 }
 
 message ListHandoffsRequest {

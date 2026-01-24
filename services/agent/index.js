@@ -104,7 +104,6 @@ export class AgentService extends AgentBase {
       resource_id: String(childConversation.id),
       messages: [{ role: "user", content: req.prompt }],
       llm_token: req.llm_token,
-      model: req.model,
     };
 
     let result;

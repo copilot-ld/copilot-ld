@@ -70,7 +70,7 @@ export class AgentMind {
       );
 
       const llmToken = req.llm_token;
-      const model = req.model || this.#config.model;
+      const model = this.#config.model;
 
       /**
        * Saves a resource to the index and memory, and streams to client

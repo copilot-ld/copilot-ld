@@ -1,13 +1,14 @@
 ---
 name: graph_traverser
-description: "An expert knowledge graph agent for querying and retrieving information."
+description:
+  An expert knowledge graph agent for querying and retrieving information.
 temperature: 0.3
+infer: true
 tools:
   - get_ontology
   - get_subjects
   - search_content
   - query_by_pattern
-infer: true
 handoffs: []
 ---
 
@@ -64,33 +65,33 @@ supplementary for descriptive content.
 
 ## EXAMPLES
 
-**"What platforms does MolecularForge depend on?"**
+**"What does [Entity X] depend on?"**
 
-- This names a specific platform (MolecularForge)
+- This names a specific entity
 - Strategy: Structured query workflow
-- Sequence: `get_ontology` → `get_subjects(type=schema:SoftwareApplication)` →
-  `query_by_pattern(subject=molecularforge, predicate=schema:softwareRequirements)`
+- Sequence: `get_ontology` → `get_subjects(type=<appropriate-type>)` →
+  `query_by_pattern(subject=<entity-x>, predicate=<dependency-predicate>)`
 
-**"What are the differences between MolecularForge and ManufacturingOS?"**
+**"What are the differences between [Entity A] and [Entity B]?"**
 
-- This names two specific platforms
-- Strategy: Structured query workflow for both platforms
-- Sequence: `get_ontology` → `get_subjects(type=schema:SoftwareApplication)` →
-  `query_by_pattern(subject=molecularforge, predicate=?)` →
-  `query_by_pattern(subject=manufacturingos, predicate=?)`
+- This names two specific entities
+- Strategy: Structured query workflow for both entities
+- Sequence: `get_ontology` → `get_subjects(type=<appropriate-type>)` →
+  `query_by_pattern(subject=<entity-a>, predicate=?)` →
+  `query_by_pattern(subject=<entity-b>, predicate=?)`
 
-**"Who are members of the Drug Discovery Team?"**
+**"Who are members of [Organization]?"**
 
-- This names a specific team
+- This names a specific organization
 - Strategy: Structured query workflow
 - Sequence: `get_ontology` → `get_subjects(type=schema:Organization)` →
-  `query_by_pattern(subject=drug-discovery-team, predicate=schema:member)`
+  `query_by_pattern(subject=<organization>, predicate=schema:member)`
 
-**"What courses teach pharmaceutical development?"**
+**"What topics relate to [concept]?"**
 
-- This is conceptual (pharmaceutical development is a topic, not a named entity)
+- This is conceptual (not a named entity in the graph)
 - Strategy: Semantic search
-- Sequence: `search_content(text=pharmaceutical development courses)`
+- Sequence: `search_content(input=<concept description>)`
 
 ## KEY PRINCIPLES
 

@@ -62,6 +62,7 @@ copilot-ld
 Copilot-LD
 copilot-ld's
 Copilot-LD's
+coordinator
 CORS
 cryptographic
 Cryptographic
@@ -119,6 +120,7 @@ ESLint
 ESM
 ETIMEDOUT
 eval
+eval_judge
 fallback
 fallbacks
 Fargate
@@ -135,6 +137,7 @@ GitHub
 GMP
 GoTrue
 Grafana
+graph_traverser
 groupchat
 grpc
 gRPC
@@ -186,6 +189,7 @@ JSON-ND
 JSON-structured
 JSONL
 JSONL-based
+judgements
 JWT
 keyless
 Kubernetes
@@ -285,6 +289,7 @@ OpenTelemetry-based
 opentelemetry-compatible
 OpenTelemetry-compatible
 OpenTelemetry-style
+option1
 orchestrator
 organisation
 Organisation
@@ -347,6 +352,7 @@ REPL-based
 replp
 repo
 repos
+researcher
 ResourceIndex
 retryable
 reusability

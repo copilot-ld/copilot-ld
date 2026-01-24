@@ -22,19 +22,19 @@ describe("Retry", () => {
     assert.ok(customRetry instanceof Retry);
   });
 
-  test("retry mechanism works with exhausted retries on 429", async () => {
-    const retryResponse = {
+  test("does not retry on 429 rate limit - fails fast", async () => {
+    const rateLimitResponse = {
       ok: false,
       status: 429,
       statusText: "Too Many Requests",
     };
 
-    const mockFetch = mock.fn(() => Promise.resolve(retryResponse));
+    const mockFetch = mock.fn(() => Promise.resolve(rateLimitResponse));
 
     const response = await retry.execute(mockFetch);
 
-    // Should exhaust all retries and return the 429 response
-    assert.strictEqual(mockFetch.mock.callCount(), 11); // Initial + 10 retries
+    // Should NOT retry on 429 - return immediately for caller to handle
+    assert.strictEqual(mockFetch.mock.callCount(), 1);
     assert.strictEqual(response.status, 429);
   });
 

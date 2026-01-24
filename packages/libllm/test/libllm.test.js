@@ -162,41 +162,29 @@ describe("libllm", () => {
       assert.ok(result.data[1].embedding);
     });
 
-    test("createEmbeddings retries on 429 status", async () => {
-      const retryResponse = {
+    test("createEmbeddings throws error immediately on 429 status", async () => {
+      const errorResponse = {
         ok: false,
         status: 429,
         statusText: "Too Many Requests",
-      };
-      const successResponse = {
-        ok: true,
-        json: mock.fn(() =>
-          Promise.resolve({
-            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
-          }),
-        ),
+        text: mock.fn(() => Promise.resolve("Rate limit exceeded")),
       };
 
-      // Set up mock to return retry response first, then success
-      let callCount = 0;
-      mockFetch.mock.mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          return Promise.resolve(retryResponse);
-        } else {
-          return Promise.resolve(successResponse);
-        }
-      });
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(errorResponse),
+      );
 
       const texts = ["Hello"];
-      const result = await llmApi.createEmbeddings(texts);
+      await assert.rejects(
+        () => llmApi.createEmbeddings(texts),
+        /HTTP 429.*Too Many Requests/,
+      );
 
-      // Should retry once and then succeed
-      assert(mockFetch.mock.callCount() >= 2);
-      assert.strictEqual(result.data.length, 1);
+      // Should NOT retry - fail fast on rate limits
+      assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
 
-    test("createEmbeddings throws error immediately on non-429 HTTP error", async () => {
+    test("createEmbeddings throws error immediately on 500 HTTP error", async () => {
       const errorResponse = {
         ok: false,
         status: 500,
@@ -204,7 +192,6 @@ describe("libllm", () => {
         text: mock.fn(() => Promise.resolve("Server error details")),
       };
 
-      // Mock all attempts to fail with non-429 error (no retries)
       mockFetch.mock.mockImplementationOnce(() =>
         Promise.resolve(errorResponse),
       );
@@ -215,7 +202,8 @@ describe("libllm", () => {
         message: /HTTP 500: Internal Server Error/,
       });
 
-      assert.strictEqual(mockFetch.mock.callCount(), 1); // No retries for non-429
+      // No retries for 500 errors
+      assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
 
     test("listModels makes correct API call", async () => {

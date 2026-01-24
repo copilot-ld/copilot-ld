@@ -23,14 +23,10 @@ export class Retry {
    * @private
    */
   #isRetryableStatus(status) {
-    // Retry on rate limits, transient server errors, and client timeouts
-    return (
-      status === 429 ||
-      status === 499 ||
-      status === 502 ||
-      status === 503 ||
-      status === 504
-    );
+    // Retry on transient server errors and client timeouts only
+    // 429 (rate limit) is NOT retried - these often have long retry-after
+    // periods and should fail fast so callers can handle appropriately
+    return status === 499 || status === 502 || status === 503 || status === 504;
   }
 
   /**

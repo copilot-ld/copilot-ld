@@ -30,7 +30,7 @@ runs:
         sudo chown -R $USER ~/apt-cache
 
     - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
+      uses: dtolnay/rust-toolchain@1.93.0
 
     - name: Cache Cargo
       uses: actions/cache@v4

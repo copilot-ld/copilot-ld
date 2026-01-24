@@ -18,10 +18,17 @@ Complete the initial setup steps:
 
 ### Optional: Local Embedding Service
 
-For faster embedding generation or offline development, install TEI:
+For faster embedding generation or offline development, install TEI. On macOS,
+TEI requires Rust 1.88.0+ and the `candle` feature:
 
 ```bash
-cargo install text-embeddings-router
+# Ensure Rust 1.88.0+ is installed
+rustup install 1.88.0 && rustup default 1.88.0
+
+# Install TEI with candle feature (macOS)
+cargo install --git https://github.com/huggingface/text-embeddings-inference \
+  --features candle \
+  text-embeddings-router
 ```
 
 See the [Configuration Guide](/configuration/#local-embedding-service-tei) for

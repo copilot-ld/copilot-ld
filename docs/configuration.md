@@ -177,13 +177,26 @@ Inference (TEI) as a local embedding service.
 
 #### Installation
 
-Install the TEI binary using Cargo (Rust package manager):
+Install the TEI binary using Cargo (Rust package manager). TEI requires Rust
+1.88.0 or later and the `candle` feature for CPU inference on macOS:
 
 ```bash
 # Install Rust if not already installed
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Install TEI router
+# Ensure Rust 1.88.0+ is installed
+rustup install 1.88.0
+rustup default 1.88.0
+
+# Install TEI router with candle feature (required for macOS)
+cargo install --git https://github.com/huggingface/text-embeddings-inference \
+  --features candle \
+  text-embeddings-router
+```
+
+On Linux with pre-built binaries available, a simpler installation works:
+
+```bash
 cargo install text-embeddings-router
 ```
 

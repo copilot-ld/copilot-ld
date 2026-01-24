@@ -4,12 +4,8 @@
 
 - **BREAKING**: Added `embeddingBaseUrl` parameter to `LlmApi` constructor and
   `createLlmApi()` factory function (4th parameter, before `temperature`)
-- Added support for Hugging Face Text Embeddings Inference (TEI) as local
-  embedding backend
-- `createEmbeddings()` now auto-detects TEI vs OpenAI format based on
-  `embeddingBaseUrl`
-- TEI requests use `/embed` endpoint without auth headers
-- TEI responses normalized to `common.Embeddings` protobuf format
+- Added support for Hugging Face Text Embeddings Inference (TEI) with automatic
+  endpoint and format detection based on `embeddingBaseUrl`
 
 ## 2026-01-15
 

@@ -25,7 +25,8 @@ get_subjects:
   evaluation: |
     List of all entities matching the type filter.
   parameters:
-    type: Entity type URI to filter by (e.g., "schema:Organization", "schema:Drug").
+    type:
+      Entity type URI to filter by (e.g., "schema:Organization", "schema:Drug").
 
 query_by_pattern:
   purpose: |

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-01-23
+
+- Added `resource_id` propagation to tool requests for context-aware tools
+
 ## 2025-11-24
 
 - Bump version

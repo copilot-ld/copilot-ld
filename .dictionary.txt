@@ -123,6 +123,8 @@ fallback
 fallbacks
 Fargate
 filesystem
+frontmatter
+Frontmatter
 forwarding
 FOUC
 frontend
@@ -139,7 +141,10 @@ gRPC
 grpc-enabled
 gRPC-enabled
 gRPCs
+handoff
+Handoff
 handoffs
+Handoffs
 hardcoded
 healthcheck
 hgroup
@@ -309,6 +314,7 @@ pre-compiled
 Pre-compiled
 pre-computed
 Pre-computed
+pre-configured
 pre-created
 pre-processed
 preloaded

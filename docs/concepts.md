@@ -153,13 +153,80 @@ attributes, and relationships to other spans:
 - **OpenTelemetry Compatibility**: Standard format enables integration with
   industry-standard tools
 
+## Multi-Agent Architecture
+
+Copilot-LD implements a multi-agent system where specialized agents can delegate
+tasks and transfer conversation control. This enables complex workflows where
+different agents handle different aspects of a problem.
+
+### Core Concepts
+
+| Concept   | Description                                                               |
+| --------- | ------------------------------------------------------------------------- |
+| Agent     | An autonomous entity with a system prompt, tools, and optional handoffs   |
+| Sub-agent | Isolated agent execution within a parent conversation (new child context) |
+| Handoff   | Transfer of conversation control to another agent (same conversation)     |
+| Infer     | Property marking agents available for dynamic sub-agent invocation        |
+
+### Agents
+
+Agents replace the previous "assistant" concept with enhanced capabilities. Each
+agent has:
+
+- **System Prompt**: Markdown content defining the agent's persona and behavior
+- **Tools**: Optional list of tools the agent can invoke
+- **Handoffs**: Optional list of other agents this agent can transfer control to
+- **Infer Flag**: Whether other agents can invoke this agent as a sub-agent
+
+Agents are defined as individual `.agent.md` files in `config/agents/` using
+frontmatter for metadata and markdown for the system prompt.
+
+### Sub-Agent Delegation
+
+Sub-agents enable task delegation with **isolated execution**. When an agent
+invokes a sub-agent:
+
+1. A new child conversation is created, linked to the parent
+2. The sub-agent executes with its own tools and system prompt
+3. Results return to the parent agent without affecting parent context
+4. The parent agent continues with its original conversation state
+
+Use sub-agents when a specialized agent should handle a discrete task without
+modifying the ongoing conversation. Only agents with `infer: true` can be
+invoked as sub-agents.
+
+### Conversation Handoffs
+
+Handoffs enable **context transfer** between agents. When an agent performs a
+handoff:
+
+1. The conversation's `agent_id` is updated to the target agent
+2. The handoff prompt is injected as a user message
+3. The target agent continues with full conversation history
+4. Control does not return to the original agent
+
+Use handoffs when a different agent should take over the conversation entirely.
+Handoffs are pre-configured in the agent definition with labels, target agents,
+and prompts.
+
+### Choosing Between Sub-Agents and Handoffs
+
+| Scenario                                      | Use        |
+| --------------------------------------------- | ---------- |
+| Delegate a specific task, get results back    | Sub-agent  |
+| Transfer expertise permanently to another     | Handoff    |
+| Need isolated context for a subtask           | Sub-agent  |
+| User needs a different agent's full attention | Handoff    |
+| Multi-step workflow with specialist agents    | Sub-agents |
+| Escalation or triage routing                  | Handoff    |
+
 ## System Capabilities
 
 ### Intelligent Request Processing
 
 The Agent service orchestrates request processing, making autonomous decisions
-about which tools to call and when. It doesn't follow a rigid workflow but
-adapts based on the conversation context and available tools.
+about which tools to call and when. It adapts based on the conversation context,
+available tools, and can delegate to sub-agents or hand off to other agents.
 
 ### Contextual Memory
 
@@ -197,7 +264,7 @@ components work together.
 2. **Agent Orchestration**: Agent service receives the request and validates
    authentication
 3. **Memory Assembly**: Memory service builds a window with conversation history
-   and tools from the assistant configuration
+   and tools from the agent configuration
 4. **Completion Generation**: Agent sends assembled messages and tools to LLM
    service for response generation
 5. **Tool Execution**: If the LLM decides to call tools, Agent executes them and

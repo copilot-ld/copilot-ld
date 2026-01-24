@@ -187,9 +187,9 @@ sequenceDiagram
 
     Dev->>Scripts: make process
 
-    Note over Scripts: 1. Assistant Processing
-    Scripts->>ResourceIndex: Load assistants from config/assistants.yml
-    ResourceIndex-->>Scripts: Assistants stored
+    Note over Scripts: 1. Agent Processing
+    Scripts->>ResourceIndex: Load agents from config/agents/*.agent.md
+    ResourceIndex-->>Scripts: Agents stored
 
     Note over Scripts: 2. Resource Processing
     Scripts->>HTML: Read knowledge files
@@ -215,7 +215,7 @@ sequenceDiagram
 
 ### Processing Stages
 
-1. **Assistant Configuration**: Load assistant definitions from YAML
+1. **Agent Configuration**: Load agent definitions from `.agent.md` files
 2. **Resource Extraction**: Parse HTML microdata into individual resources
 3. **Embedding Creation**: Convert content to vector embeddings
 4. **Index Building**: Create content index for similarity search

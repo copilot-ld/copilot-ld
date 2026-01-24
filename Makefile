@@ -151,7 +151,7 @@ data-init:  ## Initialize data directories
 
 .PHONY: data-clean
 data-clean:  ## Remove generated data
-	@rm -rf generated data/cli data/eval data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@rm -rf generated data/cli data/eval data/logs data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
 
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code

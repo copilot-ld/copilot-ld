@@ -112,9 +112,13 @@ function generateSchemaFromProtobuf(messageType) {
 
   // Iterate through protobuf fields to build JSON schema
   for (const [fieldName, field] of Object.entries(messageType.fields)) {
-    // Skip the filter and llm_token fields. These will be automatically
-    // passed by the system.
-    if (fieldName === "llm_token" || fieldName === "filter") {
+    // Skip the filter, llm_token, and resource_id fields. These will be
+    // automatically passed by the system.
+    if (
+      fieldName === "llm_token" ||
+      fieldName === "filter" ||
+      fieldName === "resource_id"
+    ) {
       continue;
     }
 

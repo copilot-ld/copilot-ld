@@ -45,6 +45,7 @@ async function handlePrompt(prompt, state, outputStream) {
       llm_token: await config.llmToken(),
       resource_id: state.resource_id,
       model: config.model,
+      agent: config.agent,
     });
 
     const stream = agentClient.ProcessStream(request);

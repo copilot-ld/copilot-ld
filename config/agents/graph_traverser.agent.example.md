@@ -1,5 +1,5 @@
 ---
-name: knowledge_graph_agent
+name: graph_traverser
 description: "An expert knowledge graph agent for querying and retrieving information."
 temperature: 0.3
 tools:

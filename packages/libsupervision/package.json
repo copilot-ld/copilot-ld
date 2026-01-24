@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libsupervision",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Process supervision for Copilot-LD services",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -17,7 +17,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libtelemetry": "^0.1.18"
+    "@copilot-ld/libtelemetry": "^0.1.19"
   },
   "repository": {
     "type": "git",

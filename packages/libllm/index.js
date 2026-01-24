@@ -137,7 +137,7 @@ export class LlmApi {
         body: JSON.stringify({
           // TODO: Make this configurable
           model: "text-embedding-3-large",
-          dimensions: 256,
+          dimensions: 1024,
           input,
         }),
       }),

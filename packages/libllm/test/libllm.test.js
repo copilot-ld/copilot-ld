@@ -154,7 +154,7 @@ describe("libllm", () => {
 
       const body = JSON.parse(options.body);
       assert.strictEqual(body.model, "text-embedding-3-large");
-      assert.strictEqual(body.dimensions, 256);
+      assert.strictEqual(body.dimensions, 1024);
       assert.deepStrictEqual(body.input, texts);
 
       assert.strictEqual(result.data.length, 2);

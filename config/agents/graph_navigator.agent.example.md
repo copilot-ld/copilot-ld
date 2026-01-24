@@ -1,12 +1,11 @@
 ---
-name: knowledge_navigator
+name: graph_navigator
 description: Navigates knowledge graphs to query entities and relationships.
 temperature: 0.3
 infer: true
 tools:
   - get_ontology
   - get_subjects
-  - search_content
   - query_by_pattern
 handoffs: []
 ---

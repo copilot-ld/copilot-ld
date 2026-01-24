@@ -121,6 +121,7 @@ help:
 	@echo "  env-reset         	Reset environment config from examples"
 	@echo ""
 	@echo "Utilities:"
+	@echo "  config-reset     	Reset config files from examples"
 	@echo "  download-bundle   	Download generated code bundle from S3"
 	@echo "  ontology-topdown  	Generate ontology (top-down approach)"
 	@echo "  security          	Run security audit"
@@ -434,16 +435,18 @@ env-storage:  ## Generate storage backend credentials
 	@node scripts/env-storage.js
 
 .PHONY: env-reset
-env-reset:  ## Reset environment config from examples
-	@cp config/config.example.json config/config.json
-	@cp config/assistants.example.yml config/assistants.yml
-	@cp config/tools.example.yml config/tools.yml
+env-reset:  config-reset ## Reset environment config from examples
 	@for file in .env*.example; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example}" || true; done
-	@echo "Environment config reset from examples"
 
 # ====================
 # Utilities
 # ====================
+
+.PHONY: config-reset
+config-reset: ## Reset config files from examples
+	@cp config/config.example.json config/config.json
+	@cp config/tools.example.yml config/tools.yml
+	@for file in config/agents/*.agent.example.md; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example.md}.md" || true; done
 
 .PHONY: download-bundle
 download-bundle:  ## Download generated code bundle from S3

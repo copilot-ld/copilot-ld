@@ -25,8 +25,7 @@ get_subjects:
   evaluation: |
     List of all entities matching the type filter.
   parameters:
-    type:
-      Entity type URI to filter by (e.g., "schema:Organization", "schema:Drug").
+    type: Entity type URI to filter by (e.g., "schema:Organization", "schema:Drug").
 
 query_by_pattern:
   purpose: |
@@ -124,7 +123,6 @@ run_sub_agent:
   parameters:
     agent_id: Identifier of the sub-agent to invoke (from list_sub_agents).
     prompt: Task description or instructions for the sub-agent to execute.
-    model: Optional model override for the sub-agent invocation.
 
 list_handoffs:
   purpose: |

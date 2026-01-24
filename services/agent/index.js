@@ -59,7 +59,7 @@ export class AgentService extends AgentBase {
 
   /**
    * List available sub-agents that can be invoked for delegation
-   * @returns {Promise<tool.ToolCallResult>} Tool result with agent identifiers
+   * @returns {Promise<tool.ToolCallResult>} Tool result with agent list as content
    */
   async ListSubAgents() {
     const actor = "common.System.root";
@@ -69,8 +69,12 @@ export class AgentService extends AgentBase {
       actor,
     );
     const inferAgents = agents.filter((a) => a.infer === true);
+    const agentList = inferAgents.map((a) => ({
+      agent_id: String(a.id),
+      description: a.description || "",
+    }));
     return tool.ToolCallResult.fromObject({
-      identifiers: inferAgents.map((a) => a.id),
+      content: JSON.stringify(agentList),
     });
   }
 
@@ -97,7 +101,7 @@ export class AgentService extends AgentBase {
     });
     // Set the parent conversation
     childConversation.withIdentifier(req.resource_id);
-    this.#resourceIndex.put(childConversation);
+    await this.#resourceIndex.put(childConversation);
 
     // Execute via AgentMind
     const processReq = {

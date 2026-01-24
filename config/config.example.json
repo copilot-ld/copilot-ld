@@ -47,7 +47,7 @@
   },
   "service": {
     "agent": {
-      "agent": "graph_traverser",
+      "agent": "coordinator",
       "model": "openai/gpt-4.1"
     },
     "llm": {

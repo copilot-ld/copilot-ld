@@ -12,7 +12,6 @@ export function createMockMemoryClient(overrides = {}) {
       Promise.resolve({
         messages: [{ role: "system", content: "You are an assistant" }],
         tools: [],
-        temperature: "0.7",
       }),
     ),
     AppendMemory: mock.fn(() => Promise.resolve({ accepted: "test-id" })),

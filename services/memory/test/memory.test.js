@@ -182,26 +182,6 @@ describe("memory service", () => {
       );
     });
 
-    test("GetWindow returns temperature from assistant", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
-
-      const result = await service.GetWindow({
-        resource_id: "test-conversation",
-        model: "test-model-1000",
-      });
-
-      assert.ok(result.temperature, "Should have temperature");
-      assert.strictEqual(
-        result.temperature,
-        0.3,
-        "Temperature should match assistant config",
-      );
-    });
-
     test("GetWindow returns tools from assistant configuration", async () => {
       const service = new MemoryService(
         mockConfig,

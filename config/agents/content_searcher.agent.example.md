@@ -1,7 +1,6 @@
 ---
 name: content_searcher
 description: Searches and synthesizes content using semantic similarity.
-temperature: 0.5
 infer: true
 tools:
   - search_content

@@ -37,14 +37,12 @@ export function createMockResourceIndex(options = {}) {
      * @param {string[]} [setupOptions.tools] - Tool names for agent
      * @param {string} [setupOptions.conversationId] - Conversation ID
      * @param {string} [setupOptions.agentId] - Agent ID
-     * @param {number} [setupOptions.temperature] - Agent temperature
      */
     setupDefaults(setupOptions = {}) {
       const {
         tools = [],
         conversationId = "test-conversation",
         agentId = "test-agent",
-        temperature = 0.3,
       } = setupOptions;
 
       resources.set(
@@ -61,7 +59,6 @@ export function createMockResourceIndex(options = {}) {
           id: { name: agentId, tokens: 50 },
           tools,
           content: "You are a test agent.",
-          temperature,
         }),
       );
 

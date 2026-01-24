@@ -50,7 +50,9 @@
       "agent": "graph_traverser",
       "model": "openai/gpt-4.1"
     },
-    "llm": {},
+    "llm": {
+      "temperature": 0.3
+    },
     "tool": {
       "filter": {
         "threshold": 0.48,

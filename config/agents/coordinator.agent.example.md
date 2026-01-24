@@ -3,7 +3,6 @@ name: coordinator
 description:
   Orchestrates conversations by delegating to specialized sub-agents when
   needed.
-temperature: 0.7
 infer: false
 tools:
   - list_sub_agents

@@ -40,7 +40,6 @@ export class AgentProcessor {
       const agent = common.Agent.fromObject({
         name: data.name,
         description: data.description || "",
-        temperature: data.temperature ?? 0.7,
         tools: data.tools || [],
         infer: data.infer ?? false,
         handoffs: data.handoffs || [],

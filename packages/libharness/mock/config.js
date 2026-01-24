@@ -25,7 +25,6 @@ export function createMockServiceConfig(name, overrides = {}) {
     budget: 1000,
     threshold: 0.3,
     limit: 10,
-    temperature: 0.7,
     ...overrides,
   });
 }

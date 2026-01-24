@@ -26,7 +26,6 @@ describe("libharness", () => {
     const config = createMockServiceConfig("test");
     assert.strictEqual(config.budget, 1000);
     assert.strictEqual(config.threshold, 0.3);
-    assert.strictEqual(config.temperature, 0.7);
   });
 
   test("createMockExtensionConfig includes extension properties", () => {

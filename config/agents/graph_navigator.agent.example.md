@@ -1,7 +1,6 @@
 ---
 name: graph_navigator
 description: Navigates knowledge graphs to query entities and relationships.
-temperature: 0.3
 infer: true
 tools:
   - get_ontology

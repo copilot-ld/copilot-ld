@@ -15,7 +15,7 @@ export class LlmService extends LlmBase {
    * Creates a new LLM service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {object} memoryClient - Memory service client for fetching windows
-   * @param {(token: string, model: string, baseUrl: string) => import("@copilot-ld/libllm").LlmApi} [llmFn] - Factory function to create LLM client
+   * @param {(token: string, model: string, baseUrl: string, temperature: number) => import("@copilot-ld/libllm").LlmApi} [llmFn] - Factory function to create LLM client
    */
   constructor(config, memoryClient, llmFn = createLlmApi) {
     super(config);
@@ -30,7 +30,8 @@ export class LlmService extends LlmBase {
 
     const model = req.model || this.config.model;
     const baseUrl = this.config.llmBaseUrl();
-    const llm = this.#llmFactory(req.llm_token, model, baseUrl);
+    const temperature = this.config.temperature;
+    const llm = this.#llmFactory(req.llm_token, model, baseUrl, temperature);
 
     const windowRequest = memory.WindowRequest.fromObject({
       resource_id: req.resource_id,
@@ -48,7 +49,8 @@ export class LlmService extends LlmBase {
 
     const model = req.model || this.config.model;
     const baseUrl = this.config.llmBaseUrl();
-    const llm = this.#llmFactory(req.llm_token, model, baseUrl);
+    const temperature = this.config.temperature;
+    const llm = this.#llmFactory(req.llm_token, model, baseUrl, temperature);
 
     return await llm.createEmbeddings(req.input);
   }

@@ -79,7 +79,7 @@ export class MemoryWindow {
   /**
    * Builds a complete memory window with messages and tools
    * @param {string} model - Model name to determine budget
-   * @returns {Promise<{messages: object[], tools: object[], temperature: number}>} Complete window with messages, tools, and temperature
+   * @returns {Promise<{messages: object[], tools: object[]}>} Complete window with messages and tools
    */
   async build(model) {
     if (!model) {
@@ -138,10 +138,7 @@ export class MemoryWindow {
       ...history,
     ];
 
-    // Extract temperature from agent (default 0.7 if not specified)
-    const temperature = agent.temperature ?? 0.7;
-
-    return { messages, tools, temperature };
+    return { messages, tools };
   }
 
   /**

@@ -91,16 +91,6 @@ describe("MemoryWindow", () => {
     assert.strictEqual(result.tools[1].function?.name, "analyze");
   });
 
-  it("should include temperature from assistant configuration", async () => {
-    const result = await memoryWindow.build("test-model-1000");
-
-    // Should have temperature from assistant (may be string or number depending on protobuf handling)
-    assert.ok(
-      result.temperature == 0.5,
-      `Expected temperature 0.5, got ${result.temperature}`,
-    );
-  });
-
   it("should return all conversation items within budget", async () => {
     const msg1 = resource.Identifier.fromObject({
       name: "msg1",

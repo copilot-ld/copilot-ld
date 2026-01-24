@@ -57,9 +57,8 @@ message Agent {
   resource.Identifier id = 1;
   string name = 2;
   string description = 3;
-  float temperature = 4;
-  repeated string tools = 5;
-  string content = 6;
-  bool infer = 7;
-  repeated Handoff handoffs = 8;
+  repeated string tools = 4;
+  string content = 5;
+  bool infer = 6;
+  repeated Handoff handoffs = 7;
 }

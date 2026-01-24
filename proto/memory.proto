@@ -29,7 +29,6 @@ message WindowRequest {
 message WindowResponse {
   repeated common.Message messages = 1;
   repeated tool.ToolCall tools = 2;
-  float temperature = 3;
 }
 
 message BudgetRequest {

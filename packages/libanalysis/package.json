@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libanalysis",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Code analysis and formatting utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -26,6 +26,6 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.1"
+    "@copilot-ld/libharness": "^0.1.2"
   }
 }

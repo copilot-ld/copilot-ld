@@ -22,12 +22,12 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libllm": "^0.1.67",
+    "@copilot-ld/libllm": "^0.1.68",
     "@copilot-ld/libpolicy": "^0.1.49",
     "@copilot-ld/libstorage": "^0.1.50",
     "@copilot-ld/libtelemetry": "^0.1.19",
     "@copilot-ld/libtype": "^0.1.59",
-    "@copilot-ld/libutil": "^0.1.56",
+    "@copilot-ld/libutil": "^0.1.57",
     "html-minifier-terser": "^7.2.0"
   },
   "devDependencies": {

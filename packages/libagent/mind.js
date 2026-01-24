@@ -130,11 +130,12 @@ export class AgentMind {
       this.#resourceIndex.put(conversation);
     }
 
-    const message = this.#getLatestUserMessage(req.messages);
+    const rawMessage = this.#getLatestUserMessage(req.messages);
 
-    if (!message) {
+    if (!rawMessage) {
       throw new Error("No user message found in request");
     }
+    const message = common.Message.fromObject(rawMessage);
     message.withIdentifier(conversation.id);
     this.#resourceIndex.put(message);
 

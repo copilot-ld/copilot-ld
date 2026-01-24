@@ -19,8 +19,8 @@
     "@copilot-ld/libresource": "^0.1.86",
     "@copilot-ld/librpc": "^0.1.74",
     "@copilot-ld/libstorage": "^0.1.50",
-    "@copilot-ld/libtype": "^0.1.59",
-    "@copilot-ld/libvector": "^0.1.64"
+    "@copilot-ld/libtype": "^0.1.60",
+    "@copilot-ld/libvector": "^0.1.65"
   },
   "repository": {
     "type": "git",

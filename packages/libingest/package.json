@@ -24,6 +24,6 @@
     "@copilot-ld/libutil": "^0.1.57"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.1"
+    "@copilot-ld/libharness": "^0.1.2"
   }
 }

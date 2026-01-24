@@ -35,7 +35,7 @@ export class AgentProcessor {
 
     for (const file of agentFiles) {
       const raw = await this.#configStorage.get(file);
-      const { data, content } = parseFrontMatter(raw);
+      const { data, content } = parseFrontMatter(raw.toString("utf-8"));
 
       const agent = common.Agent.fromObject({
         name: data.name,

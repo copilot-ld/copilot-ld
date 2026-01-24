@@ -46,6 +46,7 @@ runs:
     - name: Install TEI
       shell: bash
       run: |
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
         if ! command -v text-embeddings-router &> /dev/null; then
           make tei-install
         fi

@@ -171,6 +171,7 @@ async function generateToolSchemas(endpoints, logger) {
     }
 
     const [packageName, serviceName, methodName] = methodParts;
+    const fullServiceName = `${packageName}.${serviceName}`;
 
     // Resolve proto path: prefer tools/<package>.proto, fallback to proto/<package>.proto
     let protoPath = `tools/${packageName}.proto`;
@@ -183,7 +184,11 @@ async function generateToolSchemas(endpoints, logger) {
     }
 
     // Try to load schema dynamically from protobuf
-    const schema = await loadMethodSchema(protoPath, serviceName, methodName);
+    const schema = await loadMethodSchema(
+      protoPath,
+      fullServiceName,
+      methodName,
+    );
 
     // Mark all properties as required if none specified
     // Exception: if all fields are optional, keep required array empty

@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libeval",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "description": "Evaluation system for RAG agent quality assessment",
   "type": "module",
   "exports": {

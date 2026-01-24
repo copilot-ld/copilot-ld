@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libharness",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Test harness and mock infrastructure for copilot-ld tests",
   "type": "module",
   "main": "index.js",

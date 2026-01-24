@@ -68,6 +68,7 @@ help:
 	@echo "  rc-stop           	Stop services via rc"
 	@echo "  rc-restart        	Restart services via rc"
 	@echo "  rc-status         	Show service status"
+	@echo "  tei-start         	Start TEI embedding service"
 	@echo ""
 	@echo "Docker:"
 	@echo "  docker            	Build and start Docker Compose"
@@ -260,6 +261,10 @@ rc-restart:  ## Restart services via rc
 .PHONY: rc-status
 rc-status:  ## Show service status
 	@$(ENVLOAD) node packages/librc/bin/rc.js status
+
+.PHONY: tei-start
+tei-start:  ## Start TEI embedding service
+	@$(ENVLOAD) node packages/librc/bin/rc.js start tei
 
 # ====================
 # Docker

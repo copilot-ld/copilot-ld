@@ -73,7 +73,7 @@ function withIdentifier(parent, subjects) {
   }
 }
 
-common.Assistant.prototype.withIdentifier = withIdentifier;
+common.Agent.prototype.withIdentifier = withIdentifier;
 common.Conversation.prototype.withIdentifier = withIdentifier;
 common.Message.prototype.withIdentifier = withIdentifier;
 tool.ToolFunction.prototype.withIdentifier = withIdentifier;
@@ -134,14 +134,14 @@ common.Conversation.fromObject = function (object) {
 };
 
 /**
- * Monkey-patches for common.Assistant
+ * Monkey-patches for common.Agent
  */
-const AssistantCtor = common.Assistant;
-const AssistantfromObject = AssistantCtor.fromObject;
+const AgentCtor = common.Agent;
+const AgentfromObject = AgentCtor.fromObject;
 
-// Monkey-patch Assistant.fromObject to apply identifier
-common.Assistant.fromObject = function (object) {
-  const typed = AssistantfromObject(object);
+// Monkey-patch Agent.fromObject to apply identifier
+common.Agent.fromObject = function (object) {
+  const typed = AgentfromObject(object);
   typed.withIdentifier();
   return typed;
 };

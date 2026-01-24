@@ -6,6 +6,7 @@ import { AgentService } from "../index.js";
 import {
   createMockServiceConfig,
   createSilentLogger,
+  createMockResourceIndex,
 } from "@copilot-ld/libharness";
 
 describe("agent service", () => {
@@ -31,7 +32,7 @@ describe("agent service", () => {
 
     test("AgentService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(AgentService.length, 2); // config, agentMind
+      assert.strictEqual(AgentService.length, 3); // config, agentMind, resourceIndex
     });
 
     test("AgentService has proper method signatures", () => {
@@ -45,6 +46,7 @@ describe("agent service", () => {
   describe("AgentService business logic", () => {
     let mockConfig;
     let mockAgentMind;
+    let mockResourceIndex;
     let _mockLogger;
 
     beforeEach(() => {
@@ -61,13 +63,19 @@ describe("agent service", () => {
         }),
       };
 
+      mockResourceIndex = createMockResourceIndex();
+
       _mockLogger = createSilentLogger();
     });
 
     test("constructor validates required dependencies", () => {
       assert.throws(
-        () => new AgentService(mockConfig, null),
+        () => new AgentService(mockConfig, null, mockResourceIndex),
         /agentMind is required/,
+      );
+      assert.throws(
+        () => new AgentService(mockConfig, mockAgentMind, null),
+        /resourceIndex is required/,
       );
     });
 
@@ -78,7 +86,11 @@ describe("agent service", () => {
         },
       };
 
-      const service = new AgentService(mockConfig, mockAgentMindWithError);
+      const service = new AgentService(
+        mockConfig,
+        mockAgentMindWithError,
+        mockResourceIndex,
+      );
 
       const mockCall = {
         request: { messages: [], llm_token: "test-token" },
@@ -93,14 +105,22 @@ describe("agent service", () => {
     });
 
     test("creates service instance with all dependencies", () => {
-      const service = new AgentService(mockConfig, mockAgentMind);
+      const service = new AgentService(
+        mockConfig,
+        mockAgentMind,
+        mockResourceIndex,
+      );
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
     });
 
     test("ProcessStream calls agentMind and returns response", async () => {
-      const service = new AgentService(mockConfig, mockAgentMind);
+      const service = new AgentService(
+        mockConfig,
+        mockAgentMind,
+        mockResourceIndex,
+      );
 
       const mockCall = {
         request: {

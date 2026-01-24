@@ -56,7 +56,7 @@ help:
 	@echo "  ingest-pipeline  	Run ingestion pipeline"
 	@echo "  process          	Process all resources"
 	@echo "  process-fast      	Process without vectors"
-	@echo "  process-assistants	Process assistant definitions"
+	@echo "  process-agents	Process assistant definitions"
 	@echo "  process-resources 	Process knowledge resources"
 	@echo "  process-tools     	Process tool definitions"
 	@echo "  process-vectors   	Process vector indices"
@@ -121,6 +121,7 @@ help:
 	@echo "  env-reset         	Reset environment config from examples"
 	@echo ""
 	@echo "Utilities:"
+	@echo "  config-reset     	Reset config files from examples"
 	@echo "  download-bundle   	Download generated code bundle from S3"
 	@echo "  ontology-topdown  	Generate ontology (top-down approach)"
 	@echo "  security          	Run security audit"
@@ -210,14 +211,14 @@ ingest-pipeline:  ## Run ingestion pipeline
 	@$(ENVLOAD) npx --workspace=@copilot-ld/libingest ingest-pipeline
 
 .PHONY: process
-process: process-assistants process-resources process-tools process-graphs process-vectors  ## Process all resources
+process: process-agents process-resources process-tools process-graphs process-vectors  ## Process all resources
 
 .PHONY: process-fast
-process-fast: process-assistants process-resources process-tools process-graphs  ## Process without vectors
+process-fast: process-agents process-resources process-tools process-graphs  ## Process without vectors
 
-.PHONY: process-assistants
-process-assistants:  ## Process assistant definitions
-	@$(ENVLOAD) npx --workspace=@copilot-ld/libagent process-assistants
+.PHONY: process-agents
+process-agents:  ## Process assistant definitions
+	@$(ENVLOAD) npx --workspace=@copilot-ld/libagent process-agents
 
 .PHONY: process-resources
 process-resources:  ## Process knowledge resources
@@ -434,16 +435,18 @@ env-storage:  ## Generate storage backend credentials
 	@node scripts/env-storage.js
 
 .PHONY: env-reset
-env-reset:  ## Reset environment config from examples
-	@cp config/config.example.json config/config.json
-	@cp config/assistants.example.yml config/assistants.yml
-	@cp config/tools.example.yml config/tools.yml
+env-reset:  config-reset ## Reset environment config from examples
 	@for file in .env*.example; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example}" || true; done
-	@echo "Environment config reset from examples"
 
 # ====================
 # Utilities
 # ====================
+
+.PHONY: config-reset
+config-reset: ## Reset config files from examples
+	@cp config/config.example.json config/config.json
+	@cp config/tools.example.yml config/tools.yml
+	@for file in config/agents/*.agent.example.md; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example.md}.md" || true; done
 
 .PHONY: download-bundle
 download-bundle:  ## Download generated code bundle from S3

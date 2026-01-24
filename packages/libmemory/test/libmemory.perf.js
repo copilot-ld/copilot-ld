@@ -73,17 +73,17 @@ describe("LibMemory Performance Tests", () => {
                   identifier: { name: "test-conversation" },
                   descriptor: { name: "Test Conversation" },
                   type: "common.Conversation",
-                  assistant_id: "test-assistant",
+                  agent_id: "test-agent",
                 },
               ];
             }
-            // Handle assistant lookup
-            if (ids[0] === "test-assistant") {
+            // Handle agent lookup
+            if (ids[0] === "test-agent") {
               return [
                 {
-                  identifier: { name: "test-assistant" },
-                  descriptor: { name: "Test Assistant" },
-                  type: "common.Assistant",
+                  identifier: { name: "test-agent" },
+                  descriptor: { name: "Test Agent" },
+                  type: "common.Agent",
                   instructions: "Test instructions",
                   tools: [], // No tools to keep it simple
                 },

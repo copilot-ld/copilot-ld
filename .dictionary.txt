@@ -28,8 +28,8 @@ backticks
 balancer
 Balancer
 Base64
-base64url
 Base64-encoded
+base64url
 BioNova
 boolean
 botbuilder
@@ -58,10 +58,12 @@ config
 Config
 config-yml
 configs
+content_searcher
 copilot-ld
 Copilot-LD
 copilot-ld's
 Copilot-LD's
+coordinator
 CORS
 cryptographic
 Cryptographic
@@ -119,10 +121,13 @@ ESLint
 ESM
 ETIMEDOUT
 eval
+eval_judge
 fallback
 fallbacks
 Fargate
 filesystem
+frontmatter
+Frontmatter
 forwarding
 FOUC
 frontend
@@ -130,6 +135,7 @@ GCM
 geo-routing
 getter
 GitHub
+GMP
 GoTrue
 Grafana
 groupchat
@@ -138,6 +144,10 @@ gRPC
 grpc-enabled
 gRPC-enabled
 gRPCs
+handoff
+Handoff
+handoffs
+Handoffs
 hardcoded
 healthcheck
 hgroup
@@ -179,8 +189,10 @@ JSON-ND
 JSON-structured
 JSONL
 JSONL-based
+judgements
 JWT
 keyless
+knowledge_navigator
 Kubernetes
 li
 libanalysis
@@ -218,6 +230,7 @@ lookup
 lookups
 machine-parsable
 macOS
+ManufacturingOS
 MDN
 microdata
 Microdata
@@ -236,6 +249,7 @@ MinIO
 minioadmin
 mockable
 modularity
+MolecularForge
 monorepo
 mTLS
 N3
@@ -276,6 +290,7 @@ OpenTelemetry-based
 opentelemetry-compatible
 OpenTelemetry-compatible
 OpenTelemetry-style
+option1
 orchestrator
 organisation
 Organisation
@@ -305,6 +320,7 @@ pre-compiled
 Pre-compiled
 pre-computed
 Pre-computed
+pre-configured
 pre-created
 pre-processed
 preloaded
@@ -337,6 +353,7 @@ REPL-based
 replp
 repo
 repos
+researcher
 ResourceIndex
 retryable
 reusability

@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "process-assistants": "./bin/assistants.js"
+    "process-agents": "./bin/agents.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -31,6 +31,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
+    "@copilot-ld/libdoc": "^0.1.0",
     "@copilot-ld/libharness": "^0.1.1"
   }
 }

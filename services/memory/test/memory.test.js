@@ -177,28 +177,8 @@ describe("memory service", () => {
       );
       assert.strictEqual(
         result.messages[0].id?.name,
-        "test-assistant",
+        "test-agent",
         "First message should be assistant",
-      );
-    });
-
-    test("GetWindow returns temperature from assistant", async () => {
-      const service = new MemoryService(
-        mockConfig,
-        mockStorage,
-        mockResourceIndex,
-      );
-
-      const result = await service.GetWindow({
-        resource_id: "test-conversation",
-        model: "test-model-1000",
-      });
-
-      assert.ok(result.temperature, "Should have temperature");
-      assert.strictEqual(
-        result.temperature,
-        0.3,
-        "Temperature should match assistant config",
       );
     });
 
@@ -276,7 +256,7 @@ describe("memory service", () => {
 
       // Should return assistant + 2 conversation messages
       assert.strictEqual(result.messages.length, 3);
-      assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+      assert.strictEqual(result.messages[0].id?.name, "test-agent");
       assert.strictEqual(result.messages[1].id?.name, "message1");
       assert.strictEqual(result.messages[2].id?.name, "message2");
     });

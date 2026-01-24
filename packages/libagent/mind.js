@@ -70,7 +70,7 @@ export class AgentMind {
       );
 
       const llmToken = req.llm_token;
-      const model = req.model || this.#config.model;
+      const model = this.#config.model;
 
       /**
        * Saves a resource to the index and memory, and streams to client
@@ -120,21 +120,22 @@ export class AgentMind {
 
     // Create new conversation if none exists or none was found
     if (!conversation) {
-      const assistantName = req.assistant || this.#config.assistant;
+      const agentName = req.agent || this.#config.agent;
       conversation = common.Conversation.fromObject({
         id: {
           name: generateUUID(),
         },
-        assistant_id: `common.Assistant.${assistantName}`,
+        agent_id: `common.Agent.${agentName}`,
       });
       this.#resourceIndex.put(conversation);
     }
 
-    const message = this.#getLatestUserMessage(req.messages);
+    const rawMessage = this.#getLatestUserMessage(req.messages);
 
-    if (!message) {
+    if (!rawMessage) {
       throw new Error("No user message found in request");
     }
+    const message = common.Message.fromObject(rawMessage);
     message.withIdentifier(conversation.id);
     this.#resourceIndex.put(message);
 

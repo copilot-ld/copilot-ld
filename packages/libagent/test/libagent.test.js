@@ -17,7 +17,7 @@ describe("libagent", () => {
 
   beforeEach(() => {
     mockConfig = createMockConfig("agent", {
-      assistant: "software_dev_expert",
+      agent: "software_dev_expert",
     });
 
     mockServiceCallbacks = createMockServiceCallbacks({
@@ -32,7 +32,7 @@ describe("libagent", () => {
     });
 
     mockResourceIndex = createMockResourceIndex();
-    mockResourceIndex.setupDefaults({ assistantId: "test-assistant" });
+    mockResourceIndex.setupDefaults({ agentId: "test-agent" });
   });
 
   test("AgentMind and AgentHands can be imported from main index", () => {
@@ -67,7 +67,7 @@ describe("libagent", () => {
           name: "test-conv",
           type: "common.Conversation",
         },
-        assistant_id: "common.Assistant.test",
+        agent_id: "common.Agent.test",
       }),
       message: common.Message.fromObject({
         id: {

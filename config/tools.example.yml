@@ -11,6 +11,7 @@ get_ontology:
     (schema:member, schema:clinicalPharmacology, schema:softwareRequirements, etc.).
   evaluation: |
     Complete schema showing available types and predicates.
+  parameters: {}
 
 get_subjects:
   purpose: |
@@ -23,6 +24,9 @@ get_subjects:
     Output: Tab-separated list of entity URIs and their types.
   evaluation: |
     List of all entities matching the type filter.
+  parameters:
+    type:
+      Entity type URI to filter by (e.g., "schema:Organization", "schema:Drug").
 
 query_by_pattern:
   purpose: |
@@ -37,6 +41,10 @@ query_by_pattern:
     Output: Array of matching content.
   evaluation: |
     Structured facts matching the triple pattern.
+  parameters:
+    subject: Subject URI of the triple pattern (use "?" as wildcard).
+    predicate: Predicate URI defining the relationship (use "?" as wildcard).
+    object: Object URI or literal value (use "?" as wildcard).
 
 search_content:
   purpose: |
@@ -44,10 +52,12 @@ search_content:
   applicability: |
     Use for "what is X", "how does Y work", or when graph queries insufficient.
   instructions: |
-    Input: Text query in 'text' field.
+    Input: Text query in 'input' field.
     Optional: 'limit' and 'threshold' for filtering.
   evaluation: |
     Array of detailed content strings matching your query.
+  parameters:
+    input: Text queries to search for using semantic similarity.
 
 sha256_hash:
   purpose: |
@@ -65,6 +75,8 @@ sha256_hash:
   evaluation: |
     Returns exactly 64-character hexadecimal string representing the SHA-256
     hash of the input text.
+  parameters:
+    input: Text string to be hashed using SHA-256 algorithm.
 
 md5_hash:
   purpose: |
@@ -82,3 +94,60 @@ md5_hash:
   evaluation: |
     Returns exactly 32-character hexadecimal string representing the MD5
     hash of the input text.
+  parameters:
+    input: Text string to be hashed using MD5 algorithm.
+
+list_sub_agents:
+  purpose: |
+    List available sub-agents that can be invoked for delegation.
+  applicability: |
+    Use to discover which agents are available for sub-agent invocation.
+    Only agents with infer=true will be returned.
+  instructions: |
+    No input parameters. Returns list of agent IDs available for delegation.
+  evaluation: |
+    List of agent IDs that can be passed to run_sub_agent.
+  parameters: {}
+
+run_sub_agent:
+  purpose: |
+    Run a sub-agent with a specific task in an isolated child conversation.
+  applicability: |
+    Use when delegating a specific task to another agent. The sub-agent
+    executes in isolation and returns results without affecting the
+    current conversation context.
+  instructions: |
+    Input: 'agent_id' (from list_sub_agents) and 'prompt' (task description).
+    Output: Sub-agent response with generated messages.
+  evaluation: |
+    Complete response from the sub-agent for the delegated task.
+  parameters:
+    agent_id: Identifier of the sub-agent to invoke (from list_sub_agents).
+    prompt: Task description or instructions for the sub-agent to execute.
+
+list_handoffs:
+  purpose: |
+    List valid handoff labels available from the current agent.
+  applicability: |
+    Use to discover which handoffs are configured for the current agent
+    before executing a handoff.
+  instructions: |
+    No input parameters (uses current conversation context).
+    Returns list of handoff labels.
+  evaluation: |
+    List of labels that can be passed to run_handoff.
+  parameters: {}
+
+run_handoff:
+  purpose: |
+    Hand off conversation control to another agent.
+  applicability: |
+    Use when the current task requires a different agent's expertise.
+    The handoff transfers the full conversation context to the target agent.
+  instructions: |
+    Input: 'label' (from list_handoffs).
+    Output: Confirmation of handoff with new agent ID.
+  evaluation: |
+    Conversation control transferred to the target agent.
+  parameters:
+    label: Handoff label identifying the target agent (from list_handoffs).

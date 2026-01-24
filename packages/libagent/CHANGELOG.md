@@ -1,9 +1,18 @@
 # Changelog
 
+## 2026-01-23
+
+- **BREAKING**: Renamed "assistant" to "agent" throughout the codebase
+- Added `AgentProcessor` for processing `.agent.md` files with frontmatter
+- Agents now use `agent_id` instead of `assistant_id` for conversation
+  references
+- Agent configuration moved from `config/assistants.yml` to
+  `config/agents/*.agent.md`
+
 ## 2025-12-21
 
-- `AgentMind.setupConversation()` now supports `req.assistant` to override the
-  default assistant
+- `AgentMind.setupConversation()` now supports `req.agent` to override the
+  default agent
 
 ## 2025-12-02
 

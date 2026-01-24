@@ -160,6 +160,7 @@ export class ToolService extends ToolBase {
     // Apply static filter from service configuration
     if (this.#filter) args.filter = this.#filter;
     if (toolRequest.llm_token) args.llm_token = toolRequest.llm_token;
+    if (toolRequest.resource_id) args.resource_id = toolRequest.resource_id;
 
     const RequestType = types[requestPackage]?.[requestType];
     if (!RequestType) {

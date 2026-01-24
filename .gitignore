@@ -26,10 +26,12 @@
 
 ## Config files
 **/config/config.json
-**/config/assistants.yml
 **/config/tools.yml
 **/config/eval.yml
 **/config/ingest.yml
+
+# Agents
+**/config/agents/*.agent.md
 
 # Editor files
 **/.vscode/

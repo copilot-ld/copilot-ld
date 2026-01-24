@@ -20,13 +20,23 @@ framework-independent orchestration and testability.
 #### Agent Service
 
 Central orchestrator that autonomously decides what tool calls to make and when.
-Requests are processed sequentially per request (readiness checks run in
-parallel). Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
+Supports multi-agent workflows with sub-agent delegation and conversation
+handoffs. Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
 
 **Core Components**:
 
 - **AgentMind**: Handles conversation setup, planning, and context assembly
 - **AgentHands**: Executes tool calls and manages the tool calling loop
+
+**Key Operations**:
+
+- `ProcessStream`: Streams agent responses for real-time updates
+- `ProcessUnary`: Returns a single agent response
+- `ListSubAgents`: Returns agents available for sub-agent invocation
+  (`infer: true`)
+- `RunSubAgent`: Executes a sub-agent in an isolated child conversation
+- `ListHandoffs`: Returns handoff labels available from the current agent
+- `RunHandoff`: Transfers conversation control to another agent
 
 **Architecture**:
 
@@ -36,18 +46,44 @@ parallel). Built as a thin gRPC wrapper around `@copilot-ld/libagent`.
   handling authentication and communication
 - **Resource integration**: Direct access to `ResourceIndex` with policy-based
   filtering
+- **Multi-agent support**: Sub-agents execute in isolated child conversations;
+  handoffs transfer control within the same conversation
 - **Testability**: Business logic can be unit tested without service
   infrastructure
 
 <details>
 <summary>Message Assembly and Budgeting</summary>
 
-- **Architecture**: `conversation` → `assistant` → `tools` chain loaded by
+- **Architecture**: `conversation` → `agent` → `tools` chain loaded by
   `MemoryService`
-- **Budgeting formula**: `remaining = budget - assistant.tokens - tools.tokens`
+- **Budgeting formula**: `remaining = budget - agent.tokens - tools.tokens`
 - **Token filtering**: Messages selected within budget, oldest first
 - **Autonomous decisions**: Agent decides which tools to call without hard-wired
   dependencies
+
+</details>
+
+<details>
+<summary>Sub-Agent Execution Flow</summary>
+
+1. Agent calls `ListSubAgents` to discover available sub-agents
+2. Agent calls `RunSubAgent` with target `agent_id` and task `prompt`
+3. Service validates target agent has `infer: true`
+4. New child conversation created with reference to parent
+5. Sub-agent executes independently with its own tools and context
+6. Results return to parent agent; parent conversation unchanged
+
+</details>
+
+<details>
+<summary>Handoff Execution Flow</summary>
+
+1. Agent calls `ListHandoffs` to discover available handoffs from current agent
+2. Agent calls `RunHandoff` with handoff `label`
+3. Service looks up handoff configuration from current agent
+4. Conversation's `agent_id` updated to target agent
+5. Handoff `prompt` injected as user message
+6. Target agent continues with full conversation history
 
 </details>
 
@@ -60,7 +96,7 @@ consumption. Built as a gRPC wrapper around `@copilot-ld/libmemory`.
 **Key Operations**:
 
 - `AppendMemory`: Adds resource identifiers with automatic deduplication
-- `GetWindow`: Returns `{messages, tools}` by loading conversation → assistant →
+- `GetWindow`: Returns `{messages, tools}` by loading conversation → agent →
   tools chain
 
 **Architecture**:

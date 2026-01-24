@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-01-23
+
+- Added `ListSubAgents` RPC to discover agents available for sub-agent
+  invocation
+- Added `RunSubAgent` RPC for isolated agent execution in child conversations
+- Added `ListHandoffs` RPC to discover available handoff labels from current
+  agent
+- Added `RunHandoff` RPC to transfer conversation control to another agent
+- Service constructor now requires `resourceIndex` dependency for multi-agent
+  operations
+
 ## 2025-12-01
 
 - Renamed `ProcessRequest()` to `ProcessStream()` for streaming responses

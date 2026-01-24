@@ -18,12 +18,12 @@ toc: true
 
 The Copilot-LD processing pipeline transforms your knowledge base into
 searchable resources, tool definitions, and vector embeddings. The system
-processes assistants, HTML content, tools, and vectors automatically in the
-correct sequence.
+processes agents, HTML content, tools, and vectors automatically in the correct
+sequence.
 
 ## 1. Processing All Data
 
-Process assistants, knowledge base content, tools, and vectors with a single
+Process agents, knowledge base content, tools, and vectors with a single
 command. The system handles all stages automatically:
 
 ```bash
@@ -120,14 +120,14 @@ Resource processing creates individual JSON files in `data/resources/` with
 Copilot-LD (CLD) identifiers. The directory structure includes:
 
 - Individual message resources: `common.Message.{hash}.json`
-- Assistant configurations: `common.Assistant.{name}.json`
+- Agent configurations: `common.Agent.{name}.json`
 - Conversation metadata: `common.Conversation.{uuid}.json`
 - Tool definitions: `tool.ToolFunction.{name}.json`
 
 ```bash
 data/resources/
 ├── common.Message.{hash}.json
-├── common.Assistant.{name}.json
+├── common.Agent.{name}.json
 └── common.Conversation.{uuid}.json
 ├── tool.ToolFunction.{name}.json
 ```
@@ -140,11 +140,13 @@ Each extracted resource contains:
 - **Content**: Extracted text content from the HTML element as RDF
 - **Metadata**: Schema.org type, source file, extraction timestamp
 
-### Assistant Processing
+### Agent Processing
 
-The resource processor also processes assistant configurations, creating
-resources for each defined assistant persona. This enables the system to search
-and select appropriate assistants based on context.
+The resource processor also processes agent configurations from
+`config/agents/*.agent.md` files. Each `.agent.md` file contains frontmatter
+with agent metadata and a markdown body for the system prompt. Processing
+creates resources for each defined agent persona, enabling the system to select
+and configure agents at runtime.
 
 ## 4. Tool Processing
 

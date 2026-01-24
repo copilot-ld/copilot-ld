@@ -33,12 +33,14 @@ async function loadToolDescriptors() {
 /**
  * Map protobuf field type to JSON schema property type
  * @param {object} field - Protobuf field definition
+ * @param {string} [description] - Optional description from descriptor
  * @returns {object} JSON schema property object
  * @private
  */
-function mapFieldToSchema(field) {
+function mapFieldToSchema(field, description) {
   const property = {
-    description: field.comment || `${field.name || "field"} field`,
+    description:
+      description || field.comment || `${field.name || "field"} field`,
   };
 
   // Handle repeated fields (arrays) first, before scalar type mapping
@@ -95,10 +97,11 @@ function mapFieldToSchema(field) {
 /**
  * Generate OpenAI-compatible JSON schema from protobuf message type
  * @param {object} messageType - Protobuf message type
+ * @param {object} [paramDescriptions] - Parameter descriptions from descriptor
  * @returns {object} JSON schema
  * @private
  */
-function generateSchemaFromProtobuf(messageType) {
+function generateSchemaFromProtobuf(messageType, paramDescriptions = {}) {
   const schema = {
     type: "object",
     properties: {},
@@ -112,13 +115,18 @@ function generateSchemaFromProtobuf(messageType) {
 
   // Iterate through protobuf fields to build JSON schema
   for (const [fieldName, field] of Object.entries(messageType.fields)) {
-    // Skip the filter and llm_token fields. These will be automatically
-    // passed by the system.
-    if (fieldName === "llm_token" || fieldName === "filter") {
+    // Skip the filter, llm_token, and resource_id fields. These will be
+    // automatically passed by the system.
+    if (
+      fieldName === "llm_token" ||
+      fieldName === "filter" ||
+      fieldName === "resource_id"
+    ) {
       continue;
     }
 
-    const property = mapFieldToSchema(field);
+    const description = paramDescriptions[fieldName];
+    const property = mapFieldToSchema(field, description);
     schema.properties[fieldName] = property;
 
     // Add to required fields if not optional. Protobufjs sets 'optional' flag only for proto2.
@@ -136,9 +144,15 @@ function generateSchemaFromProtobuf(messageType) {
  * @param {string} protoPath - Path to the proto file
  * @param {string} serviceName - Service name
  * @param {string} methodName - Method name
+ * @param {object} [paramDescriptions] - Parameter descriptions from descriptor
  * @returns {Promise<object>} JSON schema for the method request
  */
-async function loadMethodSchema(protoPath, serviceName, methodName) {
+async function loadMethodSchema(
+  protoPath,
+  serviceName,
+  methodName,
+  paramDescriptions = {},
+) {
   const root = new Root();
   await root.load(protoPath, { keepCase: true });
   const service = root.lookupService(serviceName);
@@ -149,16 +163,17 @@ async function loadMethodSchema(protoPath, serviceName, methodName) {
   }
 
   const requestType = root.lookupType(method.requestType);
-  return generateSchemaFromProtobuf(requestType);
+  return generateSchemaFromProtobuf(requestType, paramDescriptions);
 }
 
 /**
  * Generate tool schemas from endpoint configurations
  * @param {object} endpoints - Tool endpoint configurations
+ * @param {object} descriptors - Tool descriptors with parameter descriptions
  * @param {object} logger - Logger instance
  * @returns {Promise<Array<object>>} Array of tool schemas
  */
-async function generateToolSchemas(endpoints, logger) {
+async function generateToolSchemas(endpoints, descriptors, logger) {
   const tools = [];
 
   for (const [toolName, endpoint] of Object.entries(endpoints)) {
@@ -171,6 +186,7 @@ async function generateToolSchemas(endpoints, logger) {
     }
 
     const [packageName, serviceName, methodName] = methodParts;
+    const fullServiceName = `${packageName}.${serviceName}`;
 
     // Resolve proto path: prefer tools/<package>.proto, fallback to proto/<package>.proto
     let protoPath = `tools/${packageName}.proto`;
@@ -182,8 +198,17 @@ async function generateToolSchemas(endpoints, logger) {
       protoPath = `proto/${packageName}.proto`;
     }
 
+    // Get parameter descriptions from descriptor
+    const descriptor = descriptors[toolName] || {};
+    const paramDescriptions = descriptor.parameters || {};
+
     // Try to load schema dynamically from protobuf
-    const schema = await loadMethodSchema(protoPath, serviceName, methodName);
+    const schema = await loadMethodSchema(
+      protoPath,
+      fullServiceName,
+      methodName,
+      paramDescriptions,
+    );
 
     // Mark all properties as required if none specified
     // Exception: if all fields are optional, keep required array empty
@@ -316,7 +341,7 @@ async function main() {
     return;
   }
 
-  const tools = await generateToolSchemas(endpoints, logger);
+  const tools = await generateToolSchemas(endpoints, descriptors, logger);
 
   // Build lookup map from descriptors object
   const descriptorMap = new Map(

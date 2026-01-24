@@ -106,7 +106,6 @@ describe("llm service", () => {
             llm_token: "test-token",
             messages: [{ role: "user", content: "Hello" }],
             tools: [],
-            temperature: 0.7,
           });
         },
         { message: "resource_id is required for CreateCompletions" },

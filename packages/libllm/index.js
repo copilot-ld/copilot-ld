@@ -36,6 +36,7 @@ export class LlmApi {
   #fetch;
   #tokenizer;
   #retry;
+  #temperature;
 
   /**
    * Creates a new LLM API instance
@@ -45,6 +46,7 @@ export class LlmApi {
    * @param {import("@copilot-ld/libutil").Retry} retry - Retry instance for handling transient errors
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
+   * @param {number} [temperature] - Temperature for completions
    */
   constructor(
     token,
@@ -53,6 +55,7 @@ export class LlmApi {
     retry,
     fetchFn = fetch,
     tokenizerFn = createTokenizer,
+    temperature = 0.3,
   ) {
     if (!baseUrl) throw new Error("baseUrl is required");
     if (!retry) throw new Error("retry is required");
@@ -72,6 +75,7 @@ export class LlmApi {
     this.#fetch = fetchFn;
     this.#tokenizer = tokenizerFn();
     this.#retry = retry;
+    this.#temperature = temperature;
   }
 
   /**
@@ -103,6 +107,7 @@ export class LlmApi {
     const body = {
       ...window,
       model: this.#model,
+      temperature: this.#temperature,
     };
 
     const response = await this.#retry.execute(() =>
@@ -131,8 +136,8 @@ export class LlmApi {
         headers: this.#headers,
         body: JSON.stringify({
           // TODO: Make this configurable
-          model: "openai/text-embedding-3-small",
-          dimensions: 256,
+          model: "text-embedding-3-large",
+          dimensions: 1024,
           input,
         }),
       }),
@@ -267,6 +272,7 @@ export function createProxyAwareFetch(process = global.process) {
  * @param {string} token - LLM API token
  * @param {string} model - Model to use
  * @param {string} baseUrl - Base URL for the LLM API (required, e.g. https://models.github.ai/orgs/{org})
+ * @param {number} [temperature] - Temperature for completions
  * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
  * @returns {LlmApi} Configured LlmApi instance
@@ -275,6 +281,7 @@ export function createLlmApi(
   token,
   model,
   baseUrl,
+  temperature = 0.3,
   fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
 ) {
@@ -284,7 +291,15 @@ export function createLlmApi(
     );
   }
   const retry = createRetry();
-  return new LlmApi(token, model, baseUrl, retry, fetchFn, tokenizerFn);
+  return new LlmApi(
+    token,
+    model,
+    baseUrl,
+    retry,
+    fetchFn,
+    tokenizerFn,
+    temperature,
+  );
 }
 
 /**

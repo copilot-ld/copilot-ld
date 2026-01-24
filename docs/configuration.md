@@ -18,8 +18,9 @@ The Copilot-LD platform uses two primary configuration approaches:
 
 - **Environment Variables** (`.env` files): Runtime configuration for services,
   networking, and authentication
-- **JSON/YAML Configuration** (`config/*.json` and `config/*.yml`): Service
-  behavior, tool definitions, and assistant configurations
+- **JSON/YAML Configuration** (`config/*.json`, `config/*.yml`, and
+  `config/agents/`): Service behavior, tool definitions, and agent
+  configurations
 
 ## Environment Variables
 
@@ -57,7 +58,6 @@ cp .env.storage.supabase.example .env.storage.supabase # Supabase
 
 # JSON/YAML configuration
 cp config/config.example.json config/config.json
-cp config/assistants.example.yml config/assistants.yml
 cp config/tools.example.yml config/tools.yml
 ```
 
@@ -324,8 +324,8 @@ The `service` section defines service-specific configuration:
 {
   "service": {
     "agent": {
-      "assistant": "software_dev_expert",
-      "permanent_tools": ["get_ontology", "search_content", "query_by_pattern"],
+      "agent": "knowledge_graph_agent",
+      "tools": ["get_ontology", "search_content", "query_by_pattern"],
       "threshold": 0.25,
       "temperature": 0.25,
       "budget": {
@@ -380,28 +380,61 @@ sha256_hash:
     hash of the input text.
 ```
 
-### Assistant Configuration (`assistants.yml`)
+### Agent Configuration (`config/agents/`)
 
-Defines AI assistant personas with their system prompts and available tools.
+Agents are defined as individual `.agent.md` files in the `config/agents/`
+directory. Each file uses frontmatter for metadata and markdown for the system
+prompt.
 
-```yaml
-software_dev_expert:
-  tools:
-    - get_ontology
-    - get_subjects
-    - query_by_pattern
-    - search
-  content: |
-    You are a software development expert with deep knowledge of:
-    - Software architecture patterns and principles
-    - Code quality and maintainability best practices
-    - Security considerations in software development
+```markdown
+---
+name: knowledge_graph_agent
+description: "An expert knowledge graph agent for querying information."
+temperature: 0.3
+tools:
+  - get_ontology
+  - get_subjects
+  - search_content
+  - query_by_pattern
+infer: true
+handoffs: []
+---
+
+You are an expert knowledge graph agent that queries and retrieves information.
+
+## CHAIN OF THOUGHT
+
+Explain your reasoning before taking any action...
 ```
 
-Each assistant has:
+Each agent file has:
 
-- `tools`: Array of tool function names available to this assistant
-- `content`: System prompt defining the assistant's persona and capabilities
+- **Frontmatter** (YAML between `---` markers):
+  - `name`: Agent identifier (matches filename without `.agent.md`)
+  - `description`: Brief description of the agent's purpose
+  - `temperature`: LLM temperature setting (0.0-1.0)
+  - `tools`: Optional array of tool function names
+  - `infer`: Whether this agent can be invoked as a sub-agent
+  - `handoffs`: Optional array of handoff configurations
+
+- **Markdown Body**: System prompt defining the agent's persona and behavior
+
+#### Handoff Configuration
+
+Handoffs define how an agent can transfer control to another agent:
+
+```yaml
+handoffs:
+  - label: "Code Review"
+    agent: code_review_agent
+    prompt: "Please review the code we discussed."
+```
+
+Each handoff has:
+
+- `label`: Human-readable label for the handoff
+- `agent`: Target agent name (without path or extension)
+- `prompt`: Message injected when handoff occurs
 
 ## Runtime Configuration
 

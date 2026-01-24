@@ -82,9 +82,9 @@ export class MemoryService extends MemoryBase {
       this.#resourceIndex,
       memoryIndex,
     );
-    const { messages, tools, temperature } = await window.build(req.model);
+    const { messages, tools } = await window.build(req.model);
 
-    return { messages, tools, temperature };
+    return { messages, tools };
   }
 
   /** @inheritdoc */

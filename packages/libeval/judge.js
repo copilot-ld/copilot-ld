@@ -97,7 +97,7 @@ export class JudgeEvaluator {
       ],
       llm_token: this.#llmToken,
       model: this.#model,
-      assistant: "judge_evaluator",
+      agent_id: `common.Agent.eval_judge`,
     });
 
     const judgment = await this.#agentClient.ProcessUnary(request);

@@ -32,6 +32,7 @@ async function main() {
     await config.llmToken(),
     "gpt-5",
     config.llmBaseUrl(),
+    0.3, // temperature
   );
 
   const messages = [
@@ -46,12 +47,10 @@ async function main() {
   ];
 
   // Use higher max_tokens to ensure all shapes are generated
-  const response = await client.createCompletions(
+  const response = await client.createCompletions({
     messages,
-    undefined, // tools
-    undefined, // temperature
-    16000, // max_tokens - increased to generate all shapes
-  );
+    max_tokens: 16000, // increased to generate all shapes
+  });
 
   if (response.choices && response.choices.length > 0) {
     let ontology = response.choices[0].message.content?.text || "";

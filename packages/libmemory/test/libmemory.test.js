@@ -79,7 +79,7 @@ describe("MemoryWindow", () => {
 
     // First message should be the assistant
     assert.ok(result.messages.length >= 1);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
   });
 
   it("should include tools from assistant configuration", async () => {
@@ -89,16 +89,6 @@ describe("MemoryWindow", () => {
     assert.strictEqual(result.tools.length, 2);
     assert.strictEqual(result.tools[0].function?.name, "search");
     assert.strictEqual(result.tools[1].function?.name, "analyze");
-  });
-
-  it("should include temperature from assistant configuration", async () => {
-    const result = await memoryWindow.build("test-model-1000");
-
-    // Should have temperature from assistant (may be string or number depending on protobuf handling)
-    assert.ok(
-      result.temperature == 0.5,
-      `Expected temperature 0.5, got ${result.temperature}`,
-    );
   });
 
   it("should return all conversation items within budget", async () => {
@@ -135,7 +125,7 @@ describe("MemoryWindow", () => {
 
     // Should have assistant + 2 conversation messages
     assert.strictEqual(result.messages.length, 3);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(result.messages[1].id?.name, "msg1");
     assert.strictEqual(result.messages[2].id?.name, "msg2");
   });
@@ -191,7 +181,7 @@ describe("MemoryWindow", () => {
     // Should be assistant + most recent messages that fit
     assert.strictEqual(result.messages.length, 3);
     // Should be in chronological order (oldest first after assistant)
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(result.messages[1].id?.name, "msg2");
     assert.strictEqual(result.messages[2].id?.name, "msg3");
   });
@@ -261,7 +251,7 @@ describe("MemoryWindow", () => {
 
     // Should only have assistant + final assistant message (tool messages dropped)
     assert.strictEqual(result.messages.length, 2);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(result.messages[1].id?.name, "final-assistant");
   });
 
@@ -313,7 +303,7 @@ describe("MemoryWindow", () => {
     const result = await memoryWindow.build("test-model-300");
 
     assert.strictEqual(result.messages.length, 4);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(
       result.messages[1].id?.name,
       "assistant-with-tool-calls",

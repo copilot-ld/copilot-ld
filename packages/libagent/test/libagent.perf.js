@@ -33,11 +33,10 @@ describe("LibAgent Performance Tests", () => {
   function createDependencies(toolCount) {
     const tools = generateMockTools(toolCount);
 
-    const assistant = new common.Assistant({
-      role: "system",
-      content: "You are a helpful assistant for testing",
+    const agent = common.Agent.fromObject({
+      instructions: "You are a helpful assistant for testing",
     });
-    assistant.withIdentifier();
+    agent.withIdentifier();
 
     const config = {
       budget: {
@@ -98,7 +97,7 @@ describe("LibAgent Performance Tests", () => {
       config,
       mockCallbacks,
       mockResourceIndex,
-      assistant,
+      agent,
       tools,
     };
   }

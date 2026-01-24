@@ -1,5 +1,6 @@
+import { generateUUID } from "@copilot-ld/libsecret";
 import { services } from "@copilot-ld/librpc";
-import { agent } from "@copilot-ld/libtype";
+import { agent, common, tool } from "@copilot-ld/libtype";
 
 const { AgentBase } = services;
 
@@ -8,17 +9,21 @@ const { AgentBase } = services;
  */
 export class AgentService extends AgentBase {
   #mind;
+  #resourceIndex;
 
   /**
    * Creates a new Agent service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfig} config - Service configuration object
    * @param {import("@copilot-ld/libagent").AgentMind} agentMind - AgentMind instance for request orchestration
+   * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for data access
    */
-  constructor(config, agentMind) {
+  constructor(config, agentMind, resourceIndex) {
     super(config);
     if (!agentMind) throw new Error("agentMind is required");
+    if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#mind = agentMind;
+    this.#resourceIndex = resourceIndex;
   }
 
   /**
@@ -50,5 +55,144 @@ export class AgentService extends AgentBase {
     await this.#mind.process(req, onProgress);
 
     return finalResponse;
+  }
+
+  /**
+   * List available sub-agents that can be invoked for delegation
+   * @returns {Promise<tool.ToolCallResult>} Tool result with agent list as content
+   */
+  async ListSubAgents() {
+    const actor = "common.System.root";
+    const identifiers = await this.#resourceIndex.findByPrefix("common.Agent");
+    const agents = await this.#resourceIndex.get(
+      identifiers.map(String),
+      actor,
+    );
+    const inferAgents = agents.filter((a) => a.infer === true);
+    const agentList = inferAgents.map((a) => ({
+      agent_id: String(a.id),
+      description: a.description || "",
+    }));
+    return tool.ToolCallResult.fromObject({
+      content: JSON.stringify(agentList),
+    });
+  }
+
+  /**
+   * Run a sub-agent with a specific task in an isolated child conversation
+   * @param {agent.RunSubAgentRequest} req - Request with agent_id and prompt
+   * @returns {Promise<tool.ToolCallResult>} Tool result with sub-agent response content
+   */
+  async RunSubAgent(req) {
+    const actor = "common.System.root";
+
+    // Validate target agent has infer=true
+    const [targetAgent] = await this.#resourceIndex.get([req.agent_id], actor);
+    if (!targetAgent?.infer) {
+      throw new Error(
+        `Agent ${req.agent_id} is not available for sub-agent invocation`,
+      );
+    }
+
+    // Create child conversation with parent reference
+    const childConversation = common.Conversation.fromObject({
+      id: { name: generateUUID() },
+      agent_id: req.agent_id,
+    });
+    // Set the parent conversation
+    childConversation.withIdentifier(req.resource_id);
+    await this.#resourceIndex.put(childConversation);
+
+    // Execute via AgentMind
+    const processReq = {
+      resource_id: String(childConversation.id),
+      messages: [{ role: "user", content: req.prompt }],
+      llm_token: req.llm_token,
+    };
+
+    let result;
+    await this.#mind.process(processReq, (resource_id, messages) => {
+      result = { resource_id, messages };
+    });
+
+    // Extract content from final assistant message
+    const assistantMessages = (result?.messages || []).filter(
+      (m) => m.role === "assistant" && m.content,
+    );
+    const content = assistantMessages.map((m) => m.content).join("\n");
+
+    return tool.ToolCallResult.fromObject({ content });
+  }
+
+  /**
+   * List valid handoff labels available from the current agent
+   * @param {agent.ListHandoffsRequest} req - Request with resource_id
+   * @returns {Promise<tool.ToolCallResult>} Tool result with handoff labels as content
+   */
+  async ListHandoffs(req) {
+    const actor = "common.System.root";
+
+    // Load conversation to get current agent
+    const [conversation] = await this.#resourceIndex.get(
+      [req.resource_id],
+      actor,
+    );
+    if (!conversation) {
+      throw new Error(`Conversation not found: ${req.resource_id}`);
+    }
+
+    // Load agent to get handoff labels
+    const [currentAgent] = await this.#resourceIndex.get(
+      [conversation.agent_id],
+      actor,
+    );
+    if (!currentAgent) {
+      throw new Error(`Agent not found: ${conversation.agent_id}`);
+    }
+
+    const labels = (currentAgent.handoffs || []).map((h) => h.label);
+    return tool.ToolCallResult.fromObject({ content: JSON.stringify(labels) });
+  }
+
+  /**
+   * Hand off conversation control to another agent
+   * @param {agent.RunHandoffRequest} req - Request with resource_id and label
+   * @returns {Promise<tool.ToolCallResult>} Tool result with handoff details as content
+   */
+  async RunHandoff(req) {
+    const actor = "common.System.root";
+
+    // Load conversation
+    const [conversation] = await this.#resourceIndex.get(
+      [req.resource_id],
+      actor,
+    );
+    if (!conversation) {
+      throw new Error(`Conversation not found: ${req.resource_id}`);
+    }
+
+    // Load current agent to find handoff by label
+    const [currentAgent] = await this.#resourceIndex.get(
+      [conversation.agent_id],
+      actor,
+    );
+    const handoff = (currentAgent?.handoffs || []).find(
+      (h) => h.label === req.label,
+    );
+    if (!handoff) {
+      throw new Error(`Invalid handoff label: ${req.label}`);
+    }
+
+    // Update conversation with new agent
+    const newAgentId = `common.Agent.${handoff.agent}`;
+    conversation.agent_id = newAgentId;
+    await this.#resourceIndex.put(conversation);
+
+    const result = {
+      resource_id: req.resource_id,
+      agent_id: conversation.agent_id,
+      prompt: handoff.prompt,
+    };
+    return tool.ToolCallResult.fromObject({ content: JSON.stringify(result) });
   }
 }

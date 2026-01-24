@@ -30,13 +30,13 @@ message AgentResponse {
   repeated common.Message messages = 7;
 }
 
-message SubAgentInfo {
+message AgentInfo {
   string agent_id = 1;
   string description = 2;
 }
 
 message ListSubAgentsResponse {
-  repeated SubAgentInfo agents = 1;
+  repeated AgentInfo agents = 1;
 }
 
 message RunSubAgentRequest {

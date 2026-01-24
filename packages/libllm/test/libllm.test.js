@@ -18,6 +18,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
+        null, // embeddingBaseUrl
         retry,
         mockFetch,
       );
@@ -218,6 +219,87 @@ describe("libllm", () => {
       assert.strictEqual(mockFetch.mock.callCount(), 1); // No retries for non-429
     });
 
+    test("createEmbeddings uses TEI endpoint when embeddingBaseUrl differs from baseUrl", async () => {
+      const teiBaseUrl = "http://localhost:8090";
+      const teiMockFetch = mock.fn();
+      const teiRetry = new Retry();
+      const teiLlmApi = new LlmApi(
+        "test-token",
+        "gpt-4",
+        DEFAULT_BASE_URL,
+        teiBaseUrl, // Different embedding URL
+        teiRetry,
+        teiMockFetch,
+      );
+
+      // TEI returns array of arrays: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
+      const mockTeiResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6],
+          ]),
+        ),
+      };
+      teiMockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockTeiResponse),
+      );
+
+      const texts = ["Hello", "World"];
+      const result = await teiLlmApi.createEmbeddings(texts);
+
+      assert.strictEqual(teiMockFetch.mock.callCount(), 1);
+      const [url, options] = teiMockFetch.mock.calls[0].arguments;
+
+      // Should use TEI endpoint /embed instead of OpenAI /embeddings
+      assert.strictEqual(url, `${teiBaseUrl}/embed`);
+      assert.strictEqual(options.method, "POST");
+
+      // TEI uses { inputs: [...] } format
+      const body = JSON.parse(options.body);
+      assert.deepStrictEqual(body.inputs, texts);
+      assert.strictEqual(body.model, undefined); // TEI doesn't need model
+
+      // No authorization header for local TEI
+      assert.strictEqual(options.headers.Authorization, undefined);
+      assert.strictEqual(options.headers["Content-Type"], "application/json");
+
+      // Result should be normalized to Embeddings format
+      assert.strictEqual(result.data.length, 2);
+      assert.deepStrictEqual(result.data[0].embedding, [0.1, 0.2, 0.3]);
+      assert.deepStrictEqual(result.data[1].embedding, [0.4, 0.5, 0.6]);
+      assert.strictEqual(result.model, "bge-large-en-v1.5");
+    });
+
+    test("createEmbeddings uses OpenAI format when embeddingBaseUrl is null", async () => {
+      // llmApi was created with null embeddingBaseUrl in beforeEach
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
+          }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const texts = ["Hello"];
+      await llmApi.createEmbeddings(texts);
+
+      const [url, options] = mockFetch.mock.calls[0].arguments;
+      // Should use OpenAI endpoint
+      assert.strictEqual(url, `${DEFAULT_BASE_URL}/embeddings`);
+
+      // Should use OpenAI format with auth headers
+      assert.ok(options.headers.Authorization.includes("test-token"));
+      const body = JSON.parse(options.body);
+      assert.deepStrictEqual(body.input, texts);
+      assert.strictEqual(body.model, "text-embedding-3-large");
+    });
+
     test("listModels makes correct API call", async () => {
       const mockResponse = {
         ok: true,
@@ -278,6 +360,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
+        null, // embeddingBaseUrl
         retry,
         mockFetch,
       );

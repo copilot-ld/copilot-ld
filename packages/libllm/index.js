@@ -32,6 +32,7 @@ function normalizeBaseUrl(baseUrl) {
 export class LlmApi {
   #model;
   #baseURL;
+  #embeddingBaseURL;
   #headers;
   #fetch;
   #tokenizer;
@@ -43,6 +44,7 @@ export class LlmApi {
    * @param {string} token - LLM API token
    * @param {string} model - Default model to use for completions
    * @param {string} baseUrl - Base URL for the LLM API
+   * @param {string|null} embeddingBaseUrl - Base URL for embeddings (null to use baseUrl)
    * @param {import("@copilot-ld/libutil").Retry} retry - Retry instance for handling transient errors
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
@@ -52,6 +54,7 @@ export class LlmApi {
     token,
     model,
     baseUrl,
+    embeddingBaseUrl,
     retry,
     fetchFn = fetch,
     tokenizerFn = createTokenizer,
@@ -66,6 +69,7 @@ export class LlmApi {
 
     this.#model = model;
     this.#baseURL = normalizeBaseUrl(baseUrl);
+    this.#embeddingBaseURL = embeddingBaseUrl || this.#baseURL;
     this.#headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -125,27 +129,57 @@ export class LlmApi {
   }
 
   /**
-   * Creates embeddings using the LLM API
+   * Creates embeddings using the LLM API or TEI
    * @param {string[]} input - Array of text strings to embed
    * @returns {Promise<import("copilot-ld/libtype").common.Embeddings>} Embeddings response
    */
   async createEmbeddings(input) {
-    const response = await this.#retry.execute(() =>
-      this.#fetch(`${this.#baseURL}/embeddings`, {
-        method: "POST",
-        headers: this.#headers,
-        body: JSON.stringify({
+    // Detect if using separate TEI endpoint
+    const isTEI = this.#embeddingBaseURL !== this.#baseURL;
+
+    // TEI uses /embed endpoint, OpenAI uses /embeddings
+    const endpoint = isTEI ? "/embed" : "/embeddings";
+
+    // TEI doesn't need auth headers; OpenAI-compatible endpoints do
+    const headers = isTEI
+      ? { "Content-Type": "application/json" }
+      : this.#headers;
+
+    // TEI expects { inputs: [...] }, OpenAI expects { input: [...], model: "..." }
+    const body = isTEI
+      ? { inputs: input }
+      : {
           // TODO: Make this configurable
           model: "text-embedding-3-large",
           dimensions: 1024,
           input,
-        }),
+        };
+
+    const response = await this.#retry.execute(() =>
+      this.#fetch(`${this.#embeddingBaseURL}${endpoint}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
       }),
     );
 
     await this.#throwIfNotOk(response);
-
     const json = await response.json();
+
+    // TEI returns [[0.1, 0.2, ...]], OpenAI returns {data: [{embedding: [...]}]}
+    if (isTEI) {
+      return common.Embeddings.fromObject({
+        object: "list",
+        data: json.map((embedding, index) => ({
+          object: "embedding",
+          index,
+          embedding,
+        })),
+        model: "bge-large-en-v1.5",
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      });
+    }
+
     return common.Embeddings.fromObject(json);
   }
 
@@ -272,6 +306,7 @@ export function createProxyAwareFetch(process = global.process) {
  * @param {string} token - LLM API token
  * @param {string} model - Model to use
  * @param {string} baseUrl - Base URL for the LLM API (required, e.g. https://models.github.ai/orgs/{org})
+ * @param {string|null} [embeddingBaseUrl] - Base URL for embeddings (null to use baseUrl)
  * @param {number} [temperature] - Temperature for completions
  * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
@@ -281,6 +316,7 @@ export function createLlmApi(
   token,
   model,
   baseUrl,
+  embeddingBaseUrl = null,
   temperature = 0.3,
   fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
@@ -295,6 +331,7 @@ export function createLlmApi(
     token,
     model,
     baseUrl,
+    embeddingBaseUrl,
     retry,
     fetchFn,
     tokenizerFn,

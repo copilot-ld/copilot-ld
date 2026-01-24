@@ -16,6 +16,17 @@ Complete the initial setup steps:
 - [Processing Guide](/processing/) - Knowledge base processing (if using custom
   content)
 
+### Optional: Local Embedding Service
+
+For faster embedding generation or offline development, install TEI:
+
+```bash
+cargo install text-embeddings-router
+```
+
+See the [Configuration Guide](/configuration/#local-embedding-service-tei) for
+detailed setup instructions.
+
 ## Development Workflow
 
 By default all services run in development mode with debug logging enabled.

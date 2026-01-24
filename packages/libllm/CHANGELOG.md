@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-01-24
+
+- **BREAKING**: Added `embeddingBaseUrl` parameter to `LlmApi` constructor and
+  `createLlmApi()` factory function (4th parameter, before `temperature`)
+- Added support for Hugging Face Text Embeddings Inference (TEI) as local
+  embedding backend
+- `createEmbeddings()` now auto-detects TEI vs OpenAI format based on
+  `embeddingBaseUrl`
+- TEI requests use `/embed` endpoint without auth headers
+- TEI responses normalized to `common.Embeddings` protobuf format
+
 ## 2026-01-15
 
 - **BREAKING**: Renamed package from `@copilot-ld/libcopilot` to

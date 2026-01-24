@@ -47,6 +47,7 @@ describe("llm service", () => {
       mockConfig = createMockConfig("llm", {
         model: "gpt-4o",
         llmBaseUrl: () => "https://test.api.com",
+        embeddingBaseUrl: () => null,
       });
 
       mockMemoryClient = createMockMemoryClient();
@@ -64,7 +65,13 @@ describe("llm service", () => {
         }),
       };
 
-      mockLlmFactory = (token, model) => {
+      mockLlmFactory = (
+        token,
+        model,
+        baseUrl,
+        embeddingBaseUrl,
+        temperature,
+      ) => {
         assert.strictEqual(model, mockConfig.model);
         return mockCopilot;
       };

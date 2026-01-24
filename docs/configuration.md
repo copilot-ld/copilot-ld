@@ -169,6 +169,96 @@ LLM_BASE_URL=https://api.openai.com/v1
 node scripts/secret.js
 ```
 
+### Local Embedding Service (TEI)
+
+By default, Copilot-LD uses GitHub Models for text embeddings. For faster local
+inference or offline operation, you can deploy Hugging Face's Text Embeddings
+Inference (TEI) as a local embedding service.
+
+#### Installation
+
+Install the TEI binary using Cargo (Rust package manager):
+
+```bash
+# Install Rust if not already installed
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install TEI router
+cargo install text-embeddings-router
+```
+
+#### Running TEI Locally
+
+Start TEI with a compatible embedding model:
+
+```bash
+# Download model on first run and start server
+text-embeddings-router --model-id BAAI/bge-large-en-v1.5 --port 8090 --json-output
+```
+
+The first run downloads the model to `~/.cache/huggingface/`. Subsequent starts
+are faster.
+
+#### Configuration
+
+Enable local embeddings by setting `EMBEDDING_BASE_URL` in your environment:
+
+```bash
+# .env.local - uncomment to use local TEI
+EMBEDDING_BASE_URL=http://localhost:8090
+```
+
+When `EMBEDDING_BASE_URL` is set, the system uses TEI for embeddings while
+continuing to use GitHub Models for LLM completions. When unset or null, both
+embeddings and completions use GitHub Models.
+
+#### Model Selection
+
+TEI supports any Hugging Face sentence-transformer model. For compatibility with
+the default 1024-dimension vectors:
+
+| Model                    | Dimensions | Notes                      |
+| ------------------------ | ---------- | -------------------------- |
+| `BAAI/bge-large-en-v1.5` | 1024       | High quality, English only |
+| `BAAI/bge-m3`            | 1024       | Multilingual               |
+| `intfloat/e5-large-v2`   | 1024       | Good general purpose       |
+
+Smaller models for faster inference (requires re-indexing):
+
+| Model                    | Dimensions | Notes              |
+| ------------------------ | ---------- | ------------------ |
+| `BAAI/bge-base-en-v1.5`  | 768        | Good balance       |
+| `BAAI/bge-small-en-v1.5` | 384        | Fast, lower memory |
+
+#### Docker Deployment
+
+For Docker deployments, TEI is included in `docker-compose.yml`:
+
+```yaml
+tei:
+  image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+  command: --model-id BAAI/bge-large-en-v1.5 --port 8080 --json-output
+  volumes:
+    - tei_data:/data
+  environment:
+    - HF_HOME=/data
+```
+
+Docker automatically configures
+`EMBEDDING_BASE_URL=http://tei.copilot-ld.local:8080`.
+
+For GPU acceleration, use the CUDA image:
+
+```yaml
+tei:
+  image: ghcr.io/huggingface/text-embeddings-inference:1.5
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - capabilities: [gpu]
+```
+
 ### Service Networking (.env.local)
 
 Configure service host and port settings for local development. Do NOT load this

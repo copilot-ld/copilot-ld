@@ -9,6 +9,7 @@ import { createStorage } from "@copilot-ld/libstorage";
 export class Config {
   #llmToken = null;
   #llmBaseUrl = null;
+  #embeddingBaseUrl = null;
   #jwtSecret = null;
   #jwtAnonKey = null;
   #jwtAuthUrl = null;
@@ -152,6 +153,25 @@ export class Config {
   }
 
   /**
+   * Gets the embedding API base URL from environment variable.
+   * Falls back to LLM base URL if not set, maintaining backward compatibility.
+   * @returns {string|null} Embedding API base URL with trailing slashes removed, or null to use LLM URL
+   */
+  embeddingBaseUrl() {
+    if (this.#embeddingBaseUrl) return this.#embeddingBaseUrl;
+
+    if (this.#process.env.EMBEDDING_BASE_URL) {
+      this.#embeddingBaseUrl = this.#process.env.EMBEDDING_BASE_URL.replace(
+        /\/+$/,
+        "",
+      );
+      return this.#embeddingBaseUrl;
+    }
+
+    return null;
+  }
+
+  /**
    * Gets the JWT secret from environment variable
    * @returns {string} JWT secret for HS256 signature verification
    * @throws {Error} If JWT_SECRET is not set in environment
@@ -220,6 +240,7 @@ export class Config {
   reset() {
     this.#llmToken = null;
     this.#llmBaseUrl = null;
+    this.#embeddingBaseUrl = null;
     this.#jwtSecret = null;
     this.#jwtAnonKey = null;
     this.#jwtAuthUrl = null;

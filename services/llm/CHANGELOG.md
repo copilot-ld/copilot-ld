@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-01-24
+
+- Updated to use `embeddingBaseUrl` from config for local TEI support
+- `CreateEmbeddings` now routes to local TEI when `EMBEDDING_BASE_URL` is set
+
 ## 2025-12-01
 
 - **BREAKING**: `CreateCompletions` takes `resource_id` and fetches memory

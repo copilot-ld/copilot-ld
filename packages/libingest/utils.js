@@ -64,4 +64,13 @@ export class Utils {
     }
     return globalThis.process.env.LLM_BASE_URL;
   }
+
+  /**
+   * Gets the embedding base URL from environment variable.
+   * Falls back to null if not set (will use LLM base URL).
+   * @returns {string|null} Embedding API base URL or null
+   */
+  static getEmbeddingBaseUrl() {
+    return globalThis.process.env.EMBEDDING_BASE_URL || null;
+  }
 }

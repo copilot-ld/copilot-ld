@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-01-24
+
+- Added `embeddingBaseUrl()` getter for optional local embedding service URL
+  from `EMBEDDING_BASE_URL` environment variable (returns `null` when not set)
+
 ## 2026-01-16
 
 - Added `supabaseUrl` getter for Supabase Auth URL from `SUPABASE_AUTH_URL`

@@ -70,6 +70,7 @@ Cryptographic
 cryptographically
 css
 CSS
+CUDA
 CustomEvent
 CustomEvents
 cyclomatic
@@ -398,6 +399,7 @@ Symlink
 symlinks
 Symlinks
 teamsagent
+TEI
 Tempo
 testability
 theming

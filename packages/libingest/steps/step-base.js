@@ -158,6 +158,7 @@ export class StepBase {
       Utils.getLlmToken(),
       this.getModel(),
       Utils.getLlmBaseUrl(),
+      Utils.getEmbeddingBaseUrl(),
     );
   }
 

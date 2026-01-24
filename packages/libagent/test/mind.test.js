@@ -20,7 +20,7 @@ describe("AgentMind", () => {
   beforeEach(() => {
     mockConfig = createMockConfig("agent", {
       budget: 1000,
-      assistant: "software_dev_expert",
+      agent: "software_dev_expert",
       temperature: 0.7,
       threshold: 0.5,
       limit: 10,
@@ -29,7 +29,7 @@ describe("AgentMind", () => {
     mockServiceCallbacks = createMockServiceCallbacks();
 
     mockResourceIndex = createMockResourceIndex();
-    mockResourceIndex.setupDefaults({ assistantId: "test-assistant" });
+    mockResourceIndex.setupDefaults({ agentId: "test-agent" });
 
     mockAgentHands = new AgentHands(
       mockConfig,
@@ -98,7 +98,7 @@ describe("AgentMind", () => {
 
     const existingConversation = common.Conversation.fromObject({
       id: { name: "existing-conv", type: "common.Conversation" },
-      assistant_id: "common.Assistant.test",
+      agent_id: "common.Agent.test",
     });
 
     // Mock resourceIndex.get to return existing conversation
@@ -166,7 +166,7 @@ describe("AgentMind", () => {
           name: "test-conv",
           type: "common.Conversation",
         },
-        assistant_id: "common.Assistant.test",
+        agent_id: "common.Agent.test",
       }),
       message: common.Message.fromObject({
         id: {
@@ -214,7 +214,7 @@ describe("AgentMind", () => {
           name: "captured-conv-id",
           type: "common.Conversation",
         },
-        assistant_id: "common.Assistant.test",
+        agent_id: "common.Agent.test",
       }),
       message: common.Message.fromObject({
         id: {
@@ -260,7 +260,7 @@ describe("AgentMind", () => {
           name: "test-conv",
           type: "common.Conversation",
         },
-        assistant_id: "common.Assistant.test",
+        agent_id: "common.Agent.test",
       }),
       message: common.Message.fromObject({
         id: {

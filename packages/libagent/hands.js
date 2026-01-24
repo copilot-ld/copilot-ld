@@ -63,14 +63,23 @@ export class AgentHands {
       // If we have tool calls, process them
       if (choice.message?.tool_calls?.length > 0) {
         await saveMessage(common.Message.fromObject(choice.message));
-        const tokensUsed = await this.processToolCalls(
+        const { tokensUsed, handoffPrompt } = await this.processToolCalls(
           choice.message.tool_calls,
           saveMessage,
-          { llmToken, maxTokens: remainingBudget },
+          { resourceId: conversationId, llmToken, maxTokens: remainingBudget },
         );
 
         // Draw down budget by tokens used
         remainingBudget = Math.max(0, remainingBudget - tokensUsed);
+
+        // Check for handoff - inject handoff prompt as user message
+        if (handoffPrompt) {
+          const handoffMessage = common.Message.fromObject({
+            role: "user",
+            content: handoffPrompt,
+          });
+          await saveMessage(handoffMessage);
+        }
       } else {
         // No tool calls - this is the final message (stop, length, etc.)
         await saveMessage(common.Message.fromObject(choice.message));
@@ -85,10 +94,11 @@ export class AgentHands {
    * Executes a single tool call and returns the result message
    * @param {object} toolCall - Tool call object
    * @param {string} llm_token - LLM API token for LLM calls
+   * @param {string} resourceId - Current conversation resource ID
    * @param {number} [maxTokens] - Maximum tokens for tool result
-   * @returns {Promise<object>} Tool result message
+   * @returns {Promise<{message: object, result: object|null}>} Tool result message and raw result
    */
-  async executeToolCall(toolCall, llm_token, maxTokens = null) {
+  async executeToolCall(toolCall, llm_token, resourceId, maxTokens = null) {
     try {
       // Set max_tokens filter if budget available
       if (maxTokens && maxTokens > 0) {
@@ -97,30 +107,37 @@ export class AgentHands {
       }
 
       toolCall.llm_token = llm_token;
+      toolCall.resource_id = resourceId;
       const toolCallResult = await this.#callbacks.tool.call(toolCall);
 
       // Process the tool call result
       const { subjects, content } =
         await this.#processToolCallResult(toolCallResult);
 
-      return tool.ToolCallMessage.fromObject({
-        id: { subjects },
-        role: "tool",
-        tool_call_id: toolCall.id,
-        content,
-      });
-    } catch (error) {
-      return tool.ToolCallMessage.fromObject({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        content: JSON.stringify({
-          error: {
-            type: "tool_execution_error",
-            message: error.message,
-            code: error.code,
-          },
+      return {
+        message: tool.ToolCallMessage.fromObject({
+          id: { subjects },
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content,
         }),
-      });
+        result: toolCallResult,
+      };
+    } catch (error) {
+      return {
+        message: tool.ToolCallMessage.fromObject({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: JSON.stringify({
+            error: {
+              type: "tool_execution_error",
+              message: error.message,
+              code: error.code,
+            },
+          }),
+        }),
+        result: null,
+      };
     }
   }
 
@@ -170,20 +187,24 @@ export class AgentHands {
    * @param {import("@copilot-ld/libtype").tool.ToolCall[]} toolCalls - Array of tool calls to process
    * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
+   * @param {string} [options.resourceId] - Current conversation resource ID
    * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {number} [options.maxTokens] - Maximum tokens for tool results
-   * @returns {Promise<number>} Total tokens used by tool results
+   * @returns {Promise<{tokensUsed: number, handoffPrompt: string|null}>} Tokens used and handoff prompt if any
    */
   async processToolCalls(toolCalls, saveMessage, options = {}) {
-    const { llmToken, maxTokens } = options;
+    const { resourceId, llmToken, maxTokens } = options;
     let totalTokensUsed = 0;
     let remainingBudget = maxTokens;
+    let handoffPrompt = null;
 
     // Execute each tool call
-    for (const toolCall of toolCalls) {
-      const message = await this.executeToolCall(
+    for (let i = 0; i < toolCalls.length; i++) {
+      const toolCall = toolCalls[i];
+      const { message, result } = await this.executeToolCall(
         toolCall,
         llmToken,
+        resourceId,
         remainingBudget,
       );
 
@@ -194,8 +215,13 @@ export class AgentHands {
 
       // Persist tool result
       await saveMessage(message);
+
+      // Check for handoff - extract prompt from run_handoff result
+      if (toolCall.function?.name === "run_handoff" && result?.prompt) {
+        handoffPrompt = result.prompt;
+      }
     }
 
-    return totalTokensUsed;
+    return { tokensUsed: totalTokensUsed, handoffPrompt };
   }
 }

@@ -42,7 +42,7 @@ const agentMind = new AgentMind(
   agentHands,
 );
 
-const service = new AgentService(agentConfig, agentMind);
+const service = new AgentService(agentConfig, agentMind, resourceIndex);
 
 const server = new Server(service, agentConfig, logger, tracer);
 

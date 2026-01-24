@@ -47,7 +47,7 @@
   },
   "service": {
     "agent": {
-      "assistant": "knowledge_graph_agent",
+      "agent": "knowledge_graph_agent",
       "model": "openai/gpt-4.1"
     },
     "llm": {},
@@ -72,6 +72,22 @@
         "search_content": {
           "method": "vector.Vector.SearchContent",
           "request": "vector.TextQuery"
+        },
+        "list_sub_agents": {
+          "method": "agent.Agent.ListSubAgents",
+          "request": "common.Empty"
+        },
+        "run_sub_agent": {
+          "method": "agent.Agent.RunSubAgent",
+          "request": "agent.RunSubAgentRequest"
+        },
+        "list_handoffs": {
+          "method": "agent.Agent.ListHandoffs",
+          "request": "agent.ListHandoffsRequest"
+        },
+        "run_handoff": {
+          "method": "agent.Agent.RunHandoff",
+          "request": "agent.RunHandoffRequest"
         }
       }
     }

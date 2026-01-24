@@ -73,7 +73,11 @@ describe("AgentHands", () => {
       function: { name: "search" },
     };
 
-    const message = await agentHands.executeToolCall(toolCall, "test-token");
+    const { message } = await agentHands.executeToolCall(
+      toolCall,
+      "test-token",
+      "test-resource",
+    );
 
     assert.ok(message);
     assert.strictEqual(message.role, "tool");
@@ -100,7 +104,11 @@ describe("AgentHands", () => {
       function: { name: "search" },
     };
 
-    const message = await agentHands.executeToolCall(toolCall, "test-token");
+    const { message } = await agentHands.executeToolCall(
+      toolCall,
+      "test-token",
+      "test-resource",
+    );
 
     assert.ok(message);
     assert.strictEqual(message.role, "tool");
@@ -318,7 +326,7 @@ describe("AgentHands", () => {
       savedMessages.push(msg);
     };
 
-    const totalTokens = await agentHands.processToolCalls(
+    const { tokensUsed } = await agentHands.processToolCalls(
       toolCalls,
       saveResource,
       {
@@ -332,7 +340,7 @@ describe("AgentHands", () => {
       (sum, msg) => sum + (msg.id?.tokens || 0),
       0,
     );
-    assert.strictEqual(totalTokens, expectedTotal);
-    assert.ok(totalTokens > 0, "Should have counted some tokens");
+    assert.strictEqual(tokensUsed, expectedTotal);
+    assert.ok(tokensUsed > 0, "Should have counted some tokens");
   });
 });

@@ -3,26 +3,26 @@ import { createResourceIndex } from "@copilot-ld/libresource";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
-import { AssistantProcessor } from "../processor/assistant.js";
+import { AgentProcessor } from "../processor/agent.js";
 
 /**
- * Process assistant configurations from assistants.yml and generate Assistant resources
- * using the AssistantProcessor
+ * Process agent configurations from config/agents/*.agent.md and generate Agent resources
+ * using the AgentProcessor
  * @returns {Promise<void>}
  */
 async function main() {
   const configStorage = createStorage("config");
-  const logger = createLogger("assistants");
+  const logger = createLogger("agents");
 
   const resourceIndex = createResourceIndex("resources");
 
-  // Process assistants using AssistantProcessor
-  const assistantProcessor = new AssistantProcessor(
+  // Process agents using AgentProcessor
+  const agentProcessor = new AgentProcessor(
     resourceIndex,
     configStorage,
     logger,
   );
-  await assistantProcessor.process();
+  await agentProcessor.process();
 }
 
 main();

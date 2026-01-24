@@ -120,12 +120,12 @@ export class AgentMind {
 
     // Create new conversation if none exists or none was found
     if (!conversation) {
-      const assistantName = req.assistant || this.#config.assistant;
+      const agentName = req.agent || this.#config.agent;
       conversation = common.Conversation.fromObject({
         id: {
           name: generateUUID(),
         },
-        assistant_id: `common.Assistant.${assistantName}`,
+        agent_id: `common.Agent.${agentName}`,
       });
       this.#resourceIndex.put(conversation);
     }

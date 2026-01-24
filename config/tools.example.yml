@@ -82,3 +82,51 @@ md5_hash:
   evaluation: |
     Returns exactly 32-character hexadecimal string representing the MD5
     hash of the input text.
+
+list_sub_agents:
+  purpose: |
+    List available sub-agents that can be invoked for delegation.
+  applicability: |
+    Use to discover which agents are available for sub-agent invocation.
+    Only agents with infer=true will be returned.
+  instructions: |
+    No input parameters. Returns list of agent IDs available for delegation.
+  evaluation: |
+    List of agent IDs that can be passed to run_sub_agent.
+
+run_sub_agent:
+  purpose: |
+    Run a sub-agent with a specific task in an isolated child conversation.
+  applicability: |
+    Use when delegating a specific task to another agent. The sub-agent
+    executes in isolation and returns results without affecting the
+    current conversation context.
+  instructions: |
+    Input: 'agent_id' (from list_sub_agents) and 'prompt' (task description).
+    Output: Sub-agent response with generated messages.
+  evaluation: |
+    Complete response from the sub-agent for the delegated task.
+
+list_handoffs:
+  purpose: |
+    List valid handoff labels available from the current agent.
+  applicability: |
+    Use to discover which handoffs are configured for the current agent
+    before executing a handoff.
+  instructions: |
+    No input parameters (uses current conversation context).
+    Returns list of handoff labels.
+  evaluation: |
+    List of labels that can be passed to run_handoff.
+
+run_handoff:
+  purpose: |
+    Hand off conversation control to another agent.
+  applicability: |
+    Use when the current task requires a different agent's expertise.
+    The handoff transfers the full conversation context to the target agent.
+  instructions: |
+    Input: 'label' (from list_handoffs).
+    Output: Confirmation of handoff with new agent ID.
+  evaluation: |
+    Conversation control transferred to the target agent.

@@ -79,7 +79,7 @@ describe("MemoryWindow", () => {
 
     // First message should be the assistant
     assert.ok(result.messages.length >= 1);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
   });
 
   it("should include tools from assistant configuration", async () => {
@@ -135,7 +135,7 @@ describe("MemoryWindow", () => {
 
     // Should have assistant + 2 conversation messages
     assert.strictEqual(result.messages.length, 3);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(result.messages[1].id?.name, "msg1");
     assert.strictEqual(result.messages[2].id?.name, "msg2");
   });
@@ -191,7 +191,7 @@ describe("MemoryWindow", () => {
     // Should be assistant + most recent messages that fit
     assert.strictEqual(result.messages.length, 3);
     // Should be in chronological order (oldest first after assistant)
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(result.messages[1].id?.name, "msg2");
     assert.strictEqual(result.messages[2].id?.name, "msg3");
   });
@@ -261,7 +261,7 @@ describe("MemoryWindow", () => {
 
     // Should only have assistant + final assistant message (tool messages dropped)
     assert.strictEqual(result.messages.length, 2);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(result.messages[1].id?.name, "final-assistant");
   });
 
@@ -313,7 +313,7 @@ describe("MemoryWindow", () => {
     const result = await memoryWindow.build("test-model-300");
 
     assert.strictEqual(result.messages.length, 4);
-    assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+    assert.strictEqual(result.messages[0].id?.name, "test-agent");
     assert.strictEqual(
       result.messages[1].id?.name,
       "assistant-with-tool-calls",

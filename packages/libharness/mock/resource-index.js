@@ -34,16 +34,16 @@ export function createMockResourceIndex(options = {}) {
     /**
      * Sets up default test resources
      * @param {object} setupOptions - Setup options
-     * @param {string[]} [setupOptions.tools] - Tool names for assistant
+     * @param {string[]} [setupOptions.tools] - Tool names for agent
      * @param {string} [setupOptions.conversationId] - Conversation ID
-     * @param {string} [setupOptions.assistantId] - Assistant ID
-     * @param {number} [setupOptions.temperature] - Assistant temperature
+     * @param {string} [setupOptions.agentId] - Agent ID
+     * @param {number} [setupOptions.temperature] - Agent temperature
      */
     setupDefaults(setupOptions = {}) {
       const {
         tools = [],
         conversationId = "test-conversation",
-        assistantId = "test-assistant",
+        agentId = "test-agent",
         temperature = 0.3,
       } = setupOptions;
 
@@ -51,16 +51,16 @@ export function createMockResourceIndex(options = {}) {
         conversationId,
         common.Conversation.fromObject({
           id: { name: conversationId },
-          assistant_id: `common.Assistant.${assistantId}`,
+          agent_id: `common.Agent.${agentId}`,
         }),
       );
 
       resources.set(
-        `common.Assistant.${assistantId}`,
-        common.Assistant.fromObject({
-          id: { name: assistantId, tokens: 50 },
+        `common.Agent.${agentId}`,
+        common.Agent.fromObject({
+          id: { name: agentId, tokens: 50 },
           tools,
-          content: "You are a test assistant.",
+          content: "You are a test agent.",
           temperature,
         }),
       );
@@ -88,9 +88,24 @@ export function createMockResourceIndex(options = {}) {
           : msg.id?.name || String(msg.id);
       resources.set(id, msg);
     },
+
+    /**
+     * Find resources by prefix
+     * @param {string} prefix - Prefix to search for
+     * @returns {Promise<string[]>} List of matching keys
+     */
+    async findByPrefix(prefix) {
+      const keys = [];
+      for (const key of resources.keys()) {
+        if (key.startsWith(prefix)) {
+          keys.push(key);
+        }
+      }
+      return keys;
+    },
   };
 
-  if (options.tools || options.conversationId || options.assistantId) {
+  if (options.tools || options.conversationId || options.agentId) {
     index.setupDefaults(options);
   }
 

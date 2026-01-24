@@ -40,7 +40,7 @@ export class MemoryWindow {
     const total = getModelBudget(model);
     const actor = "common.System.root";
 
-    // Load conversation to get assistant_id
+    // Load conversation to get agent_id
     const [conversation] = await this.#resourceIndex.get(
       [this.#resourceId],
       actor,
@@ -49,22 +49,22 @@ export class MemoryWindow {
       throw new Error(`Conversation not found: ${this.#resourceId}`);
     }
 
-    // Load assistant
-    const [assistant] = await this.#resourceIndex.get(
-      [conversation.assistant_id],
+    // Load agent
+    const [agent] = await this.#resourceIndex.get(
+      [conversation.agent_id],
       actor,
     );
-    if (!assistant) {
-      throw new Error(`Assistant not found: ${conversation.assistant_id}`);
+    if (!agent) {
+      throw new Error(`Agent not found: ${conversation.agent_id}`);
     }
 
-    // Load tools from assistant configuration
-    const toolNames = assistant.tools || [];
+    // Load tools from agent configuration
+    const toolNames = agent.tools || [];
     const functionIds = toolNames.map((name) => `tool.ToolFunction.${name}`);
     const functions = await this.#resourceIndex.get(functionIds, actor);
 
-    // Calculate overhead (assistant + tools tokens)
-    let overhead = assistant.id?.tokens || 0;
+    // Calculate overhead (agent + tools tokens)
+    let overhead = agent.id?.tokens || 0;
     for (const f of functions) {
       overhead += f.id?.tokens || 0;
     }
@@ -91,7 +91,7 @@ export class MemoryWindow {
 
     const actor = "common.System.root";
 
-    // Load conversation to get assistant_id
+    // Load conversation to get agent_id
     const [conversation] = await this.#resourceIndex.get(
       [this.#resourceId],
       actor,
@@ -100,17 +100,17 @@ export class MemoryWindow {
       throw new Error(`Conversation not found: ${this.#resourceId}`);
     }
 
-    // Load assistant
-    const [assistant] = await this.#resourceIndex.get(
-      [conversation.assistant_id],
+    // Load agent
+    const [agent] = await this.#resourceIndex.get(
+      [conversation.agent_id],
       actor,
     );
-    if (!assistant) {
-      throw new Error(`Assistant not found: ${conversation.assistant_id}`);
+    if (!agent) {
+      throw new Error(`Agent not found: ${conversation.agent_id}`);
     }
 
-    // Load tools from assistant configuration
-    const toolNames = assistant.tools || [];
+    // Load tools from agent configuration
+    const toolNames = agent.tools || [];
     const functionIds = toolNames.map((name) => `tool.ToolFunction.${name}`);
     const functions = await this.#resourceIndex.get(functionIds, actor);
 
@@ -128,18 +128,18 @@ export class MemoryWindow {
     // Load full message objects from identifiers
     const history = await this.#resourceIndex.get(identifiers, actor);
 
-    // Build complete messages array: assistant + conversation history
+    // Build complete messages array: agent + conversation history
     const messages = [
-      // Create a system message from assistant
+      // Create a system message from agent
       common.Message.fromObject({
         role: "system",
-        ...assistant,
+        ...agent,
       }),
       ...history,
     ];
 
-    // Extract temperature from assistant (default 0.7 if not specified)
-    const temperature = assistant.temperature ?? 0.7;
+    // Extract temperature from agent (default 0.7 if not specified)
+    const temperature = agent.temperature ?? 0.7;
 
     return { messages, tools, temperature };
   }

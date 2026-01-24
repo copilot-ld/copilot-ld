@@ -7,6 +7,10 @@ import "common.proto";
 service Agent {
   rpc ProcessStream(AgentRequest) returns (stream AgentResponse);
   rpc ProcessUnary(AgentRequest) returns (AgentResponse);
+  rpc ListSubAgents(common.Empty) returns (ListSubAgentsResponse);
+  rpc RunSubAgent(RunSubAgentRequest) returns (AgentResponse);
+  rpc ListHandoffs(ListHandoffsRequest) returns (ListHandoffsResponse);
+  rpc RunHandoff(RunHandoffRequest) returns (RunHandoffResponse);
 }
 
 message AgentRequest {
@@ -14,7 +18,7 @@ message AgentRequest {
   optional string resource_id = 2;
   optional string llm_token = 3;
   optional string model = 4;
-  optional string assistant = 5;
+  optional string agent = 5;
 }
 
 message AgentResponse {
@@ -24,4 +28,35 @@ message AgentResponse {
   common.Usage usage = 5;
   string resource_id = 6;
   repeated common.Message messages = 7;
+}
+
+message ListSubAgentsResponse {
+  repeated string agent_ids = 1;
+}
+
+message RunSubAgentRequest {
+  string resource_id = 1;
+  string agent_id = 2;
+  string prompt = 3;
+  optional string llm_token = 4;
+  optional string model = 5;
+}
+
+message ListHandoffsRequest {
+  string resource_id = 1;
+}
+
+message ListHandoffsResponse {
+  repeated string labels = 1;
+}
+
+message RunHandoffRequest {
+  string resource_id = 1;
+  string label = 2;
+}
+
+message RunHandoffResponse {
+  string resource_id = 1;
+  string agent_id = 2;
+  string prompt = 3;
 }

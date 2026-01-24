@@ -28,8 +28,8 @@ backticks
 balancer
 Balancer
 Base64
-base64url
 Base64-encoded
+base64url
 BioNova
 boolean
 botbuilder
@@ -130,6 +130,7 @@ GCM
 geo-routing
 getter
 GitHub
+GMP
 GoTrue
 Grafana
 groupchat
@@ -138,6 +139,7 @@ gRPC
 grpc-enabled
 gRPC-enabled
 gRPCs
+handoffs
 hardcoded
 healthcheck
 hgroup
@@ -218,6 +220,7 @@ lookup
 lookups
 machine-parsable
 macOS
+ManufacturingOS
 MDN
 microdata
 Microdata
@@ -236,6 +239,7 @@ MinIO
 minioadmin
 mockable
 modularity
+MolecularForge
 monorepo
 mTLS
 N3

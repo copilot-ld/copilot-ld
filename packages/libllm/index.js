@@ -136,7 +136,7 @@ export class LlmApi {
         headers: this.#headers,
         body: JSON.stringify({
           // TODO: Make this configurable
-          model: "openai/text-embedding-3-small",
+          model: "text-embedding-3-large",
           dimensions: 256,
           input,
         }),

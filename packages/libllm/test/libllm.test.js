@@ -153,7 +153,7 @@ describe("libllm", () => {
       assert.strictEqual(options.method, "POST");
 
       const body = JSON.parse(options.body);
-      assert.strictEqual(body.model, "openai/text-embedding-3-small");
+      assert.strictEqual(body.model, "text-embedding-3-large");
       assert.strictEqual(body.dimensions, 256);
       assert.deepStrictEqual(body.input, texts);
 

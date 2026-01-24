@@ -69,7 +69,12 @@ export class AgentService extends AgentBase {
       actor,
     );
     const inferAgents = agents.filter((a) => a.infer === true);
-    return { agent_ids: inferAgents.map((a) => String(a.id)) };
+    return {
+      agents: inferAgents.map((a) => ({
+        agent_id: String(a.id),
+        description: a.description || "",
+      })),
+    };
   }
 
   /**

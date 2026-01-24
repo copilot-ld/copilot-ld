@@ -177,7 +177,7 @@ describe("memory service", () => {
       );
       assert.strictEqual(
         result.messages[0].id?.name,
-        "test-assistant",
+        "test-agent",
         "First message should be assistant",
       );
     });
@@ -276,7 +276,7 @@ describe("memory service", () => {
 
       // Should return assistant + 2 conversation messages
       assert.strictEqual(result.messages.length, 3);
-      assert.strictEqual(result.messages[0].id?.name, "test-assistant");
+      assert.strictEqual(result.messages[0].id?.name, "test-agent");
       assert.strictEqual(result.messages[1].id?.name, "message1");
       assert.strictEqual(result.messages[2].id?.name, "message2");
     });

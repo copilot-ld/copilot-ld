@@ -1,6 +1,6 @@
 import { generateUUID } from "@copilot-ld/libsecret";
 import { services } from "@copilot-ld/librpc";
-import { agent, common } from "@copilot-ld/libtype";
+import { agent, common, tool } from "@copilot-ld/libtype";
 
 const { AgentBase } = services;
 
@@ -59,7 +59,7 @@ export class AgentService extends AgentBase {
 
   /**
    * List available sub-agents that can be invoked for delegation
-   * @returns {Promise<agent.ListSubAgentsResponse>} List of agent IDs with infer=true
+   * @returns {Promise<tool.ToolCallResult>} Tool result with agent identifiers
    */
   async ListSubAgents() {
     const actor = "common.System.root";
@@ -69,18 +69,15 @@ export class AgentService extends AgentBase {
       actor,
     );
     const inferAgents = agents.filter((a) => a.infer === true);
-    return {
-      agents: inferAgents.map((a) => ({
-        agent_id: String(a.id),
-        description: a.description || "",
-      })),
-    };
+    return tool.ToolCallResult.fromObject({
+      identifiers: inferAgents.map((a) => a.id),
+    });
   }
 
   /**
    * Run a sub-agent with a specific task in an isolated child conversation
    * @param {agent.RunSubAgentRequest} req - Request with agent_id and prompt
-   * @returns {Promise<agent.AgentResponse>} Sub-agent response
+   * @returns {Promise<tool.ToolCallResult>} Tool result with sub-agent response content
    */
   async RunSubAgent(req) {
     const actor = "common.System.root";
@@ -115,13 +112,19 @@ export class AgentService extends AgentBase {
       result = { resource_id, messages };
     });
 
-    return result;
+    // Extract content from final assistant message
+    const assistantMessages = (result?.messages || []).filter(
+      (m) => m.role === "assistant" && m.content,
+    );
+    const content = assistantMessages.map((m) => m.content).join("\n");
+
+    return tool.ToolCallResult.fromObject({ content });
   }
 
   /**
    * List valid handoff labels available from the current agent
    * @param {agent.ListHandoffsRequest} req - Request with resource_id
-   * @returns {Promise<agent.ListHandoffsResponse>} List of handoff labels
+   * @returns {Promise<tool.ToolCallResult>} Tool result with handoff labels as content
    */
   async ListHandoffs(req) {
     const actor = "common.System.root";
@@ -145,13 +148,13 @@ export class AgentService extends AgentBase {
     }
 
     const labels = (currentAgent.handoffs || []).map((h) => h.label);
-    return { labels };
+    return tool.ToolCallResult.fromObject({ content: JSON.stringify(labels) });
   }
 
   /**
    * Hand off conversation control to another agent
    * @param {agent.RunHandoffRequest} req - Request with resource_id and label
-   * @returns {Promise<agent.RunHandoffResponse>} Handoff confirmation
+   * @returns {Promise<tool.ToolCallResult>} Tool result with handoff details as content
    */
   async RunHandoff(req) {
     const actor = "common.System.root";
@@ -182,10 +185,11 @@ export class AgentService extends AgentBase {
     conversation.agent_id = newAgentId;
     await this.#resourceIndex.put(conversation);
 
-    return {
+    const result = {
       resource_id: req.resource_id,
       agent_id: conversation.agent_id,
       prompt: handoff.prompt,
     };
+    return tool.ToolCallResult.fromObject({ content: JSON.stringify(result) });
   }
 }

@@ -216,9 +216,14 @@ export class AgentHands {
       // Persist tool result
       await saveMessage(message);
 
-      // Check for handoff - extract prompt from run_handoff result
-      if (toolCall.function?.name === "run_handoff" && result?.prompt) {
-        handoffPrompt = result.prompt;
+      // Check for handoff - extract prompt from run_handoff result content
+      if (toolCall.function?.name === "run_handoff" && result?.content) {
+        try {
+          const handoffData = JSON.parse(result.content);
+          handoffPrompt = handoffData.prompt;
+        } catch {
+          // Ignore parse errors
+        }
       }
     }
 

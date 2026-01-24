@@ -126,6 +126,7 @@ help:
 	@echo "  ontology-topdown  	Generate ontology (top-down approach)"
 	@echo "  security          	Run security audit"
 	@echo "  spellcheck        	Check spelling in documentation"
+	@echo "  tei-install       	Install TEI for local embeddings"
 	@echo "  validate-html     	Validate HTML files in eval/output"
 	@echo ""
 	@echo "NPM Scripts (pass-through):"
@@ -463,6 +464,10 @@ security:  ## Run security audit
 .PHONY: spellcheck
 spellcheck:  ## Check spelling in documentation
 	@npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions
+
+.PHONY: tei-install
+tei-install:  ## Install TEI for local embeddings
+	@cargo install --git https://github.com/huggingface/text-embeddings-inference --features candle text-embeddings-router
 
 .PHONY: validate-html
 validate-html:  ## Validate HTML files in eval/output

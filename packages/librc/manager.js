@@ -263,7 +263,6 @@ export class ServiceManager {
         }
       }
     }
-    this.#logger.info("start", "All services started");
   }
 
   /**
@@ -318,7 +317,6 @@ export class ServiceManager {
         // Ignore
       }
     }
-    this.#logger.info("stop", "All services stopped");
   }
 
   /**

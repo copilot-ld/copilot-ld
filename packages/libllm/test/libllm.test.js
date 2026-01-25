@@ -11,6 +11,8 @@ describe("libllm", () => {
     let llmApi;
     let retry;
 
+    const TEI_BASE_URL = "http://localhost:8090";
+
     beforeEach(() => {
       mockFetch = mock.fn();
       retry = new Retry();
@@ -18,7 +20,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
-        null, // embeddingBaseUrl
+        TEI_BASE_URL,
         retry,
         mockFetch,
       );
@@ -129,16 +131,15 @@ describe("libllm", () => {
       assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
 
-    test("createEmbeddings makes correct API call", async () => {
+    test("createEmbeddings makes correct TEI API call", async () => {
+      // TEI returns array of arrays: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
       const mockResponse = {
         ok: true,
         json: mock.fn(() =>
-          Promise.resolve({
-            data: [
-              { embedding: [0.1, 0.2, 0.3], index: 0 },
-              { embedding: [0.4, 0.5, 0.6], index: 1 },
-            ],
-          }),
+          Promise.resolve([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6],
+          ]),
         ),
       };
       mockFetch.mock.mockImplementationOnce(() =>
@@ -150,17 +151,23 @@ describe("libllm", () => {
 
       assert.strictEqual(mockFetch.mock.callCount(), 1);
       const [url, options] = mockFetch.mock.calls[0].arguments;
-      assert.strictEqual(url, `${DEFAULT_BASE_URL}/embeddings`);
+      assert.strictEqual(url, `${TEI_BASE_URL}/embed`);
       assert.strictEqual(options.method, "POST");
 
+      // TEI uses { inputs: [...] } format
       const body = JSON.parse(options.body);
-      assert.strictEqual(body.model, "text-embedding-3-large");
-      assert.strictEqual(body.dimensions, 1024);
-      assert.deepStrictEqual(body.input, texts);
+      assert.deepStrictEqual(body.inputs, texts);
+      assert.strictEqual(body.model, undefined); // TEI doesn't need model
 
+      // No authorization header for TEI
+      assert.strictEqual(options.headers.Authorization, undefined);
+      assert.strictEqual(options.headers["Content-Type"], "application/json");
+
+      // Result should be normalized to Embeddings format
       assert.strictEqual(result.data.length, 2);
-      assert.ok(result.data[0].embedding);
-      assert.ok(result.data[1].embedding);
+      assert.deepStrictEqual(result.data[0].embedding, [0.1, 0.2, 0.3]);
+      assert.deepStrictEqual(result.data[1].embedding, [0.4, 0.5, 0.6]);
+      assert.strictEqual(result.model, "bge-large-en-v1.5");
     });
 
     test("createEmbeddings retries on 429 status", async () => {
@@ -169,13 +176,10 @@ describe("libllm", () => {
         status: 429,
         statusText: "Too Many Requests",
       };
+      // TEI returns array of arrays
       const successResponse = {
         ok: true,
-        json: mock.fn(() =>
-          Promise.resolve({
-            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
-          }),
-        ),
+        json: mock.fn(() => Promise.resolve([[0.1, 0.2, 0.3]])),
       };
 
       // Set up mock to return retry response first, then success
@@ -219,85 +223,22 @@ describe("libllm", () => {
       assert.strictEqual(mockFetch.mock.callCount(), 1); // No retries for non-429
     });
 
-    test("createEmbeddings uses TEI endpoint when embeddingBaseUrl differs from baseUrl", async () => {
-      const teiBaseUrl = "http://localhost:8090";
+    test("LlmApi throws when embeddingBaseUrl is not provided", () => {
       const teiMockFetch = mock.fn();
       const teiRetry = new Retry();
-      const teiLlmApi = new LlmApi(
-        "test-token",
-        "gpt-4",
-        DEFAULT_BASE_URL,
-        teiBaseUrl, // Different embedding URL
-        teiRetry,
-        teiMockFetch,
+
+      assert.throws(
+        () =>
+          new LlmApi(
+            "test-token",
+            "gpt-4",
+            DEFAULT_BASE_URL,
+            null, // embeddingBaseUrl is required
+            teiRetry,
+            teiMockFetch,
+          ),
+        { message: /embeddingBaseUrl is required/ },
       );
-
-      // TEI returns array of arrays: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
-      const mockTeiResponse = {
-        ok: true,
-        json: mock.fn(() =>
-          Promise.resolve([
-            [0.1, 0.2, 0.3],
-            [0.4, 0.5, 0.6],
-          ]),
-        ),
-      };
-      teiMockFetch.mock.mockImplementationOnce(() =>
-        Promise.resolve(mockTeiResponse),
-      );
-
-      const texts = ["Hello", "World"];
-      const result = await teiLlmApi.createEmbeddings(texts);
-
-      assert.strictEqual(teiMockFetch.mock.callCount(), 1);
-      const [url, options] = teiMockFetch.mock.calls[0].arguments;
-
-      // Should use TEI endpoint /embed instead of OpenAI /embeddings
-      assert.strictEqual(url, `${teiBaseUrl}/embed`);
-      assert.strictEqual(options.method, "POST");
-
-      // TEI uses { inputs: [...] } format
-      const body = JSON.parse(options.body);
-      assert.deepStrictEqual(body.inputs, texts);
-      assert.strictEqual(body.model, undefined); // TEI doesn't need model
-
-      // No authorization header for local TEI
-      assert.strictEqual(options.headers.Authorization, undefined);
-      assert.strictEqual(options.headers["Content-Type"], "application/json");
-
-      // Result should be normalized to Embeddings format
-      assert.strictEqual(result.data.length, 2);
-      assert.deepStrictEqual(result.data[0].embedding, [0.1, 0.2, 0.3]);
-      assert.deepStrictEqual(result.data[1].embedding, [0.4, 0.5, 0.6]);
-      assert.strictEqual(result.model, "bge-large-en-v1.5");
-    });
-
-    test("createEmbeddings uses OpenAI format when embeddingBaseUrl is null", async () => {
-      // llmApi was created with null embeddingBaseUrl in beforeEach
-      const mockResponse = {
-        ok: true,
-        json: mock.fn(() =>
-          Promise.resolve({
-            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
-          }),
-        ),
-      };
-      mockFetch.mock.mockImplementationOnce(() =>
-        Promise.resolve(mockResponse),
-      );
-
-      const texts = ["Hello"];
-      await llmApi.createEmbeddings(texts);
-
-      const [url, options] = mockFetch.mock.calls[0].arguments;
-      // Should use OpenAI endpoint
-      assert.strictEqual(url, `${DEFAULT_BASE_URL}/embeddings`);
-
-      // Should use OpenAI format with auth headers
-      assert.ok(options.headers.Authorization.includes("test-token"));
-      const body = JSON.parse(options.body);
-      assert.deepStrictEqual(body.input, texts);
-      assert.strictEqual(body.model, "text-embedding-3-large");
     });
 
     test("listModels makes correct API call", async () => {
@@ -352,6 +293,7 @@ describe("libllm", () => {
   describe("LlmApi instance methods", () => {
     let llmApi;
     let retry;
+    const TEI_BASE_URL = "http://localhost:8090";
 
     beforeEach(() => {
       const mockFetch = mock.fn();
@@ -360,7 +302,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
-        null, // embeddingBaseUrl
+        TEI_BASE_URL,
         retry,
         mockFetch,
       );
@@ -397,11 +339,25 @@ describe("libllm", () => {
       const { createLlmApi, LlmApi, DEFAULT_BASE_URL } =
         await import("../index.js");
 
-      // Create an LLM instance
-      const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
+      // Create an LLM instance (embeddingBaseUrl is now required)
+      const llm = createLlmApi(
+        "test-token",
+        "gpt-4",
+        DEFAULT_BASE_URL,
+        "http://localhost:8090",
+      );
 
       // Verify that the LLM was created successfully
       assert.ok(llm instanceof LlmApi);
+    });
+
+    test("createLlmApi throws when embeddingBaseUrl is not provided", async () => {
+      const { createLlmApi, DEFAULT_BASE_URL } = await import("../index.js");
+
+      assert.throws(
+        () => createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL),
+        { message: /embeddingBaseUrl is required/ },
+      );
     });
 
     test("createLlmApi works when HTTPS_PROXY environment variable is set", async () => {
@@ -415,7 +371,12 @@ describe("libllm", () => {
           await import("../index.js");
 
         // Create an LLM instance with proxy environment
-        const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
+        const llm = createLlmApi(
+          "test-token",
+          "gpt-4",
+          DEFAULT_BASE_URL,
+          "http://localhost:8090",
+        );
 
         // Verify that the LLM was created successfully
         assert.ok(llm instanceof LlmApi);

@@ -52,7 +52,7 @@ export class LlmApi {
    * @param {string} token - LLM API token
    * @param {string} model - Default model to use for completions
    * @param {string} baseUrl - Base URL for the LLM API
-   * @param {string|null} embeddingBaseUrl - Base URL for embeddings (null to use baseUrl)
+   * @param {string} embeddingBaseUrl - Base URL for TEI embeddings (required)
    * @param {import("@copilot-ld/libutil").Retry} retry - Retry instance for handling transient errors
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
@@ -69,6 +69,7 @@ export class LlmApi {
     temperature = 0.3,
   ) {
     if (!baseUrl) throw new Error("baseUrl is required");
+    if (!embeddingBaseUrl) throw new Error("embeddingBaseUrl is required");
     if (!retry) throw new Error("retry is required");
     if (typeof fetchFn !== "function")
       throw new Error("Invalid fetch function");
@@ -77,7 +78,7 @@ export class LlmApi {
 
     this.#model = model;
     this.#baseURL = normalizeBaseUrl(baseUrl);
-    this.#embeddingBaseURL = embeddingBaseUrl || this.#baseURL;
+    this.#embeddingBaseURL = embeddingBaseUrl;
     this.#headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -137,63 +138,38 @@ export class LlmApi {
   }
 
   /**
-   * Creates embeddings using the LLM API or TEI
+   * Creates embeddings using TEI (Text Embeddings Inference)
    * @param {string[]} input - Array of text strings to embed
    * @returns {Promise<import("copilot-ld/libtype").common.Embeddings>} Embeddings response
    */
   async createEmbeddings(input) {
-    // Detect if using separate TEI endpoint
-    const isTEI = this.#embeddingBaseURL !== this.#baseURL;
-
     // Truncate inputs to fit within TEI's token limit
-    const processedInput = isTEI
-      ? input.map((text) => truncateToTokens(text, TEI_MAX_TOKENS))
-      : input;
-
-    // TEI uses /embed endpoint, OpenAI uses /embeddings
-    const endpoint = isTEI ? "/embed" : "/embeddings";
-
-    // TEI doesn't need auth headers; OpenAI-compatible endpoints do
-    const headers = isTEI
-      ? { "Content-Type": "application/json" }
-      : this.#headers;
-
-    // TEI expects { inputs: [...] }, OpenAI expects { input: [...], model: "..." }
-    // For TEI, model is configured at service startup. For OpenAI, uses text-embedding-3-large.
-    const body = isTEI
-      ? { inputs: processedInput }
-      : {
-          model: "text-embedding-3-large",
-          dimensions: 1024,
-          input: processedInput,
-        };
+    const processedInput = input.map((text) =>
+      truncateToTokens(text, TEI_MAX_TOKENS),
+    );
 
     const response = await this.#retry.execute(() =>
-      this.#fetch(`${this.#embeddingBaseURL}${endpoint}`, {
+      this.#fetch(`${this.#embeddingBaseURL}/embed`, {
         method: "POST",
-        headers,
-        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: processedInput }),
       }),
     );
 
     await this.#throwIfNotOk(response);
     const json = await response.json();
 
-    // TEI returns [[0.1, 0.2, ...]], OpenAI returns {data: [{embedding: [...]}]}
-    if (isTEI) {
-      return common.Embeddings.fromObject({
-        object: "list",
-        data: json.map((embedding, index) => ({
-          object: "embedding",
-          index,
-          embedding,
-        })),
-        model: "bge-large-en-v1.5",
-        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-      });
-    }
-
-    return common.Embeddings.fromObject(json);
+    // TEI returns [[0.1, 0.2, ...]]
+    return common.Embeddings.fromObject({
+      object: "list",
+      data: json.map((embedding, index) => ({
+        object: "embedding",
+        index,
+        embedding,
+      })),
+      model: "bge-large-en-v1.5",
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+    });
   }
 
   /**
@@ -319,7 +295,7 @@ export function createProxyAwareFetch(process = global.process) {
  * @param {string} token - LLM API token
  * @param {string} model - Model to use
  * @param {string} baseUrl - Base URL for the LLM API (required, e.g. https://models.github.ai/orgs/{org})
- * @param {string|null} [embeddingBaseUrl] - Base URL for embeddings (null to use baseUrl)
+ * @param {string} embeddingBaseUrl - Base URL for TEI embeddings (required)
  * @param {number} [temperature] - Temperature for completions
  * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
@@ -329,7 +305,7 @@ export function createLlmApi(
   token,
   model,
   baseUrl,
-  embeddingBaseUrl = null,
+  embeddingBaseUrl,
   temperature = 0.3,
   fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
@@ -337,6 +313,11 @@ export function createLlmApi(
   if (!baseUrl) {
     throw new Error(
       "baseUrl is required. Set LLM_BASE_URL to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
+    );
+  }
+  if (!embeddingBaseUrl) {
+    throw new Error(
+      "embeddingBaseUrl is required. Set EMBEDDING_BASE_URL for TEI endpoint.",
     );
   }
   const retry = createRetry();

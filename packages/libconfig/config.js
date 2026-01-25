@@ -154,8 +154,8 @@ export class Config {
 
   /**
    * Gets the embedding API base URL from environment variable.
-   * Falls back to LLM base URL if not set, maintaining backward compatibility.
-   * @returns {string|null} Embedding API base URL with trailing slashes removed, or null to use LLM URL
+   * @returns {string} Embedding API base URL with trailing slashes removed
+   * @throws {Error} If EMBEDDING_BASE_URL is not set in environment
    */
   embeddingBaseUrl() {
     if (this.#embeddingBaseUrl) return this.#embeddingBaseUrl;
@@ -168,7 +168,9 @@ export class Config {
       return this.#embeddingBaseUrl;
     }
 
-    return null;
+    throw new Error(
+      "EMBEDDING_BASE_URL not found in environment. Set to your TEI endpoint URL.",
+    );
   }
 
   /**

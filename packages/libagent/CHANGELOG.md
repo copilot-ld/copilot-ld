@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-01-25
+
+- Fixed `AgentHands.#processToolCallResult()` to convert `Identifier` objects to
+  strings before passing to `resourceIndex.get()`, resolving bug where graph
+  query results returned empty content despite matching identifiers
+
 ## 2026-01-23
 
 - **BREAKING**: Renamed "assistant" to "agent" throughout the codebase

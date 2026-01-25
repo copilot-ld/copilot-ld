@@ -163,9 +163,10 @@ export class AgentHands {
       const subjects = result.identifiers.flatMap((id) => id.subjects || []);
 
       // Load resources using root actor
+      // Convert Identifier objects to string keys for resource lookup
       const actor = "common.System.root";
       const resources = await this.#resourceIndex.get(
-        result.identifiers,
+        result.identifiers.map((id) => String(id)),
         actor,
       );
 

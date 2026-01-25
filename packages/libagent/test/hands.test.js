@@ -343,4 +343,77 @@ describe("AgentHands", () => {
     assert.strictEqual(tokensUsed, expectedTotal);
     assert.ok(tokensUsed > 0, "Should have counted some tokens");
   });
+
+  test("executeToolCall converts Identifier objects to strings for resource lookup", async () => {
+    // Track what keys are passed to resourceIndex.get()
+    let capturedKeys = null;
+    const mockResourceIndexWithCapture = {
+      get: async (keys) => {
+        capturedKeys = keys;
+        return [{ content: "Loaded resource content" }];
+      },
+    };
+
+    // Mock tool.call to return identifiers as objects (like GraphService does)
+    const mockCallbacksWithIdentifiers = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async () => ({
+          // Simulate graph service returning Identifier objects
+          identifiers: [
+            {
+              type: "common.Message",
+              name: "abc123",
+              parent: "",
+              subjects: ["https://example.org/entity1"],
+              toString() {
+                return "common.Message.abc123";
+              },
+            },
+            {
+              type: "common.Message",
+              name: "def456",
+              parent: "parent/path",
+              subjects: ["https://example.org/entity2"],
+              toString() {
+                return "parent/path/common.Message.def456";
+              },
+            },
+          ],
+        }),
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithIdentifiers,
+      mockResourceIndexWithCapture,
+    );
+
+    const toolCall = {
+      id: "test-call",
+      function: { name: "query_by_pattern" },
+    };
+
+    const { message } = await agentHands.executeToolCall(
+      toolCall,
+      "test-token",
+      "test-resource",
+    );
+
+    // Verify resourceIndex.get was called with string keys, not objects
+    assert.ok(capturedKeys, "resourceIndex.get should have been called");
+    assert.strictEqual(capturedKeys.length, 2);
+    assert.strictEqual(capturedKeys[0], "common.Message.abc123");
+    assert.strictEqual(capturedKeys[1], "parent/path/common.Message.def456");
+
+    // Verify subjects were extracted from identifiers
+    assert.ok(message.id?.subjects);
+    assert.deepStrictEqual(message.id.subjects, [
+      "https://example.org/entity1",
+      "https://example.org/entity2",
+    ]);
+
+    // Verify content was loaded
+    assert.strictEqual(message.content, "Loaded resource content");
+  });
 });

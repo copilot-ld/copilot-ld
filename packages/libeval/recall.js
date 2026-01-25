@@ -6,21 +6,26 @@ import { memory } from "@copilot-ld/libtype";
  *
  * Evaluates whether the agent retrieves all relevant context from the knowledge base
  * by examining which resource identifiers were stored in resource memory.
+ * Includes sub-agent memory entries by discovering child conversation resources.
  */
 export class RecallEvaluator {
   #agentConfig;
   #memoryClient;
+  #storage;
 
   /**
    * Create a new RecallEvaluator instance
    * @param {import('@copilot-ld/libconfig').Config} agentConfig - Agent configuration with budget and allocation
    * @param {import('@copilot-ld/librpc').MemoryClient} memoryClient - Memory client for retrieving context
+   * @param {import('@copilot-ld/libstorage').Storage} storage - Memory storage for discovering child resources
    */
-  constructor(agentConfig, memoryClient) {
+  constructor(agentConfig, memoryClient, storage) {
     if (!agentConfig) throw new Error("agentConfig is required");
     if (!memoryClient) throw new Error("memoryClient is required");
+    if (!storage) throw new Error("storage is required");
     this.#agentConfig = agentConfig;
     this.#memoryClient = memoryClient;
+    this.#storage = storage;
   }
 
   /**
@@ -37,20 +42,30 @@ export class RecallEvaluator {
     }
     if (!model) throw new Error("model is required");
 
-    // Get memory window with all resource context
-    const windowRequest = memory.WindowRequest.fromObject({
-      resource_id: resourceId,
-      model,
-      budget: this.#agentConfig.budget?.tokens,
-      allocation: this.#agentConfig.budget?.allocation,
-    });
-    const memoryWindow = await this.#memoryClient.GetWindow(windowRequest);
+    // Discover all memory files (parent + child sub-agent conversations)
+    const resourceKeys = await this.#storage.findByPrefix(`${resourceId}`);
+    const memoryFiles = resourceKeys.filter((k) => k.endsWith(".jsonl"));
 
-    // Extract retrieved subjects from message identifiers
+    // Aggregate identifiers from all memory windows
     const retrievedSubjects = [];
-    for (const message of memoryWindow.messages) {
-      if (message.id && message.id.subjects) {
-        retrievedSubjects.push(...message.id.subjects);
+
+    for (const key of memoryFiles) {
+      const childResourceId = key.replace(".jsonl", "");
+
+      const windowRequest = memory.WindowRequest.fromObject({
+        resource_id: childResourceId,
+        model,
+        budget: this.#agentConfig.budget?.tokens,
+        allocation: this.#agentConfig.budget?.allocation,
+      });
+
+      const memoryWindow = await this.#memoryClient.GetWindow(windowRequest);
+
+      // Extract subjects from this window's message identifiers
+      for (const message of memoryWindow.messages) {
+        if (message.id && message.id.subjects) {
+          retrievedSubjects.push(...message.id.subjects);
+        }
       }
     }
 

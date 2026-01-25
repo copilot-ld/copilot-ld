@@ -118,6 +118,7 @@ async function main() {
   // Initialize storage
   const configStorage = createStorage("config");
   const evalStorage = createStorage("eval");
+  const memoryStorage = createStorage("memories");
 
   // Load config.json to get model matrix
   const config = await configStorage.get("config.json");
@@ -150,7 +151,11 @@ async function main() {
 
   // Create evaluators
   const judgeEvaluator = new JudgeEvaluator(agentClient, llmToken, judgeModel);
-  const recallEvaluator = new RecallEvaluator(agentConfig, memoryClient);
+  const recallEvaluator = new RecallEvaluator(
+    agentConfig,
+    memoryClient,
+    memoryStorage,
+  );
   const traceEvaluator = new TraceEvaluator(traceClient);
 
   // Plan all runs in a flat array - iterate over models, then iterations, then scenarios

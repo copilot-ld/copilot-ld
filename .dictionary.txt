@@ -176,6 +176,7 @@ instantiation
 Integrations
 IPC
 IRI
+isPartOf
 iteratively
 Jaeger
 JavaScript

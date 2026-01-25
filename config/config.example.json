@@ -52,12 +52,14 @@
   "service": {
     "agent": {
       "agent": "coordinator",
-      "model": "openai/gpt-4.1"
+      "model": "openai/gpt-4.1",
+      "batch_size": 3
     },
     "llm": {
       "temperature": 0.3
     },
     "tool": {
+      "batch_size": 3,
       "filter": {
         "threshold": 0.62,
         "max_tokens": null

@@ -7,18 +7,22 @@ import { llm, tool, common, memory } from "@copilot-ld/libtype";
 export class AgentHands {
   #callbacks;
   #resourceIndex;
+  #batchSize;
 
   /**
    * Creates a new AgentHands instance
    * @param {import("./index.js").Callbacks} callbacks - Service callback functions
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
+   * @param {object} [options] - Configuration options
+   * @param {number} [options.batchSize=3] - Number of tool calls to execute in parallel per batch
    */
-  constructor(callbacks, resourceIndex) {
+  constructor(callbacks, resourceIndex, options = {}) {
     if (!callbacks) throw new Error("callbacks is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#callbacks = callbacks;
     this.#resourceIndex = resourceIndex;
+    this.#batchSize = options.batchSize ?? 3;
   }
 
   /**
@@ -184,48 +188,81 @@ export class AgentHands {
   }
 
   /**
-   * Processes tool calls from an assistant message
+   * Processes tool calls from an assistant message using batched parallel execution
    * @param {import("@copilot-ld/libtype").tool.ToolCall[]} toolCalls - Array of tool calls to process
    * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
    * @param {string} [options.resourceId] - Current conversation resource ID
    * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {number} [options.maxTokens] - Maximum tokens for tool results
+   * @param {number} [options.batchSize] - Override batch size for this call
    * @returns {Promise<{tokensUsed: number, handoffPrompt: string|null}>} Tokens used and handoff prompt if any
    */
   async processToolCalls(toolCalls, saveMessage, options = {}) {
-    const { resourceId, llmToken, maxTokens } = options;
+    const { resourceId, llmToken, maxTokens, batchSize = this.#batchSize } =
+      options;
     let totalTokensUsed = 0;
     let remainingBudget = maxTokens;
     let handoffPrompt = null;
 
-    // Execute each tool call
-    for (let i = 0; i < toolCalls.length; i++) {
-      const toolCall = toolCalls[i];
-      const { message, result } = await this.executeToolCall(
-        toolCall,
-        llmToken,
-        resourceId,
-        remainingBudget,
+    // Process in batches
+    for (
+      let batchStart = 0;
+      batchStart < toolCalls.length;
+      batchStart += batchSize
+    ) {
+      const batch = toolCalls.slice(batchStart, batchStart + batchSize);
+
+      // Execute batch in parallel with error isolation
+      const settled = await Promise.allSettled(
+        batch.map((toolCall) =>
+          this.executeToolCall(toolCall, llmToken, resourceId, remainingBudget),
+        ),
       );
 
-      // Track tokens used and draw down budget
-      const tokensUsed = message.id?.tokens || 0;
-      totalTokensUsed += tokensUsed;
-      remainingBudget = Math.max(0, remainingBudget - tokensUsed);
+      // Process batch results sequentially to maintain message order
+      for (let i = 0; i < settled.length; i++) {
+        const outcome = settled[i];
+        const toolCall = batch[i];
 
-      // Persist tool result
-      await saveMessage(message);
+        if (outcome.status === "rejected") {
+          // Create error message for failed tool call
+          const errorMessage = tool.ToolCallMessage.fromObject({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify({
+              error: {
+                type: "tool_execution_error",
+                message: String(outcome.reason),
+              },
+            }),
+          });
+          await saveMessage(errorMessage);
+          continue;
+        }
 
-      // Check for handoff - extract prompt from run_handoff result content
-      if (toolCall.function?.name === "run_handoff" && result?.content) {
-        try {
-          const handoffData = JSON.parse(result.content);
-          handoffPrompt = handoffData.prompt;
-        } catch {
-          // Ignore parse errors
+        const { message, result } = outcome.value;
+        const tokensUsed = message.id?.tokens || 0;
+        totalTokensUsed += tokensUsed;
+
+        await saveMessage(message);
+
+        // Check for handoff - extract prompt from run_handoff result content
+        if (toolCall.function?.name === "run_handoff" && result?.content) {
+          try {
+            const handoffData = JSON.parse(result.content);
+            handoffPrompt = handoffData.prompt;
+          } catch {
+            // Ignore parse errors
+          }
         }
       }
+
+      // Draw down budget after each batch
+      const batchTokensUsed = settled
+        .filter((s) => s.status === "fulfilled")
+        .reduce((sum, s) => sum + (s.value.message.id?.tokens || 0), 0);
+      remainingBudget = Math.max(0, remainingBudget - batchTokensUsed);
     }
 
     return { tokensUsed: totalTokensUsed, handoffPrompt };

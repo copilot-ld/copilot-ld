@@ -139,6 +139,90 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[1].role, "tool");
   });
 
+  test("processToolCalls executes batch calls in parallel", async () => {
+    const executionOrder = [];
+    const completionOrder = [];
+
+    const mockCallbacksWithTiming = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolCall) => {
+          executionOrder.push(toolCall.id);
+          // Stagger completion times to detect parallelism
+          const delay = toolCall.id === "call1" ? 50 : 10;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          completionOrder.push(toolCall.id);
+          return { content: `Result for ${toolCall.id}` };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithTiming,
+      mockResourceIndex,
+      { batchSize: 2 },
+    );
+
+    const toolCalls = [
+      { id: "call1", function: { name: "search" } },
+      { id: "call2", function: { name: "analyze" } },
+    ];
+
+    await agentHands.processToolCalls(toolCalls, async () => {}, {
+      llmToken: "test-token",
+    });
+
+    // Both should start before either completes (parallel execution)
+    assert.deepStrictEqual(executionOrder, ["call1", "call2"]);
+    // call2 completes first due to shorter delay, proving parallelism
+    assert.deepStrictEqual(completionOrder, ["call2", "call1"]);
+  });
+
+  test("processToolCalls handles errors in parallel batch without affecting other calls", async () => {
+    const mockCallbacksWithError = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolCall) => {
+          if (toolCall.id === "call2") {
+            throw new Error("Tool call2 failed");
+          }
+          return { content: `Result for ${toolCall.id}` };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithError,
+      mockResourceIndex,
+      { batchSize: 3 },
+    );
+
+    const toolCalls = [
+      { id: "call1", function: { name: "search" } },
+      { id: "call2", function: { name: "analyze" } },
+      { id: "call3", function: { name: "summarize" } },
+    ];
+
+    const savedMessages = [];
+    await agentHands.processToolCalls(toolCalls, async (msg) => {
+      savedMessages.push(msg);
+    }, { llmToken: "test-token" });
+
+    // All 3 messages should be saved (including the error)
+    assert.strictEqual(savedMessages.length, 3);
+
+    // call1 should succeed
+    assert.strictEqual(savedMessages[0].content, "Result for call1");
+
+    // call2 should have error
+    const call2Content = JSON.parse(savedMessages[1].content);
+    assert.ok(call2Content.error);
+    assert.strictEqual(call2Content.error.message, "Tool call2 failed");
+
+    // call3 should succeed
+    assert.strictEqual(savedMessages[2].content, "Result for call3");
+  });
+
   test("executeToolLoop passes resource_id to LLM and handles completion without tool calls", async () => {
     let capturedRequest = null;
     const mockCallbacksWithCapture = {
@@ -243,7 +327,7 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[2].role, "assistant");
   });
 
-  test("processToolCalls decrements budget after each tool call", async () => {
+  test("processToolCalls decrements budget after each batch", async () => {
     const capturedMaxTokens = [];
 
     const mockCallbacksWithCapture = {
@@ -262,12 +346,14 @@ describe("AgentHands", () => {
     const agentHands = new AgentHands(
       mockCallbacksWithCapture,
       mockResourceIndex,
+      { batchSize: 2 }, // Process 2 calls per batch
     );
 
     const toolCalls = [
       { id: "call1", function: { name: "search" } },
       { id: "call2", function: { name: "analyze" } },
       { id: "call3", function: { name: "summarize" } },
+      { id: "call4", function: { name: "format" } },
     ];
 
     const savedMessages = [];
@@ -282,20 +368,18 @@ describe("AgentHands", () => {
       maxTokens: 5000,
     });
 
-    // First call should get full budget (5000)
+    // First batch (call1, call2) should get full budget (5000)
     assert.strictEqual(capturedMaxTokens[0], "5000");
+    assert.strictEqual(capturedMaxTokens[1], "5000");
 
-    // Get actual tokens from first message to verify decrement
-    const firstTokens = savedMessages[0].id.tokens;
+    // Get actual tokens from first batch to verify decrement
+    const firstBatchTokens =
+      savedMessages[0].id.tokens + savedMessages[1].id.tokens;
 
-    // Second call should get budget minus first call's tokens
-    const expectedSecond = String(5000 - firstTokens);
-    assert.strictEqual(capturedMaxTokens[1], expectedSecond);
-
-    // Third call should get budget minus first two calls' tokens
-    const secondTokens = savedMessages[1].id.tokens;
-    const expectedThird = String(5000 - firstTokens - secondTokens);
-    assert.strictEqual(capturedMaxTokens[2], expectedThird);
+    // Second batch (call3, call4) should get budget minus first batch's tokens
+    const expectedSecondBatch = String(5000 - firstBatchTokens);
+    assert.strictEqual(capturedMaxTokens[2], expectedSecondBatch);
+    assert.strictEqual(capturedMaxTokens[3], expectedSecondBatch);
   });
 
   test("processToolCalls returns total tokens used", async () => {

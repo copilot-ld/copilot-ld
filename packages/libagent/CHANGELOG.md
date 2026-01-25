@@ -2,6 +2,13 @@
 
 ## 2026-01-25
 
+- **BREAKING**: `processToolCalls()` now executes tool calls in parallel batches
+  instead of sequentially. Batch size configurable via constructor
+  `options.batchSize` (default: 3) or per-call via `options.batchSize`
+- `AgentHands` constructor now accepts optional third parameter `options` with
+  `batchSize` property for parallel execution control
+- Budget decrement now occurs per-batch rather than per-call; all calls in a
+  batch receive the same remaining budget
 - Fixed `AgentHands.#processToolCallResult()` to convert `Identifier` objects to
   strings before passing to `resourceIndex.get()`, resolving bug where graph
   query results returned empty content despite matching identifiers

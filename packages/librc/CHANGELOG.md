@@ -6,7 +6,8 @@
 - `rc start <service>` starts services from first through target (dependencies)
 - `rc stop <service>` stops services from target through last (dependents first)
 - `rc status <service>` shows status of specific service only
-- Fixed: `rc stop <service>` no longer shuts down svscan daemon (only full stop does)
+- Fixed: `rc stop <service>` no longer shuts down svscan daemon (only full stop
+  does)
 - Simplified: inlined `readPid()` and `isAlive()` into `isSvscanRunning()`
 
 ## 2026-01-16

@@ -129,7 +129,8 @@ describe("Integration with libutil functions", () => {
     });
 
     test("truncates text exceeding token limit", () => {
-      const text = "This is a much longer text that should definitely exceed the token limit when we set a very small maximum.";
+      const text =
+        "This is a much longer text that should definitely exceed the token limit when we set a very small maximum.";
       const result = truncateToTokens(text, 5);
       assert.ok(result.length < text.length);
       assert.ok(countTokens(result) <= 5);
@@ -152,7 +153,8 @@ describe("Integration with libutil functions", () => {
     });
 
     test("truncated text fits exactly within limit", () => {
-      const text = "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10";
+      const text =
+        "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10";
       const result = truncateToTokens(text, 10);
       const tokenCount = countTokens(result);
       assert.ok(tokenCount <= 10, `Token count ${tokenCount} exceeds limit 10`);

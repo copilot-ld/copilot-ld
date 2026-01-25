@@ -34,7 +34,10 @@ function help() {
   logger.info("help", "Usage: rc <command> [service] [options]");
   logger.info("help", "Commands: start, stop, status, restart");
   logger.info("help", "Options: -h, --help, -s, --silent");
-  logger.info("help", "If service is specified, start/stop operates up to that service");
+  logger.info(
+    "help",
+    "If service is specified, start/stop operates up to that service",
+  );
 }
 
 if (values.help || !command) {

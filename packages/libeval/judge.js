@@ -56,6 +56,68 @@ export class JudgeEvaluator {
   }
 
   /**
+   * Request judgment from the judge agent and parse JSON response
+   * @param {string} evaluationContent - The evaluation message content
+   * @param {string} scenarioName - Name of the scenario for error messages
+   * @param {object[]} evaluations - Array of evaluation criteria
+   * @returns {Promise<object>} Parsed judgment object
+   * @throws {Error} If JSON parsing fails
+   */
+  async #requestJudgment(evaluationContent, scenarioName, evaluations) {
+    const request = agent.AgentRequest.fromObject({
+      messages: [
+        common.Message.fromObject({ role: "user", content: evaluationContent }),
+      ],
+      llm_token: this.#llmToken,
+      model: this.#model,
+      agent_id: `common.Agent.eval_judge`,
+    });
+
+    const judgment = await this.#agentClient.ProcessUnary(request);
+
+    if (!judgment.messages || judgment.messages.length === 0) {
+      throw new Error(
+        `No messages returned from agent for ${scenarioName}. Response: ${JSON.stringify(judgment).substring(0, 200)}`,
+      );
+    }
+
+    const judgmentAssistantMessages = judgment.messages.filter(
+      (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
+    );
+    if (judgmentAssistantMessages.length === 0) {
+      throw new Error(
+        `No assistant messages in judgment for ${scenarioName}. Total messages: ${judgment.messages.length}`,
+      );
+    }
+
+    const content =
+      judgmentAssistantMessages[judgmentAssistantMessages.length - 1].content;
+    let judgmentContent = content.trim();
+
+    // Extract JSON from response
+    const jsonMatch = judgmentContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      judgmentContent = jsonMatch[0];
+    }
+
+    // Parse JSON response - throws on failure
+    const parsedJudgment = JSON.parse(judgmentContent);
+
+    // Validate all criteria are present
+    for (let i = 0; i < evaluations.length; i++) {
+      const result = parsedJudgment[i.toString()] || parsedJudgment[i];
+      if (!result) {
+        const actualKeys = Object.keys(parsedJudgment).join(", ");
+        throw new Error(
+          `Missing judgment for criteria index ${i} ("${evaluations[i].label}"). Received keys: ${actualKeys}`,
+        );
+      }
+    }
+
+    return parsedJudgment;
+  }
+
+  /**
    * Evaluate agent response against criteria
    * @param {object} scenario - Scenario with evaluations array
    * @param {object} response - Agent response object
@@ -70,7 +132,6 @@ export class JudgeEvaluator {
       throw new Error(`No messages in agent response for ${scenario.name}`);
     }
 
-    // Get the last assistant message with content as the response
     const assistantMessages = response.messages.filter(
       (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
     );
@@ -83,91 +144,55 @@ export class JudgeEvaluator {
     const responseContent =
       assistantMessages[assistantMessages.length - 1].content;
 
-    // Build the evaluation message
     const evaluationContent = this.#buildEvaluationMessage(
       scenario.prompt,
       responseContent,
       scenario.evaluations,
     );
 
-    // Create agent request with judge_evaluator assistant
-    const request = agent.AgentRequest.fromObject({
-      messages: [
-        common.Message.fromObject({ role: "user", content: evaluationContent }),
-      ],
-      llm_token: this.#llmToken,
-      model: this.#model,
-      agent_id: `common.Agent.eval_judge`,
-    });
+    // Retry judgment request up to 3 times on JSON parse failure
+    const maxRetries = 3;
+    let lastError;
 
-    const judgment = await this.#agentClient.ProcessUnary(request);
-
-    // Validate response structure
-    if (!judgment.messages || judgment.messages.length === 0) {
-      throw new Error(
-        `No messages returned from agent for ${scenario.name}. Response: ${JSON.stringify(judgment).substring(0, 200)}`,
-      );
-    }
-
-    // Get the last assistant message from the judgment
-    const judgmentAssistantMessages = judgment.messages.filter(
-      (m) => m.role === "assistant" && m.content && m.content.trim().length > 0,
-    );
-    if (judgmentAssistantMessages.length === 0) {
-      throw new Error(
-        `No assistant messages in judgment for ${scenario.name}. Total messages: ${judgment.messages.length}`,
-      );
-    }
-
-    const content =
-      judgmentAssistantMessages[judgmentAssistantMessages.length - 1].content;
-    let judgmentContent = content.trim();
-
-    // Strip any conversational prefix before JSON (e.g., "Understood. ", "Sure! ")
-    const jsonMatch = judgmentContent.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      judgmentContent = jsonMatch[0];
-    }
-
-    // Parse JSON response
-    let parsedJudgment;
-    try {
-      parsedJudgment = JSON.parse(judgmentContent);
-    } catch (error) {
-      throw new Error(
-        `Failed to parse judgment JSON for ${scenario.name}: ${error.message}. Content: ${judgmentContent.substring(0, 200)}`,
-      );
-    }
-
-    // Build evaluation results from parsed JSON
-    const evaluationResults = scenario.evaluations.map((evaluation, index) => {
-      // Try both string and numeric keys for flexibility
-      const result = parsedJudgment[index.toString()] || parsedJudgment[index];
-      if (!result) {
-        // Log the actual keys to help debug
-        const actualKeys = Object.keys(parsedJudgment).join(", ");
-        throw new Error(
-          `Missing judgment for criteria index ${index} ("${evaluation.label}") in scenario ${scenario.name}. Received keys: ${actualKeys}`,
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const parsedJudgment = await this.#requestJudgment(
+          evaluationContent,
+          scenario.name,
+          scenario.evaluations,
         );
+
+        const evaluationResults = scenario.evaluations.map(
+          (evaluation, index) => {
+            const result =
+              parsedJudgment[index.toString()] || parsedJudgment[index];
+            return {
+              label: evaluation.label,
+              data: evaluation.data,
+              passed: result.passed,
+              detail: result.judgement,
+            };
+          },
+        );
+
+        return {
+          scenario: scenario.name,
+          type: "criteria",
+          passed: evaluationResults.every((r) => r.passed),
+          prompt: scenario.prompt,
+          response: responseContent,
+          evaluations: evaluationResults,
+        };
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxRetries) {
+          continue;
+        }
       }
+    }
 
-      return {
-        label: evaluation.label,
-        data: evaluation.data,
-        passed: result.passed,
-        detail: result.judgement,
-      };
-    });
-
-    const passed = evaluationResults.every((r) => r.passed);
-
-    return {
-      scenario: scenario.name,
-      type: "criteria",
-      passed,
-      prompt: scenario.prompt,
-      response: responseContent,
-      evaluations: evaluationResults,
-    };
+    throw new Error(
+      `Failed to parse judgment JSON for ${scenario.name} after ${maxRetries} attempts: ${lastError.message}`,
+    );
   }
 }

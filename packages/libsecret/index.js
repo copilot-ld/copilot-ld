@@ -3,6 +3,52 @@ import fs from "fs/promises";
 import path from "path";
 
 /**
+ * Reads an environment variable value from an env file
+ * @param {string} key - Environment variable name
+ * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ * @returns {Promise<string|undefined>} The value if found, undefined otherwise
+ */
+export async function readEnvFile(key, envPath = ".env") {
+  const fullPath = path.resolve(envPath);
+
+  try {
+    const content = await fs.readFile(fullPath, "utf8");
+    const lines = content.split("\n");
+
+    for (const line of lines) {
+      // Match active (non-commented) key=value pairs
+      if (line.startsWith(`${key}=`)) {
+        return line.slice(key.length + 1);
+      }
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+
+  return undefined;
+}
+
+/**
+ * Gets an existing secret from env file or generates a new one
+ * @param {string} key - Environment variable name
+ * @param {() => string} generator - Function that generates the secret if not found
+ * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ * @returns {Promise<string>} The existing or newly generated secret
+ */
+export async function getOrGenerateSecret(key, generator, envPath = ".env") {
+  if (typeof generator !== "function") {
+    throw new Error("generator is required");
+  }
+
+  const existing = await readEnvFile(key, envPath);
+  if (existing) {
+    return existing;
+  }
+
+  return generator();
+}
+
+/**
  * Updates or creates an environment variable in .env file
  * @param {string} key - Environment variable name (e.g., "SERVICE_SECRET")
  * @param {string} value - Environment variable value

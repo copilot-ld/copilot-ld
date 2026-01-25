@@ -2,6 +2,7 @@
 import {
   generateJWT,
   generateSecret,
+  getOrGenerateSecret,
   updateEnvFile,
 } from "@copilot-ld/libsecret";
 import { writeFile } from "node:fs/promises";
@@ -29,7 +30,9 @@ async function main() {
   });
 
   const serviceSecret = generateSecret();
-  const jwtSecret = generateSecret(32);
+  const jwtSecret = await getOrGenerateSecret("JWT_SECRET", () =>
+    generateSecret(32),
+  );
   const databasePassword = generateSecret(16);
 
   // JWT anonymous key: 10 years expiration
@@ -65,7 +68,7 @@ async function main() {
   await updateEnvFile("DATABASE_PASSWORD", databasePassword);
 
   console.log("SERVICE_SECRET was updated in .env");
-  console.log("JWT_SECRET was updated in .env");
+  console.log("JWT_SECRET is set in .env");
   console.log("JWT_ANON_KEY was updated in .env");
   console.log("DATABASE_PASSWORD was updated in .env");
 }

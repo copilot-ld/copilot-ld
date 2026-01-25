@@ -59,7 +59,7 @@
     },
     "tool": {
       "filter": {
-        "threshold": 0.48,
+        "threshold": 0.62,
         "max_tokens": null
       },
       "endpoints": {

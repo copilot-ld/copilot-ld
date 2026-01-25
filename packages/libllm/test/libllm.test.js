@@ -5,13 +5,13 @@ import assert from "node:assert";
 import { LlmApi, DEFAULT_BASE_URL } from "../index.js";
 import { Retry } from "@copilot-ld/libutil";
 
+const EMBEDDING_BASE_URL = "http://localhost:8090";
+
 describe("libllm", () => {
   describe("LlmApi", () => {
     let mockFetch;
     let llmApi;
     let retry;
-
-    const TEI_BASE_URL = "http://localhost:8090";
 
     beforeEach(() => {
       mockFetch = mock.fn();
@@ -20,7 +20,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
-        TEI_BASE_URL,
+        EMBEDDING_BASE_URL,
         retry,
         mockFetch,
       );
@@ -151,7 +151,7 @@ describe("libllm", () => {
 
       assert.strictEqual(mockFetch.mock.callCount(), 1);
       const [url, options] = mockFetch.mock.calls[0].arguments;
-      assert.strictEqual(url, `${TEI_BASE_URL}/embed`);
+      assert.strictEqual(url, `${EMBEDDING_BASE_URL}/embed`);
       assert.strictEqual(options.method, "POST");
 
       // TEI uses { inputs: [...] } format
@@ -293,7 +293,6 @@ describe("libllm", () => {
   describe("LlmApi instance methods", () => {
     let llmApi;
     let retry;
-    const TEI_BASE_URL = "http://localhost:8090";
 
     beforeEach(() => {
       const mockFetch = mock.fn();
@@ -302,7 +301,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
-        TEI_BASE_URL,
+        EMBEDDING_BASE_URL,
         retry,
         mockFetch,
       );
@@ -344,7 +343,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
-        "http://localhost:8090",
+        EMBEDDING_BASE_URL,
       );
 
       // Verify that the LLM was created successfully
@@ -375,7 +374,7 @@ describe("libllm", () => {
           "test-token",
           "gpt-4",
           DEFAULT_BASE_URL,
-          "http://localhost:8090",
+          EMBEDDING_BASE_URL,
         );
 
         // Verify that the LLM was created successfully

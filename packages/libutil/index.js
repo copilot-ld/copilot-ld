@@ -84,40 +84,6 @@ export function countTokens(text, tokenizer) {
 }
 
 /**
- * Truncates text to fit within a maximum token limit.
- * Uses binary search to find the optimal truncation point.
- * @param {string} text - Text to truncate
- * @param {number} maxTokens - Maximum number of tokens allowed
- * @param {Tokenizer} [tokenizer] - Tokenizer instance (created if not provided)
- * @returns {string} Truncated text that fits within the token limit
- */
-export function truncateToTokens(text, maxTokens, tokenizer) {
-  if (!tokenizer) tokenizer = createTokenizer();
-  if (!text || maxTokens <= 0) return "";
-
-  const tokens = tokenizer.encode(text);
-  if (tokens.length <= maxTokens) return text;
-
-  // Binary search for the right character position
-  let low = 0;
-  let high = text.length;
-
-  while (low < high) {
-    const mid = Math.floor((low + high + 1) / 2);
-    const truncated = text.slice(0, mid);
-    const tokenCount = tokenizer.encode(truncated).length;
-
-    if (tokenCount <= maxTokens) {
-      low = mid;
-    } else {
-      high = mid - 1;
-    }
-  }
-
-  return text.slice(0, low);
-}
-
-/**
  * Creates a new tokenizer instance
  * @returns {Tokenizer} New tokenizer instance
  */

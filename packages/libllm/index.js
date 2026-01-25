@@ -1,15 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { common, llm } from "@copilot-ld/libtype";
-import {
-  countTokens,
-  createTokenizer,
-  createRetry,
-  truncateToTokens,
-} from "@copilot-ld/libutil";
+import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
 import { ProxyAgent } from "undici";
-
-/** @type {number} Max tokens for TEI embedding endpoint (bge-large-en-v1.5) */
-const TEI_MAX_TOKENS = 512;
 
 // Note: getBudget has moved to @copilot-ld/libmemory as getModelBudget
 // This re-export is deprecated and will be removed in a future version
@@ -143,16 +135,11 @@ export class LlmApi {
    * @returns {Promise<import("copilot-ld/libtype").common.Embeddings>} Embeddings response
    */
   async createEmbeddings(input) {
-    // Truncate inputs to fit within TEI's token limit
-    const processedInput = input.map((text) =>
-      truncateToTokens(text, TEI_MAX_TOKENS),
-    );
-
     const response = await this.#retry.execute(() =>
       this.#fetch(`${this.#embeddingBaseURL}/embed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: processedInput }),
+        body: JSON.stringify({ inputs: input }),
       }),
     );
 

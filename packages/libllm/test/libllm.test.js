@@ -167,7 +167,7 @@ describe("libllm", () => {
       assert.strictEqual(result.data.length, 2);
       assert.deepStrictEqual(result.data[0].embedding, [0.1, 0.2, 0.3]);
       assert.deepStrictEqual(result.data[1].embedding, [0.4, 0.5, 0.6]);
-      assert.strictEqual(result.model, "bge-large-en-v1.5");
+      assert.strictEqual(result.model, "bge-small-en-v1.5");
     });
 
     test("createEmbeddings retries on 429 status", async () => {

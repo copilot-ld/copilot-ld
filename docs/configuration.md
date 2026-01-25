@@ -206,7 +206,7 @@ Start TEI with a compatible embedding model:
 
 ```bash
 # Download model on first run and start server
-text-embeddings-router --model-id BAAI/bge-large-en-v1.5 --port 8090 --json-output
+text-embeddings-router --model-id BAAI/bge-small-en-v1.5 --port 8090 --json-output --auto-truncate
 ```
 
 The first run downloads the model to `~/.cache/huggingface/`. Subsequent starts
@@ -250,7 +250,8 @@ For Docker deployments, TEI is included in `docker-compose.yml`:
 ```yaml
 tei:
   image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
-  command: --model-id BAAI/bge-large-en-v1.5 --port 8080 --json-output
+  command:
+    --model-id BAAI/bge-small-en-v1.5 --port 8080 --json-output --auto-truncate
   volumes:
     - tei_data:/data
   environment:

@@ -154,7 +154,7 @@ export class LlmApi {
         index,
         embedding,
       })),
-      model: "bge-large-en-v1.5",
+      model: "bge-small-en-v1.5",
       usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     });
   }

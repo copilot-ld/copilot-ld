@@ -97,40 +97,23 @@ export class ServiceManager {
   }
 
   /**
-   * Reads process ID from PID file.
-   * @param {string} pidFile - Path to PID file
-   * @returns {number|null} Process ID or null if not found
+   * Checks if svscan daemon is running.
+   * @returns {boolean} True if svscan is running
    */
-  readPid(pidFile) {
+  isSvscanRunning() {
+    const paths = this.getRuntimePaths();
+    let pid;
     try {
-      return parseInt(this.#fs.readFileSync(pidFile, "utf8").trim(), 10);
+      pid = parseInt(this.#fs.readFileSync(paths.pidFile, "utf8").trim(), 10);
     } catch {
-      return null;
+      return false;
     }
-  }
-
-  /**
-   * Checks if a process is alive.
-   * @param {number} pid - Process ID to check
-   * @returns {boolean} True if process exists
-   */
-  isAlive(pid) {
     try {
       this.#process.kill(pid, 0);
       return true;
     } catch {
       return false;
     }
-  }
-
-  /**
-   * Checks if svscan daemon is running.
-   * @returns {boolean} True if svscan is running
-   */
-  isSvscanRunning() {
-    const paths = this.getRuntimePaths();
-    const pid = this.readPid(paths.pidFile);
-    return pid !== null && this.isAlive(pid);
   }
 
   /**
@@ -203,13 +186,56 @@ export class ServiceManager {
   }
 
   /**
-   * Starts all configured services.
+   * Finds index of named service, throws if not found.
+   * @param {string} serviceName - Service name to find
+   * @returns {number} Index in services array
+   */
+  #findServiceIndex(serviceName) {
+    const index = this.#config.init.services.findIndex(
+      (s) => s.name === serviceName,
+    );
+    if (index === -1) {
+      throw new Error(`Unknown service: ${serviceName}`);
+    }
+    return index;
+  }
+
+  /**
+   * Gets services to start: from first up to and including target.
+   * @param {string} [serviceName] - Target service (all if omitted)
+   * @returns {ServiceConfig[]} Services in start order
+   */
+  #getServicesToStart(serviceName) {
+    const services = this.#config.init.services;
+    if (!serviceName) return services;
+    const index = this.#findServiceIndex(serviceName);
+    return services.slice(0, index + 1);
+  }
+
+  /**
+   * Gets services to stop: from target to last, in reverse order.
+   * @param {string} [serviceName] - Target service (all if omitted)
+   * @returns {ServiceConfig[]} Services in stop order (reversed)
+   */
+  #getServicesToStop(serviceName) {
+    const services = this.#config.init.services;
+    if (!serviceName) return [...services].reverse();
+    const index = this.#findServiceIndex(serviceName);
+    return services.slice(index).reverse();
+  }
+
+  /**
+   * Starts configured services.
+   * @param {string} [serviceName] - Target service (starts first through target)
    * @returns {Promise<void>}
    */
-  async start() {
+  async start(serviceName) {
     const paths = this.getRuntimePaths();
+    const services = this.#getServicesToStart(serviceName);
     this.#logger.debug("start", "Starting services", {
       root_dir: this.#config.rootDir,
+      target: serviceName || "all",
+      count: services.length,
     });
 
     if (!this.isSvscanRunning()) {
@@ -217,7 +243,7 @@ export class ServiceManager {
       await this.spawnSvscan();
     }
 
-    for (const svc of this.#config.init.services) {
+    for (const svc of services) {
       if (svc.type === "oneshot") {
         if (svc.up) await this.runOneshot(svc.name, svc.up, "up");
       } else {
@@ -241,13 +267,17 @@ export class ServiceManager {
   }
 
   /**
-   * Stops all running services.
+   * Stops running services.
+   * @param {string} [serviceName] - Target service (stops target through last)
    * @returns {Promise<void>}
    */
-  async stop() {
+  async stop(serviceName) {
     const paths = this.getRuntimePaths();
+    const services = this.#getServicesToStop(serviceName);
     this.#logger.debug("stop", "Stopping services", {
       root_dir: this.#config.rootDir,
+      target: serviceName || "all",
+      count: services.length,
     });
 
     if (!this.isSvscanRunning()) {
@@ -255,8 +285,7 @@ export class ServiceManager {
       return;
     }
 
-    const reversed = [...this.#config.init.services].reverse();
-    for (const svc of reversed) {
+    for (const svc of services) {
       if (svc.type === "oneshot") {
         if (svc.down) await this.runOneshot(svc.name, svc.down, "down");
       } else {
@@ -276,26 +305,33 @@ export class ServiceManager {
       }
     }
 
-    this.#logger.debug("svscan", "Stopping daemon");
-    try {
-      await this.#sendCommand(paths.socketPath, { command: "shutdown" });
-    } catch {
-      // Expected - connection closes on shutdown
-    }
-    try {
-      this.#fs.unlinkSync(paths.socketPath);
-    } catch {
-      // Ignore
+    if (!serviceName) {
+      this.#logger.debug("svscan", "Stopping daemon");
+      try {
+        await this.#sendCommand(paths.socketPath, { command: "shutdown" });
+      } catch {
+        // Expected - connection closes on shutdown
+      }
+      try {
+        this.#fs.unlinkSync(paths.socketPath);
+      } catch {
+        // Ignore
+      }
     }
     this.#logger.info("stop", "All services stopped");
   }
 
   /**
-   * Shows status of all configured services.
+   * Shows status of configured services.
+   * @param {string} [serviceName] - Target service (shows all if omitted)
    * @returns {Promise<void>}
    */
-  async status() {
+  async status(serviceName) {
     const paths = this.getRuntimePaths();
+
+    if (serviceName) {
+      this.#findServiceIndex(serviceName); // Validate service exists
+    }
 
     if (!this.isSvscanRunning()) {
       this.#logger.info("svscan", "Not running");
@@ -312,9 +348,11 @@ export class ServiceManager {
         return;
       }
       for (const [name, info] of Object.entries(response.services)) {
-        this.#logger.info(name, info.state || "unknown", {
-          pid: info.pid || "-",
-        });
+        if (!serviceName || name === serviceName) {
+          this.#logger.info(name, info.state || "unknown", {
+            pid: info.pid || "-",
+          });
+        }
       }
     } catch (err) {
       this.#logger.error("status", "Failed to get status", {

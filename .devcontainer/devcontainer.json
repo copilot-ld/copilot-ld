@@ -10,9 +10,6 @@
   },
   "postCreateCommand": "sudo apt-get update && sudo apt-get install -y awscli gh poppler-utils && npm install && make tei-install",
   "remoteUser": "node",
-  "remoteEnv": {
-    "SHELL": "/bin/sh"
-  },
   "customizations": {
     "vscode": {
       "settings": {

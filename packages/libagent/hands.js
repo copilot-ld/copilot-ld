@@ -14,7 +14,7 @@ export class AgentHands {
    * @param {import("./index.js").Callbacks} callbacks - Service callback functions
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
    * @param {object} [options] - Configuration options
-   * @param {number} [options.batchSize=3] - Number of tool calls to execute in parallel per batch
+   * @param {number} [options.batchSize] - Number of tool calls to execute in parallel per batch (default: 3)
    */
   constructor(callbacks, resourceIndex, options = {}) {
     if (!callbacks) throw new Error("callbacks is required");

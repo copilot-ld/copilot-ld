@@ -82,6 +82,45 @@ export class VectorProcessor extends ProcessorBase {
     await super.process(resourcesToProcess, "content");
   }
 
+  /**
+   * Process a batch of items with a single embedding request
+   * @param {Array<{text: string, identifier: any}>} batch - Batch of items to process
+   * @param {number} processed - Number of items already processed
+   * @param {number} total - Total number of items
+   * @param {string} context - Processing context label
+   * @returns {Promise<void>}
+   */
+  async processBatch(batch, processed, total, context) {
+    const batchSize = batch.length;
+    this.logger.debug("Processor", "Processing batch", {
+      items:
+        batchSize > 1
+          ? `${processed + 1}-${processed + batchSize}/${total}`
+          : `${processed + 1}/${total}`,
+      context,
+    });
+
+    try {
+      // Collect all texts and make a single embedding request
+      const texts = batch.map((item) => item.text);
+      const embeddings = await this.#llm.createEmbeddings(texts);
+
+      // Store each embedding with its corresponding identifier
+      await Promise.all(
+        batch.map(async (item, index) => {
+          const vector = embeddings.data[index].embedding;
+          await this.#vectorIndex.add(item.identifier, vector);
+        }),
+      );
+    } catch (error) {
+      this.logger.debug("Processor", "Failed to process batch", {
+        items: `${processed + 1}-${processed + batchSize}/${total}`,
+        context,
+        error: error.message,
+      });
+    }
+  }
+
   /** @inheritdoc */
   async processItem(item) {
     const embeddings = await this.#llm.createEmbeddings([item.text]);

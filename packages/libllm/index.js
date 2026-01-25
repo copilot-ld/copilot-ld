@@ -159,10 +159,10 @@ export class LlmApi {
       : this.#headers;
 
     // TEI expects { inputs: [...] }, OpenAI expects { input: [...], model: "..." }
+    // For TEI, model is configured at service startup. For OpenAI, uses text-embedding-3-large.
     const body = isTEI
       ? { inputs: processedInput }
       : {
-          // TODO: Make this configurable
           model: "text-embedding-3-large",
           dimensions: 1024,
           input: processedInput,

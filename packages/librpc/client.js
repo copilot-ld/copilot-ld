@@ -58,11 +58,24 @@ export class Client extends Rpc {
     const options = {
       interceptors: [this.auth().createClientInterceptor()],
     };
+
+    // Configure client with keepalive for long-running streams
+    // https://github.com/grpc/grpc-node/blob/master/doc/keepalive.md
+    const channelOptions = {
+      "grpc.keepalive_time_ms": 30000, // Send keepalive ping every 30 seconds
+      "grpc.keepalive_timeout_ms": 10000, // Wait 10 seconds for ping ack
+      "grpc.keepalive_permit_without_calls": 1, // Allow keepalive without active calls
+      "grpc.http2.min_time_between_pings_ms": 10000, // Minimum 10s between pings
+      "grpc.http2.max_pings_without_data": 0, // Unlimited pings without data
+    };
     const clientCredentials = this.grpc().credentials.createInsecure();
 
     // Create client using pre-compiled service definition
-    const ClientConstructor =
-      this.grpc().makeGenericClientConstructor(serviceDefinition);
+    const ClientConstructor = this.grpc().makeGenericClientConstructor(
+      serviceDefinition,
+      serviceName,
+      channelOptions,
+    );
     this.#client = new ClientConstructor(uri, clientCredentials, options);
   }
 

@@ -11,7 +11,6 @@ export class MemoryService extends MemoryBase {
   #storage;
   #resourceIndex;
   #indices = new Map();
-  #lockPromises = new Map();
 
   /**
    * Creates a new Memory service instance
@@ -43,54 +42,19 @@ export class MemoryService extends MemoryBase {
     return this.#indices.get(id);
   }
 
-  /**
-   * Acquires the lock for a resource and returns a release function.
-   * This implements a proper async mutex that chains operations sequentially.
-   * @param {string} resourceId - Resource ID to lock
-   * @returns {Promise<() => void>} Function to release the lock
-   * @private
-   */
-  async #acquireLock(resourceId) {
-    // Get the current lock promise (or resolved promise if none)
-    const currentLock = this.#lockPromises.get(resourceId) || Promise.resolve();
-
-    // Create our lock promise that will resolve when we release
-    let releaseLock;
-    const ourLock = new Promise((resolve) => {
-      releaseLock = resolve;
-    });
-
-    // Chain our lock after the current one - this is the key:
-    // We set the new promise BEFORE awaiting, so the next request
-    // will wait for OUR lock, not the previous one
-    this.#lockPromises.set(resourceId, ourLock);
-
-    // Wait for the previous operation to complete
-    await currentLock;
-
-    // Return the release function
-    return releaseLock;
-  }
-
   /** @inheritdoc */
   async AppendMemory(req) {
     if (!req.resource_id) throw new Error("resource_id is required");
 
-    const releaseLock = await this.#acquireLock(req.resource_id);
+    const memoryIndex = this.#getMemoryIndex(req.resource_id);
+    const window = new MemoryWindow(
+      req.resource_id,
+      this.#resourceIndex,
+      memoryIndex,
+    );
 
-    try {
-      const memoryIndex = this.#getMemoryIndex(req.resource_id);
-      const window = new MemoryWindow(
-        req.resource_id,
-        this.#resourceIndex,
-        memoryIndex,
-      );
-
-      if (req.identifiers && req.identifiers.length > 0) {
-        await window.append(req.identifiers);
-      }
-    } finally {
-      releaseLock();
+    if (req.identifiers && req.identifiers.length > 0) {
+      await window.append(req.identifiers);
     }
 
     return { accepted: req.resource_id };
@@ -101,22 +65,15 @@ export class MemoryService extends MemoryBase {
     if (!req.resource_id) throw new Error("resource_id is required");
     if (!req.model) throw new Error("model is required");
 
-    // Wait for any pending writes to complete before reading
-    const releaseLock = await this.#acquireLock(req.resource_id);
+    const memoryIndex = this.#getMemoryIndex(req.resource_id);
+    const window = new MemoryWindow(
+      req.resource_id,
+      this.#resourceIndex,
+      memoryIndex,
+    );
+    const { messages, tools } = await window.build(req.model);
 
-    try {
-      const memoryIndex = this.#getMemoryIndex(req.resource_id);
-      const window = new MemoryWindow(
-        req.resource_id,
-        this.#resourceIndex,
-        memoryIndex,
-      );
-      const { messages, tools } = await window.build(req.model);
-
-      return { messages, tools };
-    } finally {
-      releaseLock();
-    }
+    return { messages, tools };
   }
 
   /** @inheritdoc */

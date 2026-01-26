@@ -41,7 +41,15 @@ export class Server extends Rpc {
 
   /** Starts the gRPC server */
   async start() {
-    this.#server = new (this.grpc().Server)();
+    // Configure server with keepalive for long-running streams
+    // https://github.com/grpc/grpc-node/blob/master/doc/keepalive.md
+    this.#server = new (this.grpc().Server)({
+      "grpc.keepalive_time_ms": 30000, // Send keepalive ping every 30 seconds
+      "grpc.keepalive_timeout_ms": 10000, // Wait 10 seconds for ping ack
+      "grpc.keepalive_permit_without_calls": 1, // Allow keepalive without active calls
+      "grpc.http2.min_time_between_pings_ms": 10000, // Minimum 10s between pings
+      "grpc.http2.max_pings_without_data": 0, // Unlimited pings without data
+    });
 
     // Get pre-compiled service definition
     const serviceName = capitalizeFirstLetter(this.config.name);

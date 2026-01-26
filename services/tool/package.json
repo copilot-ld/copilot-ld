@@ -29,6 +29,6 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.2"
+    "@copilot-ld/libharness": "^0.1.3"
   }
 }

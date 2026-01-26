@@ -297,14 +297,14 @@ export class TraceVisualizer {
   }
 
   /**
-   * Formats a nanosecond timestamp to milliseconds
+   * Formats a nanosecond timestamp to ISO 8601 format
    * @param {string|bigint} nanoTimestamp - Timestamp in nanoseconds
-   * @returns {string} Timestamp in milliseconds
+   * @returns {string} Timestamp in ISO 8601 format (e.g., 2022-04-29T18:52:58.114Z)
    */
   #formatTimestamp(nanoTimestamp) {
     const nanos = BigInt(nanoTimestamp);
-    const millis = nanos / 1000000n;
-    return millis.toString();
+    const millis = Number(nanos / 1000000n);
+    return new Date(millis).toISOString();
   }
 
   /**

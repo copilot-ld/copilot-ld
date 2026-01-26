@@ -2,7 +2,7 @@
 import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
 
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 10000;
 
 /**
  * Wraps a promise with a timeout.

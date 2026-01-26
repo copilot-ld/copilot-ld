@@ -292,7 +292,10 @@ describe("libllm", () => {
         result.choices[0].message.tool_calls[0].function.name,
         "search_content",
       );
-      assert.strictEqual(result.choices[0].message.tool_calls[0].id, "call_normal");
+      assert.strictEqual(
+        result.choices[0].message.tool_calls[0].id,
+        "call_normal",
+      );
     });
 
     test("createEmbeddings makes correct TEI API call", async () => {

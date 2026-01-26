@@ -1,7 +1,6 @@
 ---
 name: coordinator
-description:
-  Orchestrates conversations by delegating to sub-agents when needed.
+description: Orchestrates conversations by delegating to sub-agents when needed.
 infer: false
 tools:
   - list_sub_agents

@@ -34,9 +34,7 @@ const callbacks = {
   },
 };
 
-const agentHands = new AgentHands(callbacks, resourceIndex, {
-  batchSize: agentConfig.batch_size,
-});
+const agentHands = new AgentHands(callbacks, resourceIndex);
 const agentMind = new AgentMind(
   agentConfig,
   callbacks,

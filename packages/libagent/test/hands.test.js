@@ -139,7 +139,7 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[1].role, "tool");
   });
 
-  test("processToolCalls executes batch calls in parallel", async () => {
+  test("processToolCalls executes calls sequentially", async () => {
     const executionOrder = [];
     const completionOrder = [];
 
@@ -148,7 +148,7 @@ describe("AgentHands", () => {
       tool: {
         call: async (toolCall) => {
           executionOrder.push(toolCall.id);
-          // Stagger completion times to detect parallelism
+          // Stagger completion times
           const delay = toolCall.id === "call1" ? 50 : 10;
           await new Promise((resolve) => setTimeout(resolve, delay));
           completionOrder.push(toolCall.id);
@@ -160,7 +160,6 @@ describe("AgentHands", () => {
     const agentHands = new AgentHands(
       mockCallbacksWithTiming,
       mockResourceIndex,
-      { batchSize: 2 },
     );
 
     const toolCalls = [
@@ -172,13 +171,13 @@ describe("AgentHands", () => {
       llmToken: "test-token",
     });
 
-    // Both should start before either completes (parallel execution)
+    // Sequential execution: call1 starts and completes before call2 starts
     assert.deepStrictEqual(executionOrder, ["call1", "call2"]);
-    // call2 completes first due to shorter delay, proving parallelism
-    assert.deepStrictEqual(completionOrder, ["call2", "call1"]);
+    // Sequential execution: call1 completes before call2 (even with shorter delay for call2)
+    assert.deepStrictEqual(completionOrder, ["call1", "call2"]);
   });
 
-  test("processToolCalls handles errors in parallel batch without affecting other calls", async () => {
+  test("processToolCalls handles errors without affecting subsequent calls", async () => {
     const mockCallbacksWithError = {
       ...mockServiceCallbacks,
       tool: {
@@ -194,7 +193,6 @@ describe("AgentHands", () => {
     const agentHands = new AgentHands(
       mockCallbacksWithError,
       mockResourceIndex,
-      { batchSize: 3 },
     );
 
     const toolCalls = [
@@ -331,7 +329,7 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[2].role, "assistant");
   });
 
-  test("processToolCalls decrements budget after each batch", async () => {
+  test("processToolCalls decrements budget after each call", async () => {
     const capturedMaxTokens = [];
 
     const mockCallbacksWithCapture = {
@@ -350,7 +348,6 @@ describe("AgentHands", () => {
     const agentHands = new AgentHands(
       mockCallbacksWithCapture,
       mockResourceIndex,
-      { batchSize: 2 }, // Process 2 calls per batch
     );
 
     const toolCalls = [
@@ -372,18 +369,18 @@ describe("AgentHands", () => {
       maxTokens: 5000,
     });
 
-    // First batch (call1, call2) should get full budget (5000)
+    // First call gets full budget (5000)
     assert.strictEqual(capturedMaxTokens[0], "5000");
-    assert.strictEqual(capturedMaxTokens[1], "5000");
 
-    // Get actual tokens from first batch to verify decrement
-    const firstBatchTokens =
-      savedMessages[0].id.tokens + savedMessages[1].id.tokens;
+    // Get actual tokens from first call to verify decrement
+    const firstCallTokens = savedMessages[0].id.tokens;
+    const expectedSecondCall = String(5000 - firstCallTokens);
+    assert.strictEqual(capturedMaxTokens[1], expectedSecondCall);
 
-    // Second batch (call3, call4) should get budget minus first batch's tokens
-    const expectedSecondBatch = String(5000 - firstBatchTokens);
-    assert.strictEqual(capturedMaxTokens[2], expectedSecondBatch);
-    assert.strictEqual(capturedMaxTokens[3], expectedSecondBatch);
+    // Third call gets budget minus first two calls' tokens
+    const secondCallTokens = savedMessages[1].id.tokens;
+    const expectedThirdCall = String(5000 - firstCallTokens - secondCallTokens);
+    assert.strictEqual(capturedMaxTokens[2], expectedThirdCall);
   });
 
   test("processToolCalls returns total tokens used", async () => {

@@ -40,6 +40,6 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.2"
+    "@copilot-ld/libharness": "^0.1.3"
   }
 }

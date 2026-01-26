@@ -57,6 +57,9 @@
     "llm": {
       "temperature": 0.32
     },
+    "memory": {
+      "max_tokens": 4096
+    },
     "tool": {
       "filter": {
         "threshold": 0.64,

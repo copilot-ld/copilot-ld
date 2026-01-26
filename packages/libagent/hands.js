@@ -1,4 +1,4 @@
-import { llm, tool, common, memory } from "@copilot-ld/libtype";
+import { llm, tool, common } from "@copilot-ld/libtype";
 
 /**
  * Focused tool execution class that handles individual tool calls,
@@ -22,7 +22,7 @@ export class AgentHands {
   }
 
   /**
-   * Handles the tool execution loop with LLM completions and budget tracking
+   * Handles the tool execution loop with LLM completions
    * @param {string} conversationId - Conversation resource ID
    * @param {object} callbacks - Message handling callbacks
    * @param {(msgs: object[]) => Promise<object[]>} callbacks.saveToServer - Save messages to server-side indices
@@ -37,14 +37,6 @@ export class AgentHands {
     const { llmToken, model } = options;
     let maxIterations = 100; // TODO: configurable limit
     let currentIteration = 0;
-
-    // Get initial available budget from memory service
-    const budgetRequest = memory.BudgetRequest.fromObject({
-      resource_id: conversationId,
-      model,
-    });
-    const budgetInfo = await this.#callbacks.memory.getBudget(budgetRequest);
-    let remainingBudget = budgetInfo.available;
 
     while (currentIteration < maxIterations) {
       // Build request with resource_id - LLM service fetches memory window internally
@@ -71,18 +63,16 @@ export class AgentHands {
         streamToClient(assistantMessage);
 
         // Process tool calls - returns messages in order
-        const { messages, tokensUsed, handoffPrompt } =
-          await this.processToolCalls(choice.message.tool_calls, {
+        const { messages, handoffPrompt } = await this.processToolCalls(
+          choice.message.tool_calls,
+          {
             resourceId: conversationId,
             llmToken,
-            maxTokens: remainingBudget,
-          });
+          },
+        );
 
         // Batch write: assistant message + all tool results
         await saveToServer([assistantMessage, ...messages]);
-
-        // Draw down budget by tokens used
-        remainingBudget = Math.max(0, remainingBudget - tokensUsed);
 
         // Check for handoff - inject handoff prompt as user message
         if (handoffPrompt) {
@@ -121,17 +111,10 @@ export class AgentHands {
    * @param {object} toolCall - Tool call object
    * @param {string} llm_token - LLM API token for LLM calls
    * @param {string} resourceId - Current conversation resource ID
-   * @param {number} [maxTokens] - Maximum tokens for tool result
    * @returns {Promise<{message: object, result: object|null}>} Tool result message and raw result
    */
-  async executeToolCall(toolCall, llm_token, resourceId, maxTokens = null) {
+  async executeToolCall(toolCall, llm_token, resourceId) {
     try {
-      // Set max_tokens filter if budget available
-      if (maxTokens && maxTokens > 0) {
-        toolCall.filter = toolCall.filter || {};
-        toolCall.filter.max_tokens = String(maxTokens);
-      }
-
       toolCall.llm_token = llm_token;
       toolCall.resource_id = resourceId;
       const toolCallResult = await this.#callbacks.tool.call(toolCall);
@@ -217,16 +200,10 @@ export class AgentHands {
    * @param {object} [options] - Execution options
    * @param {string} [options.resourceId] - Current conversation resource ID
    * @param {string} [options.llmToken] - LLM API token for LLM calls
-   * @param {number} [options.maxTokens] - Maximum tokens for tool results
-   * @returns {Promise<{messages: object[], tokensUsed: number, handoffPrompt: string|null}>} Messages in order, tokens used, and handoff prompt if any
+   * @returns {Promise<{messages: object[], handoffPrompt: string|null}>} Messages in order and handoff prompt if any
    */
   async processToolCalls(toolCalls, options = {}) {
-    const { resourceId, llmToken, maxTokens } = options;
-
-    // Split budget evenly across all tool calls
-    const budgetPerCall = maxTokens
-      ? Math.floor(maxTokens / toolCalls.length)
-      : undefined;
+    const { resourceId, llmToken } = options;
 
     // Execute all tool calls in parallel
     const results = await Promise.all(
@@ -236,7 +213,6 @@ export class AgentHands {
             toolCall,
             llmToken,
             resourceId,
-            budgetPerCall,
           );
           return { index, ...execResult, toolCall };
         } catch (error) {
@@ -265,13 +241,10 @@ export class AgentHands {
     // Collect messages in order
     const messages = results.map(({ message }) => message);
 
-    // Calculate totals and check for handoff
-    let totalTokensUsed = 0;
+    // Check for handoff
     let handoffPrompt = null;
 
-    for (const { message, result, toolCall } of results) {
-      totalTokensUsed += message.id?.tokens || 0;
-
+    for (const { result, toolCall } of results) {
       if (toolCall.function?.name === "run_handoff" && result?.content) {
         try {
           handoffPrompt = JSON.parse(result.content).prompt;
@@ -281,6 +254,6 @@ export class AgentHands {
       }
     }
 
-    return { messages, tokensUsed: totalTokensUsed, handoffPrompt };
+    return { messages, handoffPrompt };
   }
 }

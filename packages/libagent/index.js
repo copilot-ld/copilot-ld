@@ -9,7 +9,6 @@
  * @typedef {object} Callbacks
  * @property {object} memory - Memory service callbacks
  * @property {(req: import("@copilot-ld/libtype").memory.AppendRequest) => Promise<import("@copilot-ld/libtype").memory.AppendResponse>} memory.append - Append to memory
- * @property {(req: import("@copilot-ld/libtype").memory.BudgetRequest) => Promise<import("@copilot-ld/libtype").memory.BudgetResponse>} memory.getBudget - Get available budget
  * @property {object} llm - LLM service callbacks
  * @property {(req: import("@copilot-ld/libtype").llm.CompletionsRequest) => Promise<import("@copilot-ld/libtype").llm.CompletionsResponse>} llm.createCompletions - Create completions
  * @property {object} tool - Tool service callbacks

@@ -8,10 +8,9 @@ const TIMEOUT_MS = 10000;
  * Wraps a promise with a timeout.
  * @param {Promise} promise - The promise to wrap.
  * @param {number} ms - Timeout in milliseconds.
- * @param {string} label - Label for timeout error message.
  * @returns {Promise} - Resolves with promise result or rejects on timeout.
  */
-function withTimeout(promise, ms, label) {
+function withTimeout(promise, ms) {
   return Promise.race([
     promise,
     new Promise((_, reject) =>
@@ -59,7 +58,6 @@ async function main() {
         const response = await withTimeout(
           testLlm.createCompletions(window),
           TIMEOUT_MS,
-          model.id,
         );
         if (response.choices && response.choices.length > 0) {
           console.log(`✅ ${model.id}`);

@@ -17,7 +17,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.55",
     "@copilot-ld/libgraph": "^0.1.47",
-    "@copilot-ld/libresource": "^0.1.86",
+    "@copilot-ld/libresource": "^0.1.87",
     "@copilot-ld/librpc": "^0.1.75",
     "n3": "^1.26.0"
   },

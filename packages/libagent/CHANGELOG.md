@@ -4,8 +4,8 @@
 
 - **BREAKING**: Renamed "assistant" to "agent" with new `.agent.md` file format
   in `config/agents/`
-- **BREAKING**: `processToolCalls()` executes in parallel batches (default size:
-  3) instead of sequentially
+- **BREAKING**: `processToolCalls()` executes in parallel batches (default
+  size: 3) instead of sequentially
 - Fixed `Identifier` object conversion in graph query results
 
 ## 2025-12-21

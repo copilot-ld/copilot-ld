@@ -1,5 +1,5 @@
-1000ms
 1-10MB
+1000ms
 1KB
 5000ms
 AAD
@@ -56,8 +56,8 @@ codegen
 compatibility
 config
 Config
-configs
 config-yml
+configs
 content_searcher
 coordinator
 copilot-ld
@@ -75,6 +75,7 @@ CustomEvent
 CustomEvents
 cyclomatic
 daemontools
+daemontools-inspired
 Datadog
 DDoS
 debuggable
@@ -135,6 +136,7 @@ Frontmatter
 GCM
 geo-routing
 getter
+getters
 GitHub
 GMP
 GoTrue
@@ -186,11 +188,11 @@ JSDoc
 JSON
 json-based
 JSON-based
-JSONL
-JSONL-based
 JSON-LD
 JSON-ND
 JSON-structured
+JSONL
+JSONL-based
 judgements
 JWT
 keyless
@@ -222,9 +224,9 @@ lifecycle
 Lifecycle
 llm
 LLM
+LLM_TOKEN
 LLM-as-a-judge
 LLMs
-LLM_TOKEN
 localhost
 localStorage
 LocalStorage
@@ -270,8 +272,8 @@ nginx
 Nginx
 nginx-based
 ngrok
-nodejs
 Node.js
+nodejs
 NodeShape
 non-RDF
 npm
@@ -297,8 +299,8 @@ orchestrator
 organisation
 Organisation
 organisation's
-organisations
 Organisation's
+organisations
 Organisations
 OTLP
 p50
@@ -327,20 +329,20 @@ pre-computed
 Pre-computed
 pre-configured
 pre-created
+pre-processed
 preloaded
 Preloaded
-pre-processed
 Preprocessing
 prod
 programmatically
 proto
 Proto
+proto-loader
 protobuf
 Protobuf
 protobuf-defined
-protobufjs
 protobuf-serialized
-proto-loader
+protobufjs
 proxying
 px
 queryable
@@ -348,6 +350,7 @@ rc
 RDF
 RDF-containing
 rdf:type
+re-ranking
 reachability
 ReadableStream
 readline
@@ -357,7 +360,6 @@ REPL-based
 replp
 repo
 repos
-re-ranking
 researcher
 ResourceIndex
 retryable
@@ -365,6 +367,7 @@ reusability
 roadmap
 Roadmap
 RPC
+RPCs
 s3
 S3
 s3-compatible
@@ -375,10 +378,10 @@ sanitization
 schemas
 Schemas
 SDK
-SHA-256
-SHACL
 sh:NodeShape
 sh:targetClass
+SHA-256
+SHACL
 skos:altLabel
 SPARQL-like
 src
@@ -450,6 +453,6 @@ webpack
 WebSocket
 whitespace
 workspaces
-XML
 X-Ray
+XML
 YAML

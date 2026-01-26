@@ -46,6 +46,7 @@ describe("ExtractContext", () => {
   let mockLogger;
   let originalLlmToken;
   let originalLlmBaseUrl;
+  let originalEmbeddingBaseUrl;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
@@ -53,9 +54,11 @@ describe("ExtractContext", () => {
     // Save original environment variables
     originalLlmToken = globalThis.process.env.LLM_TOKEN;
     originalLlmBaseUrl = globalThis.process.env.LLM_BASE_URL;
+    originalEmbeddingBaseUrl = globalThis.process.env.EMBEDDING_BASE_URL;
     // Set test values to avoid errors in createLlm
     globalThis.process.env.LLM_TOKEN = "test_token_123";
     globalThis.process.env.LLM_BASE_URL = "https://models.github.ai/inference";
+    globalThis.process.env.EMBEDDING_BASE_URL = "http://localhost:8090";
   });
 
   afterEach(() => {
@@ -69,6 +72,11 @@ describe("ExtractContext", () => {
       globalThis.process.env.LLM_BASE_URL = originalLlmBaseUrl;
     } else {
       delete globalThis.process.env.LLM_BASE_URL;
+    }
+    if (originalEmbeddingBaseUrl !== undefined) {
+      globalThis.process.env.EMBEDDING_BASE_URL = originalEmbeddingBaseUrl;
+    } else {
+      delete globalThis.process.env.EMBEDDING_BASE_URL;
     }
   });
 

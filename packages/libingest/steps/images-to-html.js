@@ -37,8 +37,6 @@ export class ImagesToHtml extends StepBase {
    * @returns {Promise<void>} Resolves when processing is complete
    */
   async process(ingestContextKey) {
-    const llm = this.createLlm();
-
     const ingestContext = await this.loadIngestContext(ingestContextKey);
     const step = this.getStep(ingestContext, STEP_NAME, ingestContextKey);
     const targetDir = this.getTargetDir(ingestContextKey);
@@ -50,6 +48,9 @@ export class ImagesToHtml extends StepBase {
       "imageKeys",
       ingestContextKey,
     );
+
+    // Create LLM after validation
+    const llm = this.createLlm();
 
     this._logger.debug("ImagesToHtml", "Processing images to HTML", {
       count: imageKeys.length,

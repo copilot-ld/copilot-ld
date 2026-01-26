@@ -66,6 +66,7 @@ export default [
       "**/package-lock.json",
       "**/.vscode/**",
       "SCRATCHPAD*.md",
+      "scratchpad*.md",
     ],
   },
 

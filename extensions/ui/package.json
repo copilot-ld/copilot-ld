@@ -18,7 +18,7 @@
     "@copilot-ld/libchat": "^0.1.4",
     "@copilot-ld/libconfig": "^0.1.56",
     "@copilot-ld/librpc": "^0.1.75",
-    "@copilot-ld/libtelemetry": "^0.1.19",
+    "@copilot-ld/libtelemetry": "^0.1.20",
     "@hono/node-server": "^1.19.9",
     "hono": "^4.11.4"
   },

@@ -39,6 +39,7 @@ message RunSubAgentRequest {
 
 message ListHandoffsRequest {
   string resource_id = 1;
+  bool void = 2;  // Ensures non-empty schema for OpenAI function calling
 }
 
 message RunHandoffRequest {

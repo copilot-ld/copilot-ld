@@ -78,11 +78,22 @@ export class MemoryWindow {
     // History budget = total - overhead - reserved output tokens
     const historyBudget = Math.max(0, total - overhead - maxTokens);
 
-    // Wrap the function in a call object
+    // Wrap the function in a call object, ensuring OpenAI-compatible parameters
     const tools = functions.map((f) => {
+      // OpenAI requires parameters.properties and parameters.required even if empty
+      // Protobuf3 omits empty fields, so we must ensure they exist
+      const params = f.parameters || {};
+      const normalizedFunction = {
+        ...f,
+        parameters: {
+          type: params.type || "object",
+          properties: params.properties || {},
+          required: params.required || [],
+        },
+      };
       return tool.ToolCall.fromObject({
         type: "function",
-        function: f,
+        function: normalizedFunction,
       });
     });
 

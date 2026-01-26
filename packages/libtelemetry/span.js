@@ -1,6 +1,22 @@
 import { trace } from "@copilot-ld/libtype";
 
 /**
+ * Wall-clock offset: difference between Date.now() (ms since Unix epoch)
+ * and hrtime.bigint() (ns since arbitrary point). Captured once at module load.
+ * This allows converting hrtime to wall-clock time while preserving nanosecond precision.
+ */
+const WALL_CLOCK_OFFSET_NS =
+  BigInt(Date.now()) * 1_000_000n - process.hrtime.bigint();
+
+/**
+ * Returns current wall-clock time in nanoseconds since Unix epoch
+ * @returns {string} Nanosecond timestamp as string
+ */
+function nowNano() {
+  return String(process.hrtime.bigint() + WALL_CLOCK_OFFSET_NS);
+}
+
+/**
  * Represents a single span in a trace
  */
 export class Span {
@@ -33,7 +49,7 @@ export class Span {
       parent_span_id: parentSpanId || "",
       name,
       kind,
-      start_time_unix_nano: String(process.hrtime.bigint()),
+      start_time_unix_nano: nowNano(),
       end_time_unix_nano: "",
       attributes: { service_name: serviceName, ...attributes },
       events: [],
@@ -50,7 +66,7 @@ export class Span {
   addEvent(name, attributes = {}) {
     this.#object.events.push({
       name,
-      time_unix_nano: String(process.hrtime.bigint()),
+      time_unix_nano: nowNano(),
       attributes,
     });
   }
@@ -91,7 +107,7 @@ export class Span {
    * @returns {Promise<void>}
    */
   async end() {
-    this.#object.end_time_unix_nano = String(process.hrtime.bigint());
+    this.#object.end_time_unix_nano = nowNano();
 
     const span = trace.Span.fromObject(this.#object);
     await this.#traceClient.RecordSpan(span);

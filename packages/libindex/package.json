@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libindex",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "Base index class for storage-backed indexes in Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -25,6 +25,6 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.2"
+    "@copilot-ld/libharness": "^0.1.3"
   }
 }

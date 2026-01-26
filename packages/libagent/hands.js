@@ -201,53 +201,64 @@ export class AgentHands {
    * @param {string} [options.resourceId] - Current conversation resource ID
    * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {number} [options.maxTokens] - Maximum tokens for tool results
-   * @param {number} [options.batchSize] - Ignored (sequential execution)
    * @returns {Promise<{tokensUsed: number, handoffPrompt: string|null}>} Tokens used and handoff prompt if any
    */
   async processToolCalls(toolCalls, saveMessage, options = {}) {
     const { resourceId, llmToken, maxTokens } = options;
+
+    // Split budget evenly across all tool calls
+    const budgetPerCall = maxTokens
+      ? Math.floor(maxTokens / toolCalls.length)
+      : undefined;
+
+    // Execute all tool calls in parallel
+    const results = await Promise.all(
+      toolCalls.map(async (toolCall) => {
+        try {
+          return await this.executeToolCall(
+            toolCall,
+            llmToken,
+            resourceId,
+            budgetPerCall,
+          );
+        } catch (error) {
+          // Return error result for failed tool call
+          return {
+            message: tool.ToolCallMessage.fromObject({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify({
+                error: {
+                  type: "tool_execution_error",
+                  message: String(error),
+                },
+              }),
+            }),
+            result: null,
+          };
+        }
+      }),
+    );
+
+    // Process results sequentially to maintain message order
     let totalTokensUsed = 0;
-    let remainingBudget = maxTokens;
     let handoffPrompt = null;
 
-    // Process tool calls fully sequentially to ensure proper message ordering
-    for (const toolCall of toolCalls) {
-      try {
-        const { message, result } = await this.executeToolCall(
-          toolCall,
-          llmToken,
-          resourceId,
-          remainingBudget,
-        );
+    for (let i = 0; i < results.length; i++) {
+      const { message, result } = results[i];
+      const tokensUsed = message.id?.tokens || 0;
+      totalTokensUsed += tokensUsed;
 
-        const tokensUsed = message.id?.tokens || 0;
-        totalTokensUsed += tokensUsed;
-        remainingBudget = Math.max(0, remainingBudget - tokensUsed);
+      await saveMessage(message);
 
-        await saveMessage(message);
-
-        // Check for handoff - extract prompt from run_handoff result content
-        if (toolCall.function?.name === "run_handoff" && result?.content) {
-          try {
-            const handoffData = JSON.parse(result.content);
-            handoffPrompt = handoffData.prompt;
-          } catch {
-            // Ignore parse errors
-          }
+      // Check for handoff - extract prompt from run_handoff result content
+      if (toolCalls[i].function?.name === "run_handoff" && result?.content) {
+        try {
+          const handoffData = JSON.parse(result.content);
+          handoffPrompt = handoffData.prompt;
+        } catch {
+          // Ignore parse errors
         }
-      } catch (error) {
-        // Create error message for failed tool call
-        const errorMessage = tool.ToolCallMessage.fromObject({
-          role: "tool",
-          tool_call_id: toolCall.id,
-          content: JSON.stringify({
-            error: {
-              type: "tool_execution_error",
-              message: String(error),
-            },
-          }),
-        });
-        await saveMessage(errorMessage);
       }
     }
 

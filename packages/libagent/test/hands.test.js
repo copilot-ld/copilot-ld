@@ -139,7 +139,7 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[1].role, "tool");
   });
 
-  test("processToolCalls executes calls sequentially", async () => {
+  test("processToolCalls executes calls in parallel", async () => {
     const executionOrder = [];
     const completionOrder = [];
 
@@ -148,7 +148,7 @@ describe("AgentHands", () => {
       tool: {
         call: async (toolCall) => {
           executionOrder.push(toolCall.id);
-          // Stagger completion times
+          // Stagger completion times - call1 takes longer
           const delay = toolCall.id === "call1" ? 50 : 10;
           await new Promise((resolve) => setTimeout(resolve, delay));
           completionOrder.push(toolCall.id);
@@ -171,10 +171,10 @@ describe("AgentHands", () => {
       llmToken: "test-token",
     });
 
-    // Sequential execution: call1 starts and completes before call2 starts
+    // Parallel execution: both calls start immediately
     assert.deepStrictEqual(executionOrder, ["call1", "call2"]);
-    // Sequential execution: call1 completes before call2 (even with shorter delay for call2)
-    assert.deepStrictEqual(completionOrder, ["call1", "call2"]);
+    // Parallel execution: call2 completes before call1 (shorter delay)
+    assert.deepStrictEqual(completionOrder, ["call2", "call1"]);
   });
 
   test("processToolCalls handles errors without affecting subsequent calls", async () => {
@@ -329,7 +329,7 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[2].role, "assistant");
   });
 
-  test("processToolCalls decrements budget after each call", async () => {
+  test("processToolCalls splits budget evenly across all calls", async () => {
     const capturedMaxTokens = [];
 
     const mockCallbacksWithCapture = {
@@ -366,21 +366,15 @@ describe("AgentHands", () => {
 
     await agentHands.processToolCalls(toolCalls, saveResource, {
       llmToken: "test-token",
-      maxTokens: 5000,
+      maxTokens: 4000,
     });
 
-    // First call gets full budget (5000)
-    assert.strictEqual(capturedMaxTokens[0], "5000");
-
-    // Get actual tokens from first call to verify decrement
-    const firstCallTokens = savedMessages[0].id.tokens;
-    const expectedSecondCall = String(5000 - firstCallTokens);
-    assert.strictEqual(capturedMaxTokens[1], expectedSecondCall);
-
-    // Third call gets budget minus first two calls' tokens
-    const secondCallTokens = savedMessages[1].id.tokens;
-    const expectedThirdCall = String(5000 - firstCallTokens - secondCallTokens);
-    assert.strictEqual(capturedMaxTokens[2], expectedThirdCall);
+    // Budget is split evenly: 4000 / 4 = 1000 per call
+    const expectedBudgetPerCall = "1000";
+    assert.strictEqual(capturedMaxTokens[0], expectedBudgetPerCall);
+    assert.strictEqual(capturedMaxTokens[1], expectedBudgetPerCall);
+    assert.strictEqual(capturedMaxTokens[2], expectedBudgetPerCall);
+    assert.strictEqual(capturedMaxTokens[3], expectedBudgetPerCall);
   });
 
   test("processToolCalls returns total tokens used", async () => {

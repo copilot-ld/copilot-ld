@@ -5,7 +5,8 @@
 - **BREAKING**: Renamed "assistant" to "agent" with new `.agent.md` file format
   in `config/agents/`
 - **BREAKING**: `processToolCalls()` executes all tool calls in parallel with
-  `Promise.all`, splitting the budget evenly across calls upfront
+  `Promise.all`, splitting the budget evenly across calls upfront; results are
+  streamed to the client in order as they complete (not batched at the end)
 - Fixed `Identifier` object conversion in graph query results
 
 ## 2025-12-21

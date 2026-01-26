@@ -177,6 +177,54 @@ describe("AgentHands", () => {
     assert.deepStrictEqual(completionOrder, ["call2", "call1"]);
   });
 
+  test("processToolCalls streams results in order as they complete", async () => {
+    const saveOrder = [];
+    const completionTimes = {};
+
+    const mockCallbacksWithTiming = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolCall) => {
+          // call2 completes first (10ms), call1 second (30ms), call3 last (50ms)
+          const delays = { call1: 30, call2: 10, call3: 50 };
+          await new Promise((resolve) =>
+            setTimeout(resolve, delays[toolCall.id]),
+          );
+          completionTimes[toolCall.id] = Date.now();
+          return { content: `Result for ${toolCall.id}` };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithTiming,
+      mockResourceIndex,
+    );
+
+    const toolCalls = [
+      { id: "call1", function: { name: "search" } },
+      { id: "call2", function: { name: "analyze" } },
+      { id: "call3", function: { name: "summarize" } },
+    ];
+
+    const saveResource = async (msg) => {
+      saveOrder.push(msg.tool_call_id);
+    };
+
+    await agentHands.processToolCalls(toolCalls, saveResource, {
+      llmToken: "test-token",
+    });
+
+    // Messages saved in original order despite different completion times
+    assert.deepStrictEqual(saveOrder, ["call1", "call2", "call3"]);
+
+    // Verify call2 actually completed before call1
+    assert.ok(
+      completionTimes.call2 < completionTimes.call1,
+      "call2 should complete before call1",
+    );
+  });
+
   test("processToolCalls handles errors without affecting subsequent calls", async () => {
     const mockCallbacksWithError = {
       ...mockServiceCallbacks,

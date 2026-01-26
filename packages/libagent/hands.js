@@ -194,7 +194,8 @@ export class AgentHands {
   }
 
   /**
-   * Processes tool calls from an assistant message using fully sequential execution
+   * Processes tool calls from an assistant message using parallel execution
+   * with streaming results as they complete (in order).
    * @param {import("@copilot-ld/libtype").tool.ToolCall[]} toolCalls - Array of tool calls to process
    * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
@@ -211,19 +212,80 @@ export class AgentHands {
       ? Math.floor(maxTokens / toolCalls.length)
       : undefined;
 
-    // Execute all tool calls in parallel
-    const results = await Promise.all(
-      toolCalls.map(async (toolCall) => {
+    // Track results and completion state for ordered streaming
+    const results = new Array(toolCalls.length);
+    let nextToSave = 0;
+    let totalTokensUsed = 0;
+    let handoffPrompt = null;
+
+    // Create a promise that resolves when all messages are saved
+    let resolveSaveComplete;
+    const saveComplete = new Promise((resolve) => {
+      resolveSaveComplete = resolve;
+    });
+
+    // Mutex to prevent concurrent saveMessage calls
+    let saveLock = Promise.resolve();
+
+    // Function to save messages in order as they become available
+    const trySaveNext = async () => {
+      // Acquire lock by chaining onto previous operation
+      const previousLock = saveLock;
+      let releaseLock;
+      saveLock = new Promise((resolve) => {
+        releaseLock = resolve;
+      });
+
+      await previousLock;
+
+      try {
+        while (
+          nextToSave < results.length &&
+          results[nextToSave] !== undefined
+        ) {
+          const { message, result } = results[nextToSave];
+          const toolCall = toolCalls[nextToSave];
+          const tokensUsed = message.id?.tokens || 0;
+          totalTokensUsed += tokensUsed;
+
+          await saveMessage(message);
+
+          // Check for handoff - extract prompt from run_handoff result content
+          if (toolCall.function?.name === "run_handoff" && result?.content) {
+            try {
+              const handoffData = JSON.parse(result.content);
+              handoffPrompt = handoffData.prompt;
+            } catch {
+              // Ignore parse errors
+            }
+          }
+
+          nextToSave++;
+        }
+
+        // If all results are saved, resolve the completion promise
+        if (nextToSave === toolCalls.length) {
+          resolveSaveComplete();
+        }
+      } finally {
+        releaseLock();
+      }
+    };
+
+    // Execute all tool calls in parallel, streaming results in order
+    await Promise.all(
+      toolCalls.map(async (toolCall, index) => {
         try {
-          return await this.executeToolCall(
+          const execResult = await this.executeToolCall(
             toolCall,
             llmToken,
             resourceId,
             budgetPerCall,
           );
+          results[index] = execResult;
         } catch (error) {
-          // Return error result for failed tool call
-          return {
+          // Store error result for failed tool call
+          results[index] = {
             message: tool.ToolCallMessage.fromObject({
               role: "tool",
               tool_call_id: toolCall.id,
@@ -237,30 +299,13 @@ export class AgentHands {
             result: null,
           };
         }
+        // Try to save messages in order after each completion
+        await trySaveNext();
       }),
     );
 
-    // Process results sequentially to maintain message order
-    let totalTokensUsed = 0;
-    let handoffPrompt = null;
-
-    for (let i = 0; i < results.length; i++) {
-      const { message, result } = results[i];
-      const tokensUsed = message.id?.tokens || 0;
-      totalTokensUsed += tokensUsed;
-
-      await saveMessage(message);
-
-      // Check for handoff - extract prompt from run_handoff result content
-      if (toolCalls[i].function?.name === "run_handoff" && result?.content) {
-        try {
-          const handoffData = JSON.parse(result.content);
-          handoffPrompt = handoffData.prompt;
-        } catch {
-          // Ignore parse errors
-        }
-      }
-    }
+    // Wait for all saves to complete (handles race conditions)
+    await saveComplete;
 
     return { tokensUsed: totalTokensUsed, handoffPrompt };
   }

@@ -131,6 +131,170 @@ describe("libllm", () => {
       assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
 
+    test("createCompletions fixes multi_tool_use.parallel hallucination", async () => {
+      // Simulates the hallucinated multi_tool_use.parallel response from OpenAI
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            id: "test-id",
+            object: "chat.completion",
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "Planning to call tools...",
+                  tool_calls: [
+                    {
+                      id: "call_abc123",
+                      type: "function",
+                      function: {
+                        name: "multi_tool_use.parallel",
+                        arguments: JSON.stringify({
+                          tool_uses: [
+                            {
+                              recipient_name: "functions.get_ontology",
+                              parameters: {},
+                            },
+                            {
+                              recipient_name: "functions.get_subjects",
+                              parameters: { type: "schema:Person" },
+                            },
+                          ],
+                        }),
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            usage: { total_tokens: 100 },
+          }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const messages = [{ role: "user", content: "Query the graph" }];
+      const result = await llmApi.createCompletions({ messages });
+
+      // Should have expanded to 2 tool calls
+      assert.strictEqual(result.choices[0].message.tool_calls.length, 2);
+
+      // First tool call should be get_ontology
+      const call0 = result.choices[0].message.tool_calls[0];
+      assert.strictEqual(call0.function.name, "get_ontology");
+      assert.strictEqual(call0.id, "call_abc123_0");
+      assert.deepStrictEqual(JSON.parse(call0.function.arguments), {});
+
+      // Second tool call should be get_subjects
+      const call1 = result.choices[0].message.tool_calls[1];
+      assert.strictEqual(call1.function.name, "get_subjects");
+      assert.strictEqual(call1.id, "call_abc123_1");
+      assert.deepStrictEqual(JSON.parse(call1.function.arguments), {
+        type: "schema:Person",
+      });
+    });
+
+    test("createCompletions fixes parallel hallucination (short form)", async () => {
+      // Also handles the short form "parallel" name
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            id: "test-id",
+            object: "chat.completion",
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "",
+                  tool_calls: [
+                    {
+                      id: "call_xyz",
+                      type: "function",
+                      function: {
+                        name: "parallel",
+                        arguments: JSON.stringify({
+                          tool_uses: [
+                            {
+                              recipient_name: "search_content",
+                              parameters: { query: "test" },
+                            },
+                          ],
+                        }),
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            usage: { total_tokens: 50 },
+          }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const result = await llmApi.createCompletions({
+        messages: [{ role: "user", content: "Search" }],
+      });
+
+      assert.strictEqual(result.choices[0].message.tool_calls.length, 1);
+      assert.strictEqual(
+        result.choices[0].message.tool_calls[0].function.name,
+        "search_content",
+      );
+    });
+
+    test("createCompletions preserves normal tool calls", async () => {
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            id: "test-id",
+            object: "chat.completion",
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "",
+                  tool_calls: [
+                    {
+                      id: "call_normal",
+                      type: "function",
+                      function: {
+                        name: "search_content",
+                        arguments: '{"query":"test"}',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            usage: { total_tokens: 30 },
+          }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const result = await llmApi.createCompletions({
+        messages: [{ role: "user", content: "Test" }],
+      });
+
+      // Normal tool calls should pass through unchanged
+      assert.strictEqual(result.choices[0].message.tool_calls.length, 1);
+      assert.strictEqual(
+        result.choices[0].message.tool_calls[0].function.name,
+        "search_content",
+      );
+      assert.strictEqual(result.choices[0].message.tool_calls[0].id, "call_normal");
+    });
+
     test("createEmbeddings makes correct TEI API call", async () => {
       // TEI returns array of arrays: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
       const mockResponse = {

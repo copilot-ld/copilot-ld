@@ -41,7 +41,7 @@ describe("MemoryWindow", () => {
       tokens: 15,
     });
 
-    await memoryIndex.add(msg);
+    await memoryIndex.add([msg]);
 
     await assert.rejects(() => memoryWindow.build(), /model is required/);
 
@@ -64,7 +64,7 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
+    await memoryIndex.add([msg1]);
 
     const result = await memoryWindow.build("test-model-1000");
 
@@ -118,8 +118,8 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(msg2);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([msg2]);
 
     const result = await memoryWindow.build("test-model-1000");
 
@@ -169,9 +169,9 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(msg2);
-    await memoryIndex.add(msg3);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([msg2]);
+    await memoryIndex.add([msg3]);
 
     // Budget of 125: assistant(50) + 2 tools(40) = 90 fixed
     // Remaining 35 for messages, fits msg2(25) + msg3(10) = 35 (from newest first)
@@ -239,10 +239,10 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(toolResult1);
-    await memoryIndex.add(toolResult2);
-    await memoryIndex.add(msg2);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([toolResult1]);
+    await memoryIndex.add([toolResult2]);
+    await memoryIndex.add([msg2]);
 
     // Budget of 230: assistant(50) + 2 tools(40) = 90 fixed
     // Remaining 140 would fit toolResult1(50) + toolResult2(50) + msg2(30) = 130
@@ -294,9 +294,9 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(toolResult1);
-    await memoryIndex.add(msg2);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([toolResult1]);
+    await memoryIndex.add([msg2]);
 
     // Budget of 300 fits everything: assistant(50) + tools(40) = 90
     // Remaining 210 fits all 3 messages (50+30+20=100)

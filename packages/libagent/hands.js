@@ -24,13 +24,16 @@ export class AgentHands {
   /**
    * Handles the tool execution loop with LLM completions and budget tracking
    * @param {string} conversationId - Conversation resource ID
-   * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
+   * @param {object} callbacks - Message handling callbacks
+   * @param {(msgs: object[]) => Promise<object[]>} callbacks.saveToServer - Save messages to server-side indices
+   * @param {(msg: object) => void} callbacks.streamToClient - Stream message to client immediately
    * @param {object} [options] - Execution options
    * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {string} [options.model] - Optional model override for LLM service
    * @returns {Promise<void>}
    */
-  async executeToolLoop(conversationId, saveMessage, options = {}) {
+  async executeToolLoop(conversationId, callbacks, options = {}) {
+    const { saveToServer, streamToClient } = callbacks;
     const { llmToken, model } = options;
     let maxIterations = 100; // TODO: configurable limit
     let currentIteration = 0;
@@ -63,12 +66,20 @@ export class AgentHands {
 
       // If we have tool calls, process them
       if (choice.message?.tool_calls?.length > 0) {
-        await saveMessage(common.Message.fromObject(choice.message));
-        const { tokensUsed, handoffPrompt } = await this.processToolCalls(
-          choice.message.tool_calls,
-          saveMessage,
-          { resourceId: conversationId, llmToken, maxTokens: remainingBudget },
-        );
+        // Stream assistant message immediately, batch write later
+        const assistantMessage = common.Message.fromObject(choice.message);
+        streamToClient(assistantMessage);
+
+        // Process tool calls - returns messages in order
+        const { messages, tokensUsed, handoffPrompt } =
+          await this.processToolCalls(choice.message.tool_calls, {
+            resourceId: conversationId,
+            llmToken,
+            maxTokens: remainingBudget,
+          });
+
+        // Batch write: assistant message + all tool results
+        await saveToServer([assistantMessage, ...messages]);
 
         // Draw down budget by tokens used
         remainingBudget = Math.max(0, remainingBudget - tokensUsed);
@@ -79,19 +90,25 @@ export class AgentHands {
             role: "user",
             content: handoffPrompt,
           });
-          await saveMessage(handoffMessage);
+          await saveToServer([handoffMessage]);
         }
       } else if (finishReason === "tool_calls") {
         // LLM indicated tool_calls but array is empty - likely a parsing error
         // Save message and continue loop to let LLM try again
-        await saveMessage(common.Message.fromObject(choice.message));
+        const msg = common.Message.fromObject(choice.message);
+        streamToClient(msg);
+        await saveToServer([msg]);
       } else if (finishReason === "length") {
         // Response was truncated due to token limit
         // Save what we have and continue loop to let LLM continue
-        await saveMessage(common.Message.fromObject(choice.message));
+        const msg = common.Message.fromObject(choice.message);
+        streamToClient(msg);
+        await saveToServer([msg]);
       } else {
         // finish_reason is "stop" or other - this is the final message
-        await saveMessage(common.Message.fromObject(choice.message));
+        const msg = common.Message.fromObject(choice.message);
+        streamToClient(msg);
+        await saveToServer([msg]);
         break;
       }
 
@@ -195,16 +212,15 @@ export class AgentHands {
 
   /**
    * Processes tool calls from an assistant message using parallel execution
-   * with streaming results as they complete (in order).
+   * Returns messages in conversation order for batch writing
    * @param {import("@copilot-ld/libtype").tool.ToolCall[]} toolCalls - Array of tool calls to process
-   * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
    * @param {string} [options.resourceId] - Current conversation resource ID
    * @param {string} [options.llmToken] - LLM API token for LLM calls
    * @param {number} [options.maxTokens] - Maximum tokens for tool results
-   * @returns {Promise<{tokensUsed: number, handoffPrompt: string|null}>} Tokens used and handoff prompt if any
+   * @returns {Promise<{messages: object[], tokensUsed: number, handoffPrompt: string|null}>} Messages in order, tokens used, and handoff prompt if any
    */
-  async processToolCalls(toolCalls, saveMessage, options = {}) {
+  async processToolCalls(toolCalls, options = {}) {
     const { resourceId, llmToken, maxTokens } = options;
 
     // Split budget evenly across all tool calls
@@ -212,68 +228,8 @@ export class AgentHands {
       ? Math.floor(maxTokens / toolCalls.length)
       : undefined;
 
-    // Track results and completion state for ordered streaming
-    const results = new Array(toolCalls.length);
-    let nextToSave = 0;
-    let totalTokensUsed = 0;
-    let handoffPrompt = null;
-
-    // Create a promise that resolves when all messages are saved
-    let resolveSaveComplete;
-    const saveComplete = new Promise((resolve) => {
-      resolveSaveComplete = resolve;
-    });
-
-    // Mutex to prevent concurrent saveMessage calls
-    let saveLock = Promise.resolve();
-
-    // Function to save messages in order as they become available
-    const trySaveNext = async () => {
-      // Acquire lock by chaining onto previous operation
-      const previousLock = saveLock;
-      let releaseLock;
-      saveLock = new Promise((resolve) => {
-        releaseLock = resolve;
-      });
-
-      await previousLock;
-
-      try {
-        while (
-          nextToSave < results.length &&
-          results[nextToSave] !== undefined
-        ) {
-          const { message, result } = results[nextToSave];
-          const toolCall = toolCalls[nextToSave];
-          const tokensUsed = message.id?.tokens || 0;
-          totalTokensUsed += tokensUsed;
-
-          await saveMessage(message);
-
-          // Check for handoff - extract prompt from run_handoff result content
-          if (toolCall.function?.name === "run_handoff" && result?.content) {
-            try {
-              const handoffData = JSON.parse(result.content);
-              handoffPrompt = handoffData.prompt;
-            } catch {
-              // Ignore parse errors
-            }
-          }
-
-          nextToSave++;
-        }
-
-        // If all results are saved, resolve the completion promise
-        if (nextToSave === toolCalls.length) {
-          resolveSaveComplete();
-        }
-      } finally {
-        releaseLock();
-      }
-    };
-
-    // Execute all tool calls in parallel, streaming results in order
-    await Promise.all(
+    // Execute all tool calls in parallel
+    const results = await Promise.all(
       toolCalls.map(async (toolCall, index) => {
         try {
           const execResult = await this.executeToolCall(
@@ -282,10 +238,10 @@ export class AgentHands {
             resourceId,
             budgetPerCall,
           );
-          results[index] = execResult;
+          return { index, ...execResult, toolCall };
         } catch (error) {
-          // Store error result for failed tool call
-          results[index] = {
+          return {
+            index,
             message: tool.ToolCallMessage.fromObject({
               role: "tool",
               tool_call_id: toolCall.id,
@@ -297,16 +253,34 @@ export class AgentHands {
               }),
             }),
             result: null,
+            toolCall,
           };
         }
-        // Try to save messages in order after each completion
-        await trySaveNext();
       }),
     );
 
-    // Wait for all saves to complete (handles race conditions)
-    await saveComplete;
+    // Sort by original index to maintain conversation order
+    results.sort((a, b) => a.index - b.index);
 
-    return { tokensUsed: totalTokensUsed, handoffPrompt };
+    // Collect messages in order
+    const messages = results.map(({ message }) => message);
+
+    // Calculate totals and check for handoff
+    let totalTokensUsed = 0;
+    let handoffPrompt = null;
+
+    for (const { message, result, toolCall } of results) {
+      totalTokensUsed += message.id?.tokens || 0;
+
+      if (toolCall.function?.name === "run_handoff" && result?.content) {
+        try {
+          handoffPrompt = JSON.parse(result.content).prompt;
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
+    return { messages, tokensUsed: totalTokensUsed, handoffPrompt };
   }
 }

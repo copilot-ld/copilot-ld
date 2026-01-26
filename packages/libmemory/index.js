@@ -179,13 +179,12 @@ export class MemoryWindow {
   }
 
   /**
-   * Appends identifiers to memory
+   * Appends identifiers to memory in a single operation
    * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Array of identifiers to append
    * @returns {Promise<void>}
    */
   async append(identifiers) {
-    for (const identifier of identifiers) {
-      await this.#memoryIndex.add(identifier);
-    }
+    if (!identifiers || identifiers.length === 0) return;
+    await this.#memoryIndex.add(identifiers);
   }
 }

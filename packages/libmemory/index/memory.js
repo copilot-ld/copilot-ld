@@ -8,16 +8,27 @@ import { IndexBase } from "@copilot-ld/libindex";
  */
 export class MemoryIndex extends IndexBase {
   /**
-   * Adds identifiers to memory
-   * @param {import("@copilot-ld/libtype").resource.Identifier} identifier - Identifier to add
+   * Adds identifiers to memory in a single storage operation
+   * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Identifiers to add
    * @returns {Promise<void>}
    */
-  async add(identifier) {
-    const item = {
+  async add(identifiers) {
+    if (!identifiers || identifiers.length === 0) return;
+    if (!this.loaded) await this.loadData();
+
+    // Build items for index and storage
+    const items = identifiers.map((identifier) => ({
       id: String(identifier),
       identifier,
-    };
+    }));
 
-    await super.add(item);
+    // Update in-memory index
+    for (const item of items) {
+      this.index.set(item.id, item);
+    }
+
+    // Single append to storage with all items
+    const lines = items.map((item) => JSON.stringify(item)).join("\n");
+    await this.storage().append(this.indexKey, lines);
   }
 }

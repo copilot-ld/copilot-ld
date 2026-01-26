@@ -144,4 +144,5 @@ For open-ended questions like "What relates to X?":
 - **Synthesize** findings from all sub-agents — don't just concatenate responses
 - Highlight where sub-agents found complementary or confirming information
 - If all parallel tracks fail to find information, acknowledge this clearly
-- Present a unified answer that combines structural facts with contextual content
+- Present a unified answer that combines structural facts with contextual
+  content

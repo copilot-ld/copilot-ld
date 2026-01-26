@@ -35,7 +35,12 @@ async function main() {
 
     for (const model of models) {
       try {
-        const testLlm = createLlmApi(token, model.id, baseUrl, embeddingBaseUrl);
+        const testLlm = createLlmApi(
+          token,
+          model.id,
+          baseUrl,
+          embeddingBaseUrl,
+        );
         const window = {
           messages: [{ role: "user", content: "Hello" }],
           tools: [

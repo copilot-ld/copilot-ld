@@ -39,6 +39,7 @@ async function main() {
     await config.llmToken(),
     values.model,
     config.llmBaseUrl(),
+    config.embeddingBaseUrl(),
   );
   const description = await llm.imageToText(
     values.image,

@@ -199,8 +199,12 @@ export class AgentHands {
    * @returns {Promise<{tokensUsed: number, handoffPrompt: string|null}>} Tokens used and handoff prompt if any
    */
   async processToolCalls(toolCalls, saveMessage, options = {}) {
-    const { resourceId, llmToken, maxTokens, batchSize = this.#batchSize } =
-      options;
+    const {
+      resourceId,
+      llmToken,
+      maxTokens,
+      batchSize = this.#batchSize,
+    } = options;
     let totalTokensUsed = 0;
     let remainingBudget = maxTokens;
     let handoffPrompt = null;

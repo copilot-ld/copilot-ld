@@ -164,8 +164,8 @@ export class LlmApi {
    * @returns {Promise<object[]>} Array of available models
    */
   async listModels() {
-    // GitHub Models uses /catalog/models endpoint (not under /inference)
-    const catalogUrl = this.#baseURL.replace("/inference", "/catalog/models");
+    // GitHub Models catalog is at the root domain, not org-specific
+    const catalogUrl = "https://models.github.ai/catalog/models";
     const response = await this.#fetch(catalogUrl, {
       method: "GET",
       headers: this.#headers,

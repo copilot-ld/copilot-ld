@@ -204,9 +204,13 @@ describe("AgentHands", () => {
     ];
 
     const savedMessages = [];
-    await agentHands.processToolCalls(toolCalls, async (msg) => {
-      savedMessages.push(msg);
-    }, { llmToken: "test-token" });
+    await agentHands.processToolCalls(
+      toolCalls,
+      async (msg) => {
+        savedMessages.push(msg);
+      },
+      { llmToken: "test-token" },
+    );
 
     // All 3 messages should be saved (including the error)
     assert.strictEqual(savedMessages.length, 3);

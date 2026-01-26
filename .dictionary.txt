@@ -75,6 +75,7 @@ CustomEvent
 CustomEvents
 cyclomatic
 daemontools
+daemontools-inspired
 Datadog
 DDoS
 debuggable
@@ -135,6 +136,7 @@ Frontmatter
 GCM
 geo-routing
 getter
+getters
 GitHub
 GMP
 GoTrue
@@ -191,6 +193,7 @@ JSONL-based
 JSON-LD
 JSON-ND
 JSON-structured
+judgement
 judgements
 JWT
 keyless
@@ -365,6 +368,7 @@ reusability
 roadmap
 Roadmap
 RPC
+RPCs
 s3
 S3
 s3-compatible

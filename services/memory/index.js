@@ -11,6 +11,7 @@ export class MemoryService extends MemoryBase {
   #storage;
   #resourceIndex;
   #indices = new Map();
+  #maxTokens;
 
   /**
    * Creates a new Memory service instance
@@ -25,6 +26,10 @@ export class MemoryService extends MemoryBase {
 
     this.#storage = storage;
     this.#resourceIndex = resourceIndex;
+    this.#maxTokens = config.max_tokens;
+    if (!this.#maxTokens || this.#maxTokens <= 0) {
+      throw new Error("config.max_tokens is required and must be positive");
+    }
   }
 
   /**
@@ -71,23 +76,8 @@ export class MemoryService extends MemoryBase {
       this.#resourceIndex,
       memoryIndex,
     );
-    const { messages, tools } = await window.build(req.model);
+    const { messages, tools } = await window.build(req.model, this.#maxTokens);
 
-    return { messages, tools };
-  }
-
-  /** @inheritdoc */
-  async GetBudget(req) {
-    if (!req.resource_id) throw new Error("resource_id is required");
-    if (!req.model) throw new Error("model is required");
-
-    const memoryIndex = this.#getMemoryIndex(req.resource_id);
-    const window = new MemoryWindow(
-      req.resource_id,
-      this.#resourceIndex,
-      memoryIndex,
-    );
-
-    return await window.calculateBudget(req.model);
+    return { messages, tools, max_tokens: this.#maxTokens };
   }
 }

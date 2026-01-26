@@ -211,7 +211,7 @@ describe("memory service", () => {
       // Override max_tokens to fit within test model context (1000 tokens)
       const customConfig = {
         ...mockConfig,
-        memory: { max_tokens: 100 },
+        max_tokens: 100,
       };
 
       // Add some test messages to memory

@@ -69,6 +69,10 @@ help:
 	@echo "  rc-restart        	Restart services via rc"
 	@echo "  rc-status         	Show service status"
 	@echo ""
+	@echo "TEI (Text Embeddings Inference):"
+	@echo "  tei-install       	Install TEI binary via cargo"
+	@echo "  tei-start         	Start TEI embedding service"
+	@echo ""
 	@echo "Docker:"
 	@echo "  docker            	Build and start Docker Compose"
 	@echo "  docker-build      	Build Docker images"
@@ -151,7 +155,7 @@ data-init:  ## Initialize data directories
 
 .PHONY: data-clean
 data-clean:  ## Remove generated data
-	@rm -rf generated data/cli data/eval data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@rm -rf generated data/cli data/eval data/logs data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
 
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
@@ -240,10 +244,6 @@ process-graphs:  ## Process graph indices
 # Services
 # ====================
 
-.PHONY: rc
-rc:  ## Run rc command
-	@$(ENVLOAD) node packages/librc/bin/rc.js $(ARGS)
-
 .PHONY: rc-start
 rc-start:  ## Start services via rc
 	@$(ENVLOAD) node packages/librc/bin/rc.js start
@@ -259,6 +259,18 @@ rc-restart:  ## Restart services via rc
 .PHONY: rc-status
 rc-status:  ## Show service status
 	@$(ENVLOAD) node packages/librc/bin/rc.js status
+
+# ====================
+# TEI (Text Embeddings Inference)
+# ====================
+
+.PHONY: tei-install
+tei-install:  ## Install TEI binary via cargo from huggingface/text-embeddings-inference
+	@cargo install --git https://github.com/huggingface/text-embeddings-inference --features candle text-embeddings-router
+
+.PHONY: tei-start
+tei-start:  ## Start TEI embedding service (downloads model on first run)
+	@$(ENVLOAD) node packages/librc/bin/rc.js start tei
 
 # ====================
 # Docker
@@ -362,19 +374,19 @@ docs-watch:  ## Serve with live reload
 # ====================
 
 .PHONY: cli-chat
-cli-chat: rc-start  ## Agent conversations
+cli-chat: ## Agent conversations
 	@$(ENVLOAD) node ./scripts/chat.js $(ARGS)
 
 .PHONY: cli-search
-cli-search: rc-start  ## Vector similarity search
+cli-search: ## Vector similarity search
 	@$(ENVLOAD) node ./scripts/search.js $(ARGS)
 
 .PHONY: cli-query
-cli-query: rc-start  ## Graph triple pattern queries
+cli-query: ## Graph triple pattern queries
 	@$(ENVLOAD) node ./scripts/query.js $(ARGS)
 
 .PHONY: cli-subjects
-cli-subjects: rc-start  ## List graph subjects by type
+cli-subjects: ## List graph subjects by type
 	@$(ENVLOAD) node ./scripts/subjects.js $(ARGS)
 
 .PHONY: cli-visualize
@@ -382,19 +394,19 @@ cli-visualize:  ## Trace visualization
 	@$(ENVLOAD) npx --workspace=@copilot-ld/libtelemetry visualize $(ARGS)
 
 .PHONY: cli-window
-cli-window: rc-start  ## Fetch memory window as JSON
+cli-window:  ## Fetch memory window as JSON
 	@$(ENVLOAD) node ./scripts/window.js $(ARGS)
 
 .PHONY: cli-completion
-cli-completion: rc-start  ## Send window to LLM API
+cli-completion:  ## Send window to LLM API
 	@$(ENVLOAD) node ./scripts/completion.js $(ARGS)
 
 .PHONY: cli-tiktoken
-cli-tiktoken: rc-start  ## Token counting
+cli-tiktoken:  ## Token counting
 	@$(ENVLOAD) node ./scripts/tiktoken.js $(ARGS)
 
 .PHONY: cli-unary
-cli-unary: rc-start  ## Unary gRPC calls
+cli-unary:  ## Unary gRPC calls
 	@$(ENVLOAD) node ./scripts/unary.js $(ARGS)
 
 # ====================
@@ -403,7 +415,6 @@ cli-unary: rc-start  ## Unary gRPC calls
 
 .PHONY: eval
 eval:  ## Run evaluation suite
-	@$(ENVLOAD) npx --workspace=@copilot-ld/librc rc start --silent
 	@$(ENVLOAD) npx --workspace=@copilot-ld/libeval evaluation
 
 .PHONY: eval-report
@@ -412,7 +423,7 @@ eval-report:  ## Generate evaluation report
 
 .PHONY: eval-reset
 eval-reset:  ## Reset evaluation state
-	@rm -rf data/dev.log data/cli/* data/eval/* data/memories/* data/resources/common.Conversation.* data/traces/*
+	@rm -rf data/*.log data/logs/* data/cli/* data/eval/* data/memories/* data/resources/common.Conversation.* data/traces/*
 	@$(ENVLOAD) npx --workspace=@copilot-ld/librc rc restart --silent
 
 # ====================
@@ -420,11 +431,11 @@ eval-reset:  ## Reset evaluation state
 # ====================
 
 .PHONY: env-setup
-env-setup: env-reset env-github env-secrets env-storage  ## Set up all environment secrets and storage config
+env-setup: env-reset env-secrets env-storage  ## Set up all environment secrets and storage config
 
-.PHONY: env-github
-env-github:  ## GitHub token utility
-	@$(ENVLOAD) node scripts/env-github.js
+.PHONY: env-reset
+env-reset: config-reset ## Reset environment config from examples
+	@for file in .env*.example; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example}" || true; done
 
 .PHONY: env-secrets
 env-secrets:  ## Generate service and JWT secrets
@@ -434,9 +445,9 @@ env-secrets:  ## Generate service and JWT secrets
 env-storage:  ## Generate storage backend credentials
 	@node scripts/env-storage.js
 
-.PHONY: env-reset
-env-reset:  config-reset ## Reset environment config from examples
-	@for file in .env*.example; do [ -f "$$file" ] && cp -f "$$file" "$${file%.example}" || true; done
+.PHONY: env-github
+env-github:  ## GitHub token utility
+	@$(ENVLOAD) node scripts/env-github.js
 
 # ====================
 # Utilities

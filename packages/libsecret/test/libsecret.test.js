@@ -8,6 +8,8 @@ import os from "os";
 // Module under test
 import {
   updateEnvFile,
+  readEnvFile,
+  getOrGenerateSecret,
   generateHash,
   generateUUID,
   generateSecret,
@@ -236,6 +238,142 @@ describe("libsecret", () => {
 
       const content = await fs.readFile(defaultPath, "utf8");
       assert.ok(content.includes("KEY=value"));
+    });
+  });
+
+  describe("readEnvFile", () => {
+    let tempDir;
+    let envPath;
+
+    beforeEach(async () => {
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "libsecret-test-"));
+      envPath = path.join(tempDir, ".env");
+    });
+
+    afterEach(async () => {
+      try {
+        await fs.rm(tempDir, { recursive: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+    });
+
+    test("returns undefined when file does not exist", async () => {
+      const value = await readEnvFile("MISSING_KEY", envPath);
+      assert.strictEqual(value, undefined);
+    });
+
+    test("returns undefined when key does not exist", async () => {
+      await fs.writeFile(envPath, "OTHER_KEY=other-value\n");
+
+      const value = await readEnvFile("MISSING_KEY", envPath);
+      assert.strictEqual(value, undefined);
+    });
+
+    test("returns value for existing key", async () => {
+      await fs.writeFile(envPath, "MY_KEY=my-value\n");
+
+      const value = await readEnvFile("MY_KEY", envPath);
+      assert.strictEqual(value, "my-value");
+    });
+
+    test("returns value with equals sign in it", async () => {
+      await fs.writeFile(envPath, "JWT_TOKEN=abc=def==\n");
+
+      const value = await readEnvFile("JWT_TOKEN", envPath);
+      assert.strictEqual(value, "abc=def==");
+    });
+
+    test("ignores commented keys", async () => {
+      await fs.writeFile(envPath, "# MY_KEY=commented-value\n");
+
+      const value = await readEnvFile("MY_KEY", envPath);
+      assert.strictEqual(value, undefined);
+    });
+
+    test("returns first matching key when duplicates exist", async () => {
+      await fs.writeFile(envPath, "MY_KEY=first-value\nMY_KEY=second-value\n");
+
+      const value = await readEnvFile("MY_KEY", envPath);
+      assert.strictEqual(value, "first-value");
+    });
+
+    test("handles empty value", async () => {
+      await fs.writeFile(envPath, "EMPTY_KEY=\n");
+
+      const value = await readEnvFile("EMPTY_KEY", envPath);
+      assert.strictEqual(value, "");
+    });
+  });
+
+  describe("getOrGenerateSecret", () => {
+    let tempDir;
+    let envPath;
+
+    beforeEach(async () => {
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "libsecret-test-"));
+      envPath = path.join(tempDir, ".env");
+    });
+
+    afterEach(async () => {
+      try {
+        await fs.rm(tempDir, { recursive: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+    });
+
+    test("returns existing value when key exists", async () => {
+      await fs.writeFile(envPath, "MY_SECRET=existing-secret\n");
+
+      const generator = () => "new-secret";
+      const value = await getOrGenerateSecret("MY_SECRET", generator, envPath);
+
+      assert.strictEqual(value, "existing-secret");
+    });
+
+    test("calls generator when key does not exist", async () => {
+      const generator = () => "generated-secret";
+      const value = await getOrGenerateSecret("MY_SECRET", generator, envPath);
+
+      assert.strictEqual(value, "generated-secret");
+    });
+
+    test("does not call generator when key exists", async () => {
+      await fs.writeFile(envPath, "MY_SECRET=existing-secret\n");
+
+      let generatorCalled = false;
+      const generator = () => {
+        generatorCalled = true;
+        return "new-secret";
+      };
+
+      await getOrGenerateSecret("MY_SECRET", generator, envPath);
+      assert.strictEqual(generatorCalled, false);
+    });
+
+    test("calls generator when file does not exist", async () => {
+      const generator = () => "generated-secret";
+      const value = await getOrGenerateSecret("MY_SECRET", generator, envPath);
+
+      assert.strictEqual(value, "generated-secret");
+    });
+
+    test("throws when generator is not a function", async () => {
+      await assert.rejects(
+        async () => getOrGenerateSecret("MY_SECRET", "not-a-function", envPath),
+        { message: "generator is required" },
+      );
+    });
+
+    test("does not write to file (no side effects)", async () => {
+      const generator = () => "generated-secret";
+      await getOrGenerateSecret("MY_SECRET", generator, envPath);
+
+      // File should not exist since getOrGenerateSecret doesn't write
+      await assert.rejects(async () => fs.readFile(envPath, "utf8"), {
+        code: "ENOENT",
+      });
     });
   });
 });

@@ -59,6 +59,7 @@ export class AgentHands {
       }
 
       const choice = completions.choices[0];
+      const finishReason = choice.finish_reason;
 
       // If we have tool calls, process them
       if (choice.message?.tool_calls?.length > 0) {
@@ -80,8 +81,16 @@ export class AgentHands {
           });
           await saveMessage(handoffMessage);
         }
+      } else if (finishReason === "tool_calls") {
+        // LLM indicated tool_calls but array is empty - likely a parsing error
+        // Save message and continue loop to let LLM try again
+        await saveMessage(common.Message.fromObject(choice.message));
+      } else if (finishReason === "length") {
+        // Response was truncated due to token limit
+        // Save what we have and continue loop to let LLM continue
+        await saveMessage(common.Message.fromObject(choice.message));
       } else {
-        // No tool calls - this is the final message (stop, length, etc.)
+        // finish_reason is "stop" or other - this is the final message
         await saveMessage(common.Message.fromObject(choice.message));
         break;
       }
@@ -153,19 +162,21 @@ export class AgentHands {
       return { subjects: [], content: result.content };
     }
 
-    // If result has identifiers array, load the resources
-    if (
-      result?.identifiers &&
-      Array.isArray(result.identifiers) &&
-      result.identifiers.length > 0
-    ) {
+    // If result has identifiers array (including empty), process it
+    if (result?.identifiers && Array.isArray(result.identifiers)) {
+      // Empty identifiers array means query returned no results
+      if (result.identifiers.length === 0) {
+        return { subjects: [], content: "No results found." };
+      }
+
       // Extract all subjects from the identifiers
       const subjects = result.identifiers.flatMap((id) => id.subjects || []);
 
       // Load resources using root actor
+      // Convert Identifier objects to string keys for resource lookup
       const actor = "common.System.root";
       const resources = await this.#resourceIndex.get(
-        result.identifiers,
+        result.identifiers.map((id) => String(id)),
         actor,
       );
 
@@ -183,7 +194,8 @@ export class AgentHands {
   }
 
   /**
-   * Processes tool calls from an assistant message
+   * Processes tool calls from an assistant message using parallel execution
+   * with streaming results as they complete (in order).
    * @param {import("@copilot-ld/libtype").tool.ToolCall[]} toolCalls - Array of tool calls to process
    * @param {(msg: object) => Promise<void>} saveMessage - Callback for saving messages
    * @param {object} [options] - Execution options
@@ -194,38 +206,106 @@ export class AgentHands {
    */
   async processToolCalls(toolCalls, saveMessage, options = {}) {
     const { resourceId, llmToken, maxTokens } = options;
+
+    // Split budget evenly across all tool calls
+    const budgetPerCall = maxTokens
+      ? Math.floor(maxTokens / toolCalls.length)
+      : undefined;
+
+    // Track results and completion state for ordered streaming
+    const results = new Array(toolCalls.length);
+    let nextToSave = 0;
     let totalTokensUsed = 0;
-    let remainingBudget = maxTokens;
     let handoffPrompt = null;
 
-    // Execute each tool call
-    for (let i = 0; i < toolCalls.length; i++) {
-      const toolCall = toolCalls[i];
-      const { message, result } = await this.executeToolCall(
-        toolCall,
-        llmToken,
-        resourceId,
-        remainingBudget,
-      );
+    // Create a promise that resolves when all messages are saved
+    let resolveSaveComplete;
+    const saveComplete = new Promise((resolve) => {
+      resolveSaveComplete = resolve;
+    });
 
-      // Track tokens used and draw down budget
-      const tokensUsed = message.id?.tokens || 0;
-      totalTokensUsed += tokensUsed;
-      remainingBudget = Math.max(0, remainingBudget - tokensUsed);
+    // Mutex to prevent concurrent saveMessage calls
+    let saveLock = Promise.resolve();
 
-      // Persist tool result
-      await saveMessage(message);
+    // Function to save messages in order as they become available
+    const trySaveNext = async () => {
+      // Acquire lock by chaining onto previous operation
+      const previousLock = saveLock;
+      let releaseLock;
+      saveLock = new Promise((resolve) => {
+        releaseLock = resolve;
+      });
 
-      // Check for handoff - extract prompt from run_handoff result content
-      if (toolCall.function?.name === "run_handoff" && result?.content) {
-        try {
-          const handoffData = JSON.parse(result.content);
-          handoffPrompt = handoffData.prompt;
-        } catch {
-          // Ignore parse errors
+      await previousLock;
+
+      try {
+        while (
+          nextToSave < results.length &&
+          results[nextToSave] !== undefined
+        ) {
+          const { message, result } = results[nextToSave];
+          const toolCall = toolCalls[nextToSave];
+          const tokensUsed = message.id?.tokens || 0;
+          totalTokensUsed += tokensUsed;
+
+          await saveMessage(message);
+
+          // Check for handoff - extract prompt from run_handoff result content
+          if (toolCall.function?.name === "run_handoff" && result?.content) {
+            try {
+              const handoffData = JSON.parse(result.content);
+              handoffPrompt = handoffData.prompt;
+            } catch {
+              // Ignore parse errors
+            }
+          }
+
+          nextToSave++;
         }
+
+        // If all results are saved, resolve the completion promise
+        if (nextToSave === toolCalls.length) {
+          resolveSaveComplete();
+        }
+      } finally {
+        releaseLock();
       }
-    }
+    };
+
+    // Execute all tool calls in parallel, streaming results in order
+    await Promise.all(
+      toolCalls.map(async (toolCall, index) => {
+        try {
+          const execResult = await this.executeToolCall(
+            toolCall,
+            llmToken,
+            resourceId,
+            budgetPerCall,
+          );
+          results[index] = execResult;
+        } catch (error) {
+          // Store error result for failed tool call
+          results[index] = {
+            message: tool.ToolCallMessage.fromObject({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify({
+                error: {
+                  type: "tool_execution_error",
+                  message: String(error),
+                },
+              }),
+            }),
+            result: null,
+          };
+        }
+        // Try to save messages in order after each completion
+        await trySaveNext();
+      }),
+    );
+
+    // Wait for all saves to complete (handles race conditions)
+    await saveComplete;
 
     return { tokensUsed: totalTokensUsed, handoffPrompt };
   }

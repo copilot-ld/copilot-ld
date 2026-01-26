@@ -86,18 +86,24 @@ export class AgentService extends AgentBase {
   async RunSubAgent(req) {
     const actor = "common.System.root";
 
+    // Normalize agent_id to fully qualified identifier if needed
+    let agentId = req.agent_id;
+    if (!agentId.startsWith("common.Agent.")) {
+      agentId = `common.Agent.${agentId}`;
+    }
+
     // Validate target agent has infer=true
-    const [targetAgent] = await this.#resourceIndex.get([req.agent_id], actor);
+    const [targetAgent] = await this.#resourceIndex.get([agentId], actor);
     if (!targetAgent?.infer) {
       throw new Error(
-        `Agent ${req.agent_id} is not available for sub-agent invocation`,
+        `Agent ${agentId} is not available for sub-agent invocation`,
       );
     }
 
     // Create child conversation with parent reference
     const childConversation = common.Conversation.fromObject({
       id: { name: generateUUID() },
-      agent_id: req.agent_id,
+      agent_id: agentId,
     });
     // Set the parent conversation
     childConversation.withIdentifier(req.resource_id);

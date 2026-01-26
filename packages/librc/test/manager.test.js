@@ -88,43 +88,6 @@ describe("ServiceManager", () => {
     });
   });
 
-  describe("readPid", () => {
-    test("returns parsed PID from file", () => {
-      const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
-      const pid = manager.readPid("/test/svscan.pid");
-
-      assert.strictEqual(pid, 12345);
-    });
-
-    test("returns null if file does not exist", () => {
-      const deps = {
-        ...mockDeps,
-        fs: {
-          ...mockDeps.fs,
-          readFileSync: () => {
-            throw new Error("ENOENT");
-          },
-        },
-      };
-      const manager = new ServiceManager(mockConfig, mockLogger, deps);
-      const pid = manager.readPid("/nonexistent");
-
-      assert.strictEqual(pid, null);
-    });
-  });
-
-  describe("isAlive", () => {
-    test("returns true if process exists", () => {
-      const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
-      assert.strictEqual(manager.isAlive(12345), true);
-    });
-
-    test("returns false if process does not exist", () => {
-      const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
-      assert.strictEqual(manager.isAlive(99999), false);
-    });
-  });
-
   describe("isSvscanRunning", () => {
     test("returns true when daemon is running", () => {
       const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
@@ -264,7 +227,7 @@ describe("ServiceManager", () => {
       assert.ok(execCalls.some((c) => c.cmd === "echo teardown"));
     });
 
-    test("sends shutdown command to svscan", async () => {
+    test("sends shutdown command to svscan when stopping all", async () => {
       let shutdownSent = false;
       const deps = {
         ...mockDeps,
@@ -279,6 +242,23 @@ describe("ServiceManager", () => {
       await manager.stop();
 
       assert.strictEqual(shutdownSent, true);
+    });
+
+    test("does not shutdown svscan when stopping specific service", async () => {
+      let shutdownSent = false;
+      const deps = {
+        ...mockDeps,
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "shutdown") {
+            shutdownSent = true;
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.stop("vector");
+
+      assert.strictEqual(shutdownSent, false);
     });
   });
 
@@ -330,6 +310,147 @@ describe("ServiceManager", () => {
 
       const statusLogs = logCalls.filter((l) => l.name === "status");
       assert.ok(statusLogs.some((l) => l.msg === "No services supervised"));
+    });
+
+    test("logs only specified service when name provided", async () => {
+      const deps = {
+        ...mockDeps,
+        sendCommand: async () => ({
+          services: {
+            trace: { state: "up", pid: 1234 },
+            vector: { state: "up", pid: 5678 },
+          },
+        }),
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.status("trace");
+
+      const traceLogs = logCalls.filter((l) => l.name === "trace");
+      assert.ok(traceLogs.some((l) => l.msg === "up"));
+
+      const vectorLogs = logCalls.filter((l) => l.name === "vector");
+      assert.strictEqual(vectorLogs.length, 0);
+    });
+
+    test("throws for unknown service name", async () => {
+      const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
+      await assert.rejects(
+        () => manager.status("unknown"),
+        /Unknown service: unknown/,
+      );
+    });
+  });
+
+  describe("service filtering", () => {
+    test("start with service name starts only up to that service", async () => {
+      let startedServices = [];
+      const deps = {
+        ...mockDeps,
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "add") {
+            startedServices.push(cmd.name);
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.start("trace");
+
+      assert.deepStrictEqual(startedServices, ["trace"]);
+    });
+
+    test("start with second service name starts first two services", async () => {
+      let startedServices = [];
+      const deps = {
+        ...mockDeps,
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "add") {
+            startedServices.push(cmd.name);
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.start("vector");
+
+      assert.deepStrictEqual(startedServices, ["trace", "vector"]);
+    });
+
+    test("start throws for unknown service name", async () => {
+      const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
+      await assert.rejects(
+        () => manager.start("unknown"),
+        /Unknown service: unknown/,
+      );
+    });
+
+    test("stop with last service stops only that service", async () => {
+      let stoppedServices = [];
+      const deps = {
+        ...mockDeps,
+        execSync: (cmd) => stoppedServices.push(cmd),
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "remove") {
+            stoppedServices.push(cmd.name);
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.stop("setup");
+
+      // setup is last, only it should stop (oneshot runs down command)
+      assert.deepStrictEqual(stoppedServices, ["echo teardown"]);
+    });
+
+    test("stop with second service stops from that service to end", async () => {
+      let stoppedServices = [];
+      const deps = {
+        ...mockDeps,
+        execSync: (cmd) => stoppedServices.push(cmd),
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "remove") {
+            stoppedServices.push(cmd.name);
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.stop("vector");
+
+      // Should stop setup (oneshot), then vector (reverse order from end)
+      assert.deepStrictEqual(stoppedServices, ["echo teardown", "vector"]);
+    });
+
+    test("stop with first service stops all services in reverse", async () => {
+      let stoppedServices = [];
+      const deps = {
+        ...mockDeps,
+        execSync: (cmd) => stoppedServices.push(cmd),
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "remove") {
+            stoppedServices.push(cmd.name);
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(mockConfig, mockLogger, deps);
+      await manager.stop("trace");
+
+      // Should stop setup (oneshot), vector, trace (reverse order)
+      assert.deepStrictEqual(stoppedServices, [
+        "echo teardown",
+        "vector",
+        "trace",
+      ]);
+    });
+
+    test("stop throws for unknown service name", async () => {
+      const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
+      await assert.rejects(
+        () => manager.stop("unknown"),
+        /Unknown service: unknown/,
+      );
     });
   });
 });

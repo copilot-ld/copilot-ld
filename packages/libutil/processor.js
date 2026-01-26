@@ -8,9 +8,9 @@ export class ProcessorBase {
   /**
    * Creates a new processor instance
    * @param {object} logger - Logger instance for debug output
-   * @param {number} batchSize - Size of batches for processing (default: 10)
+   * @param {number} batchSize - Size of batches for processing (default: 4)
    */
-  constructor(logger, batchSize = 20) {
+  constructor(logger, batchSize = 4) {
     if (!logger) throw new Error("logger is required");
     if (typeof batchSize !== "number" || batchSize < 1) {
       throw new Error("batchSize must be a positive number");
@@ -18,6 +18,15 @@ export class ProcessorBase {
 
     this.#logger = logger;
     this.#batchSize = batchSize;
+  }
+
+  /**
+   * Gets the logger instance for use in subclasses
+   * @returns {object} Logger instance
+   * @protected
+   */
+  get logger() {
+    return this.#logger;
   }
 
   /**

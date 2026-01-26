@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-01-26
+
+- Added local TEI embedding support via `EMBEDDING_BASE_URL` configuration
+
 ## 2025-12-01
 
 - **BREAKING**: `CreateCompletions` takes `resource_id` and fetches memory

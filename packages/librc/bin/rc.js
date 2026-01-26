@@ -27,13 +27,17 @@ const logger = {
   exception: (...a) => baseLogger.exception(...a),
 };
 
-const [command] = positionals;
+const [command, serviceName] = positionals;
 
 /** Prints usage information */
 function help() {
-  logger.info("help", "Usage: rc <command> [options]");
+  logger.info("help", "Usage: rc <command> [service] [options]");
   logger.info("help", "Commands: start, stop, status, restart");
   logger.info("help", "Options: -h, --help, -s, --silent");
+  logger.info(
+    "help",
+    "If service is specified, start/stop operates up to that service",
+  );
 }
 
 if (values.help || !command) {
@@ -49,17 +53,17 @@ const manager = new ServiceManager(config, logger, {
 
 switch (command) {
   case "start":
-    await manager.start();
+    await manager.start(serviceName);
     break;
   case "stop":
-    await manager.stop();
+    await manager.stop(serviceName);
     break;
   case "status":
-    await manager.status();
+    await manager.status(serviceName);
     break;
   case "restart":
-    await manager.stop();
-    await manager.start();
+    await manager.stop(serviceName);
+    await manager.start(serviceName);
     break;
   default:
     logger.error("main", "Unknown command", { command });

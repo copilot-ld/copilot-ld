@@ -1,10 +1,8 @@
 # Changelog
 
-## 2026-01-15
+## 2026-01-26
 
-- Integrated `AuthMiddleware` for optional JWT authentication on `/web/api/chat`
-- Added `Authorization` to CORS `allowHeaders`
-- Added `authEnabled` config option to enable/disable authentication
+- Added optional JWT authentication via `AuthMiddleware` on `/web/api/chat`
 
 ## 2025-11-30
 

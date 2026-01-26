@@ -1,30 +1,13 @@
 # Changelog
 
-## 2026-01-18
+## 2026-01-26
 
-- Added `JwtSecretValue` parameter to `secrets.yml`
-- Added `JwtSecret` resource for JWT signing secret storage
-- Added `JwtSecretArn` output to `secrets.yml`
-- Added `JwtSecretArn` parameter to `services.yml` and `extensions.yml`
-- Added `JWT_SECRET` environment variable to web and ui containers in
-  `extensions.yml`
-- **BREAKING**: Reorganized `docker-compose.yml` storage and database services
-- **RENAMED**: Container names now follow pattern `{service}-{provider}`
-  - `storage` → `storage-minio`
-  - `supabase-storage` → `storage-supabase`
-  - `supabase-auth` → `auth-supabase`
-  - `supabase-db` → `db-supabase`
-- **CHANGED**: MinIO and Supabase services are now optional via Docker Compose
-  profiles
-  - Use `--profile minio` for MinIO storage
-  - Use `--profile supabase` for Supabase (auth + storage + database)
-  - Default `docker compose up` starts only core services
-- **REMOVED**: Dependency on storage service from core services (agent, memory,
-  llm, vector, graph, tool, trace, web)
-- Added healthcheck to `db-supabase` container with `pg_isready` for startup
-  coordination
-- Changed `auth-supabase` and `storage-supabase` to wait for `db-supabase` with
-  `condition: service_healthy`
+- **BREAKING**: Reorganized Docker Compose with optional storage/auth profiles
+  (`--profile minio`, `--profile supabase`)
+- Added JWT secret management to CloudFormation stacks (`secrets.yml`,
+  `services.yml`, `extensions.yml`)
+- Container naming now follows `{service}-{provider}` pattern (e.g.,
+  `storage-minio`, `auth-supabase`)
 
 ## 2025-11-25
 

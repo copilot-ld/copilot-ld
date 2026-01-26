@@ -15,6 +15,7 @@ const llm = createLlmApi(
   await config.llmToken(),
   undefined,
   config.llmBaseUrl(),
+  config.embeddingBaseUrl(),
 );
 
 /**

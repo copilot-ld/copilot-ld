@@ -11,7 +11,6 @@ export class MemoryService extends MemoryBase {
   #storage;
   #resourceIndex;
   #indices = new Map();
-  #lock = {};
 
   /**
    * Creates a new Memory service instance
@@ -47,21 +46,15 @@ export class MemoryService extends MemoryBase {
   async AppendMemory(req) {
     if (!req.resource_id) throw new Error("resource_id is required");
 
-    this.#lock[req.resource_id] = true;
+    const memoryIndex = this.#getMemoryIndex(req.resource_id);
+    const window = new MemoryWindow(
+      req.resource_id,
+      this.#resourceIndex,
+      memoryIndex,
+    );
 
-    try {
-      const memoryIndex = this.#getMemoryIndex(req.resource_id);
-      const window = new MemoryWindow(
-        req.resource_id,
-        this.#resourceIndex,
-        memoryIndex,
-      );
-
-      if (req.identifiers && req.identifiers.length > 0) {
-        await window.append(req.identifiers);
-      }
-    } finally {
-      delete this.#lock[req.resource_id];
+    if (req.identifiers && req.identifiers.length > 0) {
+      await window.append(req.identifiers);
     }
 
     return { accepted: req.resource_id };
@@ -71,10 +64,6 @@ export class MemoryService extends MemoryBase {
   async GetWindow(req) {
     if (!req.resource_id) throw new Error("resource_id is required");
     if (!req.model) throw new Error("model is required");
-
-    while (this.#lock[req.resource_id]) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
 
     const memoryIndex = this.#getMemoryIndex(req.resource_id);
     const window = new MemoryWindow(

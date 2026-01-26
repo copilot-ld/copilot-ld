@@ -1,9 +1,8 @@
 # Changelog
 
-## 2026-01-15
+## 2026-01-26
 
-- Added `AuthMiddleware` class for HS256-signed JWT authentication
-- Added `createAuthMiddleware()` factory function
+- Added `AuthMiddleware` for HS256-signed JWT authentication
 
 ## 2025-11-24
 

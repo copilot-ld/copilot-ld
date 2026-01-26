@@ -5,6 +5,8 @@ import assert from "node:assert";
 import { LlmApi, DEFAULT_BASE_URL } from "../index.js";
 import { Retry } from "@copilot-ld/libutil";
 
+const EMBEDDING_BASE_URL = "http://localhost:8090";
+
 describe("libllm", () => {
   describe("LlmApi", () => {
     let mockFetch;
@@ -18,6 +20,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
+        EMBEDDING_BASE_URL,
         retry,
         mockFetch,
       );
@@ -128,16 +131,182 @@ describe("libllm", () => {
       assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
 
-    test("createEmbeddings makes correct API call", async () => {
+    test("createCompletions fixes multi_tool_use.parallel hallucination", async () => {
+      // Simulates the hallucinated multi_tool_use.parallel response from OpenAI
       const mockResponse = {
         ok: true,
         json: mock.fn(() =>
           Promise.resolve({
-            data: [
-              { embedding: [0.1, 0.2, 0.3], index: 0 },
-              { embedding: [0.4, 0.5, 0.6], index: 1 },
+            id: "test-id",
+            object: "chat.completion",
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "Planning to call tools...",
+                  tool_calls: [
+                    {
+                      id: "call_abc123",
+                      type: "function",
+                      function: {
+                        name: "multi_tool_use.parallel",
+                        arguments: JSON.stringify({
+                          tool_uses: [
+                            {
+                              recipient_name: "functions.get_ontology",
+                              parameters: {},
+                            },
+                            {
+                              recipient_name: "functions.get_subjects",
+                              parameters: { type: "schema:Person" },
+                            },
+                          ],
+                        }),
+                      },
+                    },
+                  ],
+                },
+              },
             ],
+            usage: { total_tokens: 100 },
           }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const messages = [{ role: "user", content: "Query the graph" }];
+      const result = await llmApi.createCompletions({ messages });
+
+      // Should have expanded to 2 tool calls
+      assert.strictEqual(result.choices[0].message.tool_calls.length, 2);
+
+      // First tool call should be get_ontology
+      const call0 = result.choices[0].message.tool_calls[0];
+      assert.strictEqual(call0.function.name, "get_ontology");
+      assert.strictEqual(call0.id, "call_abc123_0");
+      assert.deepStrictEqual(JSON.parse(call0.function.arguments), {});
+
+      // Second tool call should be get_subjects
+      const call1 = result.choices[0].message.tool_calls[1];
+      assert.strictEqual(call1.function.name, "get_subjects");
+      assert.strictEqual(call1.id, "call_abc123_1");
+      assert.deepStrictEqual(JSON.parse(call1.function.arguments), {
+        type: "schema:Person",
+      });
+    });
+
+    test("createCompletions fixes parallel hallucination (short form)", async () => {
+      // Also handles the short form "parallel" name
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            id: "test-id",
+            object: "chat.completion",
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "",
+                  tool_calls: [
+                    {
+                      id: "call_xyz",
+                      type: "function",
+                      function: {
+                        name: "parallel",
+                        arguments: JSON.stringify({
+                          tool_uses: [
+                            {
+                              recipient_name: "search_content",
+                              parameters: { query: "test" },
+                            },
+                          ],
+                        }),
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            usage: { total_tokens: 50 },
+          }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const result = await llmApi.createCompletions({
+        messages: [{ role: "user", content: "Search" }],
+      });
+
+      assert.strictEqual(result.choices[0].message.tool_calls.length, 1);
+      assert.strictEqual(
+        result.choices[0].message.tool_calls[0].function.name,
+        "search_content",
+      );
+    });
+
+    test("createCompletions preserves normal tool calls", async () => {
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve({
+            id: "test-id",
+            object: "chat.completion",
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "",
+                  tool_calls: [
+                    {
+                      id: "call_normal",
+                      type: "function",
+                      function: {
+                        name: "search_content",
+                        arguments: '{"query":"test"}',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            usage: { total_tokens: 30 },
+          }),
+        ),
+      };
+      mockFetch.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse),
+      );
+
+      const result = await llmApi.createCompletions({
+        messages: [{ role: "user", content: "Test" }],
+      });
+
+      // Normal tool calls should pass through unchanged
+      assert.strictEqual(result.choices[0].message.tool_calls.length, 1);
+      assert.strictEqual(
+        result.choices[0].message.tool_calls[0].function.name,
+        "search_content",
+      );
+      assert.strictEqual(
+        result.choices[0].message.tool_calls[0].id,
+        "call_normal",
+      );
+    });
+
+    test("createEmbeddings makes correct TEI API call", async () => {
+      // TEI returns array of arrays: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
+      const mockResponse = {
+        ok: true,
+        json: mock.fn(() =>
+          Promise.resolve([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6],
+          ]),
         ),
       };
       mockFetch.mock.mockImplementationOnce(() =>
@@ -149,17 +318,23 @@ describe("libllm", () => {
 
       assert.strictEqual(mockFetch.mock.callCount(), 1);
       const [url, options] = mockFetch.mock.calls[0].arguments;
-      assert.strictEqual(url, `${DEFAULT_BASE_URL}/embeddings`);
+      assert.strictEqual(url, `${EMBEDDING_BASE_URL}/embed`);
       assert.strictEqual(options.method, "POST");
 
+      // TEI uses { inputs: [...] } format
       const body = JSON.parse(options.body);
-      assert.strictEqual(body.model, "text-embedding-3-large");
-      assert.strictEqual(body.dimensions, 1024);
-      assert.deepStrictEqual(body.input, texts);
+      assert.deepStrictEqual(body.inputs, texts);
+      assert.strictEqual(body.model, undefined); // TEI doesn't need model
 
+      // No authorization header for TEI
+      assert.strictEqual(options.headers.Authorization, undefined);
+      assert.strictEqual(options.headers["Content-Type"], "application/json");
+
+      // Result should be normalized to Embeddings format
       assert.strictEqual(result.data.length, 2);
-      assert.ok(result.data[0].embedding);
-      assert.ok(result.data[1].embedding);
+      assert.deepStrictEqual(result.data[0].embedding, [0.1, 0.2, 0.3]);
+      assert.deepStrictEqual(result.data[1].embedding, [0.4, 0.5, 0.6]);
+      assert.strictEqual(result.model, "bge-small-en-v1.5");
     });
 
     test("createEmbeddings retries on 429 status", async () => {
@@ -168,13 +343,10 @@ describe("libllm", () => {
         status: 429,
         statusText: "Too Many Requests",
       };
+      // TEI returns array of arrays
       const successResponse = {
         ok: true,
-        json: mock.fn(() =>
-          Promise.resolve({
-            data: [{ embedding: [0.1, 0.2, 0.3], index: 0 }],
-          }),
-        ),
+        json: mock.fn(() => Promise.resolve([[0.1, 0.2, 0.3]])),
       };
 
       // Set up mock to return retry response first, then success
@@ -216,6 +388,24 @@ describe("libllm", () => {
       });
 
       assert.strictEqual(mockFetch.mock.callCount(), 1); // No retries for non-429
+    });
+
+    test("LlmApi throws when embeddingBaseUrl is not provided", () => {
+      const teiMockFetch = mock.fn();
+      const teiRetry = new Retry();
+
+      assert.throws(
+        () =>
+          new LlmApi(
+            "test-token",
+            "gpt-4",
+            DEFAULT_BASE_URL,
+            null, // embeddingBaseUrl is required
+            teiRetry,
+            teiMockFetch,
+          ),
+        { message: /embeddingBaseUrl is required/ },
+      );
     });
 
     test("listModels makes correct API call", async () => {
@@ -278,6 +468,7 @@ describe("libllm", () => {
         "test-token",
         "gpt-4",
         DEFAULT_BASE_URL,
+        EMBEDDING_BASE_URL,
         retry,
         mockFetch,
       );
@@ -314,11 +505,25 @@ describe("libllm", () => {
       const { createLlmApi, LlmApi, DEFAULT_BASE_URL } =
         await import("../index.js");
 
-      // Create an LLM instance
-      const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
+      // Create an LLM instance (embeddingBaseUrl is now required)
+      const llm = createLlmApi(
+        "test-token",
+        "gpt-4",
+        DEFAULT_BASE_URL,
+        EMBEDDING_BASE_URL,
+      );
 
       // Verify that the LLM was created successfully
       assert.ok(llm instanceof LlmApi);
+    });
+
+    test("createLlmApi throws when embeddingBaseUrl is not provided", async () => {
+      const { createLlmApi, DEFAULT_BASE_URL } = await import("../index.js");
+
+      assert.throws(
+        () => createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL),
+        { message: /embeddingBaseUrl is required/ },
+      );
     });
 
     test("createLlmApi works when HTTPS_PROXY environment variable is set", async () => {
@@ -332,7 +537,12 @@ describe("libllm", () => {
           await import("../index.js");
 
         // Create an LLM instance with proxy environment
-        const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
+        const llm = createLlmApi(
+          "test-token",
+          "gpt-4",
+          DEFAULT_BASE_URL,
+          EMBEDDING_BASE_URL,
+        );
 
         // Verify that the LLM was created successfully
         assert.ok(llm instanceof LlmApi);

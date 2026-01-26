@@ -19,6 +19,7 @@ async function main() {
     await config.llmToken(),
     "gpt-4o",
     config.llmBaseUrl(),
+    config.embeddingBaseUrl(),
   );
   const logger = createLogger("pdf-transformer");
 

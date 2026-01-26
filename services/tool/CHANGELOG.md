@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-01-23
+## 2026-01-26
 
 - Added `resource_id` propagation to tool requests for context-aware tools
 

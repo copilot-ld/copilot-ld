@@ -3,6 +3,7 @@ import {
   generateBase64Secret,
   generateJWT,
   generateSecret,
+  getOrGenerateSecret,
   updateEnvFile,
 } from "@copilot-ld/libsecret";
 
@@ -12,8 +13,10 @@ import {
 async function main() {
   console.log("Generating storage environment variables...\n");
 
-  // Generate shared JWT secret
-  const jwtSecret = generateSecret(32);
+  // Get or generate shared JWT secret (idempotent)
+  const jwtSecret = await getOrGenerateSecret("JWT_SECRET", () =>
+    generateSecret(32),
+  );
 
   // Generate MinIO S3 keys
   const minioAccessKey = generateBase64Secret(16);
@@ -65,15 +68,15 @@ async function main() {
     SUPABASE_ENV_FILE,
   );
 
-  console.log("Updated .env with:");
-  console.log("  JWT_SECRET");
-  console.log(`\nUpdated ${MINIO_ENV_FILE} with:`);
-  console.log("  AWS_ACCESS_KEY_ID");
-  console.log("  AWS_SECRET_ACCESS_KEY");
-  console.log(`\nUpdated ${SUPABASE_ENV_FILE} with:`);
-  console.log("  AWS_ACCESS_KEY_ID");
-  console.log("  AWS_SECRET_ACCESS_KEY");
-  console.log("  SUPABASE_SERVICE_ROLE_KEY");
+  console.log(".env:");
+  console.log("  JWT_SECRET is set");
+  console.log(`\n${MINIO_ENV_FILE}:`);
+  console.log("  AWS_ACCESS_KEY_ID updated");
+  console.log("  AWS_SECRET_ACCESS_KEY updated");
+  console.log(`\n${SUPABASE_ENV_FILE}:`);
+  console.log("  AWS_ACCESS_KEY_ID updated");
+  console.log("  AWS_SECRET_ACCESS_KEY updated");
+  console.log("  SUPABASE_SERVICE_ROLE_KEY updated");
 }
 
 main();

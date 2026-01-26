@@ -37,6 +37,7 @@ jobs:
           cp -r ./examples/tools/* tools/
 
           make codegen
+          make tei-start
           make process
 
           echo "files<<EOF" >> $GITHUB_OUTPUT

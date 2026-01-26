@@ -50,6 +50,7 @@ describe("AnnotateHtml", () => {
   let mockLogger;
   let originalLlmToken;
   let originalLlmBaseUrl;
+  let originalEmbeddingBaseUrl;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
@@ -57,9 +58,11 @@ describe("AnnotateHtml", () => {
     // Save original environment variables
     originalLlmToken = globalThis.process.env.LLM_TOKEN;
     originalLlmBaseUrl = globalThis.process.env.LLM_BASE_URL;
+    originalEmbeddingBaseUrl = globalThis.process.env.EMBEDDING_BASE_URL;
     // Set test values to avoid errors in createLlm
     globalThis.process.env.LLM_TOKEN = "test_token_123";
     globalThis.process.env.LLM_BASE_URL = "https://models.github.ai/inference";
+    globalThis.process.env.EMBEDDING_BASE_URL = "http://localhost:8090";
   });
 
   afterEach(() => {
@@ -73,6 +76,11 @@ describe("AnnotateHtml", () => {
       delete globalThis.process.env.LLM_BASE_URL;
     } else {
       globalThis.process.env.LLM_BASE_URL = originalLlmBaseUrl;
+    }
+    if (originalEmbeddingBaseUrl === undefined) {
+      delete globalThis.process.env.EMBEDDING_BASE_URL;
+    } else {
+      globalThis.process.env.EMBEDDING_BASE_URL = originalEmbeddingBaseUrl;
     }
   });
 

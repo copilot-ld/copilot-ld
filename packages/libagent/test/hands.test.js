@@ -139,6 +139,140 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[1].role, "tool");
   });
 
+  test("processToolCalls executes calls in parallel", async () => {
+    const executionOrder = [];
+    const completionOrder = [];
+
+    const mockCallbacksWithTiming = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolCall) => {
+          executionOrder.push(toolCall.id);
+          // Stagger completion times - call1 takes longer
+          const delay = toolCall.id === "call1" ? 50 : 10;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          completionOrder.push(toolCall.id);
+          return { content: `Result for ${toolCall.id}` };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithTiming,
+      mockResourceIndex,
+    );
+
+    const toolCalls = [
+      { id: "call1", function: { name: "search" } },
+      { id: "call2", function: { name: "analyze" } },
+    ];
+
+    await agentHands.processToolCalls(toolCalls, async () => {}, {
+      llmToken: "test-token",
+    });
+
+    // Parallel execution: both calls start immediately
+    assert.deepStrictEqual(executionOrder, ["call1", "call2"]);
+    // Parallel execution: call2 completes before call1 (shorter delay)
+    assert.deepStrictEqual(completionOrder, ["call2", "call1"]);
+  });
+
+  test("processToolCalls streams results in order as they complete", async () => {
+    const saveOrder = [];
+    const completionTimes = {};
+
+    const mockCallbacksWithTiming = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolCall) => {
+          // call2 completes first (10ms), call1 second (30ms), call3 last (50ms)
+          const delays = { call1: 30, call2: 10, call3: 50 };
+          await new Promise((resolve) =>
+            setTimeout(resolve, delays[toolCall.id]),
+          );
+          completionTimes[toolCall.id] = Date.now();
+          return { content: `Result for ${toolCall.id}` };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithTiming,
+      mockResourceIndex,
+    );
+
+    const toolCalls = [
+      { id: "call1", function: { name: "search" } },
+      { id: "call2", function: { name: "analyze" } },
+      { id: "call3", function: { name: "summarize" } },
+    ];
+
+    const saveResource = async (msg) => {
+      saveOrder.push(msg.tool_call_id);
+    };
+
+    await agentHands.processToolCalls(toolCalls, saveResource, {
+      llmToken: "test-token",
+    });
+
+    // Messages saved in original order despite different completion times
+    assert.deepStrictEqual(saveOrder, ["call1", "call2", "call3"]);
+
+    // Verify call2 actually completed before call1
+    assert.ok(
+      completionTimes.call2 < completionTimes.call1,
+      "call2 should complete before call1",
+    );
+  });
+
+  test("processToolCalls handles errors without affecting subsequent calls", async () => {
+    const mockCallbacksWithError = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async (toolCall) => {
+          if (toolCall.id === "call2") {
+            throw new Error("Tool call2 failed");
+          }
+          return { content: `Result for ${toolCall.id}` };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithError,
+      mockResourceIndex,
+    );
+
+    const toolCalls = [
+      { id: "call1", function: { name: "search" } },
+      { id: "call2", function: { name: "analyze" } },
+      { id: "call3", function: { name: "summarize" } },
+    ];
+
+    const savedMessages = [];
+    await agentHands.processToolCalls(
+      toolCalls,
+      async (msg) => {
+        savedMessages.push(msg);
+      },
+      { llmToken: "test-token" },
+    );
+
+    // All 3 messages should be saved (including the error)
+    assert.strictEqual(savedMessages.length, 3);
+
+    // call1 should succeed
+    assert.strictEqual(savedMessages[0].content, "Result for call1");
+
+    // call2 should have error
+    const call2Content = JSON.parse(savedMessages[1].content);
+    assert.ok(call2Content.error);
+    assert.strictEqual(call2Content.error.message, "Tool call2 failed");
+
+    // call3 should succeed
+    assert.strictEqual(savedMessages[2].content, "Result for call3");
+  });
+
   test("executeToolLoop passes resource_id to LLM and handles completion without tool calls", async () => {
     let capturedRequest = null;
     const mockCallbacksWithCapture = {
@@ -243,7 +377,7 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[2].role, "assistant");
   });
 
-  test("processToolCalls decrements budget after each tool call", async () => {
+  test("processToolCalls splits budget evenly across all calls", async () => {
     const capturedMaxTokens = [];
 
     const mockCallbacksWithCapture = {
@@ -268,6 +402,7 @@ describe("AgentHands", () => {
       { id: "call1", function: { name: "search" } },
       { id: "call2", function: { name: "analyze" } },
       { id: "call3", function: { name: "summarize" } },
+      { id: "call4", function: { name: "format" } },
     ];
 
     const savedMessages = [];
@@ -279,23 +414,15 @@ describe("AgentHands", () => {
 
     await agentHands.processToolCalls(toolCalls, saveResource, {
       llmToken: "test-token",
-      maxTokens: 5000,
+      maxTokens: 4000,
     });
 
-    // First call should get full budget (5000)
-    assert.strictEqual(capturedMaxTokens[0], "5000");
-
-    // Get actual tokens from first message to verify decrement
-    const firstTokens = savedMessages[0].id.tokens;
-
-    // Second call should get budget minus first call's tokens
-    const expectedSecond = String(5000 - firstTokens);
-    assert.strictEqual(capturedMaxTokens[1], expectedSecond);
-
-    // Third call should get budget minus first two calls' tokens
-    const secondTokens = savedMessages[1].id.tokens;
-    const expectedThird = String(5000 - firstTokens - secondTokens);
-    assert.strictEqual(capturedMaxTokens[2], expectedThird);
+    // Budget is split evenly: 4000 / 4 = 1000 per call
+    const expectedBudgetPerCall = "1000";
+    assert.strictEqual(capturedMaxTokens[0], expectedBudgetPerCall);
+    assert.strictEqual(capturedMaxTokens[1], expectedBudgetPerCall);
+    assert.strictEqual(capturedMaxTokens[2], expectedBudgetPerCall);
+    assert.strictEqual(capturedMaxTokens[3], expectedBudgetPerCall);
   });
 
   test("processToolCalls returns total tokens used", async () => {
@@ -342,5 +469,201 @@ describe("AgentHands", () => {
     );
     assert.strictEqual(tokensUsed, expectedTotal);
     assert.ok(tokensUsed > 0, "Should have counted some tokens");
+  });
+
+  test("executeToolCall converts Identifier objects to strings for resource lookup", async () => {
+    // Track what keys are passed to resourceIndex.get()
+    let capturedKeys = null;
+    const mockResourceIndexWithCapture = {
+      get: async (keys) => {
+        capturedKeys = keys;
+        return [{ content: "Loaded resource content" }];
+      },
+    };
+
+    // Mock tool.call to return identifiers as objects (like GraphService does)
+    const mockCallbacksWithIdentifiers = {
+      ...mockServiceCallbacks,
+      tool: {
+        call: async () => ({
+          // Simulate graph service returning Identifier objects
+          identifiers: [
+            {
+              type: "common.Message",
+              name: "abc123",
+              parent: "",
+              subjects: ["https://example.org/entity1"],
+              toString() {
+                return "common.Message.abc123";
+              },
+            },
+            {
+              type: "common.Message",
+              name: "def456",
+              parent: "parent/path",
+              subjects: ["https://example.org/entity2"],
+              toString() {
+                return "parent/path/common.Message.def456";
+              },
+            },
+          ],
+        }),
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithIdentifiers,
+      mockResourceIndexWithCapture,
+    );
+
+    const toolCall = {
+      id: "test-call",
+      function: { name: "query_by_pattern" },
+    };
+
+    const { message } = await agentHands.executeToolCall(
+      toolCall,
+      "test-token",
+      "test-resource",
+    );
+
+    // Verify resourceIndex.get was called with string keys, not objects
+    assert.ok(capturedKeys, "resourceIndex.get should have been called");
+    assert.strictEqual(capturedKeys.length, 2);
+    assert.strictEqual(capturedKeys[0], "common.Message.abc123");
+    assert.strictEqual(capturedKeys[1], "parent/path/common.Message.def456");
+
+    // Verify subjects were extracted from identifiers
+    assert.ok(message.id?.subjects);
+    assert.deepStrictEqual(message.id.subjects, [
+      "https://example.org/entity1",
+      "https://example.org/entity2",
+    ]);
+
+    // Verify content was loaded
+    assert.strictEqual(message.content, "Loaded resource content");
+  });
+
+  test("executeToolLoop continues when finish_reason is 'length' (truncated response)", async () => {
+    let iteration = 0;
+    const mockCallbacksWithTruncation = {
+      ...mockServiceCallbacks,
+      llm: {
+        createCompletions: async () => {
+          iteration++;
+          if (iteration === 1) {
+            // First response is truncated
+            return {
+              choices: [
+                {
+                  finish_reason: "length",
+                  message: {
+                    role: "assistant",
+                    content: "Partial response that was truncated...",
+                    tool_calls: [],
+                  },
+                },
+              ],
+            };
+          }
+          // Second response completes normally
+          return {
+            choices: [
+              {
+                finish_reason: "stop",
+                message: {
+                  role: "assistant",
+                  content: "Complete response",
+                  tool_calls: [],
+                },
+              },
+            ],
+          };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithTruncation,
+      mockResourceIndex,
+    );
+
+    const savedMessages = [];
+    const saveResource = async (msg) => {
+      savedMessages.push(msg);
+    };
+
+    await agentHands.executeToolLoop("test-conversation", saveResource, {
+      llmToken: "test-token",
+      model: "gpt-4o",
+    });
+
+    // Should save both messages: truncated one and final one
+    assert.strictEqual(savedMessages.length, 2);
+    assert.strictEqual(
+      savedMessages[0].content,
+      "Partial response that was truncated...",
+    );
+    assert.strictEqual(savedMessages[1].content, "Complete response");
+  });
+
+  test("executeToolLoop continues when finish_reason is 'tool_calls' but tool_calls array is empty", async () => {
+    let iteration = 0;
+    const mockCallbacksWithEmptyToolCalls = {
+      ...mockServiceCallbacks,
+      llm: {
+        createCompletions: async () => {
+          iteration++;
+          if (iteration === 1) {
+            // First response says tool_calls but array is empty (API error)
+            return {
+              choices: [
+                {
+                  finish_reason: "tool_calls",
+                  message: {
+                    role: "assistant",
+                    content: "I will call a tool",
+                    tool_calls: [],
+                  },
+                },
+              ],
+            };
+          }
+          // LLM tries again and completes normally
+          return {
+            choices: [
+              {
+                finish_reason: "stop",
+                message: {
+                  role: "assistant",
+                  content: "Final response",
+                  tool_calls: [],
+                },
+              },
+            ],
+          };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithEmptyToolCalls,
+      mockResourceIndex,
+    );
+
+    const savedMessages = [];
+    const saveResource = async (msg) => {
+      savedMessages.push(msg);
+    };
+
+    await agentHands.executeToolLoop("test-conversation", saveResource, {
+      llmToken: "test-token",
+      model: "gpt-4o",
+    });
+
+    // Should save both messages
+    assert.strictEqual(savedMessages.length, 2);
+    assert.strictEqual(savedMessages[0].content, "I will call a tool");
+    assert.strictEqual(savedMessages[1].content, "Final response");
   });
 });

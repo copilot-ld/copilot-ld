@@ -10,6 +10,8 @@ volumes:
     driver: local
   supabase_storage_data:
     driver: local
+  tei_data:
+    driver: local
 
 secrets:
   github_token:
@@ -250,6 +252,28 @@ services:
       internal:
         aliases:
           - trace.copilot-ld.local
+
+  # ==========================================
+  # Embedding Service (TEI)
+  # ==========================================
+
+  tei:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: tei.copilot-ld
+    command: --model-id BAAI/bge-small-en-v1.5 --port 8080 --json-output
+    volumes:
+      - tei_data:/data
+    environment:
+      - HF_HOME=/data
+    networks:
+      internal:
+        aliases:
+          - tei.copilot-ld.local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # ==========================================
   # Storage Services

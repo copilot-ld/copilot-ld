@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { common, llm } from "@copilot-ld/libtype";
 import { countTokens, createTokenizer, createRetry } from "@copilot-ld/libutil";
 import { ProxyAgent } from "undici";
+import { fixMultiToolUseParallel } from "./hallucination.js";
 
 // Note: getBudget has moved to @copilot-ld/libmemory as getModelBudget
 // This re-export is deprecated and will be removed in a future version
@@ -32,6 +33,7 @@ function normalizeBaseUrl(baseUrl) {
 export class LlmApi {
   #model;
   #baseURL;
+  #embeddingBaseURL;
   #headers;
   #fetch;
   #tokenizer;
@@ -43,6 +45,7 @@ export class LlmApi {
    * @param {string} token - LLM API token
    * @param {string} model - Default model to use for completions
    * @param {string} baseUrl - Base URL for the LLM API
+   * @param {string} embeddingBaseUrl - Base URL for TEI embeddings (required)
    * @param {import("@copilot-ld/libutil").Retry} retry - Retry instance for handling transient errors
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
@@ -52,12 +55,14 @@ export class LlmApi {
     token,
     model,
     baseUrl,
+    embeddingBaseUrl,
     retry,
     fetchFn = fetch,
     tokenizerFn = createTokenizer,
     temperature = 0.3,
   ) {
     if (!baseUrl) throw new Error("baseUrl is required");
+    if (!embeddingBaseUrl) throw new Error("embeddingBaseUrl is required");
     if (!retry) throw new Error("retry is required");
     if (typeof fetchFn !== "function")
       throw new Error("Invalid fetch function");
@@ -66,6 +71,7 @@ export class LlmApi {
 
     this.#model = model;
     this.#baseURL = normalizeBaseUrl(baseUrl);
+    this.#embeddingBaseURL = embeddingBaseUrl;
     this.#headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -121,32 +127,47 @@ export class LlmApi {
     await this.#throwIfNotOk(response);
 
     const json = await response.json();
+
+    // Fix hallucinated multi_tool_use.parallel calls before converting to protobuf
+    for (const choice of json.choices || []) {
+      if (choice.message?.tool_calls) {
+        choice.message.tool_calls = fixMultiToolUseParallel(
+          choice.message.tool_calls,
+        );
+      }
+    }
+
     return llm.CompletionsResponse.fromObject(json);
   }
 
   /**
-   * Creates embeddings using the LLM API
+   * Creates embeddings using TEI (Text Embeddings Inference)
    * @param {string[]} input - Array of text strings to embed
    * @returns {Promise<import("copilot-ld/libtype").common.Embeddings>} Embeddings response
    */
   async createEmbeddings(input) {
     const response = await this.#retry.execute(() =>
-      this.#fetch(`${this.#baseURL}/embeddings`, {
+      this.#fetch(`${this.#embeddingBaseURL}/embed`, {
         method: "POST",
-        headers: this.#headers,
-        body: JSON.stringify({
-          // TODO: Make this configurable
-          model: "text-embedding-3-large",
-          dimensions: 1024,
-          input,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: input }),
       }),
     );
 
     await this.#throwIfNotOk(response);
-
     const json = await response.json();
-    return common.Embeddings.fromObject(json);
+
+    // TEI returns [[0.1, 0.2, ...]]
+    return common.Embeddings.fromObject({
+      object: "list",
+      data: json.map((embedding, index) => ({
+        object: "embedding",
+        index,
+        embedding,
+      })),
+      model: "bge-small-en-v1.5",
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+    });
   }
 
   /**
@@ -154,8 +175,8 @@ export class LlmApi {
    * @returns {Promise<object[]>} Array of available models
    */
   async listModels() {
-    // GitHub Models uses /catalog/models endpoint (not under /inference)
-    const catalogUrl = this.#baseURL.replace("/inference", "/catalog/models");
+    // GitHub Models catalog is at the root domain, not org-specific
+    const catalogUrl = "https://models.github.ai/catalog/models";
     const response = await this.#fetch(catalogUrl, {
       method: "GET",
       headers: this.#headers,
@@ -272,6 +293,7 @@ export function createProxyAwareFetch(process = global.process) {
  * @param {string} token - LLM API token
  * @param {string} model - Model to use
  * @param {string} baseUrl - Base URL for the LLM API (required, e.g. https://models.github.ai/orgs/{org})
+ * @param {string} embeddingBaseUrl - Base URL for TEI embeddings (required)
  * @param {number} [temperature] - Temperature for completions
  * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
@@ -281,6 +303,7 @@ export function createLlmApi(
   token,
   model,
   baseUrl,
+  embeddingBaseUrl,
   temperature = 0.3,
   fetchFn = createProxyAwareFetch(),
   tokenizerFn = createTokenizer,
@@ -290,11 +313,17 @@ export function createLlmApi(
       "baseUrl is required. Set LLM_BASE_URL to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
     );
   }
+  if (!embeddingBaseUrl) {
+    throw new Error(
+      "embeddingBaseUrl is required. Set EMBEDDING_BASE_URL for TEI endpoint.",
+    );
+  }
   const retry = createRetry();
   return new LlmApi(
     token,
     model,
     baseUrl,
+    embeddingBaseUrl,
     retry,
     fetchFn,
     tokenizerFn,

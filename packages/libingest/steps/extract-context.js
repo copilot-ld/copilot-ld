@@ -38,8 +38,6 @@ export class ExtractContext extends StepBase {
    * @returns {Promise<void>} Resolves when processing is complete
    */
   async process(ingestContextKey) {
-    const llm = this.createLlm();
-
     const ingestContext = await this.loadIngestContext(ingestContextKey);
     const step = this.getStep(ingestContext, STEP_NAME, ingestContextKey);
     const targetDir = this.getTargetDir(ingestContextKey);
@@ -60,6 +58,9 @@ export class ExtractContext extends StepBase {
       throw new Error(`Invalid HTML content for key: ${htmlKey}`);
     }
     const html = rawHtml;
+
+    // Create LLM after validation
+    const llm = this.createLlm();
 
     // Extract context using LLM
     const messages = [

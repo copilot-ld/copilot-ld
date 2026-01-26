@@ -716,6 +716,7 @@ async function main() {
     await config.llmToken(),
     undefined,
     config.llmBaseUrl(),
+    config.embeddingBaseUrl(),
   );
 
   // Prepare texts for embedding (use local names for better semantic meaning)

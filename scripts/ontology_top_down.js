@@ -850,6 +850,7 @@ async function main() {
     await config.llmToken(),
     undefined,
     config.llmBaseUrl(),
+    config.embeddingBaseUrl(),
   );
 
   // Normalize types

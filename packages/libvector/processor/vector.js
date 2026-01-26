@@ -36,11 +36,12 @@ export class VectorProcessor extends ProcessorBase {
     // 1. Get all resource identifiers
     const identifiers = await this.#resourceIndex.findAll();
 
-    // 2. Filter out conversations, their child resources, and tool functions
+    // 2. Filter out conversations, their child resources, tool functions, and agents
     const filteredIdentifiers = identifiers.filter(
       (id) =>
         !String(id).startsWith("common.Conversation") &&
-        !String(id).startsWith("tool.ToolFunction"),
+        !String(id).startsWith("tool.ToolFunction") &&
+        !String(id).startsWith("common.Agent"),
     );
 
     // 3. Load the full resources using the identifiers
@@ -82,10 +83,48 @@ export class VectorProcessor extends ProcessorBase {
     await super.process(resourcesToProcess, "content");
   }
 
+  /**
+   * Process a batch of items with a single embedding request
+   * @param {Array<{text: string, identifier: any}>} batch - Batch of items to process
+   * @param {number} processed - Number of items already processed
+   * @param {number} total - Total number of items
+   * @param {string} context - Processing context label
+   * @returns {Promise<void>}
+   */
+  async processBatch(batch, processed, total, context) {
+    const batchSize = batch.length;
+    this.logger.debug("Processor", "Processing batch", {
+      items:
+        batchSize > 1
+          ? `${processed + 1}-${processed + batchSize}/${total}`
+          : `${processed + 1}/${total}`,
+      context,
+    });
+
+    try {
+      // Collect all texts and make a single embedding request
+      const texts = batch.map((item) => item.text);
+      const embeddings = await this.#llm.createEmbeddings(texts);
+
+      // Store each embedding with its corresponding identifier
+      await Promise.all(
+        batch.map(async (item, index) => {
+          const vector = embeddings.data[index].embedding;
+          await this.#vectorIndex.add(item.identifier, vector);
+        }),
+      );
+    } catch (error) {
+      this.logger.debug("Processor", "Failed to process batch", {
+        items: `${processed + 1}-${processed + batchSize}/${total}`,
+        context,
+        error: error.message,
+      });
+    }
+  }
+
   /** @inheritdoc */
   async processItem(item) {
-    const texts = [item.text];
-    const embeddings = await this.#llm.createEmbeddings(texts);
+    const embeddings = await this.#llm.createEmbeddings([item.text]);
     const vector = embeddings.data[0].embedding;
 
     await this.#vectorIndex.add(item.identifier, vector);

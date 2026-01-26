@@ -32,6 +32,7 @@ async function main() {
     await config.llmToken(),
     "gpt-5",
     config.llmBaseUrl(),
+    null, // embeddingBaseUrl - not used for completions
     0.3, // temperature
   );
 

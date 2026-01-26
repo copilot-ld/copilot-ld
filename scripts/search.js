@@ -41,6 +41,7 @@ async function performSearch(prompt, state, outputStream) {
     await config.llmToken(),
     undefined,
     config.llmBaseUrl(),
+    config.embeddingBaseUrl(),
   );
   const embeddings = await llm.createEmbeddings([prompt]);
 

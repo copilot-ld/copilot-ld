@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libformat",
-  "version": "0.1.53",
+  "version": "0.1.54",
   "description": "Markdown formatting and text processing utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -27,6 +27,6 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.2"
+    "@copilot-ld/libharness": "^0.1.3"
   }
 }

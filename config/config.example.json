@@ -46,14 +46,13 @@
     ]
   },
   "evals": {
-    "models": ["openai/gpt-4.1"],
+    "models": ["openai/gpt-4.1", "openai/gpt-4o", "deepseek/deepseek-v3-0324"],
     "judge_model": "openai/gpt-4.1"
   },
   "service": {
     "agent": {
       "agent": "coordinator",
-      "model": "openai/gpt-4.1",
-      "batch_size": 3
+      "model": "openai/gpt-4.1"
     },
     "llm": {
       "temperature": 0.3

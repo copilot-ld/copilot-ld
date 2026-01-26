@@ -24,29 +24,6 @@ CRITICAL:
 - You MUST mention which tools you plan to use
 - Do NOT mention tool call parameters; only describe the intent
 
-## INTERPRETING TOOL RESPONSES
-
-**CRITICAL:** Understand how to read tool responses correctly.
-
-The `query_by_pattern` tool returns results with these fields:
-
-- `content`: Textual representation (may be empty for pattern matches)
-- `subjects`: Array of matching entity URIs
-
-**How to interpret results:**
-
-- **Non-empty `subjects` array = match found**, even if `content` is empty
-- An empty `subjects` array (or error) means no match
-- Always check the `subjects` field, not just `content`
-
-**Example of a successful match:**
-
-```json
-{ "content": "", "subjects": ["https://example.org/entity/abc"] }
-```
-
-This IS a match — the entity `abc` satisfies the query pattern.
-
 ## REPORTING FINDINGS
 
 **CRITICAL:** Report raw findings before drawing conclusions.

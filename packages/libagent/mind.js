@@ -80,7 +80,7 @@ export class AgentMind {
         message.withIdentifier(conversation.id);
 
         // Persist to storage
-        this.#resourceIndex.put(message);
+        await this.#resourceIndex.put(message);
 
         // Append to memory
         await this.#callbacks.memory.append(
@@ -127,7 +127,7 @@ export class AgentMind {
         },
         agent_id: `common.Agent.${agentName}`,
       });
-      this.#resourceIndex.put(conversation);
+      await this.#resourceIndex.put(conversation);
     }
 
     const rawMessage = this.#getLatestUserMessage(req.messages);
@@ -137,7 +137,7 @@ export class AgentMind {
     }
     const message = common.Message.fromObject(rawMessage);
     message.withIdentifier(conversation.id);
-    this.#resourceIndex.put(message);
+    await this.#resourceIndex.put(message);
 
     return { conversation, message };
   }

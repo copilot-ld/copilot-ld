@@ -55,13 +55,12 @@
       "model": "openai/gpt-4o"
     },
     "llm": {
-      "temperature": 0.3
+      "temperature": 0.32
     },
     "tool": {
-      "batch_size": 3,
       "filter": {
-        "threshold": 0.62,
-        "max_tokens": null
+        "threshold": 0.64,
+        "max_tokens": 8000
       },
       "endpoints": {
         "get_ontology": {

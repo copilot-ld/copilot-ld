@@ -63,6 +63,7 @@ export class AgentHands {
       }
 
       const choice = completions.choices[0];
+      const finishReason = choice.finish_reason;
 
       // If we have tool calls, process them
       if (choice.message?.tool_calls?.length > 0) {
@@ -84,8 +85,16 @@ export class AgentHands {
           });
           await saveMessage(handoffMessage);
         }
+      } else if (finishReason === "tool_calls") {
+        // LLM indicated tool_calls but array is empty - likely a parsing error
+        // Save message and continue loop to let LLM try again
+        await saveMessage(common.Message.fromObject(choice.message));
+      } else if (finishReason === "length") {
+        // Response was truncated due to token limit
+        // Save what we have and continue loop to let LLM continue
+        await saveMessage(common.Message.fromObject(choice.message));
       } else {
-        // No tool calls - this is the final message (stop, length, etc.)
+        // finish_reason is "stop" or other - this is the final message
         await saveMessage(common.Message.fromObject(choice.message));
         break;
       }

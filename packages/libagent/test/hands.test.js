@@ -504,4 +504,127 @@ describe("AgentHands", () => {
     // Verify content was loaded
     assert.strictEqual(message.content, "Loaded resource content");
   });
+
+  test("executeToolLoop continues when finish_reason is 'length' (truncated response)", async () => {
+    let iteration = 0;
+    const mockCallbacksWithTruncation = {
+      ...mockServiceCallbacks,
+      llm: {
+        createCompletions: async () => {
+          iteration++;
+          if (iteration === 1) {
+            // First response is truncated
+            return {
+              choices: [
+                {
+                  finish_reason: "length",
+                  message: {
+                    role: "assistant",
+                    content: "Partial response that was truncated...",
+                    tool_calls: [],
+                  },
+                },
+              ],
+            };
+          }
+          // Second response completes normally
+          return {
+            choices: [
+              {
+                finish_reason: "stop",
+                message: {
+                  role: "assistant",
+                  content: "Complete response",
+                  tool_calls: [],
+                },
+              },
+            ],
+          };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithTruncation,
+      mockResourceIndex,
+    );
+
+    const savedMessages = [];
+    const saveResource = async (msg) => {
+      savedMessages.push(msg);
+    };
+
+    await agentHands.executeToolLoop("test-conversation", saveResource, {
+      llmToken: "test-token",
+      model: "gpt-4o",
+    });
+
+    // Should save both messages: truncated one and final one
+    assert.strictEqual(savedMessages.length, 2);
+    assert.strictEqual(
+      savedMessages[0].content,
+      "Partial response that was truncated...",
+    );
+    assert.strictEqual(savedMessages[1].content, "Complete response");
+  });
+
+  test("executeToolLoop continues when finish_reason is 'tool_calls' but tool_calls array is empty", async () => {
+    let iteration = 0;
+    const mockCallbacksWithEmptyToolCalls = {
+      ...mockServiceCallbacks,
+      llm: {
+        createCompletions: async () => {
+          iteration++;
+          if (iteration === 1) {
+            // First response says tool_calls but array is empty (API error)
+            return {
+              choices: [
+                {
+                  finish_reason: "tool_calls",
+                  message: {
+                    role: "assistant",
+                    content: "I will call a tool",
+                    tool_calls: [],
+                  },
+                },
+              ],
+            };
+          }
+          // LLM tries again and completes normally
+          return {
+            choices: [
+              {
+                finish_reason: "stop",
+                message: {
+                  role: "assistant",
+                  content: "Final response",
+                  tool_calls: [],
+                },
+              },
+            ],
+          };
+        },
+      },
+    };
+
+    const agentHands = new AgentHands(
+      mockCallbacksWithEmptyToolCalls,
+      mockResourceIndex,
+    );
+
+    const savedMessages = [];
+    const saveResource = async (msg) => {
+      savedMessages.push(msg);
+    };
+
+    await agentHands.executeToolLoop("test-conversation", saveResource, {
+      llmToken: "test-token",
+      model: "gpt-4o",
+    });
+
+    // Should save both messages
+    assert.strictEqual(savedMessages.length, 2);
+    assert.strictEqual(savedMessages[0].content, "I will call a tool");
+    assert.strictEqual(savedMessages[1].content, "Final response");
+  });
 });

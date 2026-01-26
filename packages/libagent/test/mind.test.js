@@ -272,10 +272,10 @@ describe("AgentMind", () => {
       }),
     });
 
-    // Mock executeToolLoop to call saveResource which triggers onProgress
+    // Mock executeToolLoop to call streamToClient which triggers onProgress
     mockAgentHands.executeToolLoop = async (
       _conversationId,
-      saveResource,
+      callbacks,
       _options,
     ) => {
       // Simulate saving a non-tool message that should trigger onProgress
@@ -285,7 +285,7 @@ describe("AgentMind", () => {
         content: "Response",
       });
       msg.withIdentifier = () => {};
-      await saveResource(msg);
+      await callbacks.streamToClient(msg);
     };
 
     const request = {

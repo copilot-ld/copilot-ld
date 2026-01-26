@@ -1,26 +1,12 @@
 # Changelog
 
-## 2026-01-25
+## 2026-01-26
 
-- **BREAKING**: `processToolCalls()` now executes tool calls in parallel batches
-  instead of sequentially. Batch size configurable via constructor
-  `options.batchSize` (default: 3) or per-call via `options.batchSize`
-- `AgentHands` constructor now accepts optional third parameter `options` with
-  `batchSize` property for parallel execution control
-- Budget decrement now occurs per-batch rather than per-call; all calls in a
-  batch receive the same remaining budget
-- Fixed `AgentHands.#processToolCallResult()` to convert `Identifier` objects to
-  strings before passing to `resourceIndex.get()`, resolving bug where graph
-  query results returned empty content despite matching identifiers
-
-## 2026-01-23
-
-- **BREAKING**: Renamed "assistant" to "agent" throughout the codebase
-- Added `AgentProcessor` for processing `.agent.md` files with frontmatter
-- Agents now use `agent_id` instead of `assistant_id` for conversation
-  references
-- Agent configuration moved from `config/assistants.yml` to
-  `config/agents/*.agent.md`
+- **BREAKING**: Renamed "assistant" to "agent" with new `.agent.md` file format
+  in `config/agents/`
+- **BREAKING**: `processToolCalls()` executes in parallel batches (default size:
+  3) instead of sequentially
+- Fixed `Identifier` object conversion in graph query results
 
 ## 2025-12-21
 

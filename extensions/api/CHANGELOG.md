@@ -1,12 +1,8 @@
 # Changelog
 
-## 2026-01-15
+## 2026-01-26
 
-- Refactored to match web extension pattern with `ApiExtension` class and
-  `createApiExtension()` factory
-- Moved `parseBody` to `@copilot-ld/libutil` as `parseJsonBody`
-- Replaced console logging with `createLogger` from libtelemetry
-- Removed unused dependencies: botbuilder, libformat, libweb
+- Refactored to `ApiExtension` pattern with `createLogger` from libtelemetry
 
 ## 2025-12-03
 

@@ -1,15 +1,9 @@
 # Changelog
 
-## 2026-01-23
+## 2026-01-26
 
-- Added `ListSubAgents` RPC to discover agents available for sub-agent
-  invocation
-- Added `RunSubAgent` RPC for isolated agent execution in child conversations
-- Added `ListHandoffs` RPC to discover available handoff labels from current
-  agent
-- Added `RunHandoff` RPC to transfer conversation control to another agent
-- Service constructor now requires `resourceIndex` dependency for multi-agent
-  operations
+- Added multi-agent RPCs: `ListSubAgents`, `RunSubAgent`, `ListHandoffs`,
+  `RunHandoff` for task delegation and conversation transfer
 
 ## 2025-12-01
 

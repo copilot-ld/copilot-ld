@@ -1,19 +1,11 @@
 # Changelog
 
-## 2026-01-16
+## 2026-01-26
 
-- Added `supabase-env.js` to generate all required Supabase environment
-  variables including JWT secrets, anon key, and service role key
-- Added `supabase-demo-user.js` to create demo users via Supabase Auth admin API
-
-## 2026-01-15
-
-- **BREAKING**: Renamed `token.js` to `gh-token.js` (now writes `GITHUB_TOKEN`
-  for GitHub API)
-- **BREAKING**: Migrated from `@copilot-ld/libcopilot` to `@copilot-ld/libllm`
-- **BREAKING**: Updated all scripts to use `createLlmApi()` and
-  `config.llmToken()`
-- Added `config.llmBaseUrl()` support for configurable LLM endpoints
+- **BREAKING**: Migrated from `libcopilot` to `libllm` with `createLlmApi()` and
+  `config.llmToken()` APIs
+- Renamed `token.js` to `gh-token.js`; added Supabase environment generation
+  scripts
 
 ## 2025-11-18
 

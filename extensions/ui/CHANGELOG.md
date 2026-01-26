@@ -1,19 +1,9 @@
 # Changelog
 
-## 2026-01-16
+## 2026-01-26
 
-- Added Supabase authentication integration with login page
-- Added `auth.js` module for frontend authentication with `signIn()`,
-  `signOut()`, `getSession()`, and `authFetch()` helpers
-- Updated `/ui/config.js` endpoint to include `SUPABASE_URL` and
-  `SUPABASE_ANON_KEY`
-- Added login link to navigation
-
-## 2026-01-15
-
-- Migrated agent chat component to `@copilot-ld/libchat` package
-- Added `<agent-drawer>` and `<agent-chat>` web components from libchat
-- Removed legacy `public/ui/agent.js` file
+- Migrated chat interface to `@copilot-ld/libchat` web components
+- Added Supabase authentication integration with login page and auth helpers
 
 ## 2025-11-30
 

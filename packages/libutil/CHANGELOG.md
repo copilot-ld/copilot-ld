@@ -1,14 +1,9 @@
 # Changelog
 
-## 2026-01-18
+## 2026-01-26
 
-- Added `waitFor()` polling utility with exponential backoff for waiting on
-  conditions
-
-## 2026-01-15
-
-- Added `parseJsonBody()` function for parsing JSON body from HTTP requests
-- Added `http.js` module with HTTP utility functions
+- Added `parseJsonBody()` HTTP utility and `waitFor()` polling with exponential
+  backoff
 
 ## 2025-11-24
 

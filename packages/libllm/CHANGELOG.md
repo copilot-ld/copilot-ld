@@ -1,20 +1,13 @@
 # Changelog
 
-## 2026-01-24
-
-- **BREAKING**: Added `embeddingBaseUrl` parameter to `LlmApi` constructor and
-  `createLlmApi()` factory function (4th parameter, before `temperature`)
-- Added support for Hugging Face Text Embeddings Inference (TEI) with automatic
-  endpoint and format detection based on `embeddingBaseUrl`
-
-## 2026-01-15
+## 2026-01-26
 
 - **BREAKING**: Renamed package from `@copilot-ld/libcopilot` to
-  `@copilot-ld/libllm`
-- **BREAKING**: Renamed `Copilot` class to `LlmApi` and `createLlm()` to
-  `createLlmApi()`
-- **BREAKING**: Added `baseUrl` parameter to support any OpenAI-compatible API
-- Removed GitHub-specific `Copilot-Vision-Request` header
+  `@copilot-ld/libllm` with `LlmApi` class and `createLlmApi()` factory
+- **BREAKING**: Added `baseUrl` parameter for OpenAI-compatible API endpoints
+  and `embeddingBaseUrl` for local TEI embedding inference
+- Added Hugging Face Text Embeddings Inference (TEI) support with automatic
+  endpoint and format detection
 
 ## 2025-11-30
 

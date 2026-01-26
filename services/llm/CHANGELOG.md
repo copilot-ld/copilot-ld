@@ -1,9 +1,8 @@
 # Changelog
 
-## 2026-01-24
+## 2026-01-26
 
-- Updated to use `embeddingBaseUrl` from config for local TEI support
-- `CreateEmbeddings` now routes to local TEI when `EMBEDDING_BASE_URL` is set
+- Added local TEI embedding support via `EMBEDDING_BASE_URL` configuration
 
 ## 2025-12-01
 

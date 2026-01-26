@@ -1,23 +1,12 @@
 # Changelog
 
-## 2026-01-24
+## 2026-01-26
 
-- Added `embeddingBaseUrl()` getter for optional local embedding service URL
-  from `EMBEDDING_BASE_URL` environment variable (returns `null` when not set)
-
-## 2026-01-16
-
-- Added `supabaseUrl` getter for Supabase Auth URL from `SUPABASE_AUTH_URL`
-  environment variable (defaults to `http://localhost:9999`)
-- Added `supabaseAnonKey` getter for Supabase anonymous key from
-  `SUPABASE_ANON_KEY` environment variable
-
-## 2026-01-15
-
-- **BREAKING**: Renamed `githubToken()` to `llmToken()` (env: `LLM_TOKEN`)
-- Added `llmBaseUrl()` for configurable LLM API endpoints (env: `LLM_BASE_URL`)
-- Added `init` getter and `createInitConfig()` factory for process supervision
-- Added `jwtSecret()` for JWT authentication support
+- **BREAKING**: Renamed `githubToken()` to `llmToken()` with configurable
+  `llmBaseUrl()` for OpenAI-compatible APIs
+- Added `embeddingBaseUrl()` for local TEI embedding service configuration
+- Added Supabase (`supabaseUrl`, `supabaseAnonKey`) and JWT (`jwtSecret`)
+  configuration getters
 
 ## 2025-11-24
 

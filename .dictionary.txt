@@ -304,6 +304,8 @@ OTLP
 p50
 p95
 p99
+parallelize
+Parallelize
 PAX
 PGID
 pico

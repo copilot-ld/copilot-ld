@@ -1,25 +1,12 @@
 # Changelog
 
-## 2026-01-18
+## 2026-01-26
 
-- Added `SupabaseStorage` class extending `S3Storage` with REST API bucket
-  creation
-- Added `supabase` storage type to `createStorage()` factory
-- Added `isHealthy()` method to `S3Storage` for storage reachability checks
-- Added `isHealthy()` override in `SupabaseStorage` that catches connection
-  errors (returns `true` if endpoint responds, even if bucket doesn't exist)
-- Added unified storage CLI (`bin/storage.js`) with `create-bucket`, `wait`,
-  `upload`, `download`, and `list` commands
-- **BREAKING**: Changed `#bucket` to `_bucket` (protected) for subclass access
-- Added `@copilot-ld/libconfig` and `@copilot-ld/libtelemetry` dependencies
-- Fixed `createStorage()` to always use local storage for `config` and
-  `generated` prefixes regardless of `STORAGE_TYPE` setting
-- **BREAKING**: Replaced `MINIO_ENDPOINT` with `AWS_ENDPOINT_URL` for S3
-  endpoint configuration
-- The standard AWS SDK variable `AWS_ENDPOINT_URL` now configures custom
-  S3-compatible endpoints (MinIO, Supabase Storage, DigitalOcean Spaces, etc.)
-- Fixed `SupabaseStorage.ensureBucket()` to handle Supabase's 400 status with
-  embedded 409 statusCode in JSON body for duplicate bucket errors
+- Added `SupabaseStorage` class and unified CLI (`bin/storage.js`) with
+  `create-bucket`, `wait`, `upload`, `download`, and `list` commands
+- **BREAKING**: Replaced `MINIO_ENDPOINT` with standard `AWS_ENDPOINT_URL` for
+  S3-compatible endpoint configuration
+- Added `isHealthy()` method for storage reachability checks
 
 ## 2025-11-24
 

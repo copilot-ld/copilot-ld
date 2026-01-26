@@ -162,12 +162,13 @@ export class AgentHands {
       return { subjects: [], content: result.content };
     }
 
-    // If result has identifiers array, load the resources
-    if (
-      result?.identifiers &&
-      Array.isArray(result.identifiers) &&
-      result.identifiers.length > 0
-    ) {
+    // If result has identifiers array (including empty), process it
+    if (result?.identifiers && Array.isArray(result.identifiers)) {
+      // Empty identifiers array means query returned no results
+      if (result.identifiers.length === 0) {
+        return { subjects: [], content: "No results found." };
+      }
+
       // Extract all subjects from the identifiers
       const subjects = result.identifiers.flatMap((id) => id.subjects || []);
 

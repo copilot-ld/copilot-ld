@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/librc",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Service manager for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -16,7 +16,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libconfig": "^0.1.55",
+    "@copilot-ld/libconfig": "^0.1.56",
     "@copilot-ld/libsupervision": "^0.1.3",
     "@copilot-ld/libtelemetry": "^0.1.19"
   },

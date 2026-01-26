@@ -1,7 +1,24 @@
 #!/usr/bin/env node
 import { createLlmApi } from "@copilot-ld/libllm";
 import { createScriptConfig } from "@copilot-ld/libconfig";
-import { common, tool } from "@copilot-ld/libtype";
+
+const TIMEOUT_MS = 30000;
+
+/**
+ * Wraps a promise with a timeout.
+ * @param {Promise} promise - The promise to wrap.
+ * @param {number} ms - Timeout in milliseconds.
+ * @param {string} label - Label for timeout error message.
+ * @returns {Promise} - Resolves with promise result or rejects on timeout.
+ */
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms),
+    ),
+  ]);
+}
 
 /**
  * Test available LLM models by sending a simple greeting message with tool support.
@@ -12,37 +29,38 @@ async function main() {
     const config = await createScriptConfig("hello");
     const token = await config.llmToken();
     const baseUrl = config.llmBaseUrl();
-    const llm = createLlmApi(token, undefined, baseUrl);
+    const embeddingBaseUrl = config.embeddingBaseUrl();
+    const llm = createLlmApi(token, undefined, baseUrl, embeddingBaseUrl);
     const models = await llm.listModels();
     const successfulModels = [];
 
     for (const model of models) {
       try {
-        const testLlm = createLlmApi(token, model.id, baseUrl);
-        const messages = [
-          common.Message.fromObject({
-            role: "user",
-            content: "Hello",
-          }),
-        ];
-
-        const tools = [
-          tool.ToolDefinition.fromObject({
-            type: "function",
-            function: {
-              name: "get_greeting",
-              content: "Returns a simple greeting message",
-              parameters: {
-                type: "object",
-                properties: {
-                  name: { type: "string", description: "Name to greet" },
+        const testLlm = createLlmApi(token, model.id, baseUrl, embeddingBaseUrl);
+        const window = {
+          messages: [{ role: "user", content: "Hello" }],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "get_greeting",
+                description: "Returns a simple greeting message",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", description: "Name to greet" },
+                  },
                 },
               },
             },
-          }),
-        ];
+          ],
+        };
 
-        const response = await testLlm.createCompletions(messages, tools);
+        const response = await withTimeout(
+          testLlm.createCompletions(window),
+          TIMEOUT_MS,
+          model.id,
+        );
         if (response.choices && response.choices.length > 0) {
           console.log(`✅ ${model.id}`);
           successfulModels.push(model.id);

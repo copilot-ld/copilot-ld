@@ -99,7 +99,7 @@ async function main() {
       iterations: {
         type: "string",
         short: "i",
-        default: "5",
+        default: "4",
       },
       model: {
         type: "string",
@@ -158,24 +158,25 @@ async function main() {
   );
   const traceEvaluator = new TraceEvaluator(traceClient);
 
-  // Plan all runs in a flat array - iterate over models, then iterations, then scenarios
+  // Plan all runs in a flat array - iterate over iterations, then scenarios, then models
+  // This allows progressive comparison of all models on the same scenario together
   const runs = [];
-  for (const model of models) {
-    // Create evaluator with specific model
-    const evaluator = new Evaluator(
-      agentClient,
-      memoryClient,
-      traceClient,
-      llmToken,
-      model,
-      evaluationIndex,
-      judgeEvaluator,
-      recallEvaluator,
-      traceEvaluator,
-    );
+  for (let iteration = 1; iteration <= args.iterations; iteration++) {
+    for (const scenario of scenarios) {
+      for (const model of models) {
+        // Create evaluator with specific model
+        const evaluator = new Evaluator(
+          agentClient,
+          memoryClient,
+          traceClient,
+          llmToken,
+          model,
+          evaluationIndex,
+          judgeEvaluator,
+          recallEvaluator,
+          traceEvaluator,
+        );
 
-    for (let iteration = 1; iteration <= args.iterations; iteration++) {
-      for (const scenario of scenarios) {
         runs.push({
           name: scenario.name,
           scenario,

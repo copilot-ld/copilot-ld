@@ -91,6 +91,7 @@ export class EvaluationReporter {
     const profiles = await Promise.all(
       agentKeys.map(async (key) => {
         const content = await this.#configStorage.get(key);
+        if (!content || typeof content !== "string") return null;
         const name = key.replace("agents/", "").replace(".agent.md", "");
         const filename = `${name}.agent.md`;
         const fm = content.match(/^---\n([\s\S]*?)\n---/)?.[1] || "";
@@ -108,7 +109,7 @@ export class EvaluationReporter {
       }),
     );
 
-    return profiles.sort((a, b) => a.name.localeCompare(b.name));
+    return profiles.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**

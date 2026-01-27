@@ -76,6 +76,16 @@ export class EvaluationReporter {
   }
 
   /**
+   * Calculate pass rate percentage
+   * @param {number} passed - Number of passed items
+   * @param {number} total - Total number of items
+   * @returns {string} Pass rate as percentage string with one decimal
+   */
+  #calcRate(passed, total) {
+    return total > 0 ? ((passed / total) * 100).toFixed(1) : "0.0";
+  }
+
+  /**
    * Fetch all agent profiles from config storage
    * @returns {Promise<Array<{name: string, filename: string, content: string, description: string, tools: string}>>} Array of agent profiles
    */
@@ -109,7 +119,9 @@ export class EvaluationReporter {
       }),
     );
 
-    return profiles.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+    return profiles
+      .filter(Boolean)
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -169,10 +181,7 @@ export class EvaluationReporter {
       const results = await this.#evaluationIndex.getByScenario(scenario);
       const scenarioRuns = results.length;
       const scenarioPassed = results.filter((r) => r.passed).length;
-      const scenarioRate =
-        scenarioRuns > 0
-          ? ((scenarioPassed / scenarioRuns) * 100).toFixed(1)
-          : "0.0";
+      const scenarioRate = this.#calcRate(scenarioPassed, scenarioRuns);
 
       totalRuns += scenarioRuns;
       totalPassed += scenarioPassed;
@@ -187,10 +196,7 @@ export class EvaluationReporter {
         );
         const modelPassed = modelResults.filter((r) => r.passed).length;
         const modelTotal = modelResults.length;
-        const modelRate =
-          modelTotal > 0
-            ? ((modelPassed / modelTotal) * 100).toFixed(1)
-            : "0.0";
+        const modelRate = this.#calcRate(modelPassed, modelTotal);
 
         // Generate visual indicators for this model's results
         const indicators = this.#generateIndicators(modelResults);
@@ -218,8 +224,7 @@ export class EvaluationReporter {
       });
     }
 
-    const totalRate =
-      totalRuns > 0 ? ((totalPassed / totalRuns) * 100).toFixed(1) : "0.0";
+    const totalRate = this.#calcRate(totalPassed, totalRuns);
 
     // Calculate per-model overall pass rates
     const modelRates = models.map((model) => {
@@ -228,12 +233,10 @@ export class EvaluationReporter {
       );
       const modelPassed = modelResults.filter((r) => r.passed).length;
       const modelTotal = modelResults.length;
-      const modelRate =
-        modelTotal > 0 ? ((modelPassed / modelTotal) * 100).toFixed(1) : "0.0";
 
       return {
         model,
-        rate: modelRate,
+        rate: this.#calcRate(modelPassed, modelTotal),
         passed: modelPassed,
         total: modelTotal,
       };
@@ -272,8 +275,7 @@ export class EvaluationReporter {
     const totalRuns = results.length;
     const totalPassed = results.filter((r) => r.passed).length;
     const totalFailed = totalRuns - totalPassed;
-    const totalRate =
-      totalRuns > 0 ? ((totalPassed / totalRuns) * 100).toFixed(1) : "0.0";
+    const totalRate = this.#calcRate(totalPassed, totalRuns);
 
     // Generate visual pass/fail indicators
     const indicators = this.#generateIndicators(results);

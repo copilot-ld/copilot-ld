@@ -31,6 +31,7 @@ Explain your reasoning before taking any action:
 - If handing back: specify exactly what data is missing
 
 Use `<details>` tags with a `<summary>` header to structure your reasoning.
+Do NOT include tool parameters in your reasoning—only describe intent.
 
 ## Workflow
 

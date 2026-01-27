@@ -18,6 +18,7 @@ async function main() {
   // Initialize storage
   const evalStorage = createStorage("eval");
   const traceStorage = createStorage("traces");
+  const configStorage = createStorage("config");
 
   // Initialize evaluation index, trace index, and visualizer
   const evaluationIndex = new EvaluationIndex(evalStorage);
@@ -34,6 +35,7 @@ async function main() {
     evaluationIndex,
     traceVisualizer,
     memoryClient,
+    configStorage,
   );
 
   logger.info("main", "Generating evaluation reports");

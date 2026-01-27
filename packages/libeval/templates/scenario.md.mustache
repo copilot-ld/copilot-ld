@@ -30,10 +30,15 @@ The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluat
 
 ## Agent Profiles
 
-The following agent profiles were available during this scenario:
+Agent profiles define the instructions, tools, and behavioral constraints that
+guide agent execution. The following profiles were active during this scenario.
+When analyzing failures, compare the agent's observed behavior against these
+profile instructions to identify gaps.
 
+| Profile | Description | Tools |
+|---------|-------------|-------|
 {{#agents}}
-- [{{{name}}}](agents/{{{name}}}.agent.md)
+| [{{{name}}}](agents/{{{name}}}.agent.md) | {{{description}}} | {{{tools}}} |
 {{/agents}}
 
 ## Results

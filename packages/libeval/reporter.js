@@ -25,7 +25,13 @@ export class EvaluationReporter {
    * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory client for fetching memory windows
    * @param {import("@copilot-ld/libstorage").Storage} configStorage - Storage for configuration data
    */
-  constructor(agentConfig, evaluationIndex, traceVisualizer, memoryClient, configStorage) {
+  constructor(
+    agentConfig,
+    evaluationIndex,
+    traceVisualizer,
+    memoryClient,
+    configStorage,
+  ) {
     if (!agentConfig) throw new Error("agentConfig is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!traceVisualizer) throw new Error("traceVisualizer is required");
@@ -71,7 +77,7 @@ export class EvaluationReporter {
 
   /**
    * Fetch all agent profiles from config storage
-   * @returns {Promise<Array<{name: string, filename: string, content: string}>>} Array of agent profiles
+   * @returns {Promise<Array<{name: string, filename: string, content: string, description: string, tools: string}>>} Array of agent profiles
    */
   async #fetchAgentProfiles() {
     const allKeys = await this.#configStorage.list();
@@ -85,10 +91,20 @@ export class EvaluationReporter {
     const profiles = await Promise.all(
       agentKeys.map(async (key) => {
         const content = await this.#configStorage.get(key);
-        // Extract name from filename (e.g., "agents/coordinator.agent.md" -> "coordinator")
         const name = key.replace("agents/", "").replace(".agent.md", "");
         const filename = `${name}.agent.md`;
-        return { name, filename, content };
+        const fm = content.match(/^---\n([\s\S]*?)\n---/)?.[1] || "";
+        const description =
+          fm.match(/^description:\s*(.+)$/m)?.[1]?.trim() || "";
+        const toolsMatch = fm.match(/^tools:\n((?:\s+-\s+.+\n?)+)/m);
+        const tools = toolsMatch
+          ? toolsMatch[1]
+              .split("\n")
+              .map((l) => l.replace(/^\s*-\s*/, "").trim())
+              .filter(Boolean)
+              .join(", ")
+          : "";
+        return { name, filename, content, description, tools };
       }),
     );
 

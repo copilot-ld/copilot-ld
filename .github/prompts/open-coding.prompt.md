@@ -1,15 +1,19 @@
-# Open Coding: Agent Error Analysis
+# Open Coding: Agent Profile Error Analysis
 
 ## Objective
 
-Identify specific agent behavior patterns that cause evaluation failures.
+Identify gaps between agent profile instructions and observed agent behavior
+that cause evaluation failures.
 
 ## Process
 
 1. Read `data/eval/SUMMARY.md` to find scenarios with pass rate < 100%
 2. For each failed scenario, run: `node scripts/code.js data/eval/<scenario>.md`
-3. Create codes for agent errors in `SCRATCHPAD1.md`
-4. **Next Step:** Proceed to `axial-coding.prompt.md` after identifying all
+3. Read the agent profiles in `data/eval/agents/` to understand expected
+   behavior
+4. Create codes comparing profile instructions to actual behavior in
+   `SCRATCHPAD1.md`
+5. **Next Step:** Proceed to `axial-coding.prompt.md` after identifying all
    codes
 
 ## Output
@@ -26,12 +30,17 @@ Each code must follow this format with systematic reference labels:
 
 **Label:** `CODE1`
 
+**Agent Profile:** <which agent profile contains the violated instruction>
+
+**Profile Instruction:** <quote the specific instruction from the agent profile
+that was not followed>
+
 **Lines:** <line numbers in source data>
 
 **Excerpts:** <relevant excerpts from any data source showing the error -
 traces, logs, responses, etc.>
 
-**Error:** <what the agent did wrong>
+**Error:** <how the observed behavior diverges from the profile instruction>
 ```
 
 **Label Assignment Rules:**
@@ -43,21 +52,20 @@ traces, logs, responses, etc.>
 
 ## Coding Rules
 
-**Focus on agent errors:**
+**Focus on profile-behavior gaps:**
 
-- Missing tool calls that should have been made
-- Wrong sequence of operations
-- Insufficient data retrieval before responding
-- Content in responses not backed by retrieved data
-- Incorrect tool parameters or queries
-- Premature completion without exploring available data
+- Instructions in agent profile that were not followed
+- Missing tool calls that the profile requires
+- Workflow steps skipped despite profile mandating them
+- Content in responses not backed by retrieved data (violates reporting rules)
+- Profile conditions met but corresponding actions not taken
 
 **Avoid:**
 
-- LLM non-determinism without actionable agent implications
+- LLM non-determinism without actionable profile implications
 - Correct behavior documentation
-- Theoretical explanations without concrete errors
-- Abstract comparisons between runs
+- Theoretical explanations without concrete profile violations
+- Errors with no clear profile instruction to address them
 
 ## Examples
 
@@ -67,6 +75,12 @@ Example 1:
 ### CODE1: missing_relationship_query
 
 **Label:** `CODE1`
+
+**Agent Profile:** `graph_navigator`
+
+**Profile Instruction:** "Use wildcard queries to discover all predicates
+connecting these entities. Check for indirect connections via shared
+intermediate entities."
 
 **Lines:** 45-52
 
@@ -79,9 +93,9 @@ graph-->>-tool: OK (identifiers=1)
 agent->>+llm: CreateCompletions (messages=6)
 ```
 
-**Error:** Agent queries only schema:description but response includes product
-dependencies. No query for schema:requires or related predicates before final
-completion.
+**Error:** Profile requires wildcard queries to discover all predicates, but
+agent queries only schema:description then responds. No wildcard query
+(`subject ? ?`) was issued to discover other predicates like schema:requires.
 ````
 
 Example 2:
@@ -90,6 +104,11 @@ Example 2:
 ### CODE2: insufficient_search_results_retrieved
 
 **Label:** `CODE2`
+
+**Agent Profile:** `content_searcher`
+
+**Profile Instruction:** "If results seem incomplete, perform follow-up searches
+with adjusted parameters."
 
 **Lines:** 78-85
 
@@ -102,9 +121,9 @@ vector-->>-tool: OK (identifiers=5)
 agent->>+llm: CreateCompletions (messages=8)
 ```
 
-**Error:** Agent retrieves only 5 results with limit=5, then immediately
-responds. No second search with higher limit to check if more relevant content
-exists.
+**Error:** Profile instructs follow-up searches when results may be incomplete.
+Agent retrieves exactly 5 results (hitting limit), indicating potential
+truncation, but performs no follow-up search with increased limit.
 ````
 
 Example 3:
@@ -113,6 +132,11 @@ Example 3:
 ### CODE3: unsupported_claim_in_response
 
 **Label:** `CODE3`
+
+**Agent Profile:** `detailed_reporter`
+
+**Profile Instruction:** "Preserve all raw data and evidence. Your role is
+reporting and synthesis, not primary research."
 
 **Lines:** 134-142, 156-161
 
@@ -128,13 +152,9 @@ agent->>+llm: CreateCompletions (messages=10)
 ```
 **Response:** The ACME organization is located in Seattle and has 500 employees
 across three departments: Engineering, Sales, and Operations.
-
-**Citations:**
-1. [organization:acme][common.Message.12345]
 ```
 
-**Error:** Agent response includes employee count (500) and department
-information that was never retrieved. The only query executed was for
-schema:location. No queries for schema:numberOfEmployees or schema:department
-were performed.
+**Error:** Profile requires preserving raw data only. Response includes employee
+count (500) and departments not present in any tool response. Agent performed
+"primary research" (hallucination) instead of reporting retrieved data.
 ````

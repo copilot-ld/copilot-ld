@@ -7,6 +7,7 @@ tools:
   - get_subjects
   - query_by_pattern
   - search
+  - run_sub_agent
   - list_handoffs
   - run_handoff
 handoffs:
@@ -77,7 +78,7 @@ Track progress against the plan's success criteria:
 
 ## When to Spawn Sub-Researchers
 
-Use `infer` to spawn a sub-researcher when:
+Use the `run_sub_agent` tool to spawn a sub-researcher when:
 - Exploring multiple independent branches
 - A discovered entity needs deep exploration
 - Parallel retrieval would be more efficient

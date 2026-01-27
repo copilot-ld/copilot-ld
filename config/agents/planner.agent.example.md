@@ -1,6 +1,6 @@
 ```chatagent
 ---
-name: strategist
+name: planner
 description: Analyzes queries and creates execution plans with success criteria.
 infer: false
 tools:

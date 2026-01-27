@@ -11,8 +11,8 @@ handoffs:
     agent: researcher
     prompt: |
       Additional data retrieval is required before a response can be generated.
-  - label: strategist
-    agent: strategist
+  - label: planner
+    agent: planner
     prompt: |
       The approach needs revision. Please create a new execution plan.
 ---

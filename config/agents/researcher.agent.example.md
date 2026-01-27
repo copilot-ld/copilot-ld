@@ -16,8 +16,8 @@ handoffs:
     prompt: |
       Format these findings into a response. All required data has been
       retrieved—synthesize without adding information.
-  - label: strategist
-    agent: strategist
+  - label: planner
+    agent: planner
     prompt: |
       The current plan cannot be completed. A revised approach is needed.
 ---

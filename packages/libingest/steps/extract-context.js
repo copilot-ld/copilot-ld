@@ -54,10 +54,14 @@ export class ExtractContext extends StepBase {
 
     // Load HTML from storage
     const rawHtml = await this._ingestStorage.get(htmlKey);
-    if (!rawHtml || typeof rawHtml !== "string") {
+    if (!rawHtml) {
+      throw new Error(`No HTML content found for key: ${htmlKey}`);
+    }
+    // Convert Buffer to string if needed
+    const html = Buffer.isBuffer(rawHtml) ? rawHtml.toString("utf-8") : rawHtml;
+    if (typeof html !== "string") {
       throw new Error(`Invalid HTML content for key: ${htmlKey}`);
     }
-    const html = rawHtml;
 
     // Create LLM after validation
     const llm = this.createLlm();
@@ -79,12 +83,10 @@ export class ExtractContext extends StepBase {
       "Sending HTML to Copilot for context extraction",
     );
 
-    const response = await llm.createCompletions(
+    const response = await llm.createCompletions({
       messages,
-      undefined,
-      undefined,
-      this.getMaxTokens(),
-    );
+      max_tokens: this.getMaxTokens(),
+    });
 
     if (!response.choices || response.choices.length === 0) {
       throw new Error(

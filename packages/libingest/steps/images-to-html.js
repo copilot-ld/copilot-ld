@@ -4,11 +4,15 @@ import { StepBase } from "./step-base.js";
 
 export const STEP_NAME = "images-to-html";
 
+/** @type {string[]} MIME types that are directly processable as images */
+const IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+
 /**
  * ImagesToHtml step: Converts images to HTML using Copilot vision.
  *
  * Workflow:
- * - Loads images from storage (from previous pdf-to-images step)
+ * - For PDFs: Loads images from storage (from previous pdf-to-images step)
+ * - For images: Uses the source image directly
  * - Sends each image to Copilot for HTML conversion
  * - Merges HTML fragments into a single document
  * - Updates ingest context with HTML key
@@ -41,13 +45,8 @@ export class ImagesToHtml extends StepBase {
     const step = this.getStep(ingestContext, STEP_NAME, ingestContextKey);
     const targetDir = this.getTargetDir(ingestContextKey);
 
-    // Get image keys from the previous step (pdf-to-images)
-    const imageKeys = this.getPreviousStepData(
-      ingestContext,
-      PDF_TO_IMAGES_STEP,
-      "imageKeys",
-      ingestContextKey,
-    );
+    // Get image keys - either from pdf-to-images step or from the source image
+    const imageKeys = this.#getImageKeys(ingestContext, targetDir);
 
     // Create LLM after validation
     const llm = this.createLlm();
@@ -119,5 +118,31 @@ export class ImagesToHtml extends StepBase {
       fragmentKeys,
       fragmentCount: htmlFragments.length,
     });
+  }
+
+  /**
+   * Gets image keys based on the source type.
+   * For PDFs, returns image keys from the pdf-to-images step.
+   * For direct image uploads, returns the source image path.
+   * @param {object} ingestContext Ingest context object
+   * @param {string} targetDir Directory containing the ingested files
+   * @returns {string[]} Array of image keys
+   */
+  #getImageKeys(ingestContext, targetDir) {
+    // Check if pdf-to-images step exists and has imageKeys
+    const pdfStep = ingestContext.steps[PDF_TO_IMAGES_STEP];
+    if (pdfStep && pdfStep.imageKeys) {
+      return pdfStep.imageKeys;
+    }
+
+    // For direct image uploads, use the source image
+    if (IMAGE_MIME_TYPES.includes(ingestContext.mime)) {
+      const imageKey = `${targetDir}/target${ingestContext.extension}`;
+      return [imageKey];
+    }
+
+    throw new Error(
+      `No image source found: expected ${PDF_TO_IMAGES_STEP} step with imageKeys or image MIME type`,
+    );
   }
 }

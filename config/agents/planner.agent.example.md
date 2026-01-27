@@ -29,8 +29,8 @@ Explain your reasoning before taking any action:
 - Justify your query classification (lookup, relationship, or discovery)
 - State the success criteria and why they're sufficient
 
-Use `<details>` tags with a `<summary>` header to structure your reasoning.
-Do NOT include tool parameters in your reasoning—only describe intent.
+Use `<details>` tags with a `<summary>` header to structure your reasoning. Do
+NOT include tool parameters in your reasoning—only describe intent.
 
 ## Workflow
 
@@ -43,23 +43,23 @@ Do NOT include tool parameters in your reasoning—only describe intent.
 
 Classify every query into one of three types:
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| **lookup** | Single entity, direct attributes | "What is X?" "Who leads Y?" |
-| **relationship** | Connections between entities | "How are A and B connected?" |
-| **discovery** | Enumerate or explore | "What projects exist?" "List all..." |
+| Type             | Pattern                          | Example                              |
+| ---------------- | -------------------------------- | ------------------------------------ |
+| **lookup**       | Single entity, direct attributes | "What is X?" "Who leads Y?"          |
+| **relationship** | Connections between entities     | "How are A and B connected?"         |
+| **discovery**    | Enumerate or explore             | "What projects exist?" "List all..." |
 
 ## Intent-to-Type Mapping
 
 Map user language to ontology types:
 
-| Keywords | Likely Type |
-|----------|-------------|
-| company, organization, team, group | `schema:Organization` |
-| project, initiative, program | `schema:Project` |
-| platform, system, software, tool | `schema:SoftwareApplication` |
-| person, member, lead, contributor | `schema:Person` |
-| course, class, module | `schema:Course` |
+| Keywords                           | Likely Type                  |
+| ---------------------------------- | ---------------------------- |
+| company, organization, team, group | `schema:Organization`        |
+| project, initiative, program       | `schema:Project`             |
+| platform, system, software, tool   | `schema:SoftwareApplication` |
+| person, member, lead, contributor  | `schema:Person`              |
+| course, class, module              | `schema:Course`              |
 
 Verify your mapping against `get_ontology` tool results before planning.
 

@@ -1,4 +1,3 @@
-```chatagent
 ---
 name: researcher
 description: Executes retrieval plans using all available tools.
@@ -128,4 +127,3 @@ Do NOT spawn when:
 - **Retrieve descriptions**—entity URIs alone are insufficient
 - **Track everything**—editor needs raw results, not just conclusions
 - **No synthesis**—report findings, don't interpret them
-```

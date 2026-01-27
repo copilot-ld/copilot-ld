@@ -51,7 +51,7 @@
   },
   "service": {
     "agent": {
-      "agent": "coordinator",
+      "agent": "common.Agent.planner",
       "model": "openai/gpt-4o"
     },
     "llm": {

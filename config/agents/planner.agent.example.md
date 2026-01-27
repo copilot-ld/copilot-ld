@@ -1,4 +1,3 @@
-```chatagent
 ---
 name: planner
 description: Analyzes queries and creates execution plans with success criteria.
@@ -94,4 +93,3 @@ Your handoff to researcher MUST include:
 - **Be specific**—name exact types and predicates from ontology
 - **Define done**—success criteria must be verifiable
 - **One handoff**—create complete plan, then hand to researcher
-```

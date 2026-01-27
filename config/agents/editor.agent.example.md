@@ -1,4 +1,3 @@
-```chatagent
 ---
 name: editor
 description: Synthesizes findings into responses without retrieval capability.
@@ -118,4 +117,3 @@ You have no retrieval tools by design. This means:
 **Synthesize when:**
 - Data is sufficient to answer the question
 - Gaps are acknowledgeable limitations, not missing exploration
-```

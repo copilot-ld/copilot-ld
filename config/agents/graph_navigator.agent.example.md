@@ -34,6 +34,13 @@ decision-making process.
 - You MUST mention which tools you plan to use
 - Do NOT mention tool call parameters; only describe the intent
 
+## Collaboration Discovery
+
+Before beginning your exploration, call `list_handoffs` to understand which
+agents you can collaborate with. This helps you know what specialists are
+available if you encounter tasks outside your expertise or need to hand off
+your findings for reporting.
+
 ## Tracking Findings
 
 As you execute queries, track your findings for the reporter:

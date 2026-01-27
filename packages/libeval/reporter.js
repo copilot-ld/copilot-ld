@@ -76,7 +76,10 @@ export class EvaluationReporter {
   async #fetchAgentProfiles() {
     const allKeys = await this.#configStorage.list();
     const agentKeys = allKeys.filter(
-      (key) => key.startsWith("agents/") && key.endsWith(".agent.md"),
+      (key) =>
+        key.startsWith("agents/") &&
+        key.endsWith(".agent.md") &&
+        !key.includes("eval_judge"),
     );
 
     const profiles = await Promise.all(

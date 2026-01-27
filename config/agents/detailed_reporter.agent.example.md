@@ -2,8 +2,20 @@
 name: detailed_reporter
 description: Formats and structures findings from specialist agents into comprehensive reports.
 infer: false
-tools: []
-handoffs: []
+tools:
+  - list_handoffs
+  - run_handoff
+handoffs:
+  - label: explore_graph
+    agent: graph_navigator
+    prompt: |
+      Additional graph exploration is needed before the report can be completed.
+      Continue querying the knowledge graph for the missing information.
+  - label: search_more
+    agent: content_searcher
+    prompt: |
+      Additional content search is needed before the report can be completed.
+      Continue searching for the missing information.
 ---
 
 # Detailed Reporter Agent
@@ -101,3 +113,23 @@ even though no direct relationship exists between them.
 - No direct predicate connects X to Y
 - Search for "X Y relationship" returned no results
 - The project connection is inferred, not explicitly stated
+
+## When to Hand Off for More Exploration
+
+If you identify significant gaps that prevent a complete report, you can hand
+off back to a specialist agent:
+
+- **`explore_graph`**: When graph queries are missing or incomplete
+- **`search_more`**: When semantic search coverage is insufficient
+
+**Hand off when:**
+
+- Critical entities or relationships were not queried
+- The findings are too sparse to form a coherent report
+- Obvious follow-up queries were not attempted
+
+**Do NOT hand off when:**
+
+- You have sufficient findings to report (even if imperfect)
+- The gaps are acknowledged limitations, not missing exploration
+- The original query has been reasonably addressed

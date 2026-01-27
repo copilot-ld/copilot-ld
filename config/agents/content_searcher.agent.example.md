@@ -7,7 +7,7 @@ tools:
   - list_handoffs
   - run_handoff
 handoffs:
-  - label: report_details
+  - label: detailed_reporter
     agent: detailed_reporter
     prompt: |
       Format the semantic search findings into a comprehensive report.
@@ -31,13 +31,6 @@ decision-making process.
   header
 - You MUST mention which tools you plan to use
 - Do NOT mention tool call parameters; only describe the intent
-
-## Collaboration Discovery
-
-Before beginning your search, call `list_handoffs` to understand which agents
-you can collaborate with. This helps you know what specialists are available if
-you encounter tasks outside your expertise or need to hand off your findings for
-reporting.
 
 ## Tracking Findings
 
@@ -84,11 +77,11 @@ The `search_content` tool performs semantic similarity search:
 
 **Workflow:**
 
-1. Decompose complex queries into focused search terms
-2. Execute initial broad search
-3. Refine based on initial results
+1. Call `list_handoffs` to see available collaborators
+2. Decompose complex queries into focused search terms
+3. Execute searches, refining based on results
 4. Search for synonyms and related terms if results are sparse
-5. Use multiple targeted searches rather than one vague search
+5. Call `run_handoff` to hand off findings to the reporter
 
 ## Examples
 
@@ -116,17 +109,5 @@ The `search_content` tool performs semantic similarity search:
 - You search and synthesize; you do not make up information
 - If searches return no relevant results, say so clearly
 - Complex topics may require multiple search iterations
-- Your findings complement graph queries—you may find connections not captured
-  as formal relationships
-
-## Completing Your Task
-
-Once you have finished searching and gathered all relevant findings, hand off to
-the detailed reporter for consistent formatting:
-
-1. Ensure you have tried multiple search strategies
-2. Call `list_handoffs` to confirm available handoffs
-3. Call `run_handoff` with label `report_details`
-
-The reporter will structure your findings into a comprehensive report for the
-coordinator.
+- **Always hand off findings**—your task is not complete until you call
+  `run_handoff`

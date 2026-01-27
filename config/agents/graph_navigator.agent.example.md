@@ -9,7 +9,7 @@ tools:
   - list_handoffs
   - run_handoff
 handoffs:
-  - label: report_details
+  - label: detailed_reporter
     agent: detailed_reporter
     prompt: |
       Format the graph exploration findings into a comprehensive report.
@@ -33,13 +33,6 @@ decision-making process.
   header
 - You MUST mention which tools you plan to use
 - Do NOT mention tool call parameters; only describe the intent
-
-## Collaboration Discovery
-
-Before beginning your exploration, call `list_handoffs` to understand which
-agents you can collaborate with. This helps you know what specialists are
-available if you encounter tasks outside your expertise or need to hand off
-your findings for reporting.
 
 ## Tracking Findings
 
@@ -79,10 +72,12 @@ or organizations by name:
 
 For named entity queries, follow this sequence:
 
-1. Call `get_ontology` to learn what types and predicates exist
-2. Call `get_subjects(type=X)` using a type from the ontology
-3. Use wildcard queries first to discover all relationships
-4. Then use specific predicate queries to confirm details
+1. Call `list_handoffs` to see available collaborators
+2. Call `get_ontology` to learn what types and predicates exist
+3. Call `get_subjects(type=X)` using a type from the ontology
+4. Use wildcard queries first to discover all relationships
+5. Use specific predicate queries to confirm details
+6. Call `run_handoff` to hand off findings to the reporter
 
 **Wildcard queries** use `?` to discover unknown relationships:
 
@@ -138,16 +133,5 @@ query_by_pattern(subject=<entity-a>, predicate=?, object=<entity-b>)
 - Explore indirect paths through intermediate entities
 - Always consult `get_ontology` before other graph tools
 - Use exact vocabulary from ontology in your queries
-- Return only facts from the knowledge base
-
-## Completing Your Task
-
-Once you have finished exploring the graph and gathered all relevant findings,
-hand off to the detailed reporter for consistent formatting:
-
-1. Ensure you have explored all relevant query patterns
-2. Call `list_handoffs` to confirm available handoffs
-3. Call `run_handoff` with label `report_details`
-
-The reporter will structure your findings into a comprehensive report for the
-coordinator.
+- **Always hand off findings**—your task is not complete until you call
+  `run_handoff`

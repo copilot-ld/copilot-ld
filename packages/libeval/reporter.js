@@ -15,6 +15,7 @@ export class EvaluationReporter {
   #memoryClient;
   #summaryTemplate;
   #scenarioTemplate;
+  #configStorage;
 
   /**
    * Create a new EvaluationReporter instance
@@ -22,17 +23,20 @@ export class EvaluationReporter {
    * @param {import("./index/evaluation.js").EvaluationIndex} evaluationIndex - Evaluation index with results
    * @param {import("@copilot-ld/libtelemetry/visualizer.js").TraceVisualizer} traceVisualizer - Trace visualizer for generating trace diagrams
    * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory client for fetching memory windows
+   * @param {import("@copilot-ld/libstorage").Storage} configStorage - Storage for configuration data
    */
-  constructor(agentConfig, evaluationIndex, traceVisualizer, memoryClient) {
+  constructor(agentConfig, evaluationIndex, traceVisualizer, memoryClient, configStorage) {
     if (!agentConfig) throw new Error("agentConfig is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!traceVisualizer) throw new Error("traceVisualizer is required");
     if (!memoryClient) throw new Error("memoryClient is required");
+    if (!configStorage) throw new Error("configStorage is required");
 
     this.#agentConfig = agentConfig;
     this.#evaluationIndex = evaluationIndex;
     this.#traceVisualizer = traceVisualizer;
     this.#memoryClient = memoryClient;
+    this.#configStorage = configStorage;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
     this.#summaryTemplate = readFileSync(
@@ -63,6 +67,28 @@ export class EvaluationReporter {
    */
   #generateIndicators(results) {
     return results.map((r) => (r.passed ? "✅" : "❌")).join(" ");
+  }
+
+  /**
+   * Fetch all agent profiles from config storage
+   * @returns {Promise<Array<{name: string, content: string}>>} Array of agent profiles
+   */
+  async #fetchAgentProfiles() {
+    const allKeys = await this.#configStorage.list();
+    const agentKeys = allKeys.filter(
+      (key) => key.startsWith("agents/") && key.endsWith(".agent.md"),
+    );
+
+    const profiles = await Promise.all(
+      agentKeys.map(async (key) => {
+        const content = await this.#configStorage.get(key);
+        // Extract name from filename (e.g., "agents/coordinator.agent.md" -> "coordinator")
+        const name = key.replace("agents/", "").replace(".agent.md", "");
+        return { name, content };
+      }),
+    );
+
+    return profiles.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -281,6 +307,9 @@ export class EvaluationReporter {
         }))
       : [];
 
+    // Fetch agent profiles for appendix
+    const agents = await this.#fetchAgentProfiles();
+
     const templateData = {
       scenario,
       type: firstResult.type,
@@ -297,6 +326,7 @@ export class EvaluationReporter {
         evaluations: firstResult.evaluations.length,
       },
       results: formattedResults,
+      agents,
     };
 
     return mustache.render(this.#scenarioTemplate, templateData);

@@ -27,6 +27,7 @@ export class Retry {
     return (
       status === 429 ||
       status === 499 ||
+      status === 500 ||
       status === 502 ||
       status === 503 ||
       status === 504
@@ -58,7 +59,8 @@ export class Retry {
       message.includes("econnreset") ||
       message.includes("etimedout") ||
       message.includes("unavailable") ||
-      message.includes("fetch failed")
+      message.includes("fetch failed") ||
+      message.includes("unexpected eof")
     );
   }
 

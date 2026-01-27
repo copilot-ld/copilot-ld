@@ -6,12 +6,12 @@ tools:
   - list_handoffs
   - run_handoff
 handoffs:
-  - label: explore_graph
+  - label: graph_navigator
     agent: graph_navigator
     prompt: |
       Additional graph exploration is needed before the report can be completed.
       Continue querying the knowledge graph for the missing information.
-  - label: search_more
+  - label: content_searcher
     agent: content_searcher
     prompt: |
       Additional content search is needed before the report can be completed.

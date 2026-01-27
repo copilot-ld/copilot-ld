@@ -1,5 +1,5 @@
 ---
-applyTo: "config/**"
+applyTo: "**/config/**"
 ---
 
 # Config Instructions

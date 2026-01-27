@@ -223,6 +223,7 @@ libvector
 libweb
 lifecycle
 Lifecycle
+list_handoffs
 llm
 LLM
 LLM-as-a-judge
@@ -367,6 +368,7 @@ retryable
 reusability
 roadmap
 Roadmap
+run_handoff
 RPC
 RPCs
 s3

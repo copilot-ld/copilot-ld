@@ -28,6 +28,14 @@ The scenario passes if all evaluations pass.
 The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluations.
 {{total.passed}} passed, {{total.failed}} failed.
 
+## Agent Profiles
+
+The following agent profiles were available during this scenario:
+
+{{#agents}}
+- [{{{name}}}](agents/{{{name}}}.agent.md)
+{{/agents}}
+
 ## Results
 {{#results}}
 
@@ -75,14 +83,3 @@ The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluat
 {{/evaluations}}
 ---
 {{/results}}
-
-## Appendix: Agent Profiles
-
-{{#agents}}
-### {{{name}}}
-
-```markdown
-{{{content}}}
-```
-
-{{/agents}}

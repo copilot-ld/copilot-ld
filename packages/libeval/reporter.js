@@ -71,7 +71,7 @@ export class EvaluationReporter {
 
   /**
    * Fetch all agent profiles from config storage
-   * @returns {Promise<Array<{name: string, content: string}>>} Array of agent profiles
+   * @returns {Promise<Array<{name: string, filename: string, content: string}>>} Array of agent profiles
    */
   async #fetchAgentProfiles() {
     const allKeys = await this.#configStorage.list();
@@ -84,7 +84,8 @@ export class EvaluationReporter {
         const content = await this.#configStorage.get(key);
         // Extract name from filename (e.g., "agents/coordinator.agent.md" -> "coordinator")
         const name = key.replace("agents/", "").replace(".agent.md", "");
-        return { name, content };
+        const filename = `${name}.agent.md`;
+        return { name, filename, content };
       }),
     );
 
@@ -338,6 +339,12 @@ export class EvaluationReporter {
    * @returns {Promise<void>}
    */
   async generateAll(storage) {
+    // Write agent profile files
+    const agents = await this.#fetchAgentProfiles();
+    for (const agent of agents) {
+      await storage.put(`agents/${agent.filename}`, agent.content);
+    }
+
     // Generate and write summary report
     const summary = await this.generateSummary();
     await storage.put("SUMMARY.md", summary);

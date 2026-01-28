@@ -15,7 +15,7 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.57",
     "@copilot-ld/libtelemetry": "^0.1.21",
-    "@copilot-ld/libutil": "^0.1.58",
+    "@copilot-ld/libutil": "^0.1.59",
     "@grpc/grpc-js": "^1.14.3"
   },
   "repository": {

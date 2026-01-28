@@ -1,10 +1,12 @@
 // Standard imports - always first
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
 
 // Module under test - second section
 import { ExtractContext, STEP_NAME } from "../steps/extract-context.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "../steps/images-to-html.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -60,16 +62,24 @@ describe("ExtractContext", () => {
   let mockStorage;
   let mockLogger;
   let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
     mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
@@ -80,12 +90,19 @@ describe("ExtractContext", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
       assert.ok(step);
     });
 
     test("loads context extractor prompt", () => {
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
       // The prompt should be loaded in constructor
       // We can't directly test the private field, but constructor should not throw
@@ -106,7 +123,13 @@ describe("ExtractContext", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -128,7 +151,13 @@ describe("ExtractContext", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       // Don't put anything for output.html - storage.get will return null
 
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -161,6 +190,7 @@ describe("ExtractContext", () => {
         mockLogger,
         {},
         noTokenConfig,
+        promptLoader,
       );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -186,7 +216,13 @@ describe("ExtractContext", () => {
         "<html><body>Test</body></html>",
       );
 
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       try {
         await step.process("pipeline/abc123/context.json");
@@ -220,7 +256,13 @@ describe("ExtractContext", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // Verify the step can access context properties
       const context = await step.loadIngestContext(
@@ -234,7 +276,13 @@ describe("ExtractContext", () => {
     });
 
     test("extracts target directory correctly", () => {
-      const step = new ExtractContext(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ExtractContext(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const targetDir = step.getTargetDir("pipeline/abc123/context.json");
       assert.strictEqual(targetDir, "pipeline/abc123");
     });
@@ -246,6 +294,7 @@ describe("ExtractContext", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
 
       assert.strictEqual(step.getModel(), "gpt-4-turbo");

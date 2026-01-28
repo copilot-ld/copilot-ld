@@ -25,15 +25,12 @@ export class ImagesToHtml extends StepBase {
    * @param {object} logger Logger instance with debug() method
    * @param {import("./step-base.js").ModelConfig} modelConfig Model configuration
    * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
-   * @param {import("@copilot-ld/libprompt").PromptLoader} [promptLoader] Optional prompt loader for templates
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader Prompt loader for templates
    */
   constructor(ingestStorage, logger, modelConfig, config, promptLoader) {
     super(ingestStorage, logger, modelConfig, config, promptLoader);
 
-    this.#imgToHtmlSystemPrompt = this.loadPrompt(
-      "image-to-html-prompt.md",
-      import.meta.dirname,
-    );
+    this.#imgToHtmlSystemPrompt = this.loadPrompt("image-to-html");
   }
 
   /**

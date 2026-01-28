@@ -1,16 +1,10 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
 import { spawn, spawnSync } from "child_process";
-import { fileURLToPath } from "node:url";
 import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 
 import { countTokens, ProcessorBase } from "@copilot-ld/libutil";
 import { common } from "@copilot-ld/libtype";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * PdfTransformer converts PDF files in knowledge storage to HTML using Copilot vision.
@@ -33,26 +27,21 @@ export class PdfTransformer extends ProcessorBase {
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage backend for PDF files
    * @param {object} llm - Copilot LLM client with imageToText(image, systemPrompt, prompt, model, max_tokens) method
    * @param {object} logger - Logger instance with debug() method
-   * @param {import("@copilot-ld/libprompt").PromptLoader} [promptLoader] - Optional prompt loader for templates
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader - Prompt loader for templates
    * @param {object} [options] - Optional configuration
    * @param {string} [options.systemPrompt] - System prompt for Copilot
    * @param {string} [options.userPrompt] - User prompt for Copilot
    * @param {string} [options.model] - Model name for Copilot
    * @param {number} [options.maxTokens] - Max tokens for Copilot response
-   * @throws {Error} If pdftoppm is not available
+   * @throws {Error} If pdftoppm is not available or promptLoader is not provided
    */
-  constructor(
-    knowledgeStorage,
-    llm,
-    logger,
-    promptLoader = null,
-    options = {},
-  ) {
+  constructor(knowledgeStorage, llm, logger, promptLoader, options = {}) {
     super(logger, 5);
 
     if (!knowledgeStorage) throw new Error("knowledgeStorage is required");
     if (!llm) throw new Error("llm is required");
     if (!logger) throw new Error("logger is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
     if (!this.#isPdftoppmAvailable()) {
       throw new Error("pdftoppm is not installed or not available in PATH");
     }
@@ -78,7 +67,7 @@ export class PdfTransformer extends ProcessorBase {
   }
 
   /**
-   * Loads a prompt file. Uses PromptLoader if available, otherwise falls back to direct file read.
+   * Loads a prompt file using PromptLoader.
    * @param {string} promptName - Name of the prompt file (without extension)
    * @returns {string} Prompt file contents as a string
    * @throws {Error} If prompt file does not exist
@@ -88,19 +77,7 @@ export class PdfTransformer extends ProcessorBase {
       throw new Error("promptName must be supplied");
     }
 
-    // Use PromptLoader if available
-    if (this.#promptLoader) {
-      return this.#promptLoader.load(promptName);
-    }
-
-    // Legacy fallback: load directly from file
-    const promptPath = join(__dirname, `${promptName}-prompt.md`);
-
-    if (!existsSync(promptPath)) {
-      throw new Error(`Prompt file does not exist: ${promptPath}`);
-    }
-
-    return readFileSync(promptPath, { encoding: "utf-8" });
+    return this.#promptLoader.load(promptName);
   }
 
   /**

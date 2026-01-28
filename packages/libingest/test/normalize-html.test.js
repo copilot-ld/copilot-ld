@@ -1,10 +1,12 @@
 // Standard imports - always first
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
 
 // Module under test - second section
 import { NormalizeHtml, STEP_NAME } from "../steps/normalize-html.js";
 import { STEP_NAME as ANNOTATE_HTML_STEP } from "../steps/annotate-html.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -60,16 +62,24 @@ describe("NormalizeHtml", () => {
   let mockStorage;
   let mockLogger;
   let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
     mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
@@ -80,6 +90,7 @@ describe("NormalizeHtml", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
       assert.ok(step);
     });
@@ -106,7 +117,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
@@ -130,7 +147,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
@@ -154,7 +177,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const updatedContextRaw = await mockStorage.get(
@@ -182,7 +211,13 @@ describe("NormalizeHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -206,7 +241,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       assert.ok(mockLogger.logs.length > 0);
@@ -236,7 +277,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
@@ -260,7 +307,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
@@ -286,7 +339,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const outputHtml = await mockStorage.get("pipeline/abc123/output.html");

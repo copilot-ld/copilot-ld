@@ -1,10 +1,12 @@
 // Standard imports - always first
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
 
 // Module under test - second section
 import { ImagesToHtml, STEP_NAME } from "../steps/images-to-html.js";
 import { STEP_NAME as PDF_TO_IMAGES_STEP } from "../steps/pdf-to-images.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -63,16 +65,24 @@ describe("ImagesToHtml", () => {
   let mockStorage;
   let mockLogger;
   let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
     mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
@@ -83,12 +93,19 @@ describe("ImagesToHtml", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
       assert.ok(step);
     });
 
     test("loads image to HTML prompt", () => {
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
       // The prompt should be loaded in constructor
       // We can't directly test the private field, but constructor should not throw
@@ -110,7 +127,13 @@ describe("ImagesToHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -134,7 +157,13 @@ describe("ImagesToHtml", () => {
       // Put a string instead of a buffer
       mockStorage.put("pipeline/abc123/page-001.png", "not a buffer");
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -165,7 +194,13 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/page-001.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, noTokenConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        noTokenConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -193,7 +228,13 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/page-001.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // Will fail at LLM call due to fake token
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -224,7 +265,13 @@ describe("ImagesToHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -251,7 +298,13 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/page-001.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // The step will fail at LLM call
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -274,6 +327,7 @@ describe("ImagesToHtml", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
 
       assert.strictEqual(step.getModel(), "gpt-4.1");
@@ -306,7 +360,13 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/page-002.png", pngBuffer);
       mockStorage.put("pipeline/abc123/page-003.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // Will fail at LLM call on first image
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {

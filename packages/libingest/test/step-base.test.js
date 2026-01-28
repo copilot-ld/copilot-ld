@@ -1,9 +1,7 @@
 // Standard imports - always first
-import { test, describe, beforeEach, afterEach } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 
 // Module under test - second section
 import {
@@ -11,6 +9,7 @@ import {
   DEFAULT_MAX_TOKENS,
   DEFAULT_MODEL,
 } from "../steps/step-base.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -60,16 +59,24 @@ describe("StepBase", () => {
   let mockStorage;
   let mockLogger;
   let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
     mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.ok(step);
       assert.strictEqual(step.ingestStorage, mockStorage);
@@ -77,24 +84,43 @@ describe("StepBase", () => {
     });
 
     test("throws error when ingestStorage is missing", () => {
-      assert.throws(() => new StepBase(null, mockLogger, {}, mockConfig), {
-        name: "Error",
-        message: "ingestStorage is required",
-      });
+      assert.throws(
+        () => new StepBase(null, mockLogger, {}, mockConfig, promptLoader),
+        {
+          name: "Error",
+          message: "ingestStorage is required",
+        },
+      );
     });
 
     test("throws error when logger is missing", () => {
-      assert.throws(() => new StepBase(mockStorage, null, {}, mockConfig), {
-        name: "Error",
-        message: "logger is required",
-      });
+      assert.throws(
+        () => new StepBase(mockStorage, null, {}, mockConfig, promptLoader),
+        {
+          name: "Error",
+          message: "logger is required",
+        },
+      );
     });
 
     test("throws error when config is missing", () => {
-      assert.throws(() => new StepBase(mockStorage, mockLogger, {}), {
-        name: "Error",
-        message: "config is required",
-      });
+      assert.throws(
+        () => new StepBase(mockStorage, mockLogger, {}, null, promptLoader),
+        {
+          name: "Error",
+          message: "config is required",
+        },
+      );
+    });
+
+    test("throws error when promptLoader is missing", () => {
+      assert.throws(
+        () => new StepBase(mockStorage, mockLogger, {}, mockConfig),
+        {
+          name: "Error",
+          message: "promptLoader is required",
+        },
+      );
     });
 
     test("accepts modelConfig parameter", () => {
@@ -104,6 +130,7 @@ describe("StepBase", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
 
       assert.strictEqual(step.getModel(), "gpt-4");
@@ -119,19 +146,32 @@ describe("StepBase", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
 
       assert.strictEqual(step.getModel(), "gpt-4-turbo");
     });
 
     test("returns default model when not configured", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.strictEqual(step.getModel(), DEFAULT_MODEL);
     });
 
     test("returns default model when modelConfig is empty", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.strictEqual(step.getModel(), DEFAULT_MODEL);
     });
@@ -145,72 +185,78 @@ describe("StepBase", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
 
       assert.strictEqual(step.getMaxTokens(), 2000);
     });
 
     test("returns default maxTokens when not configured", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.strictEqual(step.getMaxTokens(), DEFAULT_MAX_TOKENS);
     });
 
     test("returns default maxTokens when modelConfig is empty", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.strictEqual(step.getMaxTokens(), DEFAULT_MAX_TOKENS);
     });
   });
 
   describe("loadPrompt", () => {
-    let tempDir;
+    test("loads prompt file via PromptLoader", () => {
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
+      // Use an actual prompt from the prompts directory
+      const result = step.loadPrompt("annotate-html");
 
-    beforeEach(() => {
-      tempDir = join(tmpdir(), `step-base-test-${Date.now()}`);
-      mkdirSync(tempDir, { recursive: true });
-    });
-
-    afterEach(() => {
-      if (tempDir) {
-        rmSync(tempDir, { recursive: true, force: true });
-      }
-    });
-
-    test("loads prompt file successfully", () => {
-      const promptContent = "This is a test prompt";
-      const promptFile = "test-prompt.md";
-      const promptPath = join(tempDir, promptFile);
-      writeFileSync(promptPath, promptContent, "utf-8");
-
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
-      const result = step.loadPrompt(promptFile, tempDir);
-
-      assert.strictEqual(result, promptContent);
+      assert.ok(result);
+      assert.ok(result.length > 0);
     });
 
     test("throws error when promptName is missing", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
-      assert.throws(() => step.loadPrompt(null, tempDir), {
+      assert.throws(() => step.loadPrompt(null), {
         name: "Error",
         message: "promptName is required",
       });
     });
 
-    test("throws error when baseDir is missing and no PromptLoader", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
-
-      assert.throws(() => step.loadPrompt("test.md", null), {
-        name: "Error",
-        message: "baseDir is required when no PromptLoader",
-      });
-    });
-
     test("throws error when prompt file does not exist", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
-      assert.throws(() => step.loadPrompt("non-existent.md", tempDir), {
+      assert.throws(() => step.loadPrompt("non-existent"), {
         name: "Error",
         message: /Prompt file not found/,
       });
@@ -219,7 +265,13 @@ describe("StepBase", () => {
 
   describe("process", () => {
     test("throws error when called on base class", async () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("test-key"), {
         name: "Error",
@@ -236,7 +288,13 @@ describe("StepBase", () => {
       };
       mockStorage.get = async () => mockContext;
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const result = await step.loadIngestContext(
         "pipeline/abc123/context.json",
       );
@@ -247,7 +305,13 @@ describe("StepBase", () => {
     test("throws error when context is null", async () => {
       mockStorage.get = async () => null;
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(
         () => step.loadIngestContext("pipeline/abc123/context.json"),
@@ -261,7 +325,13 @@ describe("StepBase", () => {
     test("throws error when context is not an object", async () => {
       mockStorage.get = async () => "invalid";
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(
         () => step.loadIngestContext("pipeline/abc123/context.json"),
@@ -281,7 +351,13 @@ describe("StepBase", () => {
         },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const result = step.getStep(ingestContext, "pdf-to-images", "test-key");
 
       assert.deepStrictEqual(result, { status: "QUEUED", order: 1 });
@@ -294,7 +370,13 @@ describe("StepBase", () => {
         },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.throws(
         () => step.getStep(ingestContext, "non-existent-step", "test-key"),
@@ -308,14 +390,26 @@ describe("StepBase", () => {
 
   describe("getTargetDir", () => {
     test("extracts directory from context key", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const result = step.getTargetDir("pipeline/abc123/context.json");
 
       assert.strictEqual(result, "pipeline/abc123");
     });
 
     test("handles nested paths", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const result = step.getTargetDir(
         "data/ingest/pipeline/xyz789/context.json",
       );
@@ -324,7 +418,13 @@ describe("StepBase", () => {
     });
 
     test("handles single directory", () => {
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const result = step.getTargetDir("context.json");
 
       assert.strictEqual(result, ".");
@@ -345,7 +445,13 @@ describe("StepBase", () => {
         originalName: "test.pdf",
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.saveIngestContext(
         "pipeline/abc123/context.json",
         ingestContext,
@@ -364,7 +470,13 @@ describe("StepBase", () => {
       };
 
       const ingestContext = { steps: {} };
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.saveIngestContext("test-key", ingestContext);
 
       const parsed = JSON.parse(savedData);
@@ -385,7 +497,13 @@ describe("StepBase", () => {
         steps: { "test-step": stepMetadata },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.completeStep("test-key", ingestContext, stepMetadata);
 
       assert.strictEqual(stepMetadata.status, "COMPLETED");
@@ -403,7 +521,13 @@ describe("StepBase", () => {
         steps: { "test-step": stepMetadata },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.completeStep("test-key", ingestContext, stepMetadata, {
         imageKeys: ["image1.png", "image2.png"],
         pageCount: 2,
@@ -426,7 +550,13 @@ describe("StepBase", () => {
       const stepMetadata = { status: "QUEUED" };
       const ingestContext = { steps: { "test-step": stepMetadata } };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.completeStep("test-key", ingestContext, stepMetadata);
 
       assert.ok(savedContext.lastUpdate);
@@ -445,7 +575,13 @@ describe("StepBase", () => {
         },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       const result = step.getPreviousStepData(
         ingestContext,
         "pdf-to-images",
@@ -463,7 +599,13 @@ describe("StepBase", () => {
         },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.throws(
         () =>
@@ -487,7 +629,13 @@ describe("StepBase", () => {
         },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       assert.throws(
         () =>
@@ -515,7 +663,13 @@ describe("StepBase", () => {
         },
       };
 
-      const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
+      const step = new StepBase(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // Should return 0, not throw
       const count = step.getPreviousStepData(

@@ -1,11 +1,13 @@
 // Standard imports - always first
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
 
 // Module under test - second section
 import { AnnotateHtml, STEP_NAME } from "../steps/annotate-html.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "../steps/images-to-html.js";
 import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "../steps/extract-context.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -64,16 +66,24 @@ describe("AnnotateHtml", () => {
   let mockStorage;
   let mockLogger;
   let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
     mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
@@ -84,12 +94,19 @@ describe("AnnotateHtml", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
       assert.ok(step);
     });
 
     test("loads annotate HTML prompt", () => {
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
       // The prompt should be loaded in constructor
       // We can't directly test the private field, but constructor should not throw
@@ -115,7 +132,13 @@ describe("AnnotateHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -141,7 +164,13 @@ describe("AnnotateHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -181,7 +210,13 @@ describe("AnnotateHtml", () => {
       );
       mockStorage.put("pipeline/abc123/document-context.json", contextData);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, noTokenConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        noTokenConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -230,7 +265,13 @@ describe("AnnotateHtml", () => {
 
       // This will fail at the LLM call since we have a fake token,
       // but we can verify the setup doesn't throw
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(
         () => step.process("pipeline/abc123/context.json"),
@@ -273,7 +314,13 @@ describe("AnnotateHtml", () => {
       );
       mockStorage.put("pipeline/abc123/document-context.json", contextData);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // Will fail at LLM call, but should not fail during entity formatting
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -300,7 +347,13 @@ describe("AnnotateHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -336,7 +389,13 @@ describe("AnnotateHtml", () => {
       );
       mockStorage.put("pipeline/abc123/document-context.json", contextData);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger, {}, mockConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // The step will fail at LLM call, but we verify target dir extraction works
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -355,6 +414,7 @@ describe("AnnotateHtml", () => {
         mockLogger,
         modelConfig,
         mockConfig,
+        promptLoader,
       );
 
       assert.strictEqual(step.getModel(), "gpt-4o");

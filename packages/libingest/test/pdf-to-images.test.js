@@ -4,6 +4,7 @@ import assert from "node:assert";
 
 // Module under test - second section
 import { PdfToImages, STEP_NAME } from "../steps/pdf-to-images.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Node.js built-in modules for test setup
 import { mkdtemp, rm } from "node:fs/promises";
@@ -75,12 +76,14 @@ describe("PdfToImages", () => {
   let mockStorage;
   let mockLogger;
   let mockConfig;
+  let promptLoader;
   let testTempDir;
 
   beforeEach(async () => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
     mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
     testTempDir = await mkdtemp(join(tmpdir(), "pdf-test-"));
   });
 
@@ -95,7 +98,13 @@ describe("PdfToImages", () => {
       // This test assumes pdftoppm is available in the test environment
       // If not available, it will throw and the test will fail
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
         assert.ok(step);
       } catch (error) {
         // If pdftoppm is not available, skip this test
@@ -130,7 +139,13 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
         await assert.rejects(
           () => step.process("pipeline/abc123/context.json"),
           {
@@ -160,7 +175,13 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/target.pdf", "not a buffer");
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
         await assert.rejects(
           () => step.process("pipeline/abc123/context.json"),
           {
@@ -187,7 +208,13 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
         await assert.rejects(
           () => step.process("pipeline/abc123/context.json"),
           {
@@ -218,7 +245,13 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/target.pdf", pdfBuffer);
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
         await step.process("pipeline/abc123/context.json");
 
         // Check that debug logs were created
@@ -257,7 +290,13 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/target.pdf", createMockPdfBuffer());
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
 
         // Verify the step can access context properties
         const context = await step.loadIngestContext(
@@ -276,7 +315,13 @@ describe("PdfToImages", () => {
 
     test("extracts target directory correctly", async () => {
       try {
-        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
+        const step = new PdfToImages(
+          mockStorage,
+          mockLogger,
+          {},
+          mockConfig,
+          promptLoader,
+        );
         const targetDir = step.getTargetDir("pipeline/abc123/context.json");
         assert.strictEqual(targetDir, "pipeline/abc123");
       } catch (error) {

@@ -1,5 +1,5 @@
-import { dirname, join } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
+import { dirname } from "node:path";
+
 import { createLlmApi } from "@copilot-ld/libllm";
 
 /** @type {number} Default max tokens for LLM completions */
@@ -38,7 +38,7 @@ export class StepBase {
   /** @type {import("@copilot-ld/libconfig").Config} */
   #config;
 
-  /** @type {import("@copilot-ld/libprompt").PromptLoader|null} */
+  /** @type {import("@copilot-ld/libprompt").PromptLoader} */
   #promptLoader;
 
   /**
@@ -54,12 +54,13 @@ export class StepBase {
    * @param {object} logger Logger instance with debug() method
    * @param {ModelConfig} modelConfig Model configuration
    * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
-   * @param {import("@copilot-ld/libprompt").PromptLoader} [promptLoader] Optional prompt loader for templates
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader Prompt loader for templates
    */
-  constructor(ingestStorage, logger, modelConfig, config, promptLoader = null) {
+  constructor(ingestStorage, logger, modelConfig, config, promptLoader) {
     if (!ingestStorage) throw new Error("ingestStorage is required");
     if (!logger) throw new Error("logger is required");
     if (!config) throw new Error("config is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
 
     this.#ingestStorage = ingestStorage;
     this.#logger = logger;
@@ -101,30 +102,13 @@ export class StepBase {
   }
 
   /**
-   * Loads a prompt file. Uses PromptLoader if available, otherwise falls back to direct file read.
-   * @param {string} promptName Filename of the prompt (legacy) or prompt name without extension (with PromptLoader)
-   * @param {string} [baseDir] Directory containing the prompt (only used for legacy fallback)
+   * Loads a prompt file using the injected PromptLoader.
+   * @param {string} promptName Name of the prompt (without .prompt.md extension)
    * @returns {string} Prompt contents
    */
-  loadPrompt(promptName, baseDir) {
+  loadPrompt(promptName) {
     if (!promptName) throw new Error("promptName is required");
-
-    // Use PromptLoader if available
-    if (this.#promptLoader) {
-      // Strip legacy extensions if present
-      const name = promptName
-        .replace(/-prompt\.md$/, "")
-        .replace(/\.prompt\.md$/, "");
-      return this.#promptLoader.load(name);
-    }
-
-    // Legacy fallback: load directly from file
-    if (!baseDir) throw new Error("baseDir is required when no PromptLoader");
-    const promptPath = join(baseDir, promptName);
-    if (!existsSync(promptPath)) {
-      throw new Error(`Prompt file not found: ${promptPath}`);
-    }
-    return readFileSync(promptPath, "utf-8");
+    return this.#promptLoader.load(promptName);
   }
 
   /**

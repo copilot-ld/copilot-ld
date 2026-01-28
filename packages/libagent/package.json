@@ -32,6 +32,6 @@
   },
   "devDependencies": {
     "@copilot-ld/libdoc": "^0.1.16",
-    "@copilot-ld/libharness": "^0.1.3"
+    "@copilot-ld/libharness": "^0.1.4"
   }
 }

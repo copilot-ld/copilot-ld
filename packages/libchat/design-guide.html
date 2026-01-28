@@ -10,7 +10,6 @@
       *::after {
         box-sizing: border-box;
       }
-
       :root {
         --g-bg: #f5f5f5;
         --g-card: white;
@@ -28,7 +27,6 @@
         --g-text: #f9fafb;
         --g-dim: #9ca3af;
       }
-
       body {
         margin: 0;
         font-family: system-ui, sans-serif;
@@ -55,7 +53,6 @@
       .guide-header h1 span {
         color: var(--g-accent);
       }
-
       .mode-toggle {
         display: flex;
         gap: 8px;
@@ -76,26 +73,25 @@
         color: white;
       }
 
-      .guide-content {
+      main.guide {
         max-width: 1200px;
         margin: 0 auto;
         padding: 32px 24px;
       }
-      .guide-section {
+      section {
         margin-bottom: 48px;
       }
-      .guide-section h2 {
+      section > h2 {
         margin: 0 0 8px;
         font-size: 18px;
         font-weight: 600;
       }
-      .guide-section p {
+      section > p {
         margin: 0 0 24px;
         color: var(--g-dim);
         font-size: 14px;
       }
-
-      .component-grid {
+      .grid {
         display: grid;
         gap: 24px;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -111,9 +107,6 @@
       figure.drawer {
         background: var(--g-muted);
       }
-      figure.drawer figcaption {
-        background: transparent;
-      }
       figcaption {
         padding: 12px 16px;
         background: var(--g-muted);
@@ -122,52 +115,22 @@
         font-weight: 500;
         color: var(--g-dim);
       }
-
+      figure.drawer figcaption {
+        background: transparent;
+      }
       .preview {
         padding: 24px;
       }
-      .preview.flush {
+      figure[data-flush] .preview {
         padding: 0;
       }
-      .preview.drawer {
-        height: 400px;
+      figure[data-height] .preview {
         position: relative;
       }
-      .preview.drawer.collapsed {
-        height: 80px;
-      }
-      .preview.page {
-        height: 500px;
-      }
-      .preview.page.tall {
-        height: 600px;
-      }
-
       .color-grid {
         display: grid;
         gap: 12px;
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      }
-      .color-swatch {
-        display: flex;
-        flex-direction: column;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid var(--g-border);
-      }
-      .color-swatch-preview {
-        height: 60px;
-      }
-      .color-swatch-info {
-        padding: 8px 10px;
-        background: var(--g-card);
-        font-size: 11px;
-      }
-      .color-swatch-info code {
-        display: block;
-        color: var(--g-dim);
-        font-family: ui-monospace, monospace;
-        word-break: break-all;
       }
     </style>
   </head>
@@ -180,466 +143,377 @@
       </div>
     </header>
 
-    <main class="guide-content">
-      <!-- Color Tokens Section -->
-      <section class="guide-section">
-        <h2>Color Tokens</h2>
-        <p>
-          CSS custom properties for consistent theming. These values change
-          automatically with light/dark mode.
-        </p>
-
-        <div class="color-grid" id="color-tokens">
-          <!-- Populated by JavaScript -->
-        </div>
-      </section>
-
-      <!-- Typography Section -->
-      <section class="guide-section">
-        <h2>Typography</h2>
-        <p>Text styles used throughout chat components.</p>
-
-        <div class="component-grid">
-          <figure>
-            <figcaption>Headers</figcaption>
-            <div class="preview">
-              <chat-demo-typography></chat-demo-typography>
-            </div>
-          </figure>
-
-          <figure>
-            <figcaption>Body Text</figcaption>
-            <div class="preview"><chat-demo-body></chat-demo-body></div>
-          </figure>
-        </div>
-      </section>
-
-      <!-- Buttons Section -->
-      <section class="guide-section">
-        <h2>Buttons</h2>
-        <p>Interactive elements for actions and navigation.</p>
-
-        <div class="component-grid">
-          <figure>
-            <figcaption>Icon Buttons</figcaption>
-            <div class="preview">
-              <chat-demo-icon-buttons></chat-demo-icon-buttons>
-            </div>
-          </figure>
-
-          <figure>
-            <figcaption>Submit Button</figcaption>
-            <div class="preview">
-              <chat-demo-submit-buttons></chat-demo-submit-buttons>
-            </div>
-          </figure>
-
-          <figure>
-            <figcaption>Form Button (Full Width)</figcaption>
-            <div class="preview">
-              <chat-demo-form-button></chat-demo-form-button>
-            </div>
-          </figure>
-        </div>
-      </section>
-
-      <!-- Form Elements Section -->
-      <section class="guide-section">
-        <h2>Form Elements</h2>
-        <p>Input controls for user interaction.</p>
-
-        <div class="component-grid">
-          <figure>
-            <figcaption>Text Input</figcaption>
-            <div class="preview"><chat-demo-input></chat-demo-input></div>
-          </figure>
-
-          <figure>
-            <figcaption>Textarea</figcaption>
-            <div class="preview"><chat-demo-textarea></chat-demo-textarea></div>
-          </figure>
-        </div>
-      </section>
-
-      <!-- Messages Section -->
-      <section class="guide-section">
-        <h2>Messages</h2>
-        <p>Chat message bubbles for different roles.</p>
-
-        <figure class="full-width">
-          <figcaption>Message Types</figcaption>
-          <div class="preview flush">
-            <chat-demo-messages></chat-demo-messages>
-          </div>
-        </figure>
-      </section>
-
-      <!-- Header Section -->
-      <section class="guide-section">
-        <h2>Header</h2>
-        <p>Title bar with optional controls for drawer and page components.</p>
-
-        <figure class="full-width">
-          <figcaption>Chat Header</figcaption>
-          <div class="preview flush"><chat-demo-header></chat-demo-header></div>
-        </figure>
-      </section>
-
-      <!-- Details/Summary Section -->
-      <section class="guide-section">
-        <h2>Expandable Content</h2>
-        <p>Collapsible sections for tool calls and additional details.</p>
-
-        <div class="component-grid">
-          <figure>
-            <figcaption>Details/Summary</figcaption>
-            <div class="preview"><chat-demo-details></chat-demo-details></div>
-          </figure>
-        </div>
-      </section>
-
-      <!-- Code Blocks Section -->
-      <section class="guide-section">
-        <h2>Code Blocks</h2>
-        <p>Styled code snippets within messages.</p>
-
-        <figure class="full-width">
-          <figcaption>Pre-formatted Code</figcaption>
-          <div class="preview flush"><chat-demo-code></chat-demo-code></div>
-        </figure>
-      </section>
-
-      <!-- User Authentication Section -->
-      <section class="guide-section">
-        <h2>User Authentication</h2>
-        <p>Login forms and logged-in state display.</p>
-
-        <div class="component-grid">
-          <figure>
-            <figcaption>Login Form</figcaption>
-            <div class="preview"><chat-demo-login></chat-demo-login></div>
-          </figure>
-
-          <figure>
-            <figcaption>Logged In State</figcaption>
-            <div class="preview">
-              <chat-demo-logged-in></chat-demo-logged-in>
-            </div>
-          </figure>
-
-          <figure>
-            <figcaption>Error State</figcaption>
-            <div class="preview">
-              <chat-demo-login-error></chat-demo-login-error>
-            </div>
-          </figure>
-        </div>
-      </section>
-
-      <!-- Composite Components Section -->
-      <section class="guide-section">
-        <h2>Composite Components</h2>
-        <p>Full component layouts combining multiple elements.</p>
-
-        <div class="component-grid">
-          <figure class="drawer">
-            <figcaption>Chat Drawer</figcaption>
-            <div class="preview flush drawer">
-              <chat-demo-drawer></chat-demo-drawer>
-            </div>
-          </figure>
-
-          <figure class="drawer">
-            <figcaption>Chat Drawer (Collapsed)</figcaption>
-            <div class="preview flush drawer collapsed">
-              <chat-demo-drawer-collapsed></chat-demo-drawer-collapsed>
-            </div>
-          </figure>
-        </div>
-
-        <figure class="full-width" style="margin-top: 24px">
-          <figcaption>Chat Page (Empty State)</figcaption>
-          <div class="preview flush page">
-            <chat-demo-page-empty></chat-demo-page-empty>
-          </div>
-        </figure>
-
-        <figure class="full-width">
-          <figcaption>Chat Page (With Messages)</figcaption>
-          <div class="preview flush page tall">
-            <chat-demo-page></chat-demo-page>
-          </div>
-        </figure>
-      </section>
-    </main>
+    <main class="guide" id="guide"></main>
 
     <script type="module">
-      // Import styles directly from source
       import { baseStyles } from "./styles/base.js";
       import { drawerStyles } from "./styles/drawer.js";
       import { pageStyles } from "./styles/page.js";
       import { userStyles } from "./styles/user.js";
 
-      // Color tokens for the swatch display
-      const colorTokens = [
-        { name: "--chat-text", label: "Text" },
-        { name: "--chat-text-muted", label: "Text Muted" },
-        { name: "--chat-text-inverse", label: "Text Inverse" },
-        { name: "--chat-bg", label: "Background" },
-        { name: "--chat-bg-alt", label: "Background Alt" },
-        { name: "--chat-bg-muted", label: "Background Muted" },
-        { name: "--chat-border", label: "Border" },
-        { name: "--chat-accent", label: "Accent" },
-        { name: "--chat-accent-hover", label: "Accent Hover" },
-        { name: "--chat-accent-muted", label: "Accent Muted" },
-        { name: "--chat-error", label: "Error" },
+      // --- Guide structure ---
+      const sections = [
+        {
+          title: "Color Tokens",
+          desc: "CSS custom properties for consistent theming. Values change with light/dark mode.",
+          id: "color-tokens",
+        },
+        {
+          title: "Spacing Scale",
+          desc: "Consistent spacing values for padding, margins, and gaps. Based on a 4px base unit.",
+          id: "spacing-scale",
+        },
+        {
+          title: "Typography",
+          desc: "Text styles used throughout chat components.",
+          grid: [
+            ["Headers", "typography"],
+            ["Body Text", "body"],
+          ],
+        },
+        {
+          title: "Buttons",
+          desc: "Interactive elements for actions and navigation.",
+          grid: [
+            ["Icon Buttons", "icon-buttons"],
+            ["Submit Button", "submit-buttons"],
+            ["Form Button (Full Width)", "form-button"],
+          ],
+        },
+        {
+          title: "Form Elements",
+          desc: "Input controls for user interaction.",
+          grid: [
+            ["Text Input", "input"],
+            ["Textarea", "textarea"],
+          ],
+        },
+        {
+          title: "Messages",
+          desc: "Chat message bubbles for different roles.",
+          items: [["Message Types", "messages", "flush"]],
+        },
+        {
+          title: "Header",
+          desc: "Title bar with optional controls for drawer and page components.",
+          items: [["Chat Header", "header", "flush"]],
+        },
+        {
+          title: "Expandable Content",
+          desc: "Collapsible sections for tool calls and additional details.",
+          grid: [["Details/Summary", "details"]],
+        },
+        {
+          title: "Code Blocks",
+          desc: "Styled code snippets within messages.",
+          items: [["Pre-formatted Code", "code", "flush"]],
+        },
+        {
+          title: "User Authentication",
+          desc: "Login forms and logged-in state display.",
+          grid: [
+            ["Login Form", "login"],
+            ["Logged In State", "logged-in"],
+            ["Error State", "login-error"],
+          ],
+        },
+        {
+          title: "Composite Components",
+          desc: "Full component layouts combining multiple elements.",
+          grid: [
+            ["Chat Drawer", "drawer", "flush drawer", 400],
+            ["Chat Drawer (Collapsed)", "drawer-collapsed", "flush drawer", 80],
+          ],
+          items: [
+            ["Chat Page (Empty State)", "page-empty", "flush", 500],
+            ["Chat Page (With Messages)", "page", "flush", 600],
+          ],
+        },
       ];
 
-      // Create a reference element to read CSS custom property values
-      class ColorReference extends HTMLElement {
-        constructor() {
-          super();
-          this.attachShadow({ mode: "open" });
-          this.shadowRoot.innerHTML = `<style>${baseStyles}</style><div></div>`;
-        }
+      // Render guide structure
+      const guide = document.getElementById("guide");
+      for (const sec of sections) {
+        const el = document.createElement("section");
+        el.innerHTML = `<h2>${sec.title}</h2><p>${sec.desc}</p>`;
+        if (sec.id)
+          el.innerHTML += `<div class="color-grid" id="${sec.id}"></div>`;
+        const figure = (label, name, cls = "", h) => {
+          const attrs = [
+            cls.includes("flush") && 'data-flush=""',
+            h && `data-height="${h}"`,
+          ]
+            .filter(Boolean)
+            .join(" ");
+          const figCls = cls.includes("drawer") ? ' class="drawer"' : "";
+          return `<figure${figCls}${attrs ? " " + attrs : ""}><figcaption>${label}</figcaption><div class="preview"${h ? ` style="height:${h}px"` : ""}><chat-demo-${name}></chat-demo-${name}></div></figure>`;
+        };
+        if (sec.grid)
+          el.innerHTML += `<div class="grid">${sec.grid.map((f) => figure(...f)).join("")}</div>`;
+        if (sec.items)
+          el.innerHTML += sec.items.map((f) => figure(...f)).join("");
+        guide.appendChild(el);
       }
-      customElements.define("color-reference", ColorReference);
 
-      // Render color swatches
+      // --- Color tokens ---
+      const tokenNames = [
+        "text",
+        "text-muted",
+        "text-inverse",
+        "bg",
+        "bg-alt",
+        "bg-muted",
+        "border",
+        "accent",
+        "accent-hover",
+        "accent-muted",
+        "error",
+      ];
+
+      const spacingTokens = [
+        {
+          name: "space-xs",
+          label: "XS",
+          desc: "Tight spacing: label gaps, summary padding",
+        },
+        {
+          name: "space-sm",
+          label: "SM",
+          desc: "Small spacing: icon margins, button gaps",
+        },
+        {
+          name: "space-md",
+          label: "MD",
+          desc: "Medium spacing: message padding, input padding",
+        },
+        {
+          name: "space-lg",
+          label: "LG",
+          desc: "Large spacing: section padding, form gaps",
+        },
+        {
+          name: "space-xl",
+          label: "XL",
+          desc: "Extra large: responsive content padding",
+        },
+        {
+          name: "space-2xl",
+          label: "2XL",
+          desc: "Maximum spacing: page margins, large gaps",
+        },
+      ];
+
+      const toLabel = (s) =>
+        s
+          .split("-")
+          .map((w) => w[0].toUpperCase() + w.slice(1))
+          .join(" ");
+
       function renderColorTokens() {
-        const container = document.getElementById("color-tokens");
-        const refEl = document.createElement("color-reference");
-        document.body.appendChild(refEl);
-        const styles = getComputedStyle(
-          refEl.shadowRoot.querySelector("div").parentElement.host,
-        );
-
-        container.innerHTML = colorTokens
-          .map((token) => {
-            const value = styles.getPropertyValue(token.name).trim();
-            return `
-          <div class="color-swatch">
-            <div class="color-swatch-preview" style="background: var(${token.name}, ${value});"></div>
-            <div class="color-swatch-info">
-              <strong>${token.label}</strong>
-              <code>${token.name}</code>
-            </div>
-          </div>
-        `;
+        const ref = document.createElement("div");
+        ref.attachShadow({ mode: "open" }).innerHTML =
+          `<style>${baseStyles}</style><i></i>`;
+        document.body.appendChild(ref);
+        const cs = getComputedStyle(ref.shadowRoot.host);
+        document.getElementById("color-tokens").innerHTML = tokenNames
+          .map((n) => {
+            const name = `--chat-${n}`,
+              val = cs.getPropertyValue(name).trim();
+            return `<div style="border-radius:8px;overflow:hidden;border:1px solid var(--g-border)">
+              <div style="height:60px;background:var(${name},${val})"></div>
+              <div style="padding:8px 10px;background:var(--g-card);font-size:11px"><strong>${toLabel(n)}</strong><code style="display:block;color:var(--g-dim);font-family:ui-monospace,monospace">${name}</code></div></div>`;
           })
           .join("");
-
-        // Remove reference element
-        refEl.remove();
+        ref.remove();
       }
 
-      // Shared demo styles
-      const demoStyles = `
-        .row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
-        .row:last-child { margin-bottom: 0; }
-        .label { font-size: 12px; color: var(--chat-text-muted); min-width: 80px; }
-        .group { margin-bottom: 16px; }
-        .group:last-child { margin-bottom: 0; }
-      `;
-      const userHostStyles =
-        userStyles + `:host { display: block; max-width: none; padding: 0; }`;
-      const drawerHostStyles =
-        drawerStyles +
-        `:host { position: absolute; right: 16px; bottom: 16px; width: calc(100% - 32px); }`;
-      const pageHostStyles =
-        pageStyles + `:host { background: var(--chat-bg-alt); }`;
-
-      // Base demo component with factory
-      class DemoComponent extends HTMLElement {
-        constructor() {
-          super();
-          this.attachShadow({ mode: "open" });
-        }
-        init(styles, html) {
-          this.shadowRoot.innerHTML = `<style>${baseStyles}${styles}</style>${html}`;
-        }
+      function renderSpacingScale() {
+        const ref = document.createElement("div");
+        ref.attachShadow({ mode: "open" }).innerHTML =
+          `<style>${baseStyles}</style><i></i>`;
+        document.body.appendChild(ref);
+        const cs = getComputedStyle(ref.shadowRoot.host);
+        document.getElementById("spacing-scale").innerHTML = spacingTokens
+          .map((t) => {
+            const name = `--chat-${t.name}`,
+              val = cs.getPropertyValue(name).trim();
+            return `<div style="border-radius:8px;overflow:hidden;border:1px solid var(--g-border)">
+              <div style="height:60px;display:flex;align-items:center;justify-content:center;background:var(--g-muted)">
+                <div style="width:${val};height:${val};background:var(--chat-accent,#2563eb);border-radius:2px"></div>
+              </div>
+              <div style="padding:8px 10px;background:var(--g-card);font-size:11px">
+                <strong>${t.label}</strong> <span style="color:var(--g-dim)">(${val})</span>
+                <code style="display:block;color:var(--g-dim);font-family:ui-monospace,monospace;margin-top:2px">${name}</code>
+                <span style="display:block;color:var(--g-dim);font-size:10px;margin-top:4px">${t.desc}</span>
+              </div></div>`;
+          })
+          .join("");
+        ref.remove();
       }
 
-      const define = (name, styles, html, setup) => {
-        customElements.define(
-          name,
-          class extends DemoComponent {
-            connectedCallback() {
-              this.init(styles, html);
-              setup?.(this);
-            }
-          },
-        );
+      // --- Demo components ---
+      const SHARED = {
+        // Shared style fragments
+        row: `.row{display:flex;gap:8px;align-items:center;margin-bottom:12px}.row:last-child{margin-bottom:0}.label{font-size:12px;color:var(--chat-text-muted);min-width:80px}`,
+        group: `.group{margin-bottom:16px}.group:last-child{margin-bottom:0}`,
+        user: userStyles + `:host{display:block;max-width:none;padding:0}`,
+        drawer:
+          drawerStyles +
+          `:host{position:absolute;right:16px;bottom:16px;width:calc(100% - 32px)}`,
+        page: pageStyles + `:host{background:var(--chat-bg-alt)}`,
       };
 
-      define(
-        "chat-demo-typography",
-        "",
-        `
-        <header style="border:none;height:auto;padding:0"><h1><mark>◆</mark>Header Title</h1></header>`,
-      );
+      // Demo registry: [extraStyles, html, attrs]
+      const demos = {
+        typography: [
+          "",
+          `<header style="border:none;height:auto;padding:0"><h1><mark>◆</mark>Header Title</h1></header>`,
+        ],
 
-      define(
-        "chat-demo-body",
-        "",
-        `
-        <p style="margin:0 0 8px;color:var(--chat-text)">Primary body text in default color.</p>
-        <p style="margin:0;color:var(--chat-text-muted)">Muted text for secondary information.</p>`,
-      );
+        body: [
+          "",
+          `<p style="margin:0 0 8px;color:var(--chat-text)">Primary body text in default color.</p>
+          <p style="margin:0;color:var(--chat-text-muted)">Muted text for secondary information.</p>`,
+        ],
 
-      define(
-        "chat-demo-icon-buttons",
-        demoStyles + `.btn-icon{flex-shrink:initial}`,
-        `
-        <div class="row"><span class="label">Default</span>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">−</button></div>
-        <div class="row"><span class="label">Hover</span>
-          <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">✕</button>
-          <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">⤢</button>
-          <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">−</button></div>`,
-      );
+        "icon-buttons": [
+          SHARED.row + `.btn-icon{flex-shrink:initial}`,
+          `
+          <div class="row"><span class="label">Default</span>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">−</button></div>
+          <div class="row"><span class="label">Hover</span>
+            <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">✕</button>
+            <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">⤢</button>
+            <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">−</button></div>`,
+        ],
 
-      define(
-        "chat-demo-submit-buttons",
-        demoStyles + `.row{gap:12px}button[type="submit"]{position:static}`,
-        `
-        <div class="row"><span class="label">Default</span><button type="submit" class="btn-icon">↑</button></div>
-        <div class="row"><span class="label">Hover</span><button type="submit" class="btn-icon" style="background:var(--chat-accent-hover)">↑</button></div>
-        <div class="row"><span class="label">Disabled</span><button type="submit" class="btn-icon" disabled>↑</button></div>`,
-      );
+        "submit-buttons": [
+          SHARED.row + `.row{gap:12px}button[type="submit"]{position:static}`,
+          `
+          <div class="row"><span class="label">Default</span><button type="submit" class="btn-icon">↑</button></div>
+          <div class="row"><span class="label">Hover</span><button type="submit" class="btn-icon" style="background:var(--chat-accent-hover)">↑</button></div>
+          <div class="row"><span class="label">Disabled</span><button type="submit" class="btn-icon" disabled>↑</button></div>`,
+        ],
 
-      define(
-        "chat-demo-form-button",
-        userHostStyles + demoStyles + `form{gap:12px}.label{margin-bottom:8px}`,
-        `
-        <form><div><div class="label">Default</div><button type="submit">Sign In</button></div></form>`,
-      );
+        "form-button": [
+          SHARED.user +
+            SHARED.row +
+            SHARED.group +
+            `form{gap:12px}.label{margin-bottom:8px}`,
+          `
+          <form><div><div class="label">Default</div><button type="submit">Sign In</button></div></form>`,
+        ],
 
-      define(
-        "chat-demo-input",
-        userHostStyles + `form{gap:16px}`,
-        `
-        <form>
-          <div><label>Email</label><input type="email" placeholder="you@example.com"></div>
-          <div><label>Focused</label><input type="text" value="With content" style="border-color:var(--chat-accent);box-shadow:0 0 0 2px var(--chat-accent-muted)"></div>
-        </form>`,
-      );
+        input: [
+          SHARED.user + `form{gap:16px}`,
+          `
+          <form>
+            <div><label>Email</label><input type="email" placeholder="you@example.com"></div>
+            <div><label>Focused</label><input type="text" value="With content" style="border-color:var(--chat-accent);box-shadow:0 0 0 2px var(--chat-accent-muted)"></div>
+          </form>`,
+        ],
 
-      define(
-        "chat-demo-textarea",
-        demoStyles + `textarea{padding-right:14px}`,
-        `
-        <div class="group"><div class="label">Default</div><textarea placeholder="Type a message..."></textarea></div>
-        <div class="group"><div class="label">Disabled</div><textarea disabled placeholder="Input disabled..."></textarea></div>`,
-      );
+        textarea: [
+          SHARED.row + SHARED.group + `textarea{padding-right:14px}`,
+          `
+          <div class="group"><div class="label">Default</div><textarea placeholder="Type a message..."></textarea></div>
+          <div class="group"><div class="label">Disabled</div><textarea disabled placeholder="Input disabled..."></textarea></div>`,
+        ],
 
-      define(
-        "chat-demo-messages",
-        `main{background:var(--chat-bg-alt);padding:var(--chat-gap);border-radius:0}`,
-        `
-        <main>
-          <article role="user">This is a user message. It appears on the right with the accent color background.</article>
-          <article role="assistant">This is an assistant response. It appears on the left with the default text color and no background.</article>
-          <article role="error">This is an error message displayed in the error color.</article>
-        </main>`,
-      );
+        messages: [
+          `main{background:var(--chat-bg-alt);padding:var(--chat-gap);border-radius:0}`,
+          `
+          <main>
+            <article role="user">This is a user message. It appears on the right with the accent color background.</article>
+            <article role="assistant">This is an assistant response. It appears on the left with the default text color and no background.</article>
+            <article role="error">This is an error message displayed in the error color.</article>
+          </main>`,
+        ],
 
-      define(
-        "chat-demo-header",
-        "",
-        `
-        <header><h1><mark>◆</mark>Chat Assistant</h1>
+        header: [
+          "",
+          `<header><h1><mark>◆</mark>Chat Assistant</h1>
           <button class="btn-icon">⤢</button><button class="btn-icon">−</button><button class="btn-icon">✕</button></header>`,
-      );
+        ],
 
-      define(
-        "chat-demo-details",
-        "",
-        `
-        <details><summary>🔧 Tool call: search_documents</summary><pre>{ "query": "design patterns", "limit": 5 }</pre></details>
-        <details open><summary>🔧 Tool result: search_documents</summary><pre>Found 3 matching documents...</pre></details>`,
-      );
+        details: [
+          "",
+          `
+          <details><summary>🔧 Tool call: search_documents</summary><pre>{ "query": "design patterns", "limit": 5 }</pre></details>
+          <details open><summary>🔧 Tool result: search_documents</summary><pre>Found 3 matching documents...</pre></details>`,
+        ],
 
-      define(
-        "chat-demo-code",
-        `article{padding:var(--chat-gap)}`,
-        `
-        <article role="assistant">Here's an example code snippet:
-          <pre>function greet(name) {
+        code: [
+          `article{padding:var(--chat-gap)}`,
+          `
+          <article role="assistant">Here's an example code snippet:
+            <pre>function greet(name) {
   return \`Hello, \${name}!\`;
 }
 
 console.log(greet('World'));</pre></article>`,
-      );
+        ],
 
-      define(
-        "chat-demo-login",
-        userHostStyles,
-        `
-        <form><div><label>Email</label><input type="email" placeholder="you@example.com"></div>
-          <div><label>Password</label><input type="password" placeholder="••••••••"></div>
-          <button type="submit">Sign In</button></form>`,
-      );
+        login: [
+          SHARED.user,
+          `
+          <form><div><label>Email</label><input type="email" placeholder="you@example.com"></div>
+            <div><label>Password</label><input type="password" placeholder="••••••••"></div>
+            <button type="submit">Sign In</button></form>`,
+        ],
 
-      define(
-        "chat-demo-logged-in",
-        userHostStyles,
-        `
-        <aside><p>Signed in as <strong>user@example.com</strong></p><button>Sign Out</button></aside>`,
-      );
+        "logged-in": [
+          SHARED.user,
+          `<aside><p>Signed in as <strong>user@example.com</strong></p><button>Sign Out</button></aside>`,
+        ],
 
-      define(
-        "chat-demo-login-error",
-        userHostStyles,
-        `
-        <form><output>Invalid email or password. Please try again.</output>
-          <div><label>Email</label><input type="email" value="user@example.com"></div>
-          <div><label>Password</label><input type="password" value="wrong"></div>
-          <button type="submit">Sign In</button></form>`,
-      );
+        "login-error": [
+          SHARED.user,
+          `
+          <form><output>Invalid email or password. Please try again.</output>
+            <div><label>Email</label><input type="email" value="user@example.com"></div>
+            <div><label>Password</label><input type="password" value="wrong"></div>
+            <button type="submit">Sign In</button></form>`,
+        ],
 
-      define(
-        "chat-demo-drawer",
-        drawerHostStyles + `:host{height:calc(100% - 32px)}`,
-        `
-        <header><h1><mark>◆</mark>Chat</h1>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">−</button>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button></header>
-        <main><article role="user">Hello!</article><article role="assistant">Hi there! How can I help you today?</article></main>
-        <footer><form><textarea placeholder="Type a message..."></textarea><button type="submit" class="btn-icon">↑</button></form></footer>`,
-      );
+        drawer: [
+          SHARED.drawer + `:host{height:calc(100% - 32px)}`,
+          `
+          <header><h1><mark>◆</mark>Chat</h1>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">−</button>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button></header>
+          <main><article role="user">Hello!</article><article role="assistant">Hi there! How can I help you today?</article></main>
+          <footer><form><textarea placeholder="Type a message..."></textarea><button type="submit" class="btn-icon">↑</button></form></footer>`,
+        ],
 
-      define(
-        "chat-demo-drawer-collapsed",
-        drawerHostStyles +
-          `:host{height:48px;overflow:hidden}header{border-radius:11px;border-bottom:none}`,
-        `
-        <header><h1><mark>◆</mark>Chat</h1>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">+</button>
-          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button></header>`,
-      );
+        "drawer-collapsed": [
+          SHARED.drawer +
+            `:host{height:48px;overflow:hidden}header{border-radius:11px;border-bottom:none}`,
+          `
+          <header><h1><mark>◆</mark>Chat</h1>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">+</button>
+            <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button></header>`,
+        ],
 
-      define(
-        "chat-demo-page-empty",
-        pageHostStyles,
-        `
-        <section><h2><mark>◆</mark>How can I help?</h2>
-          <form><textarea placeholder="Ask me anything..."></textarea><button type="submit" class="btn-icon">↑</button></form></section>`,
-        (el) => el.setAttribute("data-empty", ""),
-      );
+        "page-empty": [
+          SHARED.page,
+          `
+          <section><h2><mark>◆</mark>How can I help?</h2>
+            <form><textarea placeholder="Ask me anything..."></textarea><button type="submit" class="btn-icon">↑</button></form></section>`,
+          { "data-empty": "" },
+        ],
 
-      define(
-        "chat-demo-page",
-        pageHostStyles,
-        `
-        <main>
-          <article role="user">Can you explain how CSS custom properties work?</article>
-          <article role="assistant">CSS custom properties (also known as CSS variables) are entities defined by CSS authors that contain specific values to be reused throughout a document.
-            <pre>:root {
+        page: [
+          SHARED.page,
+          `
+          <main>
+            <article role="user">Can you explain how CSS custom properties work?</article>
+            <article role="assistant">CSS custom properties (also known as CSS variables) are entities defined by CSS authors that contain specific values to be reused throughout a document.
+              <pre>:root {
   --primary-color: #2563eb;
   --spacing: 16px;
 }
@@ -648,29 +522,46 @@ console.log(greet('World'));</pre></article>`,
   background: var(--primary-color);
   padding: var(--spacing);
 }</pre>
-            They're set using the <code>--</code> prefix and accessed using the <code>var()</code> function.</article>
-          <article role="user">That's helpful, thanks!</article>
-        </main>
-        <footer><form><textarea placeholder="Type a message..."></textarea>
-          <button type="submit" class="btn-icon">↑</button><button id="new" class="btn-icon">+</button></form></footer>`,
-      );
+              They're set using the <code>--</code> prefix and accessed using the <code>var()</code> function.</article>
+            <article role="user">That's helpful, thanks!</article>
+          </main>
+          <footer><form><textarea placeholder="Type a message..."></textarea>
+            <button type="submit" class="btn-icon">↑</button><button id="new" class="btn-icon">+</button></form></footer>`,
+        ],
+      };
 
-      // Theme toggle
+      // Register all demo components
+      for (const [name, [styles, html, attrs]] of Object.entries(demos)) {
+        customElements.define(
+          `chat-demo-${name}`,
+          class extends HTMLElement {
+            connectedCallback() {
+              this.attachShadow({ mode: "open" }).innerHTML =
+                `<style>${baseStyles}${styles}</style>${html}`;
+              if (attrs)
+                for (const [k, v] of Object.entries(attrs))
+                  this.setAttribute(k, v);
+            }
+          },
+        );
+      }
+
+      // --- Theme toggle ---
       const [lightBtn, darkBtn] = [
         document.getElementById("light-mode"),
         document.getElementById("dark-mode"),
       ];
-      const setTheme = (theme) => {
-        const isDark = theme === "dark";
-        document.body.classList.toggle("dark", isDark);
-        document.documentElement.style.colorScheme = theme;
-        lightBtn.classList.toggle("active", !isDark);
-        darkBtn.classList.toggle("active", isDark);
+      const setTheme = (dark) => {
+        document.body.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        lightBtn.classList.toggle("active", !dark);
+        darkBtn.classList.toggle("active", dark);
         setTimeout(renderColorTokens, 50);
       };
-      lightBtn.onclick = () => setTheme("light");
-      darkBtn.onclick = () => setTheme("dark");
+      lightBtn.onclick = () => setTheme(false);
+      darkBtn.onclick = () => setTheme(true);
       renderColorTokens();
+      renderSpacingScale();
     </script>
   </body>
 </html>

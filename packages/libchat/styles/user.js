@@ -12,7 +12,7 @@ export const userStyles = `
     display: block;
     max-width: 360px;
     margin: 0 auto;
-    padding: var(--chat-gap);
+    padding: var(--chat-space-lg);
   }
 
   /*
@@ -22,7 +22,7 @@ export const userStyles = `
     position: static;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--chat-space-lg);
   }
 
   /*
@@ -30,7 +30,7 @@ export const userStyles = `
    */
   label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: var(--chat-space-xs);
     font-size: 13px;
     font-weight: 500;
     color: var(--chat-text-muted);
@@ -39,7 +39,7 @@ export const userStyles = `
   input {
     display: block;
     width: 100%;
-    padding: 10px 12px;
+    padding: var(--chat-space-md) var(--chat-space-md);
     border: 1px solid var(--chat-border);
     border-radius: var(--chat-radius);
     background: var(--chat-bg);
@@ -64,8 +64,8 @@ export const userStyles = `
     position: static;
     width: 100%;
     height: auto;
-    margin-top: 8px;
-    padding: 10px 16px;
+    margin-top: var(--chat-space-sm);
+    padding: var(--chat-space-md) var(--chat-space-lg);
     border: none;
     border-radius: var(--chat-radius);
     background: var(--chat-accent);
@@ -85,7 +85,7 @@ export const userStyles = `
    */
   output {
     display: block;
-    padding: 10px 12px;
+    padding: var(--chat-space-md) var(--chat-space-md);
     border-radius: var(--chat-radius);
     background: rgba(220, 38, 38, 0.1);
     color: var(--chat-error);
@@ -104,7 +104,7 @@ export const userStyles = `
   }
 
   aside p {
-    margin: 0 0 16px;
+    margin: 0 0 var(--chat-space-lg);
     color: var(--chat-text-muted);
   }
 
@@ -117,7 +117,7 @@ export const userStyles = `
    * Logout button
    */
   aside button {
-    padding: 8px 16px;
+    padding: var(--chat-space-sm) var(--chat-space-lg);
     border: 1px solid var(--chat-border);
     border-radius: var(--chat-radius);
     background: transparent;

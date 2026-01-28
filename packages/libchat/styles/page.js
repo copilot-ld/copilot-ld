@@ -29,13 +29,13 @@ export const pageStyles = `
     min-width: 480px;
     max-width: 720px;
     margin: 0 auto;
-    padding: 0 var(--chat-gap);
+    padding: 0 var(--chat-space-lg);
     text-align: center;
     box-sizing: border-box;
   }
 
   :host([data-empty]) section h2 {
-    margin: 0 0 16px;
+    margin: 0 0 var(--chat-space-lg);
     font-size: 24px;
     font-weight: 600;
   }
@@ -43,7 +43,7 @@ export const pageStyles = `
   :host([data-empty]) section h2 mark {
     background: none;
     color: var(--chat-accent);
-    margin-right: 8px;
+    margin-right: var(--chat-space-sm);
   }
 
   :host([data-empty]) section form {
@@ -86,17 +86,17 @@ export const pageStyles = `
 
   textarea {
     min-height: 100px;
-    padding-bottom: 44px;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px var(--chat-shadow);
+    padding-bottom: calc(var(--chat-space-lg) * 2.75);
+    border-radius: var(--chat-radius-lg);
+    box-shadow: 0 2px var(--chat-space-md) var(--chat-shadow);
   }
 
   /*
    * Buttons - bottom right of textarea
    */
   button[type="submit"] {
-    bottom: 10px;
-    right: 10px;
+    bottom: var(--chat-space-md);
+    right: var(--chat-space-md);
   }
 
   /*
@@ -104,8 +104,8 @@ export const pageStyles = `
    */
   button#new {
     position: absolute;
-    right: 50px;
-    bottom: 10px;
+    right: calc(var(--chat-space-md) + var(--chat-space-2xl) + var(--chat-space-sm));
+    bottom: var(--chat-space-md);
     background: var(--chat-bg-muted);
     color: var(--chat-text-muted);
     font-size: 18px;
@@ -121,11 +121,11 @@ export const pageStyles = `
    */
   @media (min-width: 768px) {
     main {
-      padding: 24px 32px;
+      padding: var(--chat-space-xl) var(--chat-space-2xl);
     }
 
     footer {
-      padding: 16px 32px 32px;
+      padding: var(--chat-space-lg) var(--chat-space-2xl) var(--chat-space-2xl);
     }
   }
 `;

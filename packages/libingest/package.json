@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libingest",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "File ingestion utility for Copilot-LD.",
   "license": "Apache-2.0",
   "author": "Copilot-LD Team",

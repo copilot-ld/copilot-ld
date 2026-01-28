@@ -4,12 +4,15 @@ applyTo: "**/*.test.js"
 
 # JavaScript Testing Instructions
 
-Standards for test files using Node.js built-in testing and `@copilot-ld/libharness`.
+Standards for test files using Node.js built-in testing and
+`@copilot-ld/libharness`.
 
 ## Principles
 
-1. `node:test`, `node:assert`, and `@copilot-ld/libharness` only—no external libraries
-2. Use libharness mocks first; create local mocks only for component-specific needs
+1. `node:test`, `node:assert`, and `@copilot-ld/libharness` only—no external
+   libraries
+2. Use libharness mocks first; create local mocks only for component-specific
+   needs
 3. Tests are isolated with no shared state between test cases
 4. Tests verify behavior, not implementation details
 
@@ -80,7 +83,8 @@ const index = createMockResourceIndex({ tools: ["search"], agentId: "test" });
 
 When a mock is reused across 3+ packages, add it to libharness:
 
-1. Create factory in `packages/libharness/mock/` or `packages/libharness/fixture/`
+1. Create factory in `packages/libharness/mock/` or
+   `packages/libharness/fixture/`
 2. Export from the appropriate `index.js`
 3. Add JSDoc with `@param` for overrides
 4. Add tests in `packages/libharness/test/`

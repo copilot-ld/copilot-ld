@@ -5,7 +5,7 @@ structured context to enable rich Schema.org annotations.
 
 ## Input
 
-An HTML document with `<section class="slide-page" id="page-N">` elements.
+An HTML document with `<section class="document-page" id="page-N">` elements.
 
 ## Output Rules
 
@@ -25,9 +25,9 @@ An HTML document with `<section class="slide-page" id="page-N">` elements.
     "products": ["Product X", "Product Y"],
     "projects": ["Project Alpha", "Initiative Beta"]
   },
-  "slides": {
+  "pages": {
     "page-1": {
-      "summary": "One-sentence description of this slide",
+      "summary": "One-sentence description of this page",
       "content_type": "title|data|list|chart|text|mixed",
       "key_entities": ["Entity1", "Entity2"]
     }
@@ -50,14 +50,14 @@ An HTML document with `<section class="slide-page" id="page-N">` elements.
 - **products:** Product names, platforms, tools, services
 - **projects:** Project names, initiatives, programs
 
-**slides:** For EACH slide provide:
+**pages:** For EACH page provide:
 
-- **summary:** What information this slide conveys
+- **summary:** What information this page conveys
 - **content_type:** Primary content format
-  - `title` - Title/cover slide
+  - `title` - Title/cover page
   - `data` - Tables, metrics, numbers
   - `list` - Bullet points, feature lists
   - `chart` - Graphs, pie charts, visualizations
   - `text` - Paragraphs, descriptions
   - `mixed` - Combination of above
-- **key_entities:** Which entities from the global list appear on this slide
+- **key_entities:** Which entities from the global list appear on this page

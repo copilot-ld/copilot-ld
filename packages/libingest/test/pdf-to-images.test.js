@@ -45,6 +45,19 @@ function createMockLogger() {
   };
 }
 
+// Mock config for testing
+/**
+ * Creates a mock Config instance for testing.
+ * @returns {object} Mock config with llmToken, llmBaseUrl, embeddingBaseUrl methods
+ */
+function createMockConfig() {
+  return {
+    llmToken: () => "test_token_123",
+    llmBaseUrl: () => "https://models.github.ai/inference",
+    embeddingBaseUrl: () => "http://localhost:8090",
+  };
+}
+
 // Create a minimal valid PDF buffer for testing
 /**
  * Creates a minimal valid PDF buffer for testing.
@@ -61,11 +74,13 @@ function createMockPdfBuffer() {
 describe("PdfToImages", () => {
   let mockStorage;
   let mockLogger;
+  let mockConfig;
   let testTempDir;
 
   beforeEach(async () => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
+    mockConfig = createMockConfig();
     testTempDir = await mkdtemp(join(tmpdir(), "pdf-test-"));
   });
 
@@ -80,7 +95,7 @@ describe("PdfToImages", () => {
       // This test assumes pdftoppm is available in the test environment
       // If not available, it will throw and the test will fail
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
         assert.ok(step);
       } catch (error) {
         // If pdftoppm is not available, skip this test
@@ -115,7 +130,7 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
         await assert.rejects(
           () => step.process("pipeline/abc123/context.json"),
           {
@@ -145,7 +160,7 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/target.pdf", "not a buffer");
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
         await assert.rejects(
           () => step.process("pipeline/abc123/context.json"),
           {
@@ -172,7 +187,7 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
         await assert.rejects(
           () => step.process("pipeline/abc123/context.json"),
           {
@@ -203,7 +218,7 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/target.pdf", pdfBuffer);
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
         await step.process("pipeline/abc123/context.json");
 
         // Check that debug logs were created
@@ -242,7 +257,7 @@ describe("PdfToImages", () => {
       mockStorage.put("pipeline/abc123/target.pdf", createMockPdfBuffer());
 
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
 
         // Verify the step can access context properties
         const context = await step.loadIngestContext(
@@ -261,7 +276,7 @@ describe("PdfToImages", () => {
 
     test("extracts target directory correctly", async () => {
       try {
-        const step = new PdfToImages(mockStorage, mockLogger);
+        const step = new PdfToImages(mockStorage, mockLogger, {}, mockConfig);
         const targetDir = step.getTargetDir("pipeline/abc123/context.json");
         assert.strictEqual(targetDir, "pipeline/abc123");
       } catch (error) {

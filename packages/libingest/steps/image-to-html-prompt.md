@@ -1,12 +1,12 @@
-# Slide Image to HTML Converter
+# Document Page Image to HTML Converter
 
-You are a Front-End Developer with OCR capabilities. Convert a presentation
-slide image into semantic HTML.
+You are a Front-End Developer with OCR capabilities. Convert a document page
+image into semantic HTML.
 
 ## Input
 
-- **Image:** A single slide from a PDF/PowerPoint
-- **Page Number:** The slide's position in the deck
+- **Image:** A single page from a PDF/PowerPoint/document
+- **Page Number:** The page's position in the document
 
 ## Output Rules
 
@@ -21,12 +21,16 @@ slide image into semantic HTML.
 ### Root Container
 
 ```html
-<section class="slide-page" id="page-{number}" data-page="{number}"></section>
+<section
+  class="document-page"
+  id="page-{number}"
+  data-page="{number}"
+></section>
 ```
 
 ### Headings
 
-- Slide title → `<h2>` (parent doc uses `<h1>`)
+- Page title → `<h2>` (parent doc uses `<h1>`)
 - Sub-headers → `<h3>`, `<h4>`, etc.
 - Never use `<h1>`
 
@@ -39,7 +43,7 @@ slide image into semantic HTML.
 ### Metadata
 
 - Page numbers, "Confidential" stamps, dates, logos →
-  `<footer class="slide-footer">` or `<header class="slide-header">`
+  `<footer class="page-footer">` or `<header class="page-header">`
 
 ### Tables
 
@@ -61,8 +65,8 @@ Wrap in `<figure>` with detailed `<figcaption>`:
 ## Example
 
 ```html
-<section class="slide-page" id="page-12" data-page="12">
-  <header class="slide-header">Q3 Financial Overview</header>
+<section class="document-page" id="page-12" data-page="12">
+  <header class="page-header">Q3 Financial Overview</header>
   <h2>Project Delta Milestones</h2>
   <p>Timeline for Q3 and Q4 critical path.</p>
   <ul>
@@ -79,6 +83,6 @@ Wrap in `<figure>` with detailed `<figcaption>`:
       Critical path in red shows zero float for Execution.
     </figcaption>
   </figure>
-  <footer class="slide-footer">Confidential | Page 12</footer>
+  <footer class="page-footer">Confidential | Page 12</footer>
 </section>
 ```

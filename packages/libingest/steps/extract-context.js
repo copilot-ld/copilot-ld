@@ -1,5 +1,4 @@
 import { common } from "@copilot-ld/libtype";
-import { Utils } from "../utils.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./images-to-html.js";
 import { StepBase } from "./step-base.js";
 
@@ -21,12 +20,13 @@ export class ExtractContext extends StepBase {
    * Create a new ExtractContext instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} ingestStorage Storage backend for ingest files
    * @param {object} logger Logger instance with debug() method
-   * @param {import("./step-base.js").ModelConfig} [modelConfig] Optional model configuration
+   * @param {import("./step-base.js").ModelConfig} modelConfig Model configuration
+   * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
    */
-  constructor(ingestStorage, logger, modelConfig) {
-    super(ingestStorage, logger, modelConfig);
+  constructor(ingestStorage, logger, modelConfig, config) {
+    super(ingestStorage, logger, modelConfig, config);
 
-    this.#contextExtractorSystemPrompt = Utils.loadPrompt(
+    this.#contextExtractorSystemPrompt = this.loadPrompt(
       "context-extractor-prompt.md",
       import.meta.dirname,
     );
@@ -50,10 +50,10 @@ export class ExtractContext extends StepBase {
       ingestContextKey,
     );
 
-    this._logger.debug(`Extracting context from HTML: ${htmlKey}`);
+    this.logger.debug(`Extracting context from HTML: ${htmlKey}`);
 
     // Load HTML from storage
-    const rawHtml = await this._ingestStorage.get(htmlKey);
+    const rawHtml = await this.ingestStorage.get(htmlKey);
     if (!rawHtml) {
       throw new Error(`No HTML content found for key: ${htmlKey}`);
     }
@@ -64,7 +64,7 @@ export class ExtractContext extends StepBase {
     }
 
     // Create LLM after validation
-    const llm = this.createLlm();
+    const llm = await this.createLlm();
 
     // Extract context using LLM
     const messages = [
@@ -78,7 +78,7 @@ export class ExtractContext extends StepBase {
       }),
     ];
 
-    this._logger.debug(
+    this.logger.debug(
       "ExtractContext",
       "Sending HTML to Copilot for context extraction",
     );
@@ -95,14 +95,14 @@ export class ExtractContext extends StepBase {
     }
 
     const contextJson = response.choices[0].message?.content || "";
-    this._logger.debug(
+    this.logger.debug(
       `Received context from Copilot, length: ${contextJson.length}`,
     );
 
     // Save document context to storage
     const contextKey = `${targetDir}/document-context.json`;
-    await this._ingestStorage.put(contextKey, contextJson);
-    this._logger.debug(`Saved document context to ${contextKey}`);
+    await this.ingestStorage.put(contextKey, contextJson);
+    this.logger.debug(`Saved document context to ${contextKey}`);
 
     await this.completeStep(ingestContextKey, ingestContext, step, {
       contextKey,

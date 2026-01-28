@@ -9,18 +9,19 @@ export const STEP_NAME = "normalize-html";
  * Workflow:
  * - Loads annotated HTML from storage (from annotate-html step)
  * - Parses and normalizes the HTML structure
- * - Saves normalized HTML for consistent diffing
- * - Updates ingest context with normalized HTML key
+ * - Saves normalized HTML as the final pipeline output
+ * - Updates ingest context with output key and pipeline metadata
  */
 export class NormalizeHtml extends StepBase {
   /**
    * Create a new NormalizeHtml instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} ingestStorage Storage backend for ingest files
    * @param {object} logger Logger instance with debug() method
-   * @param {import("./step-base.js").ModelConfig} [modelConfig] Optional model configuration
+   * @param {import("./step-base.js").ModelConfig} modelConfig Model configuration
+   * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
    */
-  constructor(ingestStorage, logger, modelConfig) {
-    super(ingestStorage, logger, modelConfig);
+  constructor(ingestStorage, logger, modelConfig, config) {
+    super(ingestStorage, logger, modelConfig, config);
   }
 
   /**
@@ -41,21 +42,27 @@ export class NormalizeHtml extends StepBase {
       ingestContextKey,
     );
 
-    this._logger.debug(`Normalizing HTML from: ${annotatedHtmlKey}`);
+    this.logger.debug(`Normalizing HTML from: ${annotatedHtmlKey}`);
 
     // Load annotated HTML
-    const html = String(await this._ingestStorage.get(annotatedHtmlKey));
+    const html = String(await this.ingestStorage.get(annotatedHtmlKey));
 
     // Normalize HTML
     const normalizedHtml = this.#normalizeHtml(html);
 
-    // Save normalized HTML
-    const normalizedHtmlKey = `${targetDir}/normalized.html`;
-    await this._ingestStorage.put(normalizedHtmlKey, normalizedHtml);
-    this._logger.debug(`Saved normalized HTML to ${normalizedHtmlKey}`);
+    // Save normalized HTML as final output
+    const outputKey = `${targetDir}/output.html`;
+    await this.ingestStorage.put(outputKey, normalizedHtml);
+    this.logger.debug(`Saved final output to ${outputKey}`);
+
+    // Update pipeline metadata with output pointer
+    ingestContext.pipeline = {
+      output: "output.html",
+      outputMimeType: "text/html",
+    };
 
     await this.completeStep(ingestContextKey, ingestContext, step, {
-      normalizedHtmlKey,
+      outputKey,
     });
   }
 

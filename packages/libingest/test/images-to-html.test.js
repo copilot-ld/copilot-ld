@@ -1,5 +1,5 @@
 // Standard imports - always first
-import { test, describe, beforeEach, afterEach } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test - second section
@@ -44,59 +44,51 @@ function createMockLogger() {
   };
 }
 
+// Mock config for testing
+/**
+ * Creates a mock Config instance for testing.
+ * @param {object} overrides - Optional method overrides
+ * @returns {object} Mock config with llmToken, llmBaseUrl, embeddingBaseUrl methods
+ */
+function createMockConfig(overrides = {}) {
+  return {
+    llmToken: () => "test_token_123",
+    llmBaseUrl: () => "https://models.github.ai/inference",
+    embeddingBaseUrl: () => "http://localhost:8090",
+    ...overrides,
+  };
+}
+
 describe("ImagesToHtml", () => {
   let mockStorage;
   let mockLogger;
-  let originalLlmToken;
-  let originalLlmBaseUrl;
-  let originalEmbeddingBaseUrl;
+  let mockConfig;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
-    // Save original environment variables
-    originalLlmToken = globalThis.process.env.LLM_TOKEN;
-    originalLlmBaseUrl = globalThis.process.env.LLM_BASE_URL;
-    originalEmbeddingBaseUrl = globalThis.process.env.EMBEDDING_BASE_URL;
-    // Set test values to avoid errors in createLlm
-    globalThis.process.env.LLM_TOKEN = "test_token_123";
-    globalThis.process.env.LLM_BASE_URL = "https://models.github.ai/inference";
-    globalThis.process.env.EMBEDDING_BASE_URL = "http://localhost:8090";
-  });
-
-  afterEach(() => {
-    // Restore original environment variables
-    if (originalLlmToken === undefined) {
-      delete globalThis.process.env.LLM_TOKEN;
-    } else {
-      globalThis.process.env.LLM_TOKEN = originalLlmToken;
-    }
-    if (originalLlmBaseUrl === undefined) {
-      delete globalThis.process.env.LLM_BASE_URL;
-    } else {
-      globalThis.process.env.LLM_BASE_URL = originalLlmBaseUrl;
-    }
-    if (originalEmbeddingBaseUrl === undefined) {
-      delete globalThis.process.env.EMBEDDING_BASE_URL;
-    } else {
-      globalThis.process.env.EMBEDDING_BASE_URL = originalEmbeddingBaseUrl;
-    }
+    mockConfig = createMockConfig();
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
       assert.ok(step);
     });
 
     test("accepts optional modelConfig", () => {
       const modelConfig = { model: "gpt-4o", maxTokens: 4000 };
-      const step = new ImagesToHtml(mockStorage, mockLogger, modelConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        modelConfig,
+        mockConfig,
+      );
       assert.ok(step);
     });
 
     test("loads image to HTML prompt", () => {
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
       assert.ok(step);
       // The prompt should be loaded in constructor
       // We can't directly test the private field, but constructor should not throw
@@ -118,7 +110,7 @@ describe("ImagesToHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -142,7 +134,7 @@ describe("ImagesToHtml", () => {
       // Put a string instead of a buffer
       mockStorage.put("pipeline/abc123/page-001.png", "not a buffer");
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -150,8 +142,9 @@ describe("ImagesToHtml", () => {
       });
     });
 
-    test("throws error when LLM_TOKEN is not set", async () => {
-      delete globalThis.process.env.LLM_TOKEN;
+    test("throws error when LLM token is not set", async () => {
+      // Create config with no token
+      const noTokenConfig = createMockConfig({ llmToken: () => null });
 
       const ingestContext = {
         filename: "test.pdf",
@@ -172,7 +165,7 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/page-001.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, noTokenConfig);
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -200,7 +193,7 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/page-001.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
 
       // Will fail at LLM call due to fake token
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -231,7 +224,7 @@ describe("ImagesToHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -258,7 +251,7 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/page-001.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
 
       // The step will fail at LLM call
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -276,7 +269,12 @@ describe("ImagesToHtml", () => {
 
     test("uses configured model settings", () => {
       const modelConfig = { model: "gpt-4.1", maxTokens: 6000 };
-      const step = new ImagesToHtml(mockStorage, mockLogger, modelConfig);
+      const step = new ImagesToHtml(
+        mockStorage,
+        mockLogger,
+        modelConfig,
+        mockConfig,
+      );
 
       assert.strictEqual(step.getModel(), "gpt-4.1");
       assert.strictEqual(step.getMaxTokens(), 6000);
@@ -308,7 +306,7 @@ describe("ImagesToHtml", () => {
       mockStorage.put("pipeline/abc123/page-002.png", pngBuffer);
       mockStorage.put("pipeline/abc123/page-003.png", pngBuffer);
 
-      const step = new ImagesToHtml(mockStorage, mockLogger);
+      const step = new ImagesToHtml(mockStorage, mockLogger, {}, mockConfig);
 
       // Will fail at LLM call on first image
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {

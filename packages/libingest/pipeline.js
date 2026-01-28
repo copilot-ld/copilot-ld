@@ -2,6 +2,7 @@ import { join, dirname } from "path";
 import { readdir } from "fs/promises";
 import { fileURLToPath } from "url";
 import yaml from "js-yaml";
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { ProcessorBase } from "@copilot-ld/libutil/processor.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -50,6 +51,7 @@ export class IngesterPipeline extends ProcessorBase {
   #ingestStorage;
   #configStorage;
   #config;
+  #envConfig;
   #logger;
   #stepHandlers;
 
@@ -67,6 +69,7 @@ export class IngesterPipeline extends ProcessorBase {
     this.#ingestStorage = ingestStorage;
     this.#configStorage = configStorage;
     this.#config = null;
+    this.#envConfig = null;
     this.#logger = logger;
     this.#stepHandlers = null;
   }
@@ -100,6 +103,17 @@ export class IngesterPipeline extends ProcessorBase {
   }
 
   /**
+   * Loads the environment config for LLM access.
+   * @returns {Promise<import("@copilot-ld/libconfig").Config>} Config instance
+   */
+  async #loadEnvConfig() {
+    if (!this.#envConfig) {
+      this.#envConfig = await createScriptConfig("ingest");
+    }
+    return this.#envConfig;
+  }
+
+  /**
    * Processes all files in the ingest 'pipeline' folder
    * @returns {Promise<void>}
    */
@@ -108,8 +122,9 @@ export class IngesterPipeline extends ProcessorBase {
     if (!this.#config) {
       this.#config = await this.#loadConfig();
     }
-    // Pre-load step handlers
+    // Pre-load step handlers and env config
     await this.#loadStepHandlers();
+    await this.#loadEnvConfig();
     const ingestStorage = this.#ingestStorage;
     // List all pipeline folders (e.g. pipeline/<sha256>/)
     const pipelineFolders = await ingestStorage.findByPrefix("pipeline/", "/");
@@ -119,9 +134,8 @@ export class IngesterPipeline extends ProcessorBase {
   /**
    * Processes a single pipeline folder by loading its context.json and logging step information.
    * @param {string} pipelineFolder The key representing the pipeline folder path
-   * @param {string} llmToken LLM API token for authentication
    */
-  async processItem(pipelineFolder, llmToken) {
+  async processItem(pipelineFolder) {
     const ingestStorage = this.#ingestStorage;
     // Check for context.json in each folder
     const contextPath = join(pipelineFolder, "context.json");
@@ -130,8 +144,9 @@ export class IngesterPipeline extends ProcessorBase {
       throw new Error(`Missing context.json in ${pipelineFolder}`);
     }
 
-    // Get cached step handlers
+    // Get cached step handlers and env config
     const stepHandlers = await this.#loadStepHandlers();
+    const envConfig = await this.#loadEnvConfig();
 
     // Loop until all steps are completed
     while (true) {
@@ -176,9 +191,14 @@ export class IngesterPipeline extends ProcessorBase {
         maxTokens: this.#config.defaults?.maxTokens,
       };
 
-      // Create and run the step handler
-      const handler = new StepHandler(ingestStorage, this.#logger, modelConfig);
-      await handler.process(contextPath, llmToken);
+      // Create and run the step handler with injected config
+      const handler = new StepHandler(
+        ingestStorage,
+        this.#logger,
+        modelConfig,
+        envConfig,
+      );
+      await handler.process(contextPath);
     }
   }
 }

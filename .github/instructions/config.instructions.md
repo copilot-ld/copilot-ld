@@ -8,11 +8,13 @@ Defines rules for managing configuration files and agent definitions.
 
 ## Principles
 
-1. **Example Parity**: Every config file has an `.example` counterpart that must
+1. **Clean Breaks Only**: No backward compatibility, no deprecation periods, no
+   legacy config formats. Change it right or don't change it.
+2. **Example Parity**: Every config file has an `.example` counterpart that must
    stay in sync.
-2. **Secrets Stay Local**: Example files never contain real credentials, API
+3. **Secrets Stay Local**: Example files never contain real credentials, API
    keys, or environment-specific values.
-3. **Agent Clarity**: Agent definitions are behavioral contracts—clear,
+4. **Agent Clarity**: Agent definitions are behavioral contracts—clear,
    actionable, and testable.
 
 ## Requirements

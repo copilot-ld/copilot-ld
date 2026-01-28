@@ -6,33 +6,46 @@ applyTo: "**"
 
 gRPC services, framework-agnostic packages, REST extensions.
 
+## Principles
+
+1. **Clean Breaks Only**: No backward compatibility, no deprecation periods, no
+   legacy code. Change it right or don't change it.
+2. **Separation of Concerns**: Services handle protocol, packages handle logic,
+   extensions expose HTTP.
+3. **Dependency Injection**: All dependencies flow through constructors, never
+   imported directly in service code.
+
 ## Directory Boundaries
 
-| Directory     | Contains                      |
-| ------------- | ----------------------------- |
-| `/services`   | gRPC services only            |
-| `/extensions` | REST API adapters only        |
-| `/packages`   | Framework-agnostic logic only |
-| `/proto`      | Protocol Buffer schemas       |
-| `/tools`      | Platform extensions           |
+| Directory     | Contains                      | Communicates Via |
+| ------------- | ----------------------------- | ---------------- |
+| `/services`   | gRPC services only            | gRPC             |
+| `/extensions` | REST API adapters only        | HTTP (external)  |
+| `/packages`   | Framework-agnostic logic only | Function calls   |
+| `/proto`      | Protocol Buffer schemas       | —                |
+| `/tools`      | Platform extensions           | Varies           |
 
 ## Patterns
 
-Services extend generated `*Base` class, inject dependencies via constructor.
+**Service Implementation**: Extend generated `*Base` class, inject dependencies
+via constructor. Services are stateless request handlers.
 
-Import processors/indices from subdirectories, never from package main index:
+**Import Structure**: Import processors/indices from subdirectories, never from
+package main index:
 
 ```javascript
 import { MyIndex } from "@pkg/lib/index/my.js"; // ✓
 import { MyIndex } from "@pkg/lib"; // ✗ circular dep
 ```
 
-Use `Type.fromObject()` for protobufs, not `new Type()`.
+**Protobuf Instantiation**: Use `Type.fromObject()` for protobufs, not
+`new Type()`.
 
-Code generation: `make codegen`
+**Code Generation**: Run `make codegen` after modifying `.proto` files.
 
 ## Prohibited
 
+- Backward compatibility shims or deprecation warnings
 - REST for inter-service communication (use gRPC)
 - State within service instances (inject dependencies)
 - Direct service-to-service dependencies (route through Agent)

@@ -1,10 +1,12 @@
 // Standard imports - always first
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
 
 // Module under test - second section
 import { NormalizeHtml, STEP_NAME } from "../steps/normalize-html.js";
 import { STEP_NAME as ANNOTATE_HTML_STEP } from "../steps/annotate-html.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -41,24 +43,55 @@ function createMockLogger() {
   };
 }
 
+// Mock config for testing
+/**
+ * Creates a mock config instance for testing.
+ * @param {object} overrides - Optional method overrides
+ * @returns {object} Mock config with llmToken, llmBaseUrl, embeddingBaseUrl methods
+ */
+function createMockConfig(overrides = {}) {
+  return {
+    llmToken: async () => "test-token",
+    llmBaseUrl: () => "http://localhost:8080",
+    embeddingBaseUrl: () => null,
+    ...overrides,
+  };
+}
+
 describe("NormalizeHtml", () => {
   let mockStorage;
   let mockLogger;
+  let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
+    mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
-    test("accepts optional modelConfig", () => {
+    test("accepts modelConfig parameter", () => {
       const modelConfig = { model: "gpt-4", maxTokens: 1000 };
-      const step = new NormalizeHtml(mockStorage, mockLogger, modelConfig);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        modelConfig,
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
   });
@@ -84,14 +117,18 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
-      const normalizedHtml = await mockStorage.get(
-        "pipeline/abc123/normalized.html",
-      );
-      assert.ok(normalizedHtml);
-      assert.strictEqual(typeof normalizedHtml, "string");
+      const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
+      assert.ok(outputHtml);
+      assert.strictEqual(typeof outputHtml, "string");
     });
 
     test("removes markdown code block wrappers", async () => {
@@ -110,17 +147,21 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
-      const normalizedHtml = await mockStorage.get(
-        "pipeline/abc123/normalized.html",
-      );
-      assert.ok(!normalizedHtml.includes("```html"));
-      assert.ok(!normalizedHtml.includes("```"));
+      const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
+      assert.ok(!outputHtml.includes("```html"));
+      assert.ok(!outputHtml.includes("```"));
     });
 
-    test("marks step as completed", async () => {
+    test("marks step as completed with pipeline metadata", async () => {
       const annotatedHtml = "<html><body>Test</body></html>";
 
       const ingestContext = {
@@ -136,7 +177,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       const updatedContextRaw = await mockStorage.get(
@@ -147,7 +194,9 @@ describe("NormalizeHtml", () => {
           ? JSON.parse(updatedContextRaw)
           : updatedContextRaw;
       assert.strictEqual(updatedContext.steps[STEP_NAME].status, "COMPLETED");
-      assert.ok(updatedContext.steps[STEP_NAME].normalizedHtmlKey);
+      assert.ok(updatedContext.steps[STEP_NAME].outputKey);
+      assert.strictEqual(updatedContext.pipeline.output, "output.html");
+      assert.strictEqual(updatedContext.pipeline.outputMimeType, "text/html");
     });
 
     test("throws error when annotated HTML key is missing", async () => {
@@ -162,7 +211,13 @@ describe("NormalizeHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -186,7 +241,13 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
       assert.ok(mockLogger.logs.length > 0);
@@ -194,9 +255,7 @@ describe("NormalizeHtml", () => {
         mockLogger.logs.some((log) => log.msg.includes("Normalizing HTML")),
       );
       assert.ok(
-        mockLogger.logs.some((log) =>
-          log.msg.includes("Saved normalized HTML"),
-        ),
+        mockLogger.logs.some((log) => log.msg.includes("Saved final output")),
       );
     });
   });
@@ -218,13 +277,17 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
-      const normalizedHtml = await mockStorage.get(
-        "pipeline/abc123/normalized.html",
-      );
-      assert.ok(!normalizedHtml.includes("\r\n"));
+      const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
+      assert.ok(!outputHtml.includes("\r\n"));
     });
 
     test("sorts attributes alphabetically", async () => {
@@ -244,16 +307,20 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
-      const normalizedHtml = await mockStorage.get(
-        "pipeline/abc123/normalized.html",
-      );
+      const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
       // Attributes should be sorted: class, data-value, id
-      assert.ok(normalizedHtml.includes('class="main"'));
-      assert.ok(normalizedHtml.includes('data-value="123"'));
-      assert.ok(normalizedHtml.includes('id="test"'));
+      assert.ok(outputHtml.includes('class="main"'));
+      assert.ok(outputHtml.includes('data-value="123"'));
+      assert.ok(outputHtml.includes('id="test"'));
     });
 
     test("removes excessive blank lines", async () => {
@@ -272,13 +339,17 @@ describe("NormalizeHtml", () => {
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
       mockStorage.put("pipeline/abc123/annotated.html", annotatedHtml);
 
-      const step = new NormalizeHtml(mockStorage, mockLogger);
+      const step = new NormalizeHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       await step.process("pipeline/abc123/context.json");
 
-      const normalizedHtml = await mockStorage.get(
-        "pipeline/abc123/normalized.html",
-      );
-      assert.ok(!normalizedHtml.includes("\n\n\n"));
+      const outputHtml = await mockStorage.get("pipeline/abc123/output.html");
+      assert.ok(!outputHtml.includes("\n\n\n"));
     });
   });
 

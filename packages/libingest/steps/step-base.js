@@ -1,6 +1,6 @@
 import { dirname } from "node:path";
+
 import { createLlmApi } from "@copilot-ld/libllm";
-import { Utils } from "../utils.js";
 
 /** @type {number} Default max tokens for LLM completions */
 export const DEFAULT_MAX_TOKENS = 5000;
@@ -23,16 +23,23 @@ export const DEFAULT_MODEL = "gpt-4o";
  * - Loading/saving ingest context
  * - Step validation
  * - Model configuration
+ * - Prompt loading via PromptLoader
  */
 export class StepBase {
   /** @type {import("@copilot-ld/libstorage").StorageInterface} */
-  _ingestStorage;
+  #ingestStorage;
 
   /** @type {object} */
-  _logger;
+  #logger;
 
   /** @type {ModelConfig} */
-  _modelConfig;
+  #modelConfig;
+
+  /** @type {import("@copilot-ld/libconfig").Config} */
+  #config;
+
+  /** @type {import("@copilot-ld/libprompt").PromptLoader} */
+  #promptLoader;
 
   /**
    * The step name for this ingest step.
@@ -45,15 +52,37 @@ export class StepBase {
    * Create a new step instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} ingestStorage Storage backend for ingest files
    * @param {object} logger Logger instance with debug() method
-   * @param {ModelConfig} [modelConfig] Optional model configuration
+   * @param {ModelConfig} modelConfig Model configuration
+   * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader Prompt loader for templates
    */
-  constructor(ingestStorage, logger, modelConfig = {}) {
+  constructor(ingestStorage, logger, modelConfig, config, promptLoader) {
     if (!ingestStorage) throw new Error("ingestStorage is required");
     if (!logger) throw new Error("logger is required");
+    if (!config) throw new Error("config is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
 
-    this._ingestStorage = ingestStorage;
-    this._logger = logger;
-    this._modelConfig = modelConfig;
+    this.#ingestStorage = ingestStorage;
+    this.#logger = logger;
+    this.#modelConfig = modelConfig || {};
+    this.#config = config;
+    this.#promptLoader = promptLoader;
+  }
+
+  /**
+   * Gets the ingest storage instance.
+   * @returns {import("@copilot-ld/libstorage").StorageInterface} Storage backend
+   */
+  get ingestStorage() {
+    return this.#ingestStorage;
+  }
+
+  /**
+   * Gets the logger instance.
+   * @returns {object} Logger instance
+   */
+  get logger() {
+    return this.#logger;
   }
 
   /**
@@ -61,7 +90,7 @@ export class StepBase {
    * @returns {string} Model name
    */
   getModel() {
-    return this._modelConfig.model || DEFAULT_MODEL;
+    return this.#modelConfig.model || DEFAULT_MODEL;
   }
 
   /**
@@ -69,7 +98,17 @@ export class StepBase {
    * @returns {number} Max tokens
    */
   getMaxTokens() {
-    return this._modelConfig.maxTokens || DEFAULT_MAX_TOKENS;
+    return this.#modelConfig.maxTokens || DEFAULT_MAX_TOKENS;
+  }
+
+  /**
+   * Loads a prompt file using the injected PromptLoader.
+   * @param {string} promptName Name of the prompt (without .prompt.md extension)
+   * @returns {string} Prompt contents
+   */
+  loadPrompt(promptName) {
+    if (!promptName) throw new Error("promptName is required");
+    return this.#promptLoader.load(promptName);
   }
 
   /**
@@ -87,7 +126,7 @@ export class StepBase {
    * @returns {Promise<object>} Validated ingest context object
    */
   async loadIngestContext(ingestContextKey) {
-    const ingestContext = await this._ingestStorage.get(ingestContextKey);
+    const ingestContext = await this.#ingestStorage.get(ingestContextKey);
     if (!ingestContext || typeof ingestContext !== "object") {
       throw new Error(`Invalid ingest context for key: ${ingestContextKey}`);
     }
@@ -128,7 +167,7 @@ export class StepBase {
    */
   async saveIngestContext(ingestContextKey, ingestContext) {
     ingestContext.lastUpdate = new Date().toISOString();
-    await this._ingestStorage.put(
+    await this.#ingestStorage.put(
       ingestContextKey,
       JSON.stringify(ingestContext, null, 2),
       "utf-8",
@@ -150,15 +189,19 @@ export class StepBase {
   }
 
   /**
-   * Creates an LLM client using the LLM token and configured model.
-   * @returns {object} LLM client instance
+   * Creates an LLM client using the injected config.
+   * @returns {Promise<object>} LLM client instance
    */
-  createLlm() {
+  async createLlm() {
+    const token = await this.#config.llmToken();
+    if (!token) {
+      throw new Error("LLM token not found in config");
+    }
     return createLlmApi(
-      Utils.getLlmToken(),
+      token,
       this.getModel(),
-      Utils.getLlmBaseUrl(),
-      Utils.getEmbeddingBaseUrl(),
+      this.#config.llmBaseUrl(),
+      this.#config.embeddingBaseUrl(),
     );
   }
 

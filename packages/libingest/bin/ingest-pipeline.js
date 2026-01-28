@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createScriptConfig } from "@copilot-ld/libconfig";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createLogger } from "@copilot-ld/libtelemetry";
 
@@ -11,6 +12,7 @@ import { IngesterPipeline } from "../index.js";
 async function main() {
   const ingestStorage = createStorage("ingest");
   const configStorage = createStorage("config");
+  const config = await createScriptConfig("ingest");
   const logger = createLogger("ingestor-pipeline");
 
   logger.debug("main", "Starting pipeline ingest processing");
@@ -18,6 +20,7 @@ async function main() {
   const ingesterPipeline = new IngesterPipeline(
     ingestStorage,
     configStorage,
+    config,
     logger,
   );
   await ingesterPipeline.process();

@@ -1,5 +1,4 @@
 import { common } from "@copilot-ld/libtype";
-import { Utils } from "../utils.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "./images-to-html.js";
 import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "./extract-context.js";
 import { StepBase } from "./step-base.js";
@@ -23,15 +22,14 @@ export class AnnotateHtml extends StepBase {
    * Create a new AnnotateHtml instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} ingestStorage Storage backend for ingest files
    * @param {object} logger Logger instance with debug() method
-   * @param {import("./step-base.js").ModelConfig} [modelConfig] Optional model configuration
+   * @param {import("./step-base.js").ModelConfig} modelConfig Model configuration
+   * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader Prompt loader for templates
    */
-  constructor(ingestStorage, logger, modelConfig) {
-    super(ingestStorage, logger, modelConfig);
+  constructor(ingestStorage, logger, modelConfig, config, promptLoader) {
+    super(ingestStorage, logger, modelConfig, config, promptLoader);
 
-    this.#annotateHtmlSystemPrompt = Utils.loadPrompt(
-      "annotate-html-prompt.md",
-      import.meta.dirname,
-    );
+    this.#annotateHtmlSystemPrompt = this.loadPrompt("annotate-html");
   }
 
   /**
@@ -59,16 +57,16 @@ export class AnnotateHtml extends StepBase {
     );
 
     // Create LLM after validation
-    const llm = this.createLlm();
+    const llm = await this.createLlm();
 
-    this._logger.debug("AnnotateHtml", "Annotating fragments with context", {
+    this.logger.debug("AnnotateHtml", "Annotating fragments with context", {
       fragment_count: fragmentKeys.length,
       context_key: contextKey,
     });
 
     // Load fragments and context from storage
     const htmlFragments = await this.#loadFragments(fragmentKeys);
-    const contextData = await this._ingestStorage.get(contextKey);
+    const contextData = await this.ingestStorage.get(contextKey);
 
     // Annotate HTML fragments
     const annotatedFragments = await this.#annotateFragments(
@@ -98,7 +96,7 @@ export class AnnotateHtml extends StepBase {
   async #loadFragments(fragmentKeys) {
     const fragments = [];
     for (const key of fragmentKeys) {
-      const content = String(await this._ingestStorage.get(key));
+      const content = String(await this.ingestStorage.get(key));
       fragments.push(content);
     }
     return fragments;
@@ -118,52 +116,79 @@ export class AnnotateHtml extends StepBase {
     const entitiesList = this.#formatEntities(contextData.entities);
 
     for (const [i, htmlFragment] of htmlFragments.entries()) {
-      this._logger.debug("AnnotateHtml", "Annotating fragment", {
+      this.logger.debug("AnnotateHtml", "Annotating fragment", {
         fragment: i + 1,
       });
 
-      const pageKey = `page-${i + 1}`;
-      const slideData = contextData.slides?.[pageKey] || {};
-      const slideContext =
-        typeof slideData === "string" ? slideData : slideData.summary || "";
-
+      const pageContext = this.#getPageContext(contextData, i + 1);
       const populatedPrompt = this.#annotateHtmlSystemPrompt
         .replace("{global_summary}", contextData.global_summary || "")
         .replace("{document_type}", contextData.document_type || "")
         .replace("{entities}", entitiesList)
-        .replace("{slide_summary}", slideContext);
+        .replace("{page_summary}", pageContext);
 
-      const messages = [
-        common.Message.fromObject({
-          role: "system",
-          content: populatedPrompt,
-        }),
-        common.Message.fromObject({
-          role: "user",
-          content: htmlFragment,
-        }),
-      ];
-
-      const response = await llm.createCompletions({
-        messages,
-        max_tokens: this.getMaxTokens(),
-      });
-
-      if (!response.choices || response.choices.length === 0) {
-        throw new Error(
-          `Got an empty response from Copilot for HTML annotation of fragment: ${i + 1}`,
-        );
-      }
-
-      const annotatedHtml = response.choices[0].message?.content || "";
+      const annotatedHtml = await this.#annotateFragment(
+        llm,
+        htmlFragment,
+        populatedPrompt,
+        i + 1,
+      );
       annotatedFragments.push(annotatedHtml);
-      this._logger.debug("AnnotateHtml", "Annotated fragment", {
+      this.logger.debug("AnnotateHtml", "Annotated fragment", {
         fragment: i + 1,
         length: annotatedHtml.length,
       });
     }
 
     return annotatedFragments;
+  }
+
+  /**
+   * Gets page context from document context data
+   * @param {object} contextData Document context data
+   * @param {number} pageNum Page number (1-based)
+   * @returns {string} Page context summary
+   */
+  #getPageContext(contextData, pageNum) {
+    const pageKey = `page-${pageNum}`;
+    // Support both 'pages' (new) and 'slides' (legacy) keys
+    const pageData =
+      contextData.pages?.[pageKey] || contextData.slides?.[pageKey] || {};
+    return typeof pageData === "string" ? pageData : pageData.summary || "";
+  }
+
+  /**
+   * Annotates a single HTML fragment using LLM
+   * @param {object} llm LLM client instance
+   * @param {string} htmlFragment HTML fragment to annotate
+   * @param {string} systemPrompt Populated system prompt
+   * @param {number} fragmentNum Fragment number for error messages
+   * @returns {Promise<string>} Annotated HTML
+   */
+  async #annotateFragment(llm, htmlFragment, systemPrompt, fragmentNum) {
+    const messages = [
+      common.Message.fromObject({
+        role: "system",
+        content: systemPrompt,
+      }),
+      common.Message.fromObject({
+        role: "user",
+        content: htmlFragment,
+      }),
+    ];
+
+    const response = await llm.createCompletions({
+      messages,
+      max_tokens: this.getMaxTokens(),
+    });
+
+    if (!response.choices || response.choices.length === 0) {
+      throw new Error(
+        `Got an empty response from Copilot for HTML annotation of fragment: ${fragmentNum}`,
+      );
+    }
+
+    return response.choices[0].message?.content || "";
   }
 
   /**
@@ -185,8 +210,8 @@ export class AnnotateHtml extends StepBase {
     ].join("\n");
 
     const annotatedHtmlKey = `${targetDir}/annotated.html`;
-    await this._ingestStorage.put(annotatedHtmlKey, mergedHtml);
-    this._logger.debug("AnnotateHtml", "Saved annotated HTML", {
+    await this.ingestStorage.put(annotatedHtmlKey, mergedHtml);
+    this.logger.debug("AnnotateHtml", "Saved annotated HTML", {
       key: annotatedHtmlKey,
     });
 

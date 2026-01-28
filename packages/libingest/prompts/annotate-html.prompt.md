@@ -8,8 +8,8 @@ task is to enrich HTML with comprehensive structured data annotations.
 - **Document Type:** {document_type}
 - **Document Summary:** {global_summary}
 - **Known Entities:** {entities}
-- **This Slide's Context:** {slide_summary}
-- **Target HTML:** The slide fragment to annotate (provided as user message)
+- **This Page's Context:** {page_summary}
+- **Target HTML:** The page fragment to annotate (provided as user message)
 
 ## Output Rules
 
@@ -29,12 +29,12 @@ Every `<section>` MUST have both `itemscope` AND `itemtype`:
 <section
   itemscope
   itemtype="https://schema.org/[Type]"
-  class="slide-page"
+  class="document-page"
   ...
 ></section>
 ```
 
-Choose the most specific type based on slide content:
+Choose the most specific type based on page content:
 
 - Project updates → `https://schema.org/Project`
 - Resource/budget data → `https://schema.org/Report`
@@ -108,7 +108,7 @@ For products/projects:
 Wrap descriptive paragraphs:
 
 ```html
-<p itemprop="description">This slide explains...</p>
+<p itemprop="description">This page explains...</p>
 ```
 
 ## Quality Checklist

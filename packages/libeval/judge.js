@@ -1,8 +1,3 @@
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-
-import mustache from "mustache";
 import { common, agent } from "@copilot-ld/libtype";
 
 /**
@@ -13,26 +8,25 @@ export class JudgeEvaluator {
   #agentClient;
   #llmToken;
   #model;
-  #evaluationTemplate;
+  #promptLoader;
 
   /**
    * Create a new JudgeEvaluator instance
    * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
    * @param {string} llmToken - LLM token for API access
    * @param {string} model - Model to use for judge evaluations
+   * @param {import('@copilot-ld/libprompt').PromptLoader} promptLoader - Prompt loader for templates
    */
-  constructor(agentClient, llmToken, model) {
+  constructor(agentClient, llmToken, model, promptLoader) {
     if (!agentClient) throw new Error("agentClient is required");
     if (!llmToken) throw new Error("llmToken is required");
     if (!model) throw new Error("model is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
 
     this.#agentClient = agentClient;
     this.#llmToken = llmToken;
     this.#model = model;
-
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    const templatePath = join(__dirname, "./templates/evaluation.md.mustache");
-    this.#evaluationTemplate = readFileSync(templatePath, "utf8");
+    this.#promptLoader = promptLoader;
   }
 
   /**
@@ -48,7 +42,7 @@ export class JudgeEvaluator {
       index,
     }));
 
-    return mustache.render(this.#evaluationTemplate, {
+    return this.#promptLoader.render("evaluation", {
       prompt,
       response: responseContent,
       evaluations: evaluationsWithIndex,

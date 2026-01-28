@@ -7,11 +7,13 @@
 - **Average Pass Rate**: {{{total.rate}}}%
 
 ## Model Pass Rates
+
 {{#modelRates}}
-- **{{{model}}}**: {{{rate}}}% ({{{passed}}}/{{{total}}})
-{{/modelRates}}
+
+- **{{{model}}}**: {{{rate}}}% ({{{passed}}}/{{{total}}}) {{/modelRates}}
 
 ## Scenarios
+
 {{#scenarios}}
 
 ### [{{{scenario}}}](./{{{scenario}}}.md)
@@ -22,9 +24,9 @@
 
 {{{rationale}}}
 
-|{{#models}} {{{model}}} |{{/models}}
-|{{#models}}--------|{{/models}}
+|{{#models}} {{{model}}} |{{/models}} |{{#models}}--------|{{/models}}
 |{{#models}} {{{indicators}}} |{{/models}}
 
 ---
+
 {{/scenarios}}

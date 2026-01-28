@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-01-28
+
+- Migrated prompt templates from `templates/*.mustache` to `prompts/*.prompt.md`
+- Updated `JudgeEvaluator` to accept `PromptLoader` via constructor injection
+- Updated `EvaluationReporter` to accept `PromptLoader` via constructor
+  injection
+- Added `@copilot-ld/libprompt` dependency for template rendering
+- Removed direct `mustache` dependency
+
 ## 2025-12-21
 
 - Refactored `JudgeEvaluator` to use agent service instead of direct LLM/memory

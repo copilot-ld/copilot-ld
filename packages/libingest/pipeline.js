@@ -1,7 +1,10 @@
 import { join, dirname } from "path";
 import { readdir } from "fs/promises";
 import { fileURLToPath } from "url";
+
 import yaml from "js-yaml";
+
+import { PromptLoader } from "@copilot-ld/libprompt";
 import { ProcessorBase } from "@copilot-ld/libutil/processor.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -50,38 +53,50 @@ export class IngesterPipeline extends ProcessorBase {
   #ingestStorage;
   #configStorage;
   #config;
+  #ingestConfig;
   #logger;
   #stepHandlers;
+  #promptLoader;
 
   /**
    * Create a new Ingester instance.
    * @param {object} ingestStorage - Storage backend for ingest files
    * @param {object} configStorage - Storage backend for config files
+   * @param {import("@copilot-ld/libconfig").Config} config - Config instance for environment access
    * @param {object} [logger] - Logger with debug/info methods
    * @param {number} [batchSize] - Optional batch size for processing
    */
-  constructor(ingestStorage, configStorage, logger = console, batchSize = 20) {
+  constructor(
+    ingestStorage,
+    configStorage,
+    config,
+    logger = console,
+    batchSize = 20,
+  ) {
     super(logger, batchSize);
     if (!ingestStorage) throw new Error("ingestStorage backend is required");
     if (!configStorage) throw new Error("configStorage backend is required");
+    if (!config) throw new Error("config is required");
     this.#ingestStorage = ingestStorage;
     this.#configStorage = configStorage;
-    this.#config = null;
+    this.#config = config;
+    this.#ingestConfig = null;
     this.#logger = logger;
     this.#stepHandlers = null;
+    this.#promptLoader = new PromptLoader(join(__dirname, "prompts"));
   }
 
   /**
    * Loads the ingest configuration.
-   * @returns {Promise<object>} The config object
+   * @returns {Promise<object>} The ingest config object
    */
-  async #loadConfig() {
+  async #loadIngestConfig() {
     const configData = await this.#configStorage.get("ingest.yml");
-    const config = configData ? yaml.load(configData) : null;
-    if (!config) {
+    const ingestConfig = configData ? yaml.load(configData) : null;
+    if (!ingestConfig) {
       throw new Error("No ingest config found");
     }
-    return config;
+    return ingestConfig;
   }
 
   /**
@@ -105,8 +120,8 @@ export class IngesterPipeline extends ProcessorBase {
    */
   async process() {
     // Load config if not already loaded
-    if (!this.#config) {
-      this.#config = await this.#loadConfig();
+    if (!this.#ingestConfig) {
+      this.#ingestConfig = await this.#loadIngestConfig();
     }
     // Pre-load step handlers
     await this.#loadStepHandlers();
@@ -117,68 +132,118 @@ export class IngesterPipeline extends ProcessorBase {
   }
 
   /**
-   * Processes a single pipeline folder by loading its context.json and logging step information.
-   * @param {string} pipelineFolder The key representing the pipeline folder path
-   * @param {string} llmToken LLM API token for authentication
+   * Processes a single pipeline folder by executing steps until completion.
+   * @param {string} pipelineFolder - The key representing the pipeline folder path
    */
-  async processItem(pipelineFolder, llmToken) {
-    const ingestStorage = this.#ingestStorage;
-    // Check for context.json in each folder
+  async processItem(pipelineFolder) {
     const contextPath = join(pipelineFolder, "context.json");
-    const exists = await ingestStorage.exists(contextPath);
-    if (!exists) {
-      throw new Error(`Missing context.json in ${pipelineFolder}`);
-    }
+    await this.#ensureContextExists(pipelineFolder, contextPath);
 
-    // Get cached step handlers
     const stepHandlers = await this.#loadStepHandlers();
 
-    // Loop until all steps are completed
     while (true) {
-      // Load context.json (reload each iteration to get updated state)
-      const context = await ingestStorage.get(contextPath);
-      if (!context || !context.steps) {
-        throw new Error(
-          `Invalid or missing steps in context.json for ${pipelineFolder}`,
-        );
-      }
+      const context = await this.#loadContext(pipelineFolder, contextPath);
+      const nextStep = this.#findNextQueuedStep(context.steps);
 
-      // Find steps in order
-      const sortedSteps = Object.entries(context.steps).sort(
-        ([, a], [, b]) => a.order - b.order,
-      );
-
-      // Find the next queued step
-      const nextStep = sortedSteps.find(([, meta]) => meta.status === "QUEUED");
       if (!nextStep) {
-        // No more queued steps - all done
         this.#logger.debug("Pipeline", "All steps completed", {
           folder: pipelineFolder,
         });
         break;
       }
 
-      const [stepName] = nextStep;
-      this.#logger.debug("Pipeline", "Processing step", {
-        step: stepName,
-        folder: pipelineFolder,
-      });
-
-      // Get the handler for this step
-      const StepHandler = stepHandlers.get(stepName);
-      if (!StepHandler) {
-        throw new Error(`Unknown step: ${stepName}`);
-      }
-
-      // Get model config for this step
-      const modelConfig = {
-        model: this.#config.models?.[stepName],
-        maxTokens: this.#config.defaults?.maxTokens,
-      };
-
-      // Create and run the step handler
-      const handler = new StepHandler(ingestStorage, this.#logger, modelConfig);
-      await handler.process(contextPath, llmToken);
+      await this.#executeStep(
+        nextStep,
+        contextPath,
+        pipelineFolder,
+        stepHandlers,
+      );
     }
+  }
+
+  /**
+   * Ensures context.json exists in the pipeline folder.
+   * @param {string} pipelineFolder - Pipeline folder path
+   * @param {string} contextPath - Path to context.json
+   * @throws {Error} If context.json is missing
+   */
+  async #ensureContextExists(pipelineFolder, contextPath) {
+    const exists = await this.#ingestStorage.exists(contextPath);
+    if (!exists) {
+      throw new Error(`Missing context.json in ${pipelineFolder}`);
+    }
+  }
+
+  /**
+   * Loads and validates context.json.
+   * @param {string} pipelineFolder - Pipeline folder path
+   * @param {string} contextPath - Path to context.json
+   * @returns {Promise<object>} Parsed context object
+   * @throws {Error} If context is invalid
+   */
+  async #loadContext(pipelineFolder, contextPath) {
+    const context = await this.#ingestStorage.get(contextPath);
+    if (!context || !context.steps) {
+      throw new Error(
+        `Invalid or missing steps in context.json for ${pipelineFolder}`,
+      );
+    }
+    return context;
+  }
+
+  /**
+   * Finds the next queued step in order.
+   * @param {object} steps - Steps object from context
+   * @returns {[string, object]|undefined} Next step entry or undefined if none
+   */
+  #findNextQueuedStep(steps) {
+    const sortedSteps = Object.entries(steps).sort(
+      ([, a], [, b]) => a.order - b.order,
+    );
+    return sortedSteps.find(([, meta]) => meta.status === "QUEUED");
+  }
+
+  /**
+   * Executes a single pipeline step.
+   * @param {[string, object]} stepEntry - Step name and metadata
+   * @param {string} contextPath - Path to context.json
+   * @param {string} pipelineFolder - Pipeline folder path
+   * @param {Map<string, Function>} stepHandlers - Map of step handlers
+   */
+  async #executeStep(stepEntry, contextPath, pipelineFolder, stepHandlers) {
+    const [stepName] = stepEntry;
+    this.#logger.debug("Pipeline", "Processing step", {
+      step: stepName,
+      folder: pipelineFolder,
+    });
+
+    const StepHandler = stepHandlers.get(stepName);
+    if (!StepHandler) {
+      throw new Error(`Unknown step: ${stepName}`);
+    }
+
+    const handler = this.#createStepHandler(StepHandler, stepName);
+    await handler.process(contextPath);
+  }
+
+  /**
+   * Creates a step handler instance with dependencies.
+   * @param {Function} StepHandler - Step handler class
+   * @param {string} stepName - Name of the step for config lookup
+   * @returns {object} Step handler instance
+   */
+  #createStepHandler(StepHandler, stepName) {
+    const modelConfig = {
+      model: this.#ingestConfig.models?.[stepName],
+      maxTokens: this.#ingestConfig.defaults?.maxTokens,
+    };
+
+    return new StepHandler(
+      this.#ingestStorage,
+      this.#logger,
+      modelConfig,
+      this.#config,
+      this.#promptLoader,
+    );
   }
 }

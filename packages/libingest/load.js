@@ -14,7 +14,7 @@ import { join, extname, basename } from "node:path";
 export class IngesterLoad extends ProcessorBase {
   #ingestStorage;
   #configStorage;
-  #config;
+  #ingestConfig;
   #logger;
 
   /**
@@ -32,20 +32,24 @@ export class IngesterLoad extends ProcessorBase {
     this.#configStorage = configStorage;
     this.#logger = logger;
     // Config must be loaded asynchronously after construction
-    this.#config = null;
+    this.#ingestConfig = null;
   }
 
   /**
    * Loads and flattens the ingest config steps.
-   * @returns {Promise<object|null>} The processed config object or null
+   * @returns {Promise<object>} The ingest config object
    */
-  async #loadConfig() {
+  async #loadIngestConfig() {
     const configData = await this.#configStorage.get("ingest.yml");
-    let config = configData ? yaml.load(configData) : null;
-    if (!config || !config.steps || Object.keys(config.steps).length === 0) {
+    const ingestConfig = configData ? yaml.load(configData) : null;
+    if (
+      !ingestConfig ||
+      !ingestConfig.steps ||
+      Object.keys(ingestConfig.steps).length === 0
+    ) {
       throw new Error(`No steps found in config`);
     }
-    return config;
+    return ingestConfig;
   }
 
   /**
@@ -55,8 +59,8 @@ export class IngesterLoad extends ProcessorBase {
    */
   async process() {
     // Load config if not already loaded
-    if (!this.#config) {
-      this.#config = await this.#loadConfig();
+    if (!this.#ingestConfig) {
+      this.#ingestConfig = await this.#loadIngestConfig();
     }
 
     const ingestStorage = this.#ingestStorage;
@@ -65,56 +69,27 @@ export class IngesterLoad extends ProcessorBase {
   }
 
   /**
-   * Processes a single item (must be implemented by subclass)
+   * Processes a single file from the input folder.
    * @param {string} key - Storage key of the file to process
-   * @returns {Promise<any>} Processed result
+   * @returns {Promise<void>}
    */
   async processItem(key) {
-    const ingestStorage = this.#ingestStorage;
     const fileName = basename(key);
     const extension = extname(fileName);
     this.#logger.debug("Ingestor", "Ingesting file", { file_name: fileName });
-    const buffer = await ingestStorage.get(key);
-    const sha256 = createHash("sha256").update(buffer).digest("hex");
-    const targetDir = join("pipeline", sha256);
-    const contextPath = join(targetDir, "context.json");
 
-    // Check if context.json already exists
-    if (await ingestStorage.exists(contextPath)) {
-      throw new Error(
-        `context.json already exists for ${fileName}. You may need to clean up a previous run.`,
-      );
-    }
+    const buffer = await this.#ingestStorage.get(key);
+    const targetDir = this.#computeTargetDir(buffer);
 
-    const targetPath = join(targetDir, "target" + extension);
-    await ingestStorage.put(targetPath, buffer);
-    const now = new Date().toISOString();
+    await this.#ensureNotAlreadyProcessed(targetDir, fileName);
+    await this.#storeTargetFile(targetDir, extension, buffer);
+
     const mimeType = await this.#getMimeType(buffer);
-    // Lookup steps in config by mime type
-    let steps = this.#config.steps[mimeType];
-    if (!steps || !Array.isArray(steps)) {
-      throw new Error(`No steps found in config for ${mimeType}`);
-    }
-    const stepsObj = {};
-    steps.forEach((step, idx) => {
-      stepsObj[step] = { status: "QUEUED", order: idx + 1 };
-    });
-    const metadata = {
-      originalName: fileName,
-      extension: extension,
-      mime: mimeType,
-      dateCreated: now,
-      lastUpdate: now,
-      steps: stepsObj,
-    };
+    const metadata = this.#buildMetadata(fileName, extension, mimeType);
 
-    await ingestStorage.put(
-      contextPath,
-      JSON.stringify(metadata, null, 2),
-      "utf-8",
-    );
-    // Remove the original file from the 'todo' folder
-    await ingestStorage.delete(key);
+    await this.#writeContext(targetDir, metadata);
+    await this.#ingestStorage.delete(key);
+
     this.#logger.debug("Ingestor", "Ingested file and removed from in folder", {
       key,
       target_dir: targetDir,
@@ -122,13 +97,114 @@ export class IngesterLoad extends ProcessorBase {
   }
 
   /**
-   * Gets the MIME type of a buffer using the Linux 'file' command.
-   * Throws if 'file' command is not found.
+   * Computes the target directory path based on file content hash.
+   * @param {Buffer} buffer - File content
+   * @returns {string} Target directory path
+   */
+  #computeTargetDir(buffer) {
+    const sha256 = createHash("sha256").update(buffer).digest("hex");
+    return join("pipeline", sha256);
+  }
+
+  /**
+   * Ensures the file has not already been processed.
+   * @param {string} targetDir - Target directory path
+   * @param {string} fileName - Original file name for error message
+   * @throws {Error} If context.json already exists
+   */
+  async #ensureNotAlreadyProcessed(targetDir, fileName) {
+    const contextPath = join(targetDir, "context.json");
+    if (await this.#ingestStorage.exists(contextPath)) {
+      throw new Error(
+        `context.json already exists for ${fileName}. You may need to clean up a previous run.`,
+      );
+    }
+  }
+
+  /**
+   * Stores the file in the target directory.
+   * @param {string} targetDir - Target directory path
+   * @param {string} extension - File extension
+   * @param {Buffer} buffer - File content
+   */
+  async #storeTargetFile(targetDir, extension, buffer) {
+    const targetPath = join(targetDir, "target" + extension);
+    await this.#ingestStorage.put(targetPath, buffer);
+  }
+
+  /**
+   * Builds metadata object for context.json.
+   * @param {string} fileName - Original file name
+   * @param {string} extension - File extension
+   * @param {string} mimeType - Detected MIME type
+   * @returns {object} Metadata object with steps
+   */
+  #buildMetadata(fileName, extension, mimeType) {
+    const steps = this.#getStepsForMimeType(mimeType);
+    const now = new Date().toISOString();
+
+    return {
+      originalName: fileName,
+      extension: extension,
+      mime: mimeType,
+      dateCreated: now,
+      lastUpdate: now,
+      steps: steps,
+    };
+  }
+
+  /**
+   * Gets pipeline steps for a MIME type from config.
+   * @param {string} mimeType - MIME type to lookup
+   * @returns {object} Steps object with status and order
+   * @throws {Error} If no steps configured for MIME type
+   */
+  #getStepsForMimeType(mimeType) {
+    const stepNames = this.#ingestConfig.steps[mimeType];
+    if (!stepNames || !Array.isArray(stepNames)) {
+      throw new Error(`No steps found in config for ${mimeType}`);
+    }
+
+    const steps = {};
+    stepNames.forEach((step, idx) => {
+      steps[step] = { status: "QUEUED", order: idx + 1 };
+    });
+    return steps;
+  }
+
+  /**
+   * Writes context.json to the target directory.
+   * @param {string} targetDir - Target directory path
+   * @param {object} metadata - Metadata to write
+   */
+  async #writeContext(targetDir, metadata) {
+    const contextPath = join(targetDir, "context.json");
+    await this.#ingestStorage.put(
+      contextPath,
+      JSON.stringify(metadata, null, 2),
+      "utf-8",
+    );
+  }
+
+  /**
+   * Gets the MIME type of a buffer using the system 'file' command.
    * @param {Buffer} buffer - File buffer
    * @returns {Promise<string>} MIME type string
+   * @throws {Error} If 'file' command is not found or fails
    */
   async #getMimeType(buffer) {
-    // Check if 'file' command exists
+    await this.#ensureFileCommandExists();
+
+    const tempFile = await this.#writeToTempFile(buffer);
+    try {
+      return await this.#detectMimeType(tempFile);
+    } finally {
+      await unlink(tempFile).catch(() => {});
+    }
+  }
+
+  /** Verifies the 'file' command is available on the system. */
+  async #ensureFileCommandExists() {
     await new Promise((resolve, reject) => {
       execFile("which", ["file"], (err, stdout) => {
         if (err || !stdout.trim()) {
@@ -138,13 +214,28 @@ export class IngesterLoad extends ProcessorBase {
         }
       });
     });
-    // Write buffer to temp file
+  }
+
+  /**
+   * Writes buffer to a temporary file.
+   * @param {Buffer} buffer - Content to write
+   * @returns {Promise<string>} Path to temp file
+   */
+  async #writeToTempFile(buffer) {
     const tempDir = await mkdtemp(join(tmpdir(), "ingest-"));
     const tempFile = join(tempDir, `tmpfile-${Date.now()}`);
     await writeFile(tempFile, buffer);
-    // Run 'file --mime-type'
-    const mimeType = await new Promise((resolve, reject) => {
-      execFile("file", ["--mime-type", "-b", tempFile], (err, stdout) => {
+    return tempFile;
+  }
+
+  /**
+   * Runs the 'file' command to detect MIME type.
+   * @param {string} filePath - Path to file
+   * @returns {Promise<string>} MIME type
+   */
+  async #detectMimeType(filePath) {
+    return new Promise((resolve, reject) => {
+      execFile("file", ["--mime-type", "-b", filePath], (err, stdout) => {
         if (err) {
           reject(new Error(`Failed to get MIME type: ${err.message}`));
         } else {
@@ -152,9 +243,5 @@ export class IngesterLoad extends ProcessorBase {
         }
       });
     });
-    // Clean up temp file and directory
-    await unlink(tempFile).catch(() => {});
-    // Optionally remove tempDir (not strictly necessary, OS will clean up)
-    return mimeType;
   }
 }

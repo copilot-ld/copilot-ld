@@ -1,11 +1,13 @@
 // Standard imports - always first
-import { test, describe, beforeEach, afterEach } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
 
 // Module under test - second section
 import { AnnotateHtml, STEP_NAME } from "../steps/annotate-html.js";
 import { STEP_NAME as IMAGES_TO_HTML_STEP } from "../steps/images-to-html.js";
 import { STEP_NAME as EXTRACT_CONTEXT_STEP } from "../steps/extract-context.js";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Mock storage for testing
 /**
@@ -45,59 +47,66 @@ function createMockLogger() {
   };
 }
 
+// Mock config for testing
+/**
+ * Creates a mock Config instance for testing.
+ * @param {object} overrides - Optional method overrides
+ * @returns {object} Mock config with llmToken, llmBaseUrl, embeddingBaseUrl methods
+ */
+function createMockConfig(overrides = {}) {
+  return {
+    llmToken: () => "test_token_123",
+    llmBaseUrl: () => "https://models.github.ai/inference",
+    embeddingBaseUrl: () => "http://localhost:8090",
+    ...overrides,
+  };
+}
+
 describe("AnnotateHtml", () => {
   let mockStorage;
   let mockLogger;
-  let originalLlmToken;
-  let originalLlmBaseUrl;
-  let originalEmbeddingBaseUrl;
+  let mockConfig;
+  let promptLoader;
 
   beforeEach(() => {
     mockStorage = createMockStorage();
     mockLogger = createMockLogger();
-    // Save original environment variables
-    originalLlmToken = globalThis.process.env.LLM_TOKEN;
-    originalLlmBaseUrl = globalThis.process.env.LLM_BASE_URL;
-    originalEmbeddingBaseUrl = globalThis.process.env.EMBEDDING_BASE_URL;
-    // Set test values to avoid errors in createLlm
-    globalThis.process.env.LLM_TOKEN = "test_token_123";
-    globalThis.process.env.LLM_BASE_URL = "https://models.github.ai/inference";
-    globalThis.process.env.EMBEDDING_BASE_URL = "http://localhost:8090";
-  });
-
-  afterEach(() => {
-    // Restore original environment variables
-    if (originalLlmToken === undefined) {
-      delete globalThis.process.env.LLM_TOKEN;
-    } else {
-      globalThis.process.env.LLM_TOKEN = originalLlmToken;
-    }
-    if (originalLlmBaseUrl === undefined) {
-      delete globalThis.process.env.LLM_BASE_URL;
-    } else {
-      globalThis.process.env.LLM_BASE_URL = originalLlmBaseUrl;
-    }
-    if (originalEmbeddingBaseUrl === undefined) {
-      delete globalThis.process.env.EMBEDDING_BASE_URL;
-    } else {
-      globalThis.process.env.EMBEDDING_BASE_URL = originalEmbeddingBaseUrl;
-    }
+    mockConfig = createMockConfig();
+    promptLoader = new PromptLoader(join(import.meta.dirname, "../prompts"));
   });
 
   describe("constructor", () => {
     test("creates instance with required parameters", () => {
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
     test("accepts optional modelConfig", () => {
       const modelConfig = { model: "gpt-4", maxTokens: 1000 };
-      const step = new AnnotateHtml(mockStorage, mockLogger, modelConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        modelConfig,
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
     });
 
     test("loads annotate HTML prompt", () => {
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
       assert.ok(step);
       // The prompt should be loaded in constructor
       // We can't directly test the private field, but constructor should not throw
@@ -123,7 +132,13 @@ describe("AnnotateHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -149,7 +164,13 @@ describe("AnnotateHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -157,8 +178,9 @@ describe("AnnotateHtml", () => {
       });
     });
 
-    test("throws error when LLM_TOKEN is not set", async () => {
-      delete globalThis.process.env.LLM_TOKEN;
+    test("throws error when LLM token is not set", async () => {
+      // Create config with no token
+      const noTokenConfig = createMockConfig({ llmToken: () => null });
 
       const ingestContext = {
         filename: "test.pdf",
@@ -188,7 +210,13 @@ describe("AnnotateHtml", () => {
       );
       mockStorage.put("pipeline/abc123/document-context.json", contextData);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        noTokenConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -237,7 +265,13 @@ describe("AnnotateHtml", () => {
 
       // This will fail at the LLM call since we have a fake token,
       // but we can verify the setup doesn't throw
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(
         () => step.process("pipeline/abc123/context.json"),
@@ -280,7 +314,13 @@ describe("AnnotateHtml", () => {
       );
       mockStorage.put("pipeline/abc123/document-context.json", contextData);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // Will fail at LLM call, but should not fail during entity formatting
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -307,7 +347,13 @@ describe("AnnotateHtml", () => {
 
       mockStorage.put("pipeline/abc123/context.json", ingestContext);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
@@ -343,7 +389,13 @@ describe("AnnotateHtml", () => {
       );
       mockStorage.put("pipeline/abc123/document-context.json", contextData);
 
-      const step = new AnnotateHtml(mockStorage, mockLogger);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        {},
+        mockConfig,
+        promptLoader,
+      );
 
       // The step will fail at LLM call, but we verify target dir extraction works
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
@@ -357,7 +409,13 @@ describe("AnnotateHtml", () => {
 
     test("uses configured model settings", () => {
       const modelConfig = { model: "gpt-4o", maxTokens: 8000 };
-      const step = new AnnotateHtml(mockStorage, mockLogger, modelConfig);
+      const step = new AnnotateHtml(
+        mockStorage,
+        mockLogger,
+        modelConfig,
+        mockConfig,
+        promptLoader,
+      );
 
       assert.strictEqual(step.getModel(), "gpt-4o");
       assert.strictEqual(step.getMaxTokens(), 8000);

@@ -1,6 +1,10 @@
 #!/usr/bin/env node
+import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
+import { fileURLToPath } from "node:url";
+
 import yaml from "js-yaml";
+
 import {
   Evaluator,
   EvaluationIndex,
@@ -12,6 +16,7 @@ import { createStorage } from "@copilot-ld/libstorage";
 import { clients, createTracer } from "@copilot-ld/librpc";
 import { createServiceConfig } from "@copilot-ld/libconfig";
 import { createLogger } from "@copilot-ld/libtelemetry";
+import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Extract generated clients
 const { AgentClient, MemoryClient, TraceClient } = clients;
@@ -149,8 +154,17 @@ async function main() {
   // Load scenarios
   const scenarios = await loadScenarios(configStorage, args.scenario);
 
+  // Create prompt loader for judge evaluator
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const promptLoader = new PromptLoader(join(__dirname, "../prompts"));
+
   // Create evaluators
-  const judgeEvaluator = new JudgeEvaluator(agentClient, llmToken, judgeModel);
+  const judgeEvaluator = new JudgeEvaluator(
+    agentClient,
+    llmToken,
+    judgeModel,
+    promptLoader,
+  );
   const recallEvaluator = new RecallEvaluator(
     agentConfig,
     memoryClient,

@@ -1,4 +1,3 @@
-import { Utils } from "../utils.js";
 import { STEP_NAME as PDF_TO_IMAGES_STEP } from "./pdf-to-images.js";
 import { StepBase } from "./step-base.js";
 
@@ -24,15 +23,14 @@ export class ImagesToHtml extends StepBase {
    * Create a new ImagesToHtml instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} ingestStorage Storage backend for ingest files
    * @param {object} logger Logger instance with debug() method
-   * @param {import("./step-base.js").ModelConfig} [modelConfig] Optional model configuration
+   * @param {import("./step-base.js").ModelConfig} modelConfig Model configuration
+   * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader Prompt loader for templates
    */
-  constructor(ingestStorage, logger, modelConfig) {
-    super(ingestStorage, logger, modelConfig);
+  constructor(ingestStorage, logger, modelConfig, config, promptLoader) {
+    super(ingestStorage, logger, modelConfig, config, promptLoader);
 
-    this.#imgToHtmlSystemPrompt = Utils.loadPrompt(
-      "image-to-html-prompt.md",
-      import.meta.dirname,
-    );
+    this.#imgToHtmlSystemPrompt = this.loadPrompt("image-to-html");
   }
 
   /**
@@ -49,21 +47,21 @@ export class ImagesToHtml extends StepBase {
     const imageKeys = this.#getImageKeys(ingestContext, targetDir);
 
     // Create LLM after validation
-    const llm = this.createLlm();
+    const llm = await this.createLlm();
 
-    this._logger.debug("ImagesToHtml", "Processing images to HTML", {
+    this.logger.debug("ImagesToHtml", "Processing images to HTML", {
       count: imageKeys.length,
     });
 
     const htmlFragments = [];
 
     for (const [i, imageKey] of imageKeys.entries()) {
-      this._logger.debug("ImagesToHtml", "Processing image", {
+      this.logger.debug("ImagesToHtml", "Processing image", {
         page: i + 1,
         key: imageKey,
       });
 
-      const imageBuffer = await this._ingestStorage.get(imageKey);
+      const imageBuffer = await this.ingestStorage.get(imageKey);
       if (!Buffer.isBuffer(imageBuffer)) {
         throw new Error(`Got a non-buffer image ${imageKey}`);
       }
@@ -77,12 +75,12 @@ export class ImagesToHtml extends StepBase {
       );
 
       if (htmlContent && htmlContent.length > 0) {
-        this._logger.debug(
+        this.logger.debug(
           `Received HTML from Copilot, page: ${i + 1}, contentLength: ${htmlContent.length}`,
         );
         htmlFragments.push(htmlContent);
       } else {
-        this._logger.debug(
+        this.logger.debug(
           `Got an empty response from Copilot for image, page: ${i + 1}`,
         );
       }
@@ -101,17 +99,17 @@ export class ImagesToHtml extends StepBase {
 
     // Save merged HTML to storage
     const htmlKey = `${targetDir}/target.html`;
-    await this._ingestStorage.put(htmlKey, mergedHtml);
-    this._logger.debug(`Saved merged HTML to ${htmlKey}`);
+    await this.ingestStorage.put(htmlKey, mergedHtml);
+    this.logger.debug(`Saved merged HTML to ${htmlKey}`);
 
     // Save individual fragments to storage
     const fragmentKeys = [];
     for (const [i, fragment] of htmlFragments.entries()) {
       const fragmentKey = `${targetDir}/fragment-${String(i + 1).padStart(3, "0")}.html`;
-      await this._ingestStorage.put(fragmentKey, fragment);
+      await this.ingestStorage.put(fragmentKey, fragment);
       fragmentKeys.push(fragmentKey);
     }
-    this._logger.debug(`Saved ${fragmentKeys.length} HTML fragments`);
+    this.logger.debug(`Saved ${fragmentKeys.length} HTML fragments`);
 
     await this.completeStep(ingestContextKey, ingestContext, step, {
       htmlKey,

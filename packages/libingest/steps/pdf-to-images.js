@@ -1,14 +1,22 @@
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
-import { Utils } from "../utils.js";
 import { StepBase } from "./step-base.js";
 
 export const STEP_NAME = "pdf-to-images";
 
 const PDF_SPLIT_PREFIX = "pdfsplit-";
+
+/**
+ * Checks if pdftoppm command is available on the system.
+ * @returns {boolean} True if pdftoppm is available, false otherwise
+ */
+function isPdftoppmAvailable() {
+  const result = spawnSync("pdftoppm", ["-v"], { encoding: "utf8" });
+  return result.status === 0 || Boolean(result.stdout?.includes("pdftoppm"));
+}
 
 /**
  * PdfToImages step: Converts PDF files to images and uploads them to storage.
@@ -24,11 +32,13 @@ export class PdfToImages extends StepBase {
    * Create a new PdfToImages instance.
    * @param {import("@copilot-ld/libstorage").StorageInterface} ingestStorage Storage backend for ingest files
    * @param {object} logger Logger instance with debug() method
-   * @param {import("./step-base.js").ModelConfig} [modelConfig] Optional model configuration
+   * @param {import("./step-base.js").ModelConfig} modelConfig Model configuration
+   * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader Prompt loader for templates
    */
-  constructor(ingestStorage, logger, modelConfig) {
-    super(ingestStorage, logger, modelConfig);
-    if (!Utils.isPdftoppmAvailable()) {
+  constructor(ingestStorage, logger, modelConfig, config, promptLoader) {
+    super(ingestStorage, logger, modelConfig, config, promptLoader);
+    if (!isPdftoppmAvailable()) {
       throw new Error("pdftoppm is not installed or not available in PATH");
     }
   }
@@ -51,9 +61,9 @@ export class PdfToImages extends StepBase {
     // Get the file key and filename from context
     const pdfKey = join(targetDir, "target" + ingestContext.extension);
 
-    this._logger.debug(`Processing PDF ${pdfKey}`);
+    this.logger.debug(`Processing PDF ${pdfKey}`);
 
-    const pdfBuffer = await this._ingestStorage.get(pdfKey);
+    const pdfBuffer = await this.ingestStorage.get(pdfKey);
     if (!Buffer.isBuffer(pdfBuffer)) {
       throw new Error(`Got a non-buffer PDF ${pdfKey}`);
     }
@@ -62,7 +72,7 @@ export class PdfToImages extends StepBase {
     try {
       const images = await this.#pdfSplitter(pdfBuffer, tempDir);
 
-      this._logger.debug("PdfToImages", "Split PDF into images", {
+      this.logger.debug("PdfToImages", "Split PDF into images", {
         key: pdfKey,
         count: images.length,
       });
@@ -73,9 +83,9 @@ export class PdfToImages extends StepBase {
         const pageMatch = imagePath.match(/page-(\d+)\.png$/);
         const pageNum = pageMatch ? pageMatch[1] : "unknown";
         const imageKey = `${targetDir}/target-page-${pageNum}.png`;
-        await this._ingestStorage.put(imageKey, imageBuffer);
+        await this.ingestStorage.put(imageKey, imageBuffer);
 
-        this._logger.debug("PdfToImages", "Uploaded image", { key: imageKey });
+        this.logger.debug("PdfToImages", "Uploaded image", { key: imageKey });
         savedImageKeys.push(imageKey);
       }
 
@@ -84,7 +94,7 @@ export class PdfToImages extends StepBase {
       });
     } finally {
       // Clean up tempDir after all processing is complete
-      this._logger.debug("PdfToImages", "Removing temp directory", {
+      this.logger.debug("PdfToImages", "Removing temp directory", {
         temp_dir: tempDir,
       });
       await rm(tempDir, { recursive: true, force: true });
@@ -101,11 +111,11 @@ export class PdfToImages extends StepBase {
   async #pdfSplitter(pdfBuffer, tempDir) {
     const pdfPath = join(tempDir, "input.pdf");
     await writeFile(pdfPath, pdfBuffer);
-    this._logger.debug(`Wrote pdf to ${pdfPath}`);
+    this.logger.debug(`Wrote pdf to ${pdfPath}`);
 
     // pdftoppm command: pdftoppm input.pdf page -png
     const outputPrefix = join(tempDir, "page");
-    this._logger.debug(`outputPrefix ${outputPrefix}`);
+    this.logger.debug(`outputPrefix ${outputPrefix}`);
     await new Promise((resolve, reject) => {
       const proc = spawn("pdftoppm", [pdfPath, outputPrefix, "-png"]);
       proc.on("error", reject);
@@ -130,7 +140,7 @@ export class PdfToImages extends StepBase {
       throw new Error("No images generated from PDF");
     }
 
-    this._logger.debug("PdfToImages", "Generated images from PDF", {
+    this.logger.debug("PdfToImages", "Generated images from PDF", {
       image_files: imageFiles.join(", "),
     });
     return imageFiles;

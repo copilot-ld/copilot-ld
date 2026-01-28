@@ -25,8 +25,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write --list-different .",
-    "check": "npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions && npm run format && npm run lint",
-    "check:fix": "npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions && npm run format:fix && npm run lint:fix"
+    "check": "npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*.prompt.md' --dictionaries .dictionary.txt --no-suggestions && npm run format && npm run lint",
+    "check:fix": "npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*.prompt.md' --dictionaries .dictionary.txt --no-suggestions && npm run format:fix && npm run lint:fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

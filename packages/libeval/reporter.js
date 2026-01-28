@@ -1,20 +1,15 @@
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import mustache from "mustache";
 import { memory } from "@copilot-ld/libtype";
 
 /**
  * EvaluationReporter generates summary and per-scenario reports from evaluation index
- * Uses mustache templates to generate markdown reports
+ * Uses PromptLoader for Mustache template rendering
  */
 export class EvaluationReporter {
   #agentConfig;
   #evaluationIndex;
   #traceVisualizer;
   #memoryClient;
-  #summaryTemplate;
-  #scenarioTemplate;
+  #promptLoader;
   #configStorage;
 
   /**
@@ -23,6 +18,7 @@ export class EvaluationReporter {
    * @param {import("./index/evaluation.js").EvaluationIndex} evaluationIndex - Evaluation index with results
    * @param {import("@copilot-ld/libtelemetry/visualizer.js").TraceVisualizer} traceVisualizer - Trace visualizer for generating trace diagrams
    * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory client for fetching memory windows
+   * @param {import("@copilot-ld/libprompt").PromptLoader} promptLoader - Prompt loader for templates
    * @param {import("@copilot-ld/libstorage").Storage} configStorage - Storage for configuration data
    */
   constructor(
@@ -30,29 +26,22 @@ export class EvaluationReporter {
     evaluationIndex,
     traceVisualizer,
     memoryClient,
+    promptLoader,
     configStorage,
   ) {
     if (!agentConfig) throw new Error("agentConfig is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!traceVisualizer) throw new Error("traceVisualizer is required");
     if (!memoryClient) throw new Error("memoryClient is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
     if (!configStorage) throw new Error("configStorage is required");
 
     this.#agentConfig = agentConfig;
     this.#evaluationIndex = evaluationIndex;
     this.#traceVisualizer = traceVisualizer;
     this.#memoryClient = memoryClient;
+    this.#promptLoader = promptLoader;
     this.#configStorage = configStorage;
-
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    this.#summaryTemplate = readFileSync(
-      join(__dirname, "./templates/summary.md.mustache"),
-      "utf8",
-    );
-    this.#scenarioTemplate = readFileSync(
-      join(__dirname, "./templates/scenario.md.mustache"),
-      "utf8",
-    );
   }
 
   /**
@@ -253,7 +242,7 @@ export class EvaluationReporter {
       scenarios: scenarioStats,
     };
 
-    return mustache.render(this.#summaryTemplate, templateData);
+    return this.#promptLoader.render("summary", templateData);
   }
 
   /**
@@ -352,7 +341,7 @@ export class EvaluationReporter {
       agents,
     };
 
-    return mustache.render(this.#scenarioTemplate, templateData);
+    return this.#promptLoader.render("scenario", templateData);
   }
 
   /**

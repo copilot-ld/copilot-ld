@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-01-28
+
+- Migrated prompts from `transformer/*-prompt.md` to `prompts/*.prompt.md`
+- Updated `PdfTransformer` to accept optional `PromptLoader` via constructor
+- Updated `#loadPrompt()` to use `PromptLoader` when available
+- Added `@copilot-ld/libprompt` dependency
+
 ## 2025-11-24
 
 - Bump version

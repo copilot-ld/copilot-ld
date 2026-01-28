@@ -14,7 +14,7 @@ import { join, extname, basename } from "node:path";
 export class IngesterLoad extends ProcessorBase {
   #ingestStorage;
   #configStorage;
-  #config;
+  #ingestConfig;
   #logger;
 
   /**
@@ -32,20 +32,20 @@ export class IngesterLoad extends ProcessorBase {
     this.#configStorage = configStorage;
     this.#logger = logger;
     // Config must be loaded asynchronously after construction
-    this.#config = null;
+    this.#ingestConfig = null;
   }
 
   /**
    * Loads and flattens the ingest config steps.
-   * @returns {Promise<object|null>} The processed config object or null
+   * @returns {Promise<object>} The ingest config object
    */
-  async #loadConfig() {
+  async #loadIngestConfig() {
     const configData = await this.#configStorage.get("ingest.yml");
-    let config = configData ? yaml.load(configData) : null;
-    if (!config || !config.steps || Object.keys(config.steps).length === 0) {
+    const ingestConfig = configData ? yaml.load(configData) : null;
+    if (!ingestConfig || !ingestConfig.steps || Object.keys(ingestConfig.steps).length === 0) {
       throw new Error(`No steps found in config`);
     }
-    return config;
+    return ingestConfig;
   }
 
   /**
@@ -55,8 +55,8 @@ export class IngesterLoad extends ProcessorBase {
    */
   async process() {
     // Load config if not already loaded
-    if (!this.#config) {
-      this.#config = await this.#loadConfig();
+    if (!this.#ingestConfig) {
+      this.#ingestConfig = await this.#loadIngestConfig();
     }
 
     const ingestStorage = this.#ingestStorage;
@@ -156,7 +156,7 @@ export class IngesterLoad extends ProcessorBase {
    * @throws {Error} If no steps configured for MIME type
    */
   #getStepsForMimeType(mimeType) {
-    const stepNames = this.#config.steps[mimeType];
+    const stepNames = this.#ingestConfig.steps[mimeType];
     if (!stepNames || !Array.isArray(stepNames)) {
       throw new Error(`No steps found in config for ${mimeType}`);
     }

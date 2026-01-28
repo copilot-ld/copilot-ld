@@ -47,6 +47,6 @@ summary of slide 1.", "page-2": "A 1-sentence summary of slide 2.", "page-N":
 # Example Output
 
 { "document_type": "FinancialReport", "global_summary": "Q3 2023 Fiscal Overview
-for Acme Corp focusing on marketing ROI.", "slides": { "page-1": "Title slide:
-Q3 Financial Results.", "page-2": "Executive summary listing 3 key growth
-areas.", "page-3": "Bar chart showing revenue vs projected targets." } }
+for Acme Corp focusing on marketing ROI", "slides": { "page-1": "Title slide: Q3
+Financial Results", "page-2": "Executive summary listing 3 key growth areas.",
+"page-3": "Bar chart showing revenue vs projected targets." } }

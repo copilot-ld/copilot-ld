@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libchat",
-  "version": "0.1.5",
+  "version": "0.1.4",
   "description": "Chat web components for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -40,6 +40,6 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.4"
+    "@copilot-ld/libharness": "^0.1.3"
   }
 }

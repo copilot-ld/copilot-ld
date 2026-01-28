@@ -5,79 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>libchat Design Guide</title>
     <style>
-      /*
-     * Design Guide Styles
-     * ================================================
-     */
-
-      /* CSS Custom Properties - Light mode (default) */
-      :root {
-        --chat-text: #1f2937;
-        --chat-text-muted: #6b7280;
-        --chat-text-inverse: #ffffff;
-        --chat-bg: #ffffff;
-        --chat-bg-alt: #f9fafb;
-        --chat-bg-muted: #f3f4f6;
-        --chat-border: #e5e7eb;
-        --chat-shadow: rgba(0, 0, 0, 0.08);
-        --chat-accent: #2563eb;
-        --chat-accent-hover: #1d4ed8;
-        --chat-accent-muted: rgba(37, 99, 235, 0.1);
-        --chat-error: #dc2626;
-        --chat-radius: 8px;
-        --chat-gap: 16px;
-
-        /* Guide-specific */
-        --guide-surface: #f8fafc;
-        --guide-code-bg: #f1f5f9;
-      }
-
-      /* CSS Custom Properties - Dark mode */
-      :root.dark {
-        --chat-text: #f9fafb;
-        --chat-text-muted: #9ca3af;
-        --chat-bg: #111827;
-        --chat-bg-alt: #1f2937;
-        --chat-bg-muted: #374151;
-        --chat-border: #374151;
-        --chat-shadow: rgba(0, 0, 0, 0.3);
-        --chat-accent: #3b82f6;
-        --chat-accent-hover: #60a5fa;
-        --chat-accent-muted: rgba(59, 130, 246, 0.15);
-        --chat-error: #f87171;
-
-        /* Guide-specific */
-        --guide-surface: #0f172a;
-        --guide-code-bg: #1e293b;
-      }
-
-      /* Reset */
       *,
       *::before,
       *::after {
         box-sizing: border-box;
       }
 
-      body {
-        margin: 0;
-        padding: 0;
-        font-family:
-          system-ui,
-          -apple-system,
-          sans-serif;
-        font-size: 14px;
-        line-height: 1.6;
-        color: var(--chat-text);
-        background: var(--guide-surface);
-        transition:
-          background 0.2s,
-          color 0.2s;
+      :root {
+        --g-bg: #f5f5f5;
+        --g-card: white;
+        --g-muted: #f9fafb;
+        --g-border: #e5e7eb;
+        --g-text: #1f2937;
+        --g-dim: #6b7280;
+        --g-accent: #2563eb;
+      }
+      body.dark {
+        --g-bg: #0a0a0a;
+        --g-card: #111827;
+        --g-muted: #1f2937;
+        --g-border: #374151;
+        --g-text: #f9fafb;
+        --g-dim: #9ca3af;
       }
 
-      /*
-     * Layout
-     * ------------------------------------------------
-     */
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: var(--g-bg);
+        color: var(--g-text);
+      }
+
       .guide-header {
         position: sticky;
         top: 0;
@@ -85,1532 +43,634 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 32px;
-        background: var(--chat-bg);
-        border-bottom: 1px solid var(--chat-border);
+        padding: 16px 24px;
+        background: var(--g-card);
+        border-bottom: 1px solid var(--g-border);
       }
-
       .guide-header h1 {
         margin: 0;
         font-size: 20px;
         font-weight: 600;
       }
-
       .guide-header h1 span {
-        color: var(--chat-accent);
+        color: var(--g-accent);
       }
 
-      .guide-nav {
+      .mode-toggle {
         display: flex;
         gap: 8px;
-        align-items: center;
+      }
+      .mode-toggle button {
+        padding: 8px 16px;
+        border: 1px solid var(--g-border);
+        border-radius: 6px;
+        background: var(--g-card);
+        color: var(--g-dim);
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .mode-toggle button.active {
+        background: var(--g-accent);
+        border-color: var(--g-accent);
+        color: white;
       }
 
-      .guide-container {
+      .guide-content {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 32px;
+        padding: 32px 24px;
       }
-
-      /*
-     * Theme Toggle
-     * ------------------------------------------------
-     */
-      .theme-toggle {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
-        border: 1px solid var(--chat-border);
-        border-radius: 20px;
-        background: var(--chat-bg-muted);
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .theme-toggle:hover {
-        border-color: var(--chat-accent);
-      }
-
-      .theme-toggle-icon {
-        font-size: 16px;
-      }
-
-      .theme-toggle-label {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--chat-text);
-      }
-
-      /*
-     * Sections
-     * ------------------------------------------------
-     */
       .guide-section {
         margin-bottom: 48px;
       }
-
       .guide-section h2 {
         margin: 0 0 8px;
-        font-size: 24px;
+        font-size: 18px;
         font-weight: 600;
-        color: var(--chat-text);
       }
-
-      .guide-section > p {
+      .guide-section p {
         margin: 0 0 24px;
-        color: var(--chat-text-muted);
-      }
-
-      .guide-section h3 {
-        margin: 32px 0 16px;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--chat-text);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      /*
-     * Component Cards
-     * ------------------------------------------------
-     */
-      .component-card {
-        margin-bottom: 24px;
-        border: 1px solid var(--chat-border);
-        border-radius: 12px;
-        background: var(--chat-bg);
-        overflow: hidden;
-      }
-
-      .component-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--chat-border);
-        background: var(--chat-bg-alt);
-      }
-
-      .component-card-title {
-        margin: 0;
+        color: var(--g-dim);
         font-size: 14px;
-        font-weight: 600;
       }
 
-      .component-card-tag {
-        padding: 2px 8px;
-        border-radius: 4px;
-        background: var(--chat-accent-muted);
-        color: var(--chat-accent);
-        font-size: 11px;
-        font-weight: 500;
-        text-transform: uppercase;
-      }
-
-      .component-preview {
-        padding: 32px;
-        background: var(--chat-bg-alt);
-      }
-
-      .component-preview-dark {
-        background: #1f2937;
-      }
-
-      .component-preview-centered {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        flex-wrap: wrap;
-      }
-
-      .component-code {
-        padding: 16px;
-        border-top: 1px solid var(--chat-border);
-        background: var(--guide-code-bg);
-        font-family: ui-monospace, "SF Mono", Monaco, Consolas, monospace;
-        font-size: 12px;
-        line-height: 1.6;
-        overflow-x: auto;
-      }
-
-      .component-code pre {
-        margin: 0;
-        white-space: pre-wrap;
-        color: var(--chat-text);
-      }
-
-      /*
-     * Color Palette
-     * ------------------------------------------------
-     */
-      .color-grid {
+      .component-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       }
 
-      .color-swatch {
-        border: 1px solid var(--chat-border);
-        border-radius: 8px;
+      figure {
+        margin: 0 0 24px;
+        background: var(--g-card);
+        border: 1px solid var(--g-border);
+        border-radius: 12px;
         overflow: hidden;
-        background: var(--chat-bg);
+      }
+      figure.drawer {
+        background: var(--g-muted);
+      }
+      figure.drawer figcaption {
+        background: transparent;
+      }
+      figcaption {
+        padding: 12px 16px;
+        background: var(--g-muted);
+        border-bottom: 1px solid var(--g-border);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--g-dim);
       }
 
-      .color-swatch-preview {
+      .preview {
+        padding: 24px;
+      }
+      .preview.flush {
+        padding: 0;
+      }
+      .preview.drawer {
+        height: 400px;
+        position: relative;
+      }
+      .preview.drawer.collapsed {
         height: 80px;
       }
-
-      .color-swatch-info {
-        padding: 12px;
-      }
-
-      .color-swatch-name {
-        margin: 0 0 4px;
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .color-swatch-var {
-        margin: 0;
-        font-family: ui-monospace, monospace;
-        font-size: 11px;
-        color: var(--chat-text-muted);
-      }
-
-      /*
-     * Typography
-     * ------------------------------------------------
-     */
-      .typography-sample {
-        padding: 24px;
-        border: 1px solid var(--chat-border);
-        border-radius: 8px;
-        background: var(--chat-bg);
-        margin-bottom: 16px;
-      }
-
-      .typography-sample h1,
-      .typography-sample h2,
-      .typography-sample h3,
-      .typography-sample p {
-        margin: 0 0 8px;
-      }
-
-      .typography-sample p:last-child {
-        margin-bottom: 0;
-      }
-
-      /*
-     * Spacing & Sizing
-     * ------------------------------------------------
-     */
-      .spacing-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 16px;
-      }
-
-      .spacing-item {
-        padding: 16px;
-        border: 1px solid var(--chat-border);
-        border-radius: 8px;
-        background: var(--chat-bg);
-        text-align: center;
-      }
-
-      .spacing-visual {
-        display: inline-block;
-        background: var(--chat-accent-muted);
-        border: 1px dashed var(--chat-accent);
-        margin-bottom: 8px;
-      }
-
-      .spacing-label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-      }
-
-      .spacing-value {
-        font-size: 11px;
-        color: var(--chat-text-muted);
-        font-family: ui-monospace, monospace;
-      }
-
-      /*
-     * Reusable Components (from base.js)
-     * ------------------------------------------------
-     */
-
-      /* Icon Button */
-      .btn-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition:
-          background 0.15s,
-          color 0.15s;
-        background: transparent;
-        color: var(--chat-text-muted);
-        font-size: 16px;
-      }
-
-      .btn-icon:hover {
-        background: var(--chat-accent-muted);
-        color: var(--chat-text);
-      }
-
-      .btn-icon-primary {
-        background: var(--chat-accent);
-        color: var(--chat-text-inverse);
-      }
-
-      .btn-icon-primary:hover {
-        background: var(--chat-accent-hover);
-      }
-
-      .btn-icon:disabled {
-        background: var(--chat-bg-muted);
-        color: var(--chat-text-muted);
-        cursor: not-allowed;
-      }
-
-      /* Primary Button */
-      .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 16px;
-        border: none;
-        border-radius: var(--chat-radius);
-        background: var(--chat-accent);
-        color: var(--chat-text-inverse);
-        font-family: inherit;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-
-      .btn-primary:hover {
-        background: var(--chat-accent-hover);
-      }
-
-      .btn-primary:disabled {
-        background: var(--chat-bg-muted);
-        color: var(--chat-text-muted);
-        cursor: not-allowed;
-      }
-
-      /* Secondary Button */
-      .btn-secondary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px 16px;
-        border: 1px solid var(--chat-border);
-        border-radius: var(--chat-radius);
-        background: transparent;
-        color: var(--chat-text);
-        font-family: inherit;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-
-      .btn-secondary:hover {
-        background: var(--chat-bg-muted);
-      }
-
-      /* Input Field */
-      .input-field {
-        display: block;
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid var(--chat-border);
-        border-radius: var(--chat-radius);
-        background: var(--chat-bg);
-        color: var(--chat-text);
-        font-family: inherit;
-        font-size: 14px;
-        line-height: 1.5;
-      }
-
-      .input-field::placeholder {
-        color: var(--chat-text-muted);
-      }
-
-      .input-field:focus {
-        border-color: var(--chat-accent);
-        outline: none;
-        box-shadow: 0 0 0 2px var(--chat-accent-muted);
-      }
-
-      /* Textarea */
-      .textarea-field {
-        display: block;
-        width: 100%;
-        min-height: 100px;
-        padding: 10px 14px;
-        border: 1px solid var(--chat-border);
-        border-radius: var(--chat-radius);
-        background: var(--chat-bg);
-        color: var(--chat-text);
-        font-family: inherit;
-        font-size: 14px;
-        line-height: 1.5;
-        resize: vertical;
-      }
-
-      .textarea-field::placeholder {
-        color: var(--chat-text-muted);
-      }
-
-      .textarea-field:focus {
-        border-color: var(--chat-accent);
-        outline: none;
-        box-shadow: 0 0 0 2px var(--chat-accent-muted);
-      }
-
-      .textarea-field:disabled {
-        background: var(--chat-bg-muted);
-        color: var(--chat-text-muted);
-      }
-
-      /* Label */
-      .label {
-        display: block;
-        margin-bottom: 4px;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--chat-text-muted);
-      }
-
-      /* Error Output */
-      .error-output {
-        display: block;
-        padding: 10px 12px;
-        border-radius: var(--chat-radius);
-        background: rgba(220, 38, 38, 0.1);
-        color: var(--chat-error);
-        font-size: 13px;
-      }
-
-      /* Header Component */
-      .demo-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        height: 48px;
-        padding: 0 16px;
-        border-bottom: 1px solid var(--chat-border);
-        background: var(--chat-bg);
-        border-radius: 8px 8px 0 0;
-      }
-
-      .demo-header h1 {
-        flex: 1;
-        margin: 0;
-        font-size: 15px;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .demo-header h1 mark {
-        margin-right: 6px;
-        background: none;
-        color: var(--chat-accent);
-      }
-
-      /* Message Bubbles */
-      .message {
-        margin-bottom: 12px;
-        line-height: 1.5;
-      }
-
-      .message:last-child {
-        margin-bottom: 0;
-      }
-
-      .message-user {
-        max-width: 85%;
-        margin-left: auto;
-        padding: 10px 14px;
-        border-radius: var(--chat-radius);
-        background: var(--chat-accent);
-        color: var(--chat-text-inverse);
-      }
-
-      .message-assistant {
-        color: var(--chat-text);
-      }
-
-      .message-error {
-        color: var(--chat-error);
-      }
-
-      /* Code Block */
-      .code-block {
-        margin: 8px 0;
-        padding: 12px;
-        border-radius: 6px;
-        background: var(--chat-bg-muted);
-        font-family: ui-monospace, monospace;
-        font-size: 13px;
-        overflow-x: auto;
-      }
-
-      /* Card / Panel */
-      .panel {
-        border: 1px solid var(--chat-border);
-        border-radius: 12px;
-        background: var(--chat-bg);
-        box-shadow: 0 8px 32px var(--chat-shadow);
-        overflow: hidden;
-      }
-
-      /* Input Group */
-      .input-group {
-        position: relative;
-      }
-
-      .input-group textarea {
-        display: block;
-        width: 100%;
-        min-height: 44px;
-        max-height: 200px;
-        padding: 10px 48px 10px 14px;
-        border: 1px solid var(--chat-border);
-        border-radius: var(--chat-radius);
-        background: var(--chat-bg);
-        color: var(--chat-text);
-        font-family: inherit;
-        font-size: 14px;
-        line-height: 1.5;
-        resize: none;
-      }
-
-      .input-group textarea::placeholder {
-        color: var(--chat-text-muted);
-      }
-
-      .input-group textarea:focus {
-        border-color: var(--chat-accent);
-        outline: none;
-        box-shadow: 0 0 0 2px var(--chat-accent-muted);
-      }
-
-      .input-group .btn-icon {
-        position: absolute;
-        right: 6px;
-        bottom: 6px;
-      }
-
-      /*
-     * Element Previews
-     * ------------------------------------------------
-     */
-      .element-preview {
-        border: 1px solid var(--chat-border);
-        border-radius: 12px;
-        overflow: hidden;
-        height: 400px;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .element-preview-page {
-        background: var(--chat-bg-alt);
-      }
-
-      .element-preview-drawer {
-        position: relative;
+      .preview.page {
         height: 500px;
-        background: var(--chat-bg-alt);
+      }
+      .preview.page.tall {
+        height: 600px;
       }
 
-      .drawer-demo {
-        position: absolute;
-        right: 16px;
-        bottom: 16px;
+      .color-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      .color-swatch {
         display: flex;
         flex-direction: column;
-        width: 350px;
-        height: 400px;
-        border: 1px solid var(--chat-border);
-        border-radius: 12px;
-        background: var(--chat-bg);
-        box-shadow: 0 8px 32px var(--chat-shadow);
-      }
-
-      .drawer-demo-collapsed {
-        height: 48px;
+        border-radius: 8px;
         overflow: hidden;
+        border: 1px solid var(--g-border);
       }
-
-      .drawer-demo-collapsed header {
-        border-bottom: none;
-        border-radius: 11px;
+      .color-swatch-preview {
+        height: 60px;
       }
-
-      .demo-main {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        padding: 16px;
-        background: var(--chat-bg-alt);
+      .color-swatch-info {
+        padding: 8px 10px;
+        background: var(--g-card);
+        font-size: 11px;
       }
-
-      .demo-footer {
-        flex-shrink: 0;
-        padding: 16px;
-        border-top: 1px solid var(--chat-border);
-        background: var(--chat-bg);
-      }
-
-      /* Welcome Section (empty state) */
-      .welcome-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        padding: 32px;
-        text-align: center;
-      }
-
-      .welcome-section h2 {
-        margin: 0 0 16px;
-        font-size: 24px;
-        font-weight: 600;
-      }
-
-      .welcome-section h2 mark {
-        background: none;
-        color: var(--chat-accent);
-        margin-right: 8px;
-      }
-
-      .welcome-section .input-group {
-        width: 100%;
-        max-width: 500px;
-      }
-
-      .welcome-section textarea {
-        min-height: 100px;
-        padding-bottom: 44px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px var(--chat-shadow);
-      }
-
-      /* User Auth Form */
-      .auth-form {
-        max-width: 360px;
-        margin: 0 auto;
-        padding: 24px;
-      }
-
-      .auth-form .form-group {
-        margin-bottom: 16px;
-      }
-
-      .auth-logged-in {
-        text-align: center;
-        padding: 24px;
-      }
-
-      .auth-logged-in p {
-        margin: 0 0 16px;
-        color: var(--chat-text-muted);
-      }
-
-      .auth-logged-in strong {
-        color: var(--chat-text);
-        font-weight: 500;
-      }
-
-      /* Utility */
-      .mb-16 {
-        margin-bottom: 16px;
-      }
-      .mt-8 {
-        margin-top: 8px;
-      }
-      .flex {
-        display: flex;
-      }
-      .gap-8 {
-        gap: 8px;
-      }
-      .gap-16 {
-        gap: 16px;
-      }
-      .items-center {
-        align-items: center;
+      .color-swatch-info code {
+        display: block;
+        color: var(--g-dim);
+        font-family: ui-monospace, monospace;
+        word-break: break-all;
       }
     </style>
   </head>
   <body>
     <header class="guide-header">
-      <h1><span>✦</span> libchat Design Guide</h1>
-      <nav class="guide-nav">
-        <button class="theme-toggle" onclick="toggleTheme()">
-          <span class="theme-toggle-icon" id="theme-icon">🌙</span>
-          <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
-        </button>
-      </nav>
+      <h1><span>◆</span> libchat Design Guide</h1>
+      <div class="mode-toggle">
+        <button id="light-mode" class="active">☀️ Light</button>
+        <button id="dark-mode">🌙 Dark</button>
+      </div>
     </header>
 
-    <div class="guide-container">
-      <!-- Color Palette -->
-      <section class="guide-section" id="colors">
-        <h2>Color Palette</h2>
-        <p>CSS custom properties that adapt to light and dark modes.</p>
+    <main class="guide-content">
+      <!-- Color Tokens Section -->
+      <section class="guide-section">
+        <h2>Color Tokens</h2>
+        <p>
+          CSS custom properties for consistent theming. These values change
+          automatically with light/dark mode.
+        </p>
 
-        <h3>Core Colors</h3>
-        <div class="color-grid">
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-text)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Text</p>
-              <p class="color-swatch-var">--chat-text</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-text-muted)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Text Muted</p>
-              <p class="color-swatch-var">--chat-text-muted</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="
-                background: var(--chat-text-inverse);
-                border: 1px solid var(--chat-border);
-              "
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Text Inverse</p>
-              <p class="color-swatch-var">--chat-text-inverse</p>
-            </div>
-          </div>
-        </div>
-
-        <h3>Backgrounds</h3>
-        <div class="color-grid">
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="
-                background: var(--chat-bg);
-                border: 1px solid var(--chat-border);
-              "
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Background</p>
-              <p class="color-swatch-var">--chat-bg</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-bg-alt)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Background Alt</p>
-              <p class="color-swatch-var">--chat-bg-alt</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-bg-muted)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Background Muted</p>
-              <p class="color-swatch-var">--chat-bg-muted</p>
-            </div>
-          </div>
-        </div>
-
-        <h3>Accent & State</h3>
-        <div class="color-grid">
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-accent)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Accent</p>
-              <p class="color-swatch-var">--chat-accent</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-accent-hover)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Accent Hover</p>
-              <p class="color-swatch-var">--chat-accent-hover</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-accent-muted)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Accent Muted</p>
-              <p class="color-swatch-var">--chat-accent-muted</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-error)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Error</p>
-              <p class="color-swatch-var">--chat-error</p>
-            </div>
-          </div>
-          <div class="color-swatch">
-            <div
-              class="color-swatch-preview"
-              style="background: var(--chat-border)"
-            ></div>
-            <div class="color-swatch-info">
-              <p class="color-swatch-name">Border</p>
-              <p class="color-swatch-var">--chat-border</p>
-            </div>
-          </div>
+        <div class="color-grid" id="color-tokens">
+          <!-- Populated by JavaScript -->
         </div>
       </section>
 
-      <!-- Typography -->
-      <section class="guide-section" id="typography">
+      <!-- Typography Section -->
+      <section class="guide-section">
         <h2>Typography</h2>
-        <p>System font stack with consistent sizing and line heights.</p>
+        <p>Text styles used throughout chat components.</p>
 
-        <div class="typography-sample">
-          <h1 style="font-size: 24px; font-weight: 600">
-            Heading Large — 24px / 600
-          </h1>
-          <h2 style="font-size: 20px; font-weight: 600">
-            Heading Medium — 20px / 600
-          </h2>
-          <h3 style="font-size: 15px; font-weight: 600">
-            Header Title — 15px / 600
-          </h3>
-          <p style="font-size: 14px">
-            Body text — 14px / 1.5 line-height. The quick brown fox jumps over
-            the lazy dog.
-          </p>
-          <p style="font-size: 13px; color: var(--chat-text-muted)">
-            Small / Label text — 13px / muted color
-          </p>
-          <p style="font-size: 12px; font-family: ui-monospace, monospace">
-            Monospace — 12px / ui-monospace
-          </p>
-        </div>
+        <div class="component-grid">
+          <figure>
+            <figcaption>Headers</figcaption>
+            <div class="preview">
+              <chat-demo-typography></chat-demo-typography>
+            </div>
+          </figure>
 
-        <div class="component-code">
-          <pre>
-font-family: system-ui, -apple-system, sans-serif;
-font-size: 14px;
-line-height: 1.5;</pre
-          >
+          <figure>
+            <figcaption>Body Text</figcaption>
+            <div class="preview"><chat-demo-body></chat-demo-body></div>
+          </figure>
         </div>
       </section>
 
-      <!-- Spacing -->
-      <section class="guide-section" id="spacing">
-        <h2>Spacing & Sizing</h2>
-        <p>Consistent spacing values used throughout components.</p>
-
-        <div class="spacing-grid">
-          <div class="spacing-item">
-            <div class="spacing-visual" style="width: 4px; height: 32px"></div>
-            <span class="spacing-label">4px</span>
-            <span class="spacing-value">margin-bottom (label)</span>
-          </div>
-          <div class="spacing-item">
-            <div class="spacing-visual" style="width: 8px; height: 32px"></div>
-            <span class="spacing-label">8px</span>
-            <span class="spacing-value">gap (header items)</span>
-          </div>
-          <div class="spacing-item">
-            <div class="spacing-visual" style="width: 12px; height: 32px"></div>
-            <span class="spacing-label">12px</span>
-            <span class="spacing-value">padding (messages)</span>
-          </div>
-          <div class="spacing-item">
-            <div class="spacing-visual" style="width: 16px; height: 32px"></div>
-            <span class="spacing-label">16px</span>
-            <span class="spacing-value">--chat-gap</span>
-          </div>
-          <div class="spacing-item">
-            <div class="spacing-visual" style="width: 32px; height: 32px"></div>
-            <span class="spacing-label">32px</span>
-            <span class="spacing-value">icon button size</span>
-          </div>
-          <div class="spacing-item">
-            <div class="spacing-visual" style="width: 48px; height: 32px"></div>
-            <span class="spacing-label">48px</span>
-            <span class="spacing-value">header height</span>
-          </div>
-        </div>
-
-        <h3>Border Radius</h3>
-        <div class="spacing-grid">
-          <div class="spacing-item">
-            <div
-              style="
-                width: 60px;
-                height: 40px;
-                background: var(--chat-accent-muted);
-                border: 1px solid var(--chat-accent);
-                border-radius: 4px;
-              "
-            ></div>
-            <span class="spacing-label">4px</span>
-            <span class="spacing-value">small (summary)</span>
-          </div>
-          <div class="spacing-item">
-            <div
-              style="
-                width: 60px;
-                height: 40px;
-                background: var(--chat-accent-muted);
-                border: 1px solid var(--chat-accent);
-                border-radius: 6px;
-              "
-            ></div>
-            <span class="spacing-label">6px</span>
-            <span class="spacing-value">buttons, code</span>
-          </div>
-          <div class="spacing-item">
-            <div
-              style="
-                width: 60px;
-                height: 40px;
-                background: var(--chat-accent-muted);
-                border: 1px solid var(--chat-accent);
-                border-radius: 8px;
-              "
-            ></div>
-            <span class="spacing-label">8px</span>
-            <span class="spacing-value">--chat-radius</span>
-          </div>
-          <div class="spacing-item">
-            <div
-              style="
-                width: 60px;
-                height: 40px;
-                background: var(--chat-accent-muted);
-                border: 1px solid var(--chat-accent);
-                border-radius: 12px;
-              "
-            ></div>
-            <span class="spacing-label">12px</span>
-            <span class="spacing-value">panels, cards</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Buttons -->
-      <section class="guide-section" id="buttons">
+      <!-- Buttons Section -->
+      <section class="guide-section">
         <h2>Buttons</h2>
-        <p>Interactive button components for various contexts.</p>
+        <p>Interactive elements for actions and navigation.</p>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Icon Buttons</h4>
-            <span class="component-card-tag">btn-icon</span>
-          </div>
-          <div class="component-preview component-preview-centered">
-            <button class="btn-icon" title="Default">+</button>
-            <button
-              class="btn-icon"
-              title="Hover state"
-              style="
-                background: var(--chat-accent-muted);
-                color: var(--chat-text);
-              "
-            >
-              ▢
-            </button>
-            <button class="btn-icon btn-icon-primary" title="Primary">➤</button>
-            <button class="btn-icon" disabled title="Disabled">…</button>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;button class="btn-icon"&gt;+&lt;/button&gt;
-&lt;button class="btn-icon btn-icon-primary"&gt;➤&lt;/button&gt;
-&lt;button class="btn-icon" disabled&gt;…&lt;/button&gt;</pre
-            >
-          </div>
-        </div>
+        <div class="component-grid">
+          <figure>
+            <figcaption>Icon Buttons</figcaption>
+            <div class="preview">
+              <chat-demo-icon-buttons></chat-demo-icon-buttons>
+            </div>
+          </figure>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Primary Button</h4>
-            <span class="component-card-tag">btn-primary</span>
-          </div>
-          <div class="component-preview component-preview-centered">
-            <button class="btn-primary">Sign In</button>
-            <button class="btn-primary" disabled>Disabled</button>
-          </div>
-          <div class="component-code">
-            <pre>&lt;button class="btn-primary"&gt;Sign In&lt;/button&gt;</pre>
-          </div>
-        </div>
+          <figure>
+            <figcaption>Submit Button</figcaption>
+            <div class="preview">
+              <chat-demo-submit-buttons></chat-demo-submit-buttons>
+            </div>
+          </figure>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Secondary Button</h4>
-            <span class="component-card-tag">btn-secondary</span>
-          </div>
-          <div class="component-preview component-preview-centered">
-            <button class="btn-secondary">Sign Out</button>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;button class="btn-secondary"&gt;Sign Out&lt;/button&gt;</pre
-            >
-          </div>
+          <figure>
+            <figcaption>Form Button (Full Width)</figcaption>
+            <div class="preview">
+              <chat-demo-form-button></chat-demo-form-button>
+            </div>
+          </figure>
         </div>
       </section>
 
-      <!-- Form Elements -->
-      <section class="guide-section" id="forms">
+      <!-- Form Elements Section -->
+      <section class="guide-section">
         <h2>Form Elements</h2>
-        <p>Input fields and form components.</p>
+        <p>Input controls for user interaction.</p>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Text Input</h4>
-            <span class="component-card-tag">input</span>
-          </div>
-          <div class="component-preview">
-            <div style="max-width: 360px">
-              <label class="label">Email</label>
-              <input
-                type="email"
-                class="input-field"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;label class="label"&gt;Email&lt;/label&gt;
-&lt;input type="email" class="input-field" placeholder="you@example.com"&gt;</pre
-            >
-          </div>
-        </div>
+        <div class="component-grid">
+          <figure>
+            <figcaption>Text Input</figcaption>
+            <div class="preview"><chat-demo-input></chat-demo-input></div>
+          </figure>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Textarea</h4>
-            <span class="component-card-tag">textarea</span>
-          </div>
-          <div class="component-preview">
-            <div style="max-width: 500px">
-              <textarea
-                class="textarea-field"
-                placeholder="How can I help you?"
-              ></textarea>
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;textarea class="textarea-field" placeholder="How can I help you?"&gt;&lt;/textarea&gt;</pre
-            >
-          </div>
-        </div>
-
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Input with Button</h4>
-            <span class="component-card-tag">input-group</span>
-          </div>
-          <div class="component-preview">
-            <div class="input-group" style="max-width: 500px">
-              <textarea
-                rows="1"
-                placeholder="Type a message..."
-                style="
-                  min-height: 44px;
-                  max-height: 200px;
-                  padding: 10px 48px 10px 14px;
-                  border: 1px solid var(--chat-border);
-                  border-radius: var(--chat-radius);
-                  background: var(--chat-bg);
-                  color: var(--chat-text);
-                  font: inherit;
-                  width: 100%;
-                  resize: none;
-                "
-              ></textarea>
-              <button
-                class="btn-icon btn-icon-primary"
-                style="position: absolute; right: 6px; bottom: 6px"
-              >
-                ➤
-              </button>
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;div class="input-group"&gt;
-  &lt;textarea placeholder="Type a message..."&gt;&lt;/textarea&gt;
-  &lt;button class="btn-icon btn-icon-primary"&gt;➤&lt;/button&gt;
-&lt;/div&gt;</pre
-            >
-          </div>
-        </div>
-
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Error Output</h4>
-            <span class="component-card-tag">output</span>
-          </div>
-          <div class="component-preview">
-            <div style="max-width: 360px">
-              <div class="error-output">
-                Invalid email or password. Please try again.
-              </div>
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;output class="error-output"&gt;Invalid email or password.&lt;/output&gt;</pre
-            >
-          </div>
+          <figure>
+            <figcaption>Textarea</figcaption>
+            <div class="preview"><chat-demo-textarea></chat-demo-textarea></div>
+          </figure>
         </div>
       </section>
 
-      <!-- Messages -->
-      <section class="guide-section" id="messages">
+      <!-- Messages Section -->
+      <section class="guide-section">
         <h2>Messages</h2>
         <p>Chat message bubbles for different roles.</p>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Message Bubbles</h4>
-            <span class="component-card-tag">article</span>
+        <figure class="full-width">
+          <figcaption>Message Types</figcaption>
+          <div class="preview flush">
+            <chat-demo-messages></chat-demo-messages>
           </div>
-          <div class="component-preview">
-            <div style="max-width: 600px">
-              <div class="message message-user">
-                Hello! Can you help me with something?
-              </div>
-              <div class="message message-assistant">
-                Of course! I'd be happy to help. What would you like to know?
-              </div>
-              <div class="message message-user">
-                What's the weather like today?
-              </div>
-              <div class="message message-assistant">
-                I don't have access to real-time weather data, but I can help
-                you find a weather service or explain how weather patterns work!
-              </div>
-              <div class="message message-error">
-                Error: Connection timed out. Please try again.
-              </div>
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;article role="user"&gt;User message&lt;/article&gt;
-&lt;article role="assistant"&gt;Assistant response&lt;/article&gt;
-&lt;article role="error"&gt;Error message&lt;/article&gt;</pre
-            >
-          </div>
-        </div>
-
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Code Block</h4>
-            <span class="component-card-tag">pre</span>
-          </div>
-          <div class="component-preview">
-            <div style="max-width: 600px">
-              <div class="message message-assistant">
-                Here's an example:
-                <pre class="code-block">
-const greeting = "Hello, World!";
-console.log(greeting);</pre
-                >
-              </div>
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;pre&gt;const greeting = "Hello, World!";
-console.log(greeting);&lt;/pre&gt;</pre
-            >
-          </div>
-        </div>
+        </figure>
       </section>
 
-      <!-- Header -->
-      <section class="guide-section" id="header">
+      <!-- Header Section -->
+      <section class="guide-section">
         <h2>Header</h2>
-        <p>Title bar with optional action buttons.</p>
+        <p>Title bar with optional controls for drawer and page components.</p>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Chat Header</h4>
-            <span class="component-card-tag">header</span>
-          </div>
-          <div class="component-preview">
-            <div
-              style="
-                max-width: 450px;
-                border: 1px solid var(--chat-border);
-                border-radius: 12px;
-                overflow: hidden;
-              "
-            >
-              <div class="demo-header">
-                <h1><mark>✦</mark>Agent Walter</h1>
-                <button class="btn-icon" title="New conversation">+</button>
-                <button class="btn-icon" title="Expand">▢</button>
-                <button class="btn-icon" title="Collapse">▼</button>
-              </div>
-            </div>
-          </div>
-          <div class="component-code">
-            <pre>
-&lt;header&gt;
-  &lt;h1&gt;&lt;mark&gt;✦&lt;/mark&gt;Agent Name&lt;/h1&gt;
-  &lt;button class="btn-icon"&gt;+&lt;/button&gt;
-&lt;/header&gt;</pre
-            >
-          </div>
+        <figure class="full-width">
+          <figcaption>Chat Header</figcaption>
+          <div class="preview flush"><chat-demo-header></chat-demo-header></div>
+        </figure>
+      </section>
+
+      <!-- Details/Summary Section -->
+      <section class="guide-section">
+        <h2>Expandable Content</h2>
+        <p>Collapsible sections for tool calls and additional details.</p>
+
+        <div class="component-grid">
+          <figure>
+            <figcaption>Details/Summary</figcaption>
+            <div class="preview"><chat-demo-details></chat-demo-details></div>
+          </figure>
         </div>
       </section>
 
-      <!-- Elements -->
-      <section class="guide-section" id="elements">
-        <h2>Elements</h2>
-        <p>Complete chat interface components.</p>
+      <!-- Code Blocks Section -->
+      <section class="guide-section">
+        <h2>Code Blocks</h2>
+        <p>Styled code snippets within messages.</p>
 
-        <h3>chat-page</h3>
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Page Element — Empty State</h4>
-            <span class="component-card-tag">chat-page</span>
-          </div>
-          <div class="component-preview element-preview element-preview-page">
-            <div class="welcome-section">
-              <h2><mark>✦</mark>Agent Walter</h2>
-              <div class="input-group">
-                <textarea
-                  placeholder="How can I help you?"
-                  style="
-                    min-height: 100px;
-                    padding: 10px 14px 44px;
-                    border: 1px solid var(--chat-border);
-                    border-radius: 12px;
-                    background: var(--chat-bg);
-                    color: var(--chat-text);
-                    font: inherit;
-                    width: 100%;
-                    resize: none;
-                    box-shadow: 0 2px 12px var(--chat-shadow);
-                  "
-                ></textarea>
-                <button
-                  class="btn-icon btn-icon-primary"
-                  style="position: absolute; right: 10px; bottom: 10px"
-                >
-                  ➤
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <figure class="full-width">
+          <figcaption>Pre-formatted Code</figcaption>
+          <div class="preview flush"><chat-demo-code></chat-demo-code></div>
+        </figure>
+      </section>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Page Element — With Messages</h4>
-            <span class="component-card-tag">chat-page</span>
-          </div>
-          <div class="component-preview element-preview element-preview-page">
-            <div class="demo-header" style="border-radius: 0">
-              <h1><mark>✦</mark>Agent Walter</h1>
-            </div>
-            <div class="demo-main">
-              <div style="max-width: 600px; margin: 0 auto">
-                <div class="message message-user">
-                  Hello! What can you help me with?
-                </div>
-                <div class="message message-assistant">
-                  I can assist with questions about the platform, help you
-                  explore data, and provide guidance on various topics. What
-                  would you like to know?
-                </div>
-              </div>
-            </div>
-            <div
-              class="demo-footer"
-              style="border-top: none; background: transparent"
-            >
-              <div
-                class="input-group"
-                style="max-width: 600px; margin: 0 auto; position: relative"
-              >
-                <textarea
-                  placeholder="How can I help you?"
-                  style="
-                    min-height: 100px;
-                    padding: 10px 48px 44px 14px;
-                    border: 1px solid var(--chat-border);
-                    border-radius: 12px;
-                    background: var(--chat-bg);
-                    color: var(--chat-text);
-                    font: inherit;
-                    width: 100%;
-                    resize: none;
-                    box-shadow: 0 2px 12px var(--chat-shadow);
-                  "
-                ></textarea>
-                <button
-                  class="btn-icon"
-                  style="
-                    position: absolute;
-                    right: 50px;
-                    bottom: 10px;
-                    background: var(--chat-bg-muted);
-                    color: var(--chat-text-muted);
-                    font-size: 18px;
-                  "
-                >
-                  +
-                </button>
-                <button
-                  class="btn-icon btn-icon-primary"
-                  style="position: absolute; right: 10px; bottom: 10px"
-                >
-                  ➤
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- User Authentication Section -->
+      <section class="guide-section">
+        <h2>User Authentication</h2>
+        <p>Login forms and logged-in state display.</p>
 
-        <h3>chat-drawer</h3>
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Drawer Element — Expanded</h4>
-            <span class="component-card-tag">chat-drawer</span>
-          </div>
-          <div class="component-preview element-preview-drawer">
-            <div class="drawer-demo">
-              <div class="demo-header" style="border-radius: 11px 11px 0 0">
-                <h1><mark>✦</mark>Agent Walter</h1>
-                <button class="btn-icon" title="New conversation">+</button>
-                <button class="btn-icon" title="Expand">▢</button>
-                <button class="btn-icon" title="Collapse">▼</button>
-              </div>
-              <div class="demo-main">
-                <div class="message message-user">
-                  Can you help me understand the architecture?
-                </div>
-                <div class="message message-assistant">
-                  Absolutely! The platform uses a microservices architecture
-                  with gRPC for inter-service communication.
-                </div>
-              </div>
-              <div class="demo-footer" style="border-radius: 0 0 11px 11px">
-                <div class="input-group" style="position: relative">
-                  <textarea
-                    rows="1"
-                    placeholder="How can I help you?"
-                    style="
-                      min-height: 44px;
-                      max-height: 200px;
-                      padding: 10px 48px 10px 14px;
-                      border: 1px solid var(--chat-border);
-                      border-radius: var(--chat-radius);
-                      background: var(--chat-bg);
-                      color: var(--chat-text);
-                      font: inherit;
-                      width: 100%;
-                      resize: none;
-                    "
-                  ></textarea>
-                  <button
-                    class="btn-icon btn-icon-primary"
-                    style="position: absolute; right: 6px; bottom: 6px"
-                  >
-                    ➤
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="component-grid">
+          <figure>
+            <figcaption>Login Form</figcaption>
+            <div class="preview"><chat-demo-login></chat-demo-login></div>
+          </figure>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">Drawer Element — Collapsed</h4>
-            <span class="component-card-tag">chat-drawer</span>
-          </div>
-          <div
-            class="component-preview element-preview-drawer"
-            style="height: 150px"
-          >
-            <div class="drawer-demo drawer-demo-collapsed">
-              <div
-                class="demo-header"
-                style="border-radius: 11px; border-bottom: none"
-              >
-                <h1><mark>✦</mark>Agent Walter</h1>
-                <button class="btn-icon" title="New conversation">+</button>
-                <button class="btn-icon" title="Expand">▢</button>
-                <button class="btn-icon" title="Expand">▲</button>
-              </div>
+          <figure>
+            <figcaption>Logged In State</figcaption>
+            <div class="preview">
+              <chat-demo-logged-in></chat-demo-logged-in>
             </div>
-          </div>
-        </div>
+          </figure>
 
-        <h3>chat-user</h3>
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">User Element — Login Form</h4>
-            <span class="component-card-tag">chat-user</span>
-          </div>
-          <div class="component-preview">
-            <div class="auth-form">
-              <div class="form-group">
-                <label class="label">Email</label>
-                <input
-                  type="email"
-                  class="input-field"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div class="form-group">
-                <label class="label">Password</label>
-                <input
-                  type="password"
-                  class="input-field"
-                  placeholder="Password"
-                />
-              </div>
-              <button class="btn-primary" style="width: 100%; margin-top: 8px">
-                Sign In
-              </button>
+          <figure>
+            <figcaption>Error State</figcaption>
+            <div class="preview">
+              <chat-demo-login-error></chat-demo-login-error>
             </div>
-          </div>
-        </div>
-
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">User Element — Logged In</h4>
-            <span class="component-card-tag">chat-user</span>
-          </div>
-          <div class="component-preview">
-            <div class="auth-logged-in">
-              <p>Signed in as <strong>user@example.com</strong></p>
-              <button class="btn-secondary">Sign Out</button>
-            </div>
-          </div>
+          </figure>
         </div>
       </section>
 
-      <!-- CSS Variables Reference -->
-      <section class="guide-section" id="reference">
-        <h2>CSS Variables Reference</h2>
-        <p>Complete list of CSS custom properties.</p>
+      <!-- Composite Components Section -->
+      <section class="guide-section">
+        <h2>Composite Components</h2>
+        <p>Full component layouts combining multiple elements.</p>
 
-        <div class="component-card">
-          <div class="component-card-header">
-            <h4 class="component-card-title">All Variables</h4>
-            <span class="component-card-tag">:host</span>
-          </div>
-          <div class="component-code">
-            <pre>
-/* Colors */
---chat-text: #1f2937;           /* Primary text */
---chat-text-muted: #6b7280;     /* Secondary text */
---chat-text-inverse: #ffffff;   /* Text on accent backgrounds */
---chat-bg: #ffffff;             /* Primary background */
---chat-bg-alt: #f9fafb;         /* Secondary background */
---chat-bg-muted: #f3f4f6;       /* Muted/disabled background */
---chat-border: #e5e7eb;         /* Border color */
---chat-shadow: rgba(0,0,0,0.08); /* Shadow color */
---chat-accent: #2563eb;         /* Primary accent */
---chat-accent-hover: #1d4ed8;   /* Accent hover state */
---chat-accent-muted: rgba(37,99,235,0.1); /* Subtle accent */
---chat-error: #dc2626;          /* Error state */
+        <div class="component-grid">
+          <figure class="drawer">
+            <figcaption>Chat Drawer</figcaption>
+            <div class="preview flush drawer">
+              <chat-demo-drawer></chat-demo-drawer>
+            </div>
+          </figure>
 
-/* Sizing */
---chat-radius: 8px;             /* Default border radius */
---chat-gap: 16px;               /* Default spacing */
---chat-z: 1000;                 /* Z-index for drawer */</pre
-            >
-          </div>
+          <figure class="drawer">
+            <figcaption>Chat Drawer (Collapsed)</figcaption>
+            <div class="preview flush drawer collapsed">
+              <chat-demo-drawer-collapsed></chat-demo-drawer-collapsed>
+            </div>
+          </figure>
         </div>
+
+        <figure class="full-width" style="margin-top: 24px">
+          <figcaption>Chat Page (Empty State)</figcaption>
+          <div class="preview flush page">
+            <chat-demo-page-empty></chat-demo-page-empty>
+          </div>
+        </figure>
+
+        <figure class="full-width">
+          <figcaption>Chat Page (With Messages)</figcaption>
+          <div class="preview flush page tall">
+            <chat-demo-page></chat-demo-page>
+          </div>
+        </figure>
       </section>
-    </div>
+    </main>
 
-    <script>
-      // Theme toggle functionality
-      function toggleTheme() {
-        const root = document.documentElement;
-        const icon = document.getElementById("theme-icon");
-        const label = document.getElementById("theme-label");
+    <script type="module">
+      // Import styles directly from source
+      import { baseStyles } from "./styles/base.js";
+      import { drawerStyles } from "./styles/drawer.js";
+      import { pageStyles } from "./styles/page.js";
+      import { userStyles } from "./styles/user.js";
 
-        if (root.classList.contains("dark")) {
-          root.classList.remove("dark");
-          icon.textContent = "🌙";
-          label.textContent = "Dark Mode";
-          localStorage.setItem("theme", "light");
-        } else {
-          root.classList.add("dark");
-          icon.textContent = "☀️";
-          label.textContent = "Light Mode";
-          localStorage.setItem("theme", "dark");
+      // Color tokens for the swatch display
+      const colorTokens = [
+        { name: "--chat-text", label: "Text" },
+        { name: "--chat-text-muted", label: "Text Muted" },
+        { name: "--chat-text-inverse", label: "Text Inverse" },
+        { name: "--chat-bg", label: "Background" },
+        { name: "--chat-bg-alt", label: "Background Alt" },
+        { name: "--chat-bg-muted", label: "Background Muted" },
+        { name: "--chat-border", label: "Border" },
+        { name: "--chat-accent", label: "Accent" },
+        { name: "--chat-accent-hover", label: "Accent Hover" },
+        { name: "--chat-accent-muted", label: "Accent Muted" },
+        { name: "--chat-error", label: "Error" },
+      ];
+
+      // Create a reference element to read CSS custom property values
+      class ColorReference extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+          this.shadowRoot.innerHTML = `<style>${baseStyles}</style><div></div>`;
+        }
+      }
+      customElements.define("color-reference", ColorReference);
+
+      // Render color swatches
+      function renderColorTokens() {
+        const container = document.getElementById("color-tokens");
+        const refEl = document.createElement("color-reference");
+        document.body.appendChild(refEl);
+        const styles = getComputedStyle(
+          refEl.shadowRoot.querySelector("div").parentElement.host,
+        );
+
+        container.innerHTML = colorTokens
+          .map((token) => {
+            const value = styles.getPropertyValue(token.name).trim();
+            return `
+          <div class="color-swatch">
+            <div class="color-swatch-preview" style="background: var(${token.name}, ${value});"></div>
+            <div class="color-swatch-info">
+              <strong>${token.label}</strong>
+              <code>${token.name}</code>
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+
+        // Remove reference element
+        refEl.remove();
+      }
+
+      // Shared demo styles
+      const demoStyles = `
+        .row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+        .row:last-child { margin-bottom: 0; }
+        .label { font-size: 12px; color: var(--chat-text-muted); min-width: 80px; }
+        .group { margin-bottom: 16px; }
+        .group:last-child { margin-bottom: 0; }
+      `;
+      const userHostStyles =
+        userStyles + `:host { display: block; max-width: none; padding: 0; }`;
+      const drawerHostStyles =
+        drawerStyles +
+        `:host { position: absolute; right: 16px; bottom: 16px; width: calc(100% - 32px); }`;
+      const pageHostStyles =
+        pageStyles + `:host { background: var(--chat-bg-alt); }`;
+
+      // Base demo component with factory
+      class DemoComponent extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        init(styles, html) {
+          this.shadowRoot.innerHTML = `<style>${baseStyles}${styles}</style>${html}`;
         }
       }
 
-      // Load saved theme preference
-      (function () {
-        const savedTheme = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)",
-        ).matches;
+      const define = (name, styles, html, setup) => {
+        customElements.define(
+          name,
+          class extends DemoComponent {
+            connectedCallback() {
+              this.init(styles, html);
+              setup?.(this);
+            }
+          },
+        );
+      };
 
-        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add("dark");
-          document.getElementById("theme-icon").textContent = "☀️";
-          document.getElementById("theme-label").textContent = "Light Mode";
-        }
-      })();
+      define(
+        "chat-demo-typography",
+        "",
+        `
+        <header style="border:none;height:auto;padding:0"><h1><mark>◆</mark>Header Title</h1></header>`,
+      );
+
+      define(
+        "chat-demo-body",
+        "",
+        `
+        <p style="margin:0 0 8px;color:var(--chat-text)">Primary body text in default color.</p>
+        <p style="margin:0;color:var(--chat-text-muted)">Muted text for secondary information.</p>`,
+      );
+
+      define(
+        "chat-demo-icon-buttons",
+        demoStyles + `.btn-icon{flex-shrink:initial}`,
+        `
+        <div class="row"><span class="label">Default</span>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">−</button></div>
+        <div class="row"><span class="label">Hover</span>
+          <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">✕</button>
+          <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">⤢</button>
+          <button class="btn-icon" style="background:var(--chat-accent-muted);color:var(--chat-text)">−</button></div>`,
+      );
+
+      define(
+        "chat-demo-submit-buttons",
+        demoStyles + `.row{gap:12px}button[type="submit"]{position:static}`,
+        `
+        <div class="row"><span class="label">Default</span><button type="submit" class="btn-icon">↑</button></div>
+        <div class="row"><span class="label">Hover</span><button type="submit" class="btn-icon" style="background:var(--chat-accent-hover)">↑</button></div>
+        <div class="row"><span class="label">Disabled</span><button type="submit" class="btn-icon" disabled>↑</button></div>`,
+      );
+
+      define(
+        "chat-demo-form-button",
+        userHostStyles + demoStyles + `form{gap:12px}.label{margin-bottom:8px}`,
+        `
+        <form><div><div class="label">Default</div><button type="submit">Sign In</button></div></form>`,
+      );
+
+      define(
+        "chat-demo-input",
+        userHostStyles + `form{gap:16px}`,
+        `
+        <form>
+          <div><label>Email</label><input type="email" placeholder="you@example.com"></div>
+          <div><label>Focused</label><input type="text" value="With content" style="border-color:var(--chat-accent);box-shadow:0 0 0 2px var(--chat-accent-muted)"></div>
+        </form>`,
+      );
+
+      define(
+        "chat-demo-textarea",
+        demoStyles + `textarea{padding-right:14px}`,
+        `
+        <div class="group"><div class="label">Default</div><textarea placeholder="Type a message..."></textarea></div>
+        <div class="group"><div class="label">Disabled</div><textarea disabled placeholder="Input disabled..."></textarea></div>`,
+      );
+
+      define(
+        "chat-demo-messages",
+        `main{background:var(--chat-bg-alt);padding:var(--chat-gap);border-radius:0}`,
+        `
+        <main>
+          <article role="user">This is a user message. It appears on the right with the accent color background.</article>
+          <article role="assistant">This is an assistant response. It appears on the left with the default text color and no background.</article>
+          <article role="error">This is an error message displayed in the error color.</article>
+        </main>`,
+      );
+
+      define(
+        "chat-demo-header",
+        "",
+        `
+        <header><h1><mark>◆</mark>Chat Assistant</h1>
+          <button class="btn-icon">⤢</button><button class="btn-icon">−</button><button class="btn-icon">✕</button></header>`,
+      );
+
+      define(
+        "chat-demo-details",
+        "",
+        `
+        <details><summary>🔧 Tool call: search_documents</summary><pre>{ "query": "design patterns", "limit": 5 }</pre></details>
+        <details open><summary>🔧 Tool result: search_documents</summary><pre>Found 3 matching documents...</pre></details>`,
+      );
+
+      define(
+        "chat-demo-code",
+        `article{padding:var(--chat-gap)}`,
+        `
+        <article role="assistant">Here's an example code snippet:
+          <pre>function greet(name) {
+  return \`Hello, \${name}!\`;
+}
+
+console.log(greet('World'));</pre></article>`,
+      );
+
+      define(
+        "chat-demo-login",
+        userHostStyles,
+        `
+        <form><div><label>Email</label><input type="email" placeholder="you@example.com"></div>
+          <div><label>Password</label><input type="password" placeholder="••••••••"></div>
+          <button type="submit">Sign In</button></form>`,
+      );
+
+      define(
+        "chat-demo-logged-in",
+        userHostStyles,
+        `
+        <aside><p>Signed in as <strong>user@example.com</strong></p><button>Sign Out</button></aside>`,
+      );
+
+      define(
+        "chat-demo-login-error",
+        userHostStyles,
+        `
+        <form><output>Invalid email or password. Please try again.</output>
+          <div><label>Email</label><input type="email" value="user@example.com"></div>
+          <div><label>Password</label><input type="password" value="wrong"></div>
+          <button type="submit">Sign In</button></form>`,
+      );
+
+      define(
+        "chat-demo-drawer",
+        drawerHostStyles + `:host{height:calc(100% - 32px)}`,
+        `
+        <header><h1><mark>◆</mark>Chat</h1>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">−</button>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button></header>
+        <main><article role="user">Hello!</article><article role="assistant">Hi there! How can I help you today?</article></main>
+        <footer><form><textarea placeholder="Type a message..."></textarea><button type="submit" class="btn-icon">↑</button></form></footer>`,
+      );
+
+      define(
+        "chat-demo-drawer-collapsed",
+        drawerHostStyles +
+          `:host{height:48px;overflow:hidden}header{border-radius:11px;border-bottom:none}`,
+        `
+        <header><h1><mark>◆</mark>Chat</h1>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">⤢</button>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">+</button>
+          <button class="btn-icon" style="background:transparent;color:var(--chat-text-muted)">✕</button></header>`,
+      );
+
+      define(
+        "chat-demo-page-empty",
+        pageHostStyles,
+        `
+        <section><h2><mark>◆</mark>How can I help?</h2>
+          <form><textarea placeholder="Ask me anything..."></textarea><button type="submit" class="btn-icon">↑</button></form></section>`,
+        (el) => el.setAttribute("data-empty", ""),
+      );
+
+      define(
+        "chat-demo-page",
+        pageHostStyles,
+        `
+        <main>
+          <article role="user">Can you explain how CSS custom properties work?</article>
+          <article role="assistant">CSS custom properties (also known as CSS variables) are entities defined by CSS authors that contain specific values to be reused throughout a document.
+            <pre>:root {
+  --primary-color: #2563eb;
+  --spacing: 16px;
+}
+
+.button {
+  background: var(--primary-color);
+  padding: var(--spacing);
+}</pre>
+            They're set using the <code>--</code> prefix and accessed using the <code>var()</code> function.</article>
+          <article role="user">That's helpful, thanks!</article>
+        </main>
+        <footer><form><textarea placeholder="Type a message..."></textarea>
+          <button type="submit" class="btn-icon">↑</button><button id="new" class="btn-icon">+</button></form></footer>`,
+      );
+
+      // Theme toggle
+      const [lightBtn, darkBtn] = [
+        document.getElementById("light-mode"),
+        document.getElementById("dark-mode"),
+      ];
+      const setTheme = (theme) => {
+        const isDark = theme === "dark";
+        document.body.classList.toggle("dark", isDark);
+        document.documentElement.style.colorScheme = theme;
+        lightBtn.classList.toggle("active", !isDark);
+        darkBtn.classList.toggle("active", isDark);
+        setTimeout(renderColorTokens, 50);
+      };
+      lightBtn.onclick = () => setTheme("light");
+      darkBtn.onclick = () => setTheme("dark");
+      renderColorTokens();
     </script>
   </body>
 </html>

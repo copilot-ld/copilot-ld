@@ -137,74 +137,129 @@ export class IngesterPipeline extends ProcessorBase {
   }
 
   /**
-   * Processes a single pipeline folder by loading its context.json and logging step information.
-   * @param {string} pipelineFolder The key representing the pipeline folder path
+   * Processes a single pipeline folder by executing steps until completion.
+   * @param {string} pipelineFolder - The key representing the pipeline folder path
    */
   async processItem(pipelineFolder) {
-    const ingestStorage = this.#ingestStorage;
-    // Check for context.json in each folder
     const contextPath = join(pipelineFolder, "context.json");
-    const exists = await ingestStorage.exists(contextPath);
-    if (!exists) {
-      throw new Error(`Missing context.json in ${pipelineFolder}`);
-    }
+    await this.#ensureContextExists(pipelineFolder, contextPath);
 
-    // Get cached step handlers and env config
     const stepHandlers = await this.#loadStepHandlers();
     const envConfig = await this.#loadEnvConfig();
 
-    // Loop until all steps are completed
     while (true) {
-      // Load context.json (reload each iteration to get updated state)
-      const context = await ingestStorage.get(contextPath);
-      if (!context || !context.steps) {
-        throw new Error(
-          `Invalid or missing steps in context.json for ${pipelineFolder}`,
-        );
-      }
+      const context = await this.#loadContext(pipelineFolder, contextPath);
+      const nextStep = this.#findNextQueuedStep(context.steps);
 
-      // Find steps in order
-      const sortedSteps = Object.entries(context.steps).sort(
-        ([, a], [, b]) => a.order - b.order,
-      );
-
-      // Find the next queued step
-      const nextStep = sortedSteps.find(([, meta]) => meta.status === "QUEUED");
       if (!nextStep) {
-        // No more queued steps - all done
         this.#logger.debug("Pipeline", "All steps completed", {
           folder: pipelineFolder,
         });
         break;
       }
 
-      const [stepName] = nextStep;
-      this.#logger.debug("Pipeline", "Processing step", {
-        step: stepName,
-        folder: pipelineFolder,
-      });
-
-      // Get the handler for this step
-      const StepHandler = stepHandlers.get(stepName);
-      if (!StepHandler) {
-        throw new Error(`Unknown step: ${stepName}`);
-      }
-
-      // Get model config for this step
-      const modelConfig = {
-        model: this.#config.models?.[stepName],
-        maxTokens: this.#config.defaults?.maxTokens,
-      };
-
-      // Create and run the step handler with injected config and prompt loader
-      const handler = new StepHandler(
-        ingestStorage,
-        this.#logger,
-        modelConfig,
+      await this.#executeStep(
+        nextStep,
+        contextPath,
+        pipelineFolder,
+        stepHandlers,
         envConfig,
-        this.#promptLoader,
       );
-      await handler.process(contextPath);
     }
   }
+
+  /**
+   * Ensures context.json exists in the pipeline folder.
+   * @param {string} pipelineFolder - Pipeline folder path
+   * @param {string} contextPath - Path to context.json
+   * @throws {Error} If context.json is missing
+   */
+  async #ensureContextExists(pipelineFolder, contextPath) {
+    const exists = await this.#ingestStorage.exists(contextPath);
+    if (!exists) {
+      throw new Error(`Missing context.json in ${pipelineFolder}`);
+    }
+  }
+
+  /**
+   * Loads and validates context.json.
+   * @param {string} pipelineFolder - Pipeline folder path
+   * @param {string} contextPath - Path to context.json
+   * @returns {Promise<object>} Parsed context object
+   * @throws {Error} If context is invalid
+   */
+  async #loadContext(pipelineFolder, contextPath) {
+    const context = await this.#ingestStorage.get(contextPath);
+    if (!context || !context.steps) {
+      throw new Error(
+        `Invalid or missing steps in context.json for ${pipelineFolder}`,
+      );
+    }
+    return context;
+  }
+
+  /**
+   * Finds the next queued step in order.
+   * @param {object} steps - Steps object from context
+   * @returns {[string, object]|undefined} Next step entry or undefined if none
+   */
+  #findNextQueuedStep(steps) {
+    const sortedSteps = Object.entries(steps).sort(
+      ([, a], [, b]) => a.order - b.order,
+    );
+    return sortedSteps.find(([, meta]) => meta.status === "QUEUED");
+  }
+
+  /**
+   * Executes a single pipeline step.
+   * @param {[string, object]} stepEntry - Step name and metadata
+   * @param {string} contextPath - Path to context.json
+   * @param {string} pipelineFolder - Pipeline folder path
+   * @param {Map<string, Function>} stepHandlers - Map of step handlers
+   * @param {object} envConfig - Environment configuration
+   */
+  async #executeStep(
+    stepEntry,
+    contextPath,
+    pipelineFolder,
+    stepHandlers,
+    envConfig,
+  ) {
+    const [stepName] = stepEntry;
+    this.#logger.debug("Pipeline", "Processing step", {
+      step: stepName,
+      folder: pipelineFolder,
+    });
+
+    const StepHandler = stepHandlers.get(stepName);
+    if (!StepHandler) {
+      throw new Error(`Unknown step: ${stepName}`);
+    }
+
+    const handler = this.#createStepHandler(StepHandler, stepName, envConfig);
+    await handler.process(contextPath);
+  }
+
+  /**
+   * Creates a step handler instance with dependencies.
+   * @param {Function} StepHandler - Step handler class
+   * @param {string} stepName - Name of the step for config lookup
+   * @param {object} envConfig - Environment configuration
+   * @returns {object} Step handler instance
+   */
+  #createStepHandler(StepHandler, stepName, envConfig) {
+    const modelConfig = {
+      model: this.#config.models?.[stepName],
+      maxTokens: this.#config.defaults?.maxTokens,
+    };
+
+    return new StepHandler(
+      this.#ingestStorage,
+      this.#logger,
+      modelConfig,
+      envConfig,
+      this.#promptLoader,
+    );
+  }
 }
+

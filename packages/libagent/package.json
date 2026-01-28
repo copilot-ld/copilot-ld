@@ -31,7 +31,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@copilot-ld/libdoc": "^0.1.16",
+    "@copilot-ld/libdoc": "^0.1.17",
     "@copilot-ld/libharness": "^0.1.4"
   }
 }

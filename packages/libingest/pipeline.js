@@ -53,8 +53,8 @@ async function discoverSteps() {
 export class IngesterPipeline extends ProcessorBase {
   #ingestStorage;
   #configStorage;
+  #ingestConfig;
   #config;
-  #envConfig;
   #logger;
   #stepHandlers;
   #promptLoader;
@@ -72,8 +72,8 @@ export class IngesterPipeline extends ProcessorBase {
     if (!configStorage) throw new Error("configStorage backend is required");
     this.#ingestStorage = ingestStorage;
     this.#configStorage = configStorage;
+    this.#ingestConfig = null;
     this.#config = null;
-    this.#envConfig = null;
     this.#logger = logger;
     this.#stepHandlers = null;
     this.#promptLoader = new PromptLoader(join(__dirname, "prompts"));
@@ -83,7 +83,7 @@ export class IngesterPipeline extends ProcessorBase {
    * Loads the ingest configuration.
    * @returns {Promise<object>} The config object
    */
-  async #loadConfig() {
+  async #loadIngestConfig() {
     const configData = await this.#configStorage.get("ingest.yml");
     const config = configData ? yaml.load(configData) : null;
     if (!config) {
@@ -111,11 +111,11 @@ export class IngesterPipeline extends ProcessorBase {
    * Loads the environment config for LLM access.
    * @returns {Promise<import("@copilot-ld/libconfig").Config>} Config instance
    */
-  async #loadEnvConfig() {
-    if (!this.#envConfig) {
-      this.#envConfig = await createScriptConfig("ingest");
+  async #loadConfig() {
+    if (!this.#config) {
+      this.#config = await createScriptConfig("ingest");
     }
-    return this.#envConfig;
+    return this.#config;
   }
 
   /**
@@ -124,12 +124,12 @@ export class IngesterPipeline extends ProcessorBase {
    */
   async process() {
     // Load config if not already loaded
-    if (!this.#config) {
-      this.#config = await this.#loadConfig();
+    if (!this.#ingestConfig) {
+      this.#ingestConfig = await this.#loadIngestConfig();
     }
-    // Pre-load step handlers and env config
+    // Pre-load step handlers and config
     await this.#loadStepHandlers();
-    await this.#loadEnvConfig();
+    await this.#loadConfig();
     const ingestStorage = this.#ingestStorage;
     // List all pipeline folders (e.g. pipeline/<sha256>/)
     const pipelineFolders = await ingestStorage.findByPrefix("pipeline/", "/");
@@ -145,7 +145,7 @@ export class IngesterPipeline extends ProcessorBase {
     await this.#ensureContextExists(pipelineFolder, contextPath);
 
     const stepHandlers = await this.#loadStepHandlers();
-    const envConfig = await this.#loadEnvConfig();
+    const config = await this.#loadConfig();
 
     while (true) {
       const context = await this.#loadContext(pipelineFolder, contextPath);
@@ -163,7 +163,7 @@ export class IngesterPipeline extends ProcessorBase {
         contextPath,
         pipelineFolder,
         stepHandlers,
-        envConfig,
+        config,
       );
     }
   }
@@ -216,14 +216,14 @@ export class IngesterPipeline extends ProcessorBase {
    * @param {string} contextPath - Path to context.json
    * @param {string} pipelineFolder - Pipeline folder path
    * @param {Map<string, Function>} stepHandlers - Map of step handlers
-   * @param {object} envConfig - Environment configuration
+   * @param {import("@copilot-ld/libconfig").Config} config - Configuration
    */
   async #executeStep(
     stepEntry,
     contextPath,
     pipelineFolder,
     stepHandlers,
-    envConfig,
+    config,
   ) {
     const [stepName] = stepEntry;
     this.#logger.debug("Pipeline", "Processing step", {
@@ -236,7 +236,7 @@ export class IngesterPipeline extends ProcessorBase {
       throw new Error(`Unknown step: ${stepName}`);
     }
 
-    const handler = this.#createStepHandler(StepHandler, stepName, envConfig);
+    const handler = this.#createStepHandler(StepHandler, stepName, config);
     await handler.process(contextPath);
   }
 
@@ -244,20 +244,20 @@ export class IngesterPipeline extends ProcessorBase {
    * Creates a step handler instance with dependencies.
    * @param {Function} StepHandler - Step handler class
    * @param {string} stepName - Name of the step for config lookup
-   * @param {object} envConfig - Environment configuration
+   * @param {import("@copilot-ld/libconfig").Config} config - Configuration
    * @returns {object} Step handler instance
    */
-  #createStepHandler(StepHandler, stepName, envConfig) {
+  #createStepHandler(StepHandler, stepName, config) {
     const modelConfig = {
-      model: this.#config.models?.[stepName],
-      maxTokens: this.#config.defaults?.maxTokens,
+      model: this.#ingestConfig.models?.[stepName],
+      maxTokens: this.#ingestConfig.defaults?.maxTokens,
     };
 
     return new StepHandler(
       this.#ingestStorage,
       this.#logger,
       modelConfig,
-      envConfig,
+      config,
       this.#promptLoader,
     );
   }

@@ -311,10 +311,10 @@
 
       function renderColorTokens() {
         const ref = document.createElement("div");
-        ref.attachShadow({ mode: "open" }).innerHTML =
-          `<style>${baseStyles}</style><i></i>`;
+        const shadow = ref.attachShadow({ mode: "open" });
+        shadow.innerHTML = `<style>${baseStyles}</style><span></span>`;
         document.body.appendChild(ref);
-        const cs = getComputedStyle(ref.shadowRoot.host);
+        const cs = getComputedStyle(shadow.querySelector("span"));
         document.getElementById("color-tokens").innerHTML = tokenNames
           .map((n) => {
             const name = `--chat-${n}`,
@@ -329,17 +329,17 @@
 
       function renderSpacingScale() {
         const ref = document.createElement("div");
-        ref.attachShadow({ mode: "open" }).innerHTML =
-          `<style>${baseStyles}</style><i></i>`;
+        const shadow = ref.attachShadow({ mode: "open" });
+        shadow.innerHTML = `<style>${baseStyles}</style><span></span>`;
         document.body.appendChild(ref);
-        const cs = getComputedStyle(ref.shadowRoot.host);
+        const cs = getComputedStyle(shadow.querySelector("span"));
         document.getElementById("spacing-scale").innerHTML = spacingTokens
           .map((t) => {
             const name = `--chat-${t.name}`,
               val = cs.getPropertyValue(name).trim();
             return `<div style="border-radius:8px;overflow:hidden;border:1px solid var(--g-border)">
               <div style="height:60px;display:flex;align-items:center;justify-content:center;background:var(--g-muted)">
-                <div style="width:${val};height:${val};background:var(--chat-accent,#2563eb);border-radius:2px"></div>
+                <div style="width:${val};height:${val};background:var(--g-accent);border-radius:2px"></div>
               </div>
               <div style="padding:8px 10px;background:var(--g-card);font-size:11px">
                 <strong>${t.label}</strong> <span style="color:var(--g-dim)">(${val})</span>
@@ -556,7 +556,10 @@ console.log(greet('World'));</pre></article>`,
         document.documentElement.style.colorScheme = dark ? "dark" : "light";
         lightBtn.classList.toggle("active", !dark);
         darkBtn.classList.toggle("active", dark);
-        setTimeout(renderColorTokens, 50);
+        setTimeout(() => {
+          renderColorTokens();
+          renderSpacingScale();
+        }, 50);
       };
       lightBtn.onclick = () => setTheme(false);
       darkBtn.onclick = () => setTheme(true);

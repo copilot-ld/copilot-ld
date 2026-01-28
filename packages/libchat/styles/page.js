@@ -95,6 +95,7 @@ export const pageStyles = `
    * Buttons - bottom right of textarea
    */
   button[type="submit"] {
+    position: absolute;
     bottom: var(--chat-space-md);
     right: var(--chat-space-md);
   }

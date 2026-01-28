@@ -45,10 +45,10 @@ import { MyIndex } from "@pkg/lib"; // ✗ circular dep
 
 ## Prohibited
 
-- Backward compatibility shims or deprecation warnings
-- REST for inter-service communication (use gRPC)
-- State within service instances (inject dependencies)
-- Direct service-to-service dependencies (route through Agent)
-- Framework-specific code in `/packages`
-- Exporting processors/indices from package main `index.js`
-- `new Type()` for protobufs (use `Type.fromObject()`)
+- **NO** backward compatibility shims or deprecation warnings
+- **NO** REST for inter-service communication (use gRPC)
+- **NO** state within service instances (inject dependencies)
+- **NO** direct service-to-service dependencies (route through Agent)
+- **NO** framework-specific code in `/packages`
+- **NO** exporting processors/indices from package main `index.js`
+- **NO** `new Type()` for protobufs (use `Type.fromObject()`)

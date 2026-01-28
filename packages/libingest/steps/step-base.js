@@ -23,6 +23,7 @@ export const DEFAULT_MODEL = "gpt-4o";
  * - Loading/saving ingest context
  * - Step validation
  * - Model configuration
+ * - Prompt loading via PromptLoader
  */
 export class StepBase {
   /** @type {import("@copilot-ld/libstorage").StorageInterface} */
@@ -37,6 +38,9 @@ export class StepBase {
   /** @type {import("@copilot-ld/libconfig").Config} */
   #config;
 
+  /** @type {import("@copilot-ld/libprompt").PromptLoader|null} */
+  #promptLoader;
+
   /**
    * The step name for this ingest step.
    * Must be overridden by subclasses, and should match the step name exported from the module.
@@ -50,8 +54,9 @@ export class StepBase {
    * @param {object} logger Logger instance with debug() method
    * @param {ModelConfig} modelConfig Model configuration
    * @param {import("@copilot-ld/libconfig").Config} config Config instance for environment access
+   * @param {import("@copilot-ld/libprompt").PromptLoader} [promptLoader] Optional prompt loader for templates
    */
-  constructor(ingestStorage, logger, modelConfig, config) {
+  constructor(ingestStorage, logger, modelConfig, config, promptLoader = null) {
     if (!ingestStorage) throw new Error("ingestStorage is required");
     if (!logger) throw new Error("logger is required");
     if (!config) throw new Error("config is required");
@@ -60,6 +65,7 @@ export class StepBase {
     this.#logger = logger;
     this.#modelConfig = modelConfig || {};
     this.#config = config;
+    this.#promptLoader = promptLoader;
   }
 
   /**
@@ -95,14 +101,25 @@ export class StepBase {
   }
 
   /**
-   * Loads a prompt file relative to the step's directory.
-   * @param {string} promptName Filename of the prompt
-   * @param {string} baseDir Directory containing the prompt
+   * Loads a prompt file. Uses PromptLoader if available, otherwise falls back to direct file read.
+   * @param {string} promptName Filename of the prompt (legacy) or prompt name without extension (with PromptLoader)
+   * @param {string} [baseDir] Directory containing the prompt (only used for legacy fallback)
    * @returns {string} Prompt contents
    */
   loadPrompt(promptName, baseDir) {
     if (!promptName) throw new Error("promptName is required");
-    if (!baseDir) throw new Error("baseDir is required");
+
+    // Use PromptLoader if available
+    if (this.#promptLoader) {
+      // Strip legacy extensions if present
+      const name = promptName
+        .replace(/-prompt\.md$/, "")
+        .replace(/\.prompt\.md$/, "");
+      return this.#promptLoader.load(name);
+    }
+
+    // Legacy fallback: load directly from file
+    if (!baseDir) throw new Error("baseDir is required when no PromptLoader");
     const promptPath = join(baseDir, promptName);
     if (!existsSync(promptPath)) {
       throw new Error(`Prompt file not found: ${promptPath}`);

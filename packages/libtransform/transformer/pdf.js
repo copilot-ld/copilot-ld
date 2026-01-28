@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { mkdtemp, writeFile, readdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
+
 import { countTokens, ProcessorBase } from "@copilot-ld/libutil";
 import { common } from "@copilot-ld/libtype";
 
@@ -20,6 +21,7 @@ export class PdfTransformer extends ProcessorBase {
   #knowledgeStorage;
   #llm;
   #logger;
+  #promptLoader;
   #imgToHtmlSystemPrompt;
   #annotateHtmlSystemPrompt;
   #contextExtractorSystemPrompt;
@@ -31,6 +33,7 @@ export class PdfTransformer extends ProcessorBase {
    * @param {import("@copilot-ld/libstorage").StorageInterface} knowledgeStorage - Storage backend for PDF files
    * @param {object} llm - Copilot LLM client with imageToText(image, systemPrompt, prompt, model, max_tokens) method
    * @param {object} logger - Logger instance with debug() method
+   * @param {import("@copilot-ld/libprompt").PromptLoader} [promptLoader] - Optional prompt loader for templates
    * @param {object} [options] - Optional configuration
    * @param {string} [options.systemPrompt] - System prompt for Copilot
    * @param {string} [options.userPrompt] - User prompt for Copilot
@@ -38,7 +41,13 @@ export class PdfTransformer extends ProcessorBase {
    * @param {number} [options.maxTokens] - Max tokens for Copilot response
    * @throws {Error} If pdftoppm is not available
    */
-  constructor(knowledgeStorage, llm, logger, options = {}) {
+  constructor(
+    knowledgeStorage,
+    llm,
+    logger,
+    promptLoader = null,
+    options = {},
+  ) {
     super(logger, 5);
 
     if (!knowledgeStorage) throw new Error("knowledgeStorage is required");
@@ -51,20 +60,17 @@ export class PdfTransformer extends ProcessorBase {
     this.#knowledgeStorage = knowledgeStorage;
     this.#llm = llm;
     this.#logger = logger;
+    this.#promptLoader = promptLoader;
 
     if (options.imgToHtmlSystemPrompt) {
       this.#imgToHtmlSystemPrompt = options.systemPrompt;
     } else {
-      this.#imgToHtmlSystemPrompt = this.#loadPrompt("image-to-html-prompt.md");
+      this.#imgToHtmlSystemPrompt = this.#loadPrompt("image-to-html");
     }
 
-    this.#annotateHtmlSystemPrompt = this.#loadPrompt(
-      "annotate-html-prompt.md",
-    );
+    this.#annotateHtmlSystemPrompt = this.#loadPrompt("annotate-html");
 
-    this.#contextExtractorSystemPrompt = this.#loadPrompt(
-      "context-extractor-prompt.md",
-    );
+    this.#contextExtractorSystemPrompt = this.#loadPrompt("context-extractor");
 
     this.#model = options.model || "gpt-4o";
 
@@ -72,18 +78,23 @@ export class PdfTransformer extends ProcessorBase {
   }
 
   /**
-   * Loads a prompt file by name from the current directory.
-   * Checks if the file exists before reading.
-   * @param {string} promptName - Name of the prompt file to load
+   * Loads a prompt file. Uses PromptLoader if available, otherwise falls back to direct file read.
+   * @param {string} promptName - Name of the prompt file (without extension)
    * @returns {string} Prompt file contents as a string
-   * @throws {Error} If promptName is not supplied or file does not exist
+   * @throws {Error} If prompt file does not exist
    */
   #loadPrompt(promptName) {
     if (!promptName) {
       throw new Error("promptName must be supplied");
     }
 
-    const promptPath = join(__dirname, promptName);
+    // Use PromptLoader if available
+    if (this.#promptLoader) {
+      return this.#promptLoader.load(promptName);
+    }
+
+    // Legacy fallback: load directly from file
+    const promptPath = join(__dirname, `${promptName}-prompt.md`);
 
     if (!existsSync(promptPath)) {
       throw new Error(`Prompt file does not exist: ${promptPath}`);

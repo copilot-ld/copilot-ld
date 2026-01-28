@@ -1,8 +1,11 @@
 import { join, dirname } from "path";
 import { readdir } from "fs/promises";
 import { fileURLToPath } from "url";
+
 import yaml from "js-yaml";
+
 import { createScriptConfig } from "@copilot-ld/libconfig";
+import { PromptLoader } from "@copilot-ld/libprompt";
 import { ProcessorBase } from "@copilot-ld/libutil/processor.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -54,6 +57,7 @@ export class IngesterPipeline extends ProcessorBase {
   #envConfig;
   #logger;
   #stepHandlers;
+  #promptLoader;
 
   /**
    * Create a new Ingester instance.
@@ -72,6 +76,7 @@ export class IngesterPipeline extends ProcessorBase {
     this.#envConfig = null;
     this.#logger = logger;
     this.#stepHandlers = null;
+    this.#promptLoader = new PromptLoader(join(__dirname, "prompts"));
   }
 
   /**
@@ -191,12 +196,13 @@ export class IngesterPipeline extends ProcessorBase {
         maxTokens: this.#config.defaults?.maxTokens,
       };
 
-      // Create and run the step handler with injected config
+      // Create and run the step handler with injected config and prompt loader
       const handler = new StepHandler(
         ingestStorage,
         this.#logger,
         modelConfig,
         envConfig,
+        this.#promptLoader,
       );
       await handler.process(contextPath);
     }

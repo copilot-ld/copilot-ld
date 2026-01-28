@@ -1,6 +1,6 @@
 # Evaluation Report: {{{scenario}}}
 
-## Abstract 
+## Abstract
 
 This report evaluates an AI agent using the scenario `{{{scenario}}}`.
 
@@ -10,8 +10,8 @@ This report evaluates an AI agent using the scenario `{{{scenario}}}`.
 
 ## Method
 
-The scenario `{{{scenario}}}` has {{{complexity}}} complexity,
-using the `{{{type}}}` evaluator with the prompt:
+The scenario `{{{scenario}}}` has {{{complexity}}} complexity, using the
+`{{{type}}}` evaluator with the prompt:
 
 ```markdown
 {{{prompt}}}
@@ -19,14 +19,12 @@ using the `{{{type}}}` evaluator with the prompt:
 
 The scenario contains {{{stats.evaluations}}} evaluation(s):
 
-{{#evaluations}}
-{{{index}}}. {{{label}}}
-{{/evaluations}}
+{{#evaluations}} {{{index}}}. {{{label}}} {{/evaluations}}
 
 The scenario passes if all evaluations pass.
 
-The scenario was run {{{total.runs}}} time(s), using the same prompt and evaluations.
-{{total.passed}} passed, {{total.failed}} failed.
+The scenario was run {{{total.runs}}} time(s), using the same prompt and
+evaluations. {{total.passed}} passed, {{total.failed}} failed.
 
 ## Agent Profiles
 
@@ -36,12 +34,13 @@ When analyzing failures, compare the agent's observed behavior against these
 profile instructions to identify gaps.
 
 | Profile | Description | Tools |
-|---------|-------------|-------|
-{{#agents}}
-| [{{{name}}}](agents/{{{name}}}.agent.md) | {{{description}}} | {{{tools}}} |
-{{/agents}}
+| ------- | ----------- | ----- |
+
+{{#agents}} | [{{{name}}}](agents/{{{name}}}.agent.md) | {{{description}}} |
+{{{tools}}} | {{/agents}}
 
 ## Results
+
 {{#results}}
 
 ### {{#passed}}✅{{/passed}}{{^passed}}❌{{/passed}} Run {{{index}}}
@@ -59,12 +58,11 @@ profile instructions to identify gaps.
 #### Context Retrieval
 
 {{#memories}}
-1. [{{{subject}}}][{{{resource}}}] {{#score}}Score: {{{score}}}{{/score}}
-{{/memories}}
 
-{{#memories}}
-[{{{resource}}}]: ../resources/{{{resource}}}.json
-{{/memories}}
+1. [{{{subject}}}][{{{resource}}}] {{#score}}Score: {{{score}}}{{/score}}
+   {{/memories}}
+
+{{#memories}} [{{{resource}}}]: ../resources/{{{resource}}}.json {{/memories}}
 
 #### Agent Response
 
@@ -73,6 +71,7 @@ profile instructions to identify gaps.
 ```
 
 #### Evaluations
+
 {{#evaluations}}
 
 ##### {{#passed}}✅{{/passed}}{{^passed}}❌{{/passed}} Evaluation {{{index}}}: {{{label}}}
@@ -81,10 +80,10 @@ profile instructions to identify gaps.
 
 **Expected:** {{{data}}}
 
-{{#detail}}
-**Detail:** {{{detail}}}
+{{#detail}} **Detail:** {{{detail}}}
 
-{{/detail}}
-{{/evaluations}}
+{{/detail}} {{/evaluations}}
+
 ---
+
 {{/results}}

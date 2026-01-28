@@ -198,12 +198,12 @@ describe("StepBase", () => {
       });
     });
 
-    test("throws error when baseDir is missing", () => {
+    test("throws error when baseDir is missing and no PromptLoader", () => {
       const step = new StepBase(mockStorage, mockLogger, {}, mockConfig);
 
       assert.throws(() => step.loadPrompt("test.md", null), {
         name: "Error",
-        message: "baseDir is required",
+        message: "baseDir is required when no PromptLoader",
       });
     });
 

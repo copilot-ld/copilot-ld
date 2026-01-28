@@ -49,14 +49,30 @@ function createMockLogger() {
   };
 }
 
+/**
+ * Creates a mock config instance for testing.
+ * @param {object} overrides - Optional method overrides
+ * @returns {object} Mock config with llmToken, llmBaseUrl, embeddingBaseUrl methods
+ */
+function createMockConfig(overrides = {}) {
+  return {
+    llmToken: async () => "test-token",
+    llmBaseUrl: () => "https://api.test.com",
+    embeddingBaseUrl: () => "https://api.test.com",
+    ...overrides,
+  };
+}
+
 describe("IngesterPipeline", () => {
   let mockIngestStorage;
   let mockConfigStorage;
+  let mockConfig;
   let mockLogger;
 
   beforeEach(() => {
     mockIngestStorage = createMockStorage();
     mockConfigStorage = createMockStorage();
+    mockConfig = createMockConfig();
     mockLogger = createMockLogger();
   });
 
@@ -65,6 +81,7 @@ describe("IngesterPipeline", () => {
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
       assert.ok(pipeline);
@@ -72,7 +89,8 @@ describe("IngesterPipeline", () => {
 
     test("throws error when ingestStorage is missing", () => {
       assert.throws(
-        () => new IngesterPipeline(null, mockConfigStorage, mockLogger),
+        () =>
+          new IngesterPipeline(null, mockConfigStorage, mockConfig, mockLogger),
         {
           name: "Error",
           message: /ingestStorage backend is required/,
@@ -82,7 +100,8 @@ describe("IngesterPipeline", () => {
 
     test("throws error when configStorage is missing", () => {
       assert.throws(
-        () => new IngesterPipeline(mockIngestStorage, null, mockLogger),
+        () =>
+          new IngesterPipeline(mockIngestStorage, null, mockConfig, mockLogger),
         {
           name: "Error",
           message: /configStorage backend is required/,
@@ -94,6 +113,7 @@ describe("IngesterPipeline", () => {
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
         10,
       );
@@ -104,16 +124,34 @@ describe("IngesterPipeline", () => {
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
       );
       assert.ok(pipeline);
+    });
+
+    test("throws error when config is missing", () => {
+      assert.throws(
+        () =>
+          new IngesterPipeline(
+            mockIngestStorage,
+            mockConfigStorage,
+            null,
+            mockLogger,
+          ),
+        {
+          name: "Error",
+          message: /config is required/,
+        },
+      );
     });
   });
 
   describe("process", () => {
-    test("throws error when config is missing", async () => {
+    test("throws error when ingest config is missing", async () => {
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -139,6 +177,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -162,6 +201,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -186,6 +226,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -216,6 +257,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -248,6 +290,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -280,6 +323,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -312,6 +356,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -360,6 +405,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -389,6 +435,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -419,6 +466,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -461,6 +509,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -503,6 +552,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -543,6 +593,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 
@@ -575,6 +626,7 @@ steps:
       const pipeline = new IngesterPipeline(
         mockIngestStorage,
         mockConfigStorage,
+        mockConfig,
         mockLogger,
       );
 

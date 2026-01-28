@@ -42,7 +42,11 @@ export class IngesterLoad extends ProcessorBase {
   async #loadIngestConfig() {
     const configData = await this.#configStorage.get("ingest.yml");
     const ingestConfig = configData ? yaml.load(configData) : null;
-    if (!ingestConfig || !ingestConfig.steps || Object.keys(ingestConfig.steps).length === 0) {
+    if (
+      !ingestConfig ||
+      !ingestConfig.steps ||
+      Object.keys(ingestConfig.steps).length === 0
+    ) {
       throw new Error(`No steps found in config`);
     }
     return ingestConfig;

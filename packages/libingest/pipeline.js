@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 
 import yaml from "js-yaml";
 
-import { createScriptConfig } from "@copilot-ld/libconfig";
 import { PromptLoader } from "@copilot-ld/libprompt";
 import { ProcessorBase } from "@copilot-ld/libutil/processor.js";
 
@@ -53,8 +52,8 @@ async function discoverSteps() {
 export class IngesterPipeline extends ProcessorBase {
   #ingestStorage;
   #configStorage;
-  #ingestConfig;
   #config;
+  #ingestConfig;
   #logger;
   #stepHandlers;
   #promptLoader;
@@ -63,17 +62,25 @@ export class IngesterPipeline extends ProcessorBase {
    * Create a new Ingester instance.
    * @param {object} ingestStorage - Storage backend for ingest files
    * @param {object} configStorage - Storage backend for config files
+   * @param {import("@copilot-ld/libconfig").Config} config - Config instance for environment access
    * @param {object} [logger] - Logger with debug/info methods
    * @param {number} [batchSize] - Optional batch size for processing
    */
-  constructor(ingestStorage, configStorage, logger = console, batchSize = 20) {
+  constructor(
+    ingestStorage,
+    configStorage,
+    config,
+    logger = console,
+    batchSize = 20,
+  ) {
     super(logger, batchSize);
     if (!ingestStorage) throw new Error("ingestStorage backend is required");
     if (!configStorage) throw new Error("configStorage backend is required");
+    if (!config) throw new Error("config is required");
     this.#ingestStorage = ingestStorage;
     this.#configStorage = configStorage;
+    this.#config = config;
     this.#ingestConfig = null;
-    this.#config = null;
     this.#logger = logger;
     this.#stepHandlers = null;
     this.#promptLoader = new PromptLoader(join(__dirname, "prompts"));
@@ -108,17 +115,6 @@ export class IngesterPipeline extends ProcessorBase {
   }
 
   /**
-   * Loads the environment config for LLM access.
-   * @returns {Promise<import("@copilot-ld/libconfig").Config>} Config instance
-   */
-  async #loadConfig() {
-    if (!this.#config) {
-      this.#config = await createScriptConfig("ingest");
-    }
-    return this.#config;
-  }
-
-  /**
    * Processes all files in the ingest 'pipeline' folder
    * @returns {Promise<void>}
    */
@@ -127,9 +123,8 @@ export class IngesterPipeline extends ProcessorBase {
     if (!this.#ingestConfig) {
       this.#ingestConfig = await this.#loadIngestConfig();
     }
-    // Pre-load step handlers and env config
+    // Pre-load step handlers
     await this.#loadStepHandlers();
-    await this.#loadConfig();
     const ingestStorage = this.#ingestStorage;
     // List all pipeline folders (e.g. pipeline/<sha256>/)
     const pipelineFolders = await ingestStorage.findByPrefix("pipeline/", "/");
@@ -145,7 +140,6 @@ export class IngesterPipeline extends ProcessorBase {
     await this.#ensureContextExists(pipelineFolder, contextPath);
 
     const stepHandlers = await this.#loadStepHandlers();
-    const envConfig = await this.#loadConfig();
 
     while (true) {
       const context = await this.#loadContext(pipelineFolder, contextPath);
@@ -163,7 +157,6 @@ export class IngesterPipeline extends ProcessorBase {
         contextPath,
         pipelineFolder,
         stepHandlers,
-        envConfig,
       );
     }
   }
@@ -216,15 +209,8 @@ export class IngesterPipeline extends ProcessorBase {
    * @param {string} contextPath - Path to context.json
    * @param {string} pipelineFolder - Pipeline folder path
    * @param {Map<string, Function>} stepHandlers - Map of step handlers
-   * @param {object} envConfig - Environment configuration
    */
-  async #executeStep(
-    stepEntry,
-    contextPath,
-    pipelineFolder,
-    stepHandlers,
-    envConfig,
-  ) {
+  async #executeStep(stepEntry, contextPath, pipelineFolder, stepHandlers) {
     const [stepName] = stepEntry;
     this.#logger.debug("Pipeline", "Processing step", {
       step: stepName,
@@ -236,7 +222,7 @@ export class IngesterPipeline extends ProcessorBase {
       throw new Error(`Unknown step: ${stepName}`);
     }
 
-    const handler = this.#createStepHandler(StepHandler, stepName, envConfig);
+    const handler = this.#createStepHandler(StepHandler, stepName);
     await handler.process(contextPath);
   }
 
@@ -244,10 +230,9 @@ export class IngesterPipeline extends ProcessorBase {
    * Creates a step handler instance with dependencies.
    * @param {Function} StepHandler - Step handler class
    * @param {string} stepName - Name of the step for config lookup
-   * @param {object} envConfig - Environment configuration
    * @returns {object} Step handler instance
    */
-  #createStepHandler(StepHandler, stepName, envConfig) {
+  #createStepHandler(StepHandler, stepName) {
     const modelConfig = {
       model: this.#ingestConfig.models?.[stepName],
       maxTokens: this.#ingestConfig.defaults?.maxTokens,
@@ -257,9 +242,8 @@ export class IngesterPipeline extends ProcessorBase {
       this.#ingestStorage,
       this.#logger,
       modelConfig,
-      envConfig,
+      this.#config,
       this.#promptLoader,
     );
   }
 }
-

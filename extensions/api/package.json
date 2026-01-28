@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/api",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "REST API extension for Copilot-LD agent services",
   "license": "MIT",
   "type": "module",
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.56",
-    "@copilot-ld/librpc": "^0.1.75",
+    "@copilot-ld/librpc": "^0.1.76",
     "@copilot-ld/libtelemetry": "^0.1.20",
     "@copilot-ld/libtype": "^0.1.61",
     "@copilot-ld/libutil": "^0.1.58"

@@ -26,6 +26,7 @@ export const pageStyles = `
 
   :host([data-empty]) section {
     width: 100%;
+    min-width: 480px;
     max-width: 720px;
     margin: 0 auto;
     padding: 0 var(--chat-gap);

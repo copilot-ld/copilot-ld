@@ -138,7 +138,7 @@ describe("MemoryIndex - IndexBase Functionality", () => {
         tokens: 10,
       });
 
-      await memoryIndex.add(identifier);
+      await memoryIndex.add([identifier]);
       const exists = await memoryIndex.has(String(identifier));
 
       assert.strictEqual(exists, true, "Should return true for existing item");
@@ -151,7 +151,7 @@ describe("MemoryIndex - IndexBase Functionality", () => {
         tokens: 10,
       });
 
-      await memoryIndex.add(identifier);
+      await memoryIndex.add([identifier]);
 
       assert.strictEqual(
         storage.append.mock.callCount(),
@@ -175,7 +175,7 @@ describe("MemoryIndex - IndexBase Functionality", () => {
         tokens: 10,
       });
 
-      await memoryIndex.add(identifier);
+      await memoryIndex.add([identifier]);
       const result = await memoryIndex.get([String(identifier)]);
 
       assert.strictEqual(result.length, 1, "Should return one item");
@@ -227,10 +227,10 @@ describe("MemoryIndex - IndexBase Functionality", () => {
         { type: "resource.Document", name: "doc1", tokens: 30 },
       ];
 
-      for (const item of items) {
-        const identifier = resource.Identifier.fromObject(item);
-        await memoryIndex.add(identifier);
-      }
+      const identifiers = items.map((item) =>
+        resource.Identifier.fromObject(item),
+      );
+      await memoryIndex.add(identifiers);
     });
 
     it("should return all items without filters", async () => {
@@ -370,8 +370,8 @@ describe("MemoryIndex - IndexBase Functionality", () => {
         tokens: 12,
       });
 
-      await memoryIndex.add(identifier1);
-      await memoryIndex.add(identifier2);
+      await memoryIndex.add([identifier1]);
+      await memoryIndex.add([identifier2]);
 
       const memory = await memoryIndex.queryItems();
 

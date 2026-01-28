@@ -144,12 +144,10 @@ export class AnnotateHtml extends StepBase {
         }),
       ];
 
-      const response = await llm.createCompletions(
+      const response = await llm.createCompletions({
         messages,
-        undefined,
-        undefined,
-        this.getMaxTokens(),
-      );
+        max_tokens: this.getMaxTokens(),
+      });
 
       if (!response.choices || response.choices.length === 0) {
         throw new Error(

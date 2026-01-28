@@ -73,34 +73,55 @@ export class AgentMind {
       const model = this.#config.model;
 
       /**
-       * Saves a resource to the index and memory, and streams to client
-       * @param {import("@copilot-ld/libtype").common.Message} message - Message to save
+       * Saves messages to server-side indices
+       * - Resource index: parallel writes (order doesn't matter)
+       * - Memory index: single ordered append (order matters)
+       * @param {import("@copilot-ld/libtype").common.Message[]} messages - Messages in conversation order
+       * @returns {Promise<import("@copilot-ld/libtype").resource.Identifier[]>} Identifiers in same order
        */
-      const saveMessage = async (message) => {
-        message.withIdentifier(conversation.id);
+      const saveToServer = async (messages) => {
+        if (messages.length === 0) return [];
 
-        // Persist to storage
-        await this.#resourceIndex.put(message);
+        // Prepare all messages with identifiers
+        for (const msg of messages) {
+          msg.withIdentifier(conversation.id);
+        }
 
-        // Append to memory
-        await this.#callbacks.memory.append(
-          memory.AppendRequest.fromObject({
-            resource_id,
-            identifiers: [message.id],
-          }),
-        );
+        // Parallel writes to resource index (order doesn't matter)
+        await Promise.all(messages.map((msg) => this.#resourceIndex.put(msg)));
 
-        // Stream to the client, but skip tool results
+        // Collect identifiers in order for memory index
+        const identifiers = messages.map((msg) => msg.id).filter(Boolean);
+
+        // Single ordered append to memory index
+        if (identifiers.length > 0) {
+          await this.#callbacks.memory.append(
+            memory.AppendRequest.fromObject({
+              resource_id,
+              identifiers,
+            }),
+          );
+        }
+
+        return identifiers;
+      };
+
+      /**
+       * Streams message to client immediately (skip tool results)
+       * @param {import("@copilot-ld/libtype").common.Message} message - Message to stream
+       */
+      const streamToClient = (message) => {
         if (onProgress && message.id?.type !== "tool.ToolCallMessage") {
           onProgress(resource_id, [message]);
         }
       };
 
       // Use AgentHands for tool execution
-      await this.#hands.executeToolLoop(resource_id, saveMessage, {
-        llmToken,
-        model,
-      });
+      await this.#hands.executeToolLoop(
+        resource_id,
+        { saveToServer, streamToClient },
+        { llmToken, model },
+      );
     }
   }
 

@@ -161,7 +161,7 @@ describe("Retry", () => {
     assert.strictEqual(response.status, 400);
   });
 
-  test("500 Internal Server Error does not trigger retries", async () => {
+  test("500 Internal Server Error triggers retries", async () => {
     const errorResponse = {
       ok: false,
       status: 500,
@@ -172,8 +172,8 @@ describe("Retry", () => {
 
     const response = await retry.execute(mockFetch);
 
-    // Should only make one call for 500 errors
-    assert.strictEqual(mockFetch.mock.callCount(), 1);
+    // Should retry for 500 errors (retries + 1 initial attempt = 11 calls)
+    assert.strictEqual(mockFetch.mock.callCount(), 11);
     assert.strictEqual(response.status, 500);
   });
 

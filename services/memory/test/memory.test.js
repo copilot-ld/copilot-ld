@@ -142,7 +142,7 @@ describe("memory service", () => {
       );
     });
 
-    test("GetWindow returns messages and tools structure", async () => {
+    test("GetWindow returns messages and tools structure with max_tokens", async () => {
       const service = new MemoryService(
         mockConfig,
         mockStorage,
@@ -157,6 +157,11 @@ describe("memory service", () => {
       assert.ok(result);
       assert.ok(Array.isArray(result.messages), "Should have messages array");
       assert.ok(Array.isArray(result.tools), "Should have tools array");
+      assert.strictEqual(
+        result.max_tokens,
+        4096,
+        "Should include max_tokens from config",
+      );
     });
 
     test("GetWindow returns assistant as first message", async () => {
@@ -203,6 +208,12 @@ describe("memory service", () => {
     });
 
     test("GetWindow returns conversation messages within budget", async () => {
+      // Override max_tokens to fit within test model context (1000 tokens)
+      const customConfig = {
+        ...mockConfig,
+        max_tokens: 100,
+      };
+
       // Add some test messages to memory
       await mockStorage.append(
         "test-conversation.jsonl",
@@ -244,7 +255,7 @@ describe("memory service", () => {
       );
 
       const service = new MemoryService(
-        mockConfig,
+        customConfig,
         mockStorage,
         mockResourceIndex,
       );

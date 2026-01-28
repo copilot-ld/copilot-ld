@@ -41,11 +41,28 @@ describe("MemoryWindow", () => {
       tokens: 15,
     });
 
-    await memoryIndex.add(msg);
+    await memoryIndex.add([msg]);
 
     await assert.rejects(() => memoryWindow.build(), /model is required/);
 
     await assert.rejects(() => memoryWindow.build(""), /model is required/);
+  });
+
+  it("should require maxTokens parameter", async () => {
+    await assert.rejects(
+      () => memoryWindow.build("test-model-1000"),
+      /maxTokens is required/,
+    );
+
+    await assert.rejects(
+      () => memoryWindow.build("test-model-1000", 0),
+      /maxTokens is required/,
+    );
+
+    await assert.rejects(
+      () => memoryWindow.build("test-model-1000", -1),
+      /maxTokens is required/,
+    );
   });
 
   it("should return messages and tools structure", async () => {
@@ -64,9 +81,9 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
+    await memoryIndex.add([msg1]);
 
-    const result = await memoryWindow.build("test-model-1000");
+    const result = await memoryWindow.build("test-model-1000", 100);
 
     assert.ok(result.messages, "Should have messages array");
     assert.ok(result.tools, "Should have tools array");
@@ -75,7 +92,7 @@ describe("MemoryWindow", () => {
   });
 
   it("should include assistant as first message", async () => {
-    const result = await memoryWindow.build("test-model-1000");
+    const result = await memoryWindow.build("test-model-1000", 100);
 
     // First message should be the assistant
     assert.ok(result.messages.length >= 1);
@@ -83,7 +100,7 @@ describe("MemoryWindow", () => {
   });
 
   it("should include tools from assistant configuration", async () => {
-    const result = await memoryWindow.build("test-model-1000");
+    const result = await memoryWindow.build("test-model-1000", 100);
 
     // Should have 2 tools (search and analyze)
     assert.strictEqual(result.tools.length, 2);
@@ -118,10 +135,10 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(msg2);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([msg2]);
 
-    const result = await memoryWindow.build("test-model-1000");
+    const result = await memoryWindow.build("test-model-1000", 100);
 
     // Should have assistant + 2 conversation messages
     assert.strictEqual(result.messages.length, 3);
@@ -130,7 +147,7 @@ describe("MemoryWindow", () => {
     assert.strictEqual(result.messages[2].id?.name, "msg2");
   });
 
-  it("should build window with budget constraint", async () => {
+  it("should build window with budget constraint reserving output tokens", async () => {
     const msg1 = resource.Identifier.fromObject({
       name: "msg1",
       type: "common.Message",
@@ -169,21 +186,20 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(msg2);
-    await memoryIndex.add(msg3);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([msg2]);
+    await memoryIndex.add([msg3]);
 
-    // Budget of 125: assistant(50) + 2 tools(40) = 90 fixed
-    // Remaining 35 for messages, fits msg2(25) + msg3(10) = 35 (from newest first)
-    // msg1(15) won't fit
-    const result = await memoryWindow.build("test-model-125");
+    // Budget of 125: assistant(50) + 2 tools(40) = 90 fixed overhead
+    // Reserve 50 tokens for output (maxTokens parameter)
+    // historyBudget = 125 - 90 - 50 = -15 (nothing fits)
+    // But with maxTokens=15: historyBudget = 125 - 90 - 15 = 20, fits msg3(10)
+    const result = await memoryWindow.build("test-model-125", 15);
 
-    // Should be assistant + most recent messages that fit
-    assert.strictEqual(result.messages.length, 3);
-    // Should be in chronological order (oldest first after assistant)
+    // Should be assistant + msg3 only (msg1 and msg2 don't fit)
+    assert.strictEqual(result.messages.length, 2);
     assert.strictEqual(result.messages[0].id?.name, "test-agent");
-    assert.strictEqual(result.messages[1].id?.name, "msg2");
-    assert.strictEqual(result.messages[2].id?.name, "msg3");
+    assert.strictEqual(result.messages[1].id?.name, "msg3");
   });
 
   it("should drop orphaned tool messages at start of window", async () => {
@@ -239,15 +255,18 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(toolResult1);
-    await memoryIndex.add(toolResult2);
-    await memoryIndex.add(msg2);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([toolResult1]);
+    await memoryIndex.add([toolResult2]);
+    await memoryIndex.add([msg2]);
 
-    // Budget of 230: assistant(50) + 2 tools(40) = 90 fixed
-    // Remaining 140 would fit toolResult1(50) + toolResult2(50) + msg2(30) = 130
-    // But this leaves orphaned tool messages, so they should be dropped
-    const result = await memoryWindow.build("test-model-230");
+    // Budget of 230: assistant(50) + 2 tools(40) = 90 fixed overhead
+    // Reserve 50 for output: historyBudget = 230 - 90 - 50 = 90
+    // From newest: msg2(30) + toolResult2(50) = 80, fits
+    // But toolResult2 is orphaned (no preceding assistant), so drop it
+    // Continue: msg2(30) fits, but now check toolResult1(50) - orphaned, drop
+    // Final: just msg2(30)
+    const result = await memoryWindow.build("test-model-230", 50);
 
     // Should only have assistant + final assistant message (tool messages dropped)
     assert.strictEqual(result.messages.length, 2);
@@ -294,13 +313,14 @@ describe("MemoryWindow", () => {
       }),
     );
 
-    await memoryIndex.add(msg1);
-    await memoryIndex.add(toolResult1);
-    await memoryIndex.add(msg2);
+    await memoryIndex.add([msg1]);
+    await memoryIndex.add([toolResult1]);
+    await memoryIndex.add([msg2]);
 
-    // Budget of 300 fits everything: assistant(50) + tools(40) = 90
-    // Remaining 210 fits all 3 messages (50+30+20=100)
-    const result = await memoryWindow.build("test-model-300");
+    // Budget of 300: assistant(50) + tools(40) = 90 fixed overhead
+    // Reserve 50 for output: historyBudget = 300 - 90 - 50 = 160
+    // All 3 messages fit (50+30+20=100)
+    const result = await memoryWindow.build("test-model-300", 50);
 
     assert.strictEqual(result.messages.length, 4);
     assert.strictEqual(result.messages[0].id?.name, "test-agent");

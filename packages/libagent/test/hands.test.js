@@ -11,11 +11,6 @@ describe("AgentHands", () => {
     mockServiceCallbacks = {
       memory: {
         append: async () => ({}),
-        getBudget: async () => ({
-          total: 128000,
-          overhead: 5000,
-          available: 123000,
-        }),
       },
       llm: {
         createCompletions: async () => ({
@@ -116,7 +111,7 @@ describe("AgentHands", () => {
     assert.strictEqual(content.error.message, "Tool execution failed");
   });
 
-  test("processToolCalls processes tool calls and saves results", async () => {
+  test("processToolCalls processes tool calls and returns results", async () => {
     const agentHands = new AgentHands(mockServiceCallbacks, mockResourceIndex);
 
     const toolCalls = [
@@ -124,19 +119,14 @@ describe("AgentHands", () => {
       { id: "call2", function: { name: "analyze" } },
     ];
 
-    const savedMessages = [];
-    const saveResource = async (msg) => {
-      savedMessages.push(msg);
-    };
-
-    await agentHands.processToolCalls(toolCalls, saveResource, {
+    const { messages } = await agentHands.processToolCalls(toolCalls, {
       llmToken: "test-token",
     });
 
-    // Should save 2 tool result messages
-    assert.strictEqual(savedMessages.length, 2);
-    assert.strictEqual(savedMessages[0].role, "tool");
-    assert.strictEqual(savedMessages[1].role, "tool");
+    // Should return 2 tool result messages
+    assert.strictEqual(messages.length, 2);
+    assert.strictEqual(messages[0].role, "tool");
+    assert.strictEqual(messages[1].role, "tool");
   });
 
   test("processToolCalls executes calls in parallel", async () => {
@@ -167,7 +157,7 @@ describe("AgentHands", () => {
       { id: "call2", function: { name: "analyze" } },
     ];
 
-    await agentHands.processToolCalls(toolCalls, async () => {}, {
+    await agentHands.processToolCalls(toolCalls, {
       llmToken: "test-token",
     });
 
@@ -177,8 +167,7 @@ describe("AgentHands", () => {
     assert.deepStrictEqual(completionOrder, ["call2", "call1"]);
   });
 
-  test("processToolCalls streams results in order as they complete", async () => {
-    const saveOrder = [];
+  test("processToolCalls returns results in order despite different completion times", async () => {
     const completionTimes = {};
 
     const mockCallbacksWithTiming = {
@@ -207,16 +196,14 @@ describe("AgentHands", () => {
       { id: "call3", function: { name: "summarize" } },
     ];
 
-    const saveResource = async (msg) => {
-      saveOrder.push(msg.tool_call_id);
-    };
-
-    await agentHands.processToolCalls(toolCalls, saveResource, {
+    const { messages } = await agentHands.processToolCalls(toolCalls, {
       llmToken: "test-token",
     });
 
-    // Messages saved in original order despite different completion times
-    assert.deepStrictEqual(saveOrder, ["call1", "call2", "call3"]);
+    // Messages returned in original order despite different completion times
+    assert.strictEqual(messages[0].tool_call_id, "call1");
+    assert.strictEqual(messages[1].tool_call_id, "call2");
+    assert.strictEqual(messages[2].tool_call_id, "call3");
 
     // Verify call2 actually completed before call1
     assert.ok(
@@ -249,28 +236,23 @@ describe("AgentHands", () => {
       { id: "call3", function: { name: "summarize" } },
     ];
 
-    const savedMessages = [];
-    await agentHands.processToolCalls(
-      toolCalls,
-      async (msg) => {
-        savedMessages.push(msg);
-      },
-      { llmToken: "test-token" },
-    );
+    const { messages } = await agentHands.processToolCalls(toolCalls, {
+      llmToken: "test-token",
+    });
 
-    // All 3 messages should be saved (including the error)
-    assert.strictEqual(savedMessages.length, 3);
+    // All 3 messages should be returned (including the error)
+    assert.strictEqual(messages.length, 3);
 
     // call1 should succeed
-    assert.strictEqual(savedMessages[0].content, "Result for call1");
+    assert.strictEqual(messages[0].content, "Result for call1");
 
     // call2 should have error
-    const call2Content = JSON.parse(savedMessages[1].content);
+    const call2Content = JSON.parse(messages[1].content);
     assert.ok(call2Content.error);
     assert.strictEqual(call2Content.error.message, "Tool call2 failed");
 
     // call3 should succeed
-    assert.strictEqual(savedMessages[2].content, "Result for call3");
+    assert.strictEqual(messages[2].content, "Result for call3");
   });
 
   test("executeToolLoop passes resource_id to LLM and handles completion without tool calls", async () => {
@@ -301,11 +283,14 @@ describe("AgentHands", () => {
     );
 
     const savedMessages = [];
-    const saveResource = async (msg) => {
-      savedMessages.push(msg);
+    const callbacks = {
+      saveToServer: async (msgs) => {
+        savedMessages.push(...msgs);
+      },
+      streamToClient: () => {},
     };
 
-    await agentHands.executeToolLoop("test-conversation-id", saveResource, {
+    await agentHands.executeToolLoop("test-conversation-id", callbacks, {
       llmToken: "test-token",
       model: "gpt-4o",
     });
@@ -361,11 +346,14 @@ describe("AgentHands", () => {
     );
 
     const savedMessages = [];
-    const saveResource = async (msg) => {
-      savedMessages.push(msg);
+    const callbacks = {
+      saveToServer: async (msgs) => {
+        savedMessages.push(...msgs);
+      },
+      streamToClient: () => {},
     };
 
-    await agentHands.executeToolLoop("test-conversation", saveResource, {
+    await agentHands.executeToolLoop("test-conversation", callbacks, {
       llmToken: "test-token",
       model: "gpt-4o",
     });
@@ -375,100 +363,6 @@ describe("AgentHands", () => {
     assert.strictEqual(savedMessages[0].role, "assistant");
     assert.strictEqual(savedMessages[1].role, "tool");
     assert.strictEqual(savedMessages[2].role, "assistant");
-  });
-
-  test("processToolCalls splits budget evenly across all calls", async () => {
-    const capturedMaxTokens = [];
-
-    const mockCallbacksWithCapture = {
-      ...mockServiceCallbacks,
-      tool: {
-        call: async (toolCall) => {
-          capturedMaxTokens.push(toolCall.filter?.max_tokens);
-          // Return string content so token counting works
-          return {
-            content: "x".repeat(1000), // ~1000 tokens of content
-          };
-        },
-      },
-    };
-
-    const agentHands = new AgentHands(
-      mockCallbacksWithCapture,
-      mockResourceIndex,
-    );
-
-    const toolCalls = [
-      { id: "call1", function: { name: "search" } },
-      { id: "call2", function: { name: "analyze" } },
-      { id: "call3", function: { name: "summarize" } },
-      { id: "call4", function: { name: "format" } },
-    ];
-
-    const savedMessages = [];
-    const saveResource = async (msg) => {
-      // Call withIdentifier to compute tokens like real code does
-      msg.withIdentifier();
-      savedMessages.push(msg);
-    };
-
-    await agentHands.processToolCalls(toolCalls, saveResource, {
-      llmToken: "test-token",
-      maxTokens: 4000,
-    });
-
-    // Budget is split evenly: 4000 / 4 = 1000 per call
-    const expectedBudgetPerCall = "1000";
-    assert.strictEqual(capturedMaxTokens[0], expectedBudgetPerCall);
-    assert.strictEqual(capturedMaxTokens[1], expectedBudgetPerCall);
-    assert.strictEqual(capturedMaxTokens[2], expectedBudgetPerCall);
-    assert.strictEqual(capturedMaxTokens[3], expectedBudgetPerCall);
-  });
-
-  test("processToolCalls returns total tokens used", async () => {
-    const mockCallbacksWithContent = {
-      ...mockServiceCallbacks,
-      tool: {
-        call: async () => ({
-          // Return string content that will be tokenized
-          content: "This is test content for token counting",
-        }),
-      },
-    };
-
-    const agentHands = new AgentHands(
-      mockCallbacksWithContent,
-      mockResourceIndex,
-    );
-
-    const toolCalls = [
-      { id: "call1", function: { name: "search" } },
-      { id: "call2", function: { name: "analyze" } },
-    ];
-
-    const savedMessages = [];
-    const saveResource = async (msg) => {
-      // Call withIdentifier to compute tokens
-      msg.withIdentifier();
-      savedMessages.push(msg);
-    };
-
-    const { tokensUsed } = await agentHands.processToolCalls(
-      toolCalls,
-      saveResource,
-      {
-        llmToken: "test-token",
-        maxTokens: 10000,
-      },
-    );
-
-    // Total should equal sum of individual message tokens
-    const expectedTotal = savedMessages.reduce(
-      (sum, msg) => sum + (msg.id?.tokens || 0),
-      0,
-    );
-    assert.strictEqual(tokensUsed, expectedTotal);
-    assert.ok(tokensUsed > 0, "Should have counted some tokens");
   });
 
   test("executeToolCall converts Identifier objects to strings for resource lookup", async () => {
@@ -589,11 +483,14 @@ describe("AgentHands", () => {
     );
 
     const savedMessages = [];
-    const saveResource = async (msg) => {
-      savedMessages.push(msg);
+    const callbacks = {
+      saveToServer: async (msgs) => {
+        savedMessages.push(...msgs);
+      },
+      streamToClient: () => {},
     };
 
-    await agentHands.executeToolLoop("test-conversation", saveResource, {
+    await agentHands.executeToolLoop("test-conversation", callbacks, {
       llmToken: "test-token",
       model: "gpt-4o",
     });
@@ -652,11 +549,14 @@ describe("AgentHands", () => {
     );
 
     const savedMessages = [];
-    const saveResource = async (msg) => {
-      savedMessages.push(msg);
+    const callbacks = {
+      saveToServer: async (msgs) => {
+        savedMessages.push(...msgs);
+      },
+      streamToClient: () => {},
     };
 
-    await agentHands.executeToolLoop("test-conversation", saveResource, {
+    await agentHands.executeToolLoop("test-conversation", callbacks, {
       llmToken: "test-token",
       model: "gpt-4o",
     });

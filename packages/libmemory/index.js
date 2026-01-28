@@ -30,12 +30,18 @@ export class MemoryWindow {
   }
 
   /**
-   * Calculates available budget for user content (excluding assistant and tools overhead)
-   * @param {string} model - Model name
-   * @returns {Promise<{total: number, overhead: number, available: number}>} Budget breakdown
+   * Builds a complete memory window with messages and tools
+   * @param {string} model - Model name to determine budget
+   * @param {number} maxTokens - Tokens reserved for LLM output
+   * @returns {Promise<{messages: object[], tools: object[]}>} Complete window with messages and tools
    */
-  async calculateBudget(model) {
-    if (!model) throw new Error("model is required");
+  async build(model, maxTokens) {
+    if (!model) {
+      throw new Error("model is required");
+    }
+    if (!maxTokens || maxTokens <= 0) {
+      throw new Error("maxTokens is required and must be positive");
+    }
 
     const total = getModelBudget(model);
     const actor = "common.System.root";
@@ -69,56 +75,25 @@ export class MemoryWindow {
       overhead += f.id?.tokens || 0;
     }
 
-    return {
-      total,
-      overhead,
-      available: Math.max(0, total - overhead),
-    };
-  }
+    // History budget = total - overhead - reserved output tokens
+    const historyBudget = Math.max(0, total - overhead - maxTokens);
 
-  /**
-   * Builds a complete memory window with messages and tools
-   * @param {string} model - Model name to determine budget
-   * @returns {Promise<{messages: object[], tools: object[]}>} Complete window with messages and tools
-   */
-  async build(model) {
-    if (!model) {
-      throw new Error("model is required");
-    }
-
-    const { total, overhead } = await this.calculateBudget(model);
-    const historyBudget = total - overhead;
-
-    const actor = "common.System.root";
-
-    // Load conversation to get agent_id
-    const [conversation] = await this.#resourceIndex.get(
-      [this.#resourceId],
-      actor,
-    );
-    if (!conversation) {
-      throw new Error(`Conversation not found: ${this.#resourceId}`);
-    }
-
-    // Load agent
-    const [agent] = await this.#resourceIndex.get(
-      [conversation.agent_id],
-      actor,
-    );
-    if (!agent) {
-      throw new Error(`Agent not found: ${conversation.agent_id}`);
-    }
-
-    // Load tools from agent configuration
-    const toolNames = agent.tools || [];
-    const functionIds = toolNames.map((name) => `tool.ToolFunction.${name}`);
-    const functions = await this.#resourceIndex.get(functionIds, actor);
-
-    // Wrap the function in a call object
+    // Wrap the function in a call object, ensuring OpenAI-compatible parameters
     const tools = functions.map((f) => {
+      // OpenAI requires parameters.properties and parameters.required even if empty
+      // Protobuf3 omits empty fields, so we must ensure they exist
+      const params = f.parameters || {};
+      const normalizedFunction = {
+        ...f,
+        parameters: {
+          type: params.type || "object",
+          properties: params.properties || {},
+          required: params.required || [],
+        },
+      };
       return tool.ToolCall.fromObject({
         type: "function",
-        function: f,
+        function: normalizedFunction,
       });
     });
 
@@ -179,13 +154,12 @@ export class MemoryWindow {
   }
 
   /**
-   * Appends identifiers to memory
+   * Appends identifiers to memory in a single operation
    * @param {import("@copilot-ld/libtype").resource.Identifier[]} identifiers - Array of identifiers to append
    * @returns {Promise<void>}
    */
   async append(identifiers) {
-    for (const identifier of identifiers) {
-      await this.#memoryIndex.add(identifier);
-    }
+    if (!identifiers || identifiers.length === 0) return;
+    await this.#memoryIndex.add(identifiers);
   }
 }

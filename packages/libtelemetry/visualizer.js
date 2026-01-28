@@ -150,12 +150,15 @@ export class TraceVisualizer {
       if (!fromService || !toService || !method) continue;
 
       if (event.type === "start") {
-        // Generate request line
+        // Generate request line with timestamp first
+        const timestamp = this.#formatTimestamp(span.start_time_unix_nano);
         const requestAttrs = this.#extractAttributes(span, [
           "request_sent",
           "stream_started",
         ]);
-        const requestStr = requestAttrs ? ` (${requestAttrs})` : "";
+        const requestStr = requestAttrs
+          ? ` (time=${timestamp}, ${requestAttrs})`
+          : ` (time=${timestamp})`;
         lines.push(
           `    ${fromService}->>+${toService}: ${method}${requestStr}`,
         );
@@ -291,6 +294,17 @@ export class TraceVisualizer {
       .map(([key, value]) => `${key}=${value}`);
 
     return pairs.join(", ");
+  }
+
+  /**
+   * Formats a nanosecond timestamp to ISO 8601 format
+   * @param {string|bigint} nanoTimestamp - Timestamp in nanoseconds
+   * @returns {string} Timestamp in ISO 8601 format (e.g., 2022-04-29T18:52:58.114Z)
+   */
+  #formatTimestamp(nanoTimestamp) {
+    const nanos = BigInt(nanoTimestamp);
+    const millis = Number(nanos / 1000000n);
+    return new Date(millis).toISOString();
   }
 
   /**

@@ -140,7 +140,7 @@ describe("ExtractContext", () => {
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
-        message: /Invalid HTML content/,
+        message: /No HTML content found/,
       });
     });
 

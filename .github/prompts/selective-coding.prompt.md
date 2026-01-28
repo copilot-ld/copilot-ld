@@ -1,9 +1,9 @@
-# Selective Coding: Core Agent Deficiency
+# Selective Coding: Agent Profile Improvement Roadmap
 
 ## Objective
 
-Identify the fundamental agent deficiency that explains all error categories and
-provides focus for agent improvement.
+Identify the core profile deficiency that explains all error categories and
+produce specific agent profile changes to address them.
 
 ## Prerequisites
 
@@ -13,33 +13,34 @@ Axial Coding (`axial-coding.prompt.md`)
 ## Process
 
 1. Read all categories from `SCRATCHPAD2.md`
-2. Identify the core agent deficiency that unifies all categories
-3. Document the core deficiency and improvement priorities in `SCRATCHPAD3.md`
+2. Identify the core profile deficiency that unifies all categories
+3. Document specific profile improvements in `SCRATCHPAD3.md`
+4. Each improvement must specify exact text to add/modify in agent profiles
 
 ## Output
 
-**File:** `SCRATCHPAD3.md` **Deliverable:** Actionable improvement roadmap for
-agent implementation
+**File:** `SCRATCHPAD3.md` **Deliverable:** Actionable profile improvement
+roadmap with specific text changes
 
 ## Analysis Structure
 
 ````markdown
-## CORE: primary_agent_problem
+## CORE: primary_profile_deficiency
 
 **Label:** `CORE`
 
-**Definition:** <one sentence describing the fundamental agent problem>
+**Definition:** <one sentence describing the fundamental profile gap>
 
-**Evidence:** All error categories trace to agent making premature decisions
-without complete data:
+**Evidence:** All error categories trace to profile instructions that are
+missing, ambiguous, or incomplete:
 
-- **CAT1:** <Brief summary referencing category label>
-- **CAT2:** <Brief summary referencing category label>
-- **CAT3:** <Brief summary referencing category label>
+- **CAT1:** <Brief summary of profile gap from this category>
+- **CAT2:** <Brief summary of profile gap from this category>
+- **CAT3:** <Brief summary of profile gap from this category>
 
-**Agent Improvement Priority:** <what agent capability needs to be added/fixed>
+**Profile Improvement Strategy:** <what type of profile changes are needed>
 
-### Theory: Category-to-Core-Deficiency Relationship
+### Theory: Category-to-Profile-Gap Relationship
 
 ```mermaid
 graph TB
@@ -48,63 +49,66 @@ graph TB
     CAT2[CAT2: Category Name]
     CAT3[CAT3: Category Name]
 
-    %% Core Deficiency
-    CORE[CORE: Core Deficiency Name]
+    %% Profile Gaps
+    GAP1[Profile Gap 1]
+    GAP2[Profile Gap 2]
+    GAP3[Profile Gap 3]
 
-    %% Manifestations
-    MAN1[MAN1: Manifestation description]
-    MAN2[MAN2: Manifestation description]
-    MAN3[MAN3: Manifestation description]
+    %% Core Deficiency
+    CORE[CORE: Core Profile Deficiency]
 
     %% Relationships
-    CAT1 -->|manifests as| MAN1
-    CAT2 -->|manifests as| MAN2
-    CAT3 -->|manifests as| MAN3
+    CAT1 -->|caused by| GAP1
+    CAT2 -->|caused by| GAP2
+    CAT3 -->|caused by| GAP3
 
-    MAN1 -->|caused by| CORE
-    MAN2 -->|caused by| CORE
-    MAN3 -->|caused by| CORE
+    GAP1 -->|stems from| CORE
+    GAP2 -->|stems from| CORE
+    GAP3 -->|stems from| CORE
 ```
 
-### Solution Architecture: Multi-Stage Retrieval Protocol
+## PROFILE IMPROVEMENT ROADMAP
 
-```mermaid
-stateDiagram-v2
-    [*] --> Stage1: User Query
-    Stage1 --> Stage2: Transition
-    Stage2 --> Stage3: Transition
-
-    note right of Stage1
-        Priority 1: PRIO1
-    end note
-
-    note right of Stage2
-        Priority 2: PRIO2
-    end note
-```
-
-## IMPROVEMENT ROADMAP
-
-### PRIO1: <most critical capability to add>
+### PRIO1: <most critical profile change>
 
 **Label:** `PRIO1`
 
 **Addresses Categories:** `CAT1`, `CAT2` (from SCRATCHPAD2.md)
 
-**Required Change:** <specific agent logic change needed>
+**Target Profile:** `<agent_name>` (`config/agents/<agent_name>.agent.md`)
+
+**Target Section:** <which section to modify>
+
+**Current Text:**
+
+> <quote existing profile text, or "Section does not exist">
+
+**Proposed Text:**
+
+> <exact text to replace or add to the profile>
 
 **Expected Impact:**
 
 - `scenario_name`: <specific improvement>
 - `scenario_name`: <specific improvement>
 
-### PRIO2: <second most critical capability>
+### PRIO2: <second most critical profile change>
 
 **Label:** `PRIO2`
 
 **Addresses Categories:** `CAT3`, `CAT4`
 
-**Required Change:** <specific agent logic change needed>
+**Target Profile:** `<agent_name>`
+
+**Target Section:** <which section to modify>
+
+**Current Text:**
+
+> <quote existing profile text>
+
+**Proposed Text:**
+
+> <exact text to replace or add>
 
 **Expected Impact:**
 
@@ -120,50 +124,51 @@ stateDiagram-v2
 - Reference categories using their labels (e.g., `CAT1`, `CAT2`) in the
   **Addresses Categories:** field
 - Use priority labels in solution architecture diagram
-- Always include **Implementation Location:** field with specific file path
+- Always include **Target Profile:** and **Target Section:** fields
 - Labels must be unique and sequential across all priorities in the document
 
 ## Analysis Rules
 
-**Focus on actionable improvements:**
+**Focus on profile text changes:**
 
-- Core deficiency must be solvable through agent logic changes
-- Priorities must map directly to code changes in agent implementation
+- Each priority must propose specific text to add or modify in a profile
+- Proposed text must be complete and ready to insert
+- Changes must address the profile gaps identified in categories
 - Expected impact must reference specific evaluation scenarios
 
 **Avoid:**
 
 - LLM non-determinism as root cause attribution
-- Problems unsolvable in agent code
-- Generic recommendations without implementation guidance
-- Theoretical frameworks without actionable priorities
+- Code changes to agent implementation (focus on profile text only)
+- Generic recommendations without specific proposed text
+- Theoretical frameworks without actionable profile edits
 - Effort or timeline estimations
 
 ## Example
 
 ````markdown
-## CORE: Absence of Systematic Data Exploration Strategy
+## CORE: Incomplete Workflow Specifications in Agent Profiles
 
 **Label:** `CORE`
 
-**Definition:** Agent lacks systematic logic for exhaustively exploring
-available data before responding, leading to incomplete retrieval and responses
-based on partial information.
+**Definition:** Agent profiles describe desired outcomes but lack explicit
+step-by-step workflows with decision criteria, allowing agents to skip steps or
+make premature decisions.
 
-**Evidence:** All error categories trace to agent making premature decisions:
+**Evidence:** All error categories trace to profile instructions that are
+missing, ambiguous, or incomplete:
 
-- **CAT1 (Incomplete Data Exploration):** Agent queries 1-2 predicates then
-  stops, missing other relevant predicates
-- **CAT2 (Search Result Truncation):** Agent accepts first batch of results
-  without checking if more exist
-- **CAT3 (Response Content Not Backed by Retrieval):** Agent generates content
-  instead of retrieving, because it didn't exhaust retrieval options
+- **CAT1 (Incomplete Data Exploration):** Profile says "use wildcard queries"
+  but doesn't mandate this as step 1 of every workflow
+- **CAT2 (Search Result Truncation):** Profile says "adjust parameters if
+  incomplete" but doesn't define what "incomplete" means
+- **CAT3 (Response Content Not Backed by Retrieval):** Profile says "report
+  findings" but doesn't explicitly forbid adding unretrieved information
 
-**Agent Improvement Priority:** Implement multi-stage data exploration protocol:
-(1) discover available data schema, (2) retrieve all relevant data, (3) verify
-completeness, (4) then respond.
+**Profile Improvement Strategy:** Add explicit numbered workflows with mandatory
+steps and clear decision criteria to each agent profile.
 
-### Theory: Category-to-Core-Deficiency Relationship
+### Theory: Category-to-Profile-Gap Relationship
 
 ```mermaid
 graph TB
@@ -172,109 +177,141 @@ graph TB
     CAT2[CAT2: Search Result<br/>Truncation]
     CAT3[CAT3: Response Content Not<br/>Backed by Retrieval]
 
-    %% Core Deficiency
-    CORE[CORE: Absence of Systematic<br/>Data Exploration Strategy]
+    %% Profile Gaps
+    GAP1[graph_navigator: Missing<br/>mandatory schema discovery step]
+    GAP2[content_searcher: Missing<br/>definition of "incomplete"]
+    GAP3[detailed_reporter: Missing<br/>explicit "no hallucination" rule]
 
-    %% Manifestations
-    MAN1[MAN1: Queries 1-2 predicates,<br/>responds immediately]
-    MAN2[MAN2: Accepts first batch,<br/>truncates results]
-    MAN3[MAN3: Generates content<br/>not backed by retrieval]
+    %% Core Deficiency
+    CORE[CORE: Incomplete Workflow<br/>Specifications]
 
     %% Relationships
-    CAT1 -->|manifests as| MAN1
-    CAT2 -->|manifests as| MAN2
-    CAT3 -->|manifests as| MAN3
+    CAT1 -->|caused by| GAP1
+    CAT2 -->|caused by| GAP2
+    CAT3 -->|caused by| GAP3
 
-    MAN1 -->|caused by| CORE
-    MAN2 -->|caused by| CORE
-    MAN3 -->|caused by| CORE
+    GAP1 -->|stems from| CORE
+    GAP2 -->|stems from| CORE
+    GAP3 -->|stems from| CORE
 ```
 
-### Solution Architecture: Multi-Stage Retrieval Protocol
+## PROFILE IMPROVEMENT ROADMAP
 
-```mermaid
-stateDiagram-v2
-    [*] --> SchemaDiscovery: User Query
-    SchemaDiscovery --> CompleteRetrieval: Available predicates
-    CompleteRetrieval --> Verification: All data retrieved
-    Verification --> ResponseSynthesis: Completeness verified
-    ResponseSynthesis --> [*]: Complete response
-
-    note right of SchemaDiscovery
-        PRIO1: Schema-Driven Exploration
-    end note
-
-    note right of CompleteRetrieval
-        PRIO2: Search Completeness Verification
-    end note
-
-    note right of Verification
-        PRIO3: Retrieval-Only Response
-    end note
-```
-
-## IMPROVEMENT ROADMAP
-
-### PRIO1: Schema-Driven Graph Exploration
+### PRIO1: Mandatory Schema Discovery Workflow
 
 **Label:** `PRIO1`
 
 **Addresses Categories:** `CAT1`
 
-**Required Change:** Before querying specific predicates, agent must:
+**Target Profile:** `graph_navigator` (`config/agents/graph_navigator.agent.md`)
 
-1. Call `get_ontology` to understand available predicates for entity type
-2. Identify all predicates relevant to user query
-3. Query each relevant predicate before responding
-4. Track which predicates have been queried to ensure completeness
+**Target Section:** "Query Strategy" (or create new "Mandatory Workflow"
+section)
 
-**Implementation Location:** `packages/libagent/orchestrator.js` - add pre-query
-planning phase
+**Current Text:**
+
+> Use wildcard queries to discover all predicates connecting these entities.
+> Check for indirect connections via shared intermediate entities.
+
+**Proposed Text:**
+
+> ## Mandatory Query Workflow
+>
+> **CRITICAL:** Complete ALL steps before generating a response.
+>
+> 1. **Schema Discovery (REQUIRED FIRST STEP)**
+>    - Call `get_ontology` to retrieve available predicates
+>    - Identify all predicates relevant to the user's query
+>    - Do NOT skip this step even if you think you know the predicates
+> 2. **Exhaustive Querying**
+>    - Query EACH relevant predicate identified in step 1
+>    - Use wildcard queries (`subject ? ?`) to discover unexpected relationships
+>    - Check indirect connections via intermediate entities
+> 3. **Completeness Verification**
+>    - Confirm all relevant predicates have been queried
+>    - If any predicate was skipped, query it before proceeding
+> 4. **Response Generation**
+>    - Only after steps 1-3 are complete, generate response
+>    - Include ONLY information from tool responses
 
 **Expected Impact:**
 
-- `search_drug_discovery_platform`: Will retrieve dependencies and capabilities
-- `traverse_platform_dependencies`: Will find all relationship types
-- `recall_drug_discovery_team`: Will explore all member/contributor predicates
+- `search_drug_discovery_platform`: Will retrieve all capabilities, not just
+  first found
+- `traverse_platform_dependencies`: Will discover all relationship types
+- `recall_drug_discovery_team`: Will find all team members and contributors
 
-### PRIO2: Search Completeness Verification
+### PRIO2: Search Completeness Criteria
 
 **Label:** `PRIO2`
 
 **Addresses Categories:** `CAT2`
 
-**Required Change:** After vector search, agent must:
+**Target Profile:** `content_searcher`
+(`config/agents/content_searcher.agent.md`)
 
-1. Check if `results.length == limit`
-2. If true, double limit and re-search to verify no relevant results were
-   truncated
-3. Continue until `results.length < limit` or reasonable maximum (e.g., 100)
+**Target Section:** "Search Strategy"
 
-**Implementation Location:** `packages/libagent/tools/search.js` - add
-post-search verification
+**Current Text:**
+
+> If results seem incomplete, perform follow-up searches with adjusted
+> parameters.
+
+**Proposed Text:**
+
+> ## Search Completeness Rules
+>
+> **Definition of Incomplete Results:** Results are incomplete if
+> `results.length == limit`. This indicates potential truncation—more relevant
+> content may exist.
+>
+> **Mandatory Follow-up Search:** If `results.length == limit`:
+>
+> 1. Double the limit parameter
+> 2. Perform a follow-up search
+> 3. Repeat until `results.length < limit` or limit reaches 100
+>
+> **Never respond based on truncated results without follow-up search.**
 
 **Expected Impact:**
 
-- `search_biomarker_trials`: Will retrieve all relevant trials, not just first 5
+- `search_biomarker_trials`: Will retrieve all relevant trials
 - `search_gmp_compliance`: Will find all compliance documents
 - `search_multi_drug_comparison`: Will get complete drug information
 
-### PRIO3: Retrieval-Only Response Generation
+### PRIO3: Explicit No-Hallucination Rule
 
 **Label:** `PRIO3`
 
 **Addresses Categories:** `CAT3`
 
-**Required Change:** Strengthen system prompt and tool response handling:
+**Target Profile:** `detailed_reporter`
+(`config/agents/detailed_reporter.agent.md`)
 
-1. System prompt: "Generate responses ONLY from tool call results. Never add
-   information from your training data."
-2. Tool response format: Include explicit "ONLY USE THIS DATA" marker
-3. Response verification: Agent checks that all facts in response appear in tool
-   results
+**Target Section:** "Formatting Guidelines" (add new subsection)
 
-**Implementation Location:** `packages/libagent/prompts/system.js` and response
-generation logic
+**Current Text:**
+
+> Preserve all raw data and evidence. Your role is reporting and synthesis, not
+> primary research.
+
+**Proposed Text:**
+
+> ## Response Content Rules
+>
+> **CRITICAL: No Hallucination Policy**
+>
+> - Include ONLY information that appears in tool call responses
+> - NEVER add facts, numbers, names, or relationships from your training data
+> - If information is missing, state "Information not found" rather than
+>   inferring
+> - Every claim in your response must trace to a specific tool response
+>
+> **Before finalizing response, verify:**
+>
+> - [ ] Every fact appears in a tool response
+> - [ ] No information was added from general knowledge
+> - [ ] Missing information is explicitly acknowledged
 
 **Expected Impact:**
 

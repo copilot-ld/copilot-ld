@@ -10,6 +10,7 @@ export function createMockConfig(name = "test-service", overrides = {}) {
     namespace: "test",
     host: "0.0.0.0",
     port: 3000,
+    max_tokens: 4096,
     ...overrides,
   };
 }

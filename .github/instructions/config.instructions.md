@@ -1,5 +1,5 @@
 ---
-applyTo: "config/**"
+applyTo: "**/config/**"
 ---
 
 # Config Instructions
@@ -67,10 +67,15 @@ handoffs: []
 
 - **Role statement**: One sentence defining expertise and scope
 - **Chain of thought**: Require explicit reasoning before actions
+- **Workflow with handoffs**: Integrate `list_handoffs` and `run_handoff` as
+  numbered steps in the main workflow—not as separate sections
+- **Scope check**: Agents should verify requests match their expertise and hand
+  off to specialists when appropriate
 - **Reporting**: Mandate raw data before synthesis—prevents hallucination
 - **Strategy section**: Map query types to approaches (conceptual, relationship,
   discovery)
-- **Workflow section**: Concrete steps using available tools
+- **Key Principles**: End with bold reminder that task is not complete until
+  handoff
 
 ## Prohibitions
 

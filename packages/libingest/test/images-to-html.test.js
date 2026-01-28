@@ -122,7 +122,7 @@ describe("ImagesToHtml", () => {
 
       await assert.rejects(() => step.process("pipeline/abc123/context.json"), {
         name: "Error",
-        message: /No imageKeys found/,
+        message: /No image source found/,
       });
     });
 

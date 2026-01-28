@@ -24,7 +24,6 @@ const callbacks = {
   memory: {
     append: memoryClient.AppendMemory.bind(memoryClient),
     get: memoryClient.GetWindow.bind(memoryClient),
-    getBudget: memoryClient.GetBudget.bind(memoryClient),
   },
   llm: {
     createCompletions: llmClient.CreateCompletions.bind(llmClient),

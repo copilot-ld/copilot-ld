@@ -15,6 +15,7 @@ export class EvaluationReporter {
   #memoryClient;
   #summaryTemplate;
   #scenarioTemplate;
+  #configStorage;
 
   /**
    * Create a new EvaluationReporter instance
@@ -22,17 +23,26 @@ export class EvaluationReporter {
    * @param {import("./index/evaluation.js").EvaluationIndex} evaluationIndex - Evaluation index with results
    * @param {import("@copilot-ld/libtelemetry/visualizer.js").TraceVisualizer} traceVisualizer - Trace visualizer for generating trace diagrams
    * @param {import("../../generated/services/memory/client.js").MemoryClient} memoryClient - Memory client for fetching memory windows
+   * @param {import("@copilot-ld/libstorage").Storage} configStorage - Storage for configuration data
    */
-  constructor(agentConfig, evaluationIndex, traceVisualizer, memoryClient) {
+  constructor(
+    agentConfig,
+    evaluationIndex,
+    traceVisualizer,
+    memoryClient,
+    configStorage,
+  ) {
     if (!agentConfig) throw new Error("agentConfig is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!traceVisualizer) throw new Error("traceVisualizer is required");
     if (!memoryClient) throw new Error("memoryClient is required");
+    if (!configStorage) throw new Error("configStorage is required");
 
     this.#agentConfig = agentConfig;
     this.#evaluationIndex = evaluationIndex;
     this.#traceVisualizer = traceVisualizer;
     this.#memoryClient = memoryClient;
+    this.#configStorage = configStorage;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
     this.#summaryTemplate = readFileSync(
@@ -63,6 +73,55 @@ export class EvaluationReporter {
    */
   #generateIndicators(results) {
     return results.map((r) => (r.passed ? "✅" : "❌")).join(" ");
+  }
+
+  /**
+   * Calculate pass rate percentage
+   * @param {number} passed - Number of passed items
+   * @param {number} total - Total number of items
+   * @returns {string} Pass rate as percentage string with one decimal
+   */
+  #calcRate(passed, total) {
+    return total > 0 ? ((passed / total) * 100).toFixed(1) : "0.0";
+  }
+
+  /**
+   * Fetch all agent profiles from config storage
+   * @returns {Promise<Array<{name: string, filename: string, content: string, description: string, tools: string}>>} Array of agent profiles
+   */
+  async #fetchAgentProfiles() {
+    const allKeys = await this.#configStorage.list();
+    const agentKeys = allKeys.filter(
+      (key) =>
+        key.startsWith("agents/") &&
+        key.endsWith(".agent.md") &&
+        !key.includes("eval_judge"),
+    );
+
+    const profiles = await Promise.all(
+      agentKeys.map(async (key) => {
+        const content = await this.#configStorage.get(key);
+        if (!content || typeof content !== "string") return null;
+        const name = key.replace("agents/", "").replace(".agent.md", "");
+        const filename = `${name}.agent.md`;
+        const fm = content.match(/^---\n([\s\S]*?)\n---/)?.[1] || "";
+        const description =
+          fm.match(/^description:\s*(.+)$/m)?.[1]?.trim() || "";
+        const toolsMatch = fm.match(/^tools:\n((?:\s+-\s+.+\n?)+)/m);
+        const tools = toolsMatch
+          ? toolsMatch[1]
+              .split("\n")
+              .map((l) => l.replace(/^\s*-\s*/, "").trim())
+              .filter(Boolean)
+              .join(", ")
+          : "";
+        return { name, filename, content, description, tools };
+      }),
+    );
+
+    return profiles
+      .filter(Boolean)
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -122,10 +181,7 @@ export class EvaluationReporter {
       const results = await this.#evaluationIndex.getByScenario(scenario);
       const scenarioRuns = results.length;
       const scenarioPassed = results.filter((r) => r.passed).length;
-      const scenarioRate =
-        scenarioRuns > 0
-          ? ((scenarioPassed / scenarioRuns) * 100).toFixed(1)
-          : "0.0";
+      const scenarioRate = this.#calcRate(scenarioPassed, scenarioRuns);
 
       totalRuns += scenarioRuns;
       totalPassed += scenarioPassed;
@@ -140,10 +196,7 @@ export class EvaluationReporter {
         );
         const modelPassed = modelResults.filter((r) => r.passed).length;
         const modelTotal = modelResults.length;
-        const modelRate =
-          modelTotal > 0
-            ? ((modelPassed / modelTotal) * 100).toFixed(1)
-            : "0.0";
+        const modelRate = this.#calcRate(modelPassed, modelTotal);
 
         // Generate visual indicators for this model's results
         const indicators = this.#generateIndicators(modelResults);
@@ -171,8 +224,7 @@ export class EvaluationReporter {
       });
     }
 
-    const totalRate =
-      totalRuns > 0 ? ((totalPassed / totalRuns) * 100).toFixed(1) : "0.0";
+    const totalRate = this.#calcRate(totalPassed, totalRuns);
 
     // Calculate per-model overall pass rates
     const modelRates = models.map((model) => {
@@ -181,12 +233,10 @@ export class EvaluationReporter {
       );
       const modelPassed = modelResults.filter((r) => r.passed).length;
       const modelTotal = modelResults.length;
-      const modelRate =
-        modelTotal > 0 ? ((modelPassed / modelTotal) * 100).toFixed(1) : "0.0";
 
       return {
         model,
-        rate: modelRate,
+        rate: this.#calcRate(modelPassed, modelTotal),
         passed: modelPassed,
         total: modelTotal,
       };
@@ -225,8 +275,7 @@ export class EvaluationReporter {
     const totalRuns = results.length;
     const totalPassed = results.filter((r) => r.passed).length;
     const totalFailed = totalRuns - totalPassed;
-    const totalRate =
-      totalRuns > 0 ? ((totalPassed / totalRuns) * 100).toFixed(1) : "0.0";
+    const totalRate = this.#calcRate(totalPassed, totalRuns);
 
     // Generate visual pass/fail indicators
     const indicators = this.#generateIndicators(results);
@@ -281,6 +330,9 @@ export class EvaluationReporter {
         }))
       : [];
 
+    // Fetch agent profiles for appendix
+    const agents = await this.#fetchAgentProfiles();
+
     const templateData = {
       scenario,
       type: firstResult.type,
@@ -297,6 +349,7 @@ export class EvaluationReporter {
         evaluations: firstResult.evaluations.length,
       },
       results: formattedResults,
+      agents,
     };
 
     return mustache.render(this.#scenarioTemplate, templateData);
@@ -308,6 +361,12 @@ export class EvaluationReporter {
    * @returns {Promise<void>}
    */
   async generateAll(storage) {
+    // Write agent profile files
+    const agents = await this.#fetchAgentProfiles();
+    for (const agent of agents) {
+      await storage.put(`agents/${agent.filename}`, agent.content);
+    }
+
     // Generate and write summary report
     const summary = await this.generateSummary();
     await storage.put("SUMMARY.md", summary);

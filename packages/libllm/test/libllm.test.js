@@ -109,12 +109,12 @@ describe("libllm", () => {
       });
     });
 
-    test("createCompletions throws error immediately on non-429 HTTP error", async () => {
+    test("createCompletions throws error immediately on non-retryable HTTP error", async () => {
       const errorResponse = {
         ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-        text: mock.fn(() => Promise.resolve("Server error details")),
+        status: 400,
+        statusText: "Bad Request",
+        text: mock.fn(() => Promise.resolve("Invalid request details")),
       };
 
       mockFetch.mock.mockImplementationOnce(() =>
@@ -124,10 +124,10 @@ describe("libllm", () => {
       const messages = [{ role: "user", content: "Hello" }];
 
       await assert.rejects(() => llmApi.createCompletions(messages), {
-        message: /HTTP 500: Internal Server Error/,
+        message: /HTTP 400: Bad Request/,
       });
 
-      // Should not retry for non-429 errors
+      // Should not retry for non-retryable errors (like 400)
       assert.strictEqual(mockFetch.mock.callCount(), 1);
     });
 
@@ -368,15 +368,15 @@ describe("libllm", () => {
       assert.strictEqual(result.data.length, 1);
     });
 
-    test("createEmbeddings throws error immediately on non-429 HTTP error", async () => {
+    test("createEmbeddings throws error immediately on non-retryable HTTP error", async () => {
       const errorResponse = {
         ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-        text: mock.fn(() => Promise.resolve("Server error details")),
+        status: 400,
+        statusText: "Bad Request",
+        text: mock.fn(() => Promise.resolve("Invalid request details")),
       };
 
-      // Mock all attempts to fail with non-429 error (no retries)
+      // Mock all attempts to fail with non-retryable error (no retries)
       mockFetch.mock.mockImplementationOnce(() =>
         Promise.resolve(errorResponse),
       );
@@ -384,10 +384,10 @@ describe("libllm", () => {
       const texts = ["Hello"];
 
       await assert.rejects(() => llmApi.createEmbeddings(texts), {
-        message: /HTTP 500: Internal Server Error/,
+        message: /HTTP 400: Bad Request/,
       });
 
-      assert.strictEqual(mockFetch.mock.callCount(), 1); // No retries for non-429
+      assert.strictEqual(mockFetch.mock.callCount(), 1); // No retries for non-retryable errors
     });
 
     test("LlmApi throws when embeddingBaseUrl is not provided", () => {

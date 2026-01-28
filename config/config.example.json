@@ -9,39 +9,39 @@
       },
       {
         "name": "trace",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/trace"
+        "command": "npm run dev -w @copilot-ld/trace"
       },
       {
         "name": "vector",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/vector"
+        "command": "npm run dev -w @copilot-ld/vector"
       },
       {
         "name": "graph",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/graph"
+        "command": "npm run dev -w @copilot-ld/graph"
       },
       {
         "name": "llm",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/llm"
+        "command": "npm run dev -w @copilot-ld/llm"
       },
       {
         "name": "memory",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/memory"
+        "command": "npm run dev -w @copilot-ld/memory"
       },
       {
         "name": "tool",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/tool"
+        "command": "npm run dev -w @copilot-ld/tool"
       },
       {
         "name": "agent",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/agent"
+        "command": "npm run dev -w @copilot-ld/agent"
       },
       {
         "name": "web",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/web"
+        "command": "npm run dev -w @copilot-ld/web"
       },
       {
         "name": "ui",
-        "command": "npx env-cmd -- npm run dev -w @copilot-ld/ui"
+        "command": "npm run dev -w @copilot-ld/ui"
       }
     ]
   },
@@ -51,17 +51,19 @@
   },
   "service": {
     "agent": {
-      "agent": "coordinator",
+      "agent": "common.Agent.planner",
       "model": "openai/gpt-4o"
     },
     "llm": {
-      "temperature": 0.3
+      "temperature": 0.32
+    },
+    "memory": {
+      "max_tokens": 4096
     },
     "tool": {
-      "batch_size": 3,
       "filter": {
-        "threshold": 0.62,
-        "max_tokens": null
+        "threshold": 0.64,
+        "max_tokens": 8000
       },
       "endpoints": {
         "get_ontology": {

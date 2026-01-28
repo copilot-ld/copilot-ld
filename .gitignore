@@ -37,10 +37,10 @@
 **/.vscode/
 **/.idea/
 
-# Agent planning
-**/*PLAN*.md
-**/*REPORT*.md
-**/*SCRATCHPAD*.md
+# Agent planning (root-level only)
+/PLAN*.md
+/REPORT*.md
+/SCRATCHPAD*.md
 
 # Other files
 **/.DS_Store

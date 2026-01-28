@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@copilot-ld/libsecret": "^0.1.2",
-    "@copilot-ld/libtelemetry": "^0.1.20",
+    "@copilot-ld/libtelemetry": "^0.1.21",
     "@copilot-ld/libtype": "^0.1.61",
     "js-yaml": "^4.1.1"
   },

@@ -62,8 +62,16 @@ class Service {
 
 ### Import Order
 
-Imports are ordered: external libraries → internal packages → local imports
-(each group alphabetical).
+Imports are ordered: external libraries → internal packages → local imports.
+Each group is alphabetical. Separate groups with a blank line:
+
+```javascript
+import { readFile } from "node:fs/promises";
+
+import { common } from "@copilot-ld/libtype";
+
+import { LocalModule } from "./local.js";
+```
 
 ### Logging
 
@@ -82,16 +90,40 @@ const [data1, data2] = await Promise.all([
 ]);
 ```
 
+### Error Handling
+
+Let errors propagate naturally. Only catch errors when:
+
+- Adding meaningful context before re-throwing
+- Converting to a domain-specific error type
+- Implementing retry logic with backoff
+
+```javascript
+// ✓ Adding context
+try {
+  await this.#storage.put(key, data);
+} catch (error) {
+  throw new Error(`Failed to store ${key}: ${error.message}`);
+}
+
+// ✗ Pointless catch
+try {
+  await this.#storage.put(key, data);
+} catch (error) {
+  throw error;
+}
+```
+
 ## Prohibitions
 
-1. **NO** creating dependencies inside methods—use constructor injection
-2. **NO** object destructuring for constructor dependencies—use individual
-   parameters
-3. **NO** global state or singletons—pass dependencies explicitly
-4. **NO** catching errors only to re-throw without adding context
-5. **NO** mixing business logic with dependency creation
-6. **NO** inheritance for code reuse—use composition
-7. **NO** public fields—use private field syntax (`#`)
-8. **NO** `var` declarations—use `const` and `let`
-9. **NO** defensive try/catch—let errors bubble up
-10. **NO** backward compatibility or legacy fallbacks
+1. **DO NOT** create dependencies inside methods—use constructor injection
+2. **DO NOT** use object destructuring for constructor dependencies—use
+   individual parameters
+3. **DO NOT** use global state or singletons—pass dependencies explicitly
+4. **DO NOT** catch errors only to re-throw without adding context
+5. **DO NOT** mix business logic with dependency creation
+6. **DO NOT** use inheritance for code reuse—use composition
+7. **DO NOT** use public fields—use private field syntax (`#`)
+8. **DO NOT** use `var` declarations—use `const` and `let`
+9. **DO NOT** use defensive try/catch—let errors bubble up
+10. **DO NOT** add backward compatibility or legacy fallbacks

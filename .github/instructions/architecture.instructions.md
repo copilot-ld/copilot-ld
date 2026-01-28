@@ -31,24 +31,18 @@ gRPC services, framework-agnostic packages, REST extensions.
 via constructor. Services are stateless request handlers.
 
 **Import Structure**: Import processors/indices from subdirectories, never from
-package main index:
-
-```javascript
-import { MyIndex } from "@pkg/lib/index/my.js"; // ✓
-import { MyIndex } from "@pkg/lib"; // ✗ circular dep
-```
+package main index.
 
 **Protobuf Instantiation**: Use `Type.fromObject()` for protobufs, not
 `new Type()`.
 
 **Code Generation**: Run `make codegen` after modifying `.proto` files.
 
-## Prohibited
+## Prohibitions
 
-- **NO** backward compatibility shims or deprecation warnings
-- **NO** REST for inter-service communication (use gRPC)
-- **NO** state within service instances (inject dependencies)
-- **NO** direct service-to-service dependencies (route through Agent)
-- **NO** framework-specific code in `/packages`
-- **NO** exporting processors/indices from package main `index.js`
-- **NO** `new Type()` for protobufs (use `Type.fromObject()`)
+1. **DO NOT** use backward compatibility shims or deprecation warnings
+2. **DO NOT** use REST for inter-service communication (use gRPC)
+3. **DO NOT** store state within service instances (inject dependencies)
+4. **DO NOT** put framework-specific code in `/packages`
+5. **DO NOT** export processors/indices from package main `index.js`
+6. **DO NOT** use `new Type()` for protobufs (use `Type.fromObject()`)

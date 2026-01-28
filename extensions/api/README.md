@@ -1,53 +1,20 @@
-# Copilot-LD MS API Extension
+# API Extension
 
-Copilot-LD is an intelligent agent leveraging GitHub Copilot, linked data and
-retrieval-augmented generation.
+REST API extension that exposes Copilot-LD agent capabilities through a simple
+HTTP endpoint for external integrations.
 
-This is an AI extension to the Copilot-LD platform using a REST API to expose
-platform capabilities.
+## Usage
 
-## 🚀 Setup
+```javascript
+import api from "@extensions/api";
 
-### 1. Configuration
-
-Set up environment variables and service configuration:
-
-```sh
-cp .env{.example,}
+const app = api(agentClient, config);
 ```
 
-### 2. Install dependencies
+## API
 
-```sh
-npm install
-```
+| Method | Endpoint   | Description                                  |
+| ------ | ---------- | -------------------------------------------- |
+| POST   | `/api/ask` | Send message to agent, returns JSON response |
 
-### 3. Start services
-
-#### Local Development Environment
-
-Start the service:
-
-```sh
-npm start
-```
-
-Expose the local service publicly:
-
-```sh
-ngrok http 3979
-```
-
-Access the services:
-
-- **Web Extension**: `http://localhost:3979/web`
-
-## 👨‍💻 Development
-
-### Testing
-
-Run unit tests:
-
-```sh
-npm test
-```
+Requires Bearer token authentication.

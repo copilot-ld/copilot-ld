@@ -11,16 +11,16 @@ export const drawerStyles = `
   :host {
     position: fixed;
     z-index: var(--chat-z);
-    right: 16px;
-    bottom: 16px;
+    right: var(--chat-space-lg);
+    bottom: var(--chat-space-lg);
     display: flex;
     flex-direction: column;
-    width: min(400px, calc(100vw - 32px));
-    height: min(500px, calc(100vh - 32px));
+    width: min(400px, calc(100vw - var(--chat-space-2xl)));
+    height: min(500px, calc(100vh - var(--chat-space-2xl)));
     border: 1px solid var(--chat-border);
-    border-radius: 12px;
+    border-radius: var(--chat-radius-lg);
     background: var(--chat-bg);
-    box-shadow: 0 8px 32px var(--chat-shadow);
+    box-shadow: 0 var(--chat-space-sm) var(--chat-space-2xl) var(--chat-shadow);
     transition: width 0.2s, height 0.2s;
   }
 
@@ -44,15 +44,15 @@ export const drawerStyles = `
    * State: expanded
    */
   :host([data-expanded="true"]) {
-    width: min(800px, calc(100vw - 32px));
-    height: min(900px, calc(100vh - 32px));
+    width: min(800px, calc(100vw - var(--chat-space-2xl)));
+    height: min(900px, calc(100vh - var(--chat-space-2xl)));
   }
 
   /*
    * State: collapsed
    */
   :host([data-collapsed="true"]) {
-    height: 48px;
+    height: calc(var(--chat-space-lg) * 3);
     overflow: hidden;
   }
 
@@ -64,17 +64,17 @@ export const drawerStyles = `
    * Header - rounded top corners
    */
   header {
-    border-radius: 11px 11px 0 0;
+    border-radius: calc(var(--chat-radius-lg) - 1px) calc(var(--chat-radius-lg) - 1px) 0 0;
   }
 
   :host([data-collapsed="true"]) header {
-    border-radius: 11px;
+    border-radius: calc(var(--chat-radius-lg) - 1px);
   }
 
   /*
    * Footer - rounded bottom corners
    */
   footer {
-    border-radius: 0 0 11px 11px;
+    border-radius: 0 0 calc(var(--chat-radius-lg) - 1px) calc(var(--chat-radius-lg) - 1px);
   }
 `;

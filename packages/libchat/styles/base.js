@@ -9,6 +9,7 @@ export const baseStyles = `
    * CSS Custom Properties - Light mode
    */
   :host {
+    /* Colors */
     --chat-text: #1f2937;
     --chat-text-muted: #6b7280;
     --chat-text-inverse: #ffffff;
@@ -21,8 +22,18 @@ export const baseStyles = `
     --chat-accent-hover: #1d4ed8;
     --chat-accent-muted: rgba(37, 99, 235, 0.1);
     --chat-error: #dc2626;
+
+    /* Spacing Scale */
+    --chat-space-xs: 4px;
+    --chat-space-sm: 8px;
+    --chat-space-md: 12px;
+    --chat-space-lg: 16px;
+    --chat-space-xl: 24px;
+    --chat-space-2xl: 32px;
+
+    /* Layout */
     --chat-radius: 8px;
-    --chat-gap: 16px;
+    --chat-radius-lg: 12px;
     --chat-z: 1000;
 
     font-family: system-ui, -apple-system, sans-serif;
@@ -62,11 +73,11 @@ export const baseStyles = `
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: var(--chat-space-2xl);
+    height: var(--chat-space-2xl);
     padding: 0;
     border: none;
-    border-radius: 6px;
+    border-radius: calc(var(--chat-radius) - 2px);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
@@ -77,9 +88,9 @@ export const baseStyles = `
   header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    height: 48px;
-    padding: 0 var(--chat-gap);
+    gap: var(--chat-space-sm);
+    height: calc(var(--chat-space-lg) * 3);
+    padding: 0 var(--chat-space-lg);
     border-bottom: 1px solid var(--chat-border);
     background: var(--chat-bg);
     flex-shrink: 0;
@@ -96,7 +107,7 @@ export const baseStyles = `
   }
 
   header h1 mark {
-    margin-right: 6px;
+    margin-right: var(--chat-space-sm);
     background: none;
     color: var(--chat-accent);
   }
@@ -120,7 +131,7 @@ export const baseStyles = `
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--chat-gap);
+    padding: var(--chat-space-lg);
     background: var(--chat-bg-alt);
   }
 
@@ -128,7 +139,7 @@ export const baseStyles = `
    * Messages
    */
   article {
-    margin-bottom: 12px;
+    margin-bottom: var(--chat-space-md);
     line-height: 1.5;
   }
 
@@ -139,7 +150,7 @@ export const baseStyles = `
   article[role="user"] {
     max-width: 85%;
     margin-left: auto;
-    padding: 10px 14px;
+    padding: var(--chat-space-md) var(--chat-space-lg);
     border-radius: var(--chat-radius);
     background: var(--chat-accent);
     color: var(--chat-text-inverse);
@@ -154,9 +165,9 @@ export const baseStyles = `
   }
 
   article pre {
-    margin: 8px 0;
-    padding: 12px;
-    border-radius: 6px;
+    margin: var(--chat-space-sm) 0;
+    padding: var(--chat-space-md);
+    border-radius: calc(var(--chat-radius) - 2px);
     background: var(--chat-bg-muted);
     font-family: ui-monospace, monospace;
     font-size: 13px;
@@ -167,13 +178,13 @@ export const baseStyles = `
    * Details/Summary for tool calls
    */
   details {
-    margin: 8px 0;
+    margin: var(--chat-space-sm) 0;
     color: var(--chat-text-muted);
   }
 
   summary {
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: var(--chat-space-xs) var(--chat-space-sm);
+    border-radius: var(--chat-space-xs);
     cursor: pointer;
   }
 
@@ -186,7 +197,7 @@ export const baseStyles = `
    */
   footer {
     flex-shrink: 0;
-    padding: var(--chat-gap);
+    padding: var(--chat-space-lg);
     border-top: 1px solid var(--chat-border);
     background: var(--chat-bg);
   }
@@ -202,9 +213,9 @@ export const baseStyles = `
   textarea {
     display: block;
     width: 100%;
-    min-height: 44px;
+    min-height: calc(var(--chat-space-lg) * 2.75);
     max-height: 200px;
-    padding: 10px 48px 10px 14px;
+    padding: var(--chat-space-md) calc(var(--chat-space-lg) * 3) var(--chat-space-md) var(--chat-space-lg);
     border: 1px solid var(--chat-border);
     border-radius: var(--chat-radius);
     background: var(--chat-bg);
@@ -234,8 +245,8 @@ export const baseStyles = `
    */
   button[type="submit"] {
     position: absolute;
-    right: 6px;
-    bottom: 6px;
+    right: var(--chat-space-sm);
+    bottom: var(--chat-space-sm);
     background: var(--chat-accent);
     color: var(--chat-text-inverse);
     font-size: 14px;

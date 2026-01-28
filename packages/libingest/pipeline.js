@@ -81,15 +81,15 @@ export class IngesterPipeline extends ProcessorBase {
 
   /**
    * Loads the ingest configuration.
-   * @returns {Promise<object>} The config object
+   * @returns {Promise<object>} The ingest config object
    */
   async #loadIngestConfig() {
     const configData = await this.#configStorage.get("ingest.yml");
-    const config = configData ? yaml.load(configData) : null;
-    if (!config) {
+    const ingestConfig = configData ? yaml.load(configData) : null;
+    if (!ingestConfig) {
       throw new Error("No ingest config found");
     }
-    return config;
+    return ingestConfig;
   }
 
   /**
@@ -127,7 +127,7 @@ export class IngesterPipeline extends ProcessorBase {
     if (!this.#ingestConfig) {
       this.#ingestConfig = await this.#loadIngestConfig();
     }
-    // Pre-load step handlers and config
+    // Pre-load step handlers and env config
     await this.#loadStepHandlers();
     await this.#loadConfig();
     const ingestStorage = this.#ingestStorage;
@@ -145,7 +145,7 @@ export class IngesterPipeline extends ProcessorBase {
     await this.#ensureContextExists(pipelineFolder, contextPath);
 
     const stepHandlers = await this.#loadStepHandlers();
-    const config = await this.#loadConfig();
+    const envConfig = await this.#loadConfig();
 
     while (true) {
       const context = await this.#loadContext(pipelineFolder, contextPath);
@@ -163,7 +163,7 @@ export class IngesterPipeline extends ProcessorBase {
         contextPath,
         pipelineFolder,
         stepHandlers,
-        config,
+        envConfig,
       );
     }
   }
@@ -216,14 +216,14 @@ export class IngesterPipeline extends ProcessorBase {
    * @param {string} contextPath - Path to context.json
    * @param {string} pipelineFolder - Pipeline folder path
    * @param {Map<string, Function>} stepHandlers - Map of step handlers
-   * @param {import("@copilot-ld/libconfig").Config} config - Configuration
+   * @param {object} envConfig - Environment configuration
    */
   async #executeStep(
     stepEntry,
     contextPath,
     pipelineFolder,
     stepHandlers,
-    config,
+    envConfig,
   ) {
     const [stepName] = stepEntry;
     this.#logger.debug("Pipeline", "Processing step", {
@@ -236,7 +236,7 @@ export class IngesterPipeline extends ProcessorBase {
       throw new Error(`Unknown step: ${stepName}`);
     }
 
-    const handler = this.#createStepHandler(StepHandler, stepName, config);
+    const handler = this.#createStepHandler(StepHandler, stepName, envConfig);
     await handler.process(contextPath);
   }
 
@@ -244,10 +244,10 @@ export class IngesterPipeline extends ProcessorBase {
    * Creates a step handler instance with dependencies.
    * @param {Function} StepHandler - Step handler class
    * @param {string} stepName - Name of the step for config lookup
-   * @param {import("@copilot-ld/libconfig").Config} config - Configuration
+   * @param {object} envConfig - Environment configuration
    * @returns {object} Step handler instance
    */
-  #createStepHandler(StepHandler, stepName, config) {
+  #createStepHandler(StepHandler, stepName, envConfig) {
     const modelConfig = {
       model: this.#ingestConfig.models?.[stepName],
       maxTokens: this.#ingestConfig.defaults?.maxTokens,
@@ -257,7 +257,7 @@ export class IngesterPipeline extends ProcessorBase {
       this.#ingestStorage,
       this.#logger,
       modelConfig,
-      config,
+      envConfig,
       this.#promptLoader,
     );
   }

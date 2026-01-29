@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libtelemetry",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "OpenTelemetry-based tracing library for Copilot-LD microservices",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -22,7 +22,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libindex": "^0.1.26",
+    "@copilot-ld/libindex": "^0.1.27",
     "jmespath": "^0.16.0"
   },
   "repository": {

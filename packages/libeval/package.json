@@ -28,6 +28,6 @@
     "@copilot-ld/libtype": "^0.1.62"
   },
   "devDependencies": {
-    "@copilot-ld/libharness": "^0.1.4"
+    "@copilot-ld/libharness": "^0.1.5"
   }
 }

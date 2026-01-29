@@ -26,6 +26,47 @@ AUTH ?= none
 # Helper script to load environment files
 ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH) ./scripts/env.sh
 
+# ====================
+# Data Directory Groups
+# ====================
+
+# Generated code artifacts
+DIRS_GENERATED = generated
+
+# Runtime and session data (logs, CLI state)
+DIRS_RUNTIME = data/cli data/logs
+
+# Processing outputs (graphs, vectors, policies)
+DIRS_PROCESSING = data/graphs data/vectors data/policies
+
+# Knowledge resources
+DIRS_RESOURCES = data/resources
+
+# Agent memory and traces
+DIRS_MEMORY = data/memories data/traces
+
+# Learning system data (experience, feedback)
+DIRS_LEARNING = data/experience data/feedback
+
+# Evaluation results
+DIRS_EVAL = data/eval
+
+# Ingestion pipeline stages
+DIRS_INGEST = data/ingest/in data/ingest/pipeline data/ingest/done
+
+# Multi-tenant data
+DIRS_TENANTS = data/teams-tenant-configs data/teams-resource-ids data/tenants
+
+# All data directories (for init)
+DIRS_ALL_DATA = $(DIRS_RUNTIME) $(DIRS_PROCESSING) $(DIRS_RESOURCES) $(DIRS_MEMORY) $(DIRS_LEARNING) $(DIRS_EVAL) $(DIRS_INGEST) $(DIRS_TENANTS)
+
+# Directories to clean on full reset (excludes ingest which has source data)
+DIRS_CLEAN = $(DIRS_GENERATED) $(DIRS_RUNTIME) $(DIRS_PROCESSING) $(DIRS_RESOURCES) $(DIRS_MEMORY) $(DIRS_EVAL) $(DIRS_TENANTS)
+
+# Eval session data (cleared between eval runs)
+DIRS_EVAL_SESSION = $(DIRS_RUNTIME) $(DIRS_MEMORY) $(DIRS_LEARNING) $(DIRS_EVAL)
+FILES_EVAL_SESSION = data/*.log data/resources/common.Conversation.*
+
 .PHONY: help
 help:
 	@echo "Usage: make <target> [ENV=local|docker] [STORAGE=local|minio|supabase] [AUTH=none|gotrue|supabase]"
@@ -152,11 +193,11 @@ help:
 
 .PHONY: data-init
 data-init:  ## Initialize data directories
-	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@mkdir -p $(DIRS_GENERATED) $(DIRS_ALL_DATA)
 
 .PHONY: data-clean
 data-clean:  ## Remove generated data
-	@rm -rf generated data/cli data/eval data/logs data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@rm -rf $(DIRS_CLEAN)
 
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
@@ -428,7 +469,8 @@ eval-report:  ## Generate evaluation report
 
 .PHONY: eval-reset
 eval-reset:  ## Reset evaluation state
-	@rm -rf data/*.log data/logs/* data/cli/* data/eval/* data/experience/* data/feedback/* data/memories/* data/resources/common.Conversation.* data/traces/*
+	@rm -rf $(FILES_EVAL_SESSION)
+	@for dir in $(DIRS_EVAL_SESSION); do rm -rf "$$dir"/*; done
 	@$(ENVLOAD) npx --workspace=@copilot-ld/librc rc restart --silent
 
 # ====================

@@ -24,6 +24,9 @@ and metadata filtering.
 
 **VectorProcessor**: Processes documents into embeddings and indexes them.
 
+**calculateDotProduct**: Utility function for computing dot product (cosine
+similarity for normalized vectors) with loop unrolling for performance.
+
 ## Usage Patterns
 
 ### Pattern 1: Search by vector
@@ -47,6 +50,15 @@ await index.add({
   vector: embedding,
   metadata: { type: "document", title: "Example" },
 });
+```
+
+### Pattern 3: Calculate similarity directly
+
+```javascript
+import { calculateDotProduct } from "@copilot-ld/libvector";
+
+// For normalized vectors, dot product equals cosine similarity
+const similarity = calculateDotProduct(vectorA, vectorB);
 ```
 
 ## Integration

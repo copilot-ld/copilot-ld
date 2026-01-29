@@ -63,13 +63,13 @@ export class VectorIndex extends IndexBase {
 }
 
 /**
- * Dot product calculation with loop unrolling
+ * Dot product calculation with loop unrolling (cosine similarity for normalized vectors)
  * @param {number[]} a - First vector
  * @param {number[]} b - Second vector
- * @param {number} length - Length of vectors
+ * @param {number} [length] - Length of vectors (defaults to a.length)
  * @returns {number} The dot product of the two vectors
  */
-function calculateDotProduct(a, b, length) {
+export function calculateDotProduct(a, b, length = a.length) {
   let dotProduct = 0;
   let i = 0;
 

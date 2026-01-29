@@ -111,6 +111,7 @@ help:
 	@echo "  cli-completion    	Send window to LLM API"
 	@echo "  cli-tiktoken      	Token counting"
 	@echo "  cli-unary         	Unary gRPC calls"
+	@echo "  cli-learn         	Run experience learning batch job"
 	@echo ""
 	@echo "Evaluation:"
 	@echo "  eval              	Run evaluation suite"
@@ -408,6 +409,10 @@ cli-tiktoken:  ## Token counting
 .PHONY: cli-unary
 cli-unary:  ## Unary gRPC calls
 	@$(ENVLOAD) node ./scripts/unary.js $(ARGS)
+
+.PHONY: cli-learn
+cli-learn:  ## Run experience learning batch job
+	@$(ENVLOAD) node ./scripts/learn.js $(ARGS)
 
 # ====================
 # Evaluation

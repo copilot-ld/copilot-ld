@@ -1,9 +1,14 @@
 {
-  "name": "@copilot-ld/memory",
-  "version": "0.1.83",
-  "description": "Memory service for managing transient resources and memory windows",
+  "name": "@copilot-ld/learn",
+  "version": "0.1.0",
+  "description": "Learn service for feedback collection and experience learning",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "node --watch server.js",
     "start": "npx download && node server.js",
@@ -12,16 +17,15 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.57",
     "@copilot-ld/liblearn": "^0.1.0",
-    "@copilot-ld/libmemory": "^0.1.32",
-    "@copilot-ld/libresource": "^0.1.88",
     "@copilot-ld/librpc": "^0.1.76",
     "@copilot-ld/libstorage": "^0.1.52",
-    "@copilot-ld/libtelemetry": "^0.1.30"
+    "@copilot-ld/libtelemetry": "^0.1.30",
+    "@copilot-ld/libtype": "^0.1.62"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "services/memory"
+    "directory": "services/learn"
   },
   "publishConfig": {
     "access": "public",

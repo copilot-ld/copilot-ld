@@ -1,0 +1,32 @@
+{
+  "name": "@copilot-ld/liblearn",
+  "version": "0.1.0",
+  "description": "Experience learning from feedback for tool selection improvement",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@copilot-ld/libindex": "^0.1.26",
+    "@copilot-ld/libtype": "^0.1.62",
+    "@copilot-ld/libvector": "^0.1.37"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copilot-ld/copilot-ld.git",
+    "directory": "packages/liblearn"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@copilot-ld/libharness": "^0.1.4"
+  }
+}

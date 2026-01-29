@@ -12,14 +12,21 @@ export class MemoryWindow {
   #resourceId;
   #resourceIndex;
   #memoryIndex;
+  #experienceInjector;
 
   /**
    * Creates a new MemoryWindow instance for a specific resource
    * @param {string} resourceId - The resource ID (conversation ID)
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
    * @param {import("./index/memory.js").MemoryIndex} memoryIndex - Memory index instance for this specific resource
+   * @param {import("@copilot-ld/liblearn").ExperienceInjector} [experienceInjector] - Optional experience injector for learned tool experience
    */
-  constructor(resourceId, resourceIndex, memoryIndex) {
+  constructor(
+    resourceId,
+    resourceIndex,
+    memoryIndex,
+    experienceInjector = null,
+  ) {
     if (!resourceId) throw new Error("resourceId is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
     if (!memoryIndex) throw new Error("memoryIndex is required");
@@ -27,6 +34,7 @@ export class MemoryWindow {
     this.#resourceId = resourceId;
     this.#resourceIndex = resourceIndex;
     this.#memoryIndex = memoryIndex;
+    this.#experienceInjector = experienceInjector;
   }
 
   /**
@@ -70,32 +78,13 @@ export class MemoryWindow {
     const functions = await this.#resourceIndex.get(functionIds, actor);
 
     // Calculate overhead (agent + tools tokens)
-    let overhead = agent.id?.tokens || 0;
-    for (const f of functions) {
-      overhead += f.id?.tokens || 0;
-    }
+    const overhead = this.#calculateOverhead(agent, functions);
 
     // History budget = total - overhead - reserved output tokens
     const historyBudget = Math.max(0, total - overhead - maxTokens);
 
-    // Wrap the function in a call object, ensuring OpenAI-compatible parameters
-    const tools = functions.map((f) => {
-      // OpenAI requires parameters.properties and parameters.required even if empty
-      // Protobuf3 omits empty fields, so we must ensure they exist
-      const params = f.parameters || {};
-      const normalizedFunction = {
-        ...f,
-        parameters: {
-          type: params.type || "object",
-          properties: params.properties || {},
-          required: params.required || [],
-        },
-      };
-      return tool.ToolCall.fromObject({
-        type: "function",
-        function: normalizedFunction,
-      });
-    });
+    // Wrap functions in OpenAI-compatible tool call objects
+    const tools = functions.map((f) => this.#normalizeToolFunction(f));
 
     // Get conversation history within budget
     const identifiers = await this.#filterByBudget(historyBudget);
@@ -103,17 +92,101 @@ export class MemoryWindow {
     // Load full message objects from identifiers
     const history = await this.#resourceIndex.get(identifiers, actor);
 
-    // Build complete messages array: agent + conversation history
+    // Build complete messages array
+    const messages = await this.#buildMessages(agent, history, toolNames);
+
+    return { messages, tools };
+  }
+
+  /**
+   * Calculate token overhead from agent and tool definitions
+   * @param {object} agent - Agent resource
+   * @param {Array} functions - Tool function definitions
+   * @returns {number} Total overhead tokens
+   */
+  #calculateOverhead(agent, functions) {
+    let overhead = agent.id?.tokens || 0;
+    for (const f of functions) {
+      overhead += f.id?.tokens || 0;
+    }
+    return overhead;
+  }
+
+  /**
+   * Normalize a tool function for OpenAI compatibility
+   * @param {object} f - Tool function definition
+   * @returns {object} Normalized tool call object
+   */
+  #normalizeToolFunction(f) {
+    // OpenAI requires parameters.properties and parameters.required even if empty
+    // Protobuf3 omits empty fields, so we must ensure they exist
+    const params = f.parameters || {};
+    const normalizedFunction = {
+      ...f,
+      parameters: {
+        type: params.type || "object",
+        properties: params.properties || {},
+        required: params.required || [],
+      },
+    };
+    return tool.ToolCall.fromObject({
+      type: "function",
+      function: normalizedFunction,
+    });
+  }
+
+  /**
+   * Build the complete messages array with optional experience injection
+   * @param {object} agent - Agent resource for system message
+   * @param {Array} history - Conversation history messages
+   * @param {string[]} toolNames - Available tool names
+   * @returns {Promise<Array>} Complete messages array
+   */
+  async #buildMessages(agent, history, toolNames) {
     const messages = [
-      // Create a system message from agent
       common.Message.fromObject({
         role: "system",
         ...agent,
       }),
-      ...history,
     ];
 
-    return { messages, tools };
+    // Inject learned experience after agent system message if available
+    if (this.#experienceInjector) {
+      const experienceContext = await this.#buildExperienceContext(
+        history,
+        toolNames,
+      );
+      if (experienceContext) {
+        messages.push(
+          common.Message.fromObject({
+            role: "system",
+            content: experienceContext,
+          }),
+        );
+      }
+    }
+
+    // Add conversation history
+    messages.push(...history);
+
+    return messages;
+  }
+
+  /**
+   * Build experience context from the latest user message
+   * @param {Array} history - Conversation history
+   * @param {string[]} toolNames - Available tool names
+   * @returns {Promise<string|null>} Experience context string or null if unavailable
+   */
+  async #buildExperienceContext(history, toolNames) {
+    // Find latest user message
+    const userMessage = history.findLast((m) => m.role === "user");
+    if (!userMessage?.content) return null;
+
+    return this.#experienceInjector.generateContext(
+      userMessage.content,
+      toolNames,
+    );
   }
 
   /**

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-01-29
+
+- Added optional `experienceInjector` parameter to `MemoryService` constructor
+- Server now attempts to wire up experience injection with graceful fallback
+- Added liblearn and libtelemetry dependencies for experience injection
+
 ## 2025-12-02
 
 - **BREAKING**: `GetWindow` now takes `model` instead of `budget` in request

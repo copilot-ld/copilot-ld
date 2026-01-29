@@ -10,6 +10,7 @@ const { MemoryBase } = services;
 export class MemoryService extends MemoryBase {
   #storage;
   #resourceIndex;
+  #experienceInjector;
   #indices = new Map();
   #maxTokens;
 
@@ -18,14 +19,16 @@ export class MemoryService extends MemoryBase {
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage instance for memories
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
+   * @param {import("@copilot-ld/liblearn").ExperienceInjector} [experienceInjector] - Optional experience injector for learned tool experience
    */
-  constructor(config, storage, resourceIndex) {
+  constructor(config, storage, resourceIndex, experienceInjector = null) {
     super(config);
     if (!storage) throw new Error("storage is required");
     if (!resourceIndex) throw new Error("resourceIndex is required");
 
     this.#storage = storage;
     this.#resourceIndex = resourceIndex;
+    this.#experienceInjector = experienceInjector;
     this.#maxTokens = config.max_tokens;
     if (!this.#maxTokens || this.#maxTokens <= 0) {
       throw new Error("config.max_tokens is required and must be positive");
@@ -75,6 +78,7 @@ export class MemoryService extends MemoryBase {
       req.resource_id,
       this.#resourceIndex,
       memoryIndex,
+      this.#experienceInjector,
     );
     const { messages, tools } = await window.build(req.model, this.#maxTokens);
 

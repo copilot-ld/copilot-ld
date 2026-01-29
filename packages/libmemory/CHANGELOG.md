@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-01-29
+
+- Added optional `experienceInjector` parameter to `MemoryWindow` constructor
+- Added `#buildExperienceContext()` for injecting learned tool experience
+- Experience injection is opt-in and gracefully degrades when not configured
+
 ## 2025-12-02
 
 - **BREAKING**: `MemoryWindow.build()` now takes `model` instead of `budget`

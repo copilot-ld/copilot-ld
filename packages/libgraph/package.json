@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libgraph",
-  "version": "0.1.48",
+  "version": "0.1.49",
   "description": "RDF graph index and processing utilities",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "@copilot-ld/libindex": "^0.1.26",
-    "@copilot-ld/libstorage": "^0.1.52",
+    "@copilot-ld/libstorage": "^0.1.53",
     "@copilot-ld/libtelemetry": "^0.1.21",
     "@copilot-ld/libtype": "^0.1.62",
     "n3": "^1.26.0"

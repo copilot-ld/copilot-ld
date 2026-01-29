@@ -28,6 +28,10 @@
         "command": "npm run dev -w @copilot-ld/memory"
       },
       {
+        "name": "learn",
+        "command": "npm run dev -w @copilot-ld/learn"
+      },
+      {
         "name": "tool",
         "command": "npm run dev -w @copilot-ld/tool"
       },

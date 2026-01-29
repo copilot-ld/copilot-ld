@@ -13,8 +13,18 @@ const tracer = await createTracer("web");
 // Extension configuration with defaults
 const config = await createExtensionConfig("web", { auth_enabled: false });
 
-const client = await createClient("agent", logger, tracer);
-const app = await createWebExtension(client, config, logger);
+// Create gRPC clients
+const agentClient = await createClient("agent", logger, tracer);
+const learnClient = await createClient("learn", logger, tracer).catch(() => {
+  logger.warn("Client", "Learn service unavailable, feedback disabled");
+  return null;
+});
+
+const app = await createWebExtension(
+  { agent: agentClient, learn: learnClient },
+  config,
+  logger,
+);
 
 serve(
   {

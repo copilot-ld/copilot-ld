@@ -1,15 +1,11 @@
 /**
  * Shared base styles for all chat components.
- * Provides CSS custom properties, resets, and common element styles.
  * @module libchat/styles/base
  * @type {string}
  */
 export const baseStyles = `
-  /*
-   * CSS Custom Properties - Light mode
-   */
+  /* Light mode */
   :host {
-    /* Colors */
     --chat-text: #1f2937;
     --chat-text-muted: #6b7280;
     --chat-text-inverse: #ffffff;
@@ -22,29 +18,22 @@ export const baseStyles = `
     --chat-accent-hover: #1d4ed8;
     --chat-accent-muted: rgba(37, 99, 235, 0.1);
     --chat-error: #dc2626;
-
-    /* Spacing Scale */
     --chat-space-xs: 4px;
     --chat-space-sm: 8px;
     --chat-space-md: 12px;
     --chat-space-lg: 16px;
     --chat-space-xl: 24px;
     --chat-space-2xl: 32px;
-
-    /* Layout */
     --chat-radius: 8px;
     --chat-radius-lg: 12px;
     --chat-z: 1000;
-
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     color: var(--chat-text);
   }
 
-  /*
-   * CSS Custom Properties - Dark mode
-   */
+  /* Dark mode */
   @media (prefers-color-scheme: dark) {
     :host {
       --chat-text: #f9fafb;
@@ -61,14 +50,10 @@ export const baseStyles = `
     }
   }
 
-  /*
-   * Reset
-   */
+  /* Reset */
   *, *::before, *::after { box-sizing: border-box; }
 
-  /*
-   * Icon button - shared pattern for square icon buttons
-   */
+  /* Icon button */
   .btn-icon {
     display: flex;
     align-items: center;
@@ -82,9 +67,7 @@ export const baseStyles = `
     transition: background 0.15s, color 0.15s;
   }
 
-  /*
-   * Header - title bar with optional controls
-   */
+  /* Header */
   header {
     display: flex;
     align-items: center;
@@ -124,9 +107,7 @@ export const baseStyles = `
     color: var(--chat-text);
   }
 
-  /*
-   * Main - scrollable message area
-   */
+  /* Main - scrollable message area */
   main {
     flex: 1;
     min-height: 0;
@@ -135,17 +116,13 @@ export const baseStyles = `
     background: var(--chat-bg-alt);
   }
 
-  /*
-   * Messages
-   */
+  /* Messages */
   article {
     margin-bottom: var(--chat-space-md);
     line-height: 1.5;
   }
 
-  article:last-child {
-    margin-bottom: 0;
-  }
+  article:last-child { margin-bottom: 0; }
 
   article[role="user"] {
     max-width: 85%;
@@ -156,13 +133,8 @@ export const baseStyles = `
     color: var(--chat-text-inverse);
   }
 
-  article[role="assistant"] {
-    color: var(--chat-text);
-  }
-
-  article[role="error"] {
-    color: var(--chat-error);
-  }
+  article[role="assistant"] { color: var(--chat-text); }
+  article[role="error"] { color: var(--chat-error); }
 
   article pre {
     margin: var(--chat-space-sm) 0;
@@ -174,27 +146,12 @@ export const baseStyles = `
     overflow-x: auto;
   }
 
-  /*
-   * Details/Summary for tool calls
-   */
-  details {
-    margin: var(--chat-space-sm) 0;
-    color: var(--chat-text-muted);
-  }
+  /* Details/Summary */
+  details { margin: var(--chat-space-sm) 0; color: var(--chat-text-muted); }
+  summary { padding: var(--chat-space-xs) var(--chat-space-sm); border-radius: var(--chat-space-xs); cursor: pointer; }
+  summary:hover { background: var(--chat-accent-muted); }
 
-  summary {
-    padding: var(--chat-space-xs) var(--chat-space-sm);
-    border-radius: var(--chat-space-xs);
-    cursor: pointer;
-  }
-
-  summary:hover {
-    background: var(--chat-accent-muted);
-  }
-
-  /*
-   * Footer - input area
-   */
+  /* Footer */
   footer {
     flex-shrink: 0;
     padding: var(--chat-space-lg);
@@ -202,13 +159,8 @@ export const baseStyles = `
     background: var(--chat-bg);
   }
 
-  /*
-   * Form - textarea with send button
-   */
-  form {
-    position: relative;
-    margin: 0;
-  }
+  /* Form */
+  form { position: relative; margin: 0; }
 
   textarea {
     display: block;
@@ -240,9 +192,7 @@ export const baseStyles = `
     color: var(--chat-text-muted);
   }
 
-  /*
-   * Send button - inside textarea
-   */
+  /* Send button */
   button[type="submit"] {
     position: absolute;
     right: var(--chat-space-sm);
@@ -260,5 +210,61 @@ export const baseStyles = `
     background: var(--chat-bg-muted);
     color: var(--chat-text-muted);
     cursor: not-allowed;
+  }
+
+  /* Feedback buttons */
+  .feedback {
+    display: flex;
+    gap: var(--chat-space-xs);
+    margin-top: var(--chat-space-sm);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  article:hover .feedback,
+  .feedback:focus-within {
+    opacity: 1;
+  }
+
+  .feedback button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--chat-space-xl);
+    height: var(--chat-space-xl);
+    padding: 0;
+    border: 1px solid var(--chat-border);
+    border-radius: var(--chat-space-xs);
+    background: var(--chat-bg);
+    color: var(--chat-text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .feedback button:hover {
+    background: var(--chat-accent-muted);
+    border-color: var(--chat-accent);
+    color: var(--chat-text);
+  }
+
+  .feedback button[data-selected="true"] {
+    background: var(--chat-accent-muted);
+    border-color: var(--chat-accent);
+    color: var(--chat-accent);
+  }
+
+  .feedback button[data-signal="positive"]:hover,
+  .feedback button[data-signal="positive"][data-selected="true"] {
+    color: #16a34a;
+    border-color: #16a34a;
+    background: rgba(22, 163, 74, 0.1);
+  }
+
+  .feedback button[data-signal="negative"]:hover,
+  .feedback button[data-signal="negative"][data-selected="true"] {
+    color: var(--chat-error);
+    border-color: var(--chat-error);
+    background: rgba(220, 38, 38, 0.1);
   }
 `;

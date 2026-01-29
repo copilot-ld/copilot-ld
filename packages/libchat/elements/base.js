@@ -204,7 +204,16 @@ export class ChatElementBase extends HTMLElement {
    */
   renderMessages() {
     return this.messages
-      .map((m) => `<article role="${m.role}">${m.content}</article>`)
+      .map((m, i) => {
+        const feedback =
+          m.role === "assistant"
+            ? `<div class="feedback">
+            <button data-signal="positive" data-index="${i}" aria-label="Good response">👍</button>
+            <button data-signal="negative" data-index="${i}" aria-label="Poor response">👎</button>
+          </div>`
+            : "";
+        return `<article role="${m.role}">${m.content}${feedback}</article>`;
+      })
       .join("");
   }
 
@@ -250,6 +259,47 @@ export class ChatElementBase extends HTMLElement {
     this.shadowRoot
       .querySelector("#new")
       ?.addEventListener("click", () => this.newSession());
+
+    // Feedback buttons - use event delegation on main
+    this.shadowRoot.querySelector("main")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".feedback button");
+      if (!btn) return;
+      this.handleFeedback(btn);
+    });
+  }
+
+  /**
+   * Handles feedback button click.
+   * @param {HTMLButtonElement} button - Clicked feedback button
+   */
+  async handleFeedback(button) {
+    const signal = button.dataset.signal;
+    const index = parseInt(button.dataset.index, 10);
+
+    // Toggle selection state
+    const feedback = button.closest(".feedback");
+    feedback.querySelectorAll("button").forEach((btn) => {
+      btn.dataset.selected = btn === button ? "true" : "false";
+    });
+
+    // Submit feedback via client
+    try {
+      await this.#client.submitFeedback(signal, index);
+
+      this.dispatchEvent(
+        new CustomEvent("chat:feedback", {
+          bubbles: true,
+          composed: true,
+          detail: { signal, messageIndex: index },
+        }),
+      );
+    } catch (error) {
+      // Reset selection on error
+      feedback
+        .querySelectorAll("button")
+        .forEach((btn) => delete btn.dataset.selected);
+      console.error("Feedback submission failed:", error);
+    }
   }
 
   /**

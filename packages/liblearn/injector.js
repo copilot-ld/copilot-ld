@@ -9,7 +9,7 @@ export class ExperienceInjector {
 
   /**
    * Creates a new ExperienceInjector instance
-   * @param {import("./store/experience.js").ExperienceStore} experienceStore - Experience store
+   * @param {import("./store.js").ExperienceStore} experienceStore - Experience store
    * @param {object} vectorClient - Vector service gRPC client
    */
   constructor(experienceStore, vectorClient) {

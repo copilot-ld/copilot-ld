@@ -121,4 +121,18 @@ export class ChatClient {
   clear() {
     this.#state.clear();
   }
+
+  /**
+   * Submits feedback for a message.
+   * @param {string} signal - Feedback signal ("positive" or "negative")
+   * @param {number} messageIndex - Index of the message being rated
+   * @returns {Promise<void>}
+   */
+  async submitFeedback(signal, messageIndex) {
+    const resourceId = this.#state.resourceId;
+    if (!resourceId) {
+      throw new Error("No active conversation for feedback");
+    }
+    await this.#api.submitFeedback(signal, resourceId, messageIndex);
+  }
 }

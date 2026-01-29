@@ -94,6 +94,35 @@ export class ChatApi {
       yield JSON.parse(buffer);
     }
   }
+
+  /**
+   * Submits feedback for a message.
+   * @param {string} signal - Feedback signal ("positive" or "negative")
+   * @param {string} conversationId - Conversation/resource ID
+   * @param {number} messageIndex - Index of the message being rated
+   * @returns {Promise<void>}
+   */
+  async submitFeedback(signal, conversationId, messageIndex) {
+    const token = await this.#getToken?.();
+    const headers = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.#url}/feedback`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        signal,
+        conversation_id: conversationId,
+        message_index: messageIndex,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  }
 }
 
 /**

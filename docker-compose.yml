@@ -152,6 +152,7 @@ services:
           - agent.copilot-ld.local
     depends_on:
       - memory
+      - learn
       - llm
       - vector
       - graph
@@ -172,6 +173,22 @@ services:
       internal:
         aliases:
           - memory.copilot-ld.local
+
+  learn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/learn
+      secrets:
+        - github_token
+    image: copilot-ld/learn:latest
+    container_name: learn.copilot-ld
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - learn.copilot-ld.local
 
   llm:
     build:

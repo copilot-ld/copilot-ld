@@ -14,7 +14,7 @@ export class ExperienceLearner {
    * @param {object} traceIndex - Trace index for span queries
    * @param {object} feedbackIndex - Feedback index for signal queries
    * @param {object} vectorClient - Vector service gRPC client
-   * @param {import("./store/experience.js").ExperienceStore} experienceStore - Experience store
+   * @param {import("./store.js").ExperienceStore} experienceStore - Experience store
    */
   constructor(traceIndex, feedbackIndex, vectorClient, experienceStore) {
     if (!traceIndex) throw new Error("traceIndex is required");

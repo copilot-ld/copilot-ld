@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { streamText } from "hono/streaming";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
-import { agent, common } from "@copilot-ld/libtype";
+import { agent, common, learn } from "@copilot-ld/libtype";
 import {
   createValidationMiddleware,
   createCorsMiddleware,
@@ -13,13 +13,19 @@ import {
 const htmlFormatter = createHtmlFormatter();
 
 /**
+ * @typedef {object} WebClients
+ * @property {import("@copilot-ld/librpc").clients.AgentClient} agent - Agent gRPC client
+ * @property {import("@copilot-ld/librpc").clients.LearnClient} [learn] - Learn gRPC client (optional)
+ */
+
+/**
  * Creates a web extension with configurable dependencies
- * @param {import("@copilot-ld/librpc").clients.AgentClient} client - Agent service gRPC client
+ * @param {WebClients} clients - gRPC clients
  * @param {import("@copilot-ld/libconfig").ExtensionConfig} config - Extension configuration
  * @param {(namespace: string) => import("@copilot-ld/libtelemetry").Logger} [logger] - Optional logger
  * @returns {Promise<Hono>} Configured Hono application
  */
-export async function createWebExtension(client, config, logger = null) {
+export async function createWebExtension(clients, config, logger = null) {
   const app = new Hono();
 
   // Debug log auth configuration
@@ -49,6 +55,7 @@ export async function createWebExtension(client, config, logger = null) {
   // Add auth middleware to protected routes
   if (authMiddleware) {
     app.use("/web/api/chat", authMiddleware.create());
+    app.use("/web/api/feedback", authMiddleware.create());
   }
 
   // Health check endpoint
@@ -89,7 +96,7 @@ export async function createWebExtension(client, config, logger = null) {
 
         return streamText(c, async (stream) => {
           try {
-            const grpcStream = client.ProcessStream(requestParams);
+            const grpcStream = clients.agent.ProcessStream(requestParams);
 
             for await (const chunk of grpcStream) {
               if (chunk.resource_id) {
@@ -136,6 +143,73 @@ export async function createWebExtension(client, config, logger = null) {
         return c.json(
           {
             error: "Request processing failed",
+            status: "error",
+          },
+          500,
+        );
+      }
+    },
+  );
+
+  // Feedback endpoint - submit user feedback on messages
+  app.post(
+    "/web/api/feedback",
+    validationMiddleware.create({
+      required: ["signal", "conversation_id"],
+      types: {
+        signal: "string",
+        conversation_id: "string",
+        message_index: "number",
+      },
+      maxLengths: {
+        signal: 20,
+        conversation_id: 100,
+      },
+    }),
+    async (c) => {
+      // Check if learn client is available
+      if (!clients.learn) {
+        return c.json(
+          { error: "Feedback service not available", status: "error" },
+          503,
+        );
+      }
+
+      try {
+        const user = c.get("user");
+        const data = c.get("validatedData");
+        const { signal, conversation_id, message_index } = data;
+
+        logger?.debug("Feedback", "Processing feedback", {
+          userId: user?.id,
+          conversationId: conversation_id,
+          signal,
+        });
+
+        // Map signal string to enum
+        const signalEnum =
+          signal === "positive"
+            ? learn.Signal.SIGNAL_POSITIVE
+            : signal === "negative"
+              ? learn.Signal.SIGNAL_NEGATIVE
+              : learn.Signal.SIGNAL_UNSPECIFIED;
+
+        const feedbackRecord = learn.FeedbackRecord.fromObject({
+          conversation_id,
+          message_id: message_index !== undefined ? String(message_index) : "",
+          signal: signalEnum,
+          timestamp: Date.now(),
+        });
+
+        await clients.learn.RecordFeedback(feedbackRecord);
+
+        return c.json({ status: "ok" });
+      } catch (error) {
+        logger?.error("Feedback", error, { path: c.req.path });
+
+        return c.json(
+          {
+            error: "Feedback submission failed",
             status: "error",
           },
           500,

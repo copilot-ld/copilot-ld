@@ -21,7 +21,7 @@
     "@copilot-ld/libconfig": "^0.1.58",
     "@copilot-ld/libsecret": "^0.1.2",
     "@copilot-ld/libtelemetry": "^0.1.22",
-    "@copilot-ld/libutil": "^0.1.59"
+    "@copilot-ld/libutil": "^0.1.60"
   },
   "repository": {
     "type": "git",

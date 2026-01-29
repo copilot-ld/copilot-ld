@@ -16,12 +16,12 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libllm": "^0.1.70",
+    "@copilot-ld/libllm": "^0.1.71",
     "@copilot-ld/libpolicy": "^0.1.52",
     "@copilot-ld/libprompt": "^0.1.1",
     "@copilot-ld/libstorage": "^0.1.53",
     "@copilot-ld/libtype": "^0.1.62",
-    "@copilot-ld/libutil": "^0.1.59"
+    "@copilot-ld/libutil": "^0.1.60"
   },
   "devDependencies": {
     "jsdom": "^27.4.0",

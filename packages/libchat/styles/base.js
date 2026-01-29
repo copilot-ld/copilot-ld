@@ -118,6 +118,7 @@ export const baseStyles = `
 
   /* Messages */
   article {
+    position: relative;
     margin-bottom: var(--chat-space-md);
     line-height: 1.5;
   }
@@ -214,9 +215,11 @@ export const baseStyles = `
 
   /* Feedback buttons */
   .feedback {
+    position: absolute;
+    bottom: 0;
+    left: 0;
     display: flex;
     gap: var(--chat-space-xs);
-    margin-top: var(--chat-space-sm);
     opacity: 0;
     transition: opacity 0.15s;
   }

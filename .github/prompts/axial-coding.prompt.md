@@ -1,3 +1,9 @@
+---
+description:
+  Group profile-behavior gaps into categories for agent profile improvement
+agent: grounded-garry
+---
+
 # Axial Coding: Agent Profile Gap Patterns
 
 ## Objective
@@ -7,7 +13,7 @@ sections need improvement.
 
 ## Prerequisites
 
-**Required Input:** `SCRATCHPAD1.md` from Open Coding stage **Previous Stage:**
+**Required Input:** `SCRATCHPAD-1.md` from Open Coding stage **Previous Stage:**
 Open Coding (`open-coding.prompt.md`)
 
 ## Process
@@ -16,7 +22,7 @@ Open Coding (`open-coding.prompt.md`)
 2. Group codes by the agent profile and profile section they relate to
 3. Identify patterns showing which profile instructions are consistently
    violated
-4. Document error categories in `SCRATCHPAD2.md`
+4. Document error categories in `SCRATCHPAD-2.md`
 5. **Next Step:** Proceed to `selective-coding.prompt.md` after categorizing all
    codes
 

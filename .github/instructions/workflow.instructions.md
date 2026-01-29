@@ -25,11 +25,8 @@ If push fails: `git pull --rebase origin main` then push again.
 
 ## Task Planning
 
-When planning work with a todo list:
-
-- Group related changes into logical units
-- Include "commit and push" as part of completing each unit
-- Do not mark a task complete until changes are pushed
+Group related changes into logical units. Include "commit and push" as part of
+completing each unit. Do not mark a task complete until changes are pushed.
 
 ## Commit Format
 
@@ -44,15 +41,10 @@ docs(scope): update documentation
 
 ## After All Changes
 
-Run validation and fix any failures before considering work complete:
+Run `make check` and `make check-fix` before considering work complete.
 
-```bash
-make check        # identify issues
-make check-fix    # auto-fix what's possible
-```
+## Prohibitions
 
-## Prohibited
-
-- `git add -A` or `git add .` (captures other agents' work)
-- Waiting until end of session to commit (conflicts accumulate)
-- Force push or history rewrite on `main`
+1. **DO NOT** use `git add -A` or `git add .` (captures other agents' work)
+2. **DO NOT** wait until end of session to commit (conflicts accumulate)
+3. **DO NOT** force push or rewrite history on `main`

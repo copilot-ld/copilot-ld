@@ -1,3 +1,9 @@
+---
+description:
+  Identify core profile deficiency and produce specific improvement roadmap
+agent: grounded-garry
+---
+
 # Selective Coding: Agent Profile Improvement Roadmap
 
 ## Objective
@@ -7,14 +13,14 @@ produce specific agent profile changes to address them.
 
 ## Prerequisites
 
-**Required Input:** `SCRATCHPAD2.md` from Axial Coding stage **Previous Stage:**
-Axial Coding (`axial-coding.prompt.md`)
+**Required Input:** `SCRATCHPAD-2.md` from Axial Coding stage **Previous
+Stage:** Axial Coding (`axial-coding.prompt.md`)
 
 ## Process
 
-1. Read all categories from `SCRATCHPAD2.md`
+1. Read all categories from `SCRATCHPAD-2.md`
 2. Identify the core profile deficiency that unifies all categories
-3. Document specific profile improvements in `SCRATCHPAD3.md`
+3. Document specific profile improvements in `SCRATCHPAD-3.md`
 4. Each improvement must specify exact text to add/modify in agent profiles
 
 ## Output

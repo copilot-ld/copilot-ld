@@ -1,5 +1,7 @@
 ---
-mode: agent
+description:
+  Analyze changes and consolidate changelog entries with documentation updates
+agent: manual-max
 ---
 
 Analyze code changes comprehensively and consolidate multiple changelog entries

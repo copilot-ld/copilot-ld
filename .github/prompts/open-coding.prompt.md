@@ -1,3 +1,9 @@
+---
+description:
+  Identify gaps between agent profile instructions and observed behavior
+agent: grounded-garry
+---
+
 # Open Coding: Agent Profile Error Analysis
 
 ## Objective
@@ -12,13 +18,13 @@ that cause evaluation failures.
 3. Read the agent profiles in `data/eval/agents/` to understand expected
    behavior
 4. Create codes comparing profile instructions to actual behavior in
-   `SCRATCHPAD1.md`
+   `SCRATCHPAD-1.md`
 5. **Next Step:** Proceed to `axial-coding.prompt.md` after identifying all
    codes
 
 ## Output
 
-**File:** `SCRATCHPAD1.md` **Next Stage:** Axial Coding
+**File:** `SCRATCHPAD-1.md` **Next Stage:** Axial Coding
 (`axial-coding.prompt.md`)
 
 ## Code Structure

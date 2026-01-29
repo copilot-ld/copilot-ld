@@ -75,9 +75,9 @@ import { LocalModule } from "./local.js";
 
 ### Logging
 
-Services use `this.debug(message, context)` from the generated base class. Log
-at service boundaries and before external calls. Messages start with action
-verbs. No sensitive data in logs.
+Services do not perform internal logging. The RPC server layer handles request
+logging via the injected logger and tracer. Business logic stays free of logging
+concerns.
 
 ### Async Optimization
 

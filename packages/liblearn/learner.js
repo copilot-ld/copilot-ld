@@ -233,9 +233,7 @@ export class ExperienceLearner {
    */
   async #selectFewShotExamples(episodes) {
     // Filter to positive examples only
-    const positiveEpisodes = episodes.filter(
-      (e) => e.feedback === "POSITIVE",
-    );
+    const positiveEpisodes = episodes.filter((e) => e.feedback === "POSITIVE");
 
     if (positiveEpisodes.length === 0) return [];
 

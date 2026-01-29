@@ -35,11 +35,6 @@ export class LearnService extends LearnBase {
    * @returns {Promise<import("@copilot-ld/libtype").common.Empty>} Empty response
    */
   async RecordFeedback(req) {
-    this.debug("RecordFeedback", "Recording feedback", {
-      conversation_id: req.conversation_id,
-      signal: req.signal,
-    });
-
     const record = learn.FeedbackRecord.fromObject({
       ...req,
       timestamp: Date.now(),
@@ -56,11 +51,6 @@ export class LearnService extends LearnBase {
    * @returns {Promise<import("@copilot-ld/libtype").learn.FeedbackResponse>} Feedback response with records
    */
   async QueryFeedback(req) {
-    this.debug("QueryFeedback", "Querying feedback", {
-      filter: req.filter,
-      limit: req.limit,
-    });
-
     const result = await this.#feedbackIndex.query(req);
 
     return learn.FeedbackResponse.fromObject({ records: result.records });
@@ -68,14 +58,10 @@ export class LearnService extends LearnBase {
 
   /**
    * Gets the current learned experience
-   * @param {import("@copilot-ld/libtype").learn.ExperienceRequest} req - Experience request
+   * @param {import("@copilot-ld/libtype").learn.ExperienceRequest} _req - Experience request (unused)
    * @returns {Promise<import("@copilot-ld/libtype").learn.ExperienceResponse>} Experience response
    */
-  async GetExperience(req) {
-    this.debug("GetExperience", "Getting experience", {
-      candidate_tools: req.candidate_tools?.length,
-    });
-
+  async GetExperience(_req) {
     const experience = await this.#experienceStore.get("current");
 
     return learn.ExperienceResponse.fromObject(experience || {});
@@ -87,8 +73,6 @@ export class LearnService extends LearnBase {
    * @returns {Promise<import("@copilot-ld/libtype").common.Empty>} Empty response
    */
   async UpdateExperience(_req) {
-    this.debug("UpdateExperience", "Triggering experience update");
-
     await this.#learner.learn();
 
     return common.Empty.fromObject({});

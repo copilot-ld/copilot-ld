@@ -20,7 +20,7 @@
     "@aws-sdk/credential-providers": "^3.970.0",
     "@copilot-ld/libconfig": "^0.1.58",
     "@copilot-ld/libsecret": "^0.1.2",
-    "@copilot-ld/libtelemetry": "^0.1.21",
+    "@copilot-ld/libtelemetry": "^0.1.22",
     "@copilot-ld/libutil": "^0.1.59"
   },
   "repository": {

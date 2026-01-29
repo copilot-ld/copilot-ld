@@ -119,7 +119,7 @@ export const baseStyles = `
   /* Messages */
   article {
     position: relative;
-    margin-bottom: var(--chat-space-md);
+    margin-bottom: var(--chat-space-lg);
     line-height: 1.5;
   }
 
@@ -218,6 +218,7 @@ export const baseStyles = `
     position: absolute;
     top: 100%;
     left: 0;
+    margin-top: var(--chat-space-xs);
     display: flex;
     gap: var(--chat-space-xs);
     opacity: 0;

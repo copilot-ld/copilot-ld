@@ -23,11 +23,6 @@ describe("libagent", () => {
     mockServiceCallbacks = createMockServiceCallbacks({
       memory: {
         append: async () => ({}),
-        getBudget: async () => ({
-          total: 128000,
-          overhead: 5000,
-          available: 123000,
-        }),
       },
     });
 

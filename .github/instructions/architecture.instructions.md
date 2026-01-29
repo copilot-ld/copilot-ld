@@ -38,6 +38,19 @@ package main index.
 
 **Code Generation**: Run `make codegen` after modifying `.proto` files.
 
+## Environment Files
+
+Layered `.env` files loaded by `scripts/env.sh`: `.env` (secrets), `.env.local`
+(URLs), `.env.docker` (containers), `.env.storage.*`, `.env.auth.*`.
+
+Services need URLs in `.env.local` or default to port 3000 (causes collisions):
+
+```bash
+SERVICE_<NAME>_URL=grpc://localhost:<port>
+```
+
+Sync from `.env.local.example` when adding services.
+
 ## Prohibitions
 
 1. **DO NOT** use backward compatibility shims or deprecation warnings

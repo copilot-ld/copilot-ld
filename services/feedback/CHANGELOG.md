@@ -2,6 +2,4 @@
 
 ## 2026-01-29
 
-- Added FeedbackService for feedback collection and experience management
-- Added gRPC endpoints for RecordFeedback, QueryFeedback, GetExperience,
-  UpdateExperience
+- Initial release with `RecordFeedback`, `QueryFeedback`, `GetExperience`, and `UpdateExperience` endpoints

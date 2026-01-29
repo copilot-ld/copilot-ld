@@ -2,9 +2,7 @@
 
 ## 2026-01-29
 
-- Added optional `experienceInjector` parameter to `MemoryWindow` constructor
-- Added `#buildExperienceContext()` for injecting learned tool experience
-- Experience injection is opt-in and gracefully degrades when not configured
+- Added optional experience injection via `ExperienceInjector` for learned tool selection context
 
 ## 2025-12-02
 

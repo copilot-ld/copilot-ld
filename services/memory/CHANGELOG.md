@@ -2,9 +2,7 @@
 
 ## 2026-01-29
 
-- Added optional `experienceInjector` parameter to `MemoryService` constructor
-- Server now attempts to wire up experience injection with graceful fallback
-- Added libfeedback and libtelemetry dependencies for experience injection
+- Added optional experience injection with graceful fallback when unavailable
 
 ## 2025-12-02
 

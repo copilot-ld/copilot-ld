@@ -181,6 +181,31 @@ configuration-driven endpoint mapping to extend the platform with custom tools.
 - **Extensible**: Maps to existing services or custom tool implementations
 - **Schema generation**: Auto-generates JSON schemas from protobuf types
 
+#### Feedback Service
+
+Collects user feedback signals (thumbs up/down) and manages experience learning
+to improve tool selection. Built as a gRPC wrapper around
+`@copilot-ld/libfeedback`.
+
+**Key Operations**:
+
+- `RecordFeedback`: Records user feedback (positive/negative) for a message
+- `QueryFeedback`: Queries stored feedback records with timestamp and
+  conversation filters
+- `GetExperience`: Returns the current learned experience for context injection
+- `UpdateExperience`: Triggers the batch learning job to reprocess feedback
+
+**Architecture**:
+
+- **Feedback-driven learning**: Correlates traces with user signals to extract
+  tool selection patterns
+- **Context injection**: Injects learned experience into memory windows at
+  runtime
+- **No model updates**: Improves behavior through prompt engineering, not weight
+  changes
+- **Graceful degradation**: Services continue to work when feedback is
+  unavailable
+
 #### Trace Service
 
 Collects and stores distributed traces from all services to provide

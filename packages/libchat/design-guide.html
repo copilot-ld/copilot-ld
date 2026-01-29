@@ -430,7 +430,12 @@
           `
           <main>
             <article role="user">This is a user message. It appears on the right with the accent color background.</article>
-            <article role="assistant">This is an assistant response. It appears on the left with the default text color and no background.</article>
+            <article role="assistant">This is an assistant response. Hover to see feedback buttons.
+              <div class="feedback">
+                <button data-signal="positive" aria-label="Good response">👍</button>
+                <button data-signal="negative" aria-label="Poor response">👎</button>
+              </div>
+            </article>
             <article role="error">This is an error message displayed in the error color.</article>
           </main>`,
         ],

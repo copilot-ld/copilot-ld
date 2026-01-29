@@ -130,7 +130,7 @@ export class ExperienceLearner {
         }
 
         const bucket =
-          episode.feedback === "SIGNAL_POSITIVE" ? "positive" : "negative";
+          episode.feedback === "POSITIVE" ? "positive" : "negative";
         patterns.get(call.tool_name)[bucket].push({
           query: episode.query,
           parameters: call.parameters,
@@ -234,7 +234,7 @@ export class ExperienceLearner {
   async #selectFewShotExamples(episodes) {
     // Filter to positive examples only
     const positiveEpisodes = episodes.filter(
-      (e) => e.feedback === "SIGNAL_POSITIVE",
+      (e) => e.feedback === "POSITIVE",
     );
 
     if (positiveEpisodes.length === 0) return [];

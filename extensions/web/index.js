@@ -189,10 +189,10 @@ export async function createWebExtension(clients, config, logger = null) {
         // Map signal string to enum
         const signalEnum =
           signal === "positive"
-            ? learn.Signal.SIGNAL_POSITIVE
+            ? learn.Signal.POSITIVE
             : signal === "negative"
-              ? learn.Signal.SIGNAL_NEGATIVE
-              : learn.Signal.SIGNAL_UNSPECIFIED;
+              ? learn.Signal.NEGATIVE
+              : learn.Signal.UNSPECIFIED;
 
         const feedbackRecord = learn.FeedbackRecord.fromObject({
           conversation_id,

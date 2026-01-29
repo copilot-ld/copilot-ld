@@ -22,9 +22,9 @@ message FeedbackRecord {
 }
 
 enum Signal {
-  SIGNAL_UNSPECIFIED = 0;
-  SIGNAL_POSITIVE = 1;
-  SIGNAL_NEGATIVE = 2;
+  UNSPECIFIED = 0;
+  POSITIVE = 1;
+  NEGATIVE = 2;
 }
 
 message QueryRequest {

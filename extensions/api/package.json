@@ -18,9 +18,9 @@
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.58",
     "@copilot-ld/librpc": "^0.1.77",
-    "@copilot-ld/libtelemetry": "^0.1.21",
-    "@copilot-ld/libtype": "^0.1.62",
-    "@copilot-ld/libutil": "^0.1.59"
+    "@copilot-ld/libtelemetry": "^0.1.22",
+    "@copilot-ld/libtype": "^0.1.63",
+    "@copilot-ld/libutil": "^0.1.60"
   },
   "repository": {
     "type": "git",

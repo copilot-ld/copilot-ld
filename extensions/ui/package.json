@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@copilot-ld/libchat": "^0.1.6",
-    "@copilot-ld/libconfig": "^0.1.57",
+    "@copilot-ld/libconfig": "^0.1.58",
     "@copilot-ld/librpc": "^0.1.77",
     "@copilot-ld/libtelemetry": "^0.1.21",
     "@hono/node-server": "^1.19.9",

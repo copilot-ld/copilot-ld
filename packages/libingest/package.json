@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@copilot-ld/libllm": "^0.1.70",
-    "@copilot-ld/libpolicy": "^0.1.51",
+    "@copilot-ld/libpolicy": "^0.1.52",
     "@copilot-ld/libprompt": "^0.1.1",
     "@copilot-ld/libstorage": "^0.1.53",
     "@copilot-ld/libtype": "^0.1.62",

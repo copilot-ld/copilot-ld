@@ -1,6 +1,6 @@
 {
   "name": "@copilot-ld/libcodegen",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "Protocol Buffer code generation utilities for Copilot-LD",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

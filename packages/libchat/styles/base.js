@@ -216,7 +216,7 @@ export const baseStyles = `
   /* Feedback buttons */
   .feedback {
     position: absolute;
-    bottom: 0;
+    top: 100%;
     left: 0;
     display: flex;
     gap: var(--chat-space-xs);

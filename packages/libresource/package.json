@@ -35,7 +35,7 @@
     "microdata-rdf-streaming-parser": "^3.0.0",
     "n3": "^1.26.0",
     "rdf-canonize": "^4.0.1",
-    "@copilot-ld/libharness": "^0.1.4"
+    "@copilot-ld/libharness": "^0.1.5"
   },
   "repository": {
     "type": "git",

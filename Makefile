@@ -453,7 +453,7 @@ cli-unary:  ## Unary gRPC calls
 
 .PHONY: cli-feedback
 cli-feedback:  ## Run experience learning batch job
-	@$(ENVLOAD) node ./scripts/feedback.js $(ARGS)
+	@$(ENVLOAD) node ./packages/libfeedback/bin/feedback.js $(ARGS)
 
 # ====================
 # Evaluation

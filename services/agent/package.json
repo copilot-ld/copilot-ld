@@ -18,7 +18,7 @@
     "@copilot-ld/libagent": "^0.1.36",
     "@copilot-ld/libconfig": "^0.1.57",
     "@copilot-ld/libresource": "^0.1.88",
-    "@copilot-ld/librpc": "^0.1.76"
+    "@copilot-ld/librpc": "^0.1.77"
   },
   "repository": {
     "type": "git",

@@ -19,7 +19,7 @@ export class MemoryWindow {
    * @param {string} resourceId - The resource ID (conversation ID)
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
    * @param {import("./index/memory.js").MemoryIndex} memoryIndex - Memory index instance for this specific resource
-   * @param {import("@copilot-ld/liblearn").ExperienceInjector} [experienceInjector] - Optional experience injector for learned tool experience
+   * @param {import("@copilot-ld/libfeedback").ExperienceInjector} [experienceInjector] - Optional experience injector for learned tool experience
    */
   constructor(
     resourceId,

@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package learn;
+package feedback;
 
 import "common.proto";
 
-service Learn {
+service Feedback {
   rpc RecordFeedback(FeedbackRecord) returns (common.Empty);
   rpc QueryFeedback(QueryRequest) returns (FeedbackResponse);
   rpc GetExperience(ExperienceRequest) returns (ExperienceResponse);

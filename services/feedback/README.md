@@ -1,4 +1,4 @@
-# Learn Service
+# Feedback Service
 
 gRPC service for feedback collection and experience learning.
 
@@ -18,7 +18,7 @@ Add to `config/config.json`:
 ```json
 {
   "services": {
-    "learn": {
+    "feedback": {
       "port": 50060
     }
   }
@@ -28,5 +28,5 @@ Add to `config/config.json`:
 ## Usage
 
 ```bash
-make rc-learn  # Start the learn service
+make rc-feedback  # Start the feedback service
 ```

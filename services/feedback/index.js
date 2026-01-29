@@ -1,22 +1,22 @@
 import { services } from "@copilot-ld/librpc";
-import { learn, common } from "@copilot-ld/libtype";
+import { feedback, common } from "@copilot-ld/libtype";
 
-const { LearnBase } = services;
+const { FeedbackBase } = services;
 
 /**
- * Learn service for feedback collection and experience management
+ * Feedback service for feedback collection and experience management
  */
-export class LearnService extends LearnBase {
+export class FeedbackService extends FeedbackBase {
   #feedbackIndex;
   #experienceStore;
   #learner;
 
   /**
-   * Creates a new Learn service instance
+   * Creates a new Feedback service instance
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration
-   * @param {import("@copilot-ld/liblearn").FeedbackIndex} feedbackIndex - Index for feedback records
-   * @param {import("@copilot-ld/liblearn").ExperienceStore} experienceStore - Storage for learned experience
-   * @param {import("@copilot-ld/liblearn").ExperienceLearner} learner - Experience learner instance
+   * @param {import("@copilot-ld/libfeedback").FeedbackIndex} feedbackIndex - Index for feedback records
+   * @param {import("@copilot-ld/libfeedback").ExperienceStore} experienceStore - Storage for learned experience
+   * @param {import("@copilot-ld/libfeedback").ExperienceLearner} learner - Experience learner instance
    */
   constructor(config, feedbackIndex, experienceStore, learner) {
     super(config);
@@ -31,11 +31,11 @@ export class LearnService extends LearnBase {
 
   /**
    * Records a feedback signal for a conversation message
-   * @param {import("@copilot-ld/libtype").learn.FeedbackRecord} req - Feedback record
+   * @param {import("@copilot-ld/libtype").feedback.FeedbackRecord} req - Feedback record
    * @returns {Promise<import("@copilot-ld/libtype").common.Empty>} Empty response
    */
   async RecordFeedback(req) {
-    const record = learn.FeedbackRecord.fromObject({
+    const record = feedback.FeedbackRecord.fromObject({
       ...req,
       timestamp: Date.now(),
     });
@@ -47,29 +47,29 @@ export class LearnService extends LearnBase {
 
   /**
    * Queries feedback records with optional filters
-   * @param {import("@copilot-ld/libtype").learn.QueryRequest} req - Query request
-   * @returns {Promise<import("@copilot-ld/libtype").learn.FeedbackResponse>} Feedback response with records
+   * @param {import("@copilot-ld/libtype").feedback.QueryRequest} req - Query request
+   * @returns {Promise<import("@copilot-ld/libtype").feedback.FeedbackResponse>} Feedback response with records
    */
   async QueryFeedback(req) {
     const result = await this.#feedbackIndex.query(req);
 
-    return learn.FeedbackResponse.fromObject({ records: result.records });
+    return feedback.FeedbackResponse.fromObject({ records: result.records });
   }
 
   /**
    * Gets the current learned experience
-   * @param {import("@copilot-ld/libtype").learn.ExperienceRequest} _req - Experience request (unused)
-   * @returns {Promise<import("@copilot-ld/libtype").learn.ExperienceResponse>} Experience response
+   * @param {import("@copilot-ld/libtype").feedback.ExperienceRequest} _req - Experience request (unused)
+   * @returns {Promise<import("@copilot-ld/libtype").feedback.ExperienceResponse>} Experience response
    */
   async GetExperience(_req) {
     const experience = await this.#experienceStore.get("current");
 
-    return learn.ExperienceResponse.fromObject(experience || {});
+    return feedback.ExperienceResponse.fromObject(experience || {});
   }
 
   /**
    * Triggers experience update by running the learner
-   * @param {import("@copilot-ld/libtype").learn.ExperienceUpdate} _req - Update request (unused)
+   * @param {import("@copilot-ld/libtype").feedback.ExperienceUpdate} _req - Update request (unused)
    * @returns {Promise<import("@copilot-ld/libtype").common.Empty>} Empty response
    */
   async UpdateExperience(_req) {

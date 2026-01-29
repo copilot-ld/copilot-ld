@@ -19,7 +19,7 @@ import { createLogger } from "@copilot-ld/libtelemetry";
 import { PromptLoader } from "@copilot-ld/libprompt";
 
 // Extract generated clients
-const { AgentClient, MemoryClient, TraceClient, LearnClient } = clients;
+const { AgentClient, MemoryClient, TraceClient, FeedbackClient } = clients;
 
 // Initialize logger
 const logger = createLogger("eval");
@@ -139,11 +139,11 @@ async function main() {
   // Initialize utility clients, without tracing
   const memoryConfig = await createServiceConfig("memory");
   const traceConfig = await createServiceConfig("trace");
-  const learnConfig = await createServiceConfig("learn");
+  const feedbackConfig = await createServiceConfig("feedback");
 
   const memoryClient = new MemoryClient(memoryConfig);
   const traceClient = new TraceClient(traceConfig);
-  const learnClient = new LearnClient(learnConfig);
+  const feedbackClient = new FeedbackClient(feedbackConfig);
 
   // Initialize evaluation index for storing results
   const evaluationIndex = new EvaluationIndex(evalStorage);
@@ -185,7 +185,7 @@ async function main() {
           agentClient,
           memoryClient,
           traceClient,
-          learnClient,
+          feedbackClient,
           llmToken,
           model,
           evaluationIndex,

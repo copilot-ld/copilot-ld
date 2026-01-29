@@ -7,7 +7,7 @@ import {
   ExperienceLearner,
   ExperienceStore,
   FeedbackIndex,
-} from "@copilot-ld/liblearn";
+} from "@copilot-ld/libfeedback";
 
 const logger = createLogger("cli");
 const tracer = await createTracer("cli");

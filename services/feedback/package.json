@@ -1,7 +1,7 @@
 {
-  "name": "@copilot-ld/liblearn",
+  "name": "@copilot-ld/feedback",
   "version": "0.1.0",
-  "description": "Experience learning from feedback for tool selection improvement",
+  "description": "Feedback service for feedback collection and experience learning",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
@@ -10,17 +10,22 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "dev": "node --watch server.js",
+    "start": "npx download && node server.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@copilot-ld/libindex": "^0.1.26",
-    "@copilot-ld/libtype": "^0.1.62",
-    "@copilot-ld/libvector": "^0.1.37"
+    "@copilot-ld/libconfig": "^0.1.57",
+    "@copilot-ld/libfeedback": "^0.1.0",
+    "@copilot-ld/librpc": "^0.1.76",
+    "@copilot-ld/libstorage": "^0.1.52",
+    "@copilot-ld/libtelemetry": "^0.1.21",
+    "@copilot-ld/libtype": "^0.1.62"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/copilot-ld/copilot-ld.git",
-    "directory": "packages/liblearn"
+    "directory": "services/feedback"
   },
   "publishConfig": {
     "access": "public",

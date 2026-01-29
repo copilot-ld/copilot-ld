@@ -8,7 +8,7 @@ describe("Evaluator", () => {
     const mockAgent = {};
     const mockMemory = {};
     const mockTrace = {};
-    const mockLearn = {};
+    const mockFeedback = {};
     const mockToken = "test-token";
     const mockIndex = {};
     const mockCriteria = {};
@@ -21,7 +21,7 @@ describe("Evaluator", () => {
           null,
           mockMemory,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           mockIndex,
@@ -38,7 +38,7 @@ describe("Evaluator", () => {
           mockAgent,
           null,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           mockIndex,
@@ -55,7 +55,7 @@ describe("Evaluator", () => {
           mockAgent,
           mockMemory,
           null,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           mockIndex,
@@ -80,7 +80,7 @@ describe("Evaluator", () => {
           mockRetrieval,
           mockTraceEval,
         ),
-      /learnClient is required/,
+      /feedbackClient is required/,
     );
 
     assert.throws(
@@ -89,7 +89,7 @@ describe("Evaluator", () => {
           mockAgent,
           mockMemory,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           null,
           null,
           mockIndex,
@@ -106,7 +106,7 @@ describe("Evaluator", () => {
           mockAgent,
           mockMemory,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           null,
@@ -123,7 +123,7 @@ describe("Evaluator", () => {
           mockAgent,
           mockMemory,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           mockIndex,
@@ -140,7 +140,7 @@ describe("Evaluator", () => {
           mockAgent,
           mockMemory,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           mockIndex,
@@ -157,7 +157,7 @@ describe("Evaluator", () => {
           mockAgent,
           mockMemory,
           mockTrace,
-          mockLearn,
+          mockFeedback,
           mockToken,
           null,
           mockIndex,
@@ -173,7 +173,7 @@ describe("Evaluator", () => {
     const mockAgent = {};
     const mockMemory = {};
     const mockTrace = {};
-    const mockLearn = {};
+    const mockFeedback = {};
     const mockToken = "test-token";
     const mockIndex = {};
     const mockCriteria = {};
@@ -184,7 +184,7 @@ describe("Evaluator", () => {
       mockAgent,
       mockMemory,
       mockTrace,
-      mockLearn,
+      mockFeedback,
       mockToken,
       null,
       mockIndex,
@@ -207,7 +207,7 @@ describe("Evaluator", () => {
     };
     const mockMemory = {};
     const mockTrace = {};
-    const mockLearn = {
+    const mockFeedback = {
       RecordFeedback: mock.fn(() => Promise.resolve()),
     };
     const mockToken = "test-token";
@@ -220,7 +220,7 @@ describe("Evaluator", () => {
       mockAgent,
       mockMemory,
       mockTrace,
-      mockLearn,
+      mockFeedback,
       mockToken,
       null,
       mockIndex,
@@ -257,7 +257,7 @@ describe("Evaluator", () => {
 
     const mockMemory = {};
     const mockTrace = {};
-    const mockLearn = {
+    const mockFeedback = {
       RecordFeedback: mock.fn(() => Promise.resolve()),
     };
 
@@ -283,7 +283,7 @@ describe("Evaluator", () => {
       mockAgent,
       mockMemory,
       mockTrace,
-      mockLearn,
+      mockFeedback,
       mockToken,
       null,
       mockIndex,
@@ -331,7 +331,7 @@ describe("Evaluator", () => {
 
     const mockMemory = {};
     const mockTrace = {};
-    const mockLearn = {
+    const mockFeedback = {
       RecordFeedback: mock.fn(() => Promise.resolve()),
     };
 
@@ -357,7 +357,7 @@ describe("Evaluator", () => {
       mockAgent,
       mockMemory,
       mockTrace,
-      mockLearn,
+      mockFeedback,
       mockToken,
       null,
       mockIndex,

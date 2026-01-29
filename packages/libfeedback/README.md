@@ -1,6 +1,6 @@
-# liblearn
+# libfeedback
 
-Experience learning from feedback for tool selection improvement.
+Feedback collection and experience learning for tool selection improvement.
 
 ## Overview
 
@@ -20,7 +20,7 @@ as context injection, not model weight updates.
 ## Usage
 
 ```javascript
-import { ExperienceLearner, ExperienceInjector } from "@copilot-ld/liblearn";
+import { ExperienceLearner, ExperienceInjector } from "@copilot-ld/libfeedback";
 
 // Batch learning (run as scheduled job)
 const learner = new ExperienceLearner(
@@ -39,5 +39,5 @@ const context = await injector.generateContext(userQuery, availableTools);
 ## CLI
 
 ```bash
-make cli-learn  # Run batch learning job
+make cli-feedback  # Run experience learning batch job
 ```

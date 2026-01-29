@@ -291,7 +291,7 @@ JWTs
 keyless
 knowledge_navigator
 Kubernetes
-LearnService
+FeedbackService
 li
 libagent
 libanalysis
@@ -303,13 +303,13 @@ libcopilot
 libdoc
 LibDoc
 libeval
+libfeedback
 libformat
 libgraph
 libharness
 libhistory
 libindex
 libingest
-liblearn
 libllm
 libmemory
 libperf

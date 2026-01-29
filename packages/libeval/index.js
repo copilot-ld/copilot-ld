@@ -1,4 +1,4 @@
-import { common, agent, learn } from "@copilot-ld/libtype";
+import { common, agent, feedback } from "@copilot-ld/libtype";
 
 /**
  * @typedef {object} ReporterInterface
@@ -11,7 +11,7 @@ import { common, agent, learn } from "@copilot-ld/libtype";
  */
 export class Evaluator {
   #agentClient;
-  #learnClient;
+  #feedbackClient;
   #llmToken;
   #model;
   #judgeEvaluator;
@@ -24,7 +24,7 @@ export class Evaluator {
    * @param {import('@copilot-ld/librpc').AgentClient} agentClient - Agent client for evaluation
    * @param {import('@copilot-ld/librpc').MemoryClient} memoryClient - Memory client for recall evaluation
    * @param {import('@copilot-ld/librpc').TraceClient} traceClient - Trace client for trace evaluation
-   * @param {import('@copilot-ld/librpc').LearnClient} learnClient - Learn client for feedback submission
+   * @param {import('@copilot-ld/librpc').FeedbackClient} feedbackClient - Feedback client for feedback submission
    * @param {string} llmToken - GitHub token for API access
    * @param {string} [model] - Optional model override for LLM service
    * @param {import('./index/evaluation.js').EvaluationIndex} evaluationIndex - Evaluation index for storing results
@@ -36,7 +36,7 @@ export class Evaluator {
     agentClient,
     memoryClient,
     traceClient,
-    learnClient,
+    feedbackClient,
     llmToken,
     model,
     evaluationIndex,
@@ -47,7 +47,7 @@ export class Evaluator {
     if (!agentClient) throw new Error("agentClient is required");
     if (!memoryClient) throw new Error("memoryClient is required");
     if (!traceClient) throw new Error("traceClient is required");
-    if (!learnClient) throw new Error("learnClient is required");
+    if (!feedbackClient) throw new Error("feedbackClient is required");
     if (!llmToken) throw new Error("llmToken is required");
     if (!evaluationIndex) throw new Error("evaluationIndex is required");
     if (!judgeEvaluator) throw new Error("judgeEvaluator is required");
@@ -55,7 +55,7 @@ export class Evaluator {
     if (!traceEvaluator) throw new Error("traceEvaluator is required");
 
     this.#agentClient = agentClient;
-    this.#learnClient = learnClient;
+    this.#feedbackClient = feedbackClient;
     this.#llmToken = llmToken;
     this.#model = model;
     this.#evaluationIndex = evaluationIndex;
@@ -122,27 +122,27 @@ export class Evaluator {
     // Store result in evaluation index
     await this.#evaluationIndex.add(result);
 
-    // Submit feedback to learn service
+    // Submit feedback to feedback service
     await this.#submitFeedback(resource, result.passed);
 
     return result;
   }
 
   /**
-   * Submit feedback to the learn service
+   * Submit feedback to the feedback service
    * @param {string} resourceId - Resource ID from agent response
    * @param {boolean} passed - Whether the evaluation passed
    * @returns {Promise<void>}
    */
   async #submitFeedback(resourceId, passed) {
-    const feedback = learn.FeedbackRecord.fromObject({
+    const record = feedback.FeedbackRecord.fromObject({
       conversation_id: resourceId,
       trace_id: resourceId,
-      signal: passed ? learn.Signal.POSITIVE : learn.Signal.NEGATIVE,
+      signal: passed ? feedback.Signal.POSITIVE : feedback.Signal.NEGATIVE,
       timestamp: Date.now(),
     });
 
-    await this.#learnClient.RecordFeedback(feedback);
+    await this.#feedbackClient.RecordFeedback(record);
   }
 }
 

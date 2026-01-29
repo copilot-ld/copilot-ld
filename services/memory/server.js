@@ -21,7 +21,7 @@ const resourceIndex = createResourceIndex("resources");
 let experienceInjector = null;
 try {
   const { ExperienceInjector, ExperienceStore } =
-    await import("@copilot-ld/liblearn");
+    await import("@copilot-ld/libfeedback");
   const experienceStorage = createStorage("experience");
   const experienceStore = new ExperienceStore(experienceStorage);
   const vectorClient = await createClient("vector", logger, tracer);

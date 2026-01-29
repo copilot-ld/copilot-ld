@@ -17,7 +17,7 @@ const {
   memory = {},
   tool = {},
   trace = {},
-  learn = {},
+  feedback = {},
 } = types;
 
 /**
@@ -195,5 +195,5 @@ export {
   memory,
   tool,
   trace,
-  learn,
+  feedback,
 };

@@ -19,7 +19,7 @@ export class MemoryService extends MemoryBase {
    * @param {import("@copilot-ld/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@copilot-ld/libstorage").StorageInterface} storage - Storage instance for memories
    * @param {import("@copilot-ld/libresource").ResourceIndex} resourceIndex - Resource index for loading resources
-   * @param {import("@copilot-ld/liblearn").ExperienceInjector} [experienceInjector] - Optional experience injector for learned tool experience
+   * @param {import("@copilot-ld/libfeedback").ExperienceInjector} [experienceInjector] - Optional experience injector for learned tool experience
    */
   constructor(config, storage, resourceIndex, experienceInjector = null) {
     super(config);

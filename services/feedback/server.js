@@ -7,15 +7,15 @@ import {
   ExperienceLearner,
   ExperienceStore,
   FeedbackIndex,
-} from "@copilot-ld/liblearn";
+} from "@copilot-ld/libfeedback";
 
-import { LearnService } from "./index.js";
+import { FeedbackService } from "./index.js";
 
-const config = await createServiceConfig("learn");
+const config = await createServiceConfig("feedback");
 
 // Initialize observability
-const logger = createLogger("learn");
-const tracer = await createTracer("learn");
+const logger = createLogger("feedback");
+const tracer = await createTracer("feedback");
 
 // Initialize storage backends
 const feedbackStorage = createStorage("feedback");
@@ -38,7 +38,7 @@ const learner = new ExperienceLearner(
   experienceStore,
 );
 
-const service = new LearnService(
+const service = new FeedbackService(
   config,
   feedbackIndex,
   experienceStore,

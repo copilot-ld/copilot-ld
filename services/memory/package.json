@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@copilot-ld/libconfig": "^0.1.57",
-    "@copilot-ld/liblearn": "^0.1.0",
+    "@copilot-ld/libfeedback": "^0.1.0",
     "@copilot-ld/libmemory": "^0.1.32",
     "@copilot-ld/libresource": "^0.1.88",
     "@copilot-ld/librpc": "^0.1.76",
     "@copilot-ld/libstorage": "^0.1.52",
-    "@copilot-ld/libtelemetry": "^0.1.30"
+    "@copilot-ld/libtelemetry": "^0.1.21"
   },
   "repository": {
     "type": "git",

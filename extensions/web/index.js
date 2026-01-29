@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { streamText } from "hono/streaming";
 
 import { createHtmlFormatter } from "@copilot-ld/libformat";
-import { agent, common, learn } from "@copilot-ld/libtype";
+import { agent, common, feedback } from "@copilot-ld/libtype";
 import {
   createValidationMiddleware,
   createCorsMiddleware,
@@ -15,7 +15,7 @@ const htmlFormatter = createHtmlFormatter();
 /**
  * @typedef {object} WebClients
  * @property {import("@copilot-ld/librpc").clients.AgentClient} agent - Agent gRPC client
- * @property {import("@copilot-ld/librpc").clients.LearnClient} [learn] - Learn gRPC client (optional)
+ * @property {import("@copilot-ld/librpc").clients.FeedbackClient} [feedback] - Feedback gRPC client (optional)
  */
 
 /**
@@ -167,8 +167,8 @@ export async function createWebExtension(clients, config, logger = null) {
       },
     }),
     async (c) => {
-      // Check if learn client is available
-      if (!clients.learn) {
+      // Check if feedback client is available
+      if (!clients.feedback) {
         return c.json(
           { error: "Feedback service not available", status: "error" },
           503,
@@ -189,19 +189,19 @@ export async function createWebExtension(clients, config, logger = null) {
         // Map signal string to enum
         const signalEnum =
           signal === "positive"
-            ? learn.Signal.POSITIVE
+            ? feedback.Signal.POSITIVE
             : signal === "negative"
-              ? learn.Signal.NEGATIVE
-              : learn.Signal.UNSPECIFIED;
+              ? feedback.Signal.NEGATIVE
+              : feedback.Signal.UNSPECIFIED;
 
-        const feedbackRecord = learn.FeedbackRecord.fromObject({
+        const feedbackRecord = feedback.FeedbackRecord.fromObject({
           conversation_id,
           message_id: message_index !== undefined ? String(message_index) : "",
           signal: signalEnum,
           timestamp: Date.now(),
         });
 
-        await clients.learn.RecordFeedback(feedbackRecord);
+        await clients.feedback.RecordFeedback(feedbackRecord);
 
         return c.json({ status: "ok" });
       } catch (error) {

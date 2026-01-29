@@ -4,7 +4,7 @@
 
 - Added optional `experienceInjector` parameter to `MemoryService` constructor
 - Server now attempts to wire up experience injection with graceful fallback
-- Added liblearn and libtelemetry dependencies for experience injection
+- Added libfeedback and libtelemetry dependencies for experience injection
 
 ## 2025-12-02
 

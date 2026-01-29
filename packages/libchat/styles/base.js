@@ -218,7 +218,6 @@ export const baseStyles = `
     position: absolute;
     top: 100%;
     left: 0;
-    margin-top: var(--chat-space-xs);
     display: flex;
     gap: var(--chat-space-xs);
     opacity: 0;

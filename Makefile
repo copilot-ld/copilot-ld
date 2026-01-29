@@ -428,7 +428,7 @@ eval-report:  ## Generate evaluation report
 
 .PHONY: eval-reset
 eval-reset:  ## Reset evaluation state
-	@rm -rf data/*.log data/logs/* data/cli/* data/eval/* data/memories/* data/resources/common.Conversation.* data/traces/*
+	@rm -rf data/*.log data/logs/* data/cli/* data/eval/* data/experience/* data/feedback/* data/memories/* data/resources/common.Conversation.* data/traces/*
 	@$(ENVLOAD) npx --workspace=@copilot-ld/librc rc restart --silent
 
 # ====================

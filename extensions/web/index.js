@@ -155,15 +155,15 @@ export async function createWebExtension(clients, config, logger = null) {
   app.post(
     "/web/api/feedback",
     validationMiddleware.create({
-      required: ["signal", "conversation_id"],
+      required: ["signal", "resource_id"],
       types: {
         signal: "string",
-        conversation_id: "string",
+        resource_id: "string",
         message_index: "number",
       },
       maxLengths: {
         signal: 20,
-        conversation_id: 100,
+        resource_id: 100,
       },
     }),
     async (c) => {
@@ -178,11 +178,11 @@ export async function createWebExtension(clients, config, logger = null) {
       try {
         const user = c.get("user");
         const data = c.get("validatedData");
-        const { signal, conversation_id, message_index } = data;
+        const { signal, resource_id, message_index } = data;
 
         logger?.debug("Feedback", "Processing feedback", {
           userId: user?.id,
-          conversationId: conversation_id,
+          resourceId: resource_id,
           signal,
         });
 
@@ -195,7 +195,7 @@ export async function createWebExtension(clients, config, logger = null) {
               : feedback.Signal.UNSPECIFIED;
 
         const feedbackRecord = feedback.FeedbackRecord.fromObject({
-          conversation_id,
+          resource_id,
           message_id: message_index !== undefined ? String(message_index) : "",
           signal: signalEnum,
           timestamp: Date.now(),

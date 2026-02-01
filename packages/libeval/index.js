@@ -136,8 +136,7 @@ export class Evaluator {
    */
   async #submitFeedback(resourceId, passed) {
     const record = feedback.FeedbackRecord.fromObject({
-      conversation_id: resourceId,
-      trace_id: resourceId,
+      resource_id: resourceId,
       signal: passed ? feedback.Signal.POSITIVE : feedback.Signal.NEGATIVE,
       timestamp: Date.now(),
     });

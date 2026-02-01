@@ -197,6 +197,8 @@ fallback
 fallbacks
 Fargate
 FeedbackIndex
+FeedbackRecord
+FeedbackService
 filesystem
 findProjectRoot
 foaf
@@ -291,7 +293,6 @@ JWTs
 keyless
 knowledge_navigator
 Kubernetes
-FeedbackService
 li
 libagent
 libanalysis

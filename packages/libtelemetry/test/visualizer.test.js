@@ -259,7 +259,7 @@ describe("TraceVisualizer", () => {
               name: "request_sent",
               time_unix_nano: "1000000",
               attributes: {
-                conversation_id: "conv123",
+                resource_id: "conv123",
                 message_count: "5",
               },
             },
@@ -291,8 +291,8 @@ describe("TraceVisualizer", () => {
       const result = await visualizer.visualize(null, { trace_id: "trace1" });
 
       assert.ok(
-        result.includes("conversation_id=conv123"),
-        "Should include conversation_id attribute",
+        result.includes("resource_id=conv123"),
+        "Should include resource_id attribute",
       );
       assert.ok(
         result.includes("message_count=5"),

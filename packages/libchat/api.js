@@ -114,7 +114,7 @@ export class ChatApi {
       headers,
       body: JSON.stringify({
         signal,
-        conversation_id: conversationId,
+        resource_id: conversationId,
         message_index: messageIndex,
       }),
     });

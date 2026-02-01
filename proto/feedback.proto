@@ -14,11 +14,10 @@ service Feedback {
 // Feedback collection
 
 message FeedbackRecord {
-  string conversation_id = 1;
+  string resource_id = 1;
   string message_id = 2;
-  string trace_id = 3;
-  Signal signal = 4;
-  int64 timestamp = 5;
+  Signal signal = 3;
+  int64 timestamp = 4;
 }
 
 enum Signal {
@@ -29,7 +28,7 @@ enum Signal {
 
 message QueryRequest {
   message Filter {
-    optional string conversation_id = 1;
+    optional string resource_id = 1;
     optional int64 after_timestamp = 2;
   }
   optional Filter filter = 1;

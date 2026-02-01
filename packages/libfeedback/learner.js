@@ -71,9 +71,9 @@ export class ExperienceLearner {
     const episodes = [];
 
     for (const record of feedback.records) {
-      // Get full trace for this conversation
+      // Get full trace for this resource (conversation)
       const spans = await this.#traceIndex.queryItems(null, {
-        trace_id: record.trace_id,
+        resource_id: record.resource_id,
       });
 
       // Parse failures silently skip—intentional for batch resilience
@@ -111,7 +111,7 @@ export class ExperienceLearner {
       query,
       tool_calls: toolCalls,
       feedback: feedback.signal,
-      trace_id: feedback.trace_id,
+      resource_id: feedback.resource_id,
     };
   }
 

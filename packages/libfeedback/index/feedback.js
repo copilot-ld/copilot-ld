@@ -1,5 +1,5 @@
 import { IndexBase } from "@copilot-ld/libindex";
-import { learn } from "@copilot-ld/libtype";
+import { feedback } from "@copilot-ld/libtype";
 
 /**
  * Index for feedback records with query support
@@ -24,22 +24,22 @@ export class FeedbackIndex extends IndexBase {
     // Reconstruct feedback objects from plain JSON
     for (const item of this.index.values()) {
       if (item.record && typeof item.record === "object") {
-        item.record = learn.FeedbackRecord.fromObject(item.record);
+        item.record = feedback.FeedbackRecord.fromObject(item.record);
       }
     }
   }
 
   /**
    * Adds a feedback record to the index
-   * @param {import("@copilot-ld/libtype").learn.FeedbackRecord} record - Feedback record
+   * @param {import("@copilot-ld/libtype").feedback.FeedbackRecord} record - Feedback record
    * @returns {Promise<void>}
    */
   async put(record) {
     if (!record) throw new Error("record is required");
-    if (!record.conversation_id) throw new Error("conversation_id is required");
+    if (!record.resource_id) throw new Error("resource_id is required");
 
     const item = {
-      id: `${record.conversation_id}:${record.message_id || record.timestamp}`,
+      id: `${record.resource_id}:${record.message_id || record.timestamp}`,
       record,
     };
 
@@ -50,7 +50,7 @@ export class FeedbackIndex extends IndexBase {
    * Queries feedback records with optional filters
    * @param {object} req - Query request
    * @param {object} [req.filter] - Filter options
-   * @param {string} [req.filter.conversation_id] - Filter by conversation
+   * @param {string} [req.filter.resource_id] - Filter by resource
    * @param {number} [req.filter.after_timestamp] - Filter by timestamp
    * @param {number} [req.limit] - Maximum records to return
    * @returns {Promise<{records: Array}>} Query result with records array
@@ -59,7 +59,7 @@ export class FeedbackIndex extends IndexBase {
     if (!this.loaded) await this.loadData();
 
     const { filter = {}, limit } = req;
-    const { conversation_id, after_timestamp } = filter;
+    const { resource_id, after_timestamp } = filter;
 
     const records = [];
 
@@ -67,8 +67,8 @@ export class FeedbackIndex extends IndexBase {
       const record = item.record;
       if (!record) continue;
 
-      // Apply conversation filter
-      if (conversation_id && record.conversation_id !== conversation_id) {
+      // Apply resource filter
+      if (resource_id && record.resource_id !== resource_id) {
         continue;
       }
 

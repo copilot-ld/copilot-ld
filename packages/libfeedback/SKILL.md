@@ -5,8 +5,8 @@ description: >
   classes: ExperienceLearner (batch analysis of traces and feedback),
   ExperienceInjector (runtime context injection), FeedbackIndex (feedback
   storage), ExperienceStore (JSON experience persistence). Use for implementing
-  learning loops, analyzing tool call patterns, injecting few-shot examples,
-  and deriving rules from user signals. Integrates with libtelemetry traces,
+  learning loops, analyzing tool call patterns, injecting few-shot examples, and
+  deriving rules from user signals. Integrates with libtelemetry traces,
   libvector embeddings, and libstorage backends. Keywords: reinforcement
   learning, experience replay, tool selection, context injection, few-shot
   learning, feedback signals.
@@ -38,7 +38,11 @@ conversation traces.
 ### Pattern 1: Run batch learning job
 
 ```javascript
-import { ExperienceLearner, ExperienceStore, FeedbackIndex } from "@copilot-ld/libfeedback";
+import {
+  ExperienceLearner,
+  ExperienceStore,
+  FeedbackIndex,
+} from "@copilot-ld/libfeedback";
 import { TraceIndex } from "@copilot-ld/libtelemetry/index/trace.js";
 import { createStorage } from "@copilot-ld/libstorage";
 import { createClient } from "@copilot-ld/librpc";
@@ -68,7 +72,11 @@ const experienceStore = new ExperienceStore(createStorage("experience"));
 const vectorClient = await createClient("vector");
 const injector = new ExperienceInjector(experienceStore, vectorClient);
 
-const context = await injector.generateContext(userQuery, ["search", "query", "chat"]);
+const context = await injector.generateContext(userQuery, [
+  "search",
+  "query",
+  "chat",
+]);
 // Prepend context to agent prompt
 ```
 
@@ -76,15 +84,14 @@ const context = await injector.generateContext(userQuery, ["search", "query", "c
 
 ```javascript
 import { FeedbackIndex } from "@copilot-ld/libfeedback";
-import { learn } from "@copilot-ld/libtype";
+import { feedback } from "@copilot-ld/libtype";
 import { createStorage } from "@copilot-ld/libstorage";
 
 const feedbackIndex = new FeedbackIndex(createStorage("feedback"));
 
 // Store feedback
-const record = learn.FeedbackRecord.fromObject({
-  conversation_id: "conv-123",
-  trace_id: "trace-456",
+const record = feedback.FeedbackRecord.fromObject({
+  resource_id: "common.Conversation.abc-123",
   signal: "POSITIVE",
   timestamp: Date.now(),
 });

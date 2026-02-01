@@ -804,12 +804,12 @@ const logger = createLogger("agent:memory");
 
 // Only logs if DEBUG=agent:* or DEBUG=* or DEBUG=agent:memory
 logger.debug("Retrieved memory window", {
-  conversation_id: "abc123",
+  resource_id: "common.Conversation.abc123",
   item_count: 5,
 });
 
 // Output format:
-// [2025-10-29T12:34:56.789Z] agent:memory: Retrieved memory window conversation_id=abc123 item_count=5
+// [2025-10-29T12:34:56.789Z] agent:memory: Retrieved memory window resource_id=common.Conversation.abc123 item_count=5
 ```
 
 **Environment Variable Control**:
